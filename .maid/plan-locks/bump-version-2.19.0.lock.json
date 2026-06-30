@@ -1,0 +1,52 @@
+{
+  "manifest_path": "manifests/bump-version-2.19.0.manifest.yaml",
+  "manifest_hash": "sha256:fb7c088649eb04afc3351cea729c8df0fb8288a79cb03705ccd28aad68f644d3",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
+  },
+  "created_at": "2026-06-30T12:04:05.198910+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:a918050f6b2a847c252eb8d6736e407b2d80a7fbea343aba90ec9a381cbac304",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
+      },
+      "revised_at": "2026-06-30T12:04:05.701156+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.19.0.manifest.yaml -> manifests/bump-version-2.19.0.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:82dc5a4373fc0847c559f735ca0dff55e63be2090d975722963fdd3464629bd5",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
+      },
+      "revised_at": "2026-06-30T12:12:37.336341+00:00",
+      "reason": "Capture completed outcome after ready implementation review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-06-30T12:04:06.061637+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_release_metadata_is_2_19_0(self):\n        from maid_runner import __version__\n    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.19.0\"\nE       AssertionError: assert '2.18.1' == '2.19.0'\nE         \nE         - 2.19.0\nE         + 2.18.1\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_19_0\n1 failed, 27 passed in 0.17s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_0",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_0:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_0:of=TestPublicAPIImports"
+    ],
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}
