@@ -1,0 +1,182 @@
+{
+  "manifest_path": "manifests/add-verify-summary-output.manifest.yaml",
+  "manifest_hash": "sha256:ff26aa347a7870f35784fbd8628267228ac8a57738661626b380ede4f43609bc",
+  "test_hashes": {
+    "tests/core/test_verify_summary.py": "sha256:1835f4e6c49b7829832b50479f395de5ef0c19c79e383fdb0d8ef87714779dab",
+    "tests/cli/test_verify_summary_cmd.py": "sha256:21a38964a9ccd0b479b71b06e4b8f0b9ae7f9cd25b8f1b3000930b4457529eab"
+  },
+  "created_at": "2026-07-01T02:12:31.894410+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c3e21ab6487b8a3c8cecd69d45ed8a69e87ec51123474484ce3ec87365a2749f",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "tests/core/test_verify_summary.py": "sha256:a94465f6b3763e229936bb5cb199396d33e76567f89b341e3ebde6c230f0c1f4",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:84075fbd5f05fb1ba88448c091d8636898ee7535bad6a6e8d837ecea4b0be85c"
+      },
+      "revised_at": "2026-07-01T02:12:39.565646+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-verify-summary-output.manifest.yaml -> manifests/add-verify-summary-output.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:c140125399649a2dcbb5c3f49d133797f90714b5ff1c38a85b442d323ea804a8",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "tests/core/test_verify_summary.py": "sha256:a94465f6b3763e229936bb5cb199396d33e76567f89b341e3ebde6c230f0c1f4",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:84075fbd5f05fb1ba88448c091d8636898ee7535bad6a6e8d837ecea4b0be85c"
+      },
+      "revised_at": "2026-07-01T02:13:20.242063+00:00",
+      "reason": "Move new artifact imports inside behavioral test bodies so red evidence is captured as test failures instead of collection errors"
+    },
+    {
+      "prior_manifest_hash": "sha256:c140125399649a2dcbb5c3f49d133797f90714b5ff1c38a85b442d323ea804a8",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e",
+        "tests/core/test_verify_summary.py": "sha256:b696e72b13c5899cc5dcde9f5cd51ae51ac0bc8c87878ac81aeb532f0962582d",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:89476da82625dde1b58a8f85d60bee885f01f37370b6861e85ca4fb981e7ee86"
+      },
+      "revised_at": "2026-07-01T02:15:04.883743+00:00",
+      "reason": "Remove stale read-only test context that MAID treated as an uncovered behavioral test file"
+    },
+    {
+      "prior_manifest_hash": "sha256:2ec8dd582f4c92b4c8279ac981e05fe9471460b130c75f0ef294504e75b55800",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256:b696e72b13c5899cc5dcde9f5cd51ae51ac0bc8c87878ac81aeb532f0962582d",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:89476da82625dde1b58a8f85d60bee885f01f37370b6861e85ca4fb981e7ee86"
+      },
+      "revised_at": "2026-07-01T02:24:00.632214+00:00",
+      "reason": "Add review regression that failed validation stages still contribute warning groups"
+    },
+    {
+      "prior_manifest_hash": "sha256:4d6deda6a9bb3c6cfa1886f6603a284f6538b6c7b227cd3994b33d08d2f8b28b",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256:1835f4e6c49b7829832b50479f395de5ef0c19c79e383fdb0d8ef87714779dab",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:89476da82625dde1b58a8f85d60bee885f01f37370b6861e85ca4fb981e7ee86"
+      },
+      "revised_at": "2026-07-01T02:29:36.555545+00:00",
+      "reason": "Capture completed Outcome after implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:1a38fbbb94d2cc572e05da1f8f349beb139fe93d22c1368aaf696eb3fd8644c7",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256:1835f4e6c49b7829832b50479f395de5ef0c19c79e383fdb0d8ef87714779dab",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:89476da82625dde1b58a8f85d60bee885f01f37370b6861e85ca4fb981e7ee86"
+      },
+      "revised_at": "2026-07-01T02:45:44.128879+00:00",
+      "reason": "Add compact summary regression for failed warning-only validation stages after life-dashboard command validation."
+    },
+    {
+      "prior_manifest_hash": "sha256:1a38fbbb94d2cc572e05da1f8f349beb139fe93d22c1368aaf696eb3fd8644c7",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256:1835f4e6c49b7829832b50479f395de5ef0c19c79e383fdb0d8ef87714779dab",
+        "tests/cli/test_verify_summary_cmd.py": "sha256:21a38964a9ccd0b479b71b06e4b8f0b9ae7f9cd25b8f1b3000930b4457529eab"
+      },
+      "revised_at": "2026-07-01T02:53:15.169295+00:00",
+      "reason": "Refresh plan lock after final Outcome evidence for compact summary validation."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-01T02:45:47.262095+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_verify_summary.py tests/cli/test_verify_summary_cmd.py",
+        "exit_code": 1,
+        "output_tail": "monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71c837bbec60>\ncapsys = <_pytest.capture.CaptureFixture object at 0x71c837bbda90>\n\n    def test_summary_json_exposes_blocking_and_warning_split(monkeypatch, capsys) -> None:\n>       from maid_runner.cli.commands._format import format_verify_summary\nE       ImportError: cannot import name 'format_verify_summary' from 'maid_runner.cli.commands._format' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/cli/commands/_format.py)\n\ntests/cli/test_verify_summary_cmd.py:203: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_verify_summary.py::test_build_summary_deduplicates_repeated_warnings\nFAILED tests/core/test_verify_summary.py::test_build_summary_keeps_distinct_locations_separate\nFAILED tests/core/test_verify_summary.py::test_build_summary_partitions_blocking_and_passed_stages\nFAILED tests/core/test_verify_summary.py::test_build_summary_keeps_warning_groups_from_failed_validation_stage\nFAILED tests/core/test_verify_summary.py::test_build_summary_reports_no_warnings_for_clean_result\nFAILED tests/cli/test_verify_summary_cmd.py::test_summary_flag_collapses_duplicate_warnings_in_output\nFAILED tests/cli/test_verify_summary_cmd.py::test_summary_flag_lists_blocking_before_warnings\nFAILED tests/cli/test_verify_summary_cmd.py::test_summary_flag_keeps_failed_warning_only_validation_stage_compact\nFAILED tests/cli/test_verify_summary_cmd.py::test_summary_flag_preserves_exit_code\nFAILED tests/cli/test_verify_summary_cmd.py::test_summary_json_exposes_blocking_and_warning_split\n10 failed in 0.33s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=json_mode:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:returns=str",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.blocking_stages",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.blocking_stages:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.blocking_stages:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.blocking_stages:type=tuple[str, ...]",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.passed_stages",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.passed_stages:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.passed_stages:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.passed_stages:type=tuple[str, ...]",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_warning_count",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_warning_count:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_warning_count:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_warning_count:type=int",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.success",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.success:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.success:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.success:type=bool",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_groups",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_groups:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_groups:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_groups:type=tuple[VerifyWarningGroup, ...]",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.code",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.code:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.code:of=VerifyWarningGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.code:type=Optional[str]",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.count",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.count:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.count:of=VerifyWarningGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.count:type=int",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.location",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.location:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.location:of=VerifyWarningGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.location:type=Optional[str]",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.message",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.message:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.message:of=VerifyWarningGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyWarningGroup.message:type=str",
+      "maid_runner/core/verify_summary.py:class:VerifySummary",
+      "maid_runner/core/verify_summary.py:class:VerifySummary:kind=class",
+      "maid_runner/core/verify_summary.py:class:VerifyWarningGroup",
+      "maid_runner/core/verify_summary.py:class:VerifyWarningGroup:kind=class",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_collapses_duplicate_warnings_in_output",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_collapses_duplicate_warnings_in_output:kind=test_function",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_lists_blocking_before_warnings",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_lists_blocking_before_warnings:kind=test_function",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_preserves_exit_code",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_flag_preserves_exit_code:kind=test_function",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_json_exposes_blocking_and_warning_split",
+      "tests/cli/test_verify_summary_cmd.py:test_summary_json_exposes_blocking_and_warning_split:kind=test_function",
+      "tests/core/test_verify_summary.py:test_build_summary_deduplicates_repeated_warnings",
+      "tests/core/test_verify_summary.py:test_build_summary_deduplicates_repeated_warnings:kind=test_function",
+      "tests/core/test_verify_summary.py:test_build_summary_keeps_distinct_locations_separate",
+      "tests/core/test_verify_summary.py:test_build_summary_keeps_distinct_locations_separate:kind=test_function",
+      "tests/core/test_verify_summary.py:test_build_summary_keeps_warning_groups_from_failed_validation_stage",
+      "tests/core/test_verify_summary.py:test_build_summary_keeps_warning_groups_from_failed_validation_stage:kind=test_function",
+      "tests/core/test_verify_summary.py:test_build_summary_partitions_blocking_and_passed_stages",
+      "tests/core/test_verify_summary.py:test_build_summary_partitions_blocking_and_passed_stages:kind=test_function",
+      "tests/core/test_verify_summary.py:test_build_summary_reports_no_warnings_for_clean_result",
+      "tests/core/test_verify_summary.py:test_build_summary_reports_no_warnings_for_clean_result:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_verify_summary_cmd.py",
+      "tests/core/test_verify_summary.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_verify_summary.py tests/cli/test_verify_summary_cmd.py",
+      "uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -56,7 +56,13 @@ Keep these release-tested anchors discoverable here:
 
 - The planning loop ends with `maid plan lock <manifest>`, and the
   implementation handoff must not proceed until
-  `maid verify --require-plan-lock --require-red-evidence` passes.
+  `maid verify --summary --require-plan-lock --require-red-evidence` passes.
+  Prefer `--summary` for agent and human handoff because it keeps blocking
+  failures visible while deduplicating warning storms; rerun with raw text,
+  `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail
+  is needed. Treat older handoff examples such as
+  `maid verify --require-plan-lock --require-red-evidence` as superseded unless
+  raw text is intentionally required.
 - `maid manifest promote` migrates the promoted manifest's plan lock; use
   `maid plan revise` for intentional contract changes instead of recreating
   evidence.

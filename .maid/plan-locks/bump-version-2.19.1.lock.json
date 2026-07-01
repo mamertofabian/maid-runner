@@ -1,0 +1,44 @@
+{
+  "manifest_path": "manifests/bump-version-2.19.1.manifest.yaml",
+  "manifest_hash": "sha256:53b590560183d692feed7755c1623276a9245eb9270175a2ac6a2bfcfb54a068",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256:5968aa33a401a3021384af17c91f884e0557a2231cfcf7b9342a257288419b91"
+  },
+  "created_at": "2026-07-01T03:28:33.995970+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:da5137d9fa13a1aceb34ab005e5c8266bebf43a3f7f88c93f30de3547116c080",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:5968aa33a401a3021384af17c91f884e0557a2231cfcf7b9342a257288419b91"
+      },
+      "revised_at": "2026-07-01T03:36:29.675488+00:00",
+      "reason": "Refresh plan lock after Outcome capture and guidance compatibility scope update."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-01T03:28:34.478052+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner import __version__\n    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.19.1\"\nE       AssertionError: assert '2.19.0' == '2.19.1'\nE         \nE         - 2.19.1\nE         ?      ^\nE         + 2.19.0\nE         ?      ^\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_19_1\n1 failed, 27 passed in 0.17s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_1",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_1:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_2_19_1:of=TestPublicAPIImports"
+    ],
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}

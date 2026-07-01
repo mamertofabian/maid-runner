@@ -312,6 +312,83 @@ def format_verify_result(
     return "\n".join(lines)
 
 
+def format_verify_summary(
+    result: VerificationResult,
+    *,
+    json_mode: bool = False,
+) -> str:
+    from maid_runner.core.verify_summary import build_verify_summary
+
+    summary = build_verify_summary(result)
+    blocking_stages = [stage for stage in result.stages if not stage.success]
+
+    if json_mode:
+        payload: dict = {
+            "success": summary.success,
+            "findings": {
+                "blocking": [_verify_stage_to_dict(stage) for stage in blocking_stages],
+                "warnings": [
+                    {
+                        "code": group.code,
+                        "message": group.message,
+                        "location": group.location,
+                        "count": group.count,
+                    }
+                    for group in summary.warning_groups
+                ],
+            },
+            "passed_stages": list(summary.passed_stages),
+        }
+        if result.duration_ms is not None:
+            payload["duration_ms"] = result.duration_ms
+        return json.dumps(payload, indent=2)
+
+    status = "PASS" if summary.success else "FAIL"
+    warning_unique_count = len(summary.warning_groups)
+    lines = [
+        (
+            f"VERIFY: {status} "
+            f"({len(summary.blocking_stages)} blocking, "
+            f"{warning_unique_count} warnings unique / "
+            f"{summary.raw_warning_count} raw, "
+            f"{len(summary.passed_stages)} passed)"
+        )
+    ]
+    if result.duration_ms is not None:
+        lines.append(f"  Duration: {result.duration_ms:.0f}ms")
+
+    if blocking_stages:
+        lines.append("")
+        lines.append(f"BLOCKING ({len(blocking_stages)}):")
+        for stage in blocking_stages:
+            lines.append(f"  FAIL {stage.name}")
+            details = _format_verify_summary_stage_details(stage)
+            if details:
+                lines.extend(f"    {line}" for line in details.splitlines())
+
+    if summary.passed_stages:
+        lines.append("")
+        lines.append(
+            f"PASSED ({len(summary.passed_stages)}): "
+            f"{', '.join(summary.passed_stages)}"
+        )
+
+    if summary.warning_groups:
+        lines.append("")
+        lines.append(
+            "WARNINGS "
+            f"(non-blocking, deduplicated {summary.raw_warning_count} -> "
+            f"{warning_unique_count}):"
+        )
+        for group in summary.warning_groups:
+            prefix = group.code or "warning"
+            lines.append(f"  {prefix} x{group.count} {group.message}")
+            if group.location:
+                lines.append(f"    {group.location}")
+
+    return "\n".join(lines)
+
+
 def _append_test_result(
     formatted_validation: str,
     test_result: BatchTestResult | None,
@@ -493,6 +570,16 @@ def _format_verify_stage_details(stage) -> str:
     return ""
 
 
+def _format_verify_summary_stage_details(stage) -> str:
+    validation = getattr(stage, "_validation", None)
+    if validation is not None and (
+        not stage.success or _validation_has_warnings(validation)
+    ):
+        return _format_verify_summary_validation_details(validation)
+
+    return _format_verify_stage_details(stage)
+
+
 def _verify_error_to_dict(error) -> dict | str:
     if hasattr(error, "to_dict"):
         return error.to_dict()
@@ -550,6 +637,12 @@ def _format_verify_validation_details(validation) -> str:
     return _format_verify_single_validation_details(validation)
 
 
+def _format_verify_summary_validation_details(validation) -> str:
+    if isinstance(validation, BatchValidationResult):
+        return _format_verify_summary_batch_validation_details(validation)
+    return _format_verify_summary_single_validation_details(validation)
+
+
 def _format_verify_batch_validation_details(result: BatchValidationResult) -> str:
     lines = []
     for error in result.chain_errors:
@@ -564,6 +657,54 @@ def _format_verify_batch_validation_details(result: BatchValidationResult) -> st
     return "\n".join(line for line in lines if line)
 
 
+def _format_verify_summary_batch_validation_details(
+    result: BatchValidationResult,
+) -> str:
+    lines = []
+    warning_count = 0
+    warning_manifest_count = 0
+
+    for error in result.chain_errors:
+        if _is_warning(error):
+            warning_count += 1
+        else:
+            lines.extend(_format_verify_error(error).splitlines())
+
+    for validation in result.results:
+        validation_warning_count = _validation_warning_count(validation)
+        if validation_warning_count:
+            warning_count += validation_warning_count
+            warning_manifest_count += 1
+
+        errors = [
+            error
+            for error in getattr(validation, "errors", ())
+            if not _is_warning(error)
+        ]
+        if not validation.success and errors:
+            lines.append(f"FAIL {validation.manifest_slug}")
+            for error in errors:
+                lines.extend(
+                    f"  {line}" for line in _format_verify_error(error).splitlines()
+                )
+        elif not validation.success and not validation_warning_count:
+            lines.append(f"FAIL {validation.manifest_slug}")
+
+    if warning_count:
+        plural = "" if warning_count == 1 else "s"
+        manifest_scope = (
+            f" across {warning_manifest_count} manifests"
+            if warning_manifest_count
+            else ""
+        )
+        lines.append(
+            f"{warning_count} raw validation warning{plural}"
+            f"{manifest_scope}; see WARNINGS section below"
+        )
+
+    return "\n".join(line for line in lines if line)
+
+
 def _format_verify_single_validation_details(validation) -> str:
     lines = []
     if not validation.success:
@@ -571,6 +712,23 @@ def _format_verify_single_validation_details(validation) -> str:
             lines.extend(_format_verify_error(error).splitlines())
     for warning in validation.warnings:
         lines.extend(_format_verify_error(warning).splitlines())
+    return "\n".join(f"  {line}" for line in lines)
+
+
+def _format_verify_summary_single_validation_details(validation) -> str:
+    lines = []
+    for error in getattr(validation, "errors", ()):
+        if not _is_warning(error):
+            lines.extend(_format_verify_error(error).splitlines())
+
+    warning_count = _validation_warning_count(validation)
+    if warning_count:
+        plural = "" if warning_count == 1 else "s"
+        lines.append(
+            f"{warning_count} raw validation warning{plural}; "
+            "see WARNINGS section below"
+        )
+
     return "\n".join(f"  {line}" for line in lines)
 
 
@@ -584,6 +742,12 @@ def _validation_has_warnings(validation) -> bool:
         return True
 
     return any(_is_warning(error) for error in getattr(validation, "chain_errors", ()))
+
+
+def _validation_warning_count(validation) -> int:
+    return sum(
+        1 for warning in getattr(validation, "warnings", ()) if _is_warning(warning)
+    )
 
 
 def _is_warning(error) -> bool:

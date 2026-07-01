@@ -101,7 +101,7 @@ Work around unrelated user or automation changes. Do not revert them.
 - `manifests/drafts/`
 - recent release notes or recovery notes in `docs/`
 - current validation output from `uv run maid validate`, `uv run maid test`, or
-  `uv run maid verify` when the prompt asks for current health
+  `uv run maid verify --summary` when the prompt asks for current health
 
 Use `rg`, `find`, `git log`, and focused file reads. Do not bulk-load every
 insight or every manifest; sample enough to confirm themes, then inspect the
@@ -143,7 +143,7 @@ Useful probes:
 # Current health.
 uv run maid validate --quiet
 uv run maid test --quiet
-uv run maid verify --keep-going --quiet
+uv run maid verify --summary --keep-going
 
 # Planning inventory.
 find manifests/drafts -maxdepth 2 -name '*.yaml' | sort
