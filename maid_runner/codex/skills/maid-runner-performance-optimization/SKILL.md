@@ -123,6 +123,11 @@ time uv run maid verify --keep-going --json
 time uv run maid test --json
 ```
 
+These profiling commands intentionally use machine-readable or quiet output for
+timing comparability. For normal agent or human handoff, prefer
+`uv run maid verify --summary ...` so blocking failures stay visible without
+raw warning storms.
+
 For deeper inspection, drop a `cProfile` harness in `/tmp` that imports the
 package directly:
 

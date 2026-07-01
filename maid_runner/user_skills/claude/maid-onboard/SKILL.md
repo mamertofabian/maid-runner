@@ -166,8 +166,12 @@ before promoting the selected draft when completed Outcomes exist →
 `maid plan lock` (red evidence) →
 `maid manifest promote manifests/drafts/<slug>.manifest.yaml` → implement →
 `maid validate --mode implementation` →
-`maid verify --require-plan-lock --require-red-evidence` → review →
+`maid verify --summary --require-plan-lock --require-red-evidence` → review →
 capture `outcome:` + `maid learn`. Optionally wire `maid verify` / SARIF into CI.
+Prefer `--summary` for agent and human handoff because it keeps blocking
+failures visible while deduplicating warning storms; rerun with raw text,
+`--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is
+needed.
 Recall is advisory planning context only; it does not expand scope or replace
 red evidence, behavioral validation, plan lock, implementation validation, or
 review.

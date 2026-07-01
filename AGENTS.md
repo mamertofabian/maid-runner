@@ -35,7 +35,7 @@ plan lock before implementation begins:
 5. Promote implementation drafts with `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml` so plan locks, self-referencing validate paths, and red evidence migrate through the sanctioned workflow. Do not manually move or copy draft manifests.
 6. Implement only within the promoted manifest scope.
 7. Run implementation validation, manifest tests, `uv run maid validate`, and `uv run maid test`.
-8. Before handoff, run `uv run maid verify --require-plan-lock --require-red-evidence` and treat plan-lock or red-evidence failures as workflow blockers rather than recreating evidence after implementation.
+8. Before handoff, run `uv run maid verify --summary --require-plan-lock --require-red-evidence` and treat plan-lock or red-evidence failures as workflow blockers rather than recreating evidence after implementation. Prefer `--summary` for agent and human handoff because it keeps blocking failures visible while deduplicating warning storms; rerun with raw text, `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is needed.
 
 ## Optional Multi-Agent Division of Labor
 

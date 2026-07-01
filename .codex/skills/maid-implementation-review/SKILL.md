@@ -216,7 +216,7 @@ gate.
 Where practical, run:
 
 ```bash
-maid verify --require-plan-lock --require-red-evidence
+maid verify --summary --require-plan-lock --require-red-evidence
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
@@ -226,13 +226,19 @@ For high-risk changes where runtime evidence matters, also run
 Python-only review gate that checks declared artifacts are executed by tests
 and that breaking each declared function or method makes validation fail.
 
-The `maid verify --require-plan-lock --require-red-evidence` command is the
+The `maid verify --summary --require-plan-lock --require-red-evidence` command is the
 implementation handoff gate for the approved plan lock and captured red-phase
 evidence. Treat E700-E706 plan-lock failures as blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.
 E700/E704/E705 requirement errors apply to manifests changed in the task window;
 E701/E702/E703/E706 integrity errors are blockers regardless of task window
 scope.
+Prefer `--summary` for agent and human review handoff because it keeps blocking
+failures visible while deduplicating warning storms. Rerun with raw text,
+`--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is
+needed. Treat older handoff examples such as
+`maid verify --require-plan-lock --require-red-evidence` as superseded unless
+raw text is intentionally required.
 
 If the environment or project shape makes a command impractical, say so explicitly.
 
