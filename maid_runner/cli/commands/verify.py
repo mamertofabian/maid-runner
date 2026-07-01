@@ -9,7 +9,11 @@ import time
 from pathlib import Path
 from typing import Union
 
-from maid_runner.cli.commands._format import format_verify_result, print_error
+from maid_runner.cli.commands._format import (
+    format_verify_result,
+    format_verify_summary,
+    print_error,
+)
 from maid_runner.core.result import (
     ErrorCode,
     ValidationError,
@@ -69,7 +73,12 @@ def cmd_verify(args: argparse.Namespace) -> int:
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
         )
-        print(format_verify_result(result, json_mode=getattr(args, "json", False)))
+        formatter = (
+            format_verify_summary
+            if getattr(args, "summary", False)
+            else format_verify_result
+        )
+        print(formatter(result, json_mode=getattr(args, "json", False)))
         exit_code = 0 if _result_success(result) else 1
         if not _write_sarif_report_if_requested(args, result):
             return 2

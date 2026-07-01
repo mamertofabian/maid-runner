@@ -1,0 +1,457 @@
+schema: '2'
+goal: Add an opt-in `maid verify --summary` flag that renders agent-first, categorized, deduplicated verification output
+type: feature
+created: '2026-07-01T02:12:39Z'
+metadata:
+  tags:
+  - verify
+  - cli
+  - agent-dx
+  - output-formatting
+  priority: medium
+description: |
+  `maid verify` currently emits one flat `PASS/FAIL` line per stage followed by
+  full per-stage detail. On a real brownfield repo (life-dashboard) this produced
+  11,021 lines for a run whose entire actionable signal was five stage lines and a
+  single blocking `file_tracking` failure. The noise came almost entirely from
+  3,461 `E210` warning lines that were really ~25 unique "test has no assertions"
+  findings re-emitted across 151 manifests' behavioral WARN blocks. Agents cannot
+  tell whether verify failed for a real reason without either scrolling thousands
+  of lines or falling back to `--json` plus an inline Python script that buckets
+  `severity: error` vs `severity: warning` by hand.
+
+  This adds an opt-in `--summary` flag that renders an agent-first, categorized,
+  deduplicated view over the existing `VerificationResult`. It leads with the
+  blocking findings (the fix-now items), lists passed stages by name only, and
+  collapses warnings into a deduplicated, non-blocking section that keeps both the
+  raw occurrence count and the unique count visible. The default text output and
+  `--json` output are unchanged.
+
+  Pinned decisions (do not redesign):
+
+  1. Opt-in only. `--summary` is a new flag on `maid verify`. The existing default
+     `format_verify_result` text output and the existing `--json` payload are not
+     modified by this manifest. Flipping the default to the summary view is a
+     separate, later manifest and is explicitly out of scope here.
+
+  2. Presentation only, never gate semantics. `--summary` is a pure re-render of
+     the same `VerificationResult`. It must not change which stages run, the
+     `fail-fast` behavior, or the process exit code. A given verify invocation
+     returns the identical exit code with and without `--summary`.
+
+  3. Categorization uses the stage `success` field as the source of truth for
+     blocking-vs-advisory, because `_run_verify` already folds "blocking warnings"
+     into `stage.success` (a stage stays successful when its only warnings are
+     non-blocking/advisory). The summary must not re-derive its own blocking
+     policy; it reports what the gate already decided.
+
+  4. Warning dedup key is the tuple `(code, location, message)`. The 3,461 E210
+     repeats share identical code, location, and message across manifests and
+     collapse to one group; distinct locations or messages stay distinct. Dedup
+     must never collapse on `code` alone.
+
+  5. Fail loud, never fake (repo error-handling rule). Dedup must not hide the
+     scale of the underlying findings: `VerifySummary` keeps `raw_warning_count`
+     (total occurrences before dedup) alongside each group's `count`, and the
+     rendered output shows both the raw and unique totals (e.g. "deduplicated
+     3466 -> 30"). Warnings are labelled non-blocking; nothing is silently dropped.
+
+  6. Warnings are gathered from the structured stage results, never by re-parsing
+     rendered text. The builder reads warning-severity `ValidationError`s from
+     validation stages (`_validation.results[].warnings` plus warning-severity
+     entries in `_validation.chain_errors`).
+
+  Implementation shape:
+
+  - New pure module `maid_runner/core/verify_summary.py`:
+    `build_verify_summary(result: VerificationResult) -> VerifySummary` walks the
+    stages once, partitions them into blocking (failed) and passed (successful,
+    including skipped) stage names, extracts and deduplicates warning-severity
+    diagnostics into `VerifyWarningGroup`s, and records the pre-dedup
+    `raw_warning_count`. `VerifySummary` and `VerifyWarningGroup` are frozen
+    dataclasses so the categorization is unit-testable with no CLI or I/O.
+
+  - New formatter `format_verify_summary(result, *, json_mode=False)` in
+    `maid_runner/cli/commands/_format.py`. Text mode renders, in order: a verdict
+    header line with the (blocking / warning / passed) counts; a BLOCKING section
+    that reuses the existing per-stage detail formatters for each failed stage
+    (no reinvented rendering); a PASSED section listing stage names only; and a
+    trailing non-blocking WARNINGS section grouping the deduplicated
+    `VerifyWarningGroup`s by code with occurrence counts. JSON mode returns a
+    `{"success", "findings": {"blocking": [...], "warnings": [...]},
+    "passed_stages": [...]}` object so JSON-parsing agents read one split instead
+    of walking every stage and filtering severity themselves.
+
+  - `cmd_verify` reads a new `args.summary` flag and, when set, prints
+    `format_verify_summary(result, json_mode=args.json)` instead of
+    `format_verify_result(...)`. Exit-code, SARIF, and failure-packet handling are
+    untouched. `_register_verify_parser` registers `--summary`.
+
+  Planning notes:
+
+  - `maid_runner/cli/commands/verify.py` and `maid_runner/cli/commands/_main.py`
+    are listed under `files.scope`, not `files.edit`: this manifest only adds a
+    presentation branch to `cmd_verify` and registers one flag in the verify
+    subparser. It does not contract new public surface in those files, and
+    declaring the large `_main.py` parser surface is out of scope.
+
+  - Behavioral tests are planned, not written, in this draft (Planning Handoff
+    Mode). The declared `test_function` artifacts define the intended behavioral
+    contract; the implementing agent writes the test bodies, confirms the red
+    phase, runs `maid validate --mode behavioral`, and plan-locks before
+    implementation. This draft is not promotion-ready until those tests exist and
+    the red phase is confirmed.
+
+  Open questions for the implementing agent (see handoff packet):
+
+  - Whether coherence-stage warnings and batch-level validation `warnings` should
+    also feed the warning groups, or whether scoping to per-manifest validation
+    warnings is sufficient for v1.
+  - Whether skipped stages (currently `success=True`) should appear in a distinct
+    "skipped" bucket rather than folded into `passed_stages`.
+
+  Out of scope: flipping `--summary` to the default output; changing the default
+  `format_verify_result` text output; changing the existing `--json` payload
+  shape for non-summary runs; changing what the validators report or any verify
+  gate semantics.
+temptations:
+- risk: Do not let --summary change verify exit codes, stage selection, or fail-fast behavior.
+  instead: Treat --summary as a presentation-only branch over the existing VerificationResult; plan a test asserting the exit code is identical with and without --summary for both a passing and a failing result.
+- risk: Do not dedup warnings on code alone, which would merge distinct findings.
+  instead: Use the (code, location, message) tuple as the dedup key so different locations or messages remain separate groups.
+- risk: Do not hide the scale of collapsed warnings to make output look clean.
+  instead: Keep raw_warning_count and per-group count, render both raw and unique totals, and label the section non-blocking; assert both counts in tests.
+- risk: Do not reinvent per-stage blocking detail rendering inside the summary.
+  instead: Reuse the existing verify stage detail formatters for blocking stages; only the verdict header and the deduplicated warning aggregation are new.
+- risk: Do not gather warnings by scraping the already-rendered verify text.
+  instead: Extract warning-severity ValidationErrors from the structured stage results (_validation.results[].warnings and warning-severity chain_errors).
+files:
+  create:
+  - path: maid_runner/core/verify_summary.py
+    artifacts:
+    - kind: class
+      name: VerifyWarningGroup
+      description: A deduplicated group of warning-severity findings sharing one (code, location, message) key, with the count of collapsed occurrences.
+    - kind: attribute
+      name: code
+      of: VerifyWarningGroup
+      type: Optional[str]
+      description: The diagnostic E-code value (e.g. 'E210'), or None when the finding has no code.
+    - kind: attribute
+      name: message
+      of: VerifyWarningGroup
+      type: str
+      description: The warning message shared by every occurrence in the group.
+    - kind: attribute
+      name: location
+      of: VerifyWarningGroup
+      type: Optional[str]
+      description: Rendered 'file:line' location shared by the group, or None when unlocated.
+    - kind: attribute
+      name: count
+      of: VerifyWarningGroup
+      type: int
+      description: Number of raw occurrences collapsed into this group (>= 1).
+    - kind: class
+      name: VerifySummary
+      description: Agent-first categorization of a VerificationResult into blocking stages, passed stages, and deduplicated non-blocking warnings.
+    - kind: attribute
+      name: success
+      of: VerifySummary
+      type: bool
+      description: True when no stage is blocking (mirrors the verify gate result).
+    - kind: attribute
+      name: blocking_stages
+      of: VerifySummary
+      type: tuple[str, ...]
+      description: Names of failed (blocking) stages, in stage order.
+    - kind: attribute
+      name: passed_stages
+      of: VerifySummary
+      type: tuple[str, ...]
+      description: Names of successful stages (including skipped), in stage order.
+    - kind: attribute
+      name: warning_groups
+      of: VerifySummary
+      type: tuple[VerifyWarningGroup, ...]
+      description: Deduplicated non-blocking warning groups gathered across all stages.
+    - kind: attribute
+      name: raw_warning_count
+      of: VerifySummary
+      type: int
+      description: Total warning occurrences before deduplication, preserved so dedup never hides scale.
+    - kind: function
+      name: build_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      returns: VerifySummary
+      description: Partition verify stages into blocking/passed and deduplicate warning-severity diagnostics into a VerifySummary.
+  - path: tests/core/test_verify_summary.py
+    artifacts:
+    - kind: test_function
+      name: test_build_summary_deduplicates_repeated_warnings
+      source_scenario: A VerificationResult whose validation stages surface the same (code, location, message) warning across many manifests.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: The repeated warning collapses to a single VerifyWarningGroup whose count equals the raw occurrences, and raw_warning_count equals the total pre-dedup occurrences.
+    - kind: test_function
+      name: test_build_summary_keeps_distinct_locations_separate
+      source_scenario: Two warnings share a code but differ by location.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: build_verify_summary yields two distinct VerifyWarningGroups rather than merging on code alone.
+    - kind: test_function
+      name: test_build_summary_partitions_blocking_and_passed_stages
+      source_scenario: A VerificationResult with one failed stage and several successful stages.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: The failed stage name appears in blocking_stages, the successful stage names appear in passed_stages, and success is False.
+    - kind: test_function
+      name: test_build_summary_keeps_warning_groups_from_failed_validation_stage
+      source_scenario: A failed validation stage also contains warning-severity diagnostics from warning-only manifests.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: The stage remains blocking, while warning_groups and raw_warning_count still include the warning-severity diagnostics instead of reporting zero warnings.
+    - kind: test_function
+      name: test_build_summary_reports_no_warnings_for_clean_result
+      source_scenario: A VerificationResult where every stage passes with no warning-severity diagnostics.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: warning_groups is empty, raw_warning_count is 0, and success is True.
+  - path: tests/cli/test_verify_summary_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_summary_flag_collapses_duplicate_warnings_in_output
+      source_scenario: maid verify --summary runs against a project whose behavioral stage reports one warning repeated across many manifests.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The summary output lists the repeated warning once with an occurrence count, and is dramatically shorter than the default verify output for the same result.
+    - kind: test_function
+      name: test_summary_flag_lists_blocking_before_warnings
+      source_scenario: maid verify --summary runs against a project with a blocking failure and non-blocking warnings.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The blocking section and its findings appear before the non-blocking warnings section in the rendered output.
+    - kind: test_function
+      name: test_summary_flag_preserves_exit_code
+      source_scenario: maid verify is run with and without --summary against the same passing project and the same failing project.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The process exit code is identical with and without --summary for both the passing and the failing project.
+    - kind: test_function
+      name: test_summary_json_exposes_blocking_and_warning_split
+      source_scenario: maid verify --summary --json runs against a project with a blocking failure and warnings.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The emitted JSON contains a findings object with separate blocking and warnings arrays and a top-level success flag.
+  edit:
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+      returns: str
+      description: Render a VerificationResult as agent-first categorized text (blocking first, passed by name, deduplicated non-blocking warnings) or, when json_mode is True, a findings-split JSON object.
+  scope:
+  - path: maid_runner/cli/commands/verify.py
+    reason: Wire the opt-in --summary presentation branch through cmd_verify without changing cmd_verify's public contract.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the opt-in --summary verify flag without contracting the parser module's broader public surface.
+  read:
+  - maid_runner/core/result.py
+validate:
+- uv run python -m pytest -q tests/core/test_verify_summary.py tests/cli/test_verify_summary_cmd.py
+- uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/add-verify-summary-output.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-01T02:52:01Z"
+  summary: "Added opt-in `maid verify --summary` output with a pure VerifySummary builder, deduplicated warning groups keyed by code/location/message, blocking-first text rendering, compact failed-validation warning summaries, categorized summary JSON, and parser/command wiring that leaves default verify output and gate semantics unchanged."
+  rationale: "The implementation keeps summary output as a presentation-only view over VerificationResult so exit codes, fail-fast behavior, SARIF generation, failure packets, and default text/JSON output remain unchanged. Warning aggregation reads structured validation diagnostics rather than rendered text and preserves both raw and grouped warning counts. Real-repo validation against life-dashboard showed that failed validation stages can contain thousands of repeated warning-only diagnostics, so summary text now keeps those blockers compact and points readers to the deduplicated warning section while JSON continues to preserve full structured blocking details."
+  lessons:
+  - lesson_type: cli-diagnostics
+    summary: "Agent-first CLI summaries should separate blocking stage details from deduplicated advisory warnings while preserving raw counts, so operators can see both the fix-now item and the scale of repeated diagnostics."
+    tags:
+    - verify
+    - output-formatting
+    - diagnostics
+    paths:
+    - maid_runner/cli/commands/_format.py
+    - maid_runner/core/verify_summary.py
+  - lesson_type: test-design
+    summary: "When a summary labels warning groups as non-blocking, tests still need failed-validation-stage cases because a failed stage can contain warning-only manifest results alongside the blocking reason."
+    tags:
+    - regression-test
+    - verify
+    - warning-policy
+    paths:
+    - tests/core/test_verify_summary.py
+    - maid_runner/core/verify_summary.py
+  - lesson_type: validation
+    summary: "Command-level validation against a warning-heavy downstream repository can reveal output-volume regressions that focused unit tests miss; summary formatters need explicit fixtures for failed warning-only validation batches."
+    tags:
+    - cross-repo-validation
+    - output-volume
+    - verify
+    paths:
+    - tests/cli/test_verify_summary_cmd.py
+    - maid_runner/cli/commands/_format.py
+  - lesson_type: workflow
+    summary: "Review-driven behavioral contract changes after implementation should use `maid plan revise --stash-implementation` so fresh red evidence is captured with implementation changes hidden and restored by the sanctioned workflow."
+    tags:
+    - plan-lock
+    - implementation-review
+    - red-phase
+    paths:
+    - manifests/add-verify-summary-output.manifest.yaml
+    - .maid/plan-locks/add-verify-summary-output.lock.json
+  review_notes:
+  - source: implementation-review-subagent-Socrates
+    severity: medium
+    summary: "Initial review found a P2 inconsistency: the summary builder skipped warnings from failed validation stages, so summary counts and JSON warning groups could disagree with blocking details. Fixed with a regression test and by collecting warning-severity diagnostics from all validation stages."
+  - source: implementation-review-subagent-Gibbs
+    severity: info
+    summary: "Re-review found no actionable findings. It confirmed the prior P2 was fixed, changed files stayed within manifest scope, plan lock revision 5 matched current manifest/test hashes, and validation passed."
+  - source: command-validation-life-dashboard
+    severity: info
+    summary: "Cross-repo `maid verify --summary --no-changed-scope` validation initially exposed oversized blocking output when a failed behavioral stage carried thousands of warning-only diagnostics. A compact regression test and formatter change reduced the life-dashboard blocker to one warning-count line plus 26 deduplicated warning groups for 3461 raw warnings."
+  - source: implementation-review-subagent-Russell
+    severity: info
+    summary: "Final read-only review found no findings. It confirmed summary remains a presentation branch after `_run_verify`, warning aggregation deduplicates by code/location/message, compact failed warning-only validation rendering is covered, implementation validation and manifest gates passed, and the verdict was ready."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_verify_summary.py
+    - tests/cli/test_verify_summary_cmd.py
+    status: passed
+    summary: "Focused summary behavior tests passed after the cross-repo compactness regression was added: 10 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - revise
+    - manifests/add-verify-summary-output.manifest.yaml
+    - --reason
+    - Add compact summary regression for failed warning-only validation stages after life-dashboard command validation.
+    - --stash-implementation
+    status: passed
+    summary: "Plan lock revision 7 captured fresh valid red evidence with implementation changes stashed and restored."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/add-verify-summary-output.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/cli/commands/_format.py
+    - tests/cli/test_verify_summary_cmd.py
+    status: passed
+    summary: "Focused Ruff check passed after the compact summary formatter change."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/add-verify-summary-output.manifest.yaml
+    status: passed
+    summary: "Declared manifest test gate passed: 3 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 391 manifests, 301 passed, 0 failed, and 90 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test gate passed with 155 commands passed and 0 failed."
+  - command:
+    - /home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/maid
+    - verify
+    - --summary
+    - --no-changed-scope
+    status: failed
+    summary: "Downstream life-dashboard command validation from /home/atomrem/projects/codefrost-dev/life-dashboard exercised the uncommitted local CLI and failed as expected for existing repository behavioral warnings; summary output stayed compact with 1 blocking behavioral stage, 26 unique warning groups, and 3461 raw warnings."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --no-changed-scope
+    status: passed
+    summary: "Summary-mode strict handoff verify passed in maid-runner with 0 blocking stages, 147 warning groups, 392 raw warnings, and 8 passed stages."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -v
+    status: passed
+    summary: "Full pytest suite passed earlier in the final implementation cycle with 3013 passed and 5 skipped before the compactness regression was added; later repository-wide `maid test` covered the updated summary tests and command gates."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --require-plan-lock
+    - --require-red-evidence
+    - --no-changed-scope
+    status: passed
+    summary: "Strict handoff verify passed with plan-lock, red-evidence, worktree-scope, and tests enabled; existing advisory E307/E310 warnings remained visible. The bare command without a baseline failed only at changed_scope E115, consistent with existing changed-scope policy."

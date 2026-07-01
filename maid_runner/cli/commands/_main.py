@@ -404,6 +404,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--json", action="store_true", help="Print verification results as JSON"
     )
+    p.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print categorized, deduplicated verification output",
+    )
 
 
 def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
