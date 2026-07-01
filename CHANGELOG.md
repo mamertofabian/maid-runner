@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.1] - 2026-07-01
+
+### Added
+- **Verify summary output** — Added opt-in `maid verify --summary` text and JSON output that separates blocking stages from deduplicated warning groups while preserving raw warning counts.
+
+### Changed
+- **Agent handoff guidance** — Updated Claude and Codex MAID guidance to prefer `maid verify --summary --require-plan-lock --require-red-evidence` for handoff and review flows.
+- **Instruction payload version** — Bumped the init instruction payload version so installed agent guidance can be detected as stale after the summary-first handoff update.
+
+### Fixed
+- **Warning-heavy verify readability** — Kept failed warning-only validation stages compact in summary output so downstream repositories with repeated warnings show one blocking count line plus deduplicated warning groups instead of raw diagnostic storms.
+
 ## [2.19.0] - 2026-06-30
 
 ### Added
@@ -1102,6 +1114,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.19.1]: https://github.com/mamertofabian/maid-runner/compare/v2.19.0...v2.19.1
 [2.19.0]: https://github.com/mamertofabian/maid-runner/compare/v2.18.0...v2.19.0
 [2.18.0]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.18.0
 [2.17.1]: https://github.com/mamertofabian/maid-runner/compare/v2.17.0...v2.17.1

@@ -147,7 +147,9 @@ uv run maid verify --summary --require-plan-lock --require-red-evidence
 Prefer `--summary` for agent and human handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun without `--summary`,
 or with `--json`, `--packet`, or SARIF, only when exhaustive machine-readable
-detail is needed.
+detail is needed. Treat older handoff examples such as
+`uv run maid verify --require-plan-lock --require-red-evidence` as superseded
+unless raw text is intentionally required.
 
 ## Implementation Rules
 

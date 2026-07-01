@@ -1,0 +1,167 @@
+schema: '2'
+goal: Bump maid-runner patch version to 2.19.1
+type: feature
+created: '2026-07-01T00:00:00Z'
+supersedes:
+- bump-version-2.19.0
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package patch version from 2.19.0 to 2.19.1 for the next release
+  batch. Keep package metadata, lockfile metadata, changelog, and roadmap
+  version references synchronized.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, and docs/ROADMAP.md alongside the package version.
+- risk: Do not omit recent user-visible changes from the changelog.
+  instead: Summarize the verify summary output and agent handoff guidance changes under the 2.19.1 entry.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package/source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the new patch version.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  - path: AGENTS.md
+    reason: Agent handoff compatibility guidance changed as part of the 2.19.1 release notes.
+  - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+    reason: Claude draft implementation guidance keeps summary-first handoff and legacy command compatibility text aligned.
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Codex draft implementation guidance keeps summary-first handoff and legacy command compatibility text aligned.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Packaged Codex draft implementation guidance mirrors the installed Codex skill copy.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_2_19_1
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.19.1 patch release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog, and roadmap all report 2.19.1.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.19.0.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: "2026-07-01T03:35:42Z"
+  summary: "Bumped maid-runner from 2.19.0 to 2.19.1 and synchronized package metadata, uv.lock editable package metadata, changelog release notes, roadmap version text, release metadata coverage, and MAID release-bump plan-lock evidence."
+  rationale: "The 2.19.1 patch release captures the already implemented verify summary output and summary-first agent handoff guidance without adding new code in this bump. Version mirrors remain synchronized through the public release metadata test, and a dependent shared-test plan lock was refreshed with preserved red evidence after the release metadata test file changed."
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: "Patch release bumps still need every release mirror updated together: pyproject metadata, editable lock metadata, changelog heading and compare link, roadmap current version text, and release metadata tests."
+    tags:
+    - release
+    - version
+    - changelog
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: plan-lock
+    summary: "Release metadata tests can be shared by older manifests; when the test file changes for a version bump, refresh dependent locks with preserved red evidence rather than weakening the current release contract."
+    tags:
+    - release
+    - plan-lock
+    - red-evidence
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+  review_notes:
+  - source: local-read-only-review
+    severity: info
+    summary: "Subagent review was not spawned because the current subagent tool instructions require explicit per-turn user request. Local review found the release mirrors synchronized and identified that draft-implement compatibility notes should be declared in manifest scope; the manifest was updated accordingly before final validation."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_19_1
+    status: failed
+    summary: "Red phase failed before implementation because runtime version still reported 2.19.0 while the behavioral test expected 2.19.1."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - lock
+    - manifests/bump-version-2.19.1.manifest.yaml
+    status: passed
+    summary: "Plan lock revision 1 captured the release metadata red evidence before package metadata changed."
+  - command:
+    - uv
+    - lock
+    status: passed
+    summary: "uv refreshed the editable package lock metadata from maid-runner 2.19.0 to 2.19.1."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: "Focused library API and release metadata tests passed: 28 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/bump-version-2.19.1.manifest.yaml
+    status: passed
+    summary: "Manifest-declared release metadata test gate passed: 1 command passed."
+  - command:
+    - uv
+    - run
+    - pytest
+    - tests/
+    - -q
+    - -x
+    status: passed
+    summary: "Full fail-fast pytest run completed without failures: 3014 passed and 5 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 392 manifests, 301 passed, 0 failed, and 91 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --no-changed-scope
+    status: passed
+    summary: "Strict summary handoff verify passed with 0 blocking stages, 147 warning groups, 392 raw warnings, and 8 passed stages."
+  - command:
+    - git
+    - diff
+    - --check
+    status: passed
+    summary: "Whitespace check passed."

@@ -3,10 +3,10 @@
   "manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
-    "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
+    "tests/integration/test_library_api.py": "sha256:5968aa33a401a3021384af17c91f884e0557a2231cfcf7b9342a257288419b91"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -99,6 +99,15 @@
       },
       "revised_at": "2026-06-30T12:04:43.216588+00:00",
       "reason": "Refresh shared release metadata assertions for the 2.19.0 release bump"
+    },
+    {
+      "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd",
+        "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
+      },
+      "revised_at": "2026-07-01T03:30:10.603605+00:00",
+      "reason": "Refresh shared library API test hash after 2.19.1 release metadata bump."
     }
   ],
   "red_evidence": {
