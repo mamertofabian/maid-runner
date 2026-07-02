@@ -1,0 +1,213 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Downgrade E307 no-validator findings to aggregated info for recognized non-code files so real warnings are readable, without hiding any record"
+type: fix
+created: "2026-07-03T06:49:00Z"
+metadata:
+  status: draft
+  backlog: docs/plans/maid-runner-self-improvement-backlog.md#theme-5
+  tags:
+    - verify
+    - signal-to-noise
+    - diagnostics
+    - output-formatting
+    - agent-dx
+  priority: medium
+description: |
+  A clean-tree `maid verify --summary --keep-going` on this repository
+  reports 392 raw / 147 unique warnings, and the overwhelming majority are
+  E307 VALIDATOR_NOT_AVAILABLE for declared `.md`, `.toml`, `.json`,
+  `.gitignore`, and similar non-code files (skill payloads, docs,
+  pyproject). Real findings (like the Theme 4 E310s) sit inside 140+ lines
+  of noise, and downstream repos see the same storm. Warning fatigue is the
+  failure mode the summary was built to prevent; 147 unique warnings still
+  exceeds what an agent will read.
+
+  Chosen closure shape (backlog Theme 5 option (a) + summary aggregation;
+  confirm in plan review): declaring a doc/config file is legitimate and
+  expected, so "no validator exists for this file type" is information, not
+  a warning, for a documented set of recognized non-code extensions — while
+  files that look like source but have no validator keep the warning.
+
+  Pinned decisions (do not redesign):
+
+  1. New pure policy function `no_validator_severity(path) -> Severity` in a
+     new module maid_runner/core/diagnostic_policy.py. It returns
+     Severity.INFO for a documented, explicit, closed set of recognized
+     non-code extensions and well-known config filenames (recommended
+     initial set: .md, .markdown, .rst, .txt, .toml, .json, .jsonc, .yaml,
+     .yml, .cfg, .ini, .lock, .gitignore, .gitattributes, .editorconfig,
+     .env.example; finalize the exact list in plan review and document it in
+     the module and troubleshooting docs). Everything else — including
+     source-like extensions with no registered validator such as .cjs, .go,
+     .rb — stays Severity.WARNING. The set is a hardcoded documented
+     constant, not runtime-growable configuration.
+
+  2. Both E307 emitters route through the policy:
+     maid_runner/core/_implementation_validation.py (validate_file_spec
+     path) and maid_runner/core/artifact_coverage.py. The diagnostic code
+     stays E307 in both severities so consumers keep one identity.
+
+  3. Fail loud, never hide. Per-file E307 records remain present in
+     non-summary text/JSON output and in SARIF (info maps to SARIF "note"
+     level). The summary aggregates: `VerifySummary` gains `info_groups`
+     (deduplicated groups of info-severity diagnostics, grouped by code)
+     and `raw_info_count`; the text summary renders one line per info code,
+     e.g. `INFO E307 xN no validator available for N declared non-code
+     files` — visible, proportionate, never silently dropped. Summary JSON
+     lists the info groups.
+
+  4. Gate semantics are unchanged. E307 is already advisory
+     (_ADVISORY_WARNING_CODES in verify.py) and never blocks; downgrading
+     part of it to info must not change any exit code, stage outcome, or
+     the strict warning policy for other codes. Warning counts in the
+     summary header will drop because info findings are no longer warnings;
+     raw_info_count keeps the scale visible.
+
+  Acceptance shape: a clean-tree verify summary's warning list fits in one
+  screen on this repository; E307 still appears (as the aggregated INFO
+  line plus per-file records in JSON/SARIF); a source-like file with no
+  validator still produces an E307 warning.
+
+  Planning notes (Planning Handoff Mode): behavioral tests are declared but
+  not yet written; all new coverage goes in the dedicated
+  tests/core/test_e307_proportionate_policy.py module (older summary test
+  files are hashed by existing plan locks). The implementing agent confirms
+  the red phase, runs behavioral validation, plan-locks, and promotes
+  before implementation. Coordinate merge order with 082-01 and 082-02,
+  which also edit verify_summary.py and _format.py.
+
+  Open questions for the implementing agent:
+  - Whether .cjs/.mjs belong in the non-code set (recommended: no — they
+    are source-like; the correct fix for them is a validator or a presence
+    check, not severity downgrade).
+  - Whether the default (non-summary) text output should also group info
+    findings or keep per-file lines (recommended: keep per-file lines;
+    only the summary aggregates).
+temptations:
+  - risk: "Do not silently drop or filter out E307 findings for non-code files to make output clean."
+    instead: "Downgrade severity and aggregate in the summary while keeping per-file records in default text, JSON, and SARIF; assert the records survive in a behavioral test."
+  - risk: "Do not infer 'non-code' from 'no validator registered', which would auto-downgrade every unknown source language."
+    instead: "Use the explicit documented extension/filename set in diagnostic_policy.py; unknown or source-like extensions stay WARNING and a behavioral test pins one."
+  - risk: "Do not change verify gate semantics, exit codes, or the advisory policy for other warning codes while rerouting severities."
+    instead: "Keep E307 advisory as today and plan a test asserting stage outcomes and exit codes are identical before and after the downgrade."
+  - risk: "Do not aggregate by scraping rendered warning text."
+    instead: "Extend build_verify_summary to partition structured diagnostics by severity, grouping info findings by code with raw counts."
+  - risk: "Do not add assertions to the older summary test files hashed by existing plan locks."
+    instead: "Put all new behavioral coverage in the dedicated test module owned by this manifest."
+files:
+  create:
+    - path: maid_runner/core/diagnostic_policy.py
+      artifacts:
+        - kind: function
+          name: no_validator_severity
+          args:
+            - name: path
+              type: str
+          returns: Severity
+          description: "Pure severity policy for E307 VALIDATOR_NOT_AVAILABLE: Severity.INFO for the documented closed set of recognized non-code extensions and config filenames, Severity.WARNING for everything else. No I/O, no registry lookups."
+    - path: tests/core/test_e307_proportionate_policy.py
+      artifacts:
+        - kind: test_function
+          name: test_no_validator_severity_downgrades_recognized_non_code_extensions
+          source_scenario: Paths with documented non-code extensions such as README.md, pyproject.toml, config.json, and .gitignore.
+          actions:
+            - type: api_call
+              subject:
+                function: no_validator_severity
+          expected:
+            behavior: Each recognized non-code path yields Severity.INFO.
+        - kind: test_function
+          name: test_no_validator_severity_keeps_warning_for_source_like_extensions
+          source_scenario: Paths with source-like extensions that have no registered validator, such as a .go and a .cjs file.
+          actions:
+            - type: api_call
+              subject:
+                function: no_validator_severity
+          expected:
+            behavior: Source-like paths yield Severity.WARNING, proving the downgrade never keys on validator absence alone.
+        - kind: test_function
+          name: test_validation_emits_info_e307_for_declared_non_code_file
+          source_scenario: A manifest declares a markdown file; implementation validation runs against a project containing it.
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: The E307 finding for the markdown file carries info severity while keeping code E307 and its per-file location.
+        - kind: test_function
+          name: test_build_summary_aggregates_info_diagnostics_by_code
+          source_scenario: A VerificationResult whose validation stages carry many info-severity E307 findings across distinct files plus unrelated warnings.
+          actions:
+            - type: api_call
+              subject:
+                function: build_verify_summary
+          expected:
+            behavior: info_groups contains one E307 group with the collapsed count, raw_info_count equals the total info occurrences, and the warning groups no longer include the downgraded findings.
+        - kind: test_function
+          name: test_summary_renders_single_proportionate_info_line
+          source_scenario: The aggregated result rendered with format_verify_summary in text mode.
+          actions:
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: The summary shows one INFO line per info code with the occurrence count instead of per-file lines, and the warning section shrinks accordingly.
+        - kind: test_function
+          name: test_per_file_info_records_survive_in_json_outputs
+          source_scenario: The same result rendered in non-summary JSON mode and in summary JSON mode.
+          actions:
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: Non-summary JSON still carries each per-file E307 record with info severity, and summary JSON lists the aggregated info groups, so machine consumers lose nothing.
+  edit:
+    - path: maid_runner/core/verify_summary.py
+      artifacts:
+        - kind: attribute
+          name: info_groups
+          of: VerifySummary
+          type: tuple[VerifyWarningGroup, ...]
+          description: "Deduplicated info-severity diagnostic groups aggregated by code across all stages, kept separate from warning_groups."
+        - kind: attribute
+          name: raw_info_count
+          of: VerifySummary
+          type: int
+          description: "Total info-severity occurrences before aggregation, preserved so the downgrade never hides scale."
+        - kind: function
+          name: build_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+          returns: VerifySummary
+          description: "Partitions structured diagnostics by severity: warning-severity findings populate warning_groups as before, info-severity findings populate info_groups and raw_info_count."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+            - name: json_mode
+              type: bool
+          returns: str
+          description: "Renders one aggregated INFO line per info code with occurrence counts after the warnings section in text mode and includes info groups in summary JSON."
+  scope:
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Route the E307 emission in validate_file_spec through no_validator_severity; private plumbing only."
+    - path: maid_runner/core/artifact_coverage.py
+      reason: "Route the second E307 emitter through the same severity policy."
+    - path: maid_runner/core/sarif.py
+      reason: "Map info-severity diagnostics to SARIF note level while keeping per-file results."
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Confirm the advisory warning policy is untouched by the severity split; no gate changes."
+    - path: docs/troubleshooting.md
+      reason: "Document the recognized non-code set and the INFO downgrade under the E307 entry."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/validators/registry.py
+validate:
+  - uv run python -m pytest tests/core/test_e307_proportionate_policy.py -v
+  - uv run maid validate manifests/drafts/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode schema --quiet

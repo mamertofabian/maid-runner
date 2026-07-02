@@ -1,398 +1,439 @@
 # MAID Runner Self-Improvement Backlog
 
+Audit date: 2026-07-02. Tree: `main` at v2.19.1 (`e5e24ca`), clean worktree.
+
 ## Purpose
 
-This document prioritizes improvement work for MAID Runner as a whole system:
-validation trust, workflow reliability, performance, maintainability,
-documentation freshness, and release/process hygiene. It routes confirmed
-themes to specialist queues instead of turning broad quality goals into
-unbounded implementation work.
+This document is the post-June-10 audit of MAID Runner as a whole system. On
+2026-06-10 the improvement roadmap epics 061-071 were drafted
+(`88810ea`, `bc8564d`); this audit reviews everything that landed since then
+(v2.17.0 → v2.19.1), verifies which planned work is consumed versus still open,
+triages the fifteen `~/.maid/bug-report/` entries filed since June 14, and
+routes the confirmed findings into prioritized, implementation-sized themes.
+
+It is written as a takeover packet: another AI agent should be able to pick up
+MAID planning and implementation from this file alone, following the repo
+workflow in `AGENTS.md` (plan-lock lifecycle, draft promotion, review-fix-ready
+loop). This backlog plans only; every code change below still requires its own
+draft manifest, behavioral tests, red phase, plan lock, and implementation
+review.
+
+## What Landed Since 2026-06-10 (context for takeover)
+
+All of the following are implemented, promoted under `manifests/`, and covered
+by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
+
+- **061 manifest authoring & brownfield onboarding** (consumed/archived):
+  `maid manifest from-diff`, validate-command suggestion, bootstrap adoption
+  ranking, brownfield onboarding docs.
+- **062 strict-by-default validation gates**: **not started** — see Theme 6.
+- **063 validator plugin distribution** (consumed/archived): entry-point
+  discovery, `maid validators` listing, conformance kit, authoring docs.
+- **064 daemon-first agent validation** (partially open): daemon-resident
+  validation cache, verify protocol, TCP transport, client API and diagnostic
+  command. Child 064-01 (route CLI validate through daemon) was **archived
+  after a failed benchmark gate**; 064-05 (benchmark & default daemon auto)
+  remains — see Theme 7.
+- **065 CI-native SARIF reporting** (consumed/archived): diagnostics registry
+  export, SARIF output for validate/verify, GitHub Actions wiring, CI docs.
+- **066 outcome recall planning integration** (consumed/archived):
+  `maid recall` manifest-derived queries, planning recall packet, skill and
+  init-payload sync.
+- **067 plan locks & red-phase evidence** (fully consumed, epic file still
+  says `planning` — see Theme 8): tamper-evident `maid plan lock|revise|status`,
+  red-evidence capture, `--require-plan-lock` / `--require-red-evidence` in
+  verify, task-window scoping, E707 command cross-check, handoff baseline fix,
+  `--preserve-red-evidence`.
+- **068 behavioral constraint evidence** (consumed/archived): artifact
+  execution coverage gate, knockout harness, verify wiring.
+- **069 edit-time scope hooks** (consumed/archived): `maid task` active
+  manifest commands, hook scope-check command, init payload wiring.
+- **070 structured retry packets** (consumed/archived): error-code registry
+  with repair recipes, failure packets, bounded retry loop.
+- **071 gaming incident flywheel** (consumed/archived): incident storage and
+  capture, DPO export, temptation suggestions.
+- **073-076 workflow fixes**: plan-lock migration on draft promotion,
+  Outcome-before-ready gate, outcome index refresh after capture, init payload
+  alignment, stash-backed `plan revise --stash-implementation` (076-01..03).
+- **077 outcome learning loop in skills** (fully consumed, epic stale):
+  auditor insights cadence, learning-loop guidance, related-match recall
+  scoring, init payload sync.
+- **078-080**: quiet-validate test-command caching, versioned init instruction
+  payloads, CLI help text fill.
+- **081 outcome LLM enrichment** (fully consumed, epic stale): deterministic
+  enrichment core + `maid enrich`, theme maps in `maid insights`,
+  `maid-outcome-enrich` skill, quality hardening, planner theme-map preference.
+- **verify summary** (`6cb3107`): `maid verify --summary` deduplicated output;
+  now the preferred handoff command per `AGENTS.md`.
+- **Brownfield validator fixes** from the June 24-27 bug-report burst: Claude
+  scope-check hook envelopes (`874ec86`), nested TS assertion scanning
+  (`740bde8`), Svelte 5 props collection (`3ec80cc`), scope-only files as
+  tracked inventory (`6e0875c`, `59ac5d3`), `maid test` fast-only (`b38e963`),
+  Python skill-script E200 identity (`5456463`), TS object-return stub
+  detection (`3b90dde`).
 
 ## Current Evidence Reviewed
 
-- `uv run maid validate --quiet` on the current tree now passes without E111
-  grandfathered-drop chain notices after `043-01`.
-- The original `uv run maid test` health probe passed 18 commands and reported
-  no E111 chain noise after `043-01`; the 2026-05-29 performance refresh later
-  measured `uv run maid test --json` at 26 commands and 41.07s.
-- `uv run maid test --quiet` was rejected because `maid test` does not support
-  `--quiet`; the supported command was rerun.
-- Existing specialist plans were reviewed:
-  - `docs/plans/maid-validate-hardening-backlog.md`
-  - `docs/plans/maid-runner-performance-backlog.md`
-  - `docs/plans/maid-runner-cleanup-refactor-backlog.md`
-- Current draft epics and reference usage were reviewed:
-  - `manifests/drafts/028-00-clean-code-maintainability-roadmap.epic.yaml`
-  - `manifests/drafts/029-00-clean-code-maintainability-next-wave.epic.yaml`
-  - `manifests/drafts/030-00-maid-validate-hardening-roadmap.epic.yaml`
-  - `manifests/drafts/032-00-maid-validate-post-030-hardening-roadmap.epic.yaml`
-  - `manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml`
-  - `manifests/drafts/035-00-maid-runner-cleanup-refactor-roadmap.epic.yaml`
-  - `manifests/drafts/041-00-maid-runner-performance-diagnostics.epic.yaml`
-- Active-manifest references to draft epics were checked with `rg`; `034-00`
-  and `035-00` are still declared in active manifest `files.read` sections.
-- Recent insights around TypeScript brownfield contracts, cache invalidation,
-  parse-error refactoring, release recovery, and branch workflow were sampled.
-- `docs/maid-philosophy-and-vision.md`, `docs/ROADMAP.md`, and `specs/` were
-  sampled for strategy and documentation drift.
-- A fresh MAID bug report was reviewed:
-  `~/.maid/bug-report/20260529-103724-arch-spec-uv-run-project-command-integrity.md`.
-  It showed a valid `uv run --project backend pytest ...` validate command
-  rejected by command-integrity parsing with E230.
+- `uv run maid validate --quiet`: exit 0, silent. Healthy.
+- `uv run maid test`: all commands PASS.
+- `uv run maid verify --summary`: **FAIL** — `changed_scope` E115 blocks on a
+  clean release tree (no baseline configured). 10s.
+- `uv run maid verify --summary --keep-going`: same blocking failure; 7 stages
+  pass; **392 raw / 147 unique warnings** (E307 storm + E310 false positives);
+  97s total.
+- `uv run maid learn` + `uv run maid insights`: 102 Outcome records indexed;
+  top tags `outcome-records` (22), `anti-gaming` (17).
+- Fifteen bug reports under `~/.maid/bug-report/` dated 2026-06-14 through
+  2026-07-01, cross-checked against fix commits (dates verified with
+  `git log`). Thirteen are fixed; two remain open (Themes 2 and 3).
+- Pending insights in `.claude/insights/review/2026/07/01/` on E210 handling
+  and the misleading warning-summary label, verified against current
+  `maid_runner/cli/commands/_format.py` (Theme 1 still reproduces in code).
+- Epic drafts under `manifests/drafts/` header-checked: 061/063/065/066/068/
+  069/070/071 archived; 062/064/067/077/081 still `status: planning`, of which
+  067/077/081 have all planned children promoted.
+- Specialist backlog freshness: hardening backlog last touched 2026-05-29,
+  cleanup backlog 2026-05-31 (both predate the 061-081 waves); performance
+  backlog 2026-06-27 (current).
+- Memory-tracked issues re-verified: Codex distributable-skills pollution is
+  fixed (`f15e0a4`, `scripts/sync_claude_files.py` `CODEX_DISTRIBUTABLE_SKILLS`,
+  `tests/test_agent_payload_distribution.py`); `maid-plan-review` ships in
+  `maid_runner/codex/skills/`.
 
 ## Prioritized Improvement Themes
 
-### 1. Retire the Remaining E111 Grandfathered Drops
-
-Primary lane: MAID workflow.
-
-Status: Completed by `manifests/043-01-retire-grandfathered-chain-noise.manifest.yaml`.
-
-Evidence: `uv run maid validate --quiet` and `uv run maid test` both pass but
-report 11 E111 chain notices for dropped artifacts in file discovery, validation,
-graph constants, and retired tests.
-
-Current symptom: The health checks are green but noisy. A maintainer or agent
-must know that the E111 notices are expected, which weakens the meaning of a
-clean done gate.
-
-Why it matters: Persistent tolerated chain issues normalize noisy validation.
-That makes future real chain regressions easier to miss.
-
-Recommended owner skill: `maid-evolver`, with `maid-validate-hardening` review
-if the closure changes chain semantics.
-
-Closure shape: Supersede or normalize the affected historical manifests so the
-current active chain no longer emits these grandfathered-drop notices, while
-preserving intentional artifact removals.
-
-Suggested acceptance criteria:
-
-- `uv run maid validate --quiet` exits 0 and emits no E111 notices.
-- `uv run maid test` exits 0 and reports `Chain issues: 0`.
-- Focused tests prove intentional historical artifact drops remain auditable.
-
-Next action: none. Keep explicit supersession audit coverage visible for
-grandfathered drops.
-
-### 2. Make Manifest Lifecycle Metadata Truthful
-
-Primary lane: MAID workflow.
-
-Status: Implemented by
-`manifests/043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`.
-
-Evidence: Active manifests such as `032-*`, `035-01`, and `041-*` still include
-`metadata.status: draft` or `metadata.status: planning` even though git history
-shows related implementation commits have landed and validation passes.
-
-Current symptom: Manifest lifecycle metadata does not consistently represent
-whether a manifest is planning inventory, promoted implementation contract, or
-completed historical record.
-
-Why it matters: Agents use manifest status as workflow context. Stale status
-increases the chance of re-planning already implemented work or misclassifying
-active contracts as drafts.
-
-Recommended owner skill: `maid-evolver`.
-
-Closure shape: Define lifecycle metadata semantics for active manifests and add
-a lightweight validation or audit check that flags impossible status values in
-active `manifests/*.yaml` files.
-
-Suggested acceptance criteria:
-
-- Active manifests no longer use `planning` unless they are explicitly allowed
-  as planning-only artifacts.
-- Draft-only status remains valid under `manifests/drafts/`.
-- A focused test or audit command catches stale active-manifest lifecycle
-  metadata.
-
-Next action: monitor future active manifests for
-`ACTIVE_MANIFEST_INACTIVE_STATUS`; current stale active-manifest status metadata
-was removed as a one-time cleanup in `043-02`.
-
-### 3. Archive Consumed Draft Epics And Mark Live Plans
-
-Primary lane: MAID workflow.
-
-Status: Completed by `manifests/043-03-archive-consumed-draft-epics.manifest.yaml`.
-
-Evidence: The `028`, `029`, `030`, `032`, and `041` draft epics each have their
-planned child manifests promoted under `manifests/`. `034-00` and `035-00` are
-also largely consumed, but active manifests still list those draft epic paths in
-`files.read`, so deleting them directly would create manifest drift.
-
-Current symptom: `manifests/drafts/` mixes live planning inventory, completed
-roadmaps, and historical context. Future self-improvement passes can mistake
-completed epics for current work.
-
-Why it matters: Stale planning inventory is a source of false priorities. It
-can make agents re-open completed waves or quote old performance and cleanup
-guidance as if it were current.
-
-Recommended owner skill: `maid-evolver`.
-
-Closure shape: Create an explicit archive/retirement policy for consumed draft
-epics. For unreferenced consumed epics, delete or move them to a historical
-archive. For referenced epics such as `034-00` and `035-00`, first evolve the
-active manifests that read them, or replace the draft files with short
-"completed/archived" pointers that no longer look like active planning work.
-
-Suggested acceptance criteria:
-
-- `manifests/drafts/` contains only active draft inventory plus documented
-  parked alignment maps such as `000-parser-replacement-roadmap.md`.
-- Active manifests do not reference deleted draft paths.
-- Completed epics are either removed, archived outside active draft inventory,
-  or reduced to concise status pointers.
-- `uv run maid validate --mode schema --quiet` and `uv run maid validate`
-  both pass after the cleanup.
-
-Next action: none for the consumed epics archived in `043-03`. Future draft
-cleanup should only delete archived paths after active `files.read` references
-are evolved.
-
-### 4. Refresh Performance Measurements After the 041 Work
-
-Primary lane: Performance.
-
-Status: Completed as a planning refresh on 2026-05-29, then implemented by
-`manifests/043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`.
-The refreshed measurements are recorded in
-`docs/plans/maid-runner-performance-backlog.md`.
-
-Evidence: The performance backlog had identified assertion parsing, TypeScript
-compiler resolution, and verify cache scope as hot paths. Git history shows the
-041 cache/session/share-scope work has since landed. The refreshed local
-`maid-runner` measurements now show `maid test --json` at 41.07s for 26
-commands, while strict validation bottlenecks have moved mostly to Tower Recall
-TypeScript behavioral validation.
-
-Current symptom: The backlog contains pre-optimization benchmark numbers. The
-next bottleneck should be chosen from fresh measurements, not from stale timing
-data.
-
-Why it matters: The obvious next ideas, such as parallel validation or
-cross-invocation disk caches, have correctness and ordering risks. They should
-only be pursued after measuring what remains slow.
-
-Recommended owner skill: `maid-runner-performance-optimization`.
-
-Closure shape: Re-run the benchmark matrix from the performance backlog against
-MAID Runner and the reference projects, then update the backlog with post-041
-timings and one or two new implementation-sized drafts.
-
-Suggested acceptance criteria:
-
-- The backlog contains before/after numbers for the 041 work.
-- Remaining hot paths are backed by profile output or command timing.
-- Any new draft preserves JSON-visible output and fail-closed validation
-  behavior.
-
-Next action: re-benchmark Tower Recall-style TypeScript behavioral validation
-before creating another performance draft.
-
-### 5. Continue Characterized ValidationEngine Refactoring
-
-Primary lane: Maintainability.
-
-Status: Closed as already implemented by the later `038` extraction wave and
-the `039-01` cache/refactor work. The self-improvement backlog entry was stale,
-not an unimplemented draft.
-
-Evidence: `maid_runner/core/validate.py` now delegates the old large
-orchestration paths to focused modules:
-
-- `ValidationEngine.validate_removed_artifacts` delegates to
-  `maid_runner/core/_removed_artifacts.py`.
-- `ValidationEngine.validate_all` delegates to
-  `maid_runner/core/_validate_all.py`.
-- `ValidationEngine.validate_behavioral` delegates to
-  `maid_runner/core/_behavioral_validation.py`.
-- `ValidationEngine._check_test_coverage` delegates to
-  `maid_runner/core/_implementation_coverage.py`.
-- `ValidationEngine.validate_implementation` delegates to
-  `maid_runner/core/_implementation_runner.py`.
-
-Current symptom: The cleanup backlog still contains the pre-extraction method
-size table and recommended next steps for `validate_removed_artifacts` and
-`validate_all`, even though those wrappers are now thin.
-
-Why it matters: A stale cleanup target can make a future agent create a
-redundant `043-05` draft instead of selecting cleanup work from current code
-evidence.
-
-Recommended owner skill: `maid-runner-cleanup-and-refactor` for the next fresh
-cleanup audit, not for the stale `validate_removed_artifacts` split.
-
-Suggested acceptance criteria:
-
-- The self-improvement backlog no longer points at
-  `validate_removed_artifacts` as pending implementation work.
-- The roadmap explains that future cleanup work must start from current code
-  evidence rather than the stale pre-038 method-size table.
-- Documentation verification confirms the current CLI version and schema-mode
-  validation still pass.
-
-Next action: refresh cleanup findings before creating any new refactor draft.
-
-### 6. Update Stale Strategy And Roadmap Documentation
-
-Primary lane: Documentation.
-
-Status: Completed as a markdown-only refresh on 2026-05-29.
-
-Evidence: `docs/ROADMAP.md` described version `0.1.3`, old test counts, a
-2025 roadmap, and command names that no longer matched the current v2-era
-CLI. The current package and CLI report `2.13.0`, and
-`maid_runner/cli/commands/_main.py` exposes the current command set.
-
-Current symptom: Closed for the roadmap. `docs/maid-philosophy-and-vision.md`
-remains a long-form philosophy document and should be treated as strategic
-context rather than a live implementation plan.
-
-Why it matters: MAID Runner is workflow-heavy; stale docs cause expensive
-misreads and repeated clarification.
-
-Recommended owner skill: plain documentation editing. No MAID manifest is
-required because this was a markdown-only accuracy update.
-
-Closure shape: `docs/ROADMAP.md` now describes v2 current state, active
-workstreams, the current CLI command surface, deferred/external work, and links
-to the specialist backlogs instead of duplicating obsolete implementation
-status.
-
-Suggested acceptance criteria:
-
-- Current version, command set, validation surfaces, and active workflow gates
-  are accurate.
-- Old roadmap claims are removed instead of left as live priorities.
-- The roadmap points maintainers to the hardening, performance, cleanup, and
-  self-improvement backlogs.
-
-Next action: none for the roadmap. A future pass may separately tighten
-`docs/maid-philosophy-and-vision.md` if it is being used as operational
-guidance instead of background philosophy.
-
-### 7. Recognize `uv run --project` Validate Commands
-
-Primary lane: Validation trust.
-
-Status: Implemented by
-`manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml`.
-
-Evidence: A 2026-05-29 bug report from `arch-spec` showed
-`uv run --project backend pytest backend/tests/services/test_prompt_engineering.py -q`
-successfully running the intended test file manually, while MAID reported E230
-because command-integrity parsing only recognized `uv run <runner>`.
-
-Current symptom: Valid uv wrapper options before the test runner can make
-`maid test` report zero executable commands even though the validate command is
-a real pytest invocation targeting the declared behavioral test file.
-
-Why it matters: E230 is a fail-closed anti-gaming gate. False positives force
-authors to rewrite valid commands or use workarounds, which weakens trust in the
-done gate and hides the real command shape projects need.
-
-Recommended owner skill: `maid-validate-hardening` for evidence and contract,
-then `maid-runner-draft-implement` style implementation review.
-
-Closure shape: Strip bounded, non-cwd-changing `uv run` options before runner
-detection and target scanning, then delegate to the existing test-runner
-integrity checks so selector, collect-only, help, cwd-changing wrappers, and
-unknown-wrapper behavior remains fail-closed.
-
-Suggested acceptance criteria:
-
-- `validate_manifest_test_commands` accepts `uv run --project backend pytest
-  <declared-test-file> -q`.
-- `test_paths_from_executing_validate_command` reports the declared test file
-  after uv wrapper options.
-- The manifest validates in behavioral, schema, and implementation modes.
-- The focused command-integrity and validate CLI tests pass.
-
-Next action: watch for other valid `uv run` wrapper options reported by real
-projects; do not broaden wrapper parsing without a reproduced command shape.
+### 1. Fix the misleading "non-blocking" warning-summary label
+
+- **Primary lane:** Correctness (CLI reporting).
+- **Evidence (tier 1):** `~/.maid/bug-report/20260701-125513-life-dashboard-verify-warnings.md`;
+  insights `2026-07-01_16-11_fix-misleading-warning-summary-label` and
+  `..._maid-runner-e210-warning-handling`. Code confirmed on current tree:
+  `maid_runner/cli/commands/_format.py:380` prints
+  `WARNINGS (non-blocking, deduplicated N -> M):` unconditionally.
+- **Symptom:** Under strict verify policy, E210/E310-class warnings can drive
+  `FAIL behavioral`, yet the summary labels the same warnings "non-blocking".
+  In life-dashboard this made a policy-correct failure look like a validator
+  bug and generated a bug report.
+- **Why it matters:** The verify summary is now the canonical handoff surface;
+  a dishonest label undermines exactly the trust it was built to provide.
+- **Owner:** `maid-evolver` (evolve `manifests/add-verify-summary-output.manifest.yaml`).
+- **Closure shape:** When any failed stage is warning-driven, change the label
+  (e.g. `WARNINGS (deduplicated N -> M; some warnings are blocking under
+  verify policy):`) or split blocking-contributing warning groups from advisory
+  ones. Do **not** change the strict policy itself — it is intentional and
+  test-covered. Document `--advisory` as the brownfield escape hatch.
+- **Acceptance criteria:** a behavioral test where a warning-driven stage
+  failure produces a label that does not say "non-blocking"; existing
+  summary-format tests updated; `maid verify --summary` output on a
+  warning-clean failure unchanged.
+- **Size/risk:** small / low.
+
+### 2. Make `changed_scope` skip visibly instead of failing bare `maid verify`
+
+- **Primary lane:** Developer experience (verify defaults).
+- **Evidence (tier 1):** On this clean release tree,
+  `uv run maid verify --summary` exits FAIL:
+  `E115 --changed-scope requires --since, --base-ref, or metadata.maid_task_base`.
+  The July 1 life-dashboard report shows real users cycling through
+  `--since HEAD` / `--no-changed-scope` to get around the same failure.
+- **Symptom:** The documented handoff command cannot pass on a clean tree or
+  release branch without extra flags, so "verify fails" is ambiguous between
+  real problems and missing-baseline configuration.
+- **Why it matters:** A health probe that always fails trains agents to add
+  bypass flags reflexively — the opposite of what an anti-gaming gate wants.
+- **Owner:** `maid-validate-hardening` (this changes an enforcement stage's
+  default posture; needs adversarial review). Note: the explicit-baseline
+  requirement is deliberate contract from
+  `manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml`
+  ("MAID will not guess main, dev, or a remote branch") — change it via
+  `maid-evolver` on that contract, not as an incidental fix.
+- **Closure shape:** When no baseline is resolvable **and** the worktree is
+  clean, report `changed_scope` as a visible SKIPPED stage (with the reason)
+  instead of a blocking FAIL; keep the fail-closed E115 whenever the tree is
+  dirty or any `--changed-scope`-strengthening flag was passed explicitly.
+  Alternative if review rejects auto-skip: keep FAIL but add a first-class
+  documented baseline for release trees. Decide in plan review, not ad hoc.
+- **Acceptance criteria:** clean-tree verify passes with a visible
+  `SKIPPED changed_scope (no baseline; clean tree)` line; dirty-tree behavior
+  unchanged (still E115); JSON/SARIF outputs represent the skip explicitly;
+  adversarial test proving a dirty tree cannot ride the skip path.
+- **Size/risk:** small-medium / medium (touches verify gate semantics).
+
+### 3. Let `plan revise --stash-implementation` handle dirty `files.read` wiring paths
+
+- **Primary lane:** MAID workflow (red-evidence recapture).
+- **Evidence (tier 1, still reproduces):**
+  `~/.maid/bug-report/20260630-182412-life-dashboard-maid-plan-revise-files-read.md`.
+  Code confirmed: `_cmd_plan_revise_with_stashed_implementation`
+  (`maid_runner/cli/commands/plan.py:271`) builds targets from
+  `manifest.all_writable_paths`, which (`maid_runner/core/types.py`) covers
+  create/edit/delete/snapshot/scope but **not** `files.read`. The June 29
+  sibling report was only fixed for scope-only files (`8bd90cc`).
+- **Symptom:** Manifests that follow the documented touched-but-uncontracted
+  wiring pattern (e.g. SvelteKit `+page.svelte` under `files.read`) cannot
+  recapture red evidence after a review-driven contract change; the verify gate
+  then reports E707 `RED_EVIDENCE_COMMAND_MISMATCH` with no sanctioned path
+  forward.
+- **Why it matters:** This blocks the exact workflow (review → revise → fresh
+  red evidence) that 067/076 built, and it recurred twice in two days in a real
+  downstream repo.
+- **Owner:** `maid-validate-hardening` for the contract decision (red-evidence
+  integrity is at stake), then evolve `manifests/076-01-add-stash-backed-plan-revise.manifest.yaml`.
+- **Closure shape:** treat manifest-declared `files.read` dirty paths as stash
+  **targets** (they are implementation edits that must be hidden during red
+  capture), not merely allowed dirt. Keep refusing genuinely undeclared dirty
+  paths. Consider whether unbounded `files.read` stashing weakens the
+  anti-gaming posture (files.read is cheap to declare) — if so, bound it to
+  paths that appear in the manifest with an explicit wiring rationale, and say
+  so in the error message.
+- **Acceptance criteria:** reproduction from the bug report passes; undeclared
+  dirty paths still refused; E707 no longer forced in the wiring scenario;
+  adversarial test that a contracted-artifact file cannot masquerade as
+  read-only wiring to dodge red capture.
+- **Size/risk:** small-medium / medium.
+
+### 4. Stop E310 flagging intentional base-class default hooks as stubs
+
+- **Primary lane:** Validation trust (heuristic precision).
+- **Evidence (tier 1):** every verify run on this repo emits E310 x7 for
+  `BaseValidator.module_path`, `.resolve_reexport`,
+  `.get_test_function_bodies`, `.generate_test_stub`
+  (`maid_runner/validators/base.py:128-184`). Reading the code confirms these
+  are documented template-method default hooks (`return None` / `{}` / `""`)
+  that subclasses override — not stubs. Same false-positive class as the fixed
+  TS object-return case (`3b90dde`, report 20260627-150713).
+- **Symptom:** 28 recurring false warnings on the runner's own verify output;
+  under strict verify policy E310 warnings can block downstream repos with the
+  same pattern.
+- **Why it matters:** Dogfooded false positives teach agents to ignore E310,
+  which is exactly the stub-detection signal the anti-gaming design needs to
+  stay credible.
+- **Owner:** `maid-validate-hardening` (bounded syntactic rule per the
+  Validator Hardening Constraints in `AGENTS.md` — no control-flow modeling).
+- **Closure shape:** a narrow, documented exemption: method in a class, with a
+  docstring, whose trivial return is a documented default **and** at least one
+  subclass in the project overrides it — or, if override detection is too
+  broad, an explicit per-artifact acknowledgment in the manifest (e.g.
+  `default_hook: true`) so the exemption is contract-visible rather than
+  heuristic. Prefer the contract-visible form; silent heuristics grow.
+- **Acceptance criteria:** clean verify on this repo emits zero E310 for
+  `validators/base.py`; a real stub (bare `pass` / `NotImplementedError`
+  without the exemption) still flags; the exemption is documented in the error
+  registry repair recipe.
+- **Size/risk:** small-medium / medium (anti-gaming surface).
+
+### 5. Tame the E307 "no validator available" warning storm
+
+- **Primary lane:** Developer experience (signal-to-noise).
+- **Evidence (tier 1):** verify on this clean tree reports 392 raw / 147
+  unique warnings; the overwhelming majority are E307 for declared `.md`,
+  `.toml`, `.json`, `.gitignore`, `.cjs` files (skill payloads, docs,
+  pyproject). The summary dedup (`6cb3107`) mitigated but did not resolve it.
+- **Symptom:** Real warnings (like Theme 4's E310) sit inside 140+ lines of
+  noise; downstream repos see the same storm.
+- **Why it matters:** Warning fatigue is the failure mode summary output was
+  built to prevent; 147 unique warnings still exceeds what an agent will read.
+- **Owner:** `maid-validate-hardening` (it is a policy boundary: which files
+  deserve a "cannot validate" warning at all).
+- **Closure shape (decide in plan review):** (a) downgrade E307 to info for
+  recognized non-code extensions while keeping it a warning for source-like
+  files with no validator; or (b) a presence-only validator for doc/config
+  files so declaring them is checkable without noise; or (c) collapse all E307
+  into one summary group with a count. Keep the fail-loud principle: the
+  information must remain visible, just proportionate.
+- **Acceptance criteria:** clean-tree verify summary warning list fits in one
+  screen; E307 still appears (in whatever downgraded/grouped form) so nothing
+  is silently hidden; SARIF/JSON consumers still receive per-file records.
+- **Size/risk:** small-medium / low-medium.
+
+### 6. Execute epic 062: strict-by-default validation gates
+
+- **Primary lane:** Validation trust (roadmap execution).
+- **Evidence (tier 2):** `manifests/drafts/062-00` and children 062-01..04 are
+  fully drafted and untouched since June 10 — the only June 10 epic with zero
+  children landed. The July 1 verify-warnings confusion is live evidence of
+  the migration pain 062-02 (`--strict-preview`) and 062-03 (strict migration
+  delta report) were designed to absorb.
+- **Symptom:** Strictness arrived piecemeal (verify treats warnings as
+  blocking) without the preview/delta tooling, so downstream brownfield repos
+  experience policy as surprise.
+- **Why it matters:** 062 is the bridge between "gates exist" (067/068 landed)
+  and "gates are on by default without revolt".
+- **Owner:** `maid-runner-draft-implement` for 062-01..03 as drafted;
+  **hold 062-04** (flip defaults in a major release) until Themes 1, 2, 4, 5
+  land, otherwise strict-by-default ships with known false positives and a
+  failing bare verify.
+- **Next action:** re-validate the four child drafts against the current tree
+  (they predate waves 063-081; artifact and path assumptions may have
+  drifted), revise via `maid plan revise` where stale, then promote 062-01
+  first.
+- **Size/risk:** medium / medium.
+
+### 7. Close the daemon epic 064 with a benchmark-gated decision
+
+- **Primary lane:** Performance.
+- **Evidence (tier 2):** 064-02/03/04/06 landed; 064-01 was archived after
+  failing its benchmark gate (`0f8651c`); `manifests/drafts/064-05-benchmark-and-default-daemon-auto.manifest.yaml`
+  remains, and the epic requires each remaining child to restate the benchmark
+  gate. Verify with tests on this repo takes ~97s.
+- **Symptom:** The daemon exists (cache, protocol, transports, client API) but
+  nothing defaults to it, so the investment currently yields no routine
+  speedup.
+- **Why it matters:** Either the daemon becomes the default fast path with
+  measured wins, or the epic should be closed honestly as
+  infrastructure-delivered/auto-default-rejected — leaving it half-open invites
+  unbenchmarked "just route it" work, which 064-01 already proved wrong.
+- **Owner:** `maid-runner-performance-optimization`.
+- **Next action:** revise or replace 064-05 per the epic's own instruction:
+  benchmark daemon-backed verify/validate on this repo plus one reference
+  project; default to auto only on a measured win; otherwise archive 064-05
+  and the epic with the benchmark evidence in its Outcome.
+- **Size/risk:** medium / medium.
+
+### 8. Archive consumed epics and make draft inventory truthful again
+
+- **Primary lane:** MAID workflow (planning hygiene).
+- **Evidence (tier 1):** epic files 067-00, 077-00, 081-00 still carry
+  `# draft-kind: epic` / `status: planning` although every planned child is
+  promoted and implemented. The 043-03 archive pattern
+  (`# archive-kind: consumed-draft-epic`, `status: archived`) exists for
+  exactly this. Also: two active manifests share the ID prefix
+  `072-01-*` (`disable-cli-option-abbreviation` and
+  `quiet-legacy-created-chain-warnings`) — a wave-numbering collision worth
+  noting in the archive pass.
+- **Why it matters:** This backlog's own predecessor documented (Theme 3,
+  2026-05) that stale planning inventory creates false priorities; the same
+  drift re-accumulated within three weeks. Takeover agents will re-open
+  consumed epics.
+- **Owner:** `maid-evolver` (check active `files.read` references before
+  rewriting, per the 043-03 lesson).
+- **Acceptance criteria:** every fully-consumed epic under `manifests/drafts/`
+  is an archive pointer; only 062 and 064 remain `planning`; schema-mode
+  validation passes; next new draft wave starts at **082** to avoid collisions.
+- **Size/risk:** small / low.
+
+### 9. Refresh the stale specialist backlogs
+
+- **Primary lane:** Documentation.
+- **Evidence (tier 1):** `docs/plans/maid-validate-hardening-backlog.md`
+  last touched 2026-05-29 and `docs/plans/maid-runner-cleanup-refactor-backlog.md`
+  2026-05-31 — both predate plan locks, knockout gates, scope hooks, retry
+  packets, and the incident flywheel, so their threat models and cleanup maps
+  describe a system that no longer exists. The performance backlog
+  (2026-06-27) is current.
+- **Owner:** `maid-validate-hardening` and `maid-runner-cleanup-and-refactor`
+  respectively, as the opening step of their next audits (markdown-only,
+  no manifest needed per repo policy).
+- **Acceptance criteria:** each backlog states what the 061-081 waves already
+  closed, and its open items are re-verified against the current tree.
+- **Size/risk:** small / low.
+
+### 10. Verify multi-command test batching for same-runner commands
+
+- **Primary lane:** Performance.
+- **Evidence (tier 3, stale-but-plausible):**
+  `~/.maid/bug-report/20260625-200358-erindelle-maid-test-playwright-batching.md`
+  had two halves: slow E2E in the fast gate (fixed by `b38e963`,
+  fast-only `maid test`) and two separate Playwright invocations where one
+  batched run was expected (no fix commit found). Batching still matters for
+  `maid test --all` and the verify tests stage (~87s of the 97s keep-going run).
+- **Owner:** `maid-runner-performance-optimization`.
+- **Next action:** a probe, not a draft — reproduce whether identical-runner
+  commands across manifests are batched in `maid test --all`/verify; only
+  draft if the reproduction shows redundant runner startup with measurable
+  cost.
+- **Size/risk:** probe: small.
 
 ## Routed Backlog
 
-1. Done: retire E111 grandfathered-drop chain noise via `043-01`.
-2. Done: define and enforce active-manifest lifecycle metadata via `043-02`.
-3. Done: archive consumed draft epics as stable archive pointers via `043-03`.
-4. Done: re-benchmark after 041 and plan the next measured optimization wave.
-5. Done: close the stale characterized `ValidationEngine` method-split item
-   against the already-landed 038/039 extraction work.
-6. Done: refresh stale strategy and roadmap documentation for the current v2
-   CLI and workflow state.
-7. Done: recognize bounded `uv run` wrapper options before pytest in
-   validate-command integrity via `043-05`.
+Priority order for the next agent (rationale: false-green/false-fail trust
+issues first, then correctness of daily workflow, then roadmap execution,
+then hygiene):
+
+1. Theme 1 — honest warning-summary label (`maid-evolver`, small).
+2. Theme 2 — visible `changed_scope` skip on clean trees (`maid-validate-hardening`).
+3. Theme 3 — stash-revise `files.read` handling (`maid-validate-hardening` + evolve 076-01).
+4. Theme 4 — E310 default-hook exemption (`maid-validate-hardening`).
+5. Theme 5 — E307 noise policy (`maid-validate-hardening`).
+6. Theme 6 — execute 062-01..03; hold 062-04 until 1/2/4/5 land (`maid-runner-draft-implement`).
+7. Theme 7 — benchmark-gated 064 closure (`maid-runner-performance-optimization`).
+8. Theme 8 — archive consumed epics 067/077/081 (`maid-evolver`, can run any time).
+9. Theme 9 — refresh hardening + cleanup backlogs (markdown-only).
+10. Theme 10 — batching probe (performance, probe first).
+
+Sequencing note: Themes 1-5 are all prerequisites for flipping strict defaults
+(062-04). Landing them first turns 062 from a fight into a formality.
 
 ## Specialist Follow-Ups
 
-- Validation hardening should stay focused on false-green behavior. No new
-  hardening draft should be created from speculative static-analysis ideas
-  without a reproduced bypass.
-- Performance work should not add parallelism or disk caches until fresh
-  profiling proves redundant in-process work is no longer the main cost.
-- Cleanup work should keep performance and behavior changes out of refactor
-  drafts.
-- Consumed draft epics should not be deleted until active manifest `files.read`
-  references have been checked and evolved where needed.
+- `maid-validate-hardening` owns Themes 2-5 and should open its pass by
+  refreshing its backlog (Theme 9); all four items change gate posture and
+  need adversarial tests proving the relaxations cannot be gamed.
+- `maid-runner-performance-optimization` owns Themes 7 and 10; the epic 064
+  rule stands — no daemon or batching change without before/after benchmark
+  evidence in the Outcome.
+- `maid-runner-cleanup-and-refactor` has no confirmed current findings from
+  this audit; its next audit should start from a fresh code scan plus its
+  refreshed backlog, not from this document.
+- The June 24-27 brownfield burst (7 reports, all fixed in days) shows the
+  bug-report → narrow-fix → regression-test loop working; keep routing
+  language-validator edge cases through it rather than building broader static
+  analysis (see Validator Hardening Constraints in `AGENTS.md`).
 
-## Draft Manifest Progress
+## Draft Manifest Candidates
 
-Completed:
+To be created by the owning skill, one at a time, next wave **082+**
+(numbering: 081 is the last used draft wave; also avoid re-using 072):
 
-- `043-01-retire-grandfathered-chain-noise.manifest.yaml`
-- `043-02-enforce-active-manifest-lifecycle-status.manifest.yaml`
-- `043-03-archive-consumed-draft-epics.manifest.yaml`
-- `043-04-cache-typescript-compiler-project-for-import-resolution.manifest.yaml`
-- `043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml`
+- `082-01-honest-blocking-warning-summary-label` (Theme 1; evolve
+  `add-verify-summary-output`).
+- `082-02-changed-scope-visible-skip-on-clean-tree` (Theme 2).
+- `082-03-stash-revise-files-read-wiring-paths` (Theme 3; evolve 076-01).
+- `082-04-exempt-documented-default-hooks-from-e310` (Theme 4).
+- `082-05-proportionate-e307-no-validator-policy` (Theme 5).
+- Existing drafts 062-01..04 (revalidate before promotion) and 064-05
+  (revise per epic instruction) — do not renumber them.
 
-Remaining candidates:
+Every candidate must follow the full lifecycle: draft → behavioral tests →
+red phase → `maid validate --mode behavioral` → plan review → `maid plan lock`
+→ `maid manifest promote` → implement → implementation review → Outcome →
+`maid learn`.
 
-- None from this backlog as of the 2026-05-29 documentation refresh.
+## Speculative Ideas (no drafts until a probe confirms)
 
-Future candidates should be created one at a time by the owning specialist
-skill after confirming current evidence. Do not create the stale
-`043-05-split-validation-engine-removed-artifacts.manifest.yaml` candidate
-unless a new code audit finds a current behavior-preserving refactor target.
-
-## Speculative Ideas
-
-- Build the Layer 3/Layer 4 orchestrator described in
-  `docs/maid-philosophy-and-vision.md` as a productized state machine. This is
-  promising but needs a feature spec before MAID drafts.
-- Revisit the parser replacement roadmap for TypeScript. Recent TypeScript
-  brownfield fixes show the validator is still complex, but there is no current
-  reproduced failure requiring a broad parser architecture change.
-- Add editor/LSP integrations. This remains useful for developer experience,
-  but it is not more urgent than false-green cleanup, lifecycle hygiene, and
-  post-041 measurement.
+- **Payload staleness surfacing:** 079-01 versioned init payloads; a
+  `maid verify` advisory or doctor-style check could warn downstream repos
+  when installed skill payloads lag the package version (memory:
+  life-dashboard ran stale guidance for weeks). Needs a design decision on
+  where the check lives.
+- **Brownfield characterization corpus:** distill the June bug-report
+  reproductions (Svelte 5 props, nested TS assertions, skill-script identity)
+  into a versioned fixture corpus run in CI, so validator changes are checked
+  against real downstream shapes. Medium effort; propose only if validator
+  churn continues.
+- **Enrichment adoption loop:** 081 landed `maid enrich` + theme maps; no
+  evidence yet on whether theme-mapped insights change planner behavior
+  downstream. Revisit after a few weeks of Outcome data.
+- Carried over: productized Layer 3/4 orchestrator
+  (`docs/maid-philosophy-and-vision.md`) — still needs `feature-spec-architect`
+  first; editor/LSP integration — still lower priority than trust items.
 
 ## Verification Notes
 
-- `uv run maid validate --quiet`: now passes without E111 notices after
-  `043-01`.
-- `uv run maid test --quiet`: failed because the argument is unsupported.
-- `uv run maid test`: passed 18 commands; 0 failed; no E111 chain issues
-  reported after `043-01`.
-- `043-02` added an active-manifest lifecycle metadata diagnostic with focused
-  tests in `tests/core/test_manifest_chain_discovery.py` and schema-mode
-  coverage in `tests/core/test_validate_schema_mode.py`.
-- `043-02` implementation review returned ready after the one-time active
-  manifest metadata cleanup was declared in the manifest contract.
-- `043-03` rewrote consumed epic drafts as `archive-kind` pointers with
-  `metadata.status: archived`, preserving paths still read by active manifests.
-- `043-04` performance refresh measured MAID Runner plus five reference
-  projects after 041, confirmed Tower Recall TypeScript compiler bridge import
-  resolution as the next current hot path, then promoted and implemented the
-  cache-backed import-resolution bridge manifest.
-- The 2026-05-29 documentation refresh confirmed `maid --version` reports
-  `2.13.0`, refreshed `docs/ROADMAP.md`, and closed the stale
-  `ValidationEngine.validate_removed_artifacts` cleanup candidate because the
-  current method is already a delegate to `_removed_artifacts`.
-- The `043-05` bug-fix pass reproduced the E230 false positive for
-  `uv run --project ... pytest ...`, added focused command-target and
-  command-integrity regression tests, and confirmed the fixed tests pass.
+Commands run on 2026-07-02 against `main` @ `e5e24ca` (v2.19.1), clean tree:
+
+- `uv run maid validate --quiet` — exit 0, no output.
+- `uv run maid test` — all listed commands PASS.
+- `uv run maid verify --summary` — FAIL: 1 blocking (`changed_scope` E115),
+  6 stages passed, 147/392 warnings, 10s.
+- `uv run maid verify --summary --keep-going` — FAIL: same blocking stage,
+  7 stages passed (adds `tests`), 97s.
+- `uv run maid learn` then `uv run maid insights` — 102 records;
+  `outcome-records` (22) and `anti-gaming` (17) dominate.
+- `uv run maid --version` — 2.19.1.
+- Code reads verified: `_format.py:376-387` (Theme 1),
+  `plan.py:271-342` + `core/types.py` `all_writable_paths` (Theme 3),
+  `validators/base.py:128-184` (Theme 4).
+- No new draft manifests were created in this audit, so no schema validation
+  was required; drafts 062-01..04 and 064-05 must be re-validated by their
+  owning skill before promotion.

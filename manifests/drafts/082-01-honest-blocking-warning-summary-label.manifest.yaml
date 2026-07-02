@@ -1,0 +1,179 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Make the verify --summary warning label honest when warning-severity findings are what blocked a stage"
+type: fix
+created: "2026-07-03T06:45:00Z"
+metadata:
+  status: draft
+  backlog: docs/plans/maid-runner-self-improvement-backlog.md#theme-1
+  tags:
+    - verify
+    - cli
+    - output-formatting
+    - warning-policy
+    - trust
+  priority: high
+description: |
+  `maid verify --summary` always renders the warning section header as
+  `WARNINGS (non-blocking, deduplicated N -> M):`
+  (maid_runner/cli/commands/_format.py, format_verify_summary). Under the
+  strict verify warning policy, warning-severity findings (E210, E310, ...)
+  on post-2026-05-17 manifests are folded into stage failure, so a stage can
+  FAIL *because of* the very warnings the summary then labels "non-blocking".
+  The 2026-07-01 life-dashboard bug report
+  (20260701-125513-life-dashboard-verify-warnings.md) shows the consequence:
+  a policy-correct failure read as a validator bug because the canonical
+  handoff surface contradicted itself.
+
+  This manifest chain-merges over `add-verify-summary-output` (which created
+  maid_runner/core/verify_summary.py and format_verify_summary): the builder
+  gains warning-driven-failure attribution, and the formatter renders an
+  honest label plus the sanctioned escape-hatch hint.
+
+  Pinned decisions (do not redesign):
+
+  1. Presentation-only. The strict warning policy itself is intentional and
+     test-covered; this manifest must not change which warnings block, stage
+     selection, gate semantics, or exit codes. `stage.success` remains the
+     sole source of truth for blocking.
+
+  2. Attribution rule, not policy re-derivation. A blocking stage is
+     "warning-driven" exactly when its structured results carry at least one
+     warning-severity finding and zero error-severity findings (stage errors
+     and error-severity validation diagnostics both count as error-severity).
+     The builder must not duplicate the advisory/blocking code lists from
+     maid_runner/cli/commands/verify.py.
+
+  3. New builder surface: `VerifySummary.warning_blocking_stages` is a
+     tuple of failed-stage names attributed to warnings, in stage order.
+     Empty means every blocking stage has at least one error-severity
+     finding.
+
+  4. Rendering: when `warning_blocking_stages` is non-empty, the warning
+     section header must NOT contain the phrase "non-blocking"; it must say
+     the deduplicated counts and that some warnings are blocking under the
+     verify policy for the named stage(s), and append a one-line hint that
+     `--advisory` is the brownfield escape hatch that reports warnings
+     without failing stages. When `warning_blocking_stages` is empty, the
+     existing `WARNINGS (non-blocking, deduplicated N -> M):` output is
+     byte-identical to today.
+
+  5. Summary JSON (`--summary --json`) gains a top-level
+     `"warning_blocking_stages": [...]` list so JSON-consuming agents get the
+     same honesty; the non-summary JSON payload is untouched.
+
+  Planning notes (Planning Handoff Mode): behavioral tests are declared but
+  not yet written. The implementing agent writes the test bodies in the new
+  dedicated module (do not extend tests/core/test_verify_summary.py or
+  tests/cli/test_verify_summary_cmd.py — they are hashed by older plan
+  locks), confirms the red phase, runs behavioral validation, plan-locks,
+  and promotes before implementation.
+
+  Open questions for the implementing agent:
+  - Exact honest label wording (suggested: "WARNINGS (deduplicated N -> M;
+    blocking for: <stage names> under verify policy):"), as long as
+    "non-blocking" is absent in the warning-driven case and present
+    otherwise.
+  - Whether README.md needs more than one sentence on `--advisory`; keep the
+    doc delta minimal.
+temptations:
+  - risk: "Do not change which warnings block, the strict policy cutoff, or verify exit codes to make the label simpler."
+    instead: "Treat this as presentation-only attribution over the existing VerificationResult; plan a test asserting exit codes and stage outcomes are unchanged with and without the new label."
+  - risk: "Do not re-derive or duplicate the advisory/blocking warning-code policy from verify.py inside the summary builder."
+    instead: "Attribute a failed stage to warnings purely structurally: zero error-severity findings plus at least one warning-severity finding in that stage's results."
+  - risk: "Do not drop the 'non-blocking' wording globally to dodge the conditional."
+    instead: "Keep the existing label byte-identical when no blocking stage is warning-driven, and assert that in a behavioral test."
+  - risk: "Do not add assertions to tests/core/test_verify_summary.py or tests/cli/test_verify_summary_cmd.py, which are hashed by older plan locks."
+    instead: "Put all new behavioral coverage in the dedicated tests/cli/test_verify_summary_blocking_label.py module owned by this manifest."
+files:
+  create:
+    - path: tests/cli/test_verify_summary_blocking_label.py
+      artifacts:
+        - kind: test_function
+          name: test_warning_driven_failure_label_states_blocking_policy
+          source_scenario: A VerificationResult whose only failed stage carries warning-severity findings and zero error-severity findings, rendered with --summary.
+          actions:
+            - type: api_call
+              subject:
+                function: build_verify_summary
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: warning_blocking_stages names the failed stage, and the rendered warning section header does not contain "non-blocking" and states the warnings are blocking under verify policy.
+        - kind: test_function
+          name: test_error_driven_failure_keeps_non_blocking_label
+          source_scenario: A VerificationResult whose failed stage carries error-severity findings while advisory warnings also exist.
+          actions:
+            - type: api_call
+              subject:
+                function: build_verify_summary
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: warning_blocking_stages is empty and the warning section renders the existing "non-blocking" label unchanged.
+        - kind: test_function
+          name: test_warning_blocking_label_mentions_advisory_escape_hatch
+          source_scenario: A warning-driven blocking stage rendered with --summary.
+          actions:
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: The rendered output includes a one-line hint naming the --advisory flag as the sanctioned way to keep warnings non-fatal on brownfield trees.
+        - kind: test_function
+          name: test_build_summary_partitions_warning_blocking_stages
+          source_scenario: A VerificationResult mixing one warning-driven failed stage, one error-driven failed stage, and passing stages.
+          actions:
+            - type: api_call
+              subject:
+                function: build_verify_summary
+          expected:
+            behavior: warning_blocking_stages contains exactly the warning-driven stage name in stage order, while blocking_stages still lists both failed stages.
+        - kind: test_function
+          name: test_summary_json_reports_warning_blocking_stages
+          source_scenario: A warning-driven blocking result rendered via format_verify_summary with json_mode True.
+          actions:
+            - type: api_call
+              subject:
+                function: format_verify_summary
+          expected:
+            behavior: The JSON payload contains a top-level warning_blocking_stages list naming the warning-driven stage, and the non-summary JSON payload shape is untouched.
+  edit:
+    - path: maid_runner/core/verify_summary.py
+      artifacts:
+        - kind: attribute
+          name: warning_blocking_stages
+          of: VerifySummary
+          type: tuple[str, ...]
+          description: "Names of failed stages whose structured results carry warning-severity findings and zero error-severity findings, in stage order; empty when every blocking stage has an error-severity finding."
+        - kind: function
+          name: build_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+          returns: VerifySummary
+          description: "Additionally attributes each failed stage as warning-driven or error-driven using only structural severity evidence, populating warning_blocking_stages without re-deriving verify's warning policy."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+            - name: json_mode
+              type: bool
+          returns: str
+          description: "Renders the warning section with an honest header: the existing non-blocking label when warning_blocking_stages is empty, otherwise a blocking-under-policy label naming the affected stages plus an --advisory escape-hatch hint; summary JSON gains warning_blocking_stages."
+  scope:
+    - path: README.md
+      reason: "Document --advisory as the brownfield escape hatch next to the verify --summary handoff guidance; no public artifact contract changes."
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/cli/commands/verify.py
+    - manifests/add-verify-summary-output.manifest.yaml
+validate:
+  - uv run python -m pytest tests/cli/test_verify_summary_blocking_label.py -v
+  - uv run maid validate manifests/drafts/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode schema --quiet
