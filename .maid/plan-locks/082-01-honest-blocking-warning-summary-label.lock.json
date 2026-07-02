@@ -1,0 +1,94 @@
+{
+  "manifest_path": "manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml",
+  "manifest_hash": "sha256:22c404be213e9fcbd165888e7dec6647928f965e5634ea77a9cf7088a6e5ea3b",
+  "test_hashes": {
+    "tests/cli/test_verify_summary_blocking_label.py": "sha256:d34de3e189474ff2129426489dbc909f5c876facfa952a0a064463667dbe9cef"
+  },
+  "created_at": "2026-07-02T22:47:38.630286+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9bd86a78b3ab98e89591621ce7e7767ade7c4a50935c10c18d28a9a70d4f7f14",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_summary_blocking_label.py": "sha256:2e01214956d8e0b21adcfbf0ec177a11f7a6d1fe710c37b53023cc115c6d60e5"
+      },
+      "revised_at": "2026-07-02T22:47:45.055075+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-01-honest-blocking-warning-summary-label.manifest.yaml -> manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:cc0e5092d46d194d193416ed43646df559a72416755e73da357e7bf37e7bc573",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_summary_blocking_label.py": "sha256:2e01214956d8e0b21adcfbf0ec177a11f7a6d1fe710c37b53023cc115c6d60e5"
+      },
+      "revised_at": "2026-07-02T22:50:58.234984+00:00",
+      "reason": "Refresh plan lock after Black formatting changed the new behavioral test file"
+    },
+    {
+      "prior_manifest_hash": "sha256:cc0e5092d46d194d193416ed43646df559a72416755e73da357e7bf37e7bc573",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_summary_blocking_label.py": "sha256:d34de3e189474ff2129426489dbc909f5c876facfa952a0a064463667dbe9cef"
+      },
+      "revised_at": "2026-07-02T23:00:36.051067+00:00",
+      "reason": "Capture implementation Outcome after ready review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-02T22:51:01.179594+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_verify_summary_blocking_label.py -v",
+        "exit_code": 1,
+        "output_tail": "tests/cli/test_verify_summary_blocking_label.py:206: AttributeError\n______________ test_summary_json_reports_warning_blocking_stages _______________\n\n    def test_summary_json_reports_warning_blocking_stages() -> None:\n        payload = json.loads(\n            format_verify_summary(_warning_driven_result(), json_mode=True)\n        )\n    \n>       assert payload[\"warning_blocking_stages\"] == [\"behavioral\"]\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'warning_blocking_stages'\n\ntests/cli/test_verify_summary_blocking_label.py:220: KeyError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_summary_blocking_label.py::test_warning_driven_failure_label_states_blocking_policy\nFAILED tests/cli/test_verify_summary_blocking_label.py::test_error_driven_failure_keeps_non_blocking_label\nFAILED tests/cli/test_verify_summary_blocking_label.py::test_warning_blocking_label_mentions_advisory_escape_hatch\nFAILED tests/cli/test_verify_summary_blocking_label.py::test_build_summary_partitions_warning_blocking_stages\nFAILED tests/cli/test_verify_summary_blocking_label.py::test_summary_json_reports_warning_blocking_stages\n============================== 5 failed in 0.12s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=json_mode:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:returns=str",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_blocking_stages",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_blocking_stages:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_blocking_stages:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.warning_blocking_stages:type=tuple[str, ...]",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "tests/cli/test_verify_summary_blocking_label.py:test_build_summary_partitions_warning_blocking_stages",
+      "tests/cli/test_verify_summary_blocking_label.py:test_build_summary_partitions_warning_blocking_stages:kind=test_function",
+      "tests/cli/test_verify_summary_blocking_label.py:test_error_driven_failure_keeps_non_blocking_label",
+      "tests/cli/test_verify_summary_blocking_label.py:test_error_driven_failure_keeps_non_blocking_label:kind=test_function",
+      "tests/cli/test_verify_summary_blocking_label.py:test_summary_json_reports_warning_blocking_stages",
+      "tests/cli/test_verify_summary_blocking_label.py:test_summary_json_reports_warning_blocking_stages:kind=test_function",
+      "tests/cli/test_verify_summary_blocking_label.py:test_warning_blocking_label_mentions_advisory_escape_hatch",
+      "tests/cli/test_verify_summary_blocking_label.py:test_warning_blocking_label_mentions_advisory_escape_hatch:kind=test_function",
+      "tests/cli/test_verify_summary_blocking_label.py:test_warning_driven_failure_label_states_blocking_policy",
+      "tests/cli/test_verify_summary_blocking_label.py:test_warning_driven_failure_label_states_blocking_policy:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_verify_summary_blocking_label.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_verify_summary_blocking_label.py -v",
+      "uv run maid validate manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

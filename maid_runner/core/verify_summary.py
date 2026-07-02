@@ -24,6 +24,7 @@ class VerifyWarningGroup:
 class VerifySummary:
     success: bool
     blocking_stages: tuple[str, ...]
+    warning_blocking_stages: tuple[str, ...]
     passed_stages: tuple[str, ...]
     warning_groups: tuple[VerifyWarningGroup, ...]
     raw_warning_count: int
@@ -55,6 +56,11 @@ def build_verify_summary(result: VerificationResult) -> VerifySummary:
         blocking_stages=tuple(
             stage.name for stage in result.stages if not stage.success
         ),
+        warning_blocking_stages=tuple(
+            stage.name
+            for stage in result.stages
+            if not stage.success and _stage_is_warning_driven(stage)
+        ),
         passed_stages=tuple(stage.name for stage in result.stages if stage.success),
         warning_groups=warning_groups,
         raw_warning_count=sum(warning_counts.values()),
@@ -67,23 +73,52 @@ def _iter_validation_warnings(result: VerificationResult):
         if validation is None:
             continue
 
-        for warning in getattr(validation, "warnings", ()):
-            if _is_warning(warning):
-                yield warning
+        for finding in _iter_validation_findings(validation):
+            if _is_warning(finding):
+                yield finding
 
-        for warning in getattr(validation, "chain_errors", ()):
-            if _is_warning(warning):
-                yield warning
 
-        for item in getattr(validation, "results", ()):
-            for warning in getattr(item, "warnings", ()):
-                if _is_warning(warning):
-                    yield warning
+def _stage_is_warning_driven(stage) -> bool:
+    saw_warning = False
+
+    for finding in _iter_stage_findings(stage):
+        if _is_error(finding):
+            return False
+        if _is_warning(finding):
+            saw_warning = True
+
+    return saw_warning
+
+
+def _iter_stage_findings(stage):
+    validation = getattr(stage, "_validation", None)
+    if validation is not None:
+        yield from _iter_validation_findings(validation)
+
+    for error in getattr(stage, "_errors", ()):
+        yield error
+
+
+def _iter_validation_findings(validation):
+    yield from getattr(validation, "errors", ())
+    yield from getattr(validation, "warnings", ())
+    yield from getattr(validation, "chain_errors", ())
+
+    for item in getattr(validation, "results", ()):
+        yield from getattr(item, "errors", ())
+        yield from getattr(item, "warnings", ())
 
 
 def _is_warning(error: ValidationError) -> bool:
     severity = getattr(error, "severity", None)
     return getattr(severity, "value", severity) == Severity.WARNING.value
+
+
+def _is_error(error) -> bool:
+    severity = getattr(error, "severity", None)
+    if severity is None:
+        return True
+    return getattr(severity, "value", severity) == Severity.ERROR.value
 
 
 def _error_code(error: ValidationError) -> Optional[str]:

@@ -337,6 +337,7 @@ def format_verify_summary(
                     for group in summary.warning_groups
                 ],
             },
+            "warning_blocking_stages": list(summary.warning_blocking_stages),
             "passed_stages": list(summary.passed_stages),
         }
         if result.duration_ms is not None:
@@ -375,11 +376,24 @@ def format_verify_summary(
 
     if summary.warning_groups:
         lines.append("")
-        lines.append(
-            "WARNINGS "
-            f"(non-blocking, deduplicated {summary.raw_warning_count} -> "
-            f"{warning_unique_count}):"
-        )
+        if summary.warning_blocking_stages:
+            lines.append(
+                "WARNINGS "
+                f"(deduplicated {summary.raw_warning_count} -> "
+                f"{warning_unique_count}; blocking for: "
+                f"{', '.join(summary.warning_blocking_stages)} "
+                "under verify policy):"
+            )
+            lines.append(
+                "  Hint: use --advisory as the brownfield escape hatch to report "
+                "warnings without failing stages."
+            )
+        else:
+            lines.append(
+                "WARNINGS "
+                f"(non-blocking, deduplicated {summary.raw_warning_count} -> "
+                f"{warning_unique_count}):"
+            )
         for group in summary.warning_groups:
             prefix = group.code or "warning"
             lines.append(f"  {prefix} x{group.count} {group.message}")
