@@ -62,6 +62,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             fail_on_warnings=fail_on_warnings,
             require_worktree_scope=getattr(args, "worktree_scope", False),
             require_changed_scope=getattr(args, "changed_scope", True),
+            changed_scope_explicit=getattr(args, "changed_scope_explicit", False),
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
             include_tests=getattr(args, "include_tests", False),
@@ -166,6 +167,7 @@ def _run_verify(
     fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
     require_changed_scope: bool = False,
+    changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
@@ -194,6 +196,7 @@ def _run_verify(
             fail_on_warnings=fail_on_warnings,
             require_worktree_scope=require_worktree_scope,
             require_changed_scope=require_changed_scope,
+            changed_scope_explicit=changed_scope_explicit,
             since=since,
             base_ref=base_ref,
             include_tests=include_tests,
@@ -220,6 +223,7 @@ def _run_verify_cached(
     fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
     require_changed_scope: bool = False,
+    changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
@@ -345,7 +349,18 @@ def _run_verify_cached(
 
         if require_changed_scope:
             stages.append(
-                _changed_scope_stage(root, manifest_dir, since, base_ref, include_tests)
+                _changed_scope_stage(
+                    root,
+                    manifest_dir,
+                    since,
+                    base_ref,
+                    include_tests,
+                    allow_clean_tree_skip=(
+                        not changed_scope_explicit
+                        and since is None
+                        and base_ref is None
+                    ),
+                )
             )
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
@@ -582,25 +597,29 @@ def _changed_scope_stage(
     since: str | None,
     base_ref: str | None,
     include_tests: bool,
+    *,
+    allow_clean_tree_skip: bool,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.core.chain import get_cached_manifest_chain
-        from maid_runner.core.worktree import validate_changed_scope
+        from maid_runner.core.worktree import evaluate_changed_scope
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-        errors = validate_changed_scope(
+        decision = evaluate_changed_scope(
             root,
             chain,
             since=since,
             base_ref=base_ref,
             include_tests=include_tests,
+            allow_clean_tree_skip=allow_clean_tree_skip,
         )
         return VerificationStageResult(
             name="changed_scope",
-            success=not errors,
+            success=not decision.errors,
+            skip_reason=decision.skip_reason,
             _duration_ms=_elapsed_ms(started),
-            _errors=tuple(errors),
+            _errors=tuple(decision.errors),
         )
     except Exception as exc:
         return _error_stage("changed_scope", started, exc)

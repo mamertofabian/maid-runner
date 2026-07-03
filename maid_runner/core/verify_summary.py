@@ -26,6 +26,7 @@ class VerifySummary:
     blocking_stages: tuple[str, ...]
     warning_blocking_stages: tuple[str, ...]
     passed_stages: tuple[str, ...]
+    skipped_stages: tuple[str, ...]
     warning_groups: tuple[VerifyWarningGroup, ...]
     raw_warning_count: int
 
@@ -61,7 +62,16 @@ def build_verify_summary(result: VerificationResult) -> VerifySummary:
             for stage in result.stages
             if not stage.success and _stage_is_warning_driven(stage)
         ),
-        passed_stages=tuple(stage.name for stage in result.stages if stage.success),
+        passed_stages=tuple(
+            stage.name
+            for stage in result.stages
+            if stage.success and getattr(stage, "skip_reason", None) is None
+        ),
+        skipped_stages=tuple(
+            stage.name
+            for stage in result.stages
+            if getattr(stage, "skip_reason", None) is not None
+        ),
         warning_groups=warning_groups,
         raw_warning_count=sum(warning_counts.values()),
     )

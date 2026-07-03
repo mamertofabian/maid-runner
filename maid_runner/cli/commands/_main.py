@@ -21,6 +21,20 @@ class _NoAbbrevArgumentParser(argparse.ArgumentParser):
         super().__init__(*args, **kwargs)  # type: ignore[arg-type]
 
 
+class _StoreChangedScopeExplicit(argparse.Action):
+    """Store --changed-scope and record that the user passed it explicitly."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, True)
+        setattr(namespace, "changed_scope_explicit", True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -324,8 +338,8 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     verify_changed_scope = p.add_mutually_exclusive_group()
     verify_changed_scope.add_argument(
         "--changed-scope",
-        action="store_const",
-        const=True,
+        action=_StoreChangedScopeExplicit,
+        nargs=0,
         default=True,
         dest="changed_scope",
         help="Require the git changed-scope gate from an explicit task baseline (default)",
