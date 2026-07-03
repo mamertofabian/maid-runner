@@ -1,0 +1,178 @@
+# draft-kind: child
+schema: "2"
+goal: "Harden three enrichment ergonomics gaps found in the 2026-07-04 review: give digest staleness its own `--allow-stale-digest` opt-in instead of overloading `--allow-stale-index`, scale the generated system prompt's theme-count guidance to the actual corpus size instead of hardcoding 'about 8-12 canonical themes', and reject empty or whitespace-only theme and digest-entry summaries in deep validation"
+type: fix
+created: "2026-07-03T23:16:00Z"
+metadata:
+  epic: 083-00-close-outcome-enrichment-consumption-loop
+  tags:
+    - outcome-records
+    - llm-enrichment
+    - cli
+    - validation
+  priority: low
+description: |
+  Three small hardening items, batched because they touch the same
+  enrichment core and CLI surface. Each intentionally evolves a shipped 081
+  contract, so the implementing agent must route the contract changes
+  through the sanctioned evolution workflow (maid-evolver / chain-merge
+  against 081-01, 081-02, and 081-03) rather than silently rewriting those
+  manifests' declared behavior.
+
+  (a) DISTINCT STALE-DIGEST OPT-IN. Today `--allow-stale-index` does double
+  duty on `maid enrich validate`, `maid enrich render`, and
+  `maid insights --theme-map`: it waives both index staleness and digest
+  staleness, so an operator who only wants to tolerate a slightly old index
+  also silently accepts a mismatched enriched digest. Pinned decision:
+  add a separate `--allow-stale-digest` flag (registered, unabbreviated per
+  072-01) that waives ONLY the digest `source_generated_from` mismatch;
+  `--allow-stale-index` keeps its current behavior unchanged for backward
+  compatibility (it continues to waive both, as 081 documented), and the
+  docs plus `--help` text steer users to the narrower new flag. No existing
+  invocation breaks; a follow-up major release may narrow the old flag.
+
+  (b) CORPUS-SCALED THEME GUIDANCE. `build_enrichment_request` hardcodes
+  "about 8-12 canonical themes" in the system prompt regardless of corpus
+  size; a downstream repo with 6 lesson_types is pushed to fabricate
+  granularity, and deep validation then rejects the fabrication — wasted
+  generation cycles by design. Pinned decision: compute the suggested theme
+  band deterministically from the count of distinct active lesson_types
+  `n`: lower bound `max(2, min(8, ceil(n / 8)))`, upper bound
+  `max(3, min(12, ceil(n / 6)))`, and phrase the prompt as "about
+  <lower>-<upper> canonical themes". For the current live corpus (n=78) this
+  reproduces the existing 8-12 band exactly, so behavior for this repo is
+  unchanged; the formula only adapts small corpora. The band is guidance to
+  the model, not a validation rule — digest validation and quality warnings
+  are unchanged by this item.
+
+  (c) NON-EMPTY SUMMARY VALIDATION. `validate_enrichment_digest` checks
+  `canonical_name` for emptiness but accepts empty or whitespace-only
+  `summary` on both themes and digest entries — the one free-text channel
+  with no content requirement, allowing a degenerate digest that validates
+  but renders hollow markdown. Pinned decision: deep validation raises
+  ValueError for a theme or digest entry whose summary is empty or
+  whitespace-only, matching the existing canonical_name error style. This
+  is additive strictness on generated artifacts (regeneration is the
+  documented fix), not on any human-authored data.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  `tests/cli/test_enrich_stale_digest_flag_cmd.py` asserts: a stale digest
+  is rejected by enrich validate/render and insights --theme-map without
+  either flag; accepted with `--allow-stale-digest`; still accepted with
+  bare `--allow-stale-index` (backward compatibility pin);
+  `--allow-stale-digest` alone does NOT waive index staleness on the enrich
+  subcommands. Additions to `tests/core/test_outcome_enrichment.py` pin the
+  theme-band formula at the boundaries (n=6 small band, n=48 mid band,
+  n=78 reproduces 8-12, n=200 caps at 8-12) by asserting on the generated
+  system_prompt text, and pin ValueError for empty and whitespace-only
+  theme and entry summaries while a digest with real summaries still
+  validates. `tests/core/test_outcome_enrichment_quality.py` reruns
+  unchanged as a regression guard for quality warnings.
+
+  Out of scope: narrowing or deprecating `--allow-stale-index` behavior,
+  changing quality-warning thresholds, digest schema changes (083-07
+  territory), and recall (083-03 adds its own flag handling and should
+  rebase on this child's flag semantics if it lands second).
+temptations:
+  - risk: "Do not change --allow-stale-index semantics or remove its digest waiver to make the flag split cleaner."
+    instead: "Add --allow-stale-digest as the narrow opt-in and pin the old flag's current double-duty behavior with a backward-compatibility test; narrowing is a future major-release decision."
+  - risk: "Do not turn the theme-count band into a validation or quality-warning rule."
+    instead: "The band only changes the generated system_prompt text; validation and assess_digest_quality behavior are pinned unchanged by regression tests."
+  - risk: "Do not silently rewrite the 081-01/081-02/081-03 manifests to match the new behavior."
+    instead: "Route the contract changes through the sanctioned evolution workflow (maid-evolver chain or supersession) so the 081 lineage stays auditable."
+  - risk: "Do not special-case the live repo's corpus size to keep its prompt byte-identical while breaking the general formula."
+    instead: "Pin the formula at boundary values including n=78, which reproduces the current 8-12 band by construction."
+files:
+  edit:
+    - path: maid_runner/core/outcome_enrichment.py
+      artifacts:
+        - kind: function
+          name: build_enrichment_request
+          args:
+            - name: index
+              type: OutcomeIndex
+          returns: EnrichmentRequest
+          description: "System prompt now embeds a corpus-scaled canonical-theme band computed from the distinct active lesson_type count (lower max(2, min(8, ceil(n/8))), upper max(3, min(12, ceil(n/6)))); n=78 reproduces the previous 8-12 wording."
+        - kind: function
+          name: validate_enrichment_digest
+          args:
+            - name: digest
+              type: EnrichmentDigest
+            - name: index
+              type: OutcomeIndex
+          returns: "None"
+          description: "Additionally raises ValueError when any theme summary or digest entry summary is empty or whitespace-only, in the existing error style."
+    - path: maid_runner/cli/commands/enrich.py
+      artifacts:
+        - kind: function
+          name: cmd_enrich
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Digest staleness is waived by --allow-stale-digest or (unchanged, for backward compatibility) --allow-stale-index; index staleness is waived only by --allow-stale-index."
+    - path: maid_runner/cli/commands/insights.py
+      artifacts:
+        - kind: function
+          name: cmd_insights
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Theme-map digest staleness is waived by --allow-stale-digest or (unchanged) --allow-stale-index, matching the enrich command semantics."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Registers --allow-stale-digest on the enrich validate/render and insights subparsers with help text distinguishing it from --allow-stale-index."
+    - path: docs/manifest-outcome-records.md
+      artifacts:
+        - kind: attribute
+          name: _stale_digest_optin_docs
+          of: documentation
+          type: doc-section
+          description: "Updated advisory enrichment docs: --allow-stale-digest is the preferred narrow opt-in for digest staleness; --allow-stale-index retains its existing broader behavior."
+    - path: maid_runner/docs/manifest-outcome-records.md
+      artifacts:
+        - kind: attribute
+          name: _packaged_stale_digest_optin_docs
+          of: package_resource
+          type: doc-section
+          description: "Packaged copy of the stale-digest opt-in docs, kept in sync."
+  read:
+    - manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - manifests/081-02-add-maid-enrich-command.manifest.yaml
+    - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+    - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    - manifests/072-01-disable-cli-option-abbreviation.manifest.yaml
+    - tests/cli/test_enrich_cmd.py
+    - tests/cli/test_insights_theme_map_cmd.py
+    - tests/core/test_outcome_enrichment_quality.py
+  create:
+    - path: tests/cli/test_enrich_stale_digest_flag_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_stale_digest_rejected_without_any_allow_flag
+          args: []
+          returns: None
+          description: "enrich validate, enrich render, and insights --theme-map all reject a source_generated_from mismatch with no waiver flags."
+        - kind: test_function
+          name: test_allow_stale_digest_waives_only_digest_staleness
+          args: []
+          returns: None
+          description: "--allow-stale-digest accepts the stale digest on all three surfaces but does not waive index staleness on the enrich subcommands."
+        - kind: test_function
+          name: test_allow_stale_index_keeps_backward_compatible_double_duty
+          args: []
+          returns: None
+          description: "Bare --allow-stale-index still waives digest staleness as shipped in 081, pinning backward compatibility."
+        - kind: test_function
+          name: test_stale_digest_flag_is_registered_unabbreviated
+          args: []
+          returns: None
+          description: "--allow-stale-digest is a registered option on the enrich and insights parsers and abbreviation remains disabled."
+validate:
+  - uv run python -m pytest -q tests/cli/test_enrich_stale_digest_flag_cmd.py tests/cli/test_enrich_cmd.py tests/core/test_outcome_enrichment.py tests/core/test_outcome_enrichment_quality.py

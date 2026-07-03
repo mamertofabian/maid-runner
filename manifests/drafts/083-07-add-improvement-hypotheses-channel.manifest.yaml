@@ -1,0 +1,171 @@
+# draft-kind: child
+schema: "2"
+goal: "Give the enrichment digest an optional, strictly-grounded forward-looking channel: an `improvement_hypotheses` list where each hypothesis must cite at least two co-occurring source lessons from at least two distinct manifests, validated with the same anti-fabrication depth as digest entries, rendered only into the advisory markdown, and never consumed by any deterministic report or gate"
+type: feature
+created: "2026-07-03T23:17:00Z"
+metadata:
+  epic: 083-00-close-outcome-enrichment-consumption-loop
+  tags:
+    - outcome-records
+    - llm-enrichment
+    - learning
+    - maid-workflow
+  priority: low
+description: |
+  The enrichment prompt correctly forbids invention, which also means the
+  pipeline has no sanctioned place for "these recurring lessons suggest a
+  concrete improvement" output — the digest describes the past only, while
+  the epic's motivating goal includes guiding future development. This child
+  adds a bounded speculation channel: hypotheses are free-text prose, but
+  every hypothesis must be grounded in cited, validated source lessons, and
+  the output never leaves the advisory markdown.
+
+  Pinned decisions (do not redesign):
+
+  1. Schema stays version "1" with an OPTIONAL field. `improvement_hypotheses`
+     is an optional top-level list in the digest JSON; absent means empty,
+     and every existing digest without the field remains valid byte-for-byte
+     (`enrichment_digest_from_dict` already ignores unknown keys, so old
+     digests and new readers interoperate without a version bump). Each item
+     has exactly `summary` (str) and `source_lessons` (list of
+     manifest_slug/lesson_type refs) — no confidence scores, priorities, or
+     categories; those invite unfalsifiable decoration.
+
+  2. Grounding is validated as deeply as digest entries.
+     `validate_enrichment_digest` rejects a hypothesis whose cited
+     (manifest_slug, lesson_type) pair does not co-occur in the index, whose
+     `source_lessons` cite fewer than two lessons or fewer than two distinct
+     manifests (speculation from a single data point is noise, so unlike
+     digest entries this floor is a hard error rather than a quality
+     warning), or whose summary is empty or whitespace-only. Hypotheses cite
+     lessons directly and are NOT required to reference declared themes.
+
+  3. Advisory-markdown-only consumption. `render_digest_markdown` gains an
+     "## Improvement Hypotheses (advisory)" section listing each hypothesis
+     with its citations, prefixed by an explicit disclaimer line that these
+     are model-generated suggestions grounded in past lessons, not findings,
+     commitments, or backlog items. `maid insights` (with or without
+     `--theme-map`), `maid recall`, and every other deterministic report
+     must not read or emit hypotheses; a behavioral test pins that themed
+     insights output is byte-identical whether or not the digest carries
+     hypotheses.
+
+  4. Prompt asks for restraint. The system prompt from
+     `build_enrichment_request` gains one instruction: optionally propose
+     zero to five improvement_hypotheses, each grounded in at least two
+     cited lessons from at least two manifests, proposing nothing when the
+     lessons do not support a concrete suggestion. Zero hypotheses is a
+     fully valid digest; quality warnings do not penalize their absence.
+
+  5. Serialization round-trip: `enrichment_digest_to_dict` emits the field
+     only when non-empty (keeping old-shape digests byte-stable through a
+     read-write cycle), and `EnrichmentDigest` gains
+     `improvement_hypotheses` with a default-empty tuple so all existing
+     constructor call sites keep working. This evolves the 081-01 contract;
+     route it through the sanctioned evolution workflow (maid-evolver chain
+     against 081-01 and 081-05) rather than silently rewriting those
+     manifests. Build on 083-06's prompt changes; promote this child after
+     083-06.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  additions to `tests/core/test_outcome_enrichment.py` pin: a digest without
+  the field parses with empty hypotheses and round-trips byte-stable; a
+  grounded hypothesis validates; ValueError for a non-co-occurring citation,
+  for fewer than two lessons, for fewer than two distinct manifests, and for
+  a blank summary; rendered markdown contains the advisory section with the
+  disclaimer and citations, and omits the section when there are no
+  hypotheses; the system prompt mentions the zero-to-five grounded-hypotheses
+  instruction. A new `tests/cli/test_insights_ignores_hypotheses_cmd.py`
+  pins that `maid insights --theme-map` output is byte-identical for the
+  same digest with and without hypotheses.
+
+  Out of scope: consuming hypotheses anywhere beyond the rendered markdown
+  (skills reading the markdown already inherit them through 083-02/083-05
+  framing), hypothesis lifecycle tracking (accepted/rejected), confidence
+  scoring, and any gate or backlog automation.
+temptations:
+  - risk: "Do not accept hypotheses whose citations are missing, single-source, or non-co-occurring, downgrading grounding to a quality warning."
+    instead: "Grounding floors are hard ValueErrors in validate_enrichment_digest, pinned with rejection tests; regeneration is the fix for a failing digest."
+  - risk: "Do not surface hypotheses in insights, recall, verify, or any deterministic report to make the feature feel more integrated."
+    instead: "Hypotheses render only into the advisory markdown behind an explicit disclaimer; a byte-identical insights test pins the boundary."
+  - risk: "Do not bump the digest schema_version or emit an empty improvement_hypotheses key that breaks old digest byte-stability."
+    instead: "Keep the field optional in schema version 1, default it to an empty tuple, and emit it only when non-empty, pinned by a round-trip test."
+  - risk: "Do not silently rewrite the 081-01/081-05 manifests to cover the extended dataclass, validation, render, and prompt surface."
+    instead: "Route the contract extension through the sanctioned evolution workflow so the 081 lineage stays auditable."
+files:
+  edit:
+    - path: maid_runner/core/outcome_enrichment.py
+      artifacts:
+        - kind: class
+          name: HypothesisEntry
+          description: "Frozen dataclass: one grounded forward-looking suggestion derived from cited past lessons."
+        - kind: attribute
+          name: summary
+          of: HypothesisEntry
+          type: str
+          description: "The improvement hypothesis prose; must be non-blank."
+        - kind: attribute
+          name: source_lessons
+          of: HypothesisEntry
+          type: tuple[LessonRef, ...]
+          description: "Grounding citations; at least two lessons from at least two distinct manifests, each co-occurring in the index."
+        - kind: attribute
+          name: improvement_hypotheses
+          of: EnrichmentDigest
+          type: tuple[HypothesisEntry, ...]
+          description: "Optional grounded speculation channel; defaults to empty so existing digests and constructor call sites are unaffected."
+        - kind: function
+          name: build_enrichment_request
+          args:
+            - name: index
+              type: OutcomeIndex
+          returns: EnrichmentRequest
+          description: "System prompt additionally invites zero to five improvement_hypotheses, each grounded in at least two cited lessons from at least two manifests, with proposing nothing as an explicitly valid outcome."
+        - kind: function
+          name: validate_enrichment_digest
+          args:
+            - name: digest
+              type: EnrichmentDigest
+            - name: index
+              type: OutcomeIndex
+          returns: "None"
+          description: "Additionally enforces hypothesis grounding: co-occurring citations, minimum two lessons from two distinct manifests, and non-blank summaries, as hard ValueErrors."
+        - kind: function
+          name: render_digest_markdown
+          args:
+            - name: digest
+              type: EnrichmentDigest
+          returns: str
+          description: "Renders an 'Improvement Hypotheses (advisory)' section with a disclaimer line and per-hypothesis citations; the section is omitted entirely when no hypotheses exist."
+        - kind: function
+          name: enrichment_digest_to_dict
+          args:
+            - name: digest
+              type: EnrichmentDigest
+          returns: dict
+          description: "Emits improvement_hypotheses only when non-empty, keeping legacy digest JSON byte-stable through a read-write round trip."
+        - kind: function
+          name: enrichment_digest_from_dict
+          args:
+            - name: data
+              type: dict
+          returns: EnrichmentDigest
+          description: "Parses the optional improvement_hypotheses list, defaulting to empty when absent, with the existing strict type errors for malformed items."
+  read:
+    - manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+    - manifests/drafts/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+    - maid_runner/cli/commands/insights.py
+    - tests/core/test_outcome_enrichment.py
+    - tests/core/test_outcome_enrichment_quality.py
+  create:
+    - path: tests/cli/test_insights_ignores_hypotheses_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_theme_map_insights_output_identical_with_and_without_hypotheses
+          args: []
+          returns: None
+          description: "maid insights --theme-map produces byte-identical output for the same digest with and without improvement_hypotheses, pinning the advisory-markdown-only consumption boundary."
+validate:
+  - uv run python -m pytest -q tests/core/test_outcome_enrichment.py tests/cli/test_insights_ignores_hypotheses_cmd.py

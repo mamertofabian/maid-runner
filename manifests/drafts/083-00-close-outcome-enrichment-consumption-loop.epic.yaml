@@ -1,0 +1,154 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Close the 081 Outcome-enrichment consumption loop: the deterministic prompt/validate/render/apply pipeline works and anti-fabrication holds, but the generated learning leaks value before reaching decisions — the digest silently decays to unused after every Outcome capture, the LLM narrative is orphaned in an unread markdown file, recall is theme-blind, capture-time lesson_type vocabulary keeps fragmenting, and there is no grounded forward-looking channel"
+type: feature
+created: "2026-07-03T23:10:00Z"
+metadata:
+  status: planning
+  tags:
+    - outcome-records
+    - insights
+    - recall
+    - learning
+    - llm-enrichment
+    - agent-skills
+    - maid-workflow
+  priority: medium
+description: |
+  Split-before-promote epic. A 2026-07-04 review of the shipped 081 series
+  (081-01 through 081-06) against the live repository found the enrichment
+  pipeline itself healthy — the current `.maid/outcomes-digest.json` covers all
+  78 active lesson_types with 10 themes, 17 grounded digest entries, and zero
+  quality warnings — but found five consumption gaps that keep the feature from
+  actually improving the repo through its own learning:
+
+  1. DECAY WITHOUT NOTICE. `digest_is_stale` compares the digest's
+     `source_generated_from` to the index's `generated_from`, a sha256 over
+     every record fingerprint (`maid_runner/core/outcomes.py`). The mandated
+     post-capture `maid learn` therefore invalidates the digest after every
+     completed manifest, the planner silently falls back to plain
+     `maid insights`, and nothing anywhere reports that a digest exists and
+     just went stale. In steady state the theme-mapped view is stale almost
+     always and the feature quietly stops participating. (Child 083-01.)
+
+  2. ORPHANED NARRATIVE. `maid insights --theme-map` consumes only the
+     lesson_type-to-theme mapping to re-key counts. The theme summaries and
+     digest_entries narratives — the part a model uniquely contributes — reach
+     only `.maid/outcomes-digest.md`, and no skill or workflow ever points an
+     agent at that file. A 2026-06-29 session insight flagged this exact open
+     question and it was left unresolved. (Children 083-02 and 083-05.)
+
+  3. THEME-BLIND RECALL. `maid recall` is the targeted per-manifest planning
+     surface, and it operates on the raw fragmented lesson_type vocabulary
+     (78 distinct types across 269 lessons). Theme normalization was scoped
+     out of 081-06 and never picked up. (Child 083-03.)
+
+  4. UNTREATED ROOT CAUSE. Nothing tells the Outcome capture step to consult
+     existing lesson_types or the current theme vocabulary before coining a
+     new lesson_type, so fragmentation keeps growing and every regeneration
+     re-clusters a diverging vocabulary. (Child 083-04.)
+
+  5. NO FORWARD-LOOKING CHANNEL. The enrichment prompt correctly forbids
+     invention, but that leaves no sanctioned place for grounded
+     "these recurring lessons suggest a concrete improvement" output — the
+     digest describes the past only. (Child 083-07.)
+
+  Plus one ergonomics/hardening batch found in the same review: the
+  `--allow-stale-index` flag does double duty as allow-stale-digest, the
+  system prompt hardcodes "about 8-12 canonical themes" regardless of corpus
+  size (bad for small downstream repos), and theme/entry `summary` fields are
+  the one free-text channel never checked for emptiness. (Child 083-06.)
+
+  ARCHITECTURE CONSTRAINTS carried over from 081-00 (do not redesign):
+
+  - The runner stays deterministic and AI-free. No child may add a model
+    call, LLM network access, or provider credentials to any maid-runner
+    command. Digest generation stays exclusively in the `maid-outcome-enrich`
+    skill. In particular, "fixing" staleness decay by auto-regenerating the
+    digest inside the runner is forbidden; the fix is visibility (083-01),
+    not automation.
+  - The digest stays advisory. No child may make digest presence, freshness,
+    narrative, or hypotheses a gate for planning, review, readiness,
+    promotion, or verify.
+  - Generated narrative stays out of deterministic reports. `maid insights`
+    and `maid recall` outputs may use the validated theme MAP; the prose
+    lives only in the rendered advisory markdown that agents read directly.
+  - Fail loud, never fake: digest problems are surfaced as labeled advisory
+    notices or hard validation errors, never silently absorbed.
+
+  This epic decomposes into seven implementation-sized child drafts:
+
+  - `083-01-report-stale-digest-on-learn`: `maid learn` reports (advisory,
+    non-blocking) when an existing enrichment digest no longer matches the
+    refreshed index, via a new deterministic freshness seam in
+    `maid_runner/core/outcome_enrichment.py`.
+  - `083-02-point-planner-at-digest-narrative`: distributed maid-planner
+    Outcome-Aware guidance additionally reads `.maid/outcomes-digest.md` as
+    advisory narrative after a successful `--theme-map` run, treating it as
+    untrusted data, with an instruction payload version bump.
+  - `083-03-add-theme-aware-recall`: opt-in `maid recall --theme-map
+    <digest>` annotates recall matches with canonical themes through the
+    validated mapping, mirroring the 081-03 insights pattern.
+  - `083-04-converge-lesson-type-vocabulary-at-capture`: Outcome capture
+    guidance (maid-implementation-review skill + outcome docs) requires
+    consulting existing lesson_types / fresh theme members before coining a
+    new lesson_type, with an instruction payload version bump.
+  - `083-05-feed-digest-into-self-improvement-audit`: the repo-local
+    maid-runner-self-improvement skill lists the fresh advisory digest
+    markdown and theme-mapped insights as evidence sources.
+  - `083-06-harden-enrich-staleness-flags-and-prompt-scaling`: distinct
+    `--allow-stale-digest` opt-in, corpus-scaled theme-count guidance in the
+    generated system prompt, and non-empty summary validation; evolves the
+    081-01/081-02/081-03 contracts via the sanctioned evolution workflow.
+  - `083-07-add-improvement-hypotheses-channel`: optional, grounded
+    `improvement_hypotheses` digest section (each hypothesis must cite
+    co-occurring source lessons) rendered into the advisory markdown only.
+
+  Suggested promotion order: 083-01, 083-02, 083-04, 083-05 are mutually
+  independent and may land in any order. 083-03 and 083-06 both touch the
+  enrichment core and CLI surface; promote 083-06 before 083-03 if flag
+  semantics should be settled first, otherwise either order works with a
+  rebase of the later child. 083-07 last: it extends the digest schema and
+  prompt and should build on 083-06's prompt changes.
+
+  Out of scope for this epic (recorded as future candidates, not children):
+  cross-repo Outcome roll-up (aggregating lessons across multiple MAID repos
+  is a new trust and privacy boundary and deserves its own epic), theme
+  mapping for `by_tag` fragmentation, and any automatic digest regeneration.
+temptations:
+  - risk: "Do not fix digest decay by auto-regenerating the digest from any maid-runner command; regeneration requires a model call."
+    instead: "Keep regeneration in the maid-outcome-enrich skill. The runner only gains visibility: maid learn reports stale/malformed digests as labeled advisory output (083-01)."
+  - risk: "Do not promote digest narrative, freshness, or hypotheses into a planning, review, readiness, or verify gate while wiring consumers."
+    instead: "Every consumer added by this epic states the digest is advisory, optional, and non-blocking, with plain deterministic commands as the mandatory fallback."
+  - risk: "Do not paste generated narrative into deterministic insights/recall report output to make the narrative 'consumed'."
+    instead: "Deterministic outputs use only the validated theme map; agents read the rendered advisory markdown directly, and skill guidance says to treat it as untrusted data."
+  - risk: "Do not implement multiple children in one promotion because they touch neighboring files."
+    instead: "Promote one implementation-sized child at a time through maid manifest promote with its own red phase, plan lock, and review."
+files:
+  edit:
+    - path: manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _close_outcome_enrichment_consumption_loop_epic
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote planning record for consumption-loop child drafts 083-01 through 083-07."
+  read:
+    - manifests/drafts/083-01-report-stale-digest-on-learn.manifest.yaml
+    - manifests/drafts/083-02-point-planner-at-digest-narrative.manifest.yaml
+    - manifests/drafts/083-03-add-theme-aware-recall.manifest.yaml
+    - manifests/drafts/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml
+    - manifests/drafts/083-05-feed-digest-into-self-improvement-audit.manifest.yaml
+    - manifests/drafts/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml
+    - manifests/drafts/083-07-add-improvement-hypotheses-channel.manifest.yaml
+    - manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml
+    - maid_runner/core/outcome_enrichment.py
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/outcome_recall.py
+    - maid_runner/cli/commands/learn.py
+    - maid_runner/cli/commands/enrich.py
+    - maid_runner/cli/commands/insights.py
+    - docs/manifest-outcome-records.md
+validate:
+  - uv run maid validate manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml --mode schema --quiet

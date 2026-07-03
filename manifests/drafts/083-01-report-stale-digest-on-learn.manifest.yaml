@@ -1,0 +1,155 @@
+# draft-kind: child
+schema: "2"
+goal: "Make `maid learn` report, as labeled advisory output, when an existing Outcome enrichment digest no longer matches the freshly refreshed index, so the digest's silent decay to unused becomes visible at exactly the moment it happens, without blocking learn, deleting the digest, or regenerating anything"
+type: feature
+created: "2026-07-03T23:11:00Z"
+metadata:
+  epic: 083-00-close-outcome-enrichment-consumption-loop
+  tags:
+    - outcome-records
+    - learning
+    - llm-enrichment
+    - cli
+  priority: medium
+description: |
+  The enrichment digest's `source_generated_from` must equal the index's
+  `generated_from` (a sha256 over every record fingerprint) to be usable, so
+  the mandated post-capture `maid learn` invalidates the digest after every
+  completed manifest. Today nothing reports that: the planner silently falls
+  back to plain `maid insights`, and the operator only discovers the decay by
+  manually running `maid enrich validate`. This child adds visibility at the
+  source of the invalidation.
+
+  Pinned decisions (do not redesign):
+
+  1. Freshness assessment is a public deterministic core seam, not CLI logic.
+     Add `DigestFreshness` (frozen dataclass) and
+     `check_digest_freshness(index, digest_path)` to
+     `maid_runner/core/outcome_enrichment.py`. `check_digest_freshness` never
+     raises: it returns status `"missing"` when the digest file does not
+     exist, `"malformed"` when it cannot be parsed as a digest,
+     `"stale"` when `digest_is_stale` is true against the given index, and
+     `"fresh"` otherwise, with a human-readable `detail` string. Structural
+     digest validity against the index is NOT re-checked here; freshness and
+     deep validation stay separate concerns (deep validation remains
+     `validate_enrichment_digest`, run by `maid enrich validate`).
+
+  2. `cmd_learn` checks the digest AFTER successfully writing the refreshed
+     index, using the sibling path `<index-output-dir>/outcomes-digest.json`
+     derived from the `--output` argument. No new CLI flag for the digest
+     path in this child; the sibling convention matches every existing
+     consumer default (`.maid/outcomes.json` alongside
+     `.maid/outcomes-digest.json`).
+
+  3. Reporting is advisory and non-blocking in every mode. Text mode prints
+     one advisory line to stderr for `"stale"` and `"malformed"` (suppressed
+     by `--quiet`), naming the digest path and the fix
+     (re-run the maid-outcome-enrich skill). Status `"missing"` prints
+     nothing — an absent digest means the optional feature is unused, which
+     is normal. JSON mode always includes an `enrichment_digest` object with
+     `status` and `path` keys (all four statuses), because machine consumers
+     should not need a second command to learn the digest state. The learn
+     exit code is unchanged in all digest states.
+
+  4. `maid learn` must not delete, rewrite, or regenerate the digest, and
+     must not read provider credentials or call any model. The fix for a
+     stale digest remains the maid-outcome-enrich skill, by design.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  `tests/cli/test_learn_digest_freshness_cmd.py` builds a temp project with a
+  learnable Outcome manifest, then asserts: learn with no digest file prints
+  no digest advisory and reports `"missing"` in JSON; learn with a digest
+  whose `source_generated_from` matches the refreshed index reports
+  `"fresh"` and prints no advisory; learn after adding a second completed
+  Outcome (index hash changes) prints the stale advisory naming the digest
+  path and reports `"stale"` in JSON while still exiting 0; learn with an
+  unparseable digest file reports `"malformed"`, exits 0, and leaves the file
+  untouched; `--quiet` suppresses the text advisory but leaves the JSON field
+  intact. `tests/core/test_outcome_enrichment.py` additions exercise
+  `check_digest_freshness` directly for all four statuses, including that it
+  never raises on unreadable input.
+temptations:
+  - risk: "Do not make a stale or malformed digest change the learn exit code, skip index writing, or delete the digest file."
+    instead: "Learn always refreshes and writes the index first; digest freshness is reported afterward as labeled advisory output with exit code 0, and the digest file is never mutated."
+  - risk: "Do not implement freshness parsing inline in cmd_learn or re-run deep digest validation there."
+    instead: "Use the check_digest_freshness core seam, which wraps read_enrichment_digest and digest_is_stale and never raises; deep validation stays in maid enrich validate."
+  - risk: "Do not report freshness against the pre-refresh index or a re-read of the output file."
+    instead: "Check against the in-memory index that was just built and written, so the advisory reflects exactly the state learn produced."
+  - risk: "Do not print the advisory for a missing digest, turning an unused optional feature into noise for every repo."
+    instead: "Missing is silent in text mode and reported only in the machine-readable JSON field."
+files:
+  edit:
+    - path: maid_runner/core/outcome_enrichment.py
+      artifacts:
+        - kind: class
+          name: DigestFreshness
+          description: "Frozen dataclass: the never-raising freshness assessment of an enrichment digest file against a given Outcome index."
+        - kind: attribute
+          name: status
+          of: DigestFreshness
+          type: str
+          description: "One of 'missing', 'malformed', 'stale', 'fresh'."
+        - kind: attribute
+          name: digest_path
+          of: DigestFreshness
+          type: str
+          description: "The digest path that was checked, as given."
+        - kind: attribute
+          name: detail
+          of: DigestFreshness
+          type: str
+          description: "Human-readable explanation suitable for the advisory line, e.g. why the digest is considered stale or what failed to parse."
+        - kind: function
+          name: check_digest_freshness
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: digest_path
+              type: Union[str, Path]
+          returns: DigestFreshness
+          description: "Deterministic, never-raising freshness check: missing file, malformed digest, stale source_generated_from mismatch via digest_is_stale, or fresh. Does not perform deep structural validation against the index."
+    - path: maid_runner/cli/commands/learn.py
+      artifacts:
+        - kind: function
+          name: cmd_learn
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "After refreshing and writing the index, checks the sibling outcomes-digest.json via check_digest_freshness; prints a stderr advisory for stale/malformed (respecting --quiet), always includes an enrichment_digest {status, path} object in --json output, and never changes the exit code for digest states."
+  read:
+    - maid_runner/core/outcomes.py
+    - maid_runner/cli/commands/_main.py
+    - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+    - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - tests/core/test_outcome_enrichment.py
+  create:
+    - path: tests/cli/test_learn_digest_freshness_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_learn_without_digest_is_silent_and_reports_missing_in_json
+          args: []
+          returns: None
+          description: "No digest file: no text advisory, JSON enrichment_digest status is 'missing', exit 0."
+        - kind: test_function
+          name: test_learn_with_matching_digest_reports_fresh
+          args: []
+          returns: None
+          description: "Digest source_generated_from equals the refreshed index generated_from: no advisory, JSON status 'fresh'."
+        - kind: test_function
+          name: test_learn_reports_stale_digest_after_index_changes
+          args: []
+          returns: None
+          description: "A new completed Outcome changes the index hash: learn prints a stderr advisory naming the digest path and the maid-outcome-enrich fix, JSON status 'stale', exit stays 0."
+        - kind: test_function
+          name: test_learn_reports_malformed_digest_without_failing_or_mutating_it
+          args: []
+          returns: None
+          description: "Unparseable digest file: JSON status 'malformed', exit 0, digest file bytes unchanged."
+        - kind: test_function
+          name: test_learn_quiet_suppresses_digest_advisory_text_only
+          args: []
+          returns: None
+          description: "--quiet drops the stderr advisory while the --json enrichment_digest object is still present."
+validate:
+  - uv run python -m pytest -q tests/cli/test_learn_digest_freshness_cmd.py tests/core/test_outcome_enrichment.py
