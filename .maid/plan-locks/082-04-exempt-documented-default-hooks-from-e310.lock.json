@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml",
-  "manifest_hash": "sha256:d7287a40bedbe6590d99719380419efdb383bb94ddc4e95d5d4a386ed2ae792f",
+  "manifest_hash": "sha256:c2fbef7ae714520796e17c4ff746854e9e15be97378094722a511c30bd81b7a3",
   "test_hashes": {
     "tests/core/test_default_hook_stub_exemption.py": "sha256:c7a66c6f90164833fb1cf588ffecfa98575b2ff3ef36d79d0b22926e02bacfff"
   },
   "created_at": "2026-07-03T00:52:16.142173+00:00",
-  "revision": 12,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:65461f72eb8c73bf3a66d3912eb461428726f806638aa772479eeb2bd533e563",
@@ -101,6 +101,14 @@
       },
       "revised_at": "2026-07-03T01:42:45.882855+00:00",
       "reason": "Declare the non-callable default_hook schema regression test added during implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:d7287a40bedbe6590d99719380419efdb383bb94ddc4e95d5d4a386ed2ae792f",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:c7a66c6f90164833fb1cf588ffecfa98575b2ff3ef36d79d0b22926e02bacfff"
+      },
+      "revised_at": "2026-07-03T04:45:44.497743+00:00",
+      "reason": "Capture implementation Outcome after ready review."
     }
   ],
   "red_evidence": {
