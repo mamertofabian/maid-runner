@@ -1,6 +1,8 @@
 # MAID Runner Self-Improvement Backlog
 
 Audit date: 2026-07-02. Tree: `main` at v2.19.1 (`e5e24ca`), clean worktree.
+Takeover update: 2026-07-03 on `release/v2.next` after `082-01`..`082-06`
+landed. Themes 1-5 and 8 are complete; Themes 6, 7, 9, and 10 remain.
 
 ## Purpose
 
@@ -21,7 +23,8 @@ review.
 ## What Landed Since 2026-06-10 (context for takeover)
 
 All of the following are implemented, promoted under `manifests/`, and covered
-by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
+by Outcome records (the initial audit saw 102 records in `.maid/outcomes.json`
+via `maid learn`; 082-01..06 added six more manifest Outcomes):
 
 - **061 manifest authoring & brownfield onboarding** (consumed/archived):
   `maid manifest from-diff`, validate-command suggestion, bootstrap adoption
@@ -31,9 +34,10 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
   discovery, `maid validators` listing, conformance kit, authoring docs.
 - **064 daemon-first agent validation** (partially open): daemon-resident
   validation cache, verify protocol, TCP transport, client API and diagnostic
-  command. Child 064-01 (route CLI validate through daemon) was **archived
-  after a failed benchmark gate**; 064-05 (benchmark & default daemon auto)
-  remains — see Theme 7.
+  command. Children 064-01 (route CLI validate through daemon) and 064-05
+  (benchmark & default daemon auto) were **archived after the benchmark gate
+  failed or their dependency was abandoned**; the 064-00 epic remains planning
+  and needs an honest benchmark-gated closure decision — see Theme 7.
 - **065 CI-native SARIF reporting** (consumed/archived): diagnostics registry
   export, SARIF output for validate/verify, GitHub Actions wiring, CI docs.
 - **066 outcome recall planning integration** (consumed/archived):
@@ -63,6 +67,11 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 - **081 outcome LLM enrichment** (consumed/archived by Theme 8): deterministic
   enrichment core + `maid enrich`, theme maps in `maid insights`,
   `maid-outcome-enrich` skill, quality hardening, planner theme-map preference.
+- **082 self-improvement trust fixes** (completed by Themes 1-5 and 8):
+  honest warning-summary labels, clean-tree `changed_scope` skip, dirty
+  `files.read` stash-revise support, manifest-visible E310 default-hook
+  acknowledgments, proportionate E307 no-validator diagnostics, and archived
+  consumed 067/077/081 epics.
 - **verify summary** (`6cb3107`): `maid verify --summary` deduplicated output;
   now the preferred handoff command per `AGENTS.md`.
 - **Brownfield validator fixes** from the June 24-27 bug-report burst: Claude
@@ -76,19 +85,21 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 - `uv run maid validate --quiet`: exit 0, silent. Healthy.
 - `uv run maid test`: all commands PASS.
-- `uv run maid verify --summary`: **FAIL** — `changed_scope` E115 blocks on a
-  clean release tree (no baseline configured). 10s.
-- `uv run maid verify --summary --keep-going`: same blocking failure; 7 stages
-  pass; **392 raw / 147 unique warnings** (E307 storm + E310 false positives);
-  97s total.
+- Initial audit evidence recorded `uv run maid verify --summary` as **FAIL**
+  because `changed_scope` E115 blocked on a clean release tree with no baseline;
+  Theme 2 closed that defect in `082-02`.
+- Initial audit evidence recorded `uv run maid verify --summary --keep-going`
+  with **392 raw / 147 unique warnings** dominated by E307/E310 noise; Themes 4
+  and 5 closed the identified dogfood false positives/noise policy issues.
 - `uv run maid learn` + `uv run maid insights`: 102 Outcome records indexed;
   top tags `outcome-records` (22), `anti-gaming` (17).
 - Fifteen bug reports under `~/.maid/bug-report/` dated 2026-06-14 through
   2026-07-01, cross-checked against fix commits (dates verified with
-  `git log`). Thirteen are fixed; two remain open (Themes 2 and 3).
+  `git log`). The two still-open items from the initial audit were closed by
+  `082-02` and `082-03`.
 - Pending insights in `.claude/insights/review/2026/07/01/` on E210 handling
-  and the misleading warning-summary label, verified against current
-  `maid_runner/cli/commands/_format.py` (Theme 1 still reproduces in code).
+  and the misleading warning-summary label were closed by Theme 1
+  (`082-01`).
 - Epic drafts under `manifests/drafts/` header-checked: 061/063/065/066/067/
   068/069/070/071/077/081 archived; 062/064 still `status: planning`.
   Theme 8 closed the stale 067/077/081 planning records under
@@ -105,11 +116,18 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 ### 1. Fix the misleading "non-blocking" warning-summary label
 
+- **Status:** Completed by
+  `manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml`.
+- **Outcome:** `maid verify --summary` now distinguishes warning-driven
+  blocking stages from advisory warnings, removes the misleading
+  `non-blocking` label when warnings drove a failed stage, and exposes the
+  same attribution in summary JSON.
 - **Primary lane:** Correctness (CLI reporting).
-- **Evidence (tier 1):** `~/.maid/bug-report/20260701-125513-life-dashboard-verify-warnings.md`;
+- **Initial evidence (tier 1, closed):**
+  `~/.maid/bug-report/20260701-125513-life-dashboard-verify-warnings.md`;
   insights `2026-07-01_16-11_fix-misleading-warning-summary-label` and
-  `..._maid-runner-e210-warning-handling`. Code confirmed on current tree:
-  `maid_runner/cli/commands/_format.py:380` prints
+  `..._maid-runner-e210-warning-handling`. Before `082-01`,
+  `maid_runner/cli/commands/_format.py:380` printed
   `WARNINGS (non-blocking, deduplicated N -> M):` unconditionally.
 - **Symptom:** Under strict verify policy, E210/E310-class warnings can drive
   `FAIL behavioral`, yet the summary labels the same warnings "non-blocking".
@@ -131,9 +149,14 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 ### 2. Make `changed_scope` skip visibly instead of failing bare `maid verify`
 
+- **Status:** Completed by
+  `manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml`.
+- **Outcome:** Bare `maid verify` now reports the default `changed_scope` stage
+  as visibly skipped on clean trees when no baseline is resolvable, while dirty
+  trees, explicit `--changed-scope`, and explicit baselines still fail closed.
 - **Primary lane:** Developer experience (verify defaults).
-- **Evidence (tier 1):** On this clean release tree,
-  `uv run maid verify --summary` exits FAIL:
+- **Initial evidence (tier 1, closed):** On the clean release tree before
+  `082-02`, `uv run maid verify --summary` exited FAIL:
   `E115 --changed-scope requires --since, --base-ref, or metadata.maid_task_base`.
   The July 1 life-dashboard report shows real users cycling through
   `--since HEAD` / `--no-changed-scope` to get around the same failure.
@@ -162,10 +185,16 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 ### 3. Let `plan revise --stash-implementation` handle dirty `files.read` wiring paths
 
+- **Status:** Completed by
+  `manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml`.
+- **Outcome:** Stash-backed plan revision now includes manifest-declared
+  non-test `files.read` wiring edits when a manifest also has a contracted
+  writable implementation file, while unrelated dirt and scope-only context
+  files are still refused.
 - **Primary lane:** MAID workflow (red-evidence recapture).
-- **Evidence (tier 1, still reproduces):**
+- **Initial evidence (tier 1, closed):**
   `~/.maid/bug-report/20260630-182412-life-dashboard-maid-plan-revise-files-read.md`.
-  Code confirmed: `_cmd_plan_revise_with_stashed_implementation`
+  Before `082-03`, `_cmd_plan_revise_with_stashed_implementation`
   (`maid_runner/cli/commands/plan.py:271`) builds targets from
   `manifest.all_writable_paths`, which (`maid_runner/core/types.py`) covers
   create/edit/delete/snapshot/scope but **not** `files.read`. The June 29
@@ -195,9 +224,14 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 ### 4. Stop E310 flagging intentional base-class default hooks as stubs
 
+- **Status:** Completed by
+  `manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml`.
+- **Outcome:** Intentional default hooks are acknowledged with manifest-visible
+  `default_hook: true` artifacts and E310 suppression is keyed to exact active
+  manifest declarations instead of a hardcoded whitelist.
 - **Primary lane:** Validation trust (heuristic precision).
-- **Evidence (tier 1):** every verify run on this repo emits E310 x7 for
-  `BaseValidator.module_path`, `.resolve_reexport`,
+- **Initial evidence (tier 1, closed):** before `082-04`, every verify run on
+  this repo emitted E310 x7 for `BaseValidator.module_path`, `.resolve_reexport`,
   `.get_test_function_bodies`, `.generate_test_stub`
   (`maid_runner/validators/base.py:128-184`). Reading the code confirms these
   are documented template-method default hooks (`return None` / `{}` / `""`)
@@ -225,9 +259,15 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 ### 5. Tame the E307 "no validator available" warning storm
 
+- **Status:** Completed by
+  `manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml`.
+- **Outcome:** Recognized non-code files now emit E307 as info, retain
+  per-file JSON/SARIF diagnostics, and collapse into one summary INFO group;
+  unsupported source-like files remain warnings.
 - **Primary lane:** Developer experience (signal-to-noise).
-- **Evidence (tier 1):** verify on this clean tree reports 392 raw / 147
-  unique warnings; the overwhelming majority are E307 for declared `.md`,
+- **Initial evidence (tier 1, closed):** before `082-05`, verify on this clean
+  tree reported 392 raw / 147 unique warnings; the overwhelming majority were
+  E307 for declared `.md`,
   `.toml`, `.json`, `.gitignore`, `.cjs` files (skill payloads, docs,
   pyproject). The summary dedup (`6cb3107`) mitigated but did not resolve it.
 - **Symptom:** Real warnings (like Theme 4's E310) sit inside 140+ lines of
@@ -260,10 +300,10 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
   experience policy as surprise.
 - **Why it matters:** 062 is the bridge between "gates exist" (067/068 landed)
   and "gates are on by default without revolt".
-- **Owner:** `maid-runner-draft-implement` for 062-01..03 as drafted;
-  **hold 062-04** (flip defaults in a major release) until Themes 1, 2, 4, 5
-  land, otherwise strict-by-default ships with known false positives and a
-  failing bare verify.
+- **Owner:** `maid-runner-draft-implement` for 062-01..04. The previous
+  062-04 hold condition is now satisfied because Themes 1, 2, 4, and 5 have
+  landed; still promote the children in order after re-validating each draft
+  against the current tree.
 - **Next action:** re-validate the four child drafts against the current tree
   (they predate waves 063-081; artifact and path assumptions may have
   drifted), revise via `maid plan revise` where stale, then promote 062-01
@@ -274,9 +314,10 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 
 - **Primary lane:** Performance.
 - **Evidence (tier 2):** 064-02/03/04/06 landed; 064-01 was archived after
-  failing its benchmark gate (`0f8651c`); `manifests/drafts/064-05-benchmark-and-default-daemon-auto.manifest.yaml`
-  remains, and the epic requires each remaining child to restate the benchmark
-  gate. Verify with tests on this repo takes ~97s.
+  failing its benchmark gate (`0f8651c`); 064-05 was archived as an
+  abandoned-draft-manifest because it depended on 064-01. The 064-00 epic still
+  has `status: planning` and requires any future child to restate the benchmark
+  gate. Initial audit evidence put verify with tests on this repo at ~97s.
 - **Symptom:** The daemon exists (cache, protocol, transports, client API) but
   nothing defaults to it, so the investment currently yields no routine
   speedup.
@@ -285,10 +326,10 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
   infrastructure-delivered/auto-default-rejected — leaving it half-open invites
   unbenchmarked "just route it" work, which 064-01 already proved wrong.
 - **Owner:** `maid-runner-performance-optimization`.
-- **Next action:** revise or replace 064-05 per the epic's own instruction:
-  benchmark daemon-backed verify/validate on this repo plus one reference
-  project; default to auto only on a measured win; otherwise archive 064-05
-  and the epic with the benchmark evidence in its Outcome.
+- **Next action:** run the benchmark-gated epic closure decision: measure
+  daemon-backed verify/validate on this repo plus one reference project, then
+  either plan a new default-routing child only if there is a measured win or
+  archive 064-00 honestly with the benchmark evidence in its Outcome.
 - **Size/risk:** medium / medium.
 
 ### 8. Archive consumed epics and make draft inventory truthful again
@@ -353,28 +394,34 @@ Priority order for the next agent (rationale: false-green/false-fail trust
 issues first, then correctness of daily workflow, then roadmap execution,
 then hygiene):
 
-1. Theme 1 — honest warning-summary label (`maid-evolver`, small).
-2. Theme 2 — visible `changed_scope` skip on clean trees (`maid-validate-hardening`).
-3. Theme 3 — stash-revise `files.read` handling (`maid-validate-hardening` + evolve 076-01).
-4. Theme 4 — E310 default-hook exemption (`maid-validate-hardening`).
-5. Theme 5 — E307 noise policy (`maid-validate-hardening`).
-6. Theme 6 — execute 062-01..03; hold 062-04 until 1/2/4/5 land (`maid-runner-draft-implement`).
-7. Theme 7 — benchmark-gated 064 closure (`maid-runner-performance-optimization`).
-8. Theme 8 — completed by `082-06`; consumed epics 067/077/081 are archived.
-9. Theme 9 — refresh hardening + cleanup backlogs (markdown-only).
-10. Theme 10 — batching probe (performance, probe first).
+1. Theme 6 — execute 062-01..04; revalidate stale drafts before promotion
+   (`maid-runner-draft-implement`).
+2. Theme 7 — benchmark-gated 064-00 epic closure
+   (`maid-runner-performance-optimization`).
+3. Theme 9 — refresh hardening + cleanup backlogs (markdown-only).
+4. Theme 10 — batching probe (performance, probe first).
 
-Sequencing note: Themes 1-5 are all prerequisites for flipping strict defaults
-(062-04). Landing them first turns 062 from a fight into a formality.
+Completed:
+
+- Theme 1 — completed by `082-01`.
+- Theme 2 — completed by `082-02`.
+- Theme 3 — completed by `082-03`.
+- Theme 4 — completed by `082-04`.
+- Theme 5 — completed by `082-05`.
+- Theme 8 — completed by `082-06`; consumed epics 067/077/081 are archived.
+
+Sequencing note: Themes 1-5 were prerequisites for flipping strict defaults
+(062-04), and they are now complete. Execute 062 in child order; do not treat
+the old 062-04 hold as still active.
 
 ## Specialist Follow-Ups
 
-- `maid-validate-hardening` owns Themes 2-5 and should open its pass by
-  refreshing its backlog (Theme 9); all four items change gate posture and
-  need adversarial tests proving the relaxations cannot be gamed.
+- `maid-validate-hardening` should refresh its stale specialist backlog
+  (Theme 9) before proposing more hardening work. Its previously routed
+  Themes 2-5 are complete.
 - `maid-runner-performance-optimization` owns Themes 7 and 10; the epic 064
-  rule stands — no daemon or batching change without before/after benchmark
-  evidence in the Outcome.
+  rule stands — no new daemon default-routing or batching change without
+  before/after benchmark evidence in the Outcome.
 - `maid-runner-cleanup-and-refactor` has no confirmed current findings from
   this audit; its next audit should start from a fresh code scan plus its
   refreshed backlog, not from this document.
@@ -385,18 +432,22 @@ Sequencing note: Themes 1-5 are all prerequisites for flipping strict defaults
 
 ## Draft Manifest Candidates
 
-To be created by the owning skill, one at a time, next wave **082+**
-(numbering: 081 is the last used draft wave; also avoid re-using 072):
+Created and completed:
 
-- `082-01-honest-blocking-warning-summary-label` (Theme 1; evolve
-  `add-verify-summary-output`).
-- `082-02-changed-scope-visible-skip-on-clean-tree` (Theme 2).
-- `082-03-stash-revise-files-read-wiring-paths` (Theme 3; evolve 076-01).
-- `082-04-exempt-documented-default-hooks-from-e310` (Theme 4).
-- `082-05-proportionate-e307-no-validator-policy` (Theme 5).
+- `082-01-honest-blocking-warning-summary-label` (Theme 1; completed).
+- `082-02-changed-scope-visible-skip-on-clean-tree` (Theme 2; completed).
+- `082-03-stash-revise-files-read-wiring-paths` (Theme 3; completed).
+- `082-04-exempt-documented-default-hooks-from-e310` (Theme 4; completed).
+- `082-05-proportionate-e307-no-validator-policy` (Theme 5; completed).
 - `082-06-archive-consumed-post-067-epics` (Theme 8; completed).
-- Existing drafts 062-01..04 (revalidate before promotion) and 064-05
-  (revise per epic instruction) — do not renumber them.
+
+Remaining manifest work:
+
+- Existing drafts 062-01..04 (revalidate before promotion) — do not renumber
+  them.
+- 064-00 epic closure decision. Do not revive 064-05 as a live child; it is an
+  archived abandoned draft. Create a new child only if the benchmark probe
+  justifies default-routing work.
 
 Every candidate must follow the full lifecycle: draft → behavioral tests →
 red phase → `maid validate --mode behavioral` → plan review → `maid plan lock`
@@ -438,6 +489,7 @@ Commands run on 2026-07-02 against `main` @ `e5e24ca` (v2.19.1), clean tree:
 - Code reads verified: `_format.py:376-387` (Theme 1),
   `plan.py:271-342` + `core/types.py` `all_writable_paths` (Theme 3),
   `validators/base.py:128-184` (Theme 4).
-- No new draft manifests were created in this audit, so no schema validation
-  was required; drafts 062-01..04 and 064-05 must be re-validated by their
-  owning skill before promotion.
+- Takeover update: 082-01..06 were created, implemented, reviewed, and
+  completed after the initial audit. Drafts 062-01..04 must be re-validated by
+  their owning skill before promotion; 064-05 is archived and must not be
+  promoted.
