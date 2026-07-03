@@ -230,14 +230,21 @@ Fix: Create or restore the file, then rerun
 
 ### 22. No validator is available (`E307`)
 
-Symptom: Validation reports `E307` for a file such as documentation or an
-unsupported extension.
+Symptom: Validation reports `E307` for a file such as documentation, config, or
+an unsupported extension.
 
 Likely cause: MAID Runner has no language validator for that file type.
 
-Fix: For documentation files, treat the diagnostic as a visibility signal and
-cover behavior through tests that read the markdown. For code files, install the
-needed optional dependency or keep the file out of contracted artifact scope.
+Fix: For recognized non-code inventory files, treat the diagnostic as an
+informational visibility signal and cover behavior through tests that read the
+file when behavior matters. The recognized non-code set is `.md`, `.markdown`,
+`.rst`, `.txt`, `.toml`, `.json`, `.jsonc`, `.yaml`, `.yml`, `.cfg`, `.ini`,
+`.lock`, plus `.gitignore`, `.gitattributes`, `.editorconfig`, and
+`.env.example`. Verify summary output aggregates these info-severity records
+by code while JSON, SARIF, and non-summary output keep the per-file records. For
+source-like files such as `.cjs`, `.mjs`, `.go`, or `.rb`, E307 remains a
+warning; install the needed optional dependency, add a validator, or keep the
+file out of contracted artifact scope.
 
 ### 23. Source cannot be parsed (`E308`)
 

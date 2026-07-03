@@ -728,7 +728,10 @@ def _warnings_are_blocking(
     project_root: Path,
 ) -> bool:
     blocking_warnings = [
-        warning for warning in warnings if not _warning_is_advisory(warning)
+        warning
+        for warning in warnings
+        if getattr(warning, "severity", None) == Severity.WARNING
+        and not _warning_is_advisory(warning)
     ]
     return bool(blocking_warnings) and _manifest_warnings_are_blocking(
         manifest_path,

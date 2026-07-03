@@ -342,6 +342,15 @@ def format_verify_summary(
                     }
                     for group in summary.warning_groups
                 ],
+                "info": [
+                    {
+                        "code": group.code,
+                        "message": group.message,
+                        "location": group.location,
+                        "count": group.count,
+                    }
+                    for group in summary.info_groups
+                ],
             },
             "warning_blocking_stages": list(summary.warning_blocking_stages),
             "passed_stages": list(summary.passed_stages),
@@ -353,12 +362,19 @@ def format_verify_summary(
 
     status = "PASS" if summary.success else "FAIL"
     warning_unique_count = len(summary.warning_groups)
+    info_unique_count = len(summary.info_groups)
+    info_fragment = ""
+    if summary.raw_info_count:
+        info_fragment = (
+            f"{info_unique_count} info unique / {summary.raw_info_count} raw, "
+        )
     lines = [
         (
             f"VERIFY: {status} "
             f"({len(summary.blocking_stages)} blocking, "
             f"{warning_unique_count} warnings unique / "
             f"{summary.raw_warning_count} raw, "
+            f"{info_fragment}"
             f"{len(summary.passed_stages)} passed, "
             f"{len(summary.skipped_stages)} skipped)"
         )
@@ -416,6 +432,17 @@ def format_verify_summary(
         for group in summary.warning_groups:
             prefix = group.code or "warning"
             lines.append(f"  {prefix} x{group.count} {group.message}")
+            if group.location:
+                lines.append(f"    {group.location}")
+
+    if summary.info_groups:
+        lines.append("")
+        lines.append(
+            "INFO " f"(deduplicated {summary.raw_info_count} -> {info_unique_count}):"
+        )
+        for group in summary.info_groups:
+            prefix = group.code or "info"
+            lines.append(f"  INFO {prefix} x{group.count} {group.message}")
             if group.location:
                 lines.append(f"    {group.location}")
 

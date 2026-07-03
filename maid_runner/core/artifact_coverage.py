@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from maid_runner.core._test_command_execution import _test_command_environment
+from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 
@@ -71,6 +72,7 @@ def run_artifact_coverage(
                         "Artifact coverage requires coverage.py from the quality "
                         "extra; install maid-runner[quality]."
                     ),
+                    severity=no_validator_severity("coverage.py"),
                 ),
             ),
         )
