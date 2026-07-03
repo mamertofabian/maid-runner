@@ -375,6 +375,11 @@
         "type": {
           "type": "string"
         },
+        "default_hook": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when a function or method artifact intentionally uses a trivial documented default implementation."
+        },
         "test_function_details": {
           "$ref": "#/definitions/TestFunctionDetails"
         },
@@ -391,7 +396,24 @@
         "expected": { "type": "object" },
         "dependencies": { "type": "object" }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": ["default_hook"],
+            "properties": {
+              "default_hook": { "const": true }
+            }
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "enum": ["function", "method"]
+              }
+            }
+          }
+        }
+      ]
     },
     "TestCaseActionSubject": {
       "type": "object",

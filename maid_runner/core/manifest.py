@@ -111,9 +111,16 @@ def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]
         schema,
         format_checker=jsonschema.FormatChecker(),
     )
-    errors = [e.message for e in validator.iter_errors(data)]
+    errors = [_format_schema_error(e) for e in validator.iter_errors(data)]
     errors.extend(_validate_outcome_completed_at(data))
     return errors
+
+
+def _format_schema_error(error: jsonschema.ValidationError) -> str:
+    if not error.absolute_path:
+        return error.message
+    path = ".".join(str(part) for part in error.absolute_path)
+    return f"{path}: {error.message}"
 
 
 def _validate_outcome_completed_at(data: dict) -> list[str]:
@@ -593,6 +600,7 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
         of=data.get("of"),
         type_annotation=data.get("type"),
         test_details=test_details,
+        default_hook=data.get("default_hook", False),
     )
 
 
@@ -768,6 +776,8 @@ def _artifact_to_dict(spec: ArtifactSpec) -> dict:
         d["type_parameters"] = list(spec.type_parameters)
     if spec.type_annotation:
         d["type"] = spec.type_annotation
+    if spec.default_hook:
+        d["default_hook"] = True
     if spec.test_details is not None:
         td = spec.test_details
         # Serialize test function fields at artifact level

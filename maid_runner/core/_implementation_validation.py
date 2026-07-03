@@ -27,6 +27,7 @@ from maid_runner.validators.registry import UnsupportedLanguageError, ValidatorR
 # Structural artifact kinds that define shapes rather than behavior.
 # These don't require manifest declaration in strict mode.
 _STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
+_DEFAULT_HOOK_KINDS = frozenset({ArtifactKind.FUNCTION, ArtifactKind.METHOD})
 
 
 class ImplementationFileValidator:
@@ -103,8 +104,14 @@ class ImplementationFileValidator:
         )
 
         if self._check_stubs:
+            default_hook_artifacts = _default_hook_artifacts_for_file(fs, chain)
             errors.extend(
-                _check_stub_artifacts(expected, collection.artifacts, fs.path)
+                _check_stub_artifacts(
+                    expected,
+                    collection.artifacts,
+                    fs.path,
+                    default_hook_artifacts=default_hook_artifacts,
+                )
             )
 
         if fs.imports:
@@ -314,11 +321,16 @@ def _check_stub_artifacts(
     expected: list[ArtifactSpec],
     found: list[FoundArtifact],
     file_path: str,
+    *,
+    default_hook_artifacts: set[tuple[str, str]] | None = None,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
+    default_hook_artifacts = default_hook_artifacts or set()
     found_by_key = {fa.merge_key(): fa for fa in found}
     for spec in expected:
         fa = found_by_key.get(spec.merge_key())
+        if fa and (file_path, fa.qualified_name) in default_hook_artifacts:
+            continue
         if fa and fa.is_stub and not fa.is_private:
             errors.append(
                 ValidationError(
@@ -333,6 +345,26 @@ def _check_stub_artifacts(
                 )
             )
     return errors
+
+
+def _default_hook_artifacts_for_file(
+    fs: FileSpec,
+    chain: Optional[ManifestChain],
+) -> set[tuple[str, str]]:
+    declarations: list[ArtifactSpec] = []
+    if chain is not None:
+        for manifest in chain.manifests_for_file(fs.path):
+            for chain_fs in manifest.all_file_specs:
+                if chain_fs.path == fs.path:
+                    declarations.extend(chain_fs.artifacts)
+    else:
+        declarations.extend(fs.artifacts)
+
+    return {
+        (fs.path, artifact.qualified_name)
+        for artifact in declarations
+        if artifact.default_hook and artifact.kind in _DEFAULT_HOOK_KINDS
+    }
 
 
 def _check_required_imports(

@@ -259,7 +259,11 @@ Likely cause: A declared artifact still contains a placeholder body such as
 
 Fix: Replace the placeholder with real behavior that passes the declared tests.
 If the artifact is intentionally abstract, make sure it uses supported abstract
-method conventions.
+method conventions. If a callable is an intentional documented default hook
+whose neutral implementation is part of the contract, acknowledge that exact
+function or method artifact in the declaring manifest with `default_hook: true`.
+Do not add `default_hook: true` to a genuinely unimplemented function just to
+silence `E310`; reviewers should treat that as a gaming pattern.
 
 ### 25. Removed artifact still exists (`E311`)
 
