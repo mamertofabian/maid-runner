@@ -13,30 +13,45 @@ metadata:
   priority: high
 description: |
   Add an explicit opt-in that runs `maid validate` and `maid verify` with the
-  gate set intended to become the default in the next major release, so
-  projects can migrate early and CI can adopt the future behavior before the
-  flip. Today the strongest gates (identity-backed behavioral coverage,
-  assertion enforcement, and coverage-miss errors, landed via 030-06 and
-  032-01 through 032-03) sit behind individual opt-in strict flags, so a
-  green default run is weaker than the validator can actually prove.
+  gate set intended to become the default in a later v2.x flip release
+  (per the 2026-07-04 staged-flip decision recorded in the epic), so
+  projects can migrate early and CI can adopt the future behavior before
+  the flip.
+
+  Current-tree premise (re-audited 2026-07-03): `maid verify` is already
+  strict by default — 032-03 hardwired `check_assertions=True`,
+  `check_stubs=True`, and warning failure into `cmd_verify`, with
+  `--advisory` (082-01) as the labeled warning-policy hatch.
+  Identity-backed behavioral coverage (032-01) and coverage-miss errors
+  (030-05) are already default in behavioral validation. The remaining
+  opt-in gaps are `maid validate`'s `--strict` expansion (assertion
+  checks, stub checks, fail-on-warnings via `_strict_options` in
+  `maid_runner/cli/commands/validate.py`) and the artifact
+  execution-coverage gate (`--artifact-coverage`, 068) on both commands.
 
   Pinned decisions (do not redesign):
 
   - The flag is `--strict-preview`, available on both `maid validate` and
     `maid verify`.
-  - JSON output gains a top-level `"strict_preview": true` marker; text
-    output prefixes the summary line with `[strict-preview]`.
-  - Strict preview enables the intended future defaults: identity-backed
-    behavioral coverage, assertion enforcement, and coverage-miss errors.
-    These map onto the gates that already exist behind opt-in flags; this
-    child adds no new analyzers and no new gate logic. Concretely, the flag
-    must enable at least the full existing `--strict` expansion (assertion
-    checks, stub checks, fail-on-warnings as wired through
-    `_strict_options` in `maid_runner/cli/commands/validate.py`) plus any
-    existing opt-in identity-backed coverage and coverage-miss enforcement
-    options from the 030-06 / 032-01..032-03 hardening work.
+  - Gate-set mapping (exhaustive; no new analyzers, no new gate logic):
+    `maid validate --strict-preview` enables the union of the existing
+    `--strict` expansion plus `--artifact-coverage`;
+    `maid verify --strict-preview` adds only `--artifact-coverage` on top
+    of verify's already-strict defaults.
+  - Combining `--strict-preview` with `--advisory` on `maid verify` is a
+    usage error (exit 2): the caller asked for contradictory gate sets.
+  - The strict-preview warning policy is byte-identical to the current
+    one: advisory-exempt codes (E307 `VALIDATOR_NOT_AVAILABLE`, legacy
+    chain codes) stay exempt, manifest-level default-hook exemptions
+    (082-04) stay honored, and info-severity diagnostics (082-05) never
+    fail a strict-preview run. Preview strictness comes only from the
+    gate-set mapping above, never from re-severity-ing diagnostics.
+  - JSON output gains a top-level `"strict_preview": true` marker — in
+    both the full JSON payload and `--summary` JSON on verify; text
+    output prefixes the summary line with `[strict-preview]` — in both
+    classic text and `--summary` text.
   - Default behavior is unchanged when the flag is absent. Default changes
-    ship only in the major-version child (062-04).
+    ship only in the release-flip child (062-04).
 
   Behavior specifics:
 
@@ -49,8 +64,8 @@ description: |
     distinguishable from a default-gate run.
   - Combining `--strict-preview` with the individual strict flags
     (`--strict`, `--check-assertions`, `--check-stubs`,
-    `--fail-on-warnings`) is allowed and behaves as the union; it never
-    weakens the preview gate set.
+    `--fail-on-warnings`, `--artifact-coverage`) is allowed and behaves
+    as the union; it never weakens the preview gate set.
   - `--strict-preview --json` and plain `--strict-preview` must report the
     same diagnostics (JSON parity).
 
@@ -62,28 +77,34 @@ description: |
     default gates but violates a strict gate (for example a behavioral
     test exercising an artifact without assertions), proving the preview
     is stronger than the default run.
-  - The same fixture passes plain `maid validate`, proving defaults are
+  - `maid validate --strict-preview` fails on a fixture that passes the
+    default gates and the `--strict` expansion but whose declared
+    artifact is never executed by its validate command, proving artifact
+    coverage is part of the preview set.
+  - The same fixtures pass plain `maid validate`, proving defaults are
     unchanged.
   - Text output contains the `[strict-preview]` summary prefix and JSON
     output contains top-level `"strict_preview": true` on both passing and
     failing fixtures.
-  - `maid verify --strict-preview` wires the same gate set through the
-    verify stages and labels text and JSON output identically.
+  - `maid verify --strict-preview` enables the artifact-coverage stage
+    and labels classic text, `--summary` text, full JSON, and `--summary`
+    JSON output.
+  - `maid verify --strict-preview --advisory` exits 2 with a usage error.
+  - An info-severity diagnostic (E307 on a recognized non-code file) does
+    not fail a `--strict-preview` run.
   - A run without the flag emits no strict-preview marker in text or JSON.
   - Parser registration: `maid validate --strict-preview` and
     `maid verify --strict-preview` are accepted by `build_parser` and
     dispatch through `main`.
 
-  Planning notes: the epic names the future-default gate set as
-  "identity-backed behavioral coverage, assertion enforcement, and
-  coverage-miss errors" without enumerating engine option names. The
-  conservative reading recorded here: map each named gate to the existing
-  opt-in option that the 030-06 / 032-01..032-03 manifests landed; if a
-  named gate has no existing opt-in switch, stop and raise it as a
-  prerequisite rather than inventing new gate logic in this child. The
-  epic says the preview runs "directory-wide" validate; this child applies
-  the flag uniformly to directory-wide and single-manifest invocations so
-  output labeling never depends on invocation shape.
+  Planning notes: the 2026-06-10 draft left the gate set as a
+  conservative mapping exercise; the 2026-07-03 re-audit resolved it and
+  the mapping above is now pinned. If implementation discovers a gate the
+  mapping missed, stop and send it back to planning rather than widening
+  the set ad hoc. The epic says the preview runs "directory-wide"
+  validate; this child applies the flag uniformly to directory-wide and
+  single-manifest invocations so output labeling never depends on
+  invocation shape.
 
   Out of scope: the pytest config guard extension (062-01), the
   `--strict-delta` migration report (062-03), and flipping defaults plus
@@ -92,7 +113,7 @@ temptations:
   - risk: "Do not add new static analyzers or speculative gate logic while wiring the preview flag."
     instead: "Only enable gates that already exist behind opt-in flags and are backed by reproduced false-green evidence; route new bypass ideas to the hardening backlog."
   - risk: "Do not flip any default behavior in this child."
-    instead: "Keep default runs byte-identical when --strict-preview is absent; defaults change only in the 062-04 major-version child."
+    instead: "Keep default runs byte-identical when --strict-preview is absent; defaults change only in the 062-04 release-flip child."
   - risk: "Do not make strict-preview runs indistinguishable from default runs."
     instead: "Always emit the [strict-preview] text prefix and the top-level strict_preview JSON marker, on success and failure alike."
 files:
@@ -132,6 +153,8 @@ files:
           description: "Run the verification gate with the future-default strict gate set when --strict-preview is given and label text and JSON output."
   read:
     - maid_runner/core/validate.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/verify_summary.py
     - maid_runner/cli/commands/_format.py
     - docs/plans/maid-validate-hardening-backlog.md
     - tests/cli/test_strict_preview.py

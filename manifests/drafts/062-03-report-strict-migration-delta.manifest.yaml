@@ -12,7 +12,7 @@ metadata:
     - strict-defaults
   priority: high
 description: |
-  Make the strict-defaults migration measurable before the major-version
+  Make the strict-defaults migration measurable before the staged v2.x
   flip. Users need a command that reports exactly which manifests and files
   would fail under strict defaults, with structured error codes, before any
   default changes. This child adds that report on top of the strict-preview
@@ -51,6 +51,15 @@ description: |
     of the CLI); the strict evaluation reuses the same gate-set expansion
     that `--strict-preview` (062-02) uses, so the report can never drift
     from preview behavior.
+  - Because the strict-preview gate set includes artifact execution
+    coverage (062-02 mapping), artifact-coverage errors participate in
+    the delta like any other diagnostic: they are `ValidationError`
+    records with stable codes (for example E311
+    `ARTIFACT_NOT_EXECUTED_BY_TESTS`) and must appear in the delta with
+    manifest attribution when only the strict evaluation produces them.
+  - Info-severity diagnostics (082-05) fail neither evaluation, so they
+    can never appear in the delta; the delta reports migration work, not
+    advisory noise.
 
   Test expectations (behavioral tests in tests/core/test_strict_delta.py
   and tests/cli/test_strict_delta_cmd.py, written during planning of this
@@ -76,7 +85,16 @@ description: |
   `StrictDeltaReport`, and `compute_strict_delta` as declared below.
   Diagnostic identity for delta membership (code + manifest + location) is
   the conservative reading of "diagnostics unique to the strict run" and
-  is recorded here.
+  is recorded here. `compute_strict_delta` accepts the two batch results
+  plus optional artifact-coverage mappings keyed by manifest path so it
+  stays a pure, I/O-free comparison with attribution intact; the CLI
+  handler gathers the evaluations and passes them in. This shape is
+  pinned because the existing directory aggregation
+  (`_run_artifact_coverage_for_manifest_dir` in
+  `maid_runner/cli/commands/validate.py`) flattens findings and errors
+  into one merged report and loses the per-manifest key, while the
+  per-manifest reports it merges are already computed and free to
+  collect. Do not thread the merged report into the delta.
 
   Out of scope: the pytest config guard extension (062-01), the
   strict-preview flag itself (062-02, a prerequisite this child builds
@@ -136,8 +154,14 @@ files:
               type: BatchValidationResult
             - name: strict_result
               type: BatchValidationResult
+            - name: default_coverage
+              type: Mapping[str, ArtifactCoverageReport] | None
+              default: None
+            - name: strict_coverage
+              type: Mapping[str, ArtifactCoverageReport] | None
+              default: None
           returns: StrictDeltaReport
-          description: "Return only the diagnostics unique to the strict evaluation, grouped and sorted by manifest then file then code."
+          description: "Return only the diagnostics unique to the strict evaluation, including artifact-coverage errors, grouped and sorted by manifest then file then code. Coverage mappings are keyed by manifest path so attribution survives. Pure comparison; callers gather the evaluations."
   edit:
     - path: maid_runner/cli/commands/_main.py
       artifacts:
@@ -166,6 +190,7 @@ files:
   read:
     - maid_runner/core/result.py
     - maid_runner/core/validate.py
+    - maid_runner/core/artifact_coverage.py
     - tests/core/test_strict_delta.py
     - tests/cli/test_strict_delta_cmd.py
 validate:

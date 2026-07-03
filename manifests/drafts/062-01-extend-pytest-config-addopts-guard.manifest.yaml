@@ -102,8 +102,20 @@ description: |
   precedence follows pytest's documented behavior and is recorded here as
   the conservative reading.
 
+  Current-tree notes (re-audited 2026-07-03): the 044-01 machinery in
+  `_pytest_config_addopts.py` already contains private precedence
+  scaffolding — `_pytest_ini_takes_precedence` (pytest.ini/.pytest.ini
+  detection) and `_explicit_config_path` (`-c`/`--config-file` handling) —
+  so this child extends that machinery rather than starting fresh; the
+  new helpers generalize what exists instead of duplicating it. Existing
+  behavioral coverage for the pyproject path lives in
+  `tests/core/test_test_runner.py` (fixtures such as
+  `_write_pyproject_pytest_addopts`) plus the CLI suites named in the
+  044-01 validate commands; those must keep passing unchanged as the
+  regression guard for the untouched pyproject-specific pair.
+
   Out of scope: the strict-preview opt-in flag (062-02), the strict
-  migration delta report (062-03), and the major-version default flip with
+  migration delta report (062-03), and the staged default flip with
   `--legacy-gates` and documentation updates (062-04).
 temptations:
   - risk: "Do not extend the pytest config guard from documentation alone."
@@ -152,7 +164,9 @@ files:
     - maid_runner/core/result.py
     - manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml
     - docs/plans/maid-validate-hardening-backlog.md
+    - tests/core/test_test_runner.py
     - tests/core/test_pytest_config_addopts.py
 validate:
   - uv run python -m pytest tests/core/test_pytest_config_addopts.py -v
+  - uv run python -m pytest -q tests/core/test_test_runner.py
   - uv run maid validate manifests/drafts/062-01-extend-pytest-config-addopts-guard.manifest.yaml --mode schema --quiet
