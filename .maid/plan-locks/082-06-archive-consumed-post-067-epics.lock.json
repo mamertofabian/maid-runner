@@ -2,10 +2,10 @@
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
   "manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256:195a71e59a5c2b4bdf4a6020d2bc53a043a0baf05ad2c03126a08b9c7608d391"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256:968a1caf3c4082b19aba3fd8eee0119d2dab62202a0d3493c168a3f10f48fa1a"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -38,6 +38,14 @@
       },
       "revised_at": "2026-07-03T05:41:15.298960+00:00",
       "reason": "Capture implementation outcome after ready review"
+    },
+    {
+      "prior_manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:195a71e59a5c2b4bdf4a6020d2bc53a043a0baf05ad2c03126a08b9c7608d391"
+      },
+      "revised_at": "2026-07-03T23:36:48.473630+00:00",
+      "reason": "Update live planning epic inventory for committed 083 outcome-enrichment loop epic"
     }
   ],
   "red_evidence": {
