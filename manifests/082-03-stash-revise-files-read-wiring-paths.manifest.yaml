@@ -1,0 +1,269 @@
+schema: '2'
+goal: Let maid plan revise --stash-implementation stash dirty manifest-declared files.read wiring paths so red evidence can be recaptured after review-driven contract changes
+type: fix
+created: '2026-07-03T00:07:12Z'
+metadata:
+  backlog: docs/plans/maid-runner-self-improvement-backlog.md#theme-3
+  tags:
+  - plan-lock
+  - red-phase
+  - workflow-hardening
+  - cli
+  priority: high
+description: |
+  `_cmd_plan_revise_with_stashed_implementation`
+  (maid_runner/cli/commands/plan.py) builds its stash targets from
+  `manifest.all_writable_paths` (create/edit/delete/snapshot/scope,
+  maid_runner/core/types.py), which excludes `files.read`. Manifests that
+  follow the documented touched-but-uncontracted wiring pattern (for example
+  a SvelteKit `+page.svelte` under `files.read` that only rewires call
+  sites) therefore cannot recapture red evidence after a review-driven
+  contract change: the dirty read path is neither stashed nor tolerated, or
+  when same-task tolerance admits it, the implementation edit leaks into the
+  supposedly pre-implementation red capture. Downstream this dead-ends in
+  E707 RED_EVIDENCE_COMMAND_MISMATCH with no sanctioned path forward
+  (bug report 20260630-182412-life-dashboard-maid-plan-revise-files-read;
+  the June 29 sibling fix, manifests/fix-stash-revise-scope-targets, covered
+  only scope paths).
+
+  This chain-merges over manifests/076-01-add-stash-backed-plan-revise and
+  manifests/fix-stash-revise-scope-targets on the same cmd_plan_revise
+  contract.
+
+  Pinned decisions (do not redesign):
+
+  1. Dirty manifest-declared `files.read` paths become stash TARGETS, not
+     merely allowed dirt. They are implementation-era edits that must be
+     hidden during red capture and restored afterwards, exactly like dirty
+     writable paths. Tolerating them without stashing would leak
+     implementation state into red evidence.
+
+  2. The anti-gaming bound is manifest visibility plus an existing contracted
+     writable implementation file: only non-test paths explicitly listed in
+     the revised manifest's `files.read` qualify, and only for manifests that
+     also declare a non-test create/edit/delete/snapshot path. Genuinely
+     undeclared dirty paths are still refused with the existing error, and
+     that error message must now also say that declaring a wiring path under
+     `files.read` is the sanctioned way to include it in the stash. Scope-only
+     manifests still reject separate dirty `files.read` context paths.
+
+  3. Test files never ride the read-path stash. Any `files.read` entry that
+     `_is_test_file` classifies as a test stays unstashed, so behavioral
+     tests always remain visible to red capture; hiding failing tests would
+     let a green run masquerade as red-capture input (the capture already
+     refuses non-red evidence, but the exclusion keeps the failure mode
+     impossible rather than merely detected).
+
+  4. Existing refusals are all preserved: staged targets, missing git
+     metadata, ambiguous stash failures, --preserve-red-evidence/--no-run
+     combinations, contract-file hash mutation during capture, and the
+     requirement that the manifest declares at least one non-test
+     implementation file. The "found no dirty declared implementation paths
+     to stash" guard now counts dirty declared files.read non-test paths as
+     stashable.
+
+  Planning notes (Planning Handoff Mode): behavioral tests are declared but
+  not yet written; all new coverage goes in the dedicated
+  tests/cli/test_stash_revise_files_read_targets.py module because the
+  existing stash-revise test files are hashed by the 076-01 and
+  fix-stash-revise-scope-targets plan locks. The implementing agent confirms
+  the red phase, runs behavioral validation, plan-locks, and promotes before
+  implementation.
+
+  Open questions for the implementing agent:
+  - Whether a manifest whose ONLY dirty declared paths are files.read
+    entries should be allowed to proceed (recommended: yes — the wiring edit
+    is the implementation in that scenario) or still require a dirty
+    writable path; decide in plan review and cover the decision with a test.
+temptations:
+- risk: Do not widen the stash to all dirty paths or git stash -u without path arguments to make E707 recovery easy.
+  instead: Extend the target set only by the revised manifest's explicit files.read entries, keep passing exact paths to git stash push, and keep refusing undeclared dirty paths.
+- risk: Do not downgrade files.read dirt to tolerated-but-unstashed dirt.
+  instead: Stash dirty declared files.read non-test paths so red capture runs against the pre-implementation state, then restore them with the same stash-identity checks used for writable targets.
+- risk: Do not let test files, the manifest, or the lock file be stashed via files.read declarations.
+  instead: Filter read-path targets through _is_test_file and keep the manifest/lock hash checks; add the behavioral test proving a files.read-declared test file stays visible during capture.
+- risk: Do not add assertions to the existing stash-revise test files hashed by older plan locks.
+  instead: Put all new behavioral coverage in the dedicated test module owned by this manifest.
+files:
+  create:
+  - path: tests/cli/test_stash_revise_files_read_targets.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_revise_stashes_dirty_declared_files_read_wiring_path
+      source_scenario: A locked manifest declares an implementation file under files.edit and a wiring file under files.read; both are dirty with implementation-era edits, and review tightened the behavioral tests (reproduction of the 2026-06-30 life-dashboard report).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, red evidence is captured with both the writable and the files.read edits hidden, and the lock records valid red evidence instead of refusing the dirty read path.
+    - kind: test_function
+      name: test_stash_revise_restores_files_read_changes_after_capture
+      source_scenario: The same wiring scenario, inspecting the worktree after the command returns.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The files.read path's dirty content is restored byte-identical after evidence capture, on success and on refused-capture failure paths alike.
+    - kind: test_function
+      name: test_stash_revise_still_refuses_undeclared_dirty_paths
+      source_scenario: A dirty path that appears in no section of the revised manifest, alongside the declared dirty targets.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses with the unrelated-dirty-path error, leaves the lock unchanged, and the error text names files.read declaration as the sanctioned way to include a wiring path.
+    - kind: test_function
+      name: test_stash_revise_never_stashes_test_files_declared_under_files_read
+      source_scenario: A revised manifest adversarially lists its behavioral test file under files.read while that test file is dirty with the tightened assertions.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The behavioral test file is not stashed, remains visible during red capture, and the captured evidence reflects the tightened tests rather than a pre-review green state.
+    - kind: test_function
+      name: test_stash_revise_counts_files_read_targets_for_dirty_guard
+      source_scenario: A locked manifest whose only dirty declared path is a files.read wiring entry.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command's dirty-target guard treats the declared files.read path as stashable per the decision recorded in plan review, instead of failing with the misleading no-dirty-implementation-paths error while the read path stays dirty.
+    - kind: test_function
+      name: test_stash_revise_keeps_backslash_files_read_test_visible
+      source_scenario: A revised manifest declares its behavioral test under files.read with Windows-style backslashes while the tightened test file is dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The behavioral test path is normalized before test-file classification, so the test remains visible during red capture instead of being rejected as unrelated dirt or stashed as an implementation target.
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: --stash-implementation derives stash targets from the manifest's writable paths plus manifest-declared files.read non-test paths for manifests with a contracted writable implementation path, hides all dirty targets during red capture, restores them afterwards, still refuses undeclared dirty paths (error text names the files.read declaration escape hatch), and preserves every existing refusal and contract-hash check.
+  scope:
+  - path: docs/maid_specs.md
+    reason: Extend the plan-lock stash workflow specification to state that declared files.read wiring paths are stash targets and how the anti-gaming bound works.
+  - path: docs/draft-manifest-workflow.md
+    reason: Update the review-driven revise guidance for the files.read wiring pattern.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Keep the packaged copy of the workflow guidance in sync.
+  read:
+  - maid_runner/core/types.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/manifest.py
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+  - manifests/fix-stash-revise-scope-targets.manifest.yaml
+validate:
+- uv run python -m pytest tests/cli/test_stash_revise_files_read_targets.py -v
+- uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-03T00:30:13Z"
+  summary: "Implemented stash-backed plan revision support for dirty manifest-declared non-test `files.read` wiring paths when a manifest also has a contracted writable implementation file. The command now stashes those read wiring edits for red evidence capture, restores them afterward, keeps behavioral tests visible, preserves scope-only context-file refusal, and reports the `files.read` declaration path in unrelated-dirt errors."
+  rationale: "The downstream life-dashboard incident showed that review-driven contract changes could be dead-ended when a legitimate wiring file lived under `files.read`: the implementation edit either blocked stash-backed revise as unrelated dirt or risked leaking into red evidence. The implementation keeps the stash target set manifest-bounded and compatibility-limited to contracted implementation plans so the older scope-only dirty-context refusal remains intact."
+  lessons:
+  - lesson_type: workflow
+    summary: "Targeted stash recovery may need to hide declared non-test `files.read` wiring paths, but only inside a manifest that already has a contracted writable implementation file; scope-only manifests should continue to reject separate dirty read-context files."
+    tags:
+    - plan-lock
+    - files-read
+    - stash-implementation
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_stash_revise_files_read_targets.py
+  - lesson_type: validation
+    summary: "Normalize manifest paths before test-file classification in stash and behavioral-test discovery. A reviewer found that backslash-declared `files.read` test paths could otherwise be rejected as unrelated dirt instead of staying visible during red capture."
+    tags:
+    - path-normalization
+    - red-phase
+    - test-design
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_stash_revise_files_read_targets.py
+  review_notes:
+  - source: implementation-review-subagent-Galileo
+    severity: warning
+    summary: "Initial read-only review found a backslash path normalization gap for `files.read` behavioral tests; the finding was fixed with path normalization before `_is_test_file()` and a regression test using `tests\\\\test_wiring.py`."
+  - source: implementation-review-subagent-Dirac
+    severity: ready
+    summary: "Second read-only review found no actionable findings and returned verdict ready."
+  validation:
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_stash_revise_files_read_targets.py
+    status: passed
+    summary: "Ruff passed for the implementation and new behavioral test module."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_stash_revise_files_read_targets.py
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    - -v
+    status: passed
+    summary: "Focused and compatibility tests passed, including files.read wiring stashing, visible behavioral tests, backslash test paths, and preserved scope-only dirty-read refusal."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+    status: passed
+    summary: "Manifest test gate passed all three declared commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 395 manifests, 304 passed, 0 failed, and 91 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Full active MAID test sweep passed with 161 commands passed and 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict verify passed all 9 stages with the explicit task baseline; existing E307/E310 warnings remained non-blocking."
