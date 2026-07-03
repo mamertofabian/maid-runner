@@ -39,8 +39,8 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 - **066 outcome recall planning integration** (consumed/archived):
   `maid recall` manifest-derived queries, planning recall packet, skill and
   init-payload sync.
-- **067 plan locks & red-phase evidence** (fully consumed, epic file still
-  says `planning` — see Theme 8): tamper-evident `maid plan lock|revise|status`,
+- **067 plan locks & red-phase evidence** (consumed/archived by Theme 8):
+  tamper-evident `maid plan lock|revise|status`,
   red-evidence capture, `--require-plan-lock` / `--require-red-evidence` in
   verify, task-window scoping, E707 command cross-check, handoff baseline fix,
   `--preserve-red-evidence`.
@@ -55,12 +55,12 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 - **073-076 workflow fixes**: plan-lock migration on draft promotion,
   Outcome-before-ready gate, outcome index refresh after capture, init payload
   alignment, stash-backed `plan revise --stash-implementation` (076-01..03).
-- **077 outcome learning loop in skills** (fully consumed, epic stale):
+- **077 outcome learning loop in skills** (consumed/archived by Theme 8):
   auditor insights cadence, learning-loop guidance, related-match recall
   scoring, init payload sync.
 - **078-080**: quiet-validate test-command caching, versioned init instruction
   payloads, CLI help text fill.
-- **081 outcome LLM enrichment** (fully consumed, epic stale): deterministic
+- **081 outcome LLM enrichment** (consumed/archived by Theme 8): deterministic
   enrichment core + `maid enrich`, theme maps in `maid insights`,
   `maid-outcome-enrich` skill, quality hardening, planner theme-map preference.
 - **verify summary** (`6cb3107`): `maid verify --summary` deduplicated output;
@@ -89,9 +89,10 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 - Pending insights in `.claude/insights/review/2026/07/01/` on E210 handling
   and the misleading warning-summary label, verified against current
   `maid_runner/cli/commands/_format.py` (Theme 1 still reproduces in code).
-- Epic drafts under `manifests/drafts/` header-checked: 061/063/065/066/068/
-  069/070/071 archived; 062/064/067/077/081 still `status: planning`, of which
-  067/077/081 have all planned children promoted.
+- Epic drafts under `manifests/drafts/` header-checked: 061/063/065/066/067/
+  068/069/070/071/077/081 archived; 062/064 still `status: planning`.
+  Theme 8 closed the stale 067/077/081 planning records under
+  `manifests/082-06-archive-consumed-post-067-epics.manifest.yaml`.
 - Specialist backlog freshness: hardening backlog last touched 2026-05-29,
   cleanup backlog 2026-05-31 (both predate the 061-081 waves); performance
   backlog 2026-06-27 (current).
@@ -293,20 +294,22 @@ by Outcome records (102 records in `.maid/outcomes.json` via `maid learn`):
 ### 8. Archive consumed epics and make draft inventory truthful again
 
 - **Primary lane:** MAID workflow (planning hygiene).
-- **Evidence (tier 1):** epic files 067-00, 077-00, 081-00 still carry
-  `# draft-kind: epic` / `status: planning` although every planned child is
-  promoted and implemented. The 043-03 archive pattern
-  (`# archive-kind: consumed-draft-epic`, `status: archived`) exists for
-  exactly this. Also: two active manifests share the ID prefix
-  `072-01-*` (`disable-cli-option-abbreviation` and
-  `quiet-legacy-created-chain-warnings`) — a wave-numbering collision worth
-  noting in the archive pass.
+- **Status:** Completed by
+  `manifests/082-06-archive-consumed-post-067-epics.manifest.yaml`.
+- **Evidence (tier 1):** epic files 067-00, 077-00, 081-00 previously carried
+  `# draft-kind: epic` / `status: planning` although every planned child was
+  promoted and implemented. They now follow the 043-03 archive pattern
+  (`# archive-kind: consumed-draft-epic`, `status: archived`) and point to
+  their promoted child manifests. Also: two active manifests share the ID
+  prefix `072-01-*` (`disable-cli-option-abbreviation` and
+  `quiet-legacy-created-chain-warnings`) — keep avoiding that collision in
+  future draft numbering.
 - **Why it matters:** This backlog's own predecessor documented (Theme 3,
   2026-05) that stale planning inventory creates false priorities; the same
   drift re-accumulated within three weeks. Takeover agents will re-open
   consumed epics.
-- **Owner:** `maid-evolver` (check active `files.read` references before
-  rewriting, per the 043-03 lesson).
+- **Owner:** `maid-evolver` (completed; active `files.read` references were
+  checked before rewriting, per the 043-03 lesson).
 - **Acceptance criteria:** every fully-consumed epic under `manifests/drafts/`
   is an archive pointer; only 062 and 064 remain `planning`; schema-mode
   validation passes; next new draft wave starts at **082** to avoid collisions.
@@ -357,7 +360,7 @@ then hygiene):
 5. Theme 5 — E307 noise policy (`maid-validate-hardening`).
 6. Theme 6 — execute 062-01..03; hold 062-04 until 1/2/4/5 land (`maid-runner-draft-implement`).
 7. Theme 7 — benchmark-gated 064 closure (`maid-runner-performance-optimization`).
-8. Theme 8 — archive consumed epics 067/077/081 (`maid-evolver`, can run any time).
+8. Theme 8 — completed by `082-06`; consumed epics 067/077/081 are archived.
 9. Theme 9 — refresh hardening + cleanup backlogs (markdown-only).
 10. Theme 10 — batching probe (performance, probe first).
 
@@ -391,6 +394,7 @@ To be created by the owning skill, one at a time, next wave **082+**
 - `082-03-stash-revise-files-read-wiring-paths` (Theme 3; evolve 076-01).
 - `082-04-exempt-documented-default-hooks-from-e310` (Theme 4).
 - `082-05-proportionate-e307-no-validator-policy` (Theme 5).
+- `082-06-archive-consumed-post-067-epics` (Theme 8; completed).
 - Existing drafts 062-01..04 (revalidate before promotion) and 064-05
   (revise per epic instruction) — do not renumber them.
 

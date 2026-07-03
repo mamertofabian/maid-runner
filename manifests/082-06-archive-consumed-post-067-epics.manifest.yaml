@@ -1,0 +1,190 @@
+schema: '2'
+goal: Archive consumed post-067 draft epics so draft inventory reflects only live planning work
+type: refactor
+created: '2026-07-03T05:22:02Z'
+metadata:
+  backlog: docs/plans/maid-runner-self-improvement-backlog.md#theme-8
+  tags:
+  - maid-workflow
+  - draft-inventory
+  - manifest-lifecycle
+  - planning-hygiene
+  priority: medium
+description: |
+  Theme 8 of the self-improvement backlog found that split-before-promote
+  epics 067-00, 077-00, and 081-00 still present as live planning inventory
+  (`# draft-kind: epic` plus `metadata.status: planning`) even though every
+  planned child has been promoted and implemented. The existing 043-03
+  pattern for consumed draft epics is the right closure shape: preserve the
+  historical paths, rewrite each file as a concise archived pointer, and list
+  the promoted child manifests in `files.read`.
+
+  This is an additive evolution over 043-03's archive-pointer convention, not
+  a redesign of draft lifecycle semantics. The previous epic paths stay
+  stable for humans and for active manifests that mention them by metadata
+  or historical context. Only 062-00 and 064-00 should remain live
+  `draft-kind: epic` planning inventory after this pass.
+
+  Outcome/insights digestion: `maid learn` refreshed 110 records, and the
+  enriched theme map was stale, so planning fell back to plain
+  `maid insights`. The relevant recurring lessons are to keep Outcome-backed
+  planning evidence advisory, avoid stale planning inventory, and make
+  manifest lifecycle state truthful. That shaped the contract toward a
+  narrow inventory characterization test rather than a schema-only edit.
+temptations:
+- risk: Do not delete consumed epic files just because their children are promoted.
+  instead: 'Preserve each draft path and rewrite it as an archived pointer with `# archive-kind: consumed-draft-epic`.'
+- risk: Do not leave 067, 077, or 081 marked as live planning inventory after archiving their descriptions.
+  instead: 'Replace the draft marker, set `metadata.status: archived`, and test that only 062 and 064 remain live planning epics.'
+- risk: Do not archive partially consumed epics to make inventory look cleaner.
+  instead: Archive only the three backlog-confirmed consumed epics and keep 062/064 untouched as planning.
+- risk: Do not rely on prose-only backlog updates as the behavioral contract.
+  instead: Add a focused test that reads the draft epic files and proves their archive markers, status, and child pointers are present.
+files:
+  create:
+  - path: tests/core/test_draft_epic_archive_inventory.py
+    artifacts:
+    - kind: test_function
+      name: test_consumed_epic_drafts_are_archived_pointers_to_promoted_children
+      description: 'Draft epics 067-00, 077-00, and 081-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest.'
+    - kind: test_function
+      name: test_only_unconsumed_epics_remain_live_planning_inventory
+      description: 'The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00 and 064-00.'
+    - kind: test_function
+      name: test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale
+      description: The self-improvement backlog no longer describes 067, 077, or 081 as stale/planning takeover work after Theme 8 archives them.
+  edit:
+  - path: manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_plan_lock_red_phase_epic
+      of: manifest
+      type: draft epic
+      description: Archived pointer for promoted child manifests 067-01 through 067-08.
+  - path: manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_skills_outcome_learning_loop_epic
+      of: manifest
+      type: draft epic
+      description: Archived pointer for promoted child manifests 077-01 through 077-04.
+  - path: manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_outcome_llm_enrichment_epic
+      of: manifest
+      type: draft epic
+      description: Archived pointer for promoted child manifests 081-01 through 081-06.
+  scope:
+  - path: docs/plans/maid-runner-self-improvement-backlog.md
+    reason: Mark Theme 8 as completed and update the draft inventory notes so takeover agents no longer reopen consumed epics.
+  read:
+  - manifests/043-03-archive-consumed-draft-epics.manifest.yaml
+  - manifests/drafts/README.md
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+  - manifests/067-04-document-plan-lock-workflow.manifest.yaml
+  - manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml
+  - manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+  - manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+  - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
+  - manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml
+  - manifests/077-03-add-related-match-recall-scoring.manifest.yaml
+  - manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml
+  - manifests/081-01-add-outcome-enrichment-core.manifest.yaml
+  - manifests/081-02-add-maid-enrich-command.manifest.yaml
+  - manifests/081-03-wire-theme-map-into-insights.manifest.yaml
+  - manifests/081-04-add-outcome-enrich-skill.manifest.yaml
+  - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
+  - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+validate:
+- uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v
+- uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-03T13:40:42+08:00"
+  summary: "Archived consumed 067, 077, and 081 split-before-promote epics and made the self-improvement backlog truthful for Theme 8."
+  rationale: "Implementation preserved stable draft epic paths as archive pointers, listed promoted child manifests, left only 062 and 064 as live planning epics, and added characterization coverage for both draft inventory and stale backlog prose after implementation review found a takeover-summary contradiction."
+  lessons:
+  - lesson_type: workflow
+    summary: "Archiving consumed epics must update both machine-readable draft files and human takeover prose; otherwise agents can still reopen completed work even when manifests are archived."
+    tags:
+    - draft-inventory
+    - planning-hygiene
+    - implementation-review
+    paths:
+    - docs/plans/maid-runner-self-improvement-backlog.md
+    - tests/core/test_draft_epic_archive_inventory.py
+  - lesson_type: contract-discipline
+    summary: "Review-driven behavioral test additions need the active manifest artifact list and plan lock revised together, preferably with stash-backed red evidence when the new assertion describes pre-implementation stale state."
+    tags:
+    - plan-lock
+    - red-evidence
+    - review-fix-loop
+    paths:
+    - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+    - .maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json
+  review_notes:
+  - source: implementation-review-subagent-Planck
+    severity: warning
+    summary: "Initial review found stale backlog summary bullets still described 067 as planning and 077/081 as stale; fixed by updating the prose and adding a regression test for those phrases."
+  - source: implementation-review-subagent-Kuhn
+    severity: info
+    summary: "Re-review found no actionable findings and returned verdict ready; residual risk is limited to phrase-based backlog stale-prose coverage rather than semantic doc analysis."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_draft_epic_archive_inventory.py
+    - -v
+    status: passed
+    summary: "Focused archive-inventory suite passed 3 tests covering archive markers, promoted child pointers, only 062/064 live planning epics, and absence of known stale backlog phrases."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+    - --mode
+    - behavioral
+    - --quiet
+    status: passed
+    summary: "Promoted manifest behavioral validation passed after the review-driven backlog-prose test was declared."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Promoted manifest implementation validation passed with archived epic pointers, backlog scope update, and the new test module."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository MAID test gate passed 169 declared commands with zero failures, including Black formatting."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Handoff verify passed all 9 stages with explicit dirty-worktree baseline; remaining warnings were non-blocking E307 no-validator diagnostics."
