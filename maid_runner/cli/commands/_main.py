@@ -172,6 +172,14 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         ),
     )
     p.add_argument(
+        "--strict-delta",
+        action="store_true",
+        help=(
+            "Report diagnostics unique to the strict-preview validation gates "
+            "without changing default validation exit semantics"
+        ),
+    )
+    p.add_argument(
         "--file-tracking",
         action="store_true",
         help="Fail validation when undeclared or weakly registered production files exist",
