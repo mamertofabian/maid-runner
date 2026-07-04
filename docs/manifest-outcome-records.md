@@ -64,6 +64,23 @@ manifest. Recalled lessons are planning context only. Every new MAID-backed
 change still needs its own behavioral tests, declared artifacts, validation
 commands, and implementation review.
 
+### Lesson Type Vocabulary Convergence
+
+Before writing new Outcome lessons, and before coining a new lesson_type, list
+the existing lesson_type vocabulary: run `maid insights` and read the
+`by_lesson_type` keys. When a fresh validated theme map exists, prefer its
+themes' `member_lesson_types` as the canonical families for grouping related
+lessons.
+
+Reuse an existing lesson_type when one fits the new lesson. Coin a new
+lesson_type only when no existing value fits, and prefer singular,
+kebab-or-plain lowercase forms consistent with the existing vocabulary.
+
+This check is advisory and must not block or delay Outcome capture. If
+insights or the index is unavailable, capture proceeds with the agent's
+best-fit lesson_type and the unavailable vocabulary evidence should be noted
+as advisory context only.
+
 ## Why Outcome Records Matter
 
 Outcome records close the loop between completed MAID work and future MAID

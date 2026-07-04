@@ -1,0 +1,144 @@
+{
+  "manifest_path": "manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
+  "manifest_hash": "sha256:0b574925ef292aa1c79f3e44378675c0e59afac2d9ffe514129ecaa1e2c403de",
+  "test_hashes": {
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+    "tests/test_outcome_vocabulary_guidance.py": "sha256:34e9a43fbc31c628c3f0b4d29a8453b2c7e22f5d72cfd1b0872b69a59fe50247"
+  },
+  "created_at": "2026-07-04T10:46:54.732392+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:09623723b5a9d030a9ec27622a606ab820d29974144c176304ffae7c95e1d74b",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
+      },
+      "revised_at": "2026-07-04T10:46:59.274059+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml -> manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
+      },
+      "revised_at": "2026-07-04T10:55:53.091037+00:00",
+      "reason": "Implementation review found the docs parity test only asserted the vocabulary section exists, not that the docs section contains the reuse-first, insights/by_lesson_type, theme-map member_lesson_types, and advisory non-blocking rules declared by the manifest."
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
+      },
+      "revised_at": "2026-07-04T10:57:13.015999+00:00",
+      "reason": "Strengthen review-driven docs coverage so the Outcome docs section asserts the same lesson_type vocabulary rules as the implementation-review skill guidance."
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:70b10919b105c6266a4073666a4726104124bf16faabff35164040f1c5d61ba2"
+      },
+      "revised_at": "2026-07-04T11:02:28.679594+00:00",
+      "reason": "Strengthen review-driven package parity coverage so the focused tests assert current working-tree packaged skill and docs files are synced, not only regenerated copies in an isolated workspace."
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:f73ea250a14fa8e97d31913de96a65f95f814858e393f6390b153e0795a2f3ed"
+      },
+      "revised_at": "2026-07-04T11:03:16.436979+00:00",
+      "reason": "Adjust strengthened package parity test so MAID behavioral assertion scanning sees direct assertions in the declared test function."
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:f84d93803415f1dea96d49df816e454215139dc8eef003059c87106bed4cd697"
+      },
+      "revised_at": "2026-07-04T11:05:26.631991+00:00",
+      "reason": "Format the strengthened focused test with Black without changing the behavioral contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:34e9a43fbc31c628c3f0b4d29a8453b2c7e22f5d72cfd1b0872b69a59fe50247"
+      },
+      "revised_at": "2026-07-04T11:12:27.036663+00:00",
+      "reason": "Capture evidence-backed Outcome after ready implementation review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T11:03:16.873889+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_outcome_vocabulary_guidance.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "tests/test_outcome_vocabulary_guidance.py:52: AssertionError\n________ test_instruction_payload_version_bumped_for_vocabulary_change _________\n\n    def test_instruction_payload_version_bumped_for_vocabulary_change() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\n            BASELINE_PAYLOAD_VERSION\n        )\nE       AssertionError: assert (2026, 7, 4, 1) > (2026, 7, 4, 1)\nE        +  where (2026, 7, 4, 1) = _version_tuple('2026.07.04.1')\nE        +  and   (2026, 7, 4, 1) = _version_tuple('2026.07.04.1')\n\ntests/test_outcome_vocabulary_guidance.py:187: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_outcome_vocabulary_guidance.py::test_capture_guidance_requires_consulting_existing_lesson_types\nFAILED tests/test_outcome_vocabulary_guidance.py::test_capture_guidance_prefers_fresh_theme_map_families\nFAILED tests/test_outcome_vocabulary_guidance.py::test_capture_guidance_states_reuse_first_rule\nFAILED tests/test_outcome_vocabulary_guidance.py::test_capture_vocabulary_check_is_advisory_and_non_blocking\nFAILED tests/test_outcome_vocabulary_guidance.py::test_vocabulary_guidance_synced_to_payloads_and_docs\nFAILED tests/test_outcome_vocabulary_guidance.py::test_instruction_payload_version_bumped_for_vocabulary_change\n6 failed, 7 passed in 0.24s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._capture_lesson_vocabulary_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._capture_lesson_vocabulary_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._capture_lesson_vocabulary_guidance:of=skill",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._capture_lesson_vocabulary_guidance:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_capture_lesson_vocabulary_guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_capture_lesson_vocabulary_guidance:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_capture_lesson_vocabulary_guidance:of=skill",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_capture_lesson_vocabulary_guidance:type=markdown section",
+      "docs/manifest-outcome-records.md:attribute:documentation._lesson_type_vocabulary_convergence_docs",
+      "docs/manifest-outcome-records.md:attribute:documentation._lesson_type_vocabulary_convergence_docs:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._lesson_type_vocabulary_convergence_docs:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._lesson_type_vocabulary_convergence_docs:type=doc-section",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_capture_lesson_vocabulary_guidance",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_capture_lesson_vocabulary_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_capture_lesson_vocabulary_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_capture_lesson_vocabulary_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_capture_lesson_vocabulary_guidance",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_capture_lesson_vocabulary_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_capture_lesson_vocabulary_guidance:of=skill",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_capture_lesson_vocabulary_guidance:type=markdown section",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_lesson_type_vocabulary_convergence_docs",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_lesson_type_vocabulary_convergence_docs:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_lesson_type_vocabulary_convergence_docs:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_lesson_type_vocabulary_convergence_docs:type=doc-section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_prefers_fresh_theme_map_families",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_prefers_fresh_theme_map_families:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_prefers_fresh_theme_map_families:returns=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_requires_consulting_existing_lesson_types",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_requires_consulting_existing_lesson_types:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_requires_consulting_existing_lesson_types:returns=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_states_reuse_first_rule",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_states_reuse_first_rule:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_guidance_states_reuse_first_rule:returns=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_vocabulary_check_is_advisory_and_non_blocking",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_vocabulary_check_is_advisory_and_non_blocking:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_capture_vocabulary_check_is_advisory_and_non_blocking:returns=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_instruction_payload_version_bumped_for_vocabulary_change",
+      "tests/test_outcome_vocabulary_guidance.py:test_instruction_payload_version_bumped_for_vocabulary_change:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_instruction_payload_version_bumped_for_vocabulary_change:returns=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs",
+      "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs:arg=tmp_path:type=Path:default=None",
+      "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs:kind=test_function",
+      "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_outcome_vocabulary_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_outcome_vocabulary_guidance.py tests/cli/test_init_instruction_payload_version.py"
+    ]
+  }
+}

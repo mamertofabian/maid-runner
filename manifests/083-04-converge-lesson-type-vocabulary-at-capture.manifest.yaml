@@ -1,0 +1,280 @@
+schema: '2'
+goal: 'Treat lesson_type fragmentation at its root: extend the Outcome capture guidance (distributed maid-implementation-review skill plus the Outcome docs) to require consulting the existing lesson_type vocabulary — via `maid insights` by_lesson_type or a fresh theme map''s member_lesson_types — before coining a new lesson_type, and bump the instruction payload version so downstream `maid init --check` reports the changed payload as stale'
+type: feature
+created: '2026-07-04T10:46:59Z'
+metadata:
+  epic: 083-00-close-outcome-enrichment-consumption-loop
+  tags:
+  - agent-skills
+  - outcome-records
+  - learning
+  - documentation
+  - maid-workflow
+  priority: medium
+description: |
+  The live index holds 78 distinct lesson_type values for 269 lessons because
+  every Outcome capture coins lesson_types freely: no guidance anywhere says
+  to check what already exists. Enrichment then normalizes downstream
+  forever while the upstream vocabulary keeps diverging — the theme map is a
+  palliative for a fixable capture-time behavior. This child adds the
+  convergence rule where Outcome capture is actually specified: the
+  maid-implementation-review skill (AGENTS.md places Outcome capture after
+  implementation review and before final handoff) and
+  `docs/manifest-outcome-records.md`.
+
+  Pinned decisions (do not redesign):
+
+  1. Guidance only; no runner enforcement. lesson_type remains free-form
+     string data in the Outcome schema. No validator, error code, or CLI
+     check rejects novel lesson_types in this child — a wrong-but-forced
+     vocabulary is worse than a fragmented one, and enforcement would
+     require the runner to judge semantic fit. If convergence guidance
+     proves insufficient, a later child can consider advisory-only tooling.
+
+  2. The rule, stated in both skill and docs: before writing new Outcome
+     lessons, list the existing vocabulary — run `maid insights` and read
+     the by_lesson_type keys, or when a fresh validated theme map exists,
+     prefer its themes' member_lesson_types as the canonical families —
+     and reuse an existing lesson_type when one fits the lesson. Coin a new
+     lesson_type only when no existing value fits, and prefer singular,
+     kebab-or-plain lowercase forms consistent with the existing vocabulary.
+     The check is advisory and must not block or delay Outcome capture when
+     the index or insights output is unavailable.
+
+  3. Surfaces: the Outcome-Aware / Outcome capture guidance in the
+     maid-implementation-review skill (Claude and Codex sources plus
+     generated package copies, byte-for-byte synced) and the Outcome record
+     documentation (`docs/manifest-outcome-records.md` plus its packaged
+     copy). Tool parity: Claude and Codex payloads carry identical wording.
+
+  4. Instruction payload version bump: advance `INSTRUCTION_PAYLOAD_VERSION`
+     past the value current at implementation time (baseline at drafting:
+     `2026.07.01.1`) because the distributed implementation-review skill
+     payload changes.
+
+  5. Registered commands only: the guidance quotes `maid insights` and the
+     existing theme-map consumption surfaces; it must not invent flags or a
+     nonexistent vocabulary-listing command.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  `tests/test_outcome_vocabulary_guidance.py` reads the
+  maid-implementation-review sources, their package copies, and both copies
+  of the Outcome docs, asserting: (a) the capture guidance requires
+  consulting existing lesson_types via maid insights before coining a new
+  lesson_type; (b) it prefers fresh theme-map member_lesson_types as
+  canonical families when available; (c) it states reuse-first and
+  new-only-when-nothing-fits; (d) it keeps the check advisory and
+  non-blocking for capture; (e) source and packaged skill copies stay equal
+  after an isolated payload sync, and both doc copies carry the section;
+  (f) INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change baseline.
+
+  Out of scope: schema or validator changes to lesson_type, migration or
+  renaming of the 78 existing lesson_types (historical records are
+  immutable evidence; the theme map already normalizes them), planner-skill
+  changes, and any advisory CLI tooling for vocabulary suggestions.
+temptations:
+- risk: Do not add runner-side validation, an error code, or a hook that rejects novel lesson_types.
+  instead: Keep convergence a guidance rule at capture time; the Outcome schema and validators stay untouched, and the manifest declares no runner code.
+- risk: Do not instruct agents to rewrite historical lesson_types in completed Outcome records to shrink the vocabulary.
+  instead: Historical records are immutable evidence; convergence applies to new lessons only, and the theme map handles the existing spread.
+- risk: Do not make the vocabulary check a blocking precondition for Outcome capture.
+  instead: 'State the check is advisory: when insights or the index is unavailable, capture proceeds with the agent''s best-fit lesson_type.'
+- risk: Do not edit only the skill sources and skip the packaged copies, the two doc copies, or the payload version bump.
+  instead: Edit sources and docs, sync package copies byte-for-byte, advance INSTRUCTION_PAYLOAD_VERSION, and pin each with a test.
+files:
+  edit:
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _capture_lesson_vocabulary_guidance
+      of: skill
+      type: markdown section
+      description: 'Claude source implementation-review Outcome capture rule: consult existing lesson_types (maid insights by_lesson_type, or fresh theme-map member_lesson_types) and reuse-first before coining a new lesson_type; advisory, never blocking capture.'
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_capture_lesson_vocabulary_guidance
+      of: skill
+      type: markdown section
+      description: Codex source capture vocabulary rule identical to the Claude copy.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _distributed_capture_lesson_vocabulary_guidance
+      of: skill
+      type: markdown section
+      description: Generated Claude package copy of the capture vocabulary guidance, byte-for-byte in sync with the source skill.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_distributed_capture_lesson_vocabulary_guidance
+      of: skill
+      type: markdown section
+      description: Generated Codex package copy of the capture vocabulary guidance, byte-for-byte in sync with the source skill.
+  - path: docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _lesson_type_vocabulary_convergence_docs
+      of: documentation
+      type: doc-section
+      description: Outcome record docs section stating the reuse-first lesson_type vocabulary rule and its advisory, non-blocking nature.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_lesson_type_vocabulary_convergence_docs
+      of: package_resource
+      type: doc-section
+      description: Packaged copy of the vocabulary convergence docs section, kept in sync.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version advanced past the value current at implementation time (2026.07.01.1 at drafting), so downstream maid init --check reports the changed implementation-review payload as stale.
+  read:
+  - manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+  - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+  - manifests/073-03-require-outcome-before-ready.manifest.yaml
+  - manifests/079-01-version-init-instruction-payload.manifest.yaml
+  - tests/cli/test_init_instruction_payload_version.py
+  - scripts/sync_claude_files.py
+  create:
+  - path: tests/test_outcome_vocabulary_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_capture_guidance_requires_consulting_existing_lesson_types
+      args: []
+      returns: None
+      description: Both implementation-review skill sources tell the agent to list existing lesson_types via maid insights before coining a new one.
+    - kind: test_function
+      name: test_capture_guidance_prefers_fresh_theme_map_families
+      args: []
+      returns: None
+      description: Guidance prefers a fresh validated theme map's member_lesson_types as canonical families when one exists.
+    - kind: test_function
+      name: test_capture_guidance_states_reuse_first_rule
+      args: []
+      returns: None
+      description: Guidance states reuse an existing lesson_type when it fits and coin a new one only when nothing fits.
+    - kind: test_function
+      name: test_capture_vocabulary_check_is_advisory_and_non_blocking
+      args: []
+      returns: None
+      description: Guidance keeps the vocabulary check advisory; unavailable insights or index never blocks Outcome capture.
+    - kind: test_function
+      name: test_vocabulary_guidance_synced_to_payloads_and_docs
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Skill package copies equal sources after an isolated sync, and both doc copies carry the convergence section.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_vocabulary_change
+      args: []
+      returns: None
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change baseline.
+validate:
+- uv run python -m pytest -q tests/test_outcome_vocabulary_guidance.py tests/cli/test_init_instruction_payload_version.py
+outcome:
+  status: completed
+  completed_at: "2026-07-04T11:08:00Z"
+  summary: "Added capture-time lesson_type vocabulary convergence guidance to implementation-review skills and Outcome docs, synced packaged payloads, bumped the instruction payload version to 2026.07.04.2, and pinned the behavior with focused tests."
+  rationale: "Outcome capture was allowing new lesson_type values to fragment because no capture guidance required checking the existing vocabulary. The implementation keeps the fix advisory and guidance-only: agents are told to consult `maid insights` by_lesson_type keys or fresh theme-map member_lesson_types, reuse existing values when they fit, coin new values only when needed, and proceed when insights are unavailable. Review-driven test hardening now pins source guidance, current packaged payload parity, isolated sync output, docs content, and payload versioning."
+  lessons:
+  - lesson_type: agent-guidance
+    summary: "Outcome capture guidance should check the existing lesson_type vocabulary before adding lessons, reuse fitting existing lesson_type values, and keep the check advisory so missing insights never blocks capture."
+    tags:
+    - outcome-records
+    - agent-skills
+    - lesson-types
+    paths:
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - .codex/skills/maid-implementation-review/SKILL.md
+    - docs/manifest-outcome-records.md
+  - lesson_type: testing
+    summary: "Payload-sync tests for generated guidance need direct assertions against current packaged files as well as isolated sync output; otherwise stale package copies can pass when the test regenerates a temporary payload tree."
+    tags:
+    - payload-sync
+    - behavioral-tests
+    - review
+    paths:
+    - tests/test_outcome_vocabulary_guidance.py
+    - maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    - maid_runner/docs/manifest-outcome-records.md
+  - lesson_type: workflow
+    summary: "Review-driven behavioral test strengthening should revise the plan lock and preserve or recapture red evidence before final verification."
+    tags:
+    - plan-lock
+    - red-evidence
+    - implementation-review
+    paths:
+    - .maid/plan-locks/083-04-converge-lesson-type-vocabulary-at-capture.lock.json
+    - tests/test_outcome_vocabulary_guidance.py
+  review_notes:
+  - source: implementation-review-subagent-Arendt
+    severity: P2
+    summary: "Found the docs parity test only asserted section presence, not the contracted reuse-first, insights, theme-map, and advisory language; fixed by asserting vocabulary-rule terms on both docs copies."
+  - source: implementation-review-subagent-James
+    severity: P2
+    summary: "Found the package parity test only checked regenerated temp payloads, not current packaged files; fixed by adding direct working-tree package parity and term assertions."
+  - source: implementation-review-subagent-McClintock
+    severity: ready
+    summary: "Final re-review reported no findings; residual risk was limited to no explicit Claude-vs-Codex source section byte-for-byte comparison, while reviewed sections were identical and package/doc parity was covered."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_outcome_vocabulary_guidance.py
+    - tests/cli/test_init_instruction_payload_version.py
+    status: passed
+    summary: "Focused guidance and payload-version tests passed: 13 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Promoted manifest implementation validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml
+    status: passed
+    summary: "Manifest-declared test command passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 405 manifests, 313 passed, 92 superseded skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID tests passed: 172 commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Strict handoff verify passed with 9 stages and only non-blocking E307 warnings for existing non-code/no-validator files."
