@@ -1,0 +1,92 @@
+{
+  "manifest_path": "manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml",
+  "manifest_hash": "sha256:56eb7516ee0dfb8d03f5e7de556f2abe53085af6efadc216e124283fa2518eae",
+  "test_hashes": {
+    "tests/test_self_improvement_digest_guidance.py": "sha256:a78cf252ef4ba12010410859bc53b4ae4666cc1a3a84cd76678c1e4a43f29d3b"
+  },
+  "created_at": "2026-07-04T22:23:53.860951+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:16ba22f1fa394bdb5af3b50d025b843cfb95c4b0523e30a857daa48a6e492b24",
+      "prior_test_hashes": {
+        "tests/test_self_improvement_digest_guidance.py": "sha256:6a53098cff8b150dcbaf229f0348c46ad40d722207538598ae066320416a95d1"
+      },
+      "revised_at": "2026-07-04T22:23:57.414080+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-05-feed-digest-into-self-improvement-audit.manifest.yaml -> manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:d302fc04380dea6d516ba18cede553793657a79d2dac91ff643d2aabb24bfb07",
+      "prior_test_hashes": {
+        "tests/test_self_improvement_digest_guidance.py": "sha256:6a53098cff8b150dcbaf229f0348c46ad40d722207538598ae066320416a95d1"
+      },
+      "revised_at": "2026-07-04T22:31:56.516017+00:00",
+      "reason": "Implementation review found the contract omitted the paired Codex repo-local self-improvement skill and packaged Codex copy, so digest guidance would only reach Claude audits."
+    },
+    {
+      "prior_manifest_hash": "sha256:d302fc04380dea6d516ba18cede553793657a79d2dac91ff643d2aabb24bfb07",
+      "prior_test_hashes": {
+        "tests/test_self_improvement_digest_guidance.py": "sha256:6a53098cff8b150dcbaf229f0348c46ad40d722207538598ae066320416a95d1"
+      },
+      "revised_at": "2026-07-04T22:33:32.954911+00:00",
+      "reason": "Revise behavioral contract to cover the paired Codex repo-local self-improvement skill and packaged Codex repo-internal copy after implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:dbc749e29035b9c88af6457c34bc660eb9feabdf450f55c4269378acabe0a0c5",
+      "prior_test_hashes": {
+        "tests/test_self_improvement_digest_guidance.py": "sha256:a78cf252ef4ba12010410859bc53b4ae4666cc1a3a84cd76678c1e4a43f29d3b"
+      },
+      "revised_at": "2026-07-04T22:40:26.559967+00:00",
+      "reason": "Declare maid_runner/codex/manifest.json as read context because the behavioral test verifies the repo-internal skill remains excluded from the generic Codex payload manifest."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T22:33:33.248264+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_self_improvement_digest_guidance.py",
+        "exit_code": 1,
+        "output_tail": "               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_self_improvement_digest_guidance.py:145: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nskill_text = '---\\nname: maid-runner-self-improvement\\ndescription: Use in maid-runner when asked to improve MAID runner as a whole...mplementation unless each proposed draft\\nhas a clear owner lane, acceptance criteria, and schema validation status.\\n'\n\n    def _digest_section(skill_text: str) -> str:\n        outcome = _outcome_section(skill_text)\n>       assert DIGEST_HEADING in outcome\nE       AssertionError: assert '### Enrichment Digest Evidence' in '## Outcome-Aware MAID Guidance\\n\\nOutcome records are deterministic manifest data, not agent-only memory. Use\\n`maid ...gh for ranking. Do not claim a finding is confirmed unless the supporting\\nartifact was read or the command was run.\\n'\n\ntests/test_self_improvement_digest_guidance.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_lists_digest_as_evidence_source\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_digest_fallback_is_non_blocking\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_digest_is_untrusted_supplementary_data\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_digest_guidance_uses_registered_options_only\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_digest_guidance_syncs_to_packaged_codex_copy\n5 failed in 0.13s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._self_improvement_digest_evidence_guidance",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._self_improvement_digest_evidence_guidance:kind=attribute",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._self_improvement_digest_evidence_guidance:of=skill",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._self_improvement_digest_evidence_guidance:type=markdown section",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_self_improvement_digest_evidence_guidance",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_self_improvement_digest_evidence_guidance:kind=attribute",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_self_improvement_digest_evidence_guidance:of=skill",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_self_improvement_digest_evidence_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_self_improvement_digest_evidence_guidance",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_self_improvement_digest_evidence_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_self_improvement_digest_evidence_guidance:of=skill",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_self_improvement_digest_evidence_guidance:type=markdown section",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_fallback_is_non_blocking",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_fallback_is_non_blocking:kind=test_function",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_fallback_is_non_blocking:returns=None",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_syncs_to_packaged_codex_copy",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_syncs_to_packaged_codex_copy:kind=test_function",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_syncs_to_packaged_codex_copy:returns=None",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_uses_registered_options_only",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_uses_registered_options_only:kind=test_function",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_guidance_uses_registered_options_only:returns=None",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_is_untrusted_supplementary_data",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_is_untrusted_supplementary_data:kind=test_function",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_digest_is_untrusted_supplementary_data:returns=None",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_lists_digest_as_evidence_source",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_lists_digest_as_evidence_source:kind=test_function",
+      "tests/test_self_improvement_digest_guidance.py:test_self_improvement_lists_digest_as_evidence_source:returns=None"
+    ],
+    "test_files": [
+      "tests/test_self_improvement_digest_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_self_improvement_digest_guidance.py"
+    ]
+  }
+}
