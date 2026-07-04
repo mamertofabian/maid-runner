@@ -226,6 +226,67 @@ def test_apply_theme_map_collapses_fragmented_lesson_types():
     )
 
 
+def test_theme_map_from_digest_returns_lesson_type_to_canonical_theme():
+    from maid_runner.core.outcome_enrichment import theme_map_from_digest
+
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("validation", "validation-workflow"),
+                source_manifests=("alpha", "beta"),
+            ),
+            _theme(
+                canonical_name="testing",
+                member_lesson_types=("test-design",),
+                source_manifests=("gamma",),
+            ),
+        ),
+    )
+
+    assert theme_map_from_digest(digest) == {
+        "test-design": "testing",
+        "validation": "validation",
+        "validation-workflow": "validation",
+    }
+
+
+def test_theme_map_from_digest_agrees_with_apply_theme_map_grouping():
+    from maid_runner.core.outcome_enrichment import (
+        apply_theme_map,
+        theme_map_from_digest,
+    )
+
+    index = _index(
+        _record("alpha", lesson_types=("validation",)),
+        _record("beta", lesson_types=("validation-workflow",)),
+        _record("gamma", lesson_types=("testing",)),
+    )
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("validation", "validation-workflow"),
+                source_manifests=("alpha", "beta"),
+            ),
+        ),
+        entries=(),
+    )
+
+    theme_map = theme_map_from_digest(digest)
+    groups = apply_theme_map(index, digest)
+
+    assert theme_map == {
+        "validation": "validation",
+        "validation-workflow": "validation",
+    }
+    assert {group.key for group in groups} == {
+        theme_map.get("validation", "validation"),
+        theme_map.get("validation-workflow", "validation-workflow"),
+        theme_map.get("testing", "testing"),
+    }
+
+
 def test_apply_theme_map_passes_through_unmapped_lesson_types():
     from maid_runner.core.outcome_enrichment import apply_theme_map
 

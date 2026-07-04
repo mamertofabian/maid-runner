@@ -725,6 +725,11 @@ def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
         help="Use the index even when source manifests changed",
     )
     p.add_argument(
+        "--theme-map",
+        default=None,
+        help="Advisory enrichment digest used to annotate recall lesson themes",
+    )
+    p.add_argument(
         "--limit",
         type=int,
         default=10,

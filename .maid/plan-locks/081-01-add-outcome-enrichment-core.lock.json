@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
-  "manifest_hash": "sha256:7a486e711a714ccd8c5935bfe4475bc6e33e2701fbde4e22cfc268fb29dc4055",
+  "manifest_hash": "sha256:e08d68873141c76ed506268d52fb9d490ec2fbbbfb98a060fa2413fb8456677d",
   "test_hashes": {
-    "tests/core/test_outcome_enrichment.py": "sha256:634d5c4bff34ffe3225ad5a88687813fb90fab03ca31a377b164d98c1ea4d9f0"
+    "tests/core/test_outcome_enrichment.py": "sha256:fe01bd94d632e9d5b0fa7d9e9a54d7ad6c0e6b02deb632fad498f7cc8732df4c"
   },
   "created_at": "2026-06-28T07:54:54.532447+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:eb4b1fa5c706e44cfd9feda6f8d90e4aa8d619519d4dc119970b6e02250cddd6",
@@ -30,6 +30,14 @@
       },
       "revised_at": "2026-06-28T08:06:04.006781+00:00",
       "reason": "Reject digest entries whose source lessons are mapped to a different theme"
+    },
+    {
+      "prior_manifest_hash": "sha256:7a486e711a714ccd8c5935bfe4475bc6e33e2701fbde4e22cfc268fb29dc4055",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:634d5c4bff34ffe3225ad5a88687813fb90fab03ca31a377b164d98c1ea4d9f0"
+      },
+      "revised_at": "2026-07-04T10:37:27.391836+00:00",
+      "reason": "Refresh shared outcome enrichment test hash after 083-03 added theme_map_from_digest coverage; preserve existing red evidence."
     }
   ],
   "red_evidence": {

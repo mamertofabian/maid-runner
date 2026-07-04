@@ -275,11 +275,7 @@ def apply_theme_map(
     digest: EnrichmentDigest,
 ) -> "tuple[OutcomeInsightGroup, ...]":
     validate_enrichment_digest(digest, index)
-    theme_by_lesson_type = {
-        lesson_type: theme.canonical_name
-        for theme in digest.themes
-        for lesson_type in theme.member_lesson_types
-    }
+    theme_by_lesson_type = theme_map_from_digest(digest)
     grouped: dict[str, dict[str, set[str]]] = {}
     for record in active_unique_records(index):
         record_lesson_types = {lesson.lesson_type for lesson in record.lessons}
@@ -310,6 +306,14 @@ def apply_theme_map(
     ]
     groups.sort(key=lambda group: (-group.count, group.key))
     return tuple(groups)
+
+
+def theme_map_from_digest(digest: EnrichmentDigest) -> dict[str, str]:
+    return {
+        lesson_type: theme.canonical_name
+        for theme in digest.themes
+        for lesson_type in theme.member_lesson_types
+    }
 
 
 def render_digest_markdown(digest: EnrichmentDigest) -> str:
