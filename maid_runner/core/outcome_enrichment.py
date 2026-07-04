@@ -59,6 +59,13 @@ class DigestQualityWarning:
     message: str
 
 
+@dataclass(frozen=True)
+class DigestFreshness:
+    status: str
+    digest_path: str
+    detail: str
+
+
 def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
     records = active_unique_records(index)
     lesson_type_counts = Counter(
@@ -340,6 +347,46 @@ def render_digest_markdown(digest: EnrichmentDigest) -> str:
 
 def digest_is_stale(digest: EnrichmentDigest, index: OutcomeIndex) -> bool:
     return digest.source_generated_from != index.generated_from
+
+
+def check_digest_freshness(
+    index: OutcomeIndex,
+    digest_path: Union[str, Path],
+) -> DigestFreshness:
+    path = Path(digest_path)
+    display_path = str(path)
+    try:
+        if not path.exists():
+            return DigestFreshness(
+                status="missing",
+                digest_path=display_path,
+                detail=f"Enrichment digest not found at {display_path}.",
+            )
+        digest = read_enrichment_digest(path)
+        if digest_is_stale(digest, index):
+            return DigestFreshness(
+                status="stale",
+                digest_path=display_path,
+                detail=(
+                    "Digest source_generated_from "
+                    f"{digest.source_generated_from!r} does not match refreshed "
+                    f"Outcome index generated_from {index.generated_from!r}."
+                ),
+            )
+        return DigestFreshness(
+            status="fresh",
+            digest_path=display_path,
+            detail=(
+                "Digest source_generated_from matches refreshed Outcome index "
+                f"generated_from {index.generated_from!r}."
+            ),
+        )
+    except Exception as exc:
+        return DigestFreshness(
+            status="malformed",
+            digest_path=display_path,
+            detail=str(exc),
+        )
 
 
 def enrichment_digest_to_dict(digest: EnrichmentDigest) -> dict:
