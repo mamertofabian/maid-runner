@@ -37,6 +37,7 @@ LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
     "083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+    "084-00-after-action-run-evaluation.epic.yaml",
 }
 
 
