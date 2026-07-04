@@ -1,0 +1,85 @@
+{
+  "manifest_path": "manifests/083-02-point-planner-at-digest-narrative.manifest.yaml",
+  "manifest_hash": "sha256:a35916b0fd1a17a39224d3087718d708ebd2db2490f4337bc7c12ac81a9bd284",
+  "test_hashes": {
+    "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+    "tests/test_planner_digest_narrative_guidance.py": "sha256:d796d8842a2841ab5316e20be5f85d6280fb9bdf65e2f5e3d31e04148c5c0b50"
+  },
+  "created_at": "2026-07-04T09:56:48.253982+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:49a69b37fa02bbc99fbb86a03105ca080a71377c10052d2db4b182c79a3fc228",
+      "prior_test_hashes": {
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_planner_digest_narrative_guidance.py": "sha256:d796d8842a2841ab5316e20be5f85d6280fb9bdf65e2f5e3d31e04148c5c0b50"
+      },
+      "revised_at": "2026-07-04T09:56:52.272737+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-02-point-planner-at-digest-narrative.manifest.yaml -> manifests/083-02-point-planner-at-digest-narrative.manifest.yaml"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T09:56:53.561454+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_planner_digest_narrative_guidance.py tests/test_planner_theme_map_guidance.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "\ntests/test_planner_digest_narrative_guidance.py:138: AssertionError\n_________ test_instruction_payload_version_bumped_for_narrative_change _________\n\n    def test_instruction_payload_version_bumped_for_narrative_change() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\n            BASELINE_PAYLOAD_VERSION\n        )\nE       AssertionError: assert (2026, 7, 1, 1) > (2026, 7, 1, 1)\nE        +  where (2026, 7, 1, 1) = _version_tuple('2026.07.01.1')\nE        +  and   (2026, 7, 1, 1) = _version_tuple('2026.07.01.1')\n\ntests/test_planner_digest_narrative_guidance.py:145: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_planner_digest_narrative_guidance.py::test_planner_reads_digest_narrative_only_after_theme_map_success\nFAILED tests/test_planner_digest_narrative_guidance.py::test_planner_narrative_forbidden_when_digest_rejected\nFAILED tests/test_planner_digest_narrative_guidance.py::test_planner_narrative_is_untrusted_advisory_data\nFAILED tests/test_planner_digest_narrative_guidance.py::test_planner_narrative_guidance_synced_to_agent_payloads\nFAILED tests/test_planner_digest_narrative_guidance.py::test_instruction_payload_version_bumped_for_narrative_change\n5 failed, 14 passed in 0.41s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_digest_narrative_guidance",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_digest_narrative_guidance:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_digest_narrative_guidance:of=skill",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._planner_digest_narrative_guidance:type=markdown section",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_digest_narrative_guidance",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_digest_narrative_guidance:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_digest_narrative_guidance:of=skill",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_digest_narrative_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_digest_narrative_guidance",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_digest_narrative_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_digest_narrative_guidance:of=skill",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._distributed_planner_digest_narrative_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_digest_narrative_guidance",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_digest_narrative_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_digest_narrative_guidance:of=skill",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._codex_distributed_planner_digest_narrative_guidance:type=markdown section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_planner_digest_narrative_guidance.py:test_instruction_payload_version_bumped_for_narrative_change",
+      "tests/test_planner_digest_narrative_guidance.py:test_instruction_payload_version_bumped_for_narrative_change:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_instruction_payload_version_bumped_for_narrative_change:returns=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_forbidden_when_digest_rejected",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_forbidden_when_digest_rejected:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_forbidden_when_digest_rejected:returns=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_guidance_synced_to_agent_payloads",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_guidance_synced_to_agent_payloads:arg=tmp_path:type=Path:default=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_guidance_synced_to_agent_payloads:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_guidance_synced_to_agent_payloads:returns=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_is_untrusted_advisory_data",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_is_untrusted_advisory_data:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_narrative_is_untrusted_advisory_data:returns=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_plain_insights_fallback_remains_mandatory",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_plain_insights_fallback_remains_mandatory:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_plain_insights_fallback_remains_mandatory:returns=None",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_reads_digest_narrative_only_after_theme_map_success",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_reads_digest_narrative_only_after_theme_map_success:kind=test_function",
+      "tests/test_planner_digest_narrative_guidance.py:test_planner_reads_digest_narrative_only_after_theme_map_success:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_planner_digest_narrative_guidance.py",
+      "tests/test_planner_theme_map_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_planner_digest_narrative_guidance.py tests/test_planner_theme_map_guidance.py tests/cli/test_init_instruction_payload_version.py"
+    ]
+  }
+}
