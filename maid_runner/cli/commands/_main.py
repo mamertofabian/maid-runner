@@ -164,6 +164,14 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         help="Enable assertion checks, stub checks, and warning failure",
     )
     p.add_argument(
+        "--strict-preview",
+        action="store_true",
+        help=(
+            "Preview the future strict default gate set without changing "
+            "default validation behavior"
+        ),
+    )
+    p.add_argument(
         "--file-tracking",
         action="store_true",
         help="Fail validation when undeclared or weakly registered production files exist",
@@ -324,6 +332,14 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         "--strict",
         action="store_true",
         help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
+        "--strict-preview",
+        action="store_true",
+        help=(
+            "Preview the future strict default gate set without changing "
+            "default verification behavior"
+        ),
     )
     p.add_argument(
         "--advisory",

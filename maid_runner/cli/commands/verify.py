@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -37,10 +38,18 @@ _ADVISORY_CHAIN_WARNING_CODES = frozenset(
 def cmd_verify(args: argparse.Namespace) -> int:
     try:
         advisory = getattr(args, "advisory", False)
+        strict_preview = getattr(args, "strict_preview", False)
+        if strict_preview and advisory:
+            print_error(
+                "--strict-preview and --advisory request contradictory gate sets",
+                json_mode=getattr(args, "json", False),
+            )
+            return 2
         fail_on_warnings = (
             not advisory
             or getattr(args, "strict", False)
             or getattr(args, "fail_on_warnings", False)
+            or strict_preview
         )
         result = _run_verify(
             manifest_dir=args.manifest_dir,
@@ -59,7 +68,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
-            artifact_coverage=getattr(args, "artifact_coverage", False),
+            artifact_coverage=getattr(args, "artifact_coverage", False)
+            or strict_preview,
             knockout=getattr(args, "knockout", False),
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
@@ -69,7 +79,13 @@ def cmd_verify(args: argparse.Namespace) -> int:
             if getattr(args, "summary", False)
             else format_verify_result
         )
-        print(formatter(result, json_mode=getattr(args, "json", False)))
+        print(
+            _mark_strict_preview_output(
+                formatter(result, json_mode=getattr(args, "json", False)),
+                enabled=strict_preview,
+                json_mode=getattr(args, "json", False),
+            )
+        )
         exit_code = 0 if _result_success(result) else 1
         if not _write_sarif_report_if_requested(args, result):
             return 2
@@ -77,6 +93,23 @@ def cmd_verify(args: argparse.Namespace) -> int:
     except Exception as exc:
         print_error(str(exc), json_mode=getattr(args, "json", False))
         return 2
+
+
+def _mark_strict_preview_output(
+    output: str,
+    *,
+    enabled: bool,
+    json_mode: bool,
+) -> str:
+    if not enabled:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["strict_preview"] = True
+        return json.dumps(payload, indent=2)
+    if not output:
+        return "[strict-preview]"
+    return f"[strict-preview] {output}"
 
 
 def _write_sarif_report_if_requested(args, result: VerificationResult) -> bool:

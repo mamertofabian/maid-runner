@@ -45,6 +45,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
     mode = ValidationMode(args.mode)
     engine = ValidationEngine(project_root=".")
     check_assertions, check_stubs, fail_on_warnings = _strict_options(args)
+    strict_preview = getattr(args, "strict_preview", False)
+    artifact_coverage_requested = (
+        getattr(args, "artifact_coverage", False) or strict_preview
+    )
 
     try:
         if args.manifest_path:
@@ -65,7 +69,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             if result.success and getattr(args, "run_tests", False):
                 test_result = run_validate_commands_for_result(args.manifest_path)
             artifact_coverage_report = None
-            if result.success and getattr(args, "artifact_coverage", False):
+            if result.success and artifact_coverage_requested:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_path(
                     args.manifest_path,
                     Path("."),
@@ -79,14 +83,25 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 tests_requested=getattr(args, "run_tests", False),
                 artifact_coverage_report=artifact_coverage_report,
             )
-            if output:
-                if not (args.coherence and result.success and args.json):
+            if not (args.coherence and result.success and args.json):
+                output = _mark_strict_preview_output(
+                    output,
+                    enabled=strict_preview,
+                    json_mode=args.json,
+                )
+                if output:
                     print(output)
 
             if args.coherence and result.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
                 if args.json:
-                    print(_format_validation_with_coherence_json(output, coherence))
+                    print(
+                        _mark_strict_preview_output(
+                            _format_validation_with_coherence_json(output, coherence),
+                            enabled=strict_preview,
+                            json_mode=True,
+                        )
+                    )
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
@@ -135,7 +150,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             if batch.success and getattr(args, "run_tests", False):
                 test_result = _run_validate_commands_for_batch(args.manifest_dir)
             artifact_coverage_report = None
-            if batch.success and getattr(args, "artifact_coverage", False):
+            if batch.success and artifact_coverage_requested:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_dir(
                     args.manifest_dir,
                     Path("."),
@@ -154,12 +169,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 quiet=quiet,
             )
             if not (args.coherence and batch.success and args.json):
+                output = _mark_strict_preview_output(
+                    output,
+                    enabled=strict_preview,
+                    json_mode=args.json,
+                )
                 print(output)
 
             if args.coherence and batch.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
                 if args.json:
-                    print(_format_validation_with_coherence_json(output, coherence))
+                    print(
+                        _mark_strict_preview_output(
+                            _format_validation_with_coherence_json(output, coherence),
+                            enabled=strict_preview,
+                            json_mode=True,
+                        )
+                    )
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
@@ -348,6 +374,23 @@ def _append_artifact_coverage_output(
     return f"{output}\n\n{formatted}"
 
 
+def _mark_strict_preview_output(
+    output: str,
+    *,
+    enabled: bool,
+    json_mode: bool,
+) -> str:
+    if not enabled:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["strict_preview"] = True
+        return json.dumps(payload, indent=2)
+    if not output:
+        return "[strict-preview]"
+    return f"[strict-preview] {output}"
+
+
 def _run_validate_commands_for_batch(
     manifest_dir: str,
     fail_fast: bool = False,
@@ -405,7 +448,13 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
     """Run only coherence checks, no structural validation."""
     try:
         result = run_coherence(args.manifest_dir, args.json)
-        print(format_coherence_result(result, json_mode=args.json))
+        print(
+            _mark_strict_preview_output(
+                format_coherence_result(result, json_mode=args.json),
+                enabled=getattr(args, "strict_preview", False),
+                json_mode=args.json,
+            )
+        )
         exit_code = 0 if result.success else 1
         verification_result = _verification_packet_result(coherence=result)
         if not _write_sarif_report_if_requested(args, verification_result):
@@ -458,7 +507,7 @@ def _format_validation_with_coherence_json(
 
 
 def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:
-    strict = getattr(args, "strict", False)
+    strict = getattr(args, "strict", False) or getattr(args, "strict_preview", False)
     check_assertions = getattr(args, "check_assertions", False) or strict
     check_stubs = getattr(args, "check_stubs", False) or strict
     fail_on_warnings = getattr(args, "fail_on_warnings", False) or strict

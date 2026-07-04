@@ -1,0 +1,107 @@
+{
+  "manifest_path": "manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml",
+  "manifest_hash": "sha256:b8aca48dd0eb8e52e36cbecc8e62274f851dfa4d374e61244f8798b2f10df509",
+  "test_hashes": {
+    "tests/cli/test_strict_preview.py": "sha256:6dd7f37e64eecca46c3aeca198a8cd6e07254be4b429b747f7dfce149b572bd0"
+  },
+  "created_at": "2026-07-03T23:56:11.564661+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:22f2f532c4d399c39e4b49c123254729d744fc4748e851788856370166a25755",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256:3f09020b487233f8131adf4c4ec7095b7835ff6236af18b71b35a00a584df71d"
+      },
+      "revised_at": "2026-07-03T23:56:15.815213+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-02-add-strict-defaults-preview-mode.manifest.yaml -> manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:09248abaeb3480b29edd49dc685cf43e95847420406b472acef79854c24f7c94",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256:3f09020b487233f8131adf4c4ec7095b7835ff6236af18b71b35a00a584df71d"
+      },
+      "revised_at": "2026-07-04T00:00:35.840090+00:00",
+      "reason": "Preserve red evidence after Black formatting normalized tests/cli/test_strict_preview.py without changing the behavioral contract."
+    },
+    {
+      "prior_manifest_hash": "sha256:09248abaeb3480b29edd49dc685cf43e95847420406b472acef79854c24f7c94",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256:43096470809f11e8cb14e1bfa25a0a9294537fda8a2256c72a040f9664aaa70d"
+      },
+      "revised_at": "2026-07-04T00:03:11.532117+00:00",
+      "reason": "Strengthen strict-preview behavioral coverage after implementation review found missing validate coherence JSON and coherence-only output markers."
+    },
+    {
+      "prior_manifest_hash": "sha256:b8aca48dd0eb8e52e36cbecc8e62274f851dfa4d374e61244f8798b2f10df509",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256:0b023b77dc30919bd978f1e05f9ddfb646bca63a1faa9039b293052a181daeae"
+      },
+      "revised_at": "2026-07-04T00:04:02.766504+00:00",
+      "reason": "Preserve red evidence after Black formatting normalized the strengthened strict-preview behavioral tests."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T00:03:12.644389+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_strict_preview.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        text_exit = main([\"validate\", \"--coherence-only\", \"--strict-preview\"])\n        text_output = capsys.readouterr().out\n    \n        json_exit = main(\n            [\"validate\", \"--coherence-only\", \"--strict-preview\", \"--json\"]\n        )\n        json_payload = json.loads(capsys.readouterr().out)\n    \n        assert text_exit == 0\n>       assert text_output.startswith(\"[strict-preview] \")\nE       AssertionError: assert False\nE        +  where False = <built-in method startswith of str object at 0x7f72a24b3d70>('[strict-preview] ')\nE        +    where <built-in method startswith of str object at 0x7f72a24b3d70> = 'Coherence: PASS\\n  Checks run: fake\\n  Issues: 0 errors, 0 warnings\\n'.startswith\n\ntests/cli/test_strict_preview.py:231: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_strict_preview.py::test_validate_strict_preview_coherence_json_keeps_top_level_marker\nFAILED tests/cli/test_strict_preview.py::test_validate_strict_preview_coherence_only_labels_text_and_json\n========================= 2 failed, 8 passed in 0.76s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "tests/cli/test_strict_preview.py:test_main_dispatches_strict_preview_to_validate_and_verify_handlers",
+      "tests/cli/test_strict_preview.py:test_main_dispatches_strict_preview_to_validate_and_verify_handlers:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_parser_accepts_strict_preview_for_validate_and_verify",
+      "tests/cli/test_strict_preview.py:test_parser_accepts_strict_preview_for_validate_and_verify:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_coherence_json_keeps_top_level_marker",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_coherence_json_keeps_top_level_marker:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_coherence_only_labels_text_and_json",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_coherence_only_labels_text_and_json:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_enables_strict_gates_and_labels_text",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_enables_strict_gates_and_labels_text:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_json_marks_and_enables_artifact_coverage",
+      "tests/cli/test_strict_preview.py:test_validate_strict_preview_json_marks_and_enables_artifact_coverage:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_forwards_artifact_coverage_and_labels_outputs",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_forwards_artifact_coverage_and_labels_outputs:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_rejects_advisory",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_rejects_advisory:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_warning_policy_keeps_info_e307_nonblocking",
+      "tests/cli/test_strict_preview.py:test_verify_strict_preview_warning_policy_keeps_info_e307_nonblocking:kind=test_function",
+      "tests/cli/test_strict_preview.py:test_verify_without_strict_preview_keeps_outputs_unmarked",
+      "tests/cli/test_strict_preview.py:test_verify_without_strict_preview_keeps_outputs_unmarked:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_strict_preview.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_strict_preview.py -v",
+      "uv run maid validate manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
