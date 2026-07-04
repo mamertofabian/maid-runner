@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 import json
+from math import ceil
 from pathlib import Path
 from typing import Union
 
@@ -80,6 +81,7 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
         for lesson_type in lesson_types
     ]
     manifest_slugs = tuple(sorted({record.manifest_slug for record in records}))
+    theme_band = _suggested_theme_band(len(lesson_types))
     corpus = []
     for record in records:
         lesson_payload = [
@@ -105,7 +107,8 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
             "cluster and summarize only the provided MAID Outcome lessons. "
             "Do not invent manifests, lesson_types, themes, source lessons, "
             "private context, or validation evidence. Map every lesson_type "
-            "into a small set of about 8-12 canonical themes, explicitly "
+            f"into a small set of about {theme_band[0]}-{theme_band[1]} "
+            "canonical themes, explicitly "
             "merging near-synonym families such as validation-* lessons into "
             "multi-member themes with multiple member_lesson_types. Aim for "
             "full lesson_type coverage. Each recurring digest_entries item "
@@ -227,6 +230,8 @@ def validate_enrichment_digest(
     for theme in digest.themes:
         if not theme.canonical_name.strip():
             raise ValueError("theme canonical_name must not be empty")
+        if not theme.summary.strip():
+            raise ValueError("theme summary must not be empty")
         for lesson_type in theme.member_lesson_types:
             if lesson_type not in lesson_types:
                 raise ValueError(f"unknown lesson_type {lesson_type!r}")
@@ -251,6 +256,8 @@ def validate_enrichment_digest(
                 )
 
     for entry in digest.digest_entries:
+        if not entry.summary.strip():
+            raise ValueError("digest entry summary must not be empty")
         if entry.theme not in declared_themes:
             raise ValueError(f"undeclared digest entry theme {entry.theme!r}")
         for source in entry.source_lessons:
@@ -484,6 +491,12 @@ _MAX_SINGLETON_THEME_SHARE = 0.50
 _MIN_THEME_COUNT_FOR_SINGLETON_WARNING = 2
 _MIN_ENTRY_SOURCE_LESSONS = 2
 _MIN_ENTRY_SOURCE_MANIFESTS = 2
+
+
+def _suggested_theme_band(lesson_type_count: int) -> tuple[int, int]:
+    lower = max(2, min(8, ceil(lesson_type_count / 8)))
+    upper = max(3, min(12, ceil(lesson_type_count / 6)))
+    return lower, upper
 
 
 def _lesson_pairs(index: OutcomeIndex) -> set[tuple[str, str]]:

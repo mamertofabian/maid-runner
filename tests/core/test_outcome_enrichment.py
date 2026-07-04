@@ -38,6 +38,27 @@ def test_build_request_covers_active_lesson_types_and_slugs():
     assert "ignored" not in request.user_prompt
 
 
+@pytest.mark.parametrize(
+    ("lesson_type_count", "expected_band"),
+    (
+        (6, "about 2-3 canonical themes"),
+        (48, "about 6-8 canonical themes"),
+        (78, "about 8-12 canonical themes"),
+        (200, "about 8-12 canonical themes"),
+    ),
+)
+def test_build_request_scales_theme_band_to_corpus_size(
+    lesson_type_count: int,
+    expected_band: str,
+):
+    from maid_runner.core.outcome_enrichment import build_enrichment_request
+
+    lesson_types = tuple(f"lesson-{index:03d}" for index in range(lesson_type_count))
+    index = _index(_record("alpha", lesson_types=lesson_types))
+
+    assert expected_band in build_enrichment_request(index).system_prompt
+
+
 def test_validate_digest_accepts_grounded_digest():
     from maid_runner.core.outcome_enrichment import validate_enrichment_digest
 
@@ -59,6 +80,76 @@ def test_validate_digest_accepts_grounded_digest():
     )
 
     assert validate_enrichment_digest(digest, index) is None
+
+
+@pytest.mark.parametrize(
+    ("summary", "expected_message"),
+    (
+        ("", "theme summary must not be empty"),
+        ("   ", "theme summary must not be empty"),
+    ),
+)
+def test_validate_digest_rejects_empty_theme_summary(
+    summary: str,
+    expected_message: str,
+):
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(_record("alpha", lesson_types=("validation",)))
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("validation",),
+                source_manifests=("alpha",),
+                summary=summary,
+            ),
+        ),
+        entries=(
+            _entry(
+                theme="validation",
+                source_lessons=(_lesson_ref("alpha", "validation"),),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match=expected_message):
+        validate_enrichment_digest(digest, index)
+
+
+@pytest.mark.parametrize(
+    ("summary", "expected_message"),
+    (
+        ("", "digest entry summary must not be empty"),
+        ("   ", "digest entry summary must not be empty"),
+    ),
+)
+def test_validate_digest_rejects_empty_entry_summary(
+    summary: str,
+    expected_message: str,
+):
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(_record("alpha", lesson_types=("validation",)))
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("validation",),
+                source_manifests=("alpha",),
+            ),
+        ),
+        entries=(
+            _entry(
+                theme="validation",
+                summary=summary,
+                source_lessons=(_lesson_ref("alpha", "validation"),),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match=expected_message):
+        validate_enrichment_digest(digest, index)
 
 
 def test_validate_digest_rejects_unknown_manifest_slug():

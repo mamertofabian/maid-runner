@@ -3,12 +3,12 @@
   "manifest_hash": "sha256:0a40ad87f717ee5de4abc3bf6627b9758b0dfe534461c3ea297c3ce1bbf1543c",
   "test_hashes": {
     "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
-    "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
     "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
-    "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+    "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f"
   },
   "created_at": "2026-06-28T23:49:37.447274+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:047d2ab545418d96c6ded1d59e8d2fd1f7eec789441e5b1b207457b9925b9390",
@@ -64,6 +64,17 @@
       },
       "revised_at": "2026-06-29T00:09:14.778725+00:00",
       "reason": "Capture completed Outcome after implementation review and validation."
+    },
+    {
+      "prior_manifest_hash": "sha256:0a40ad87f717ee5de4abc3bf6627b9758b0dfe534461c3ea297c3ce1bbf1543c",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0fa07c75f2edaf091d51ff2b56cea682ff953178578c2ad6ce3c2e5c0533a874"
+      },
+      "revised_at": "2026-07-04T23:09:56.914863+00:00",
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
     }
   ],
   "red_evidence": {

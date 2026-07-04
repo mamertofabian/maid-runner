@@ -756,7 +756,15 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--allow-stale-index",
         action="store_true",
-        help="Use the index even when source manifests changed",
+        help=(
+            "Use the index even when source manifests changed; also preserves "
+            "the legacy theme-map digest staleness waiver"
+        ),
+    )
+    p.add_argument(
+        "--allow-stale-digest",
+        action="store_true",
+        help="Use a stale theme-map digest without waiving index staleness",
     )
     p.add_argument(
         "--theme-map",
@@ -794,12 +802,14 @@ def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
     )
     _add_enrich_common_options(validate)
     _add_enrich_digest_option(validate)
+    _add_enrich_digest_staleness_option(validate)
 
     render = ssub.add_parser(
         "render", help="Render a validated Outcome enrichment digest as markdown"
     )
     _add_enrich_common_options(render)
     _add_enrich_digest_option(render)
+    _add_enrich_digest_staleness_option(render)
     render.add_argument(
         "--md-output",
         default=".maid/outcomes-digest.md",
@@ -826,7 +836,10 @@ def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--allow-stale-index",
         action="store_true",
-        help="Use stale index or digest inputs explicitly",
+        help=(
+            "Use a stale index explicitly; for validate/render, also preserves "
+            "the legacy digest staleness waiver"
+        ),
     )
     parser.add_argument("--json", action="store_true", help="Print result as JSON")
 
@@ -836,6 +849,14 @@ def _add_enrich_digest_option(parser: argparse.ArgumentParser) -> None:
         "--digest",
         default=".maid/outcomes-digest.json",
         help="Outcome enrichment digest JSON path",
+    )
+
+
+def _add_enrich_digest_staleness_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--allow-stale-digest",
+        action="store_true",
+        help="Use a stale enrichment digest without waiving index staleness",
     )
 
 

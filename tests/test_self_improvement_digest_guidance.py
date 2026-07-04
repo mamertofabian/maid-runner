@@ -121,6 +121,7 @@ def test_self_improvement_digest_guidance_uses_registered_options_only() -> None
         "--manifest-dir",
         "--project-root",
         "--allow-stale-index",
+        "--allow-stale-digest",
         "--theme-map",
         "--limit",
         "--json",

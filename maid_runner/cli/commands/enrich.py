@@ -107,10 +107,14 @@ def _read_valid_digest(args: argparse.Namespace, index: OutcomeIndex):
         raise ValueError(f"Enrichment digest not found: {digest_path}")
     digest = read_enrichment_digest(digest_path)
     validate_enrichment_digest(digest, index)
-    if digest_is_stale(digest, index) and not getattr(args, "allow_stale_index", False):
+    if (
+        digest_is_stale(digest, index)
+        and not getattr(args, "allow_stale_digest", False)
+        and not getattr(args, "allow_stale_index", False)
+    ):
         raise ValueError(
             "Enrichment digest is stale; regenerate it from the current Outcome "
-            "index or pass --allow-stale-index"
+            "index or pass --allow-stale-digest"
         )
     return digest
 

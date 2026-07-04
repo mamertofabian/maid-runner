@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
     "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
-    "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175"
+    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f"
   },
   "created_at": "2026-06-26T15:11:22.630016+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c3015811b406cecae78d12db651ff95660add175760e5593d3f6029e5cd3d00f",
@@ -70,6 +70,16 @@
       },
       "revised_at": "2026-06-28T11:41:20.884432+00:00",
       "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+    },
+    {
+      "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175"
+      },
+      "revised_at": "2026-07-04T23:09:55.928633+00:00",
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
     }
   ],
   "red_evidence": {

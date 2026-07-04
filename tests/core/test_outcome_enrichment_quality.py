@@ -37,7 +37,7 @@ def test_request_system_prompt_instructs_canonical_multi_member_grouping():
 
     assert "canonical" in prompt
     assert "every lesson_type" in prompt
-    assert "8-12" in prompt
+    assert "2-3" in prompt
     assert "near-synonym" in prompt
     assert "validation" in prompt
     assert "multi" in prompt

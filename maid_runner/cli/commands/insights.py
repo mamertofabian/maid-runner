@@ -63,12 +63,14 @@ def cmd_insights(args: argparse.Namespace) -> int:
         try:
             digest = read_enrichment_digest(theme_map_path)
             validate_enrichment_digest(digest, index)
-            if digest_is_stale(digest, index) and not getattr(
-                args, "allow_stale_index", False
+            if (
+                digest_is_stale(digest, index)
+                and not getattr(args, "allow_stale_digest", False)
+                and not getattr(args, "allow_stale_index", False)
             ):
                 return _error(
                     "Outcome theme map is stale; run `maid enrich` or pass "
-                    "--allow-stale-index",
+                    "--allow-stale-digest",
                     args,
                 )
             theme_groups = apply_theme_map(index, digest)

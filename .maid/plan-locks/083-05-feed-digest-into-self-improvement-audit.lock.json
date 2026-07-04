@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml",
-  "manifest_hash": "sha256:56eb7516ee0dfb8d03f5e7de556f2abe53085af6efadc216e124283fa2518eae",
+  "manifest_hash": "sha256:1e4a36f50cb909b059ead56378624973e2774da7d11bccc9e7e0c3c6569ef608",
   "test_hashes": {
-    "tests/test_self_improvement_digest_guidance.py": "sha256:a78cf252ef4ba12010410859bc53b4ae4666cc1a3a84cd76678c1e4a43f29d3b"
+    "tests/test_self_improvement_digest_guidance.py": "sha256:17fc4e7273be6fb052099a384da968823ad223f357204f9b4fa50c766c9fe2d4"
   },
   "created_at": "2026-07-04T22:23:53.860951+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:16ba22f1fa394bdb5af3b50d025b843cfb95c4b0523e30a857daa48a6e492b24",
@@ -38,6 +38,14 @@
       },
       "revised_at": "2026-07-04T22:40:26.559967+00:00",
       "reason": "Declare maid_runner/codex/manifest.json as read context because the behavioral test verifies the repo-internal skill remains excluded from the generic Codex payload manifest."
+    },
+    {
+      "prior_manifest_hash": "sha256:56eb7516ee0dfb8d03f5e7de556f2abe53085af6efadc216e124283fa2518eae",
+      "prior_test_hashes": {
+        "tests/test_self_improvement_digest_guidance.py": "sha256:a78cf252ef4ba12010410859bc53b4ae4666cc1a3a84cd76678c1e4a43f29d3b"
+      },
+      "revised_at": "2026-07-04T23:09:57.477198+00:00",
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
     }
   ],
   "red_evidence": {

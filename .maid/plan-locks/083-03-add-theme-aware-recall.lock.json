@@ -2,11 +2,11 @@
   "manifest_path": "manifests/083-03-add-theme-aware-recall.manifest.yaml",
   "manifest_hash": "sha256:0aba3eea233e2910e2a68826ece61833f0714e6c62ccce7442c51029f0eee92e",
   "test_hashes": {
-    "tests/core/test_outcome_enrichment.py": "sha256:fe01bd94d632e9d5b0fa7d9e9a54d7ad6c0e6b02deb632fad498f7cc8732df4c",
+    "tests/core/test_outcome_enrichment.py": "sha256:8f3f444cbefcea67850b1010d71ab59d059f1b4d1e31c7cb446f129c3ad4c9c4",
     "tests/cli/test_recall_theme_map_cmd.py": "sha256:b9874d80d3231dcda601635eaf6248e3fe426b2bbc84061dbef9859b0779ac91"
   },
   "created_at": "2026-07-04T10:26:52.051957+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:741c1609e08c543b2727341e4afd6d2f4e5c658abff6935569774bf7f3d8d220",
@@ -36,6 +36,15 @@
       },
       "revised_at": "2026-07-04T10:37:27.463329+00:00",
       "reason": "Refresh locked test hashes after Black formatting and Outcome capture; preserve the already captured red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:0aba3eea233e2910e2a68826ece61833f0714e6c62ccce7442c51029f0eee92e",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:fe01bd94d632e9d5b0fa7d9e9a54d7ad6c0e6b02deb632fad498f7cc8732df4c",
+        "tests/cli/test_recall_theme_map_cmd.py": "sha256:b9874d80d3231dcda601635eaf6248e3fe426b2bbc84061dbef9859b0779ac91"
+      },
+      "revised_at": "2026-07-04T23:09:57.295384+00:00",
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
     }
   ],
   "red_evidence": {
