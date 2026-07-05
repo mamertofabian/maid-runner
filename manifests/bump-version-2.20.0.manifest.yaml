@@ -1,0 +1,178 @@
+schema: '2'
+goal: Bump maid-runner minor version to 2.20.0
+type: feature
+created: '2026-07-05T03:39:16Z'
+supersedes:
+- bump-version-2.19.1
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package version from 2.19.1 to 2.20.0 for the next release batch.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized. The minor version is
+  intentional because the post-2.19.1 branch includes new feature work such as
+  strict validation delta reporting and Outcome enrichment recall improvements.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release metadata test alongside the package version.
+- risk: Do not publish a patch-style changelog for a minor release.
+  instead: Summarize the user-visible feature, behavior, and documentation changes since 2.19.1 under the 2.20.0 entry.
+- risk: Do not omit the changelog compare link from automated coverage.
+  instead: Assert the 2.20.0 heading and v2.19.1...v2.20.0 compare link in the release metadata test.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package/source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the new minor version and compare link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_2_20_0
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.20.0 minor release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog heading and compare link, and roadmap all report 2.20.0.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.19.1.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: "2026-07-05T03:49:26Z"
+  summary: "Bumped maid-runner from 2.19.1 to 2.20.0 and synchronized package metadata, editable lock metadata, changelog release notes and compare link, roadmap version text, release metadata coverage, MAID release-bump plan-lock evidence, and dependent shared-test lock hashes."
+  rationale: "The 2.20.0 minor release captures feature work landed after 2.19.1, including strict validation delta reporting, theme-aware Outcome recall/enrichment improvements, and stale digest handling. The release metadata test now also asserts the changelog compare link so future release bumps keep public release notes synchronized with package and CLI metadata."
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: "Minor release bumps should update every release mirror together: pyproject metadata, editable uv.lock metadata, changelog heading and compare link, roadmap current-version text, runtime CLI metadata, and release metadata tests."
+    tags:
+    - release
+    - version
+    - changelog
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: plan-lock
+    summary: "When a release bump changes a shared metadata integration test, refresh dependent plan locks with preserved red evidence and explicit reasons rather than weakening historical contracts."
+    tags:
+    - release
+    - plan-lock
+    - red-evidence
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+    - .maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json
+  review_notes:
+  - source: "maid-implementation-review-subagent/Faraday"
+    severity: info
+    summary: "Ready to merge with no blockers or should-fix issues. Reviewer confirmed changed files stayed within release-bump scope, version mirrors were consistent, the release metadata test was strengthened with compare-link coverage, and plan-lock evidence preserved a real red phase."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_20_0
+    status: failed
+    summary: "Red phase failed before implementation because runtime version still reported 2.19.1 while the behavioral test expected 2.20.0."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - lock
+    - manifests/drafts/bump-version-2.20.0.manifest.yaml
+    status: passed
+    summary: "Plan lock revision 1 captured the release metadata red evidence before package metadata changed."
+  - command:
+    - uv
+    - run
+    - maid
+    - manifest
+    - promote
+    - manifests/drafts/bump-version-2.20.0.manifest.yaml
+    status: passed
+    summary: "Promoted the locked draft manifest into the active manifest tree and migrated the plan lock."
+  - command:
+    - uv
+    - lock
+    status: passed
+    summary: "uv refreshed editable package lock metadata from maid-runner 2.19.1 to 2.20.0."
+  - command:
+    - uv
+    - run
+    - maid
+    - --version
+    status: passed
+    summary: "Local CLI reported maid 2.20.0."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: "Focused library API and release metadata tests passed: 28 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/bump-version-2.20.0.manifest.yaml
+    status: passed
+    summary: "Manifest-declared release metadata test gate passed: 1 command passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 410 manifests, 317 passed, 0 failed, and 93 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide manifest test gate passed: 172 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --no-changed-scope
+    status: passed
+    summary: "Strict summary handoff verify passed with 0 blocking stages, known E307 non-code validator warnings, and 8 passed stages."
+  - command:
+    - git
+    - diff
+    - --check
+    status: passed
+    summary: "Whitespace check passed."

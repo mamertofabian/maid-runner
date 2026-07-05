@@ -2,10 +2,10 @@
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
   "manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256:bc41196c265d045f03a44dc1cc62dbf8d60044be1c5d3025c946cb712900f9aa"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256:7c6b18084ce2500b7839151138781bba34efac29a8334eaf47ee7d013d727391"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -54,6 +54,14 @@
       },
       "revised_at": "2026-07-04T10:18:33.157052+00:00",
       "reason": "Add 084 live planning epic to inventory allowlist"
+    },
+    {
+      "prior_manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:bc41196c265d045f03a44dc1cc62dbf8d60044be1c5d3025c946cb712900f9aa"
+      },
+      "revised_at": "2026-07-05T03:42:57.996718+00:00",
+      "reason": "Refresh archived draft inventory test hash to match current tree before 2.20.0 release verification."
     }
   ],
   "red_evidence": {

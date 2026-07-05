@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.0] - 2026-07-05
+
+### Added
+- **Strict validation delta reporting** — Added strict-preview delta reporting so migration work can see diagnostics unique to future strict validation gates without changing default exit semantics.
+- **Theme-aware Outcome recall** — Added theme-aware recall annotations and planner guidance that can use validated Outcome digest narratives while preserving deterministic fallback behavior.
+- **Outcome enrichment hypotheses** — Added an optional grounded improvement-hypotheses channel to enrichment digests for advisory future-work signals.
+
+### Changed
+- **Self-improvement audit inputs** — Fed validated Outcome digest context into self-improvement audit workflows so recurring lessons and improvement hypotheses can guide future draft queues.
+- **Lesson-type capture guidance** — Strengthened Outcome capture guidance to reuse existing lesson_type vocabulary before coining new values.
+- **Release version metadata** — Bumped the package version to `2.20.0`.
+
+### Fixed
+- **Outcome digest staleness controls** — Hardened stale digest handling across `maid learn`, `maid recall`, and enrichment validation flags so stale advisory data is explicit rather than silently trusted.
+- **Strict defaults migration checks** — Extended pytest config addopts protection and default-hook exemptions so strict migration diagnostics stay proportionate.
+- **Verify warning labels and changed-scope behavior** — Kept verify summary warning labels honest and skipped changed-scope checks on clean trees without a baseline.
+
 ## [2.19.1] - 2026-07-01
 
 ### Added
@@ -1114,6 +1131,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.20.0]: https://github.com/mamertofabian/maid-runner/compare/v2.19.1...v2.20.0
 [2.19.1]: https://github.com/mamertofabian/maid-runner/compare/v2.19.0...v2.19.1
 [2.19.0]: https://github.com/mamertofabian/maid-runner/compare/v2.18.0...v2.19.0
 [2.18.0]: https://github.com/mamertofabian/maid-runner/compare/v2.17.1...v2.18.0
