@@ -1,0 +1,96 @@
+{
+  "manifest_path": "manifests/083-08-align-recall-stale-digest-flag.manifest.yaml",
+  "manifest_hash": "sha256:d312b96afeb0d24bf06987c5f502ff0265412030dde07a20c0864ab9e8dd61f0",
+  "test_hashes": {
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+    "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:21befd44ac337bc9a870a2d95fda686c60bf8171e7aec4b78df629eb8cd3e5d3"
+  },
+  "created_at": "2026-07-05T03:00:17.113335+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:f04dc504b100c94894f308397598f1271bbf88790b8107c271de1541552b0b1b",
+      "prior_test_hashes": {
+        "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:81b9c9bd82eabd91504aa679977ab774f516a65e44ab45634556bae89b3b3b9e"
+      },
+      "revised_at": "2026-07-05T03:00:21.099431+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-08-align-recall-stale-digest-flag.manifest.yaml -> manifests/083-08-align-recall-stale-digest-flag.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:2ae0e371dd53cbf93ab3224d5622f9b58e2b9b695e1b8343eb7511e71bfbaf41",
+      "prior_test_hashes": {
+        "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:81b9c9bd82eabd91504aa679977ab774f516a65e44ab45634556bae89b3b3b9e"
+      },
+      "revised_at": "2026-07-05T03:11:12.280790+00:00",
+      "reason": "Add instruction payload version bump for init-distributed Outcome docs change"
+    },
+    {
+      "prior_manifest_hash": "sha256:c2bf6e247920a55f42c0b6f295b9d316b574ca8063768088493d40d56f98462e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:21befd44ac337bc9a870a2d95fda686c60bf8171e7aec4b78df629eb8cd3e5d3"
+      },
+      "revised_at": "2026-07-05T03:11:56.664102+00:00",
+      "reason": "Include payload metadata regression tests in the revised validate command"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-05T03:11:57.181357+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_recall_stale_digest_flag_cmd.py tests/cli/test_recall_theme_map_cmd.py tests/test_manifest_outcome_docs.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "            {validate,validators,test,verify,plan,task,hook,snapshot,snapshot-system,bootstrap,learn,recall,insights,enrich,benchmark,incident,daemon,skills,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: unrecognized arguments: --allow-stale-digest\n____ test_instruction_payload_version_bumped_for_recall_docs_payload_change ____\n\n    def test_instruction_payload_version_bumped_for_recall_docs_payload_change() -> None:\n        from maid_runner.instruction_payload import INSTRUCTION_PAYLOAD_VERSION\n    \n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\"2026.07.04.2\")\nE       AssertionError: assert (2026, 7, 4, 2) > (2026, 7, 4, 2)\nE        +  where (2026, 7, 4, 2) = _version_tuple('2026.07.04.2')\nE        +  and   (2026, 7, 4, 2) = _version_tuple('2026.07.04.2')\n\ntests/cli/test_recall_stale_digest_flag_cmd.py:140: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_recall_stale_digest_flag_cmd.py::test_recall_stale_digest_rejected_without_any_allow_flag\nFAILED tests/cli/test_recall_stale_digest_flag_cmd.py::test_recall_allow_stale_digest_accepts_stale_theme_map\nFAILED tests/cli/test_recall_stale_digest_flag_cmd.py::test_recall_stale_digest_flag_is_registered_unabbreviated\nFAILED tests/cli/test_recall_stale_digest_flag_cmd.py::test_instruction_payload_version_bumped_for_recall_docs_payload_change\n4 failed, 19 passed in 0.35s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/manifest-outcome-records.md:attribute:documentation._recall_stale_digest_optin_docs",
+      "docs/manifest-outcome-records.md:attribute:documentation._recall_stale_digest_optin_docs:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._recall_stale_digest_optin_docs:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._recall_stale_digest_optin_docs:type=doc-section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:kind=function",
+      "maid_runner/cli/commands/recall.py:function:cmd_recall:returns=int",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_recall_stale_digest_optin_docs",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_recall_stale_digest_optin_docs:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_recall_stale_digest_optin_docs:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_recall_stale_digest_optin_docs:type=doc-section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_instruction_payload_version_bumped_for_recall_docs_payload_change",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_instruction_payload_version_bumped_for_recall_docs_payload_change:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_instruction_payload_version_bumped_for_recall_docs_payload_change:returns=None",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_accepts_stale_theme_map",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_accepts_stale_theme_map:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_accepts_stale_theme_map:returns=None",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_does_not_waive_index_staleness",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_does_not_waive_index_staleness:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_digest_does_not_waive_index_staleness:returns=None",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_index_keeps_backward_compatible_double_duty",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_index_keeps_backward_compatible_double_duty:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_allow_stale_index_keeps_backward_compatible_double_duty:returns=None",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_flag_is_registered_unabbreviated",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_flag_is_registered_unabbreviated:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_flag_is_registered_unabbreviated:returns=None",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_rejected_without_any_allow_flag",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_rejected_without_any_allow_flag:kind=test_function",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_rejected_without_any_allow_flag:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/cli/test_recall_stale_digest_flag_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_recall_stale_digest_flag_cmd.py tests/cli/test_recall_theme_map_cmd.py tests/test_manifest_outcome_docs.py tests/cli/test_init_instruction_payload_version.py"
+    ]
+  }
+}

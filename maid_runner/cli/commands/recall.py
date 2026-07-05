@@ -202,10 +202,14 @@ def _load_theme_map(
         return None
     digest = read_enrichment_digest(theme_map_path)
     validate_enrichment_theme_map(digest, index)
-    if digest_is_stale(digest, index) and not getattr(args, "allow_stale_index", False):
+    if (
+        digest_is_stale(digest, index)
+        and not getattr(args, "allow_stale_digest", False)
+        and not getattr(args, "allow_stale_index", False)
+    ):
         raise ValueError(
             "Outcome theme map is stale; run `maid enrich` or pass "
-            "--allow-stale-index"
+            "--allow-stale-digest"
         )
     return theme_map_from_digest(digest)
 

@@ -132,12 +132,14 @@ them as authoritative Outcome data.
 
 The digest may be consumed by `maid insights --theme-map <digest.json>` to
 replace only the `by_lesson_type` section with deterministic canonical-theme
-aggregation. The insights report does not include generated narrative from the
-digest. Stale or fabricated digest data is rejected unless an explicit
-staleness opt-in is supplied. Prefer `--allow-stale-digest` when only the
-digest's `source_generated_from` is stale; it does not waive Outcome index
-staleness. The older `--allow-stale-index` flag retains its broader legacy
-behavior for compatibility and still waives both index and digest staleness.
+aggregation, and by `maid recall --theme-map <digest.json>` to annotate recall
+matches with deterministic canonical themes. These reports do not include
+generated narrative from the digest. Stale or fabricated digest data is
+rejected unless an explicit staleness opt-in is supplied. Prefer
+`--allow-stale-digest` when only the digest's `source_generated_from` is stale;
+it does not waive Outcome index staleness. The older `--allow-stale-index`
+flag retains its broader legacy behavior for compatibility and still waives
+both index and digest staleness.
 
 ## Learning Evidence Digestion
 

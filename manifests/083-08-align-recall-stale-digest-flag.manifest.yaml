@@ -1,0 +1,340 @@
+schema: '2'
+goal: 'Align `maid recall --theme-map` digest staleness semantics with the 083-06 insights/enrich split: register `--allow-stale-digest` on the recall subparser as the narrow opt-in that waives only the digest `source_generated_from` mismatch, keep `--allow-stale-index` backward compatible (it continues to waive both index and digest staleness on recall), and never let the new flag waive Outcome index staleness'
+type: fix
+created: '2026-07-05T03:00:21Z'
+metadata:
+  epic: 083-00-close-outcome-enrichment-consumption-loop
+  tags:
+  - outcome-records
+  - recall
+  - llm-enrichment
+  - cli
+  priority: low
+description: |
+  083-03 (theme-aware recall) landed before 083-06 (staleness flag split), so
+  recall's `--theme-map` digest staleness is still waived only by the broad
+  legacy `--allow-stale-index` flag, while `maid insights --theme-map` and
+  `maid enrich validate/render` now accept the narrow `--allow-stale-digest`
+  opt-in. 083-06 explicitly scoped recall out with a note that whichever child
+  landed second should rebase on the other's flag semantics; 083-03 landed
+  first, so no rebase happened and the surfaces diverged. An operator who only
+  wants to tolerate a slightly old digest on recall is currently forced to
+  also waive index staleness. This child restores cross-surface parity.
+
+  Pinned decisions (do not redesign):
+
+  1. Flag semantics are copied from 083-06, not reinvented. On recall, digest
+     staleness (`digest_is_stale` against the recall index) is waived by
+     `--allow-stale-digest` OR (unchanged, for backward compatibility)
+     `--allow-stale-index`. Outcome index staleness
+     (`outcome_index_is_stale`) is waived ONLY by `--allow-stale-index`;
+     `--allow-stale-digest` alone must not suppress the index staleness
+     rejection. This mirrors `cmd_insights` exactly.
+
+  2. Error message parity. The stale theme-map rejection steers users to the
+     narrow flag ("run `maid enrich` or pass --allow-stale-digest"), matching
+     the insights wording. The existing 083-03 test
+     `test_recall_rejects_stale_theme_map_without_allow_flag` asserts only a
+     "stale" substring, so this message change does not touch the 083-03
+     behavioral contract or its plan lock.
+
+  3. Registered, unabbreviated option (072-01 convention), added to the
+     recall subparser in `build_parser` with help text distinguishing it from
+     `--allow-stale-index`, in the same style as the insights and enrich
+     registrations.
+
+  4. No other recall behavior changes. Theme-map consumption stays
+     annotation-only (083-03 contract): match selection, scoring, ordering,
+     deep validation via `validate_enrichment_theme_map`, and unmapped
+     pass-through are untouched. This is an additive flag; the 083-03 and
+     083-06 contracts are evolved by chain merge through this manifest, not
+     by rewriting those manifests.
+
+  5. Docs stay accurate. The advisory-enrichment section of
+     `docs/manifest-outcome-records.md` currently describes the
+     `--allow-stale-digest` / `--allow-stale-index` split only for insights
+     consumption; extend it to state that `maid recall --theme-map` follows
+     the same opt-in semantics, and sync the packaged copy
+     `maid_runner/docs/manifest-outcome-records.md` byte-for-byte.
+
+  6. Instruction payload version bump. `maid init` distributes
+     `docs/manifest-outcome-records.md` into downstream repositories, so this
+     docs payload change must advance `INSTRUCTION_PAYLOAD_VERSION` past the
+     current baseline (`2026.07.04.2`) so `maid init --check` reports installed
+     older payloads as stale.
+
+  Planned behavioral tests (red phase pending — handoff stops before tests):
+  a new dedicated `tests/cli/test_recall_stale_digest_flag_cmd.py` (new file
+  rather than additions to `tests/cli/test_recall_theme_map_cmd.py`, so the
+  083-03 plan lock's red evidence is not invalidated — the lesson recorded on
+  083-01) asserts: a stale digest on recall is rejected without either flag
+  with an error naming `--allow-stale-digest`; accepted with
+  `--allow-stale-digest` and annotating themes normally; still accepted with
+  bare `--allow-stale-index` (backward-compatibility pin); a stale INDEX with
+  only `--allow-stale-digest` is still rejected with recall's index-stale
+  error; and the flag is registered unabbreviated on the recall parser.
+  `tests/cli/test_recall_theme_map_cmd.py` reruns unchanged as the 083-03
+  regression guard, `tests/test_manifest_outcome_docs.py` reruns as the
+  source/packaged docs guard, the dedicated recall stale-digest test file
+  asserts the instruction payload version advanced for the distributed docs
+  change, and `tests/cli/test_init_instruction_payload_version.py` reruns as
+  the payload metadata regression guard.
+
+  Expected red-phase failures: argparse rejects the unknown
+  `--allow-stale-digest` option on recall; the stale-rejection error message
+  does not yet name the new flag; the waiver behavior is absent.
+
+  Out of scope: narrowing or deprecating `--allow-stale-index` anywhere,
+  recall skill/guidance updates pointing agents at the new flag (guidance
+  children own that surface), enrichment core changes, and any insights or
+  enrich behavior.
+temptations:
+- risk: Do not let --allow-stale-digest waive recall's Outcome index staleness to simplify the flag handling.
+  instead: Only the digest source_generated_from mismatch is waived; index staleness remains --allow-stale-index-only, pinned by a stale-index-with-digest-flag rejection test.
+- risk: Do not change or narrow --allow-stale-index behavior on recall while adding the new flag.
+  instead: Pin bare --allow-stale-index still accepting a stale digest with a backward-compatibility test, exactly as 081/083-03 shipped it.
+- risk: Do not add the new assertions to tests/cli/test_recall_theme_map_cmd.py, whose red evidence belongs to the 083-03 plan lock.
+  instead: New coverage lives in the dedicated tests/cli/test_recall_stale_digest_flag_cmd.py; the 083-03 file reruns unchanged as a regression guard in this manifest's validate command.
+- risk: Do not silently rewrite the 083-03 or 083-06 manifests to describe the aligned semantics.
+  instead: Evolve the cmd_recall and build_parser contracts additively through this manifest via chain merge; the 081/083 lineage stays auditable.
+- risk: Do not update init-distributed Outcome docs without advancing the instruction payload version.
+  instead: Bump INSTRUCTION_PAYLOAD_VERSION and pin it with a test so downstream maid init --check reports older installed payloads as stale.
+files:
+  edit:
+  - path: maid_runner/cli/commands/recall.py
+    artifacts:
+    - kind: function
+      name: cmd_recall
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Theme-map digest staleness is waived by --allow-stale-digest or (unchanged, for backward compatibility) --allow-stale-index, with the stale error steering to --allow-stale-digest; Outcome index staleness is waived only by --allow-stale-index. All other recall behavior, including annotation-only theme-map consumption, is unchanged.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Registers --allow-stale-digest on the recall subparser, unabbreviated per 072-01, with help text distinguishing the narrow digest waiver from --allow-stale-index.
+  - path: docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _recall_stale_digest_optin_docs
+      of: documentation
+      type: doc-section
+      description: 'Advisory enrichment docs extended: maid recall --theme-map follows the same --allow-stale-digest / --allow-stale-index opt-in semantics as insights.'
+  - path: maid_runner/docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_recall_stale_digest_optin_docs
+      of: package_resource
+      type: doc-section
+      description: Packaged copy of the recall stale-digest opt-in docs, kept byte-for-byte in sync.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version advanced past 2026.07.04.2 because the init-distributed Outcome docs changed.
+  read:
+  - manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+  - manifests/083-03-add-theme-aware-recall.manifest.yaml
+  - manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml
+  - manifests/072-01-disable-cli-option-abbreviation.manifest.yaml
+  - manifests/079-01-version-init-instruction-payload.manifest.yaml
+  - maid_runner/cli/commands/insights.py
+  - maid_runner/core/outcome_enrichment.py
+  - tests/cli/test_init_instruction_payload_version.py
+  create:
+  - path: tests/cli/test_recall_stale_digest_flag_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_recall_stale_digest_rejected_without_any_allow_flag
+      args: []
+      returns: None
+      description: A stale digest on recall --theme-map is rejected with no waiver flags and the error names --allow-stale-digest as the narrow fix.
+    - kind: test_function
+      name: test_recall_allow_stale_digest_accepts_stale_theme_map
+      args: []
+      returns: None
+      description: --allow-stale-digest accepts the stale digest and recall output carries the theme annotations, with match selection unchanged.
+    - kind: test_function
+      name: test_recall_allow_stale_index_keeps_backward_compatible_double_duty
+      args: []
+      returns: None
+      description: Bare --allow-stale-index still waives digest staleness on recall as shipped in 083-03, pinning backward compatibility.
+    - kind: test_function
+      name: test_recall_allow_stale_digest_does_not_waive_index_staleness
+      args: []
+      returns: None
+      description: A stale Outcome index with only --allow-stale-digest is still rejected with recall's index-stale error and exit conventions.
+    - kind: test_function
+      name: test_recall_stale_digest_flag_is_registered_unabbreviated
+      args: []
+      returns: None
+      description: --allow-stale-digest is a registered option on the recall parser and abbreviation remains disabled.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_recall_docs_payload_change
+      args: []
+      returns: None
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change baseline because maid init distributes the changed Outcome docs.
+validate:
+- uv run python -m pytest -q tests/cli/test_recall_stale_digest_flag_cmd.py tests/cli/test_recall_theme_map_cmd.py tests/test_manifest_outcome_docs.py tests/cli/test_init_instruction_payload_version.py
+outcome:
+  status: completed
+  completed_at: "2026-07-05T03:19:53Z"
+  summary: "Aligned `maid recall --theme-map` stale-digest semantics with insights/enrich by adding `--allow-stale-digest`, preserving legacy `--allow-stale-index` digest waiver behavior, keeping Outcome index staleness waived only by `--allow-stale-index`, documenting recall theme-map opt-in semantics, and bumping the init instruction payload version for the distributed docs change."
+  rationale: "The implementation mirrors the existing `cmd_insights` stale-digest predicate in recall without changing theme-map validation, annotation-only output, match scoring, ordering, or unmapped pass-through. Review-driven scope correction added `maid_runner/instruction_payload.py` after confirming `maid init` distributes `docs/manifest-outcome-records.md`, so downstream `maid init --check` can detect the changed docs payload."
+  lessons:
+  - lesson_type: cli-options
+    summary: "When adding a narrow waiver beside a legacy broad flag, tests should pin all three boundaries: no-flag rejection steers to the narrow flag, the new flag waives only its intended stale artifact, and the legacy flag keeps backward-compatible double duty."
+    tags:
+    - cli
+    - backward-compatibility
+    - outcome-records
+    paths:
+    - maid_runner/cli/commands/recall.py
+    - tests/cli/test_recall_stale_digest_flag_cmd.py
+  - lesson_type: payload-sync
+    summary: "Documentation copied by `maid init` is part of the instruction payload contract; changing distributed docs requires an instruction payload version bump and a focused regression test."
+    tags:
+    - init-payload
+    - documentation
+    - payload-version
+    paths:
+    - docs/manifest-outcome-records.md
+    - maid_runner/docs/manifest-outcome-records.md
+    - maid_runner/instruction_payload.py
+  - lesson_type: workflow
+    summary: "When review or user feedback expands a locked manifest after implementation exists, use `maid plan revise --stash-implementation` to preserve implementation work while recapturing honest red evidence for the revised contract."
+    tags:
+    - plan-lock
+    - red-evidence
+    - implementation-review
+    paths:
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+    - .maid/plan-locks/083-08-align-recall-stale-digest-flag.lock.json
+  review_notes:
+  - source: implementation-review-subagent-Dalton
+    severity: superseded
+    summary: "Initial review found no implementation issues before the payload-version scope correction; that verdict was superseded after the init-distributed docs impact was identified."
+  - source: user-review
+    severity: fixed
+    summary: "User correctly identified that the Outcome docs change likely required an instruction payload version bump because the docs are installed by `maid init`; the manifest was revised and the payload version was bumped."
+  - source: implementation-review-subagent-Nash
+    severity: ready
+    summary: "Fresh read-only review after the payload-version correction found no findings, confirmed revised scope and tests, reran focused checks and verify, and returned Ready to merge."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_recall_stale_digest_flag_cmd.py
+    - tests/cli/test_recall_theme_map_cmd.py
+    - tests/test_manifest_outcome_docs.py
+    status: failed
+    summary: "Initial red phase failed for the intended missing recall behavior: stale rejection still named `--allow-stale-index`, `allow_stale_digest=True` did not waive digest staleness, and argparse rejected `--allow-stale-digest`."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_recall_stale_digest_flag_cmd.py
+    - tests/cli/test_recall_theme_map_cmd.py
+    - tests/test_manifest_outcome_docs.py
+    status: failed
+    summary: "Review-driven revised red phase failed exactly on `test_instruction_payload_version_bumped_for_recall_docs_payload_change` while the payload version was still 2026.07.04.2."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_recall_stale_digest_flag_cmd.py
+    - tests/cli/test_recall_theme_map_cmd.py
+    - tests/test_manifest_outcome_docs.py
+    - tests/cli/test_init_instruction_payload_version.py
+    status: passed
+    summary: "Expanded focused behavioral suite passed: 23 tests covered recall stale-digest flag semantics, unchanged theme-map recall behavior, docs guards, and instruction payload metadata regression."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Revised manifest behavioral validation passed after adding the payload-version artifact and expanded validate command."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - revise
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+    - --reason
+    - Include payload metadata regression tests in the revised validate command
+    - --stash-implementation
+    status: passed
+    summary: "Plan lock was revised to revision 4 with implementation stashing so revised red evidence and the final validate command were captured honestly."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed with only non-blocking E307 warnings for declared documentation/package-resource files."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+    status: passed
+    summary: "Manifest-scoped MAID test passed its expanded focused pytest command."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 409 manifests checked, 317 passed, 92 skipped as superseded."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test passed: 172 commands passed."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Ruff lint passed for the repository."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Final handoff verify passed all 9 stages with zero blocking findings; remaining E307 non-code validator warnings were non-blocking."
