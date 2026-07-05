@@ -1,0 +1,80 @@
+{
+  "manifest_path": "manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml",
+  "manifest_hash": "sha256:ec70a8d78c9107795ecccaf6a49d4c483fa4fad45d2b782c26e3f473bcc1d19c",
+  "test_hashes": {
+    "tests/test_strict_coverage_migration_docs.py": "sha256:66e3acc81a0eba12398ab825d5ebb89f0c2855f6a41079b1fb299775e0d6050a"
+  },
+  "created_at": "2026-07-05T13:05:01.085686+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:26318db1591a979ed462ea1136b2e114ad5380ea8bfbc389d7dd9762762fa99a",
+      "prior_test_hashes": {
+        "tests/test_strict_coverage_migration_docs.py": "sha256:66e3acc81a0eba12398ab825d5ebb89f0c2855f6a41079b1fb299775e0d6050a"
+      },
+      "revised_at": "2026-07-05T13:05:06.423812+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-05-consume-strict-delta-migration-debt.manifest.yaml -> manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:092d4ab13703a3bbd431b6cf4b4ad4931292fdc65b2662230894570d72c1450c",
+      "prior_test_hashes": {
+        "tests/test_strict_coverage_migration_docs.py": "sha256:66e3acc81a0eba12398ab825d5ebb89f0c2855f6a41079b1fb299775e0d6050a"
+      },
+      "revised_at": "2026-07-05T13:07:53.379935+00:00",
+      "reason": "Fix stale draft path in descriptive validate-command text after promotion"
+    },
+    {
+      "prior_manifest_hash": "sha256:092d4ab13703a3bbd431b6cf4b4ad4931292fdc65b2662230894570d72c1450c",
+      "prior_test_hashes": {
+        "tests/test_strict_coverage_migration_docs.py": "sha256:66e3acc81a0eba12398ab825d5ebb89f0c2855f6a41079b1fb299775e0d6050a"
+      },
+      "revised_at": "2026-07-05T13:08:04.363124+00:00",
+      "reason": "Record promoted-path descriptive validate-command text"
+    },
+    {
+      "prior_manifest_hash": "sha256:48366bbdd8b7911a469d7e32b421c70806143338f0ba95c2c9352d5cb6faa7a3",
+      "prior_test_hashes": {
+        "tests/test_strict_coverage_migration_docs.py": "sha256:66e3acc81a0eba12398ab825d5ebb89f0c2855f6a41079b1fb299775e0d6050a"
+      },
+      "revised_at": "2026-07-05T13:29:44.942999+00:00",
+      "reason": "Record post-review Outcome metadata without changing locked behavioral evidence"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-05T13:05:06.835152+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/test_strict_coverage_migration_docs.py -v",
+        "exit_code": 1,
+        "output_tail": "self = PosixPath('/home/atomrem/projects/codefrost-dev/maid-runner/docs/plans/strict-coverage-migration-backlog.md')\nmode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/maid-runner/docs/plans/strict-coverage-migration-backlog.md'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_strict_coverage_migration_docs.py::test_strict_coverage_migration_backlog_records_regenerable_inventory\nFAILED tests/test_strict_coverage_migration_docs.py::test_strict_coverage_migration_backlog_plans_e710_batches_and_deferrals\n============================== 2 failed in 0.05s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/plans/strict-coverage-migration-backlog.md:attribute:documentation._strict_coverage_migration_backlog",
+      "docs/plans/strict-coverage-migration-backlog.md:attribute:documentation._strict_coverage_migration_backlog:kind=attribute",
+      "docs/plans/strict-coverage-migration-backlog.md:attribute:documentation._strict_coverage_migration_backlog:of=documentation",
+      "docs/plans/strict-coverage-migration-backlog.md:attribute:documentation._strict_coverage_migration_backlog:type=markdown document",
+      "tests/test_strict_coverage_migration_docs.py:test_strict_coverage_migration_backlog_plans_e710_batches_and_deferrals",
+      "tests/test_strict_coverage_migration_docs.py:test_strict_coverage_migration_backlog_plans_e710_batches_and_deferrals:kind=test_function",
+      "tests/test_strict_coverage_migration_docs.py:test_strict_coverage_migration_backlog_records_regenerable_inventory",
+      "tests/test_strict_coverage_migration_docs.py:test_strict_coverage_migration_backlog_records_regenerable_inventory:kind=test_function"
+    ],
+    "test_files": [
+      "tests/test_strict_coverage_migration_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/test_strict_coverage_migration_docs.py -v",
+      "uv run maid validate manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
