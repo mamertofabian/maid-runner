@@ -38,6 +38,12 @@ class DigestEntry:
 
 
 @dataclass(frozen=True)
+class HypothesisEntry:
+    summary: str
+    source_lessons: tuple[LessonRef, ...]
+
+
+@dataclass(frozen=True)
 class EnrichmentRequest:
     system_prompt: str
     user_prompt: str
@@ -52,6 +58,7 @@ class EnrichmentDigest:
     advisory: bool
     themes: tuple[EnrichmentTheme, ...]
     digest_entries: tuple[DigestEntry, ...]
+    improvement_hypotheses: tuple[HypothesisEntry, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -116,7 +123,11 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
             "distinct manifests. Emit exactly one JSON object with "
             "schema_version, source_generated_from, advisory, themes "
             "(canonical_name, member_lesson_types, summary, source_manifests), "
-            "and digest_entries (theme, summary, source_lessons)."
+            "digest_entries (theme, summary, source_lessons), and optionally "
+            "zero to five improvement_hypotheses (summary, source_lessons), "
+            "each grounded in at least two cited lessons from at least two "
+            "distinct manifests. Propose nothing when the lessons do not "
+            "support a concrete suggestion."
         ),
         user_prompt=json.dumps(
             {
@@ -211,6 +222,22 @@ def validate_enrichment_digest(
     digest: EnrichmentDigest,
     index: OutcomeIndex,
 ) -> None:
+    _validate_enrichment_digest(digest, index, validate_hypotheses=True)
+
+
+def validate_enrichment_theme_map(
+    digest: EnrichmentDigest,
+    index: OutcomeIndex,
+) -> None:
+    _validate_enrichment_digest(digest, index, validate_hypotheses=False)
+
+
+def _validate_enrichment_digest(
+    digest: EnrichmentDigest,
+    index: OutcomeIndex,
+    *,
+    validate_hypotheses: bool,
+) -> None:
     if digest.schema_version != _DIGEST_SCHEMA_VERSION:
         raise ValueError(
             f"unsupported enrichment schema_version {digest.schema_version!r}"
@@ -276,12 +303,31 @@ def validate_enrichment_digest(
                     f"{expected_theme!r}, not {entry.theme!r}"
                 )
 
+    if validate_hypotheses:
+        for hypothesis in digest.improvement_hypotheses:
+            if not hypothesis.summary.strip():
+                raise ValueError("hypothesis summary must not be empty")
+            if len(hypothesis.source_lessons) < 2:
+                raise ValueError(
+                    "improvement hypothesis must cite at least two source lessons"
+                )
+            if len({source.manifest_slug for source in hypothesis.source_lessons}) < 2:
+                raise ValueError(
+                    "improvement hypothesis must cite at least two distinct manifests"
+                )
+            for source in hypothesis.source_lessons:
+                if (source.manifest_slug, source.lesson_type) not in lesson_pairs:
+                    raise ValueError(
+                        f"source lesson {source.manifest_slug!r}:"
+                        f"{source.lesson_type!r} does not co-occur in the index"
+                    )
+
 
 def apply_theme_map(
     index: OutcomeIndex,
     digest: EnrichmentDigest,
 ) -> "tuple[OutcomeInsightGroup, ...]":
-    validate_enrichment_digest(digest, index)
+    validate_enrichment_theme_map(digest, index)
     theme_by_lesson_type = theme_map_from_digest(digest)
     grouped: dict[str, dict[str, set[str]]] = {}
     for record in active_unique_records(index):
@@ -353,6 +399,23 @@ def render_digest_markdown(digest: EnrichmentDigest) -> str:
             for source in entry.source_lessons
         )
         lines.append(f"- {entry.theme}: {entry.summary} ({sources})")
+    if digest.improvement_hypotheses:
+        lines.extend(
+            [
+                "",
+                "## Improvement Hypotheses (advisory)",
+                (
+                    "These are model-generated suggestions grounded in past "
+                    "lessons, not findings, commitments, or backlog items."
+                ),
+            ]
+        )
+        for hypothesis in digest.improvement_hypotheses:
+            sources = ", ".join(
+                f"{source.manifest_slug}:{source.lesson_type}"
+                for source in hypothesis.source_lessons
+            )
+            lines.append(f"- {hypothesis.summary} ({sources})")
     return "\n".join(lines) + "\n"
 
 
@@ -401,7 +464,7 @@ def check_digest_freshness(
 
 
 def enrichment_digest_to_dict(digest: EnrichmentDigest) -> dict:
-    return {
+    data = {
         "advisory": digest.advisory,
         "digest_entries": [
             {
@@ -429,6 +492,21 @@ def enrichment_digest_to_dict(digest: EnrichmentDigest) -> dict:
             for theme in digest.themes
         ],
     }
+    if digest.improvement_hypotheses:
+        data["improvement_hypotheses"] = [
+            {
+                "source_lessons": [
+                    {
+                        "lesson_type": source.lesson_type,
+                        "manifest_slug": source.manifest_slug,
+                    }
+                    for source in hypothesis.source_lessons
+                ],
+                "summary": hypothesis.summary,
+            }
+            for hypothesis in digest.improvement_hypotheses
+        ]
+    return data
 
 
 def enrichment_digest_from_dict(data: dict) -> EnrichmentDigest:
@@ -460,6 +538,25 @@ def enrichment_digest_from_dict(data: dict) -> EnrichmentDigest:
                 ),
             )
             for entry in _expect_object_list(data, "digest_entries")
+        ),
+        improvement_hypotheses=tuple(
+            HypothesisEntry(
+                summary=_expect_str(hypothesis, "summary"),
+                source_lessons=tuple(
+                    LessonRef(
+                        manifest_slug=_expect_str(source, "manifest_slug"),
+                        lesson_type=_expect_str(source, "lesson_type"),
+                    )
+                    for source in _expect_nested_object_list(
+                        hypothesis,
+                        "source_lessons",
+                    )
+                ),
+            )
+            for hypothesis in _expect_optional_object_list(
+                data,
+                "improvement_hypotheses",
+            )
         ),
     )
 
@@ -533,6 +630,12 @@ def _expect_object_list(data: dict, key: str) -> list[dict]:
     if not all(isinstance(item, dict) for item in values):
         raise ValueError(f"{key} must contain objects")
     return values
+
+
+def _expect_optional_object_list(data: dict, key: str) -> list[dict]:
+    if key not in data:
+        return []
+    return _expect_object_list(data, key)
 
 
 def _expect_nested_object_list(data: dict, key: str) -> list[dict]:

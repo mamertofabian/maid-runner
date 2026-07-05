@@ -11,7 +11,7 @@ from maid_runner.core.outcome_enrichment import (
     digest_is_stale,
     read_enrichment_digest,
     theme_map_from_digest,
-    validate_enrichment_digest,
+    validate_enrichment_theme_map,
 )
 from maid_runner.core.outcome_recall import (
     ManifestQuerySignal,
@@ -201,7 +201,7 @@ def _load_theme_map(
     if theme_map_path is None:
         return None
     digest = read_enrichment_digest(theme_map_path)
-    validate_enrichment_digest(digest, index)
+    validate_enrichment_theme_map(digest, index)
     if digest_is_stale(digest, index) and not getattr(args, "allow_stale_index", False):
         raise ValueError(
             "Outcome theme map is stale; run `maid enrich` or pass "

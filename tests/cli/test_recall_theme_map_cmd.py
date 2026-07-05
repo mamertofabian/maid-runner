@@ -223,6 +223,39 @@ def test_recall_theme_map_emits_no_generated_narrative(tmp_path: Path, capsys):
     assert "Validation Discipline (validation)" in text_output
 
 
+def test_recall_theme_map_ignores_invalid_hypotheses(tmp_path: Path, capsys):
+    from maid_runner.cli.commands.recall import cmd_recall
+    from maid_runner.core.outcomes import build_outcome_index, write_outcome_index
+
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    _write_manifest(manifest_dir / "alpha.manifest.yaml", ("validation",))
+    _write_manifest(manifest_dir / "beta.manifest.yaml", ("validator-hardening",))
+    index = build_outcome_index(manifest_dir, tmp_path)
+    index_path = tmp_path / ".maid" / "outcomes.json"
+    digest_path = tmp_path / ".maid" / "outcomes-digest.json"
+    write_outcome_index(index, index_path)
+    _write_digest(
+        digest_path,
+        index.generated_from,
+        include_hypotheses=True,
+        hypothesis_source_lessons=(
+            {"manifest_slug": "alpha", "lesson_type": "validation"},
+        ),
+    )
+
+    assert (
+        cmd_recall(
+            _args(index_path, tag=["recall"], theme_map=digest_path, json_mode=True)
+        )
+        == 0
+    )
+    output = capsys.readouterr().out
+
+    assert json.loads(output)["matches"][0]["themes"] == ["Validation Discipline"]
+    assert "improvement_hypotheses" not in output
+
+
 def _args(
     index: Path,
     *,
@@ -323,6 +356,11 @@ def _write_digest(
     source_manifests: tuple[str, ...] = ("alpha", "beta"),
     theme_summary: str = "Validation and hardening share a theme.",
     entry_summary: str = "Keep recall annotations deterministic.",
+    include_hypotheses: bool = False,
+    hypothesis_source_lessons: tuple[dict[str, str], ...] = (
+        {"manifest_slug": "alpha", "lesson_type": "validation"},
+        {"manifest_slug": "beta", "lesson_type": "validator-hardening"},
+    ),
 ) -> None:
     data = {
         "schema_version": "1",
@@ -346,5 +384,12 @@ def _write_digest(
             }
         ],
     }
+    if include_hypotheses:
+        data["improvement_hypotheses"] = [
+            {
+                "summary": "Add a focused recall hardening fixture.",
+                "source_lessons": list(hypothesis_source_lessons),
+            }
+        ]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")

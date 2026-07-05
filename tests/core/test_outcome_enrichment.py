@@ -38,6 +38,18 @@ def test_build_request_covers_active_lesson_types_and_slugs():
     assert "ignored" not in request.user_prompt
 
 
+def test_build_request_optionally_invites_grounded_improvement_hypotheses():
+    from maid_runner.core.outcome_enrichment import build_enrichment_request
+
+    prompt = build_enrichment_request(_index(_record("alpha"))).system_prompt.lower()
+
+    assert "improvement_hypotheses" in prompt
+    assert "zero to five" in prompt
+    assert "at least two" in prompt
+    assert "distinct manifests" in prompt
+    assert "propose nothing" in prompt
+
+
 @pytest.mark.parametrize(
     ("lesson_type_count", "expected_band"),
     (
@@ -80,6 +92,153 @@ def test_validate_digest_accepts_grounded_digest():
     )
 
     assert validate_enrichment_digest(digest, index) is None
+
+
+def test_validate_digest_accepts_grounded_improvement_hypothesis():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(
+        _record("alpha", lesson_types=("validation",)),
+        _record("beta", lesson_types=("testing",)),
+    )
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("beta", "testing"),
+                ),
+            ),
+        ),
+    )
+
+    assert validate_enrichment_digest(digest, index) is None
+
+
+def test_validate_digest_rejects_hypothesis_non_cooccurring_source_lesson():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(
+        _record("alpha", lesson_types=("validation",)),
+        _record("beta", lesson_types=("testing",)),
+    )
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("beta", "validation"),
+                ),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="beta.*validation"):
+        validate_enrichment_digest(digest, index)
+
+
+def test_validate_digest_rejects_hypothesis_with_fewer_than_two_lessons():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(_record("alpha", lesson_types=("validation",)))
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(_lesson_ref("alpha", "validation"),),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="at least two source lessons"):
+        validate_enrichment_digest(digest, index)
+
+
+def test_validate_digest_rejects_hypothesis_with_fewer_than_two_manifests():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(_record("alpha", lesson_types=("validation", "testing")))
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("alpha", "testing"),
+                ),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="at least two distinct manifests"):
+        validate_enrichment_digest(digest, index)
+
+
+@pytest.mark.parametrize("summary", ("", "   "))
+def test_validate_digest_rejects_blank_hypothesis_summary(summary: str):
+    from maid_runner.core.outcome_enrichment import validate_enrichment_digest
+
+    index = _index(
+        _record("alpha", lesson_types=("validation",)),
+        _record("beta", lesson_types=("testing",)),
+    )
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                summary=summary,
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("beta", "testing"),
+                ),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="hypothesis summary must not be empty"):
+        validate_enrichment_digest(digest, index)
+
+
+def test_validate_theme_map_ignores_invalid_hypotheses():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_theme_map
+
+    index = _index(_record("alpha", lesson_types=("validation",)))
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("validation",),
+                source_manifests=("alpha",),
+            ),
+        ),
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(_lesson_ref("alpha", "validation"),),
+            ),
+        ),
+    )
+
+    assert validate_enrichment_theme_map(digest, index) is None
+
+
+def test_validate_theme_map_still_rejects_fabricated_theme_data():
+    from maid_runner.core.outcome_enrichment import validate_enrichment_theme_map
+
+    index = _index(_record("alpha", lesson_types=("validation",)))
+    digest = _digest(
+        themes=(
+            _theme(
+                canonical_name="validation",
+                member_lesson_types=("fabricated-type",),
+                source_manifests=("alpha",),
+            ),
+        ),
+        hypotheses=(
+            _hypothesis(
+                source_lessons=(_lesson_ref("alpha", "validation"),),
+            ),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="fabricated-type"):
+        validate_enrichment_theme_map(digest, index)
 
 
 @pytest.mark.parametrize(
@@ -435,6 +594,39 @@ def test_render_digest_markdown_lists_themes_and_entries():
     assert "alpha:validation" in markdown
 
 
+def test_render_digest_markdown_lists_advisory_hypotheses_with_citations():
+    from maid_runner.core.outcome_enrichment import render_digest_markdown
+
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                summary="Add a stricter validation fixture.",
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("beta", "testing"),
+                ),
+            ),
+        ),
+    )
+
+    markdown = render_digest_markdown(digest)
+
+    assert "## Improvement Hypotheses (advisory)" in markdown
+    assert "model-generated suggestions" in markdown
+    assert "not findings, commitments, or backlog items" in markdown
+    assert "Add a stricter validation fixture." in markdown
+    assert "alpha:validation" in markdown
+    assert "beta:testing" in markdown
+
+
+def test_render_digest_markdown_omits_hypotheses_section_when_empty():
+    from maid_runner.core.outcome_enrichment import render_digest_markdown
+
+    markdown = render_digest_markdown(_digest())
+
+    assert "Improvement Hypotheses" not in markdown
+
+
 def test_digest_is_stale_detects_fingerprint_change():
     from maid_runner.core.outcome_enrichment import digest_is_stale
 
@@ -478,6 +670,59 @@ def test_digest_roundtrips_through_dict_and_file(tmp_path):
     assert read_enrichment_digest(path) == digest
 
 
+def test_digest_without_hypotheses_parses_empty_and_roundtrips_legacy_shape():
+    from maid_runner.core.outcome_enrichment import (
+        enrichment_digest_from_dict,
+        enrichment_digest_to_dict,
+    )
+
+    legacy_data = {
+        "advisory": True,
+        "digest_entries": [],
+        "schema_version": "1",
+        "source_generated_from": "fingerprint",
+        "themes": [],
+    }
+
+    digest = enrichment_digest_from_dict(legacy_data)
+
+    assert digest.improvement_hypotheses == ()
+    assert enrichment_digest_to_dict(digest) == legacy_data
+
+
+def test_digest_roundtrip_emits_non_empty_hypotheses():
+    from maid_runner.core.outcome_enrichment import (
+        enrichment_digest_from_dict,
+        enrichment_digest_to_dict,
+    )
+
+    digest = _digest(
+        hypotheses=(
+            _hypothesis(
+                summary="Add a focused review bypass fixture.",
+                source_lessons=(
+                    _lesson_ref("alpha", "validation"),
+                    _lesson_ref("beta", "testing"),
+                ),
+            ),
+        ),
+    )
+
+    data = enrichment_digest_to_dict(digest)
+    parsed = enrichment_digest_from_dict(json.loads(json.dumps(data)))
+
+    assert data["improvement_hypotheses"] == [
+        {
+            "summary": "Add a focused review bypass fixture.",
+            "source_lessons": [
+                {"lesson_type": "validation", "manifest_slug": "alpha"},
+                {"lesson_type": "testing", "manifest_slug": "beta"},
+            ],
+        }
+    ]
+    assert parsed == digest
+
+
 def test_active_unique_records_matches_insights_record_set():
     from maid_runner.core.outcome_insights import (
         active_unique_records,
@@ -506,6 +751,7 @@ def _digest(
     source_generated_from: str = "fingerprint",
     themes: tuple[object, ...] = (),
     entries: tuple[object, ...] = (),
+    hypotheses: tuple[object, ...] = (),
 ):
     from maid_runner.core.outcome_enrichment import EnrichmentDigest
 
@@ -515,6 +761,7 @@ def _digest(
         advisory=True,
         themes=themes,
         digest_entries=entries,
+        improvement_hypotheses=hypotheses,
     )
 
 
@@ -548,6 +795,16 @@ def _entry(
         summary=summary,
         source_lessons=source_lessons,
     )
+
+
+def _hypothesis(
+    *,
+    source_lessons: tuple[object, ...],
+    summary: str = "Hypothesis summary.",
+):
+    from maid_runner.core.outcome_enrichment import HypothesisEntry
+
+    return HypothesisEntry(summary=summary, source_lessons=source_lessons)
 
 
 def _lesson_ref(manifest_slug: str, lesson_type: str):

@@ -1,0 +1,155 @@
+{
+  "manifest_path": "manifests/083-07-add-improvement-hypotheses-channel.manifest.yaml",
+  "manifest_hash": "sha256:1657f5672d0c060ad804e7949189cf1368edd9d8ac7823fbd40a1b8a1157aff9",
+  "test_hashes": {
+    "tests/core/test_outcome_enrichment.py": "sha256:31ae438ff023ce3e89e702cdc7a92429e4d22c85e0625806de3a21f7d7a99450",
+    "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+    "tests/cli/test_recall_theme_map_cmd.py": "sha256:dbd75fbaffd9b8e0d82851042f79ab72788525b6561432560e8532caf2d31f9f",
+    "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:75971e796c510ba04b135e685d2ae5d96740b1363a3b869c1d7a5f2b0275f73a"
+  },
+  "created_at": "2026-07-04T23:25:02.010962+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:ebaed076ce7ade73904aa1e93d3f28d01e884966d09c590afe56f9627ad2d882",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:676335542dfa4b35a9e3cbc563be16f223293cdb5703d1cf73acaf0afa85eb61",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:288a1c7b0370cc601acc53c96e111278fbcae35a9978ba3a7b9297561914474e"
+      },
+      "revised_at": "2026-07-04T23:25:06.291672+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-07-add-improvement-hypotheses-channel.manifest.yaml -> manifests/083-07-add-improvement-hypotheses-channel.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:50ebf3056bc48ee4ee347e6c3932cfd33324172bfc36ed66c74e0cda85911267",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:676335542dfa4b35a9e3cbc563be16f223293cdb5703d1cf73acaf0afa85eb61",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:288a1c7b0370cc601acc53c96e111278fbcae35a9978ba3a7b9297561914474e"
+      },
+      "revised_at": "2026-07-04T23:26:07.363792+00:00",
+      "reason": "Include the declared enrichment quality behavioral test file in the focused validate command so maid test can execute every discovered behavioral test file."
+    },
+    {
+      "prior_manifest_hash": "sha256:50ebf3056bc48ee4ee347e6c3932cfd33324172bfc36ed66c74e0cda85911267",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:676335542dfa4b35a9e3cbc563be16f223293cdb5703d1cf73acaf0afa85eb61",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:288a1c7b0370cc601acc53c96e111278fbcae35a9978ba3a7b9297561914474e"
+      },
+      "revised_at": "2026-07-04T23:26:52.452047+00:00",
+      "reason": "Restore explicit EnrichmentDigest constructor keywords in the behavioral test helper so historical 081-01 artifact coverage remains visible without changing assertions."
+    },
+    {
+      "prior_manifest_hash": "sha256:9515445b86d655cd26e1f2176260e1c88e2554a293bbe45d7c86a69e663cfa6b",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:676335542dfa4b35a9e3cbc563be16f223293cdb5703d1cf73acaf0afa85eb61",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:288a1c7b0370cc601acc53c96e111278fbcae35a9978ba3a7b9297561914474e"
+      },
+      "revised_at": "2026-07-04T23:31:49.895110+00:00",
+      "reason": "Refresh the 083-07 lock after the focused validate command was corrected to include every declared behavioral test file and after Black formatted the new CLI test."
+    },
+    {
+      "prior_manifest_hash": "sha256:9515445b86d655cd26e1f2176260e1c88e2554a293bbe45d7c86a69e663cfa6b",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:186a66effcc7a3fea83294277e67fd7302b1f27c1d9f68db45112030f2ef46ee",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:a282393c1f686b28d492a4ffe321057cc41a8035891bc2678432d0ec436fd387"
+      },
+      "revised_at": "2026-07-04T23:32:35.486437+00:00",
+      "reason": "Capture fresh red evidence for the corrected focused validate command after adding the declared quality test file to the command."
+    },
+    {
+      "prior_manifest_hash": "sha256:9515445b86d655cd26e1f2176260e1c88e2554a293bbe45d7c86a69e663cfa6b",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:186a66effcc7a3fea83294277e67fd7302b1f27c1d9f68db45112030f2ef46ee",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:a282393c1f686b28d492a4ffe321057cc41a8035891bc2678432d0ec436fd387"
+      },
+      "revised_at": "2026-07-04T23:36:14.086361+00:00",
+      "reason": "Correct the promoted 083-07 manifest read reference from the deleted 083-06 draft path to the active promoted 083-06 manifest path."
+    },
+    {
+      "prior_manifest_hash": "sha256:32a2daa243dee1a88c8bf0a10fd1169ebf57b25d084480898f3f1517d71e1a59",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:186a66effcc7a3fea83294277e67fd7302b1f27c1d9f68db45112030f2ef46ee",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_insights_ignores_hypotheses_cmd.py": "sha256:a282393c1f686b28d492a4ffe321057cc41a8035891bc2678432d0ec436fd387"
+      },
+      "revised_at": "2026-07-04T23:40:44.053023+00:00",
+      "reason": "Review found deterministic theme-map consumers still gated on advisory hypotheses; add red coverage for invalid hypotheses being ignored by insights and recall while full digest validation remains strict."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T23:40:44.642144+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_outcome_enrichment.py tests/core/test_outcome_enrichment_quality.py tests/cli/test_insights_ignores_hypotheses_cmd.py tests/cli/test_recall_theme_map_cmd.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_theme_summary[   -theme summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_entry_summary[-digest entry summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_entry_summary[   -digest entry summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_unknown_manifest_slug\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_non_cooccurring_lesson_type\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_entry_with_undeclared_theme\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_source_lesson_under_wrong_theme\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_lesson_type_in_multiple_themes\nFAILED tests/core/test_outcome_enrichment.py::test_apply_theme_map_collapses_fragmented_lesson_types\nFAILED tests/core/test_outcome_enrichment.py::test_theme_map_from_digest_returns_lesson_type_to_canonical_theme\nFAILED tests/core/test_outcome_enrichment.py::test_theme_map_from_digest_agrees_with_apply_theme_map_grouping\nFAILED tests/core/test_outcome_enrichment.py::test_apply_theme_map_passes_through_unmapped_lesson_types\nFAILED tests/core/test_outcome_enrichment.py::test_render_digest_markdown_lists_themes_and_entries\nFAILED tests/core/test_outcome_enrichment.py::test_render_digest_markdown_lists_advisory_hypotheses_with_citations\nFAILED tests/core/test_outcome_enrichment.py::test_render_digest_markdown_omits_hypotheses_section_when_empty\nFAILED tests/core/test_outcome_enrichment.py::test_digest_is_stale_detects_fingerprint_change\nFAILED tests/core/test_outcome_enrichment.py::test_digest_roundtrips_through_dict_and_file\nFAILED tests/core/test_outcome_enrichment.py::test_digest_without_hypotheses_parses_empty_and_roundtrips_legacy_shape\nFAILED tests/core/test_outcome_enrichment.py::test_digest_roundtrip_emits_non_empty_hypotheses\n30 failed, 24 passed in 0.41s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/outcome_enrichment.py:attribute:EnrichmentDigest.improvement_hypotheses",
+      "maid_runner/core/outcome_enrichment.py:attribute:EnrichmentDigest.improvement_hypotheses:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:EnrichmentDigest.improvement_hypotheses:of=EnrichmentDigest",
+      "maid_runner/core/outcome_enrichment.py:attribute:EnrichmentDigest.improvement_hypotheses:type=tuple[HypothesisEntry, ...]",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.source_lessons",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.source_lessons:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.source_lessons:of=HypothesisEntry",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.source_lessons:type=tuple[LessonRef, ...]",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.summary",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.summary:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.summary:of=HypothesisEntry",
+      "maid_runner/core/outcome_enrichment.py:attribute:HypothesisEntry.summary:type=str",
+      "maid_runner/core/outcome_enrichment.py:class:HypothesisEntry",
+      "maid_runner/core/outcome_enrichment.py:class:HypothesisEntry:kind=class",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:returns=EnrichmentRequest",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_from_dict",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_from_dict:arg=data:type=dict:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_from_dict:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_from_dict:returns=EnrichmentDigest",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_to_dict",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_to_dict:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_to_dict:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:enrichment_digest_to_dict:returns=dict",
+      "maid_runner/core/outcome_enrichment.py:function:render_digest_markdown",
+      "maid_runner/core/outcome_enrichment.py:function:render_digest_markdown:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:render_digest_markdown:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:render_digest_markdown:returns=str",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:returns=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_theme_map",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_theme_map:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_theme_map:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_theme_map:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_theme_map:returns=None",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_ignores_invalid_hypotheses",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_ignores_invalid_hypotheses:kind=test_function",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_ignores_invalid_hypotheses:returns=None",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_output_identical_with_and_without_hypotheses",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_output_identical_with_and_without_hypotheses:kind=test_function",
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py:test_theme_map_insights_output_identical_with_and_without_hypotheses:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_insights_ignores_hypotheses_cmd.py",
+      "tests/cli/test_recall_theme_map_cmd.py",
+      "tests/core/test_outcome_enrichment.py",
+      "tests/core/test_outcome_enrichment_quality.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_outcome_enrichment.py tests/core/test_outcome_enrichment_quality.py tests/cli/test_insights_ignores_hypotheses_cmd.py tests/cli/test_recall_theme_map_cmd.py"
+    ]
+  }
+}
