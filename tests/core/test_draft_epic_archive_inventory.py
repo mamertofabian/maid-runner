@@ -31,12 +31,21 @@ CONSUMED_EPICS = {
         "081-05-harden-enrichment-prompt-and-quality.manifest.yaml",
         "081-06-planner-prefers-theme-map-insights.manifest.yaml",
     ),
+    "083-00-close-outcome-enrichment-consumption-loop.epic.yaml": (
+        "083-01-report-stale-digest-on-learn.manifest.yaml",
+        "083-02-point-planner-at-digest-narrative.manifest.yaml",
+        "083-03-add-theme-aware-recall.manifest.yaml",
+        "083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
+        "083-05-feed-digest-into-self-improvement-audit.manifest.yaml",
+        "083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml",
+        "083-07-add-improvement-hypotheses-channel.manifest.yaml",
+        "083-08-align-recall-stale-digest-flag.manifest.yaml",
+    ),
 }
 
 LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
-    "083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
     "084-00-after-action-run-evaluation.epic.yaml",
 }
 
