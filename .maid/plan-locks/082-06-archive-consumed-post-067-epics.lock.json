@@ -1,0 +1,135 @@
+{
+  "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+  "manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+  "test_hashes": {
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256:7c6b18084ce2500b7839151138781bba34efac29a8334eaf47ee7d013d727391"
+  },
+  "created_at": "2026-07-03T05:21:55.702548+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:af00169fd755da36ff687a9af72d5f15a343f49f6906005448c6120cc0e24f87"
+      },
+      "revised_at": "2026-07-03T05:22:02.446039+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-06-archive-consumed-post-067-epics.manifest.yaml -> manifests/082-06-archive-consumed-post-067-epics.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:5d145c9839c5ee8ea5634c07fb022c7e02b5c86f8c90b688a11444f9cf80951b",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:af00169fd755da36ff687a9af72d5f15a343f49f6906005448c6120cc0e24f87"
+      },
+      "revised_at": "2026-07-03T05:29:06.860914+00:00",
+      "reason": "Format behavioral test with Black after promotion"
+    },
+    {
+      "prior_manifest_hash": "sha256:5d145c9839c5ee8ea5634c07fb022c7e02b5c86f8c90b688a11444f9cf80951b",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:2565e18f5a4070fe773f14e89328f2e49a9ef3956976a2c853c78091874ad776"
+      },
+      "revised_at": "2026-07-03T05:34:24.293500+00:00",
+      "reason": "Address implementation review by covering stale backlog prose"
+    },
+    {
+      "prior_manifest_hash": "sha256:c0f85809b36e4f9bbf590800ca25f946371c0ad61d6f9d315833e2a1b60eec06",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:195a71e59a5c2b4bdf4a6020d2bc53a043a0baf05ad2c03126a08b9c7608d391"
+      },
+      "revised_at": "2026-07-03T05:41:15.298960+00:00",
+      "reason": "Capture implementation outcome after ready review"
+    },
+    {
+      "prior_manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:195a71e59a5c2b4bdf4a6020d2bc53a043a0baf05ad2c03126a08b9c7608d391"
+      },
+      "revised_at": "2026-07-03T23:36:48.473630+00:00",
+      "reason": "Update live planning epic inventory for committed 083 outcome-enrichment loop epic"
+    },
+    {
+      "prior_manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:968a1caf3c4082b19aba3fd8eee0119d2dab62202a0d3493c168a3f10f48fa1a"
+      },
+      "revised_at": "2026-07-04T10:18:33.157052+00:00",
+      "reason": "Add 084 live planning epic to inventory allowlist"
+    },
+    {
+      "prior_manifest_hash": "sha256:9d76b26eccd2b73c8b9b2921214ed5957f51f37a99b76bc6546ee6b1a98ad1a0",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:bc41196c265d045f03a44dc1cc62dbf8d60044be1c5d3025c946cb712900f9aa"
+      },
+      "revised_at": "2026-07-05T03:42:57.996718+00:00",
+      "reason": "Refresh archived draft inventory test hash to match current tree before 2.20.0 release verification."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-03T05:34:27.615127+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        for phrase in stale_phrases:\n>           assert phrase not in backlog\nE           AssertionError: assert '067 plan lo...c file still' not in '# MAID Runn...promotion.\\n'\nE             \nE             '067 plan locks & r...ed, epic file still' is contained here:\nE               # MAID Runner Self-Improvement Backlog\nE               \nE               Audit date: 2026-07-02. Tree: `main` at v2.19.1 (`e5e24ca`), clean worktree.\nE               \nE               ## Purpose...\nE             \nE             ...Full output truncated (434 lines hidden), use '-vv' to show\n\ntests/core/test_draft_epic_archive_inventory.py:93: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_consumed_epic_drafts_are_archived_pointers_to_promoted_children\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale\n============================== 3 failed in 0.06s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml:attribute:manifest._archived_plan_lock_red_phase_epic",
+      "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml:attribute:manifest._archived_plan_lock_red_phase_epic:kind=attribute",
+      "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml:attribute:manifest._archived_plan_lock_red_phase_epic:of=manifest",
+      "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml:attribute:manifest._archived_plan_lock_red_phase_epic:type=draft epic",
+      "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml:attribute:manifest._archived_skills_outcome_learning_loop_epic",
+      "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml:attribute:manifest._archived_skills_outcome_learning_loop_epic:kind=attribute",
+      "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml:attribute:manifest._archived_skills_outcome_learning_loop_epic:of=manifest",
+      "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml:attribute:manifest._archived_skills_outcome_learning_loop_epic:type=draft epic",
+      "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml:attribute:manifest._archived_outcome_llm_enrichment_epic",
+      "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml:attribute:manifest._archived_outcome_llm_enrichment_epic:kind=attribute",
+      "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml:attribute:manifest._archived_outcome_llm_enrichment_epic:of=manifest",
+      "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml:attribute:manifest._archived_outcome_llm_enrichment_epic:type=draft epic",
+      "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
+      "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children:kind=test_function",
+      "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory",
+      "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory:kind=test_function",
+      "tests/core/test_draft_epic_archive_inventory.py:test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale",
+      "tests/core/test_draft_epic_archive_inventory.py:test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_draft_epic_archive_inventory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v",
+      "uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet",
+      "uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet",
+      "uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet",
+      "uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

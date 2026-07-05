@@ -1,0 +1,230 @@
+# draft-kind: child
+schema: "2"
+goal: "Record a structured, deterministic ContractDelta on every plan-lock revision — artifacts, files by section, and validate commands added/removed between the previously locked contract and the new manifest — so revision classification in maid evaluate rests on evidence instead of agent-authored reason strings"
+type: feature
+created: "2026-07-04T03:43:00Z"
+metadata:
+  epic: 084-00-after-action-run-evaluation
+  tags:
+    - run-evaluation
+    - plan-lock
+    - anti-gaming
+  priority: medium
+description: |
+  Plan-lock revision entries store prior hashes plus a free-text reason.
+  Hashes prove that the contract changed but not what changed, and the
+  reason string is authored by the agent being evaluated — the one input
+  an after-action evaluator must not trust. The lock file already
+  persists the locked contract (the `_manifest_contract` payload used by
+  contract-weakening checks), so the delta is computable at revise time
+  with data already in hand. Assumes 084-02 has landed (revise_plan_lock
+  already carries the agent parameter); if implemented out of order,
+  re-derive the signature without it and evolve later.
+
+  Pinned decisions (do not redesign):
+
+  1. `ContractDelta` is a frozen dataclass in
+     maid_runner/core/plan_lock.py with six tuple[str, ...] fields:
+     `artifacts_added`, `artifacts_removed` (declared-artifact identity
+     strings as used by the existing contract payload),
+     `files_added`, `files_removed` (section-qualified strings such as
+     "edit:maid_runner/core/foo.py", "create:tests/test_foo.py",
+     "read:docs/bar.md" — the section prefix is load-bearing: consumers
+     must be able to distinguish a dropped files.read entry, which is
+     neutral, from a dropped files.create artifact, which narrows the
+     contract), and `validate_commands_added`, `validate_commands_removed`
+     (normalized command strings). All fields sorted for determinism.
+
+  2. `compute_contract_delta(prior_contract, new_contract)` is a pure
+     function over two contract payload dicts of the shape already
+     persisted as `_manifest_contract`. It performs set differences only —
+     no reason parsing, no judgment, no policy. Classification policy
+     (strengthening/narrowing) belongs to 084-04, not here.
+
+  3. `revise_plan_lock` computes the delta between the persisted prior
+     contract and the new manifest's contract and stores it on the
+     appended revision entry; the lock's persisted contract then reflects
+     the new manifest as it does today. `PlanLockRevision` gains
+     `contract_delta: Optional[ContractDelta] = None`. When the prior
+     contract is unavailable (pre-067 grandfathered or externally edited
+     lock), the revision stores no delta — an honest gap that 084-04
+     reports as "unclassified", never a fabricated empty delta claiming
+     "no change".
+
+  4. Backward compatibility both ways: pre-delta lock files load with
+     contract_delta None on old revisions; delta payloads are additive
+     and advisory, excluded from all hashing and from
+     enforce_plan_locks/contract-weakening decisions (those keep their
+     existing live-manifest comparison semantics).
+
+  5. `maid plan status` text mode appends a one-line per-revision delta
+     summary when a delta is present (counts only, e.g.
+     "+2 artifacts, -1 validate command"); --json includes the full
+     contract_delta object or null per revision.
+
+  Planned behavioral tests (red phase pending — handoff stops before
+  tests): tests/core/test_contract_delta.py exercises
+  compute_contract_delta directly: added and removed artifacts;
+  section-qualified file adds/removes distinguishing read from edit and
+  create; validate command adds/removes; identical contracts yielding an
+  all-empty delta; deterministic sorted output. It exercises
+  revise_plan_lock end-to-end on a temp project: a revision that adds a
+  test artifact stores a delta with that artifact in artifacts_added and
+  nothing removed; a revision that deletes a validate command stores it
+  in validate_commands_removed; a revise against a lock whose persisted
+  prior contract is missing stores contract_delta None.
+  tests/cli/test_plan_status_contract_delta_cmd.py asserts plan status
+  --json exposes the stored delta (and null for pre-delta revisions) and
+  text mode prints the counts line only when a delta exists.
+temptations:
+  - risk: "Do not classify deltas as good or bad here, and do not parse revision reason strings to enrich the delta."
+    instead: "Store pure set differences; classification policy lives in 084-04 where it is testable against stored evidence."
+  - risk: "Do not fabricate an empty delta when the prior contract is unavailable — an empty delta asserts 'nothing changed', which is a claim, not evidence."
+    instead: "Store contract_delta null for that revision and let the evaluator report it as unclassified."
+  - risk: "Do not flatten file changes into bare paths, losing the section distinction between read, edit, and create."
+    instead: "Emit section-qualified strings and test that a read-only drop is distinguishable from a create drop."
+  - risk: "Do not let delta payloads leak into manifest hashing, test hashing, or enforce_plan_locks decisions."
+    instead: "Keep deltas advisory revision metadata and add a regression test that locks with and without deltas verify identically."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: class
+          name: ContractDelta
+          description: "Frozen dataclass: deterministic set-difference between two locked manifest contracts, stored per revision as advisory evidence."
+        - kind: attribute
+          name: artifacts_added
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Declared-artifact identities present in the new contract but not the prior, sorted."
+        - kind: attribute
+          name: artifacts_removed
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Declared-artifact identities present in the prior contract but not the new, sorted."
+        - kind: attribute
+          name: files_added
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Section-qualified file entries added, e.g. 'edit:path', 'create:path', 'read:path', sorted."
+        - kind: attribute
+          name: files_removed
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Section-qualified file entries removed, sorted; the section prefix lets consumers treat read drops as neutral."
+        - kind: attribute
+          name: validate_commands_added
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Normalized validate commands added, sorted."
+        - kind: attribute
+          name: validate_commands_removed
+          of: ContractDelta
+          type: tuple[str, ...]
+          description: "Normalized validate commands removed, sorted."
+        - kind: attribute
+          name: contract_delta
+          of: PlanLockRevision
+          type: Optional[ContractDelta]
+          description: "The stored delta for this revision; None for pre-delta revisions and when the prior contract was unavailable."
+        - kind: function
+          name: compute_contract_delta
+          args:
+            - name: prior_contract
+              type: dict
+            - name: new_contract
+              type: dict
+          returns: ContractDelta
+          description: "Pure sorted set-difference over two persisted contract payloads; no reason parsing, no policy."
+        - kind: function
+          name: revise_plan_lock
+          args:
+            - name: existing
+              type: PlanLock
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: reason
+              type: str
+            - name: agent
+              type: Optional[AgentProvenance]
+              default: "None"
+            - name: prior_contract
+              type: Optional[dict]
+              default: "None"
+          returns: PlanLock
+          description: "Additionally computes and stores the contract delta on the appended revision when the persisted prior contract is provided; stores None when it is unavailable."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Passes the lock file's persisted prior contract into revise_plan_lock so the stored delta reflects exactly what the revision changed."
+        - kind: function
+          name: cmd_plan_status
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Text mode prints a per-revision delta counts line when present; --json includes contract_delta objects or null per revision."
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/types.py
+    - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+    - manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml
+  create:
+    - path: tests/core/test_contract_delta.py
+      artifacts:
+        - kind: test_function
+          name: test_compute_contract_delta_reports_artifact_changes_sorted
+          args: []
+          returns: None
+          description: "Added and removed artifact identities appear in the correct fields, sorted deterministically."
+        - kind: test_function
+          name: test_compute_contract_delta_qualifies_file_changes_by_section
+          args: []
+          returns: None
+          description: "read/edit/create changes emit section-qualified strings so a read drop is distinguishable from a create drop."
+        - kind: test_function
+          name: test_compute_contract_delta_reports_validate_command_changes
+          args: []
+          returns: None
+          description: "Added and removed validate commands are captured as normalized strings."
+        - kind: test_function
+          name: test_compute_contract_delta_identical_contracts_yield_empty_delta
+          args: []
+          returns: None
+          description: "Two equal contract payloads produce all-empty tuples."
+        - kind: test_function
+          name: test_revise_plan_lock_stores_delta_for_contract_change
+          args: []
+          returns: None
+          description: "A real revise on a temp project that adds a test artifact stores that identity in artifacts_added on the new revision entry."
+        - kind: test_function
+          name: test_revise_plan_lock_stores_none_when_prior_contract_unavailable
+          args: []
+          returns: None
+          description: "Revising without a persisted prior contract stores contract_delta None rather than an empty delta."
+        - kind: test_function
+          name: test_locks_with_and_without_deltas_verify_identically
+          args: []
+          returns: None
+          description: "Delta presence does not change enforce_plan_locks results, manifest hash checks, or red-evidence validity."
+    - path: tests/cli/test_plan_status_contract_delta_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_plan_status_json_exposes_contract_delta_per_revision
+          args: []
+          returns: None
+          description: "--json includes the stored delta object for delta-bearing revisions and null for pre-delta revisions."
+        - kind: test_function
+          name: test_plan_status_text_prints_delta_counts_only_when_present
+          args: []
+          returns: None
+          description: "Text mode appends the counts line for revisions with deltas and stays unchanged for revisions without."
+validate:
+  - uv run python -m pytest -q tests/core/test_contract_delta.py tests/cli/test_plan_status_contract_delta_cmd.py

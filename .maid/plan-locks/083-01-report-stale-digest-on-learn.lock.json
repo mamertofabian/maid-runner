@@ -1,0 +1,116 @@
+{
+  "manifest_path": "manifests/083-01-report-stale-digest-on-learn.manifest.yaml",
+  "manifest_hash": "sha256:34f7d2d635b83ce6b9305c258710b9c45e445a59faeec576750cb41d47307d3c",
+  "test_hashes": {
+    "tests/cli/test_learn_digest_freshness_cmd.py": "sha256:969a620a752adbfd0eefe099477f9f2b28e6c071a606b85a2d412ca693857644",
+    "tests/core/test_outcome_enrichment_freshness.py": "sha256:f991145296db67bcbbe1af352612cdc1c04c01461d6cf5c80f7c08615012b0d8"
+  },
+  "created_at": "2026-07-04T09:03:44.541498+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:ddaa030fcd6c3086bf64c61b723efb1dc120cc784baf39813d92a9ba8af481d8",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:4483b460c293e4a76f819f30660ac11fa6a45ecdc9258e7d8788d9281fb802ca",
+        "tests/cli/test_learn_digest_freshness_cmd.py": "sha256:969a620a752adbfd0eefe099477f9f2b28e6c071a606b85a2d412ca693857644"
+      },
+      "revised_at": "2026-07-04T09:03:47.878546+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-01-report-stale-digest-on-learn.manifest.yaml -> manifests/083-01-report-stale-digest-on-learn.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:78f39968faf9e7304aa1a204683c56348f9f298ce8673b8fb6c614eb85cd87b8",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:4483b460c293e4a76f819f30660ac11fa6a45ecdc9258e7d8788d9281fb802ca",
+        "tests/cli/test_learn_digest_freshness_cmd.py": "sha256:969a620a752adbfd0eefe099477f9f2b28e6c071a606b85a2d412ca693857644"
+      },
+      "revised_at": "2026-07-04T09:06:23.843622+00:00",
+      "reason": "Move new core freshness tests to a dedicated file so prior locked enrichment manifests keep their behavioral-test hashes"
+    },
+    {
+      "prior_manifest_hash": "sha256:5829c6f1f35a49d987d2f00aa2a0e5597c1b7c7ba8221402641c55302d97b9b8",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_enrichment.py": "sha256:634d5c4bff34ffe3225ad5a88687813fb90fab03ca31a377b164d98c1ea4d9f0",
+        "tests/cli/test_learn_digest_freshness_cmd.py": "sha256:969a620a752adbfd0eefe099477f9f2b28e6c071a606b85a2d412ca693857644",
+        "tests/core/test_outcome_enrichment_freshness.py": "sha256:f991145296db67bcbbe1af352612cdc1c04c01461d6cf5c80f7c08615012b0d8"
+      },
+      "revised_at": "2026-07-04T09:07:18.917525+00:00",
+      "reason": "Remove obsolete read-only historical test dependency after moving freshness tests to a dedicated file"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T09:06:24.209706+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_learn_digest_freshness_cmd.py tests/core/test_outcome_enrichment_freshness.py",
+        "exit_code": 1,
+        "output_tail": "\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-477/test_check_digest_freshness_ne0')\n\n    def test_check_digest_freshness_never_raises_on_unreadable_input(tmp_path) -> None:\n>       from maid_runner.core.outcome_enrichment import check_digest_freshness\nE       ImportError: cannot import name 'check_digest_freshness' from 'maid_runner.core.outcome_enrichment' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/outcome_enrichment.py)\n\ntests/core/test_outcome_enrichment_freshness.py:88: ImportError\n=========================== short test summary info ============================\nFAILED tests/cli/test_learn_digest_freshness_cmd.py::test_learn_without_digest_is_silent_and_reports_missing_in_json\nFAILED tests/cli/test_learn_digest_freshness_cmd.py::test_learn_with_matching_digest_reports_fresh\nFAILED tests/cli/test_learn_digest_freshness_cmd.py::test_learn_reports_stale_digest_after_index_changes\nFAILED tests/cli/test_learn_digest_freshness_cmd.py::test_learn_reports_malformed_digest_without_failing_or_mutating_it\nFAILED tests/cli/test_learn_digest_freshness_cmd.py::test_learn_quiet_suppresses_digest_advisory_text_only\nFAILED tests/core/test_outcome_enrichment_freshness.py::test_check_digest_freshness_reports_missing_digest\nFAILED tests/core/test_outcome_enrichment_freshness.py::test_check_digest_freshness_reports_fresh_digest\nFAILED tests/core/test_outcome_enrichment_freshness.py::test_check_digest_freshness_reports_stale_digest\nFAILED tests/core/test_outcome_enrichment_freshness.py::test_check_digest_freshness_reports_malformed_digest_without_raising\nFAILED tests/core/test_outcome_enrichment_freshness.py::test_check_digest_freshness_never_raises_on_unreadable_input\n10 failed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/learn.py:function:cmd_learn",
+      "maid_runner/cli/commands/learn.py:function:cmd_learn:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/learn.py:function:cmd_learn:kind=function",
+      "maid_runner/cli/commands/learn.py:function:cmd_learn:returns=int",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.detail",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.detail:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.detail:of=DigestFreshness",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.detail:type=str",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.digest_path",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.digest_path:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.digest_path:of=DigestFreshness",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.digest_path:type=str",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.status",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.status:kind=attribute",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.status:of=DigestFreshness",
+      "maid_runner/core/outcome_enrichment.py:attribute:DigestFreshness.status:type=str",
+      "maid_runner/core/outcome_enrichment.py:class:DigestFreshness",
+      "maid_runner/core/outcome_enrichment.py:class:DigestFreshness:kind=class",
+      "maid_runner/core/outcome_enrichment.py:function:check_digest_freshness",
+      "maid_runner/core/outcome_enrichment.py:function:check_digest_freshness:arg=digest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:check_digest_freshness:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:check_digest_freshness:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:check_digest_freshness:returns=DigestFreshness",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_quiet_suppresses_digest_advisory_text_only",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_quiet_suppresses_digest_advisory_text_only:kind=test_function",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_quiet_suppresses_digest_advisory_text_only:returns=None",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_malformed_digest_without_failing_or_mutating_it",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_malformed_digest_without_failing_or_mutating_it:kind=test_function",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_malformed_digest_without_failing_or_mutating_it:returns=None",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_stale_digest_after_index_changes",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_stale_digest_after_index_changes:kind=test_function",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_reports_stale_digest_after_index_changes:returns=None",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_with_matching_digest_reports_fresh",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_with_matching_digest_reports_fresh:kind=test_function",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_with_matching_digest_reports_fresh:returns=None",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_without_digest_is_silent_and_reports_missing_in_json",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_without_digest_is_silent_and_reports_missing_in_json:kind=test_function",
+      "tests/cli/test_learn_digest_freshness_cmd.py:test_learn_without_digest_is_silent_and_reports_missing_in_json:returns=None",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_never_raises_on_unreadable_input",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_never_raises_on_unreadable_input:kind=test_function",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_never_raises_on_unreadable_input:returns=None",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_fresh_digest",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_fresh_digest:kind=test_function",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_fresh_digest:returns=None",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_malformed_digest_without_raising",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_malformed_digest_without_raising:kind=test_function",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_malformed_digest_without_raising:returns=None",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_missing_digest",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_missing_digest:kind=test_function",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_missing_digest:returns=None",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_stale_digest",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_stale_digest:kind=test_function",
+      "tests/core/test_outcome_enrichment_freshness.py:test_check_digest_freshness_reports_stale_digest:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_learn_digest_freshness_cmd.py",
+      "tests/core/test_outcome_enrichment_freshness.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_learn_digest_freshness_cmd.py tests/core/test_outcome_enrichment_freshness.py"
+    ]
+  }
+}

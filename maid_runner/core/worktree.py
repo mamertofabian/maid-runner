@@ -23,6 +23,14 @@ class ChangedScopeBaseline:
     commitish: str
 
 
+@dataclass(frozen=True)
+class ChangedScopeDecision:
+    """Result of changed-scope evaluation for verify."""
+
+    errors: tuple[ValidationError, ...] = ()
+    skip_reason: Optional[str] = None
+
+
 class _ChangedScopeBaselineError(RuntimeError):
     def __init__(
         self,
@@ -200,6 +208,45 @@ def validate_changed_scope(
         ]
 
     return _scope_errors_for_paths(paths, chain, include_tests=include_tests)
+
+
+def evaluate_changed_scope(
+    project_root: Union[str, Path],
+    chain: ManifestChain,
+    since: Optional[str] = None,
+    base_ref: Optional[str] = None,
+    include_tests: bool = False,
+    allow_clean_tree_skip: bool = False,
+) -> ChangedScopeDecision:
+    """Evaluate changed scope with verify's clean-tree skip policy."""
+    try:
+        baseline = resolve_changed_scope_baseline(chain, since=since, base_ref=base_ref)
+        paths = changed_files_since(project_root, baseline)
+    except _ChangedScopeBaselineError as exc:
+        if (
+            allow_clean_tree_skip
+            and exc.error.code == ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED
+        ):
+            try:
+                if not changed_files(project_root):
+                    return ChangedScopeDecision(skip_reason="no baseline; clean tree")
+            except RuntimeError:
+                pass
+        return ChangedScopeDecision(errors=(exc.error,))
+    except RuntimeError as exc:
+        return ChangedScopeDecision(
+            errors=(
+                ValidationError(
+                    code=ErrorCode.FILE_READ_ERROR,
+                    message=str(exc),
+                    severity=Severity.ERROR,
+                ),
+            )
+        )
+
+    return ChangedScopeDecision(
+        errors=tuple(_scope_errors_for_paths(paths, chain, include_tests=include_tests))
+    )
 
 
 def validate_worktree_scope(

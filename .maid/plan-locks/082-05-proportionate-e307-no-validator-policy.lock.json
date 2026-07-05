@@ -1,0 +1,122 @@
+{
+  "manifest_path": "manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml",
+  "manifest_hash": "sha256:b9c7caa6fec9dfb5964db417a3f8816ac51fb983e75f76a04eb97e8e1e3a911e",
+  "test_hashes": {
+    "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68"
+  },
+  "created_at": "2026-07-03T02:19:01.634339+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c78c1b8bb11d66e368d9b51071da6a6a5a4a15022def45aeecfc4c6fc30cc6d2",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256:f27a147b24e64d3b2ff1e42319f7a2c33f3bc8f3959344411711b2ce57a96f6c"
+      },
+      "revised_at": "2026-07-03T02:19:08.698933+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-05-proportionate-e307-no-validator-policy.manifest.yaml -> manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:e996b675d18ffe38adea27f8fd0d0615d0f5fc5d454243b146b0c6a5cd14a416",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256:f27a147b24e64d3b2ff1e42319f7a2c33f3bc8f3959344411711b2ce57a96f6c"
+      },
+      "revised_at": "2026-07-03T02:22:15.592852+00:00",
+      "reason": "Correct E307 validation fixture to exercise implementation validator path"
+    },
+    {
+      "prior_manifest_hash": "sha256:e996b675d18ffe38adea27f8fd0d0615d0f5fc5d454243b146b0c6a5cd14a416",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256:e66a8c378df4046defafe38e3bb6fbf66289b0b7e22e20c985343e6760228b0d"
+      },
+      "revised_at": "2026-07-03T02:22:56.536470+00:00",
+      "reason": "Format locked behavioral test with Black"
+    },
+    {
+      "prior_manifest_hash": "sha256:e996b675d18ffe38adea27f8fd0d0615d0f5fc5d454243b146b0c6a5cd14a416",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256:770ec37b7c9d59ccb76813fb94d80ca2bc3af36b68d046f4b227d23205877518"
+      },
+      "revised_at": "2026-07-03T02:32:02.015013+00:00",
+      "reason": "Add info diagnostic verify policy regression"
+    },
+    {
+      "prior_manifest_hash": "sha256:3e106ac2b055791807835176687e4bb17330bf33dba3bd02044f8ae9759f0d83",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68"
+      },
+      "revised_at": "2026-07-03T02:38:01.529933+00:00",
+      "reason": "Capture implementation outcome"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-03T02:32:05.117812+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_e307_proportionate_policy.py -v",
+        "exit_code": 1,
+        "output_tail": "            severity=Severity.INFO,\n            location=Location(file=\"tests/test_app.py\"),\n        )\n    \n        summary = build_verify_summary(_verification_result([info]))\n    \n>       assert summary.raw_info_count == 1\n               ^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'VerifySummary' object has no attribute 'raw_info_count'\n\ntests/core/test_e307_proportionate_policy.py:252: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_e307_proportionate_policy.py::test_no_validator_severity_downgrades_recognized_non_code_extensions\nFAILED tests/core/test_e307_proportionate_policy.py::test_no_validator_severity_keeps_warning_for_source_like_extensions\nFAILED tests/core/test_e307_proportionate_policy.py::test_validation_emits_info_e307_for_declared_non_code_file\nFAILED tests/core/test_e307_proportionate_policy.py::test_build_summary_aggregates_info_diagnostics_by_code\nFAILED tests/core/test_e307_proportionate_policy.py::test_summary_renders_single_proportionate_info_line\nFAILED tests/core/test_e307_proportionate_policy.py::test_per_file_info_records_survive_in_json_outputs\nFAILED tests/core/test_e307_proportionate_policy.py::test_info_diagnostics_do_not_block_verify_warning_policy\n============================== 7 failed in 0.14s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=json_mode:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:returns=str",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:arg=path:type=str:default=None",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:kind=function",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:returns=Severity",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.info_groups",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.info_groups:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.info_groups:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.info_groups:type=tuple[VerifyWarningGroup, ...]",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_info_count",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_info_count:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_info_count:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.raw_info_count:type=int",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "tests/core/test_e307_proportionate_policy.py:test_build_summary_aggregates_info_diagnostics_by_code",
+      "tests/core/test_e307_proportionate_policy.py:test_build_summary_aggregates_info_diagnostics_by_code:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_info_diagnostics_do_not_block_verify_warning_policy",
+      "tests/core/test_e307_proportionate_policy.py:test_info_diagnostics_do_not_block_verify_warning_policy:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_no_validator_severity_downgrades_recognized_non_code_extensions",
+      "tests/core/test_e307_proportionate_policy.py:test_no_validator_severity_downgrades_recognized_non_code_extensions:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_no_validator_severity_keeps_warning_for_source_like_extensions",
+      "tests/core/test_e307_proportionate_policy.py:test_no_validator_severity_keeps_warning_for_source_like_extensions:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_per_file_info_records_survive_in_json_outputs",
+      "tests/core/test_e307_proportionate_policy.py:test_per_file_info_records_survive_in_json_outputs:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_summary_renders_single_proportionate_info_line",
+      "tests/core/test_e307_proportionate_policy.py:test_summary_renders_single_proportionate_info_line:kind=test_function",
+      "tests/core/test_e307_proportionate_policy.py:test_validation_emits_info_e307_for_declared_non_code_file",
+      "tests/core/test_e307_proportionate_policy.py:test_validation_emits_info_e307_for_declared_non_code_file:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_e307_proportionate_policy.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_e307_proportionate_policy.py -v",
+      "uv run maid validate manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

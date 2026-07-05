@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 
+from maid_runner.core.outcome_enrichment import check_digest_freshness
 from maid_runner.core.outcomes import (
     _build_outcome_index_with_stats,
     read_outcome_index,
@@ -33,10 +34,16 @@ def cmd_learn(args: argparse.Namespace) -> int:
         return 2
 
     indexed = len(index.records)
+    digest_path = output_path.with_name("outcomes-digest.json")
+    digest_freshness = check_digest_freshness(index, digest_path)
     if getattr(args, "json", False):
         print(
             json.dumps(
                 {
+                    "enrichment_digest": {
+                        "path": digest_freshness.digest_path,
+                        "status": digest_freshness.status,
+                    },
                     "generated_from": index.generated_from,
                     "indexed": indexed,
                     "output": str(output_path),
@@ -50,4 +57,12 @@ def cmd_learn(args: argparse.Namespace) -> int:
             f"Outcome index refreshed: indexed {indexed}, skipped {skipped}, "
             f"output {output_path}"
         )
+        if digest_freshness.status in {"stale", "malformed"}:
+            print(
+                "Advisory: "
+                f"{digest_freshness.status} enrichment digest at "
+                f"{digest_freshness.digest_path}: {digest_freshness.detail} "
+                "Re-run the maid-outcome-enrich skill to refresh it.",
+                file=sys.stderr,
+            )
     return 0

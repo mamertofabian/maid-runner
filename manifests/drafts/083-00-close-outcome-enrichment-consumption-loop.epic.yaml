@@ -1,0 +1,44 @@
+# archive-kind: consumed-draft-epic
+schema: "2"
+goal: "Archive consumed Outcome enrichment consumption-loop epic"
+type: refactor
+created: "2026-07-03T23:10:00Z"
+metadata:
+  status: archived
+  tags:
+    - outcome-records
+    - insights
+    - recall
+    - learning
+    - llm-enrichment
+    - agent-skills
+    - maid-workflow
+    - archive
+  priority: low
+description: |
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `083-01` through `083-08`.
+
+  The file remains in `manifests/drafts/` only as a historical pointer for
+  agents and manifests that still read or mention the original roadmap path.
+  Do not promote or implement this archived epic.
+files:
+  edit:
+    - path: manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_outcome_enrichment_consumption_loop_epic
+          of: manifest
+          type: draft epic
+          description: "Historical pointer for promoted child manifests 083-01 through 083-08."
+  read:
+    - manifests/083-01-report-stale-digest-on-learn.manifest.yaml
+    - manifests/083-02-point-planner-at-digest-narrative.manifest.yaml
+    - manifests/083-03-add-theme-aware-recall.manifest.yaml
+    - manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml
+    - manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml
+    - manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml
+    - manifests/083-07-add-improvement-hypotheses-channel.manifest.yaml
+    - manifests/083-08-align-recall-stale-digest-flag.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml --mode schema --quiet

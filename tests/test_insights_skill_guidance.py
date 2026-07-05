@@ -105,6 +105,7 @@ def test_auditor_insights_guidance_uses_only_registered_options():
         "--manifest-dir",
         "--project-root",
         "--allow-stale-index",
+        "--allow-stale-digest",
         "--theme-map",
         "--limit",
         "--json",

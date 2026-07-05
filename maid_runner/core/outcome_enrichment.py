@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 import json
+from math import ceil
 from pathlib import Path
 from typing import Union
 
@@ -37,6 +38,12 @@ class DigestEntry:
 
 
 @dataclass(frozen=True)
+class HypothesisEntry:
+    summary: str
+    source_lessons: tuple[LessonRef, ...]
+
+
+@dataclass(frozen=True)
 class EnrichmentRequest:
     system_prompt: str
     user_prompt: str
@@ -51,12 +58,20 @@ class EnrichmentDigest:
     advisory: bool
     themes: tuple[EnrichmentTheme, ...]
     digest_entries: tuple[DigestEntry, ...]
+    improvement_hypotheses: tuple[HypothesisEntry, ...] = ()
 
 
 @dataclass(frozen=True)
 class DigestQualityWarning:
     code: str
     message: str
+
+
+@dataclass(frozen=True)
+class DigestFreshness:
+    status: str
+    digest_path: str
+    detail: str
 
 
 def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
@@ -73,6 +88,7 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
         for lesson_type in lesson_types
     ]
     manifest_slugs = tuple(sorted({record.manifest_slug for record in records}))
+    theme_band = _suggested_theme_band(len(lesson_types))
     corpus = []
     for record in records:
         lesson_payload = [
@@ -98,7 +114,8 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
             "cluster and summarize only the provided MAID Outcome lessons. "
             "Do not invent manifests, lesson_types, themes, source lessons, "
             "private context, or validation evidence. Map every lesson_type "
-            "into a small set of about 8-12 canonical themes, explicitly "
+            f"into a small set of about {theme_band[0]}-{theme_band[1]} "
+            "canonical themes, explicitly "
             "merging near-synonym families such as validation-* lessons into "
             "multi-member themes with multiple member_lesson_types. Aim for "
             "full lesson_type coverage. Each recurring digest_entries item "
@@ -106,7 +123,11 @@ def build_enrichment_request(index: OutcomeIndex) -> EnrichmentRequest:
             "distinct manifests. Emit exactly one JSON object with "
             "schema_version, source_generated_from, advisory, themes "
             "(canonical_name, member_lesson_types, summary, source_manifests), "
-            "and digest_entries (theme, summary, source_lessons)."
+            "digest_entries (theme, summary, source_lessons), and optionally "
+            "zero to five improvement_hypotheses (summary, source_lessons), "
+            "each grounded in at least two cited lessons from at least two "
+            "distinct manifests. Propose nothing when the lessons do not "
+            "support a concrete suggestion."
         ),
         user_prompt=json.dumps(
             {
@@ -201,6 +222,22 @@ def validate_enrichment_digest(
     digest: EnrichmentDigest,
     index: OutcomeIndex,
 ) -> None:
+    _validate_enrichment_digest(digest, index, validate_hypotheses=True)
+
+
+def validate_enrichment_theme_map(
+    digest: EnrichmentDigest,
+    index: OutcomeIndex,
+) -> None:
+    _validate_enrichment_digest(digest, index, validate_hypotheses=False)
+
+
+def _validate_enrichment_digest(
+    digest: EnrichmentDigest,
+    index: OutcomeIndex,
+    *,
+    validate_hypotheses: bool,
+) -> None:
     if digest.schema_version != _DIGEST_SCHEMA_VERSION:
         raise ValueError(
             f"unsupported enrichment schema_version {digest.schema_version!r}"
@@ -220,6 +257,8 @@ def validate_enrichment_digest(
     for theme in digest.themes:
         if not theme.canonical_name.strip():
             raise ValueError("theme canonical_name must not be empty")
+        if not theme.summary.strip():
+            raise ValueError("theme summary must not be empty")
         for lesson_type in theme.member_lesson_types:
             if lesson_type not in lesson_types:
                 raise ValueError(f"unknown lesson_type {lesson_type!r}")
@@ -244,6 +283,8 @@ def validate_enrichment_digest(
                 )
 
     for entry in digest.digest_entries:
+        if not entry.summary.strip():
+            raise ValueError("digest entry summary must not be empty")
         if entry.theme not in declared_themes:
             raise ValueError(f"undeclared digest entry theme {entry.theme!r}")
         for source in entry.source_lessons:
@@ -262,17 +303,32 @@ def validate_enrichment_digest(
                     f"{expected_theme!r}, not {entry.theme!r}"
                 )
 
+    if validate_hypotheses:
+        for hypothesis in digest.improvement_hypotheses:
+            if not hypothesis.summary.strip():
+                raise ValueError("hypothesis summary must not be empty")
+            if len(hypothesis.source_lessons) < 2:
+                raise ValueError(
+                    "improvement hypothesis must cite at least two source lessons"
+                )
+            if len({source.manifest_slug for source in hypothesis.source_lessons}) < 2:
+                raise ValueError(
+                    "improvement hypothesis must cite at least two distinct manifests"
+                )
+            for source in hypothesis.source_lessons:
+                if (source.manifest_slug, source.lesson_type) not in lesson_pairs:
+                    raise ValueError(
+                        f"source lesson {source.manifest_slug!r}:"
+                        f"{source.lesson_type!r} does not co-occur in the index"
+                    )
+
 
 def apply_theme_map(
     index: OutcomeIndex,
     digest: EnrichmentDigest,
 ) -> "tuple[OutcomeInsightGroup, ...]":
-    validate_enrichment_digest(digest, index)
-    theme_by_lesson_type = {
-        lesson_type: theme.canonical_name
-        for theme in digest.themes
-        for lesson_type in theme.member_lesson_types
-    }
+    validate_enrichment_theme_map(digest, index)
+    theme_by_lesson_type = theme_map_from_digest(digest)
     grouped: dict[str, dict[str, set[str]]] = {}
     for record in active_unique_records(index):
         record_lesson_types = {lesson.lesson_type for lesson in record.lessons}
@@ -305,6 +361,14 @@ def apply_theme_map(
     return tuple(groups)
 
 
+def theme_map_from_digest(digest: EnrichmentDigest) -> dict[str, str]:
+    return {
+        lesson_type: theme.canonical_name
+        for theme in digest.themes
+        for lesson_type in theme.member_lesson_types
+    }
+
+
 def render_digest_markdown(digest: EnrichmentDigest) -> str:
     lines = [
         "# Outcome Enrichment Digest",
@@ -335,6 +399,23 @@ def render_digest_markdown(digest: EnrichmentDigest) -> str:
             for source in entry.source_lessons
         )
         lines.append(f"- {entry.theme}: {entry.summary} ({sources})")
+    if digest.improvement_hypotheses:
+        lines.extend(
+            [
+                "",
+                "## Improvement Hypotheses (advisory)",
+                (
+                    "These are model-generated suggestions grounded in past "
+                    "lessons, not findings, commitments, or backlog items."
+                ),
+            ]
+        )
+        for hypothesis in digest.improvement_hypotheses:
+            sources = ", ".join(
+                f"{source.manifest_slug}:{source.lesson_type}"
+                for source in hypothesis.source_lessons
+            )
+            lines.append(f"- {hypothesis.summary} ({sources})")
     return "\n".join(lines) + "\n"
 
 
@@ -342,8 +423,48 @@ def digest_is_stale(digest: EnrichmentDigest, index: OutcomeIndex) -> bool:
     return digest.source_generated_from != index.generated_from
 
 
+def check_digest_freshness(
+    index: OutcomeIndex,
+    digest_path: Union[str, Path],
+) -> DigestFreshness:
+    path = Path(digest_path)
+    display_path = str(path)
+    try:
+        if not path.exists():
+            return DigestFreshness(
+                status="missing",
+                digest_path=display_path,
+                detail=f"Enrichment digest not found at {display_path}.",
+            )
+        digest = read_enrichment_digest(path)
+        if digest_is_stale(digest, index):
+            return DigestFreshness(
+                status="stale",
+                digest_path=display_path,
+                detail=(
+                    "Digest source_generated_from "
+                    f"{digest.source_generated_from!r} does not match refreshed "
+                    f"Outcome index generated_from {index.generated_from!r}."
+                ),
+            )
+        return DigestFreshness(
+            status="fresh",
+            digest_path=display_path,
+            detail=(
+                "Digest source_generated_from matches refreshed Outcome index "
+                f"generated_from {index.generated_from!r}."
+            ),
+        )
+    except Exception as exc:
+        return DigestFreshness(
+            status="malformed",
+            digest_path=display_path,
+            detail=str(exc),
+        )
+
+
 def enrichment_digest_to_dict(digest: EnrichmentDigest) -> dict:
-    return {
+    data = {
         "advisory": digest.advisory,
         "digest_entries": [
             {
@@ -371,6 +492,21 @@ def enrichment_digest_to_dict(digest: EnrichmentDigest) -> dict:
             for theme in digest.themes
         ],
     }
+    if digest.improvement_hypotheses:
+        data["improvement_hypotheses"] = [
+            {
+                "source_lessons": [
+                    {
+                        "lesson_type": source.lesson_type,
+                        "manifest_slug": source.manifest_slug,
+                    }
+                    for source in hypothesis.source_lessons
+                ],
+                "summary": hypothesis.summary,
+            }
+            for hypothesis in digest.improvement_hypotheses
+        ]
+    return data
 
 
 def enrichment_digest_from_dict(data: dict) -> EnrichmentDigest:
@@ -403,6 +539,25 @@ def enrichment_digest_from_dict(data: dict) -> EnrichmentDigest:
             )
             for entry in _expect_object_list(data, "digest_entries")
         ),
+        improvement_hypotheses=tuple(
+            HypothesisEntry(
+                summary=_expect_str(hypothesis, "summary"),
+                source_lessons=tuple(
+                    LessonRef(
+                        manifest_slug=_expect_str(source, "manifest_slug"),
+                        lesson_type=_expect_str(source, "lesson_type"),
+                    )
+                    for source in _expect_nested_object_list(
+                        hypothesis,
+                        "source_lessons",
+                    )
+                ),
+            )
+            for hypothesis in _expect_optional_object_list(
+                data,
+                "improvement_hypotheses",
+            )
+        ),
     )
 
 
@@ -433,6 +588,12 @@ _MAX_SINGLETON_THEME_SHARE = 0.50
 _MIN_THEME_COUNT_FOR_SINGLETON_WARNING = 2
 _MIN_ENTRY_SOURCE_LESSONS = 2
 _MIN_ENTRY_SOURCE_MANIFESTS = 2
+
+
+def _suggested_theme_band(lesson_type_count: int) -> tuple[int, int]:
+    lower = max(2, min(8, ceil(lesson_type_count / 8)))
+    upper = max(3, min(12, ceil(lesson_type_count / 6)))
+    return lower, upper
 
 
 def _lesson_pairs(index: OutcomeIndex) -> set[tuple[str, str]]:
@@ -469,6 +630,12 @@ def _expect_object_list(data: dict, key: str) -> list[dict]:
     if not all(isinstance(item, dict) for item in values):
         raise ValueError(f"{key} must contain objects")
     return values
+
+
+def _expect_optional_object_list(data: dict, key: str) -> list[dict]:
+    if key not in data:
+        return []
+    return _expect_object_list(data, key)
 
 
 def _expect_nested_object_list(data: dict, key: str) -> list[dict]:

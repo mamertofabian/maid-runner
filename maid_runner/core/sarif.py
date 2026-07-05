@@ -44,24 +44,27 @@ def build_sarif_report(
         if code in rules_by_code
     ]
 
+    run: dict = {
+        "tool": {
+            "driver": {
+                "name": "maid-runner",
+                "semanticVersion": __version__,
+                "rules": rules,
+            }
+        },
+        "results": [_sarif_result(diagnostic) for diagnostic in diagnostics],
+    }
+    skipped_stages = _skipped_stages_from_result(result)
+    if skipped_stages:
+        run["properties"] = {"skippedStages": skipped_stages}
+
     return {
         "$schema": (
             "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/schemas/"
             "sarif-schema-2.1.0.json"
         ),
         "version": "2.1.0",
-        "runs": [
-            {
-                "tool": {
-                    "driver": {
-                        "name": "maid-runner",
-                        "semanticVersion": __version__,
-                        "rules": rules,
-                    }
-                },
-                "results": [_sarif_result(diagnostic) for diagnostic in diagnostics],
-            }
-        ],
+        "runs": [run],
     }
 
 
@@ -102,6 +105,18 @@ def _diagnostics_from_result(
         return diagnostics
 
     return [*result.errors, *result.warnings]
+
+
+def _skipped_stages_from_result(
+    result: ValidationResult | BatchValidationResult | VerificationResult,
+) -> list[dict[str, str]]:
+    if not isinstance(result, VerificationResult):
+        return []
+    return [
+        {"name": stage.name, "reason": stage.skip_reason}
+        for stage in result.stages
+        if stage.skip_reason
+    ]
 
 
 def _diagnostics_from_coherence(coherence) -> list[ValidationError]:

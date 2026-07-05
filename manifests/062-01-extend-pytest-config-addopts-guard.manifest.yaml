@@ -1,0 +1,429 @@
+schema: '2'
+goal: Extend the reproduced pytest addopts bypass closure from pyproject.toml to pytest.ini, tox.ini, and setup.cfg with pytest config precedence
+type: fix
+created: '2026-07-03T22:57:49Z'
+metadata:
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+  - validation-trust
+  - hardening
+  - pytest-config
+  priority: high
+description: |
+  Close the remaining pytest config bypass shapes left open by 044-01. That
+  manifest rejects `pyproject.toml` `[tool.pytest.ini_options]` `addopts`
+  that deselect or avoid declared behavioral tests (selectors like `-k`/`-m`,
+  non-executing modes like `--collect-only`). The same gaming path is still
+  open through `pytest.ini`, `tox.ini` `[pytest]`, and `setup.cfg`
+  `[tool:pytest]`. This child extends
+  `maid_runner/core/_pytest_config_addopts.py` so the command-integrity gate
+  inspects whichever config file pytest would actually use.
+
+  Pinned decisions (do not redesign):
+
+  - Pytest config discovery precedence to implement, first match wins:
+    `pytest.ini` (always wins when present), then `pyproject.toml`
+    `[tool.pytest.ini_options]`, then `tox.ini` `[pytest]`, then
+    `setup.cfg` `[tool:pytest]`. Only the effective file's addopts are
+    enforced; shadowed config files are ignored and must not produce
+    diagnostics.
+  - Reproduce each bypass shape in a throwaway project before implementing
+    the closure, matching the 044-01 procedure: for each of `pytest.ini`,
+    `tox.ini`, and `setup.cfg`, build a minimal project where a declared
+    behavioral test would fail, the manifest validate command targets the
+    test directory, and the config file's addopts deselect the failing test
+    or switch pytest into a non-executing mode while pytest still reports
+    success. Each reproduced format gets a bypass fixture and an
+    adversarial test proving the old gaming path now fails command
+    integrity.
+  - Do not add a custom pytest semantic analyzer. Reuse the existing
+    selector and non-executing-mode classifiers from
+    `maid_runner/core/_test_runner_invocation.py`
+    (`_has_test_runner_selector`, `_has_non_executing_test_runner_mode`)
+    exactly as 044-01 does. The only new logic is effective-config-file
+    resolution and per-format addopts extraction.
+  - Fail closed: a malformed or unreadable effective config file produces a
+    visible inspection error (surfaced through the existing
+    `VALIDATE_COMMAND_DOES_NOT_RUN_TESTS` command-integrity path), never a
+    silent pass. Shadowed files that are malformed are ignored, because
+    pytest itself never reads them.
+  - Benign addopts (`-q`, `-v`, warning filters, `--tb=short`, etc.) in any
+    effective config file must keep passing without diagnostics.
+
+  Behavior specifics:
+
+  - Existing command-line override semantics from 044-01 are preserved and
+    extended to all formats: an explicit `-c <file>` / `--config-file`
+    makes only that file effective; `-o addopts=...` / `--override-ini
+    addopts=...` replaces config-file addopts entirely so no config file is
+    effective.
+  - `pytest.ini` wins even when it is empty or has no `[pytest]` section,
+    matching pytest's documented "pytest.ini always takes precedence"
+    behavior. The existing special handling of `.pytest.ini` (effective
+    only with a `[pytest]` section) is preserved.
+  - `tox.ini` without a `[pytest]` section and `setup.cfg` without a
+    `[tool:pytest]` section are not effective config files and must not
+    stop precedence from falling through to later candidates, matching
+    pytest's discovery rules.
+  - The existing public helpers `pyproject_pytest_addopts_args` and
+    `pyproject_pytest_addopts_errors` remain in place (permissive edit
+    mode); the new generalized helpers become the entry points used by
+    `validate_manifest_test_commands` in
+    `maid_runner/core/_validation_test_artifacts.py`.
+
+  Test expectations (behavioral tests in
+  tests/core/test_pytest_config_addopts.py, written during planning of
+  this child, run against throwaway projects built in tmp_path):
+
+  - Each of pytest.ini, tox.ini `[pytest]`, and setup.cfg `[tool:pytest]`
+    injecting a selector (`-k`) or non-executing mode (`--collect-only`)
+    fails command integrity before tests run (one adversarial test per
+    reproduced format).
+  - Precedence: pytest.ini addopts win over a pyproject.toml selector;
+    pyproject.toml addopts win over tox.ini; tox.ini over setup.cfg. In
+    each shadowing case, malicious addopts in the shadowed file produce no
+    diagnostics, and only the effective file is enforced.
+  - tox.ini without `[pytest]` and setup.cfg without `[tool:pytest]` are
+    skipped during precedence resolution.
+  - Benign addopts in each format pass without command-integrity errors.
+  - A malformed effective config file (bad INI/TOML syntax, non-string
+    addopts) fails closed with a visible inspection error; a malformed
+    shadowed file is ignored.
+  - Explicit `-c pytest.ini` and `-o addopts=` overrides still bypass
+    config-file enforcement exactly as in 044-01.
+
+  Planning notes: the epic pins the precedence order and the effective-file
+  rule but not the new public helper names; this child conservatively adds
+  `pytest_config_addopts_args` and `pytest_config_addopts_errors` as
+  generalized counterparts of the existing pyproject-specific pair, which
+  stay untouched. Treating an empty `pytest.ini` as still winning
+  precedence follows pytest's documented behavior and is recorded here as
+  the conservative reading.
+
+  Current-tree notes (re-audited 2026-07-03): the 044-01 machinery in
+  `_pytest_config_addopts.py` already contains private precedence
+  scaffolding — `_pytest_ini_takes_precedence` (pytest.ini/.pytest.ini
+  detection) and `_explicit_config_path` (`-c`/`--config-file` handling) —
+  so this child extends that machinery rather than starting fresh; the
+  new helpers generalize what exists instead of duplicating it. Existing
+  behavioral coverage for the pyproject path lives in
+  `tests/core/test_test_runner.py` (fixtures such as
+  `_write_pyproject_pytest_addopts`) plus the CLI suites named in the
+  044-01 validate commands; those must keep passing unchanged as the
+  regression guard for the untouched pyproject-specific pair.
+
+  Out of scope: the strict-preview opt-in flag (062-02), the strict
+  migration delta report (062-03), and the staged default flip with
+  `--legacy-gates` and documentation updates (062-04).
+temptations:
+- risk: Do not extend the pytest config guard from documentation alone.
+  instead: Reproduce each pytest.ini, tox.ini, and setup.cfg bypass in a throwaway project before implementing, and encode each reproduction as an adversarial test.
+- risk: Do not let config precedence handling produce false positives that erode trust in the gate.
+  instead: Implement pytest's documented config discovery precedence so only the effective config file is enforced, with tests for shadowed configs.
+- risk: Do not add new static analyzers or pytest semantic modeling while extending the guard.
+  instead: Reuse the existing selector and non-executing-mode classifiers from _test_runner_invocation.py; only add effective-config resolution and per-format addopts extraction.
+- risk: Do not silently ignore malformed or unreadable effective config files.
+  instead: Fail closed with a visible inspection error when the effective config cannot be inspected safely, while ignoring malformed shadowed files pytest would never read.
+files:
+  create:
+  - path: tests/core/test_pytest_config_addopts.py
+    artifacts:
+    - kind: test_function
+      name: test_run_manifest_tests_rejects_pytest_ini_selector_addopts
+      source_scenario: A declared behavioral test would fail, but pytest.ini addopts inject `-k test_other`.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs.
+    - kind: test_function
+      name: test_run_manifest_tests_rejects_tox_ini_collect_only_addopts
+      source_scenario: A declared behavioral test would fail, but tox.ini [pytest] addopts inject `--collect-only`.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs.
+    - kind: test_function
+      name: test_run_manifest_tests_rejects_setup_cfg_selector_addopts
+      source_scenario: A declared behavioral test would fail, but setup.cfg [tool:pytest] addopts inject `-k test_other`.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs.
+    - kind: test_function
+      name: test_pytest_config_addopts_uses_pytest_precedence
+      source_scenario: Multiple pytest config files exist and a malicious shadowed config has addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_args
+      expected:
+        behavior: Only the highest-precedence effective config file contributes addopts.
+    - kind: test_function
+      name: test_pytest_config_addopts_skips_ini_files_without_pytest_sections
+      source_scenario: tox.ini lacks [pytest] or setup.cfg lacks [tool:pytest].
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_args
+      expected:
+        behavior: The resolver skips non-pytest INI files and falls through to the next effective config.
+    - kind: test_function
+      name: test_run_manifest_tests_allows_benign_addopts_in_each_config_format
+      source_scenario: Each supported config format sets harmless pytest display addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests executes pytest normally without command-integrity errors.
+    - kind: test_function
+      name: test_pytest_config_addopts_fails_closed_for_malformed_effective_config
+      source_scenario: The effective pytest config file has malformed syntax or a non-string/list addopts value.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_errors
+      expected:
+        behavior: The helper returns a visible inspection error for the effective config file.
+    - kind: test_function
+      name: test_pytest_config_addopts_ignores_malformed_shadowed_config
+      source_scenario: A higher-precedence pytest.ini is effective while a lower-precedence tox.ini is malformed.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_errors
+      expected:
+        behavior: The malformed shadowed file produces no inspection error.
+    - kind: test_function
+      name: test_pytest_config_addopts_respects_explicit_config_file
+      source_scenario: The validate command passes `-c pytest.ini` while pyproject.toml has malicious addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_args
+      expected:
+        behavior: Only the explicit config file contributes addopts.
+    - kind: test_function
+      name: test_run_manifest_tests_rejects_explicit_custom_ini_selector_addopts
+      source_scenario: The validate command passes `-c custom.ini` while that explicit INI file has selector addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for selector addopts in an arbitrary explicit pytest config file.
+    - kind: test_function
+      name: test_run_manifest_tests_rejects_explicit_custom_toml_selector_addopts
+      source_scenario: The validate command passes `-c custom.toml` while that explicit TOML file has pytest selector addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: run_manifest_tests
+      expected:
+        behavior: run_manifest_tests returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for selector addopts in an arbitrary explicit TOML pytest config file.
+    - kind: test_function
+      name: test_pytest_config_addopts_fails_closed_for_malformed_explicit_toml
+      source_scenario: The validate command passes `-c custom.toml` and that explicit TOML file is malformed.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_errors
+      expected:
+        behavior: The helper returns a visible inspection error naming the malformed explicit TOML config file.
+    - kind: test_function
+      name: test_pytest_config_addopts_allows_literal_percent_in_ini_addopts
+      source_scenario: The effective INI config file contains benign addopts with a literal percent sign accepted by pytest.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_errors
+      expected:
+        behavior: The helper returns no inspection error and preserves the literal percent argument.
+    - kind: test_function
+      name: test_pytest_config_addopts_respects_override_ini_addopts
+      source_scenario: The validate command passes `-o addopts=` while project config files have malicious addopts.
+      actions:
+      - type: api_call
+        subject:
+          export: pytest_config_addopts_args
+      expected:
+        behavior: No config-file addopts are effective when command-line addopts override is present.
+    - kind: test_function
+      name: test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts
+      source_scenario: The effective pytest config file injects selector addopts into an otherwise valid validate command.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_manifest_test_commands
+      expected:
+        behavior: validate_manifest_test_commands returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for effective config-file addopts that can deselect behavioral tests.
+  edit:
+  - path: maid_runner/core/_pytest_config_addopts.py
+    artifacts:
+    - kind: function
+      name: pytest_config_addopts_args
+      args:
+      - name: project_root
+        type: Path
+      - name: command
+        type: tuple[str, ...]
+      returns: tuple[str, ...]
+      description: Return pytest addopts arguments from the effective config file (pytest.ini, pyproject.toml, tox.ini, or setup.cfg) when it applies to a validate command.
+    - kind: function
+      name: pytest_config_addopts_errors
+      args:
+      - name: project_root
+        type: Path
+      - name: command
+        type: tuple[str, ...]
+      returns: tuple[str, ...]
+      description: Return human-readable inspection errors for the effective pytest config file that should make command integrity fail closed.
+  - path: maid_runner/core/_validation_test_artifacts.py
+    artifacts:
+    - kind: function
+      name: validate_manifest_test_commands
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: list[ValidationError]
+      description: Reject validate commands whose effective pytest config file (any supported format) can deselect or avoid discovered behavioral tests.
+  read:
+  - maid_runner/core/_test_runner_invocation.py
+  - maid_runner/core/result.py
+  - manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml
+  - docs/plans/maid-validate-hardening-backlog.md
+  - tests/core/test_test_runner.py
+validate:
+- uv run python -m pytest tests/core/test_pytest_config_addopts.py -v
+- uv run python -m pytest -q tests/core/test_test_runner.py
+- uv run maid validate manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-04T07:31:15+08:00"
+  summary: "Extended pytest config addopts command-integrity coverage from pyproject.toml to pytest.ini, tox.ini, setup.cfg, and explicit pytest config files."
+  rationale: "Implementation completed after review-driven fixes for arbitrary explicit config files and literal-percent INI addopts. Focused tests, manifest behavioral and implementation validation, declared manifest tests, Ruff, and repository-wide MAID validation passed; full verify's test stage is blocked by the committed 083 draft inventory mismatch rather than this 062 change."
+  lessons:
+  - lesson_type: command-integrity
+    summary: "Pytest config enforcement must resolve the effective config file before classifying addopts; enforcing shadowed files creates false positives, while ignoring explicit custom config files leaves a direct bypass."
+    tags:
+    - pytest-config
+    - validation-trust
+    - anti-gaming
+    paths:
+    - maid_runner/core/_pytest_config_addopts.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/core/test_pytest_config_addopts.py
+  - lesson_type: review-fix-loop
+    summary: "Implementation review found realistic pytest compatibility gaps that the initial plan did not cover: arbitrary `-c custom.ini`, arbitrary `-c custom.toml`, and literal percent signs in INI addopts."
+    tags:
+    - implementation-review
+    - pytest-config
+    - red-evidence
+    paths:
+    - tests/core/test_pytest_config_addopts.py
+    - .maid/plan-locks/062-01-extend-pytest-config-addopts-guard.lock.json
+  - lesson_type: fail-closed-validation
+    summary: "Fail-closed config inspection should name the effective config file and carry parse failures through discovery, but benign pytest-accepted syntax such as literal `%` in INI addopts must not become a false command-integrity failure."
+    tags:
+    - fail-closed
+    - diagnostics
+    - pytest-config
+    paths:
+    - maid_runner/core/_pytest_config_addopts.py
+  review_notes:
+  - source: implementation-review-subagent-Huygens
+    severity: warning
+    summary: "Initial review found arbitrary explicit INI config files were ignored and INI interpolation produced false positives for literal percent addopts; fixed with tests and ConfigParser(interpolation=None)."
+  - source: implementation-review-subagent-Descartes
+    severity: warning
+    summary: "Re-review found arbitrary explicit TOML config files were ignored; fixed with custom TOML section detection, malformed explicit TOML fail-closed coverage, and refreshed red evidence."
+  - source: implementation-review-subagent-Volta
+    severity: info
+    summary: "Final read-only re-review reported no actionable findings and returned verdict ready; residual risk is limited to the separate 083 draft inventory test failure in the current branch state."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_pytest_config_addopts.py
+    - -v
+    status: passed
+    summary: "Focused pytest config addopts suite passed 23 tests, covering precedence, effective file enforcement, explicit custom INI/TOML configs, malformed configs, benign addopts, and override semantics."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_test_runner.py
+    status: passed
+    summary: "Existing test-runner regression suite passed 84 tests, preserving the 044-01 pyproject path and command-integrity behavior."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Behavioral validation passed for the promoted manifest after review-driven test additions were declared."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed for the declared helpers and validate_manifest_test_commands."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/core/_pytest_config_addopts.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/core/test_pytest_config_addopts.py
+    status: passed
+    summary: "Touched Python files passed Ruff checks."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml
+    status: passed
+    summary: "Declared manifest validation commands passed: focused pytest config suite, test_test_runner regression suite, and schema validation."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed with 399 manifests, 307 passed, 0 failed, and 92 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - HEAD
+    status: passed
+    summary: "Handoff verify passed all 9 stages after updating the live draft epic inventory for the committed 083 planning epic; remaining E307 validator-availability diagnostics were non-blocking warnings/info."

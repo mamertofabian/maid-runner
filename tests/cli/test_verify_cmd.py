@@ -521,7 +521,7 @@ def test_verify_base_validator_default_hook_stub_warning_is_advisory_by_default(
     manifest_dir.mkdir()
     manifest = {
         "schema": "2",
-        "goal": "Keep BaseValidator default hook warnings advisory",
+        "goal": "Keep BaseValidator default hook warnings blocking in verify",
         "type": "fix",
         "created": "2026-05-25",
         "files": {
@@ -555,7 +555,7 @@ def test_verify_base_validator_default_hook_stub_warning_is_advisory_by_default(
         )
     ]
 
-    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is False
+    assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is True
 
 
 def test_verify_non_default_stub_warning_remains_blocking(tmp_path):

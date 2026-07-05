@@ -266,6 +266,7 @@ class VerificationStageResult:
 
     name: str
     success: bool
+    skip_reason: Optional[str] = None
     _duration_ms: Optional[float] = None
     _validation: object | None = None
     _coherence: object | None = None

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import re
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -33,24 +33,23 @@ _ADVISORY_CHAIN_WARNING_CODES = frozenset(
         ErrorCode.DUPLICATE_UNSEQUENCED_CREATED,
     }
 )
-_BASE_VALIDATOR_DEFAULT_HOOK_STUBS = frozenset(
-    {
-        "generate_test_stub",
-        "get_test_function_bodies",
-        "module_path",
-        "resolve_reexport",
-    }
-)
-_STUB_WARNING_FUNCTION_RE = re.compile(r"Function '([^']+)' appears to be a stub")
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
     try:
         advisory = getattr(args, "advisory", False)
+        strict_preview = getattr(args, "strict_preview", False)
+        if strict_preview and advisory:
+            print_error(
+                "--strict-preview and --advisory request contradictory gate sets",
+                json_mode=getattr(args, "json", False),
+            )
+            return 2
         fail_on_warnings = (
             not advisory
             or getattr(args, "strict", False)
             or getattr(args, "fail_on_warnings", False)
+            or strict_preview
         )
         result = _run_verify(
             manifest_dir=args.manifest_dir,
@@ -62,13 +61,15 @@ def cmd_verify(args: argparse.Namespace) -> int:
             fail_on_warnings=fail_on_warnings,
             require_worktree_scope=getattr(args, "worktree_scope", False),
             require_changed_scope=getattr(args, "changed_scope", True),
+            changed_scope_explicit=getattr(args, "changed_scope_explicit", False),
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
-            artifact_coverage=getattr(args, "artifact_coverage", False),
+            artifact_coverage=getattr(args, "artifact_coverage", False)
+            or strict_preview,
             knockout=getattr(args, "knockout", False),
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
@@ -78,7 +79,13 @@ def cmd_verify(args: argparse.Namespace) -> int:
             if getattr(args, "summary", False)
             else format_verify_result
         )
-        print(formatter(result, json_mode=getattr(args, "json", False)))
+        print(
+            _mark_strict_preview_output(
+                formatter(result, json_mode=getattr(args, "json", False)),
+                enabled=strict_preview,
+                json_mode=getattr(args, "json", False),
+            )
+        )
         exit_code = 0 if _result_success(result) else 1
         if not _write_sarif_report_if_requested(args, result):
             return 2
@@ -86,6 +93,23 @@ def cmd_verify(args: argparse.Namespace) -> int:
     except Exception as exc:
         print_error(str(exc), json_mode=getattr(args, "json", False))
         return 2
+
+
+def _mark_strict_preview_output(
+    output: str,
+    *,
+    enabled: bool,
+    json_mode: bool,
+) -> str:
+    if not enabled:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["strict_preview"] = True
+        return json.dumps(payload, indent=2)
+    if not output:
+        return "[strict-preview]"
+    return f"[strict-preview] {output}"
 
 
 def _write_sarif_report_if_requested(args, result: VerificationResult) -> bool:
@@ -166,6 +190,7 @@ def _run_verify(
     fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
     require_changed_scope: bool = False,
+    changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
@@ -194,6 +219,7 @@ def _run_verify(
             fail_on_warnings=fail_on_warnings,
             require_worktree_scope=require_worktree_scope,
             require_changed_scope=require_changed_scope,
+            changed_scope_explicit=changed_scope_explicit,
             since=since,
             base_ref=base_ref,
             include_tests=include_tests,
@@ -220,6 +246,7 @@ def _run_verify_cached(
     fail_on_warnings: bool = True,
     require_worktree_scope: bool = False,
     require_changed_scope: bool = False,
+    changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
     include_tests: bool = False,
@@ -345,7 +372,18 @@ def _run_verify_cached(
 
         if require_changed_scope:
             stages.append(
-                _changed_scope_stage(root, manifest_dir, since, base_ref, include_tests)
+                _changed_scope_stage(
+                    root,
+                    manifest_dir,
+                    since,
+                    base_ref,
+                    include_tests,
+                    allow_clean_tree_skip=(
+                        not changed_scope_explicit
+                        and since is None
+                        and base_ref is None
+                    ),
+                )
             )
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
@@ -582,25 +620,29 @@ def _changed_scope_stage(
     since: str | None,
     base_ref: str | None,
     include_tests: bool,
+    *,
+    allow_clean_tree_skip: bool,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.core.chain import get_cached_manifest_chain
-        from maid_runner.core.worktree import validate_changed_scope
+        from maid_runner.core.worktree import evaluate_changed_scope
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-        errors = validate_changed_scope(
+        decision = evaluate_changed_scope(
             root,
             chain,
             since=since,
             base_ref=base_ref,
             include_tests=include_tests,
+            allow_clean_tree_skip=allow_clean_tree_skip,
         )
         return VerificationStageResult(
             name="changed_scope",
-            success=not errors,
+            success=not decision.errors,
+            skip_reason=decision.skip_reason,
             _duration_ms=_elapsed_ms(started),
-            _errors=tuple(errors),
+            _errors=tuple(decision.errors),
         )
     except Exception as exc:
         return _error_stage("changed_scope", started, exc)
@@ -719,7 +761,10 @@ def _warnings_are_blocking(
     project_root: Path,
 ) -> bool:
     blocking_warnings = [
-        warning for warning in warnings if not _warning_is_advisory(warning)
+        warning
+        for warning in warnings
+        if getattr(warning, "severity", None) == Severity.WARNING
+        and not _warning_is_advisory(warning)
     ]
     return bool(blocking_warnings) and _manifest_warnings_are_blocking(
         manifest_path,
@@ -731,26 +776,7 @@ def _warning_is_advisory(warning) -> bool:
     code = getattr(warning, "code", None)
     if code in _ADVISORY_WARNING_CODES:
         return True
-    if code == ErrorCode.STUB_FUNCTION_DETECTED:
-        return _is_base_validator_default_hook_stub_warning(warning)
     return False
-
-
-def _is_base_validator_default_hook_stub_warning(warning) -> bool:
-    location = getattr(warning, "location", None)
-    location_file = str(getattr(location, "file", "") or "").replace("\\", "/")
-    if location_file != "maid_runner/validators/base.py":
-        return False
-
-    message = str(getattr(warning, "message", ""))
-    match = _STUB_WARNING_FUNCTION_RE.search(message)
-    if match is None:
-        return False
-
-    default_hook_names = {
-        f"BaseValidator.{hook_name}" for hook_name in _BASE_VALIDATOR_DEFAULT_HOOK_STUBS
-    }
-    return match.group(1) in default_hook_names
 
 
 def _error_stage(

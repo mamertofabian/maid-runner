@@ -5,7 +5,7 @@ from __future__ import annotations
 from maid_runner.__version__ import __version__
 
 
-INSTRUCTION_PAYLOAD_VERSION = "2026.07.01.1"
+INSTRUCTION_PAYLOAD_VERSION = "2026.07.05.1"
 
 
 def instruction_payload_metadata() -> dict[str, str]:

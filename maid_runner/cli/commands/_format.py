@@ -303,8 +303,14 @@ def format_verify_result(
         lines.append(f"  Duration: {result.duration_ms:.0f}ms")
 
     for stage in result.stages:
-        stage_status = "PASS" if stage.success else "FAIL"
-        lines.append(f"  {stage_status} {stage.name}")
+        skip_reason = getattr(stage, "skip_reason", None)
+        stage_status = (
+            "SKIPPED" if skip_reason else ("PASS" if stage.success else "FAIL")
+        )
+        stage_line = f"  {stage_status} {stage.name}"
+        if skip_reason:
+            stage_line = f"{stage_line} ({skip_reason})"
+        lines.append(stage_line)
         details = _format_verify_stage_details(stage)
         if details:
             lines.extend(f"    {line}" for line in details.splitlines())
@@ -336,8 +342,19 @@ def format_verify_summary(
                     }
                     for group in summary.warning_groups
                 ],
+                "info": [
+                    {
+                        "code": group.code,
+                        "message": group.message,
+                        "location": group.location,
+                        "count": group.count,
+                    }
+                    for group in summary.info_groups
+                ],
             },
+            "warning_blocking_stages": list(summary.warning_blocking_stages),
             "passed_stages": list(summary.passed_stages),
+            "skipped_stages": list(summary.skipped_stages),
         }
         if result.duration_ms is not None:
             payload["duration_ms"] = result.duration_ms
@@ -345,13 +362,21 @@ def format_verify_summary(
 
     status = "PASS" if summary.success else "FAIL"
     warning_unique_count = len(summary.warning_groups)
+    info_unique_count = len(summary.info_groups)
+    info_fragment = ""
+    if summary.raw_info_count:
+        info_fragment = (
+            f"{info_unique_count} info unique / {summary.raw_info_count} raw, "
+        )
     lines = [
         (
             f"VERIFY: {status} "
             f"({len(summary.blocking_stages)} blocking, "
             f"{warning_unique_count} warnings unique / "
             f"{summary.raw_warning_count} raw, "
-            f"{len(summary.passed_stages)} passed)"
+            f"{info_fragment}"
+            f"{len(summary.passed_stages)} passed, "
+            f"{len(summary.skipped_stages)} skipped)"
         )
     ]
     if result.duration_ms is not None:
@@ -373,16 +398,51 @@ def format_verify_summary(
             f"{', '.join(summary.passed_stages)}"
         )
 
+    skipped_stages = [
+        stage for stage in result.stages if getattr(stage, "skip_reason", None)
+    ]
+    if skipped_stages:
+        lines.append("")
+        rendered = ", ".join(
+            f"{stage.name} ({getattr(stage, 'skip_reason')})"
+            for stage in skipped_stages
+        )
+        lines.append(f"SKIPPED ({len(skipped_stages)}): {rendered}")
+
     if summary.warning_groups:
         lines.append("")
-        lines.append(
-            "WARNINGS "
-            f"(non-blocking, deduplicated {summary.raw_warning_count} -> "
-            f"{warning_unique_count}):"
-        )
+        if summary.warning_blocking_stages:
+            lines.append(
+                "WARNINGS "
+                f"(deduplicated {summary.raw_warning_count} -> "
+                f"{warning_unique_count}; blocking for: "
+                f"{', '.join(summary.warning_blocking_stages)} "
+                "under verify policy):"
+            )
+            lines.append(
+                "  Hint: use --advisory as the brownfield escape hatch to report "
+                "warnings without failing stages."
+            )
+        else:
+            lines.append(
+                "WARNINGS "
+                f"(non-blocking, deduplicated {summary.raw_warning_count} -> "
+                f"{warning_unique_count}):"
+            )
         for group in summary.warning_groups:
             prefix = group.code or "warning"
             lines.append(f"  {prefix} x{group.count} {group.message}")
+            if group.location:
+                lines.append(f"    {group.location}")
+
+    if summary.info_groups:
+        lines.append("")
+        lines.append(
+            "INFO " f"(deduplicated {summary.raw_info_count} -> {info_unique_count}):"
+        )
+        for group in summary.info_groups:
+            prefix = group.code or "info"
+            lines.append(f"  INFO {prefix} x{group.count} {group.message}")
             if group.location:
                 lines.append(f"    {group.location}")
 
@@ -495,6 +555,9 @@ def _verify_stage_to_dict(stage) -> dict:
         "name": stage.name,
         "success": stage.success,
     }
+    skip_reason = getattr(stage, "skip_reason", None)
+    if skip_reason is not None:
+        data["skip_reason"] = skip_reason
     duration_ms = getattr(stage, "_duration_ms", None)
     if duration_ms is not None:
         data["duration_ms"] = duration_ms

@@ -1,0 +1,409 @@
+schema: '2'
+goal: Report changed_scope as a visible SKIPPED stage when no baseline is resolvable and the worktree is clean, instead of failing bare maid verify with E115
+type: fix
+created: '2026-07-02T23:40:36Z'
+metadata:
+  backlog: docs/plans/maid-runner-self-improvement-backlog.md#theme-2
+  tags:
+  - verify
+  - changed-scope
+  - hardening
+  - agent-dx
+  - anti-gaming
+  priority: high
+description: |
+  On a clean release tree, the documented handoff command
+  `maid verify --summary` always fails:
+  `E115 --changed-scope requires --since, --base-ref, or metadata.maid_task_base`.
+  A health probe that can never pass without extra flags trains agents to add
+  bypass flags (`--since HEAD`, `--no-changed-scope`) reflexively — the July 1
+  life-dashboard report shows exactly that — which is the opposite of what an
+  anti-gaming gate wants.
+
+  This intentionally evolves the posture set by
+  manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml. Its
+  core contract is preserved: MAID still never guesses main, dev, or a remote
+  branch as a baseline. What changes is only the no-baseline/no-work case:
+  when there is no resolvable baseline AND the worktree is clean (no tracked
+  or untracked changes per the same git-status source worktree_scope uses),
+  there is nothing the gate could check, so it reports a visible SKIPPED
+  stage with the reason instead of a blocking FAIL.
+
+  Pinned decisions (do not redesign):
+
+  1. Fail-closed cases are unchanged. E115 still blocks whenever the tree is
+     dirty, and whenever the user explicitly strengthened the gate: passing
+     `--changed-scope` explicitly, or passing `--since`/`--base-ref`
+     (baseline errors on those follow the existing paths). Implementation
+     note: the verify parser must distinguish default-on from explicit
+     `--changed-scope` (tri-state default None in _main.py) so the skip only
+     applies to the implicit default.
+
+  2. The skip is loud, never silent. Text output renders a
+     `SKIPPED changed_scope (no baseline; clean tree)` line (not PASS);
+     `--summary` renders a distinct skipped bucket; JSON carries the stage's
+     `skip_reason`; SARIF represents the stage as explicitly skipped. No
+     output mode may fold the skip into an indistinguishable pass.
+
+  3. Decision logic lives in core, not the CLI handler. A new public
+     `evaluate_changed_scope(...)` in maid_runner/core/worktree.py returns a
+     `ChangedScopeDecision` (errors + optional skip_reason) so the
+     clean-tree/no-baseline/skip-allowed policy is unit-testable without
+     spawning verify. The existing `validate_changed_scope` contract (037-01)
+     is left untouched for compatibility; verify's `_changed_scope_stage`
+     routes through the new evaluator.
+
+  4. `VerificationStageResult` gains a public `skip_reason: Optional[str]`
+     (default None) so formatters and SARIF can distinguish skipped from
+     passed without parsing message strings. `VerifySummary` gains
+     `skipped_stages`; skipped stages move out of `passed_stages` into the
+     new bucket (this resolves the prior add-verify-summary-output open
+     question about a distinct skipped bucket).
+
+  Alternative considered and rejected in planning: a first-class documented
+  release-tree baseline keeps bare verify failing on every fresh clone and
+  still teaches flag-cycling; a visible skip is honest and fail-closed. If
+  adversarial plan review rejects the auto-skip, fall back to that
+  alternative per the backlog — decide in plan review, not ad hoc.
+
+  Planning notes (Planning Handoff Mode): behavioral tests are declared but
+  not yet written; new coverage goes in the two dedicated test modules below
+  (do not extend older locked test files). The implementing agent confirms
+  the red phase, runs behavioral validation, plan-locks, and promotes before
+  implementation.
+
+  Open questions for the implementing agent:
+  - Whether `metadata.maid_task_base` conflicts (E116-style ambiguity) on a
+    clean tree should still fail (recommended: yes — an invalid declared
+    baseline is a real configuration error, only the *absent* baseline
+    skips).
+  - Exact SARIF representation for a skipped stage (suggestion: no result
+    for the stage plus an invocation property, or a note-level result;
+    follow existing sarif.py conventions).
+temptations:
+- risk: Do not resolve an implicit baseline (main, origin/HEAD, HEAD~1) to make bare verify pass.
+  instead: 'Preserve the 037-01 no-guessing contract: either an explicit/declared baseline exists, or the stage is visibly SKIPPED on a clean tree, or E115 blocks.'
+- risk: Do not report the skipped stage as a plain PASS in any output mode.
+  instead: Render SKIPPED with the reason in text, keep a distinct skipped_stages bucket in --summary, expose skip_reason in JSON, and represent the skip explicitly in SARIF; assert each in behavioral tests.
+- risk: Do not let a dirty tree, explicit --changed-scope, or --since/--base-ref errors ride the skip path.
+  instead: Gate the skip on (no resolvable baseline) AND (clean worktree) AND (changed-scope not explicitly requested); include the adversarial dirty-tree test proving E115 still blocks.
+- risk: Do not rewrite or weaken validate_changed_scope's existing 037-01 contract in place.
+  instead: Add evaluate_changed_scope alongside it, route only the verify stage through the evaluator, and leave the existing function's behavior and callers unchanged.
+- risk: Do not add assertions to older locked verify/worktree test files.
+  instead: Put all new behavioral coverage in the dedicated test modules owned by this manifest.
+files:
+  create:
+  - path: tests/core/test_changed_scope_clean_tree_skip.py
+    artifacts:
+    - kind: test_function
+      name: test_evaluate_changed_scope_skips_when_no_baseline_and_clean_tree
+      source_scenario: A git project with no --since/--base-ref/metadata baseline and a clean worktree, evaluated with clean-tree skip allowed.
+      actions:
+      - type: api_call
+        subject:
+          function: evaluate_changed_scope
+      expected:
+        behavior: The ChangedScopeDecision has empty errors and a non-empty skip_reason stating no baseline was resolvable on a clean tree.
+    - kind: test_function
+      name: test_evaluate_changed_scope_keeps_e115_when_tree_dirty
+      source_scenario: The same no-baseline project with an uncommitted file change.
+      actions:
+      - type: api_call
+        subject:
+          function: evaluate_changed_scope
+      expected:
+        behavior: The decision carries the E115 baseline-required error and skip_reason is None.
+    - kind: test_function
+      name: test_evaluate_changed_scope_uses_baseline_when_given
+      source_scenario: A project evaluated with an explicit since baseline and clean-tree skip allowed.
+      actions:
+      - type: api_call
+        subject:
+          function: evaluate_changed_scope
+      expected:
+        behavior: The decision reports the normal changed-scope errors for that baseline and never sets skip_reason.
+    - kind: test_function
+      name: test_evaluate_changed_scope_keeps_e115_when_skip_disallowed
+      source_scenario: A clean no-baseline project evaluated with allow_clean_tree_skip False, as when --changed-scope is passed explicitly.
+      actions:
+      - type: api_call
+        subject:
+          function: evaluate_changed_scope
+      expected:
+        behavior: The decision carries the E115 error exactly as today and skip_reason is None.
+    - kind: test_function
+      name: test_stage_skip_reason_partitions_summary_buckets
+      source_scenario: A VerificationResult constructed with one stage carrying a skip_reason and other passing stages.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: The skip_reason-bearing stage name appears in VerifySummary.skipped_stages and not in passed_stages, exercising VerificationStageResult.skip_reason directly.
+    - kind: test_function
+      name: test_formatters_render_skipped_stage_distinctly
+      source_scenario: The same skip_reason-bearing VerificationResult rendered through both formatters in text and JSON modes.
+      actions:
+      - type: api_call
+        subject:
+          function: format_verify_result
+      - type: api_call
+        subject:
+          function: format_verify_summary
+      expected:
+        behavior: format_verify_result renders a SKIPPED line with the reason (not PASS) and exposes skip_reason in JSON, and format_verify_summary renders the distinct SKIPPED section and skipped_stages JSON list.
+  - path: tests/cli/test_verify_changed_scope_skip_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_bare_verify_passes_with_visible_skip_on_clean_tree
+      source_scenario: maid verify runs with default flags in a clean git project with active manifests and no baseline.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The exit code is 0 and the output contains a SKIPPED changed_scope line with the no-baseline clean-tree reason rather than a FAIL or plain PASS.
+    - kind: test_function
+      name: test_bare_verify_still_fails_e115_on_dirty_tree
+      source_scenario: The same project with an uncommitted change to a tracked file.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The exit code is nonzero and the changed_scope stage fails with the E115 baseline-required error, proving a dirty tree cannot ride the skip path.
+    - kind: test_function
+      name: test_explicit_changed_scope_flag_keeps_e115_on_clean_tree
+      source_scenario: maid verify --changed-scope runs explicitly in the clean no-baseline project.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The explicit strengthening flag preserves the fail-closed E115 failure even though the tree is clean.
+    - kind: test_function
+      name: test_json_and_summary_represent_skip_explicitly
+      source_scenario: maid verify runs with --json and with --summary --json on the clean no-baseline project.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The default JSON stage entry exposes the changed_scope skip_reason, and the summary payload lists changed_scope under skipped_stages instead of passed_stages.
+  edit:
+  - path: maid_runner/core/worktree.py
+    artifacts:
+    - kind: class
+      name: ChangedScopeDecision
+      description: 'Frozen dataclass result of changed-scope evaluation: blocking errors plus an optional visible-skip reason; exactly one of (errors, skip_reason) is populated when the gate cannot run.'
+    - kind: attribute
+      name: errors
+      of: ChangedScopeDecision
+      type: tuple[ValidationError, ...]
+      description: Blocking changed-scope findings (including E115 when the baseline is required), empty when the stage passes or skips.
+    - kind: attribute
+      name: skip_reason
+      of: ChangedScopeDecision
+      type: Optional[str]
+      description: Human-readable reason the gate was skipped (no resolvable baseline on a clean tree), None whenever the gate ran or must fail closed.
+    - kind: function
+      name: evaluate_changed_scope
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: chain
+        type: ManifestChain
+      - name: since
+        type: Optional[str]
+      - name: base_ref
+        type: Optional[str]
+      - name: include_tests
+        type: bool
+      - name: allow_clean_tree_skip
+        type: bool
+      returns: ChangedScopeDecision
+      description: Resolve the baseline and validate changed scope; when no baseline is resolvable, the worktree is clean, and allow_clean_tree_skip is True, return a skip decision instead of the E115 error. Never guesses a baseline.
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: skip_reason
+      of: VerificationStageResult
+      type: Optional[str]
+      description: Reason a stage was skipped rather than executed; None for executed stages. Lets formatters, JSON, and SARIF distinguish SKIPPED from PASS without parsing messages.
+  - path: maid_runner/core/verify_summary.py
+    artifacts:
+    - kind: attribute
+      name: skipped_stages
+      of: VerifySummary
+      type: tuple[str, ...]
+      description: Names of stages that were visibly skipped (skip_reason set), in stage order; skipped stages no longer appear in passed_stages.
+    - kind: function
+      name: build_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      returns: VerifySummary
+      description: Partitions stages into blocking, passed, and skipped buckets using VerificationStageResult.skip_reason as the skip signal.
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_verify_result
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+      returns: str
+      description: Renders skipped stages as 'SKIPPED <name>' lines with the reason in text mode and exposes skip_reason on stage entries in JSON mode.
+    - kind: function
+      name: format_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+      returns: str
+      description: Renders a distinct SKIPPED section naming skipped stages with reasons and lists skipped_stages separately from passed_stages in summary JSON.
+  scope:
+  - path: maid_runner/cli/commands/verify.py
+    reason: Route _changed_scope_stage through evaluate_changed_scope and construct a skip_reason-bearing stage result; no new public surface in this module.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Make --changed-scope tri-state (default None) so an explicit flag keeps the fail-closed E115 path; parser wiring only.
+  - path: maid_runner/core/sarif.py
+    reason: Represent explicitly skipped stages in SARIF output instead of implying a pass; follows existing SARIF conventions.
+  read:
+  - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+  - maid_runner/core/chain.py
+validate:
+- uv run python -m pytest tests/core/test_changed_scope_clean_tree_skip.py tests/cli/test_verify_changed_scope_skip_cmd.py -v
+- uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-03T00:00:00Z"
+  summary: "Bare `maid verify` now reports the default changed_scope stage as visibly skipped on clean trees when no baseline is resolvable, while preserving fail-closed E115 behavior for dirty trees, explicit `--changed-scope`, and explicit baseline paths. The skip is structural via `VerificationStageResult.skip_reason`, rendered distinctly in text and summary output, exposed in JSON, and represented in SARIF run properties."
+  rationale: "The implementation preserves the 037-01 no-guessing baseline contract by never resolving main, dev, HEAD, or a remote branch implicitly. `validate_changed_scope` remains the compatibility API that returns E115 without a baseline; only verify routes through the new `evaluate_changed_scope` policy with `allow_clean_tree_skip` enabled for the implicit default gate. Summary partitioning uses `skip_reason` rather than text parsing so skipped stages do not inflate passed stage counts."
+  lessons:
+  - lesson_type: cli-diagnostics
+    summary: "A skipped verification stage needs a structural result field, not just a message string, so text, JSON, summary buckets, and SARIF can all distinguish SKIPPED from PASS without parsing presentation text."
+    tags:
+    - verify
+    - output-formatting
+    - sarif
+    paths:
+    - maid_runner/core/result.py
+    - maid_runner/core/verify_summary.py
+    - maid_runner/cli/commands/_format.py
+    - maid_runner/core/sarif.py
+  - lesson_type: anti-gaming
+    summary: "A clean-tree/no-baseline skip can improve handoff ergonomics without weakening changed-scope enforcement when the skip is limited to the implicit default gate and dirty or explicitly strengthened runs still fail closed with E115."
+    tags:
+    - changed-scope
+    - anti-gaming
+    - verify
+    paths:
+    - maid_runner/core/worktree.py
+    - maid_runner/cli/commands/verify.py
+  - lesson_type: test-design
+    summary: "End-to-end clean-tree verify tests must isolate repeated CLI runs in separate temporary git repositories, because the first pytest-backed verify run may create cache or bytecode files that correctly make the second run dirty."
+    tags:
+    - regression-test
+    - git-state
+    - changed-scope
+    paths:
+    - tests/cli/test_verify_changed_scope_skip_cmd.py
+  review_notes:
+  - source: implementation-review-subagent-Lagrange
+    severity: warning
+    summary: "Initial independent review found no code-level findings but flagged `.maid/active-manifest` as untracked lifecycle state left from `maid task start`; it was cleared with `uv run maid task stop` before re-review."
+  - source: implementation-review-subagent-Hooke
+    severity: info
+    summary: "Re-review found no findings and returned verdict ready. It confirmed the lifecycle-state issue was resolved, changed files stayed within approved manifest/promotion scope, and there was no drift from the clean-tree changed-scope skip contract."
+  - source: local-handoff-gate
+    severity: info
+    summary: "The handoff verify gate passed with explicit task baseline `--since 0dad776`; an unqualified dirty-tree verify is intentionally still fail-closed because this manifest preserves E115 when implementation changes are present and no baseline is supplied."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_changed_scope_clean_tree_skip.py
+    - tests/cli/test_verify_changed_scope_skip_cmd.py
+    - -v
+    status: passed
+    summary: "Ten focused behavioral tests passed after implementation. Red evidence is recorded in plan lock revision 6, where the focused command failed with implementation hidden before this API and formatter behavior existed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml
+    - --mode
+    - behavioral
+    - --quiet
+    status: passed
+    summary: "Promoted manifest behavioral validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Promoted manifest implementation validation passed."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - touched-files
+    status: passed
+    summary: "Ruff passed on the touched implementation and test files."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_changed_scope.py
+    - tests/core/test_sarif.py
+    - tests/cli/test_verify_cmd.py
+    - tests/cli/test_verify_summary_cmd.py
+    - tests/cli/test_main.py
+    - tests/daemon/test_daemon_verify.py
+    - tests/core/test_changed_scope_clean_tree_skip.py
+    - tests/cli/test_verify_changed_scope_skip_cmd.py
+    - -q
+    status: passed
+    summary: "Nearby regression suite passed with 127 tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository-wide MAID validation passed: 394 manifests checked, 303 passed, 0 failed, 91 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository-wide MAID test passed: 159 declared validation commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 0dad776
+    status: passed
+    summary: "Handoff verify passed with 0 blocking stages and 9 stages passed. Existing E307/E310 warning noise remained advisory and is tracked by later backlog themes."

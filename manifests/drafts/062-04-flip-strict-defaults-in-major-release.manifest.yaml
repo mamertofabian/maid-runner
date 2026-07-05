@@ -1,6 +1,6 @@
 # draft-kind: implementation
 schema: "2"
-goal: "Make the strict gates the default for maid validate and maid verify in the major release, with a labeled --legacy-gates escape hatch and migration documentation"
+goal: "Make the strict gates the default for maid validate and maid verify in a staged v2.x flip release, with a labeled --legacy-gates escape hatch and migration documentation"
 type: feature
 created: "2026-06-10T02:04:00Z"
 metadata:
@@ -9,27 +9,46 @@ metadata:
   tags:
     - validation-trust
     - strict-defaults
-    - major-release
+    - release-flip
   priority: high
 description: |
-  The major-version child of the strict-by-default epic: make the strict
-  gate set (the exact set `--strict-preview` from 062-02 enables:
-  identity-backed behavioral coverage, assertion enforcement, and
-  coverage-miss errors) the default behavior of `maid validate` and
-  `maid verify`, add the documented legacy escape hatch, and ship the
-  migration documentation.
+  The release-flip child of the strict-by-default epic: make the strict
+  gate set (the exact set `--strict-preview` from 062-02 enables) the
+  default behavior of `maid validate` and `maid verify`, add the
+  documented legacy escape hatch, and ship the migration documentation.
+  Per the 2026-07-03 re-audit, the flip concretely means: `maid validate`
+  defaults gain the `--strict` expansion (assertion checks, stub checks,
+  fail-on-warnings) plus artifact execution coverage, and `maid verify`
+  defaults gain artifact execution coverage. Verify's existing strict
+  posture (032-03) is already the default and is not touched.
 
-  Sequencing constraint pinned by the epic: this child must not land until
-  062-01 through 062-03 are stable in a released minor version. Default
-  changes ship only in a major version.
+  Release target (user decision, 2026-07-04, superseding the original
+  major-version constraint; the file slug keeps "major-release" for
+  continuity): the flip ships in a later v2.x minor release. Because a
+  minor-version flip changes green/red meaning for existing v2 users,
+  the compensating controls are mandatory: 062-01 through 062-03 must be
+  stable in an earlier released minor (at least one minor version of
+  preview/delta availability before the flip), the flip release notes
+  must lead with the behavior change, and `--legacy-gates` ships in the
+  same release as the flip.
 
   Pinned decisions (do not redesign):
 
   - The strict gates become the default; no opt-in flag is needed anymore.
-  - `--legacy-gates` restores the prior default behavior. It prints a
-    deprecation notice on stderr when active and marks JSON output with a
-    top-level `"legacy_gates": true`. It is documented as a bounded
-    migration aid, not a permanent mode.
+  - `--legacy-gates` restores only the pre-flip defaults that this child
+    changes (validate's non-strict posture and the artifact-coverage
+    default on both commands). It does not resurrect pre-032-03 lax
+    verify behavior. It prints a deprecation notice on stderr when active
+    and marks JSON output with a top-level `"legacy_gates": true`. It is
+    documented as a bounded migration aid, not a permanent mode.
+  - `--advisory` on `maid verify` remains the orthogonal warning-policy
+    hatch: it stays valid, including alongside `--legacy-gates`, and
+    keeps governing only whether warnings block.
+  - The flip changes which gates run, never how diagnostics are
+    classified: advisory-exempt warning codes (E307, legacy chain codes),
+    manifest-level default-hook exemptions (082-04), and info-severity
+    diagnostics (082-05) keep their current non-blocking behavior, so the
+    flip cannot weaponize known warning storms into failures.
   - No environment-variable escape hatch; the `--legacy-gates` flag is the
     single opt-out.
   - Documentation updates ship in this child: README, troubleshooting,
@@ -44,6 +63,11 @@ description: |
   - A default `maid validate` or `maid verify` run enforces the strict
     gate set; fixtures that failed only under `--strict-preview` before
     the flip now fail by default.
+  - The dogfood gate: this repository's own `uv run maid validate` and
+    `uv run maid verify --summary` must pass under the flipped defaults
+    before this child can report ready; if they do not, the migration
+    work goes through the 062-03 delta report first, not through
+    exemptions added in this child.
   - `--legacy-gates` restores the pre-flip gate set for both commands. The
     stderr deprecation notice names the flag, states it is a migration
     aid, and points at the upgrade notes. The notice goes to stderr so it
@@ -77,6 +101,10 @@ description: |
     plausible variable name has no effect).
   - `--legacy-gates` combined with `--strict-preview` exits 2 with a
     usage error.
+  - `maid verify --legacy-gates --advisory` is accepted: legacy gates and
+    the advisory warning-policy hatch compose.
+  - An info-severity diagnostic and an advisory-exempt warning code still
+    do not fail a default post-flip run.
   - Docs tests (047-02 pattern, Path.read_text assertions): the migration
     guide exists, maps newly failing error codes to fixes, and describes
     --legacy-gates as a bounded migration aid; README and troubleshooting
@@ -99,8 +127,8 @@ description: |
   strict-preview flag mechanics (062-02), and the strict-delta report
   (062-03); all three must already be released.
 temptations:
-  - risk: "Do not flip strict defaults in a minor release or silently change green/red meaning."
-    instead: "Land this child only in the major version, after 062-01 through 062-03 are stable in a released minor version, with explicit upgrade notes."
+  - risk: "Do not flip strict defaults silently or before the migration tooling has been released."
+    instead: "Land this child only after 062-01 through 062-03 are stable in an earlier released minor, lead the flip release notes with the behavior change, and ship --legacy-gates in the same release, per the 2026-07-04 staged v2.x flip decision."
   - risk: "Do not make the legacy escape hatch invisible or permanent."
     instead: "Label legacy-gate runs with a stderr deprecation notice and the legacy_gates JSON marker, and document the hatch as a bounded migration aid."
   - risk: "Do not add an environment-variable opt-out alongside the flag."
@@ -183,6 +211,8 @@ files:
   read:
     - docs/plans/maid-validate-hardening-backlog.md
     - maid_runner/core/validate.py
+    - maid_runner/core/verify_summary.py
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
     - tests/cli/test_strict_default_flip.py
     - tests/test_strict_defaults_docs.py
 validate:

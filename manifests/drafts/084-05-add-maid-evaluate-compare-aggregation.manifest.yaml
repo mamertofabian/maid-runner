@@ -1,0 +1,216 @@
+# draft-kind: child
+schema: "2"
+goal: "Add `maid evaluate compare` — deterministic cross-run aggregation of RunEvaluations grouped by agent provenance (provider/model/client), reporting per-dimension counts with run counts always visible and explicit unknown-agent grouping, with no composite scores, ranking, or verdicts"
+type: feature
+created: "2026-07-04T03:45:00Z"
+metadata:
+  epic: 084-00-after-action-run-evaluation
+  tags:
+    - run-evaluation
+    - agent-provenance
+    - outcome-records
+    - cli
+  priority: medium
+description: |
+  Second consumer: answers "how do my agent setups differ in this repo?"
+  from accumulated run evidence. Depends on 084-01 (index provenance) and
+  084-04 (evaluate_run, RunEvaluation, evaluate CLI group).
+
+  Pinned decisions (do not redesign):
+
+  1. Aggregation is a pure function over evaluations — policy separated
+     from mechanism. maid_runner/core/run_evaluation.py gains
+     `RunComparisonRow` (frozen: `provider: Optional[str]`,
+     `model: Optional[str]`, `client: Optional[str]`, `runs: int`,
+     `outcomes_completed: int`, `outcomes_other: int`,
+     `revisions_narrowing_total: int`,
+     `revisions_unclassified_total: int`, `red_evidence_valid: int`,
+     `incidents_total: int`) and
+     `compare_runs(evaluations) -> tuple[RunComparisonRow, ...]`.
+     Grouping key is (provider, model, client); runs without provenance
+     group under the explicit (None, None, None) row rendered as
+     "(unknown agent)" — anonymity is a visible bucket, never dropped.
+     Rows sort deterministically by runs desc, then model asc.
+
+  2. Honest small-N: `runs` is always the first rendered column, there
+     are no percentages, averages, scores, or rankings — raw counts
+     only. Interpreting three runs as a trend is the reader's mistake to
+     make, not the tool's suggestion.
+
+  3. CLI: `maid evaluate compare [--manifest-dir] [--project-root]
+     [--json]` in maid_runner/cli/commands/evaluate.py. It evaluates
+     every manifest in the manifest dir that has a plan lock or an
+     outcome section (runs with neither leave no evidence and are
+     skipped with a visible skipped-count line, not silently) and
+     renders compare_runs output as an aligned text table or JSON from
+     the same structured rows. Advisory: exit 0 with results, nonzero
+     only for input errors (missing manifest dir). Per-manifest
+     evaluation errors (unparseable manifest) are reported to stderr
+     with the path and counted as skipped — fail loud per item without
+     aborting the sweep.
+
+  4. This child does NOT read .maid/outcomes.json: it evaluates live
+     manifests directly via evaluate_run so results never depend on
+     index freshness. The 084-01 index provenance remains available for
+     future recall/insights consumers.
+
+  Planned behavioral tests (red phase pending — handoff stops before
+  tests): tests/core/test_run_comparison.py exercises compare_runs
+  directly: two provenances group into two rows with correct per-row
+  counts; anonymous evaluations land in the (None, None, None) row;
+  deterministic ordering by runs desc then model asc; empty input yields
+  an empty tuple. tests/cli/test_evaluate_compare_cmd.py builds a temp
+  manifest dir with provenance-bearing and anonymous completed runs plus
+  one evidence-free manifest and asserts: the table groups by agent with
+  runs as the first column and an "(unknown agent)" row; the
+  evidence-free manifest is reported in a skipped count, not silently
+  dropped; --json rows match the text table; an unparseable manifest is
+  reported to stderr with its path while remaining rows still render and
+  exit stays 0; a missing manifest dir exits nonzero with the path in
+  the error.
+temptations:
+  - risk: "Do not add scores, percentages, averages, or rank ordering to make the comparison look decisive."
+    instead: "Raw counts only with runs always visible first; ordering is runs desc then model asc as a deterministic layout choice, not a ranking claim."
+  - risk: "Do not drop anonymous or evidence-free runs silently, biasing the comparison toward instrumented agents."
+    instead: "Anonymous runs get the explicit (unknown agent) row; evidence-free manifests are counted and reported as skipped."
+  - risk: "Do not abort the whole sweep on one unparseable manifest, and do not swallow it either."
+    instead: "Report each failed item to stderr with its path, count it as skipped, and continue."
+  - risk: "Do not read the outcomes index and inherit its staleness semantics."
+    instead: "Evaluate live manifests via evaluate_run; index consumers stay out of scope."
+files:
+  edit:
+    - path: maid_runner/core/run_evaluation.py
+      artifacts:
+        - kind: class
+          name: RunComparisonRow
+          description: "Frozen dataclass: per-agent-group aggregate counts over RunEvaluations; the (None, None, None) group is the explicit unknown-agent bucket."
+        - kind: attribute
+          name: provider
+          of: RunComparisonRow
+          type: Optional[str]
+          description: "Group provider; None in the unknown-agent row."
+        - kind: attribute
+          name: model
+          of: RunComparisonRow
+          type: Optional[str]
+          description: "Group model; None in the unknown-agent row."
+        - kind: attribute
+          name: client
+          of: RunComparisonRow
+          type: Optional[str]
+          description: "Group client; None in the unknown-agent row."
+        - kind: attribute
+          name: runs
+          of: RunComparisonRow
+          type: int
+          description: "Run count for the group; always the first rendered column."
+        - kind: attribute
+          name: outcomes_completed
+          of: RunComparisonRow
+          type: int
+          description: "Runs whose outcome status is completed."
+        - kind: attribute
+          name: outcomes_other
+          of: RunComparisonRow
+          type: int
+          description: "Runs with a non-completed or missing outcome status."
+        - kind: attribute
+          name: revisions_narrowing_total
+          of: RunComparisonRow
+          type: int
+          description: "Sum of narrowing revisions across the group's runs."
+        - kind: attribute
+          name: revisions_unclassified_total
+          of: RunComparisonRow
+          type: int
+          description: "Sum of unclassified revisions across the group's runs."
+        - kind: attribute
+          name: red_evidence_valid
+          of: RunComparisonRow
+          type: int
+          description: "Runs whose red_evidence_status is valid."
+        - kind: attribute
+          name: incidents_total
+          of: RunComparisonRow
+          type: int
+          description: "Sum of incidents across the group's runs."
+        - kind: function
+          name: compare_runs
+          args:
+            - name: evaluations
+              type: Sequence[RunEvaluation]
+          returns: tuple[RunComparisonRow, ...]
+          description: "Pure aggregation grouped by (provider, model, client) including the explicit unknown bucket; deterministic order runs desc then model asc; empty input yields empty tuple."
+    - path: maid_runner/cli/commands/evaluate.py
+      artifacts:
+        - kind: function
+          name: cmd_evaluate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "compare subcommand sweeps the manifest dir, evaluates evidence-bearing manifests via evaluate_run, reports per-item failures to stderr with paths and a visible skipped count, renders text table and --json from the same rows, exits 0 except for input errors."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "evaluate command group gains a compare subcommand with --manifest-dir, --project-root, --json."
+  read:
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/types.py
+    - README.md
+    - manifests/drafts/084-04-add-maid-evaluate-run-command.manifest.yaml
+  create:
+    - path: tests/core/test_run_comparison.py
+      artifacts:
+        - kind: test_function
+          name: test_compare_runs_groups_by_provenance_with_correct_counts
+          args: []
+          returns: None
+          description: "Evaluations from two distinct provenances yield two rows whose per-dimension counts match their inputs."
+        - kind: test_function
+          name: test_compare_runs_buckets_anonymous_runs_explicitly
+          args: []
+          returns: None
+          description: "Evaluations without provenance land in the (None, None, None) row rather than being dropped."
+        - kind: test_function
+          name: test_compare_runs_orders_rows_deterministically
+          args: []
+          returns: None
+          description: "Rows sort by runs descending then model ascending, stable across calls."
+        - kind: test_function
+          name: test_compare_runs_empty_input_yields_empty_tuple
+          args: []
+          returns: None
+          description: "No evaluations produce no rows."
+    - path: tests/cli/test_evaluate_compare_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_evaluate_compare_renders_grouped_table_with_unknown_row
+          args: []
+          returns: None
+          description: "Text table groups by agent with runs first and shows the (unknown agent) row for anonymous runs."
+        - kind: test_function
+          name: test_evaluate_compare_reports_skipped_evidence_free_manifests
+          args: []
+          returns: None
+          description: "A manifest with neither lock nor outcome appears in a visible skipped count, not silently."
+        - kind: test_function
+          name: test_evaluate_compare_json_matches_text_rows
+          args: []
+          returns: None
+          description: "--json rows carry the same groups and counts as the rendered table."
+        - kind: test_function
+          name: test_evaluate_compare_continues_past_unparseable_manifest_loudly
+          args: []
+          returns: None
+          description: "An unparseable manifest is reported to stderr with its path and counted skipped while remaining rows render and exit stays 0."
+        - kind: test_function
+          name: test_evaluate_compare_missing_manifest_dir_fails_loud
+          args: []
+          returns: None
+          description: "A nonexistent manifest dir exits nonzero naming the path."
+validate:
+  - uv run python -m pytest -q tests/core/test_run_comparison.py tests/cli/test_evaluate_compare_cmd.py

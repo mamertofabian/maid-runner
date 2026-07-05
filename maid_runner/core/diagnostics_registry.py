@@ -262,6 +262,17 @@ _RECIPE_TEMPLATES = {
             "manifest arguments."
         ),
     ),
+    ErrorCode.STUB_FUNCTION_DETECTED.value: RepairRecipe(
+        kind="edit-implementation",
+        target="{file}",
+        instruction=(
+            "Replace the placeholder body in {artifact} with real behavior. "
+            "If this is an intentional documented default hook, acknowledge "
+            "that callable artifact in the declaring manifest with "
+            "default_hook: true; do not use that acknowledgment for genuinely "
+            "unimplemented stubs."
+        ),
+    ),
 }
 
 

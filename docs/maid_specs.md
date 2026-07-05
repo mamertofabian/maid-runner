@@ -103,10 +103,16 @@ mismatches, and red evidence in text or JSON form.
 When implementation review changes the behavioral contract after implementation
 is already present, use `maid plan revise <manifest-path> --reason "<text>"
 --stash-implementation`. This is a targeted recovery workflow: MAID stashes
-only declared non-test implementation paths, leaves the revised manifest and
-behavioral tests in the worktree, captures fresh red evidence, restores the
-implementation changes, and saves the revised lock only when the evidence is
-valid red. It refuses missing Git metadata, unrelated dirty paths, staged target
+only declared non-test implementation paths, including narrow wiring paths
+declared under `files.read` when the manifest also declares a contracted
+writable implementation path, leaves the revised manifest and behavioral tests
+in the worktree, captures fresh red evidence, restores the implementation
+changes, and saves the revised lock only when the evidence is valid red.
+`files.read` behavioral test paths are never stashed, and undeclared dirty paths
+are still refused; declaring a touched wiring file under `files.read` is the
+bounded way to include it in the targeted stash for contracted implementation
+plans. Scope-only manifests still reject separate dirty `files.read` context
+paths. It refuses missing Git metadata, unrelated dirty paths, staged target
 changes, missing target implementation changes, and conflicting `--no-run` or
 `--preserve-red-evidence` modes.
 

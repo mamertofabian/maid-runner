@@ -1,0 +1,121 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Turn the evidence MAID already emits (plan locks, revision history, red evidence, Outcome records, incidents) into an after-action evaluation layer: capture agent/model/skill provenance at the moments it exists, record structured contract deltas so plan revisions become classifiable, ship a deterministic `maid evaluate` command for per-run and cross-run agent review, and close with an enrich-style LLM qualitative review pipeline whose model calls live only in a skill"
+type: feature
+created: "2026-07-04T03:40:00Z"
+metadata:
+  status: planning
+  tags:
+    - run-evaluation
+    - agent-provenance
+    - plan-lock
+    - outcome-records
+    - anti-gaming
+    - llm-enrichment
+    - cli
+  priority: medium
+description: |
+  Split-before-promote epic. MAID runs already leave a structured evidence
+  trail — plan locks with revision history and red-phase evidence
+  (`.maid/plan-locks/*.lock.json`), Outcome records with lessons, review
+  notes, and validation evidence (manifest `outcome:` sections indexed by
+  `maid learn`), and gaming incidents (`maid incident`). A 2026-07-04 design
+  review confirmed this trail supports an after-action evaluation layer that
+  answers "how well did the implementing agent behave on this run?" and
+  "which agent/model/skill combination behaves best in this repo?" — but
+  found three evidence gaps and no consumer:
+
+  1. NO PROVENANCE. Nothing records which agent, model, client, or skill
+     versions produced a run. `OutcomeRecord` has no agent field
+     (maid_runner/core/types.py), and plan locks record hashes, timestamps,
+     and reasons but not who created or revised them
+     (maid_runner/core/plan_lock.py). Provenance is the only evaluator input
+     that cannot be reconstructed later; every run completed without it is
+     permanently anonymous. (Children 084-01 and 084-02.)
+
+  2. UNCLASSIFIABLE REVISIONS. Plan-lock revision entries store prior
+     hashes plus a free-text reason, so scope-narrowing revisions
+     (requirements removed, validate commands dropped) are indistinguishable
+     from strengthening ones (tests added after review findings) without
+     trusting the agent-authored reason string — the one input an evaluator
+     must not trust. The lock file already persists `_manifest_contract`,
+     so a structured delta is computable at revise time for free.
+     (Child 084-03.)
+
+  3. NO CONSUMER. Even the evidence that exists has no reader: nothing
+     reports revision churn, red-evidence validity, Outcome corroboration,
+     or incident counts per run, and nothing aggregates across runs by
+     agent. (Children 084-04 and 084-05; qualitative LLM review in
+     084-06 and 084-07.)
+
+  ARCHITECTURE CONSTRAINTS (carried from the 081/083 series; do not
+  redesign):
+
+  - The runner stays deterministic and AI-free. No child may add a model
+    call, LLM network access, or provider credentials to any maid-runner
+    command. Qualitative judgment lives exclusively in the maid-run-review
+    skill (084-07), which orchestrates the deterministic prompt/validate/
+    render pipeline (084-06) exactly as maid-outcome-enrich orchestrates
+    `maid enrich`.
+  - Evaluation is advisory, never a gate. No child may make evaluation
+    results, provenance presence, or review verdicts a condition for
+    validate, verify, plan lock, promote, readiness, or handoff. The
+    implementing agent must never have a reason to optimize for the
+    evaluator; this layer audits runs after the fact.
+  - No composite scores in the deterministic layer. `maid evaluate` reports
+    counts, classifications, and evidence-cited findings. A single blended
+    "grade" invites gaming, hides small-N uncertainty, and bakes weighting
+    policy into the runner. Aggregation (084-05) reports per-dimension
+    counts with run counts always visible.
+  - Evidence over claims. Revision classification uses stored contract
+    deltas, never reason strings. Outcome validation evidence is checked
+    against manifest validate commands rather than taken at its word.
+    Where evidence is missing (pre-084 locks, absent provenance), the
+    evaluator reports "unclassified"/"unknown" explicitly — fail honest,
+    never fabricate.
+  - Provenance is optional and additive. Absent provenance must never
+    error or warn in existing flows (lock, revise, learn, validate);
+    it surfaces only inside `maid evaluate` output as an explicit gap.
+  - Fail loud, never fake: unreadable locks, malformed outcomes, and
+    stale indexes are surfaced as labeled errors or explicit "unknown"
+    dimensions, never silently skipped.
+
+  This epic decomposes into seven implementation-sized child drafts:
+
+  - 084-01-add-agent-provenance-to-outcome-records: `AgentProvenance`
+    dataclass, optional `agent:` block on `outcome:` (schema + parse +
+    serialize), Outcome index inclusion, Outcome docs update.
+  - 084-02-capture-agent-provenance-in-plan-locks: `--agent-*` flags with
+    `MAID_AGENT_*` env fallback on `maid plan lock`/`revise`, provenance on
+    the lock and on each revision entry, `maid plan status` display.
+  - 084-03-record-contract-deltas-in-lock-revisions: `ContractDelta`
+    computed at revise time from the persisted `_manifest_contract` versus
+    the new manifest contract, stored per revision entry.
+  - 084-04-add-maid-evaluate-run-command: deterministic per-run evaluation
+    (`maid evaluate run <manifest>`): provenance, revision classification
+    from deltas, red-evidence status, Outcome corroboration, incident
+    count, evidence-cited findings, text + --json.
+  - 084-05-add-maid-evaluate-compare-aggregation: cross-run aggregation
+    grouped by provenance (`maid evaluate compare`), per-dimension counts
+    with visible run counts, no composite scores.
+  - 084-06-add-run-review-enrichment-pipeline: enrich-style deterministic
+    `maid evaluate prompt|validate|render` for LLM qualitative review with
+    anti-fabrication evidence-id citation validation.
+  - 084-07-add-maid-run-review-skill-and-docs: maid-run-review skill
+    (Claude + Codex payloads) orchestrating prompt -> model -> validate ->
+    render with cloud privacy disclosure, plus docs/run-evaluation.md and
+    README wiring.
+
+  DEPENDENCIES: 084-01, 084-02, and 084-03 are independent of each other.
+  084-04 consumes all three (it degrades honestly when their data is
+  absent, but its classification and provenance dimensions exist because
+  of them). 084-05 requires 084-01 (index provenance) and 084-04.
+  084-06 requires 084-04. 084-07 requires 084-06. Implement in numeric
+  order.
+
+  OUT OF SCOPE for this epic: any gate or readiness wiring; composite
+  scoring or leaderboards; automatic diff capture during implementation
+  (the review pipeline accepts an operator-supplied --diff-file only);
+  token/cost accounting; recall/insights changes beyond carrying the new
+  index field; retroactive provenance backfill for historical runs.

@@ -1,0 +1,101 @@
+{
+  "manifest_path": "manifests/062-03-report-strict-migration-delta.manifest.yaml",
+  "manifest_hash": "sha256:396891eb15e8c75aa6fe478b8fb61c4879e4e91624f2dfc972ccf51c0112b131",
+  "test_hashes": {
+    "tests/core/test_strict_delta.py": "sha256:ae6b0fb2b0c795eccbd303f51816b2aa1fb710685101ce2c969ee701089027ed",
+    "tests/cli/test_strict_delta_cmd.py": "sha256:b35cdf691e45be744db78183469a640d741f3708bd2824ee16c99aed7faf5f97"
+  },
+  "created_at": "2026-07-04T00:17:23.093514+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d18e729885f74d49e683cfc35f2c4912333273e2b9b6efd517e666c451db61bc",
+      "prior_test_hashes": {
+        "tests/core/test_strict_delta.py": "sha256:ae6b0fb2b0c795eccbd303f51816b2aa1fb710685101ce2c969ee701089027ed",
+        "tests/cli/test_strict_delta_cmd.py": "sha256:b35cdf691e45be744db78183469a640d741f3708bd2824ee16c99aed7faf5f97"
+      },
+      "revised_at": "2026-07-04T00:17:27.388051+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-03-report-strict-migration-delta.manifest.yaml -> manifests/062-03-report-strict-migration-delta.manifest.yaml"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T00:17:28.075396+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_strict_delta.py tests/cli/test_strict_delta_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,validators,test,verify,plan,task,hook,snapshot,snapshot-system,bootstrap,learn,recall,insights,enrich,benchmark,incident,daemon,skills,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: unrecognized arguments: --strict-delta\n=========================== short test summary info ============================\nFAILED tests/core/test_strict_delta.py::test_compute_strict_delta_excludes_shared_diagnostics_and_sorts_entries\nFAILED tests/core/test_strict_delta.py::test_compute_strict_delta_uses_code_manifest_and_location_identity\nFAILED tests/core/test_strict_delta.py::test_compute_strict_delta_returns_explicit_empty_report_for_clean_delta\nFAILED tests/cli/test_strict_delta_cmd.py::test_parser_accepts_strict_delta_for_validate\nFAILED tests/cli/test_strict_delta_cmd.py::test_main_dispatches_strict_delta_to_validate_handler\nFAILED tests/cli/test_strict_delta_cmd.py::test_validate_strict_delta_json_reports_strict_only_artifact_coverage\nFAILED tests/cli/test_strict_delta_cmd.py::test_validate_strict_delta_preserves_default_failure_exit_code\nFAILED tests/cli/test_strict_delta_cmd.py::test_validate_strict_delta_text_reports_empty_delta\n============================== 8 failed in 0.34s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-03-report-strict-migration-delta.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.code",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.code:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.code:of=StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.code:type=str",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.file",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.file:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.file:of=StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.file:type=str | None",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.manifest_path",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.manifest_path:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.manifest_path:of=StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.manifest_path:type=str",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.message",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.message:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.message:of=StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.message:type=str",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.severity",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.severity:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.severity:of=StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaEntry.severity:type=str",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaReport.entries",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaReport.entries:kind=attribute",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaReport.entries:of=StrictDeltaReport",
+      "maid_runner/core/strict_delta.py:attribute:StrictDeltaReport.entries:type=tuple[StrictDeltaEntry, ...]",
+      "maid_runner/core/strict_delta.py:class:StrictDeltaEntry",
+      "maid_runner/core/strict_delta.py:class:StrictDeltaEntry:kind=class",
+      "maid_runner/core/strict_delta.py:class:StrictDeltaReport",
+      "maid_runner/core/strict_delta.py:class:StrictDeltaReport:kind=class",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:arg=default_coverage:type=Mapping[str, ArtifactCoverageReport] | None:default=None",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:arg=default_result:type=BatchValidationResult:default=None",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:arg=strict_coverage:type=Mapping[str, ArtifactCoverageReport] | None:default=None",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:arg=strict_result:type=BatchValidationResult:default=None",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:kind=function",
+      "maid_runner/core/strict_delta.py:function:compute_strict_delta:returns=StrictDeltaReport",
+      "maid_runner/core/strict_delta.py:method:StrictDeltaReport.to_dict",
+      "maid_runner/core/strict_delta.py:method:StrictDeltaReport.to_dict:kind=method",
+      "maid_runner/core/strict_delta.py:method:StrictDeltaReport.to_dict:of=StrictDeltaReport",
+      "maid_runner/core/strict_delta.py:method:StrictDeltaReport.to_dict:returns=dict"
+    ],
+    "test_files": [
+      "tests/cli/test_strict_delta_cmd.py",
+      "tests/core/test_strict_delta.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_strict_delta.py tests/cli/test_strict_delta_cmd.py -v",
+      "uv run maid validate manifests/062-03-report-strict-migration-delta.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "manifest_path": "manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml",
+  "manifest_hash": "sha256:c2fbef7ae714520796e17c4ff746854e9e15be97378094722a511c30bd81b7a3",
+  "test_hashes": {
+    "tests/core/test_default_hook_stub_exemption.py": "sha256:c7a66c6f90164833fb1cf588ffecfa98575b2ff3ef36d79d0b22926e02bacfff"
+  },
+  "created_at": "2026-07-03T00:52:16.142173+00:00",
+  "revision": 13,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:65461f72eb8c73bf3a66d3912eb461428726f806638aa772479eeb2bd533e563",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:d4d018ab2fd782436700632280ab47b9bbb08102aef34296d2d74afa5a1bb0e5"
+      },
+      "revised_at": "2026-07-03T00:52:26.320571+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml -> manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:74a9dc238b43f3262676c70829aada823f35640e370208eb9335f90b58b9ba0b",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:d4d018ab2fd782436700632280ab47b9bbb08102aef34296d2d74afa5a1bb0e5"
+      },
+      "revised_at": "2026-07-03T00:56:39.116288+00:00",
+      "reason": "BaseValidator default hooks are governed by consolidate-validation-and-validator-contracts, not only the superseded snapshot; revise scope so active declarations carry default_hook without introducing E110 dropped artifacts."
+    },
+    {
+      "prior_manifest_hash": "sha256:65ba733b41fb74a4b2167302c16bfbd10170ac7a141b456621e3d470ed6a777b",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:d4d018ab2fd782436700632280ab47b9bbb08102aef34296d2d74afa5a1bb0e5"
+      },
+      "revised_at": "2026-07-03T00:57:51.332980+00:00",
+      "reason": "Plan scope corrected after implementation validation showed BaseValidator hooks are governed by the consolidated validator contract; preserve the existing red evidence because behavioral tests are unchanged."
+    },
+    {
+      "prior_manifest_hash": "sha256:d8cd7e5928193a310015b010173d98b4f21a3593cb6c1bd641a97ecd31ca65f9",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:d4d018ab2fd782436700632280ab47b9bbb08102aef34296d2d74afa5a1bb0e5"
+      },
+      "revised_at": "2026-07-03T00:59:03.696066+00:00",
+      "reason": "Plan scope revised to declare BaseValidator default hooks in the new active manifest rather than editing superseded historical manifests; preserve unchanged red evidence."
+    },
+    {
+      "prior_manifest_hash": "sha256:4207e6d3c943b77199cd7873da29f1302151986a3174103f42c42d6cb83f67b1",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:d4d018ab2fd782436700632280ab47b9bbb08102aef34296d2d74afa5a1bb0e5"
+      },
+      "revised_at": "2026-07-03T01:00:03.324370+00:00",
+      "reason": "Preserve red evidence after adding BaseValidator reference assertions; stashed recapture cannot load this revised manifest because default_hook is itself the new schema feature under implementation."
+    },
+    {
+      "prior_manifest_hash": "sha256:4207e6d3c943b77199cd7873da29f1302151986a3174103f42c42d6cb83f67b1",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:95a1e79ac8def97e9240b72190cb8de119a85651b19ecd0d5d2745fc357b4a21"
+      },
+      "revised_at": "2026-07-03T01:07:06.401354+00:00",
+      "reason": "Focused validation now includes the diagnostics registry test that pins the new E310 repair recipe."
+    },
+    {
+      "prior_manifest_hash": "sha256:442cf826ae657409cfa4f2a52c4eca7a39ad8f3d7f5aba68383e55d589932923",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:cc53aa922a74929c9adad15faa908859fbab426118b987dd761664e701ca588e"
+      },
+      "revised_at": "2026-07-03T01:10:09.308710+00:00",
+      "reason": "Restore focused validate command to match the captured red-evidence command after diagnostics registry test was handled as shared-suite maintenance."
+    },
+    {
+      "prior_manifest_hash": "sha256:4207e6d3c943b77199cd7873da29f1302151986a3174103f42c42d6cb83f67b1",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:cc53aa922a74929c9adad15faa908859fbab426118b987dd761664e701ca588e"
+      },
+      "revised_at": "2026-07-03T01:17:17.592647+00:00",
+      "reason": "Declare existing shared test files as scope-only writable test updates after implementation review found they were read-only or undeclared."
+    },
+    {
+      "prior_manifest_hash": "sha256:e474ceae5209fd37ecf4d19b6f9634f7f470886f5edfa76c2f4c4b4601d3a163",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:cc53aa922a74929c9adad15faa908859fbab426118b987dd761664e701ca588e"
+      },
+      "revised_at": "2026-07-03T01:24:30.369897+00:00",
+      "reason": "Supersede 042 default-hook verify-warning contract so the retired verify-side E310 whitelist is no longer active."
+    },
+    {
+      "prior_manifest_hash": "sha256:68642a10fbf7488e181e7b7d21f26786dd5a990b908be45dd02f43c7da286a15",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:cc53aa922a74929c9adad15faa908859fbab426118b987dd761664e701ca588e"
+      },
+      "revised_at": "2026-07-03T01:37:41.794631+00:00",
+      "reason": "Address implementation review by adding a behavioral schema guard that rejects default_hook on non-callable artifacts."
+    },
+    {
+      "prior_manifest_hash": "sha256:68642a10fbf7488e181e7b7d21f26786dd5a990b908be45dd02f43c7da286a15",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:c7a66c6f90164833fb1cf588ffecfa98575b2ff3ef36d79d0b22926e02bacfff"
+      },
+      "revised_at": "2026-07-03T01:42:45.882855+00:00",
+      "reason": "Declare the non-callable default_hook schema regression test added during implementation review."
+    },
+    {
+      "prior_manifest_hash": "sha256:d7287a40bedbe6590d99719380419efdb383bb94ddc4e95d5d4a386ed2ae792f",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256:c7a66c6f90164833fb1cf588ffecfa98575b2ff3ef36d79d0b22926e02bacfff"
+      },
+      "revised_at": "2026-07-03T04:45:44.497743+00:00",
+      "reason": "Capture implementation Outcome after ready review."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-03T00:56:44.704434+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_default_hook_stub_exemption.py tests/cli/test_verify_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "                ),\n                severity=Severity.WARNING,\n                location=Location(file=\"maid_runner/validators/base.py\", line=128),\n            )\n        ]\n    \n>       assert _warnings_are_blocking(warnings, str(manifest_path), tmp_path) is True\nE       assert False is True\nE        +  where False = <function _warnings_are_blocking at 0x797a0300c860>([ValidationError(code=<ErrorCode.STUB_FUNCTION_DETECTED: 'E310'>, message=\"Function 'BaseValidator.module_path' appears to be a stub in maid_runner/validators/base.py\", severity=<Severity.WARNING: 'warning'>, location=Location(file='maid_runner/validators/base.py', line=128, column=None, end_line=None, end_column=None), suggestion=None)], '/tmp/pytest-of-atomrem/pytest-97/test_verify_base_validator_def0/manifests/base-validator-default-hooks.manifest.yaml', PosixPath('/tmp/pytest-of-atomrem/pytest-97/test_verify_base_validator_def0'))\nE        +    where '/tmp/pytest-of-atomrem/pytest-97/test_verify_base_validator_def0/manifests/base-validator-default-hooks.manifest.yaml' = str(PosixPath('/tmp/pytest-of-atomrem/pytest-97/test_verify_base_validator_def0/manifests/base-validator-default-hooks.manifest.yaml'))\n\ntests/cli/test_verify_cmd.py:558: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_default_hook_stub_exemption.py::test_default_hook_true_suppresses_e310_for_trivial_default\nFAILED tests/core/test_default_hook_stub_exemption.py::test_real_stub_without_default_hook_still_reports_e310\nFAILED tests/core/test_default_hook_stub_exemption.py::test_default_hook_parses_from_manifest_yaml\nFAILED tests/core/test_default_hook_stub_exemption.py::test_schema_rejects_non_boolean_default_hook\nFAILED tests/core/test_default_hook_stub_exemption.py::test_chain_level_acknowledgment_covers_other_declaring_manifests\nFAILED tests/cli/test_verify_cmd.py::test_verify_base_validator_default_hook_stub_warning_is_advisory_by_default\n========================= 6 failed, 36 passed in 2.70s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/types.py:attribute:ArtifactSpec.default_hook",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.default_hook:kind=attribute",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.default_hook:of=ArtifactSpec",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.default_hook:type=bool",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.default_hook",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.default_hook:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.default_hook:of=MAID Manifest v2 schema",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.default_hook:type=optional boolean on ArtifactSpec",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub:arg=artifacts:type=list[FoundArtifact]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_test_stub:returns=str",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies:arg=source:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.get_test_function_bodies:returns=dict[str, str]",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.module_path:returns=Optional[str]",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:arg=module:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:arg=name:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.resolve_reexport:returns=Optional[tuple[str, str]]",
+      "tests/core/test_default_hook_stub_exemption.py:test_chain_level_acknowledgment_covers_other_declaring_manifests",
+      "tests/core/test_default_hook_stub_exemption.py:test_chain_level_acknowledgment_covers_other_declaring_manifests:kind=test_function",
+      "tests/core/test_default_hook_stub_exemption.py:test_default_hook_parses_from_manifest_yaml",
+      "tests/core/test_default_hook_stub_exemption.py:test_default_hook_parses_from_manifest_yaml:kind=test_function",
+      "tests/core/test_default_hook_stub_exemption.py:test_default_hook_true_suppresses_e310_for_trivial_default",
+      "tests/core/test_default_hook_stub_exemption.py:test_default_hook_true_suppresses_e310_for_trivial_default:kind=test_function",
+      "tests/core/test_default_hook_stub_exemption.py:test_real_stub_without_default_hook_still_reports_e310",
+      "tests/core/test_default_hook_stub_exemption.py:test_real_stub_without_default_hook_still_reports_e310:kind=test_function",
+      "tests/core/test_default_hook_stub_exemption.py:test_schema_rejects_default_hook_on_non_callable_artifact",
+      "tests/core/test_default_hook_stub_exemption.py:test_schema_rejects_default_hook_on_non_callable_artifact:kind=test_function",
+      "tests/core/test_default_hook_stub_exemption.py:test_schema_rejects_non_boolean_default_hook",
+      "tests/core/test_default_hook_stub_exemption.py:test_schema_rejects_non_boolean_default_hook:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_default_hook_stub_exemption.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_default_hook_stub_exemption.py tests/cli/test_verify_cmd.py -v",
+      "uv run maid validate manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/082-04-exempt-documented-default-hooks-from-e310.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

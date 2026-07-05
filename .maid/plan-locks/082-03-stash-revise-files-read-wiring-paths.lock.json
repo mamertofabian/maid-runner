@@ -1,0 +1,103 @@
+{
+  "manifest_path": "manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml",
+  "manifest_hash": "sha256:025fb53c07a7b87cd73ea6a6343574d6ac388b55e62137e5fe9b7e56023dab4f",
+  "test_hashes": {
+    "tests/cli/test_stash_revise_files_read_targets.py": "sha256:17f428859a011daf0f966d5a0602e7240b1f6338688fb8a2574984ba126422b4"
+  },
+  "created_at": "2026-07-03T00:07:07.528138+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:aab04be5f74030c2b1e89099c6908444d9c882e34e443b79d9fd95e60b5700b0",
+      "prior_test_hashes": {
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256:a9246c42f6c6a0ff89f6f66a00d8dd213582a3c3774c412a11ea49346980d8d0"
+      },
+      "revised_at": "2026-07-03T00:07:12.910146+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-03-stash-revise-files-read-wiring-paths.manifest.yaml -> manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:a5a51e55be7b421f68fce02eb1c5247b4e9feb35703af1d4e7c3f1af5e19b4c3",
+      "prior_test_hashes": {
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256:a9246c42f6c6a0ff89f6f66a00d8dd213582a3c3774c412a11ea49346980d8d0"
+      },
+      "revised_at": "2026-07-03T00:10:40.188851+00:00",
+      "reason": "Format new behavioral tests with Black after plan lock"
+    },
+    {
+      "prior_manifest_hash": "sha256:a5a51e55be7b421f68fce02eb1c5247b4e9feb35703af1d4e7c3f1af5e19b4c3",
+      "prior_test_hashes": {
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256:9f1f506e0407fb9976f751717d571f5d5eda0881426b5aa6c43b4cbfe9caf642"
+      },
+      "revised_at": "2026-07-03T00:15:15.864838+00:00",
+      "reason": "Clarify files.read stash eligibility boundary after reconciling scope-only contract"
+    },
+    {
+      "prior_manifest_hash": "sha256:4920ee72e2a727e800091b6a3bf6a50840918e0d83d87a352f581e18927e0ffe",
+      "prior_test_hashes": {
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256:9f1f506e0407fb9976f751717d571f5d5eda0881426b5aa6c43b4cbfe9caf642"
+      },
+      "revised_at": "2026-07-03T00:23:52.636918+00:00",
+      "reason": "Review found backslash files.read test path normalization gap"
+    },
+    {
+      "prior_manifest_hash": "sha256:54b648cc2d8647a10fc8931c36d28fee52717d2290c509817fa622c5720dd2ba",
+      "prior_test_hashes": {
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256:17f428859a011daf0f966d5a0602e7240b1f6338688fb8a2574984ba126422b4"
+      },
+      "revised_at": "2026-07-03T00:30:47.118512+00:00",
+      "reason": "Capture implementation outcome after ready review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-03T00:23:58.310909+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_stash_revise_files_read_targets.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        exit_code = cmd_plan_revise(_revise_args(manifest_path, tmp_path))\n    \n        record = _lock_record(tmp_path)\n>       assert exit_code == 0\nE       assert 2 == 0\n\ntests/cli/test_stash_revise_files_read_targets.py:264: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'wiring-task' at revision 1 (0 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-76/test_stash_revise_keeps_backsl0/.maid/plan-locks/wiring-task.lock.json)\n----------------------------- Captured stderr call -----------------------------\nError: --stash-implementation refuses unrelated dirty path(s): src/page.py, tests/test_wiring.py\n=========================== short test summary info ============================\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_stashes_dirty_declared_files_read_wiring_path\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_restores_files_read_changes_after_capture\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_still_refuses_undeclared_dirty_paths\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_never_stashes_test_files_declared_under_files_read\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_counts_files_read_targets_for_dirty_guard\nFAILED tests/cli/test_stash_revise_files_read_targets.py::test_stash_revise_keeps_backslash_files_read_test_visible\n============================== 6 failed in 2.82s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_counts_files_read_targets_for_dirty_guard",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_counts_files_read_targets_for_dirty_guard:kind=test_function",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_keeps_backslash_files_read_test_visible",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_keeps_backslash_files_read_test_visible:kind=test_function",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_never_stashes_test_files_declared_under_files_read",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_never_stashes_test_files_declared_under_files_read:kind=test_function",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_restores_files_read_changes_after_capture",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_restores_files_read_changes_after_capture:kind=test_function",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_stashes_dirty_declared_files_read_wiring_path",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_stashes_dirty_declared_files_read_wiring_path:kind=test_function",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_still_refuses_undeclared_dirty_paths",
+      "tests/cli/test_stash_revise_files_read_targets.py:test_stash_revise_still_refuses_undeclared_dirty_paths:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_stash_revise_files_read_targets.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_stash_revise_files_read_targets.py -v",
+      "uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

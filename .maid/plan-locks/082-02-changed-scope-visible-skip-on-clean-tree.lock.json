@@ -1,0 +1,164 @@
+{
+  "manifest_path": "manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml",
+  "manifest_hash": "sha256:fd03f53a6ff79e539c47f6b79ea4541fc33c46f6243112d96fad6823b0580549",
+  "test_hashes": {
+    "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:2b75ccc37fa0ca33ba183237af5ea64b32151926858c9e6e50bf7a74f7e546be",
+    "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:a615e625c894822c04e623663bbdba4f1067b98b6395dce1ccbe147e18998f1c"
+  },
+  "created_at": "2026-07-02T23:40:25.385063+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:bd816668fac389f744a1c763f91249febfb3ea5b37471b0c51fe6b6eef209c37",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:418444cb9af084ad65d824097ec4800d143fc7840ed991567b5eace2913829ef",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:0a6b4480643ffdc8ad0132295703f2de4a08f7f7f9fa12934358c45a4c517794"
+      },
+      "revised_at": "2026-07-02T23:40:36.417235+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml -> manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:aa5ed320dad43da2fb96137927bd5377c552624d0ef4024eff51328f0c7ebf7e",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:418444cb9af084ad65d824097ec4800d143fc7840ed991567b5eace2913829ef",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:0a6b4480643ffdc8ad0132295703f2de4a08f7f7f9fa12934358c45a4c517794"
+      },
+      "revised_at": "2026-07-02T23:43:50.357416+00:00",
+      "reason": "Make the red phase assertion-based and keep JSON and summary verify fixtures in separate clean git repositories."
+    },
+    {
+      "prior_manifest_hash": "sha256:aa5ed320dad43da2fb96137927bd5377c552624d0ef4024eff51328f0c7ebf7e",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:37b1a453000d17252def5f4ed83cbc747a23660b6f41d8947d8f7a20dcbc7e9a",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:bc5ac1be47b858837da41c53ab64f1942f8cc2994161f12a20d573165b78801b"
+      },
+      "revised_at": "2026-07-02T23:44:28.323871+00:00",
+      "reason": "Use guarded direct imports so behavioral validation can see ChangedScopeDecision and evaluate_changed_scope while red evidence still fails inside tests."
+    },
+    {
+      "prior_manifest_hash": "sha256:aa5ed320dad43da2fb96137927bd5377c552624d0ef4024eff51328f0c7ebf7e",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:ddd2901ec05b565f3960eb3fe1b0162ed2e5d5ffc962678990d0a983d4de08e0",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:bc5ac1be47b858837da41c53ab64f1942f8cc2994161f12a20d573165b78801b"
+      },
+      "revised_at": "2026-07-02T23:46:12.686225+00:00",
+      "reason": "Use scanner-visible worktree attribute references while preserving runtime red failures when the evaluator API is absent."
+    },
+    {
+      "prior_manifest_hash": "sha256:aa5ed320dad43da2fb96137927bd5377c552624d0ef4024eff51328f0c7ebf7e",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:2b75ccc37fa0ca33ba183237af5ea64b32151926858c9e6e50bf7a74f7e546be",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:bc5ac1be47b858837da41c53ab64f1942f8cc2994161f12a20d573165b78801b"
+      },
+      "revised_at": "2026-07-02T23:46:43.655393+00:00",
+      "reason": "Refresh plan lock after Black formatting of the CLI behavioral test."
+    },
+    {
+      "prior_manifest_hash": "sha256:aa5ed320dad43da2fb96137927bd5377c552624d0ef4024eff51328f0c7ebf7e",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope_clean_tree_skip.py": "sha256:2b75ccc37fa0ca33ba183237af5ea64b32151926858c9e6e50bf7a74f7e546be",
+        "tests/cli/test_verify_changed_scope_skip_cmd.py": "sha256:a615e625c894822c04e623663bbdba4f1067b98b6395dce1ccbe147e18998f1c"
+      },
+      "revised_at": "2026-07-02T23:59:42.442105+00:00",
+      "reason": "Capture post-review Outcome section while preserving existing red evidence."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-02T23:46:47.154009+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_changed_scope_clean_tree_skip.py tests/cli/test_verify_changed_scope_skip_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "        _write_verify_project(summary_project)\n        _commit_all(summary_project, \"baseline\")\n    \n        summary_exit = main([\"verify\", \"--summary\", \"--json\"])\n        summary_payload = json.loads(capsys.readouterr().out)\n    \n>       assert json_exit == summary_exit == 0\nE       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_verify_changed_scope_skip_cmd.py:156: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_evaluate_changed_scope_skips_when_no_baseline_and_clean_tree\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_evaluate_changed_scope_keeps_e115_when_tree_dirty\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_evaluate_changed_scope_uses_baseline_when_given\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_evaluate_changed_scope_keeps_e115_when_skip_disallowed\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_stage_skip_reason_partitions_summary_buckets\nFAILED tests/core/test_changed_scope_clean_tree_skip.py::test_formatters_render_skipped_stage_distinctly\nFAILED tests/cli/test_verify_changed_scope_skip_cmd.py::test_bare_verify_passes_with_visible_skip_on_clean_tree\nFAILED tests/cli/test_verify_changed_scope_skip_cmd.py::test_json_and_summary_represent_skip_explicitly\n========================= 8 failed, 2 passed in 0.65s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_verify_result",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=json_mode:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=json_mode:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:returns=str",
+      "maid_runner/core/result.py:attribute:VerificationStageResult.skip_reason",
+      "maid_runner/core/result.py:attribute:VerificationStageResult.skip_reason:kind=attribute",
+      "maid_runner/core/result.py:attribute:VerificationStageResult.skip_reason:of=VerificationStageResult",
+      "maid_runner/core/result.py:attribute:VerificationStageResult.skip_reason:type=Optional[str]",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.skipped_stages",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.skipped_stages:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.skipped_stages:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.skipped_stages:type=tuple[str, ...]",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.errors",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.errors:kind=attribute",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.errors:of=ChangedScopeDecision",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.errors:type=tuple[ValidationError, ...]",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.skip_reason",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.skip_reason:kind=attribute",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.skip_reason:of=ChangedScopeDecision",
+      "maid_runner/core/worktree.py:attribute:ChangedScopeDecision.skip_reason:type=Optional[str]",
+      "maid_runner/core/worktree.py:class:ChangedScopeDecision",
+      "maid_runner/core/worktree.py:class:ChangedScopeDecision:kind=class",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=allow_clean_tree_skip:type=bool:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=base_ref:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=include_tests:type=bool:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=since:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:kind=function",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:returns=ChangedScopeDecision",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_bare_verify_passes_with_visible_skip_on_clean_tree",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_bare_verify_passes_with_visible_skip_on_clean_tree:kind=test_function",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_bare_verify_still_fails_e115_on_dirty_tree",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_bare_verify_still_fails_e115_on_dirty_tree:kind=test_function",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_explicit_changed_scope_flag_keeps_e115_on_clean_tree",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_explicit_changed_scope_flag_keeps_e115_on_clean_tree:kind=test_function",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_json_and_summary_represent_skip_explicitly",
+      "tests/cli/test_verify_changed_scope_skip_cmd.py:test_json_and_summary_represent_skip_explicitly:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_keeps_e115_when_skip_disallowed",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_keeps_e115_when_skip_disallowed:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_keeps_e115_when_tree_dirty",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_keeps_e115_when_tree_dirty:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_skips_when_no_baseline_and_clean_tree",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_skips_when_no_baseline_and_clean_tree:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_uses_baseline_when_given",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_evaluate_changed_scope_uses_baseline_when_given:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_formatters_render_skipped_stage_distinctly",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_formatters_render_skipped_stage_distinctly:kind=test_function",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_stage_skip_reason_partitions_summary_buckets",
+      "tests/core/test_changed_scope_clean_tree_skip.py:test_stage_skip_reason_partitions_summary_buckets:kind=test_function"
+    ],
+    "test_files": [
+      "tests/cli/test_verify_changed_scope_skip_cmd.py",
+      "tests/core/test_changed_scope_clean_tree_skip.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_changed_scope_clean_tree_skip.py tests/cli/test_verify_changed_scope_skip_cmd.py -v",
+      "uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/082-02-changed-scope-visible-skip-on-clean-tree.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

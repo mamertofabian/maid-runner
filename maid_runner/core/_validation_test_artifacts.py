@@ -24,8 +24,9 @@ from maid_runner.core._django_test_targets import (
 )
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._pytest_config_addopts import (
-    pyproject_pytest_addopts_args,
-    pyproject_pytest_addopts_errors,
+    _pytest_config_addopts_source,
+    pytest_config_addopts_args,
+    pytest_config_addopts_errors,
 )
 from maid_runner.core._test_command_targets import (
     command_segments,
@@ -376,7 +377,7 @@ def validate_manifest_test_commands(
     if not test_files:
         return []
 
-    config_errors = _pyproject_pytest_addopts_integrity_errors(
+    config_errors = _pytest_config_addopts_integrity_errors(
         manifest,
         project_root,
     )
@@ -843,30 +844,32 @@ def _is_e2e_script_name(value: str) -> bool:
     return "e2e" in re.split(r"[:._-]+", script)
 
 
-def _pyproject_pytest_addopts_integrity_errors(
+def _pytest_config_addopts_integrity_errors(
     manifest: Manifest,
     project_root: Path,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     for command in manifest.validate_commands:
-        inspection_errors = pyproject_pytest_addopts_errors(project_root, command)
+        inspection_errors = pytest_config_addopts_errors(project_root, command)
         if inspection_errors:
             errors.append(
                 _validate_command_integrity_error(
                     manifest,
                     command,
                     (
-                        "pyproject.toml pytest addopts could not be inspected: "
+                        "pytest config addopts could not be inspected: "
                         + "; ".join(inspection_errors)
                     ),
                 )
             )
             continue
 
-        addopts_args = pyproject_pytest_addopts_args(project_root, command)
+        addopts_args = pytest_config_addopts_args(project_root, command)
         if not addopts_args:
             continue
 
+        config_source = _pytest_config_addopts_source(project_root, command)
+        config_label = config_source or "pytest config"
         synthetic_pytest_segment = ["python", "-m", "pytest", *addopts_args]
         if _has_non_executing_test_runner_mode(synthetic_pytest_segment):
             errors.append(
@@ -874,7 +877,7 @@ def _pyproject_pytest_addopts_integrity_errors(
                     manifest,
                     command,
                     (
-                        "pyproject.toml pytest addopts put the test runner in a "
+                        f"{config_label} pytest addopts put the test runner in a "
                         f"non-executing mode: {_format_addopts(addopts_args)}"
                     ),
                 )
@@ -886,7 +889,7 @@ def _pyproject_pytest_addopts_integrity_errors(
                     manifest,
                     command,
                     (
-                        "pyproject.toml pytest addopts can select or deselect "
+                        f"{config_label} pytest addopts can select or deselect "
                         f"behavioral tests: {_format_addopts(addopts_args)}"
                     ),
                 )

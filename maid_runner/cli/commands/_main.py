@@ -21,6 +21,20 @@ class _NoAbbrevArgumentParser(argparse.ArgumentParser):
         super().__init__(*args, **kwargs)  # type: ignore[arg-type]
 
 
+class _StoreChangedScopeExplicit(argparse.Action):
+    """Store --changed-scope and record that the user passed it explicitly."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, True)
+        setattr(namespace, "changed_scope_explicit", True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -148,6 +162,22 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         "--strict",
         action="store_true",
         help="Enable assertion checks, stub checks, and warning failure",
+    )
+    p.add_argument(
+        "--strict-preview",
+        action="store_true",
+        help=(
+            "Preview the future strict default gate set without changing "
+            "default validation behavior"
+        ),
+    )
+    p.add_argument(
+        "--strict-delta",
+        action="store_true",
+        help=(
+            "Report diagnostics unique to the strict-preview validation gates "
+            "without changing default validation exit semantics"
+        ),
     )
     p.add_argument(
         "--file-tracking",
@@ -312,6 +342,14 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Enable assertion checks, stub checks, and warning failure",
     )
     p.add_argument(
+        "--strict-preview",
+        action="store_true",
+        help=(
+            "Preview the future strict default gate set without changing "
+            "default verification behavior"
+        ),
+    )
+    p.add_argument(
         "--advisory",
         action="store_true",
         help="Report verify strictness warnings without failing on warnings",
@@ -324,8 +362,8 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     verify_changed_scope = p.add_mutually_exclusive_group()
     verify_changed_scope.add_argument(
         "--changed-scope",
-        action="store_const",
-        const=True,
+        action=_StoreChangedScopeExplicit,
+        nargs=0,
         default=True,
         dest="changed_scope",
         help="Require the git changed-scope gate from an explicit task baseline (default)",
@@ -687,6 +725,16 @@ def _register_recall_parser(sub: argparse._SubParsersAction) -> None:
         help="Use the index even when source manifests changed",
     )
     p.add_argument(
+        "--allow-stale-digest",
+        action="store_true",
+        help="Use a stale theme-map digest without waiving index staleness",
+    )
+    p.add_argument(
+        "--theme-map",
+        default=None,
+        help="Advisory enrichment digest used to annotate recall lesson themes",
+    )
+    p.add_argument(
         "--limit",
         type=int,
         default=10,
@@ -713,7 +761,15 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--allow-stale-index",
         action="store_true",
-        help="Use the index even when source manifests changed",
+        help=(
+            "Use the index even when source manifests changed; also preserves "
+            "the legacy theme-map digest staleness waiver"
+        ),
+    )
+    p.add_argument(
+        "--allow-stale-digest",
+        action="store_true",
+        help="Use a stale theme-map digest without waiving index staleness",
     )
     p.add_argument(
         "--theme-map",
@@ -751,12 +807,14 @@ def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
     )
     _add_enrich_common_options(validate)
     _add_enrich_digest_option(validate)
+    _add_enrich_digest_staleness_option(validate)
 
     render = ssub.add_parser(
         "render", help="Render a validated Outcome enrichment digest as markdown"
     )
     _add_enrich_common_options(render)
     _add_enrich_digest_option(render)
+    _add_enrich_digest_staleness_option(render)
     render.add_argument(
         "--md-output",
         default=".maid/outcomes-digest.md",
@@ -783,7 +841,10 @@ def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--allow-stale-index",
         action="store_true",
-        help="Use stale index or digest inputs explicitly",
+        help=(
+            "Use a stale index explicitly; for validate/render, also preserves "
+            "the legacy digest staleness waiver"
+        ),
     )
     parser.add_argument("--json", action="store_true", help="Print result as JSON")
 
@@ -793,6 +854,14 @@ def _add_enrich_digest_option(parser: argparse.ArgumentParser) -> None:
         "--digest",
         default=".maid/outcomes-digest.json",
         help="Outcome enrichment digest JSON path",
+    )
+
+
+def _add_enrich_digest_staleness_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--allow-stale-digest",
+        action="store_true",
+        help="Use a stale enrichment digest without waiving index staleness",
     )
 
 

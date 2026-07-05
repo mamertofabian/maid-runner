@@ -39,12 +39,19 @@ def cmd_validate(args: argparse.Namespace) -> int:
     if args.coherence_only:
         return _run_coherence_only(args)
 
+    if getattr(args, "strict_delta", False):
+        return _run_strict_delta(args)
+
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
 
     mode = ValidationMode(args.mode)
     engine = ValidationEngine(project_root=".")
     check_assertions, check_stubs, fail_on_warnings = _strict_options(args)
+    strict_preview = getattr(args, "strict_preview", False)
+    artifact_coverage_requested = (
+        getattr(args, "artifact_coverage", False) or strict_preview
+    )
 
     try:
         if args.manifest_path:
@@ -65,7 +72,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             if result.success and getattr(args, "run_tests", False):
                 test_result = run_validate_commands_for_result(args.manifest_path)
             artifact_coverage_report = None
-            if result.success and getattr(args, "artifact_coverage", False):
+            if result.success and artifact_coverage_requested:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_path(
                     args.manifest_path,
                     Path("."),
@@ -79,14 +86,25 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 tests_requested=getattr(args, "run_tests", False),
                 artifact_coverage_report=artifact_coverage_report,
             )
-            if output:
-                if not (args.coherence and result.success and args.json):
+            if not (args.coherence and result.success and args.json):
+                output = _mark_strict_preview_output(
+                    output,
+                    enabled=strict_preview,
+                    json_mode=args.json,
+                )
+                if output:
                     print(output)
 
             if args.coherence and result.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
                 if args.json:
-                    print(_format_validation_with_coherence_json(output, coherence))
+                    print(
+                        _mark_strict_preview_output(
+                            _format_validation_with_coherence_json(output, coherence),
+                            enabled=strict_preview,
+                            json_mode=True,
+                        )
+                    )
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
@@ -135,7 +153,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
             if batch.success and getattr(args, "run_tests", False):
                 test_result = _run_validate_commands_for_batch(args.manifest_dir)
             artifact_coverage_report = None
-            if batch.success and getattr(args, "artifact_coverage", False):
+            if batch.success and artifact_coverage_requested:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_dir(
                     args.manifest_dir,
                     Path("."),
@@ -154,12 +172,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 quiet=quiet,
             )
             if not (args.coherence and batch.success and args.json):
+                output = _mark_strict_preview_output(
+                    output,
+                    enabled=strict_preview,
+                    json_mode=args.json,
+                )
                 print(output)
 
             if args.coherence and batch.success:
                 coherence = run_coherence(args.manifest_dir, args.json)
                 if args.json:
-                    print(_format_validation_with_coherence_json(output, coherence))
+                    print(
+                        _mark_strict_preview_output(
+                            _format_validation_with_coherence_json(output, coherence),
+                            enabled=strict_preview,
+                            json_mode=True,
+                        )
+                    )
                 else:
                     _print_coherence_result(coherence, json_mode=args.json)
                 if not coherence.success:
@@ -311,13 +340,31 @@ def _run_artifact_coverage_for_manifest_path(manifest_path: str, project_root: P
 
 def _run_artifact_coverage_for_manifest_dir(manifest_dir: str, project_root: Path):
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
+
+    reports = _run_artifact_coverage_by_manifest(manifest_dir, project_root).values()
+    findings = []
+    errors = []
+    for report in reports:
+        findings.extend(report.findings)
+        errors.extend(report.errors)
+    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+
+
+def _run_artifact_coverage_by_manifest(manifest_dir: str, project_root: Path):
     from maid_runner.core.chain import get_cached_manifest_chain
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
-    reports = [
-        _run_artifact_coverage_for_manifest_path(manifest.source_path, project_root)
+    return {
+        manifest.source_path: _run_artifact_coverage_for_manifest_path(
+            manifest.source_path, project_root
+        )
         for manifest in chain.active_manifests()
-    ]
+    }
+
+
+def _merge_artifact_coverage_reports(reports):
+    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
+
     findings = []
     errors = []
     for report in reports:
@@ -346,6 +393,276 @@ def _append_artifact_coverage_output(
     if not output:
         return formatted
     return f"{output}\n\n{formatted}"
+
+
+def _run_strict_delta(args: argparse.Namespace) -> int:
+    from maid_runner.core.strict_delta import compute_strict_delta
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
+
+    mode = ValidationMode(args.mode)
+    engine = ValidationEngine(project_root=".")
+    default_args = _copy_args(args, strict_preview=False)
+    strict_args = _copy_args(args, strict_preview=True)
+    default_check_assertions, default_check_stubs, default_fail_on_warnings = (
+        _strict_options(default_args)
+    )
+    strict_check_assertions, strict_check_stubs, strict_fail_on_warnings = (
+        _strict_options(strict_args)
+    )
+
+    try:
+        if args.manifest_path:
+            default_result = engine.validate(
+                args.manifest_path,
+                mode=mode,
+                use_chain=not args.no_chain,
+                manifest_dir=args.manifest_dir,
+                check_assertions=default_check_assertions,
+                check_stubs=default_check_stubs,
+                fail_on_warnings=default_fail_on_warnings,
+            )
+            strict_result = engine.validate(
+                args.manifest_path,
+                mode=mode,
+                use_chain=not args.no_chain,
+                manifest_dir=args.manifest_dir,
+                check_assertions=strict_check_assertions,
+                check_stubs=strict_check_stubs,
+                fail_on_warnings=strict_fail_on_warnings,
+            )
+            test_result = None
+            if default_result.success and getattr(args, "worktree_scope", False):
+                _apply_worktree_scope_to_result(default_result, args)
+            if default_result.success and getattr(args, "changed_scope", False):
+                _apply_changed_scope_to_result(default_result, args)
+            if default_result.success and getattr(args, "run_tests", False):
+                test_result = run_validate_commands_for_result(args.manifest_path)
+
+            default_coverage_report = None
+            default_coverage = None
+            if default_result.success and getattr(args, "artifact_coverage", False):
+                default_coverage_report = _run_artifact_coverage_for_manifest_path(
+                    args.manifest_path,
+                    Path("."),
+                )
+                default_coverage = {
+                    default_result.manifest_path: default_coverage_report
+                }
+
+            strict_coverage = None
+            if strict_result.success:
+                strict_coverage_report = _run_artifact_coverage_for_manifest_path(
+                    args.manifest_path,
+                    Path("."),
+                )
+                strict_coverage = {strict_result.manifest_path: strict_coverage_report}
+
+            report = compute_strict_delta(
+                _batch_from_single(default_result),
+                _batch_from_single(strict_result),
+                default_coverage=default_coverage,
+                strict_coverage=strict_coverage,
+            )
+            quiet = args.quiet and not _has_warning_failure(
+                _batch_from_single(default_result),
+                fail_on_warnings=default_fail_on_warnings,
+            )
+            output = format_validation_result(
+                default_result,
+                json_mode=args.json,
+                quiet=quiet,
+                test_result=test_result,
+                tests_requested=getattr(args, "run_tests", False),
+                artifact_coverage_report=default_coverage_report,
+            )
+            output = _append_strict_delta_output(
+                output,
+                report,
+                json_mode=args.json,
+                quiet=quiet,
+            )
+            if output:
+                print(output)
+
+            tests_success = test_result is None or test_result.success
+            artifact_coverage_success = (
+                default_coverage_report is None or default_coverage_report.success
+            )
+            exit_code = (
+                0
+                if default_result.success
+                and tests_success
+                and artifact_coverage_success
+                else 1
+            )
+            if not _write_sarif_report_if_requested(args, default_result):
+                return _finalize_packet(args, 2, None, None)
+            return _finalize_packet(args, exit_code, default_result, test_result)
+
+        default_batch = engine.validate_all(
+            args.manifest_dir,
+            mode=mode,
+            allow_empty=getattr(args, "allow_empty", False),
+            check_file_tracking=getattr(args, "file_tracking", False),
+            check_assertions=default_check_assertions,
+            check_stubs=default_check_stubs,
+            fail_on_warnings=default_fail_on_warnings,
+        )
+        strict_batch = engine.validate_all(
+            args.manifest_dir,
+            mode=mode,
+            allow_empty=getattr(args, "allow_empty", False),
+            check_file_tracking=getattr(args, "file_tracking", False),
+            check_assertions=strict_check_assertions,
+            check_stubs=strict_check_stubs,
+            fail_on_warnings=strict_fail_on_warnings,
+        )
+        if default_batch.success and getattr(args, "worktree_scope", False):
+            _apply_worktree_scope_to_batch(default_batch, args)
+        if default_batch.success and getattr(args, "changed_scope", False):
+            _apply_changed_scope_to_batch(default_batch, args)
+
+        test_result = None
+        if default_batch.success and getattr(args, "run_tests", False):
+            test_result = _run_validate_commands_for_batch(args.manifest_dir)
+
+        default_coverage_report = None
+        default_coverage = None
+        if default_batch.success and getattr(args, "artifact_coverage", False):
+            default_coverage = _run_artifact_coverage_by_manifest(
+                args.manifest_dir,
+                Path("."),
+            )
+            default_coverage_report = _merge_artifact_coverage_reports(
+                default_coverage.values()
+            )
+
+        strict_coverage = None
+        if strict_batch.success:
+            strict_coverage = _run_artifact_coverage_by_manifest(
+                args.manifest_dir,
+                Path("."),
+            )
+
+        report = compute_strict_delta(
+            default_batch,
+            strict_batch,
+            default_coverage=default_coverage,
+            strict_coverage=strict_coverage,
+        )
+        quiet = args.quiet and not _has_warning_failure(
+            default_batch,
+            fail_on_warnings=default_fail_on_warnings,
+        )
+        output = format_batch_result(
+            default_batch,
+            json_mode=args.json,
+            quiet=quiet,
+            test_result=test_result,
+            tests_requested=getattr(args, "run_tests", False),
+        )
+        output = _append_artifact_coverage_output(
+            output,
+            default_coverage_report,
+            json_mode=args.json,
+            quiet=quiet,
+        )
+        output = _append_strict_delta_output(
+            output,
+            report,
+            json_mode=args.json,
+            quiet=quiet,
+        )
+        print(output)
+
+        tests_success = test_result is None or test_result.success
+        artifact_coverage_success = (
+            default_coverage_report is None or default_coverage_report.success
+        )
+        exit_code = (
+            0
+            if default_batch.success and tests_success and artifact_coverage_success
+            else 1
+        )
+        if not _write_sarif_report_if_requested(args, default_batch):
+            return _finalize_packet(args, 2, None, None)
+        return _finalize_packet(args, exit_code, default_batch, test_result)
+    except Exception as e:
+        print_error(str(e), json_mode=args.json)
+        return _finalize_packet(args, 2, None, None)
+
+
+def _copy_args(args: argparse.Namespace, **overrides: object) -> argparse.Namespace:
+    values = vars(args).copy()
+    values.update(overrides)
+    return argparse.Namespace(**values)
+
+
+def _batch_from_single(result):
+    from maid_runner.core.result import BatchValidationResult
+
+    return BatchValidationResult(
+        results=[result],
+        total_manifests=1,
+        passed=1 if result.success else 0,
+        failed=0 if result.success else 1,
+        skipped=0,
+    )
+
+
+def _append_strict_delta_output(
+    output: str,
+    report,
+    *,
+    json_mode: bool,
+    quiet: bool,
+) -> str:
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["strict_delta"] = report.to_dict()["entries"]
+        return json.dumps(payload, indent=2)
+    formatted = _format_strict_delta_report(report)
+    if quiet and not report.entries:
+        return output
+    if not output:
+        return formatted
+    return f"{output}\n\n{formatted}"
+
+
+def _format_strict_delta_report(report) -> str:
+    count = len(report.entries)
+    lines = [f"Strict Delta: {count} strict-only diagnostics"]
+    current_manifest = None
+    current_file = None
+    for entry in report.entries:
+        if entry.manifest_path != current_manifest:
+            current_manifest = entry.manifest_path
+            current_file = None
+            lines.append(f"  {entry.manifest_path}")
+        file_label = entry.file or "<manifest>"
+        if file_label != current_file:
+            current_file = file_label
+            lines.append(f"    {file_label}")
+        lines.append(f"      {entry.code} [{entry.severity}] {entry.message}")
+    return "\n".join(lines)
+
+
+def _mark_strict_preview_output(
+    output: str,
+    *,
+    enabled: bool,
+    json_mode: bool,
+) -> str:
+    if not enabled:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["strict_preview"] = True
+        return json.dumps(payload, indent=2)
+    if not output:
+        return "[strict-preview]"
+    return f"[strict-preview] {output}"
 
 
 def _run_validate_commands_for_batch(
@@ -405,7 +722,13 @@ def _run_coherence_only(args: argparse.Namespace) -> int:
     """Run only coherence checks, no structural validation."""
     try:
         result = run_coherence(args.manifest_dir, args.json)
-        print(format_coherence_result(result, json_mode=args.json))
+        print(
+            _mark_strict_preview_output(
+                format_coherence_result(result, json_mode=args.json),
+                enabled=getattr(args, "strict_preview", False),
+                json_mode=args.json,
+            )
+        )
         exit_code = 0 if result.success else 1
         verification_result = _verification_packet_result(coherence=result)
         if not _write_sarif_report_if_requested(args, verification_result):
@@ -458,7 +781,7 @@ def _format_validation_with_coherence_json(
 
 
 def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:
-    strict = getattr(args, "strict", False)
+    strict = getattr(args, "strict", False) or getattr(args, "strict_preview", False)
     check_assertions = getattr(args, "check_assertions", False) or strict
     check_stubs = getattr(args, "check_stubs", False) or strict
     fail_on_warnings = getattr(args, "fail_on_warnings", False) or strict

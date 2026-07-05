@@ -1,7 +1,7 @@
 # draft-kind: epic
 # promotion: split-before-promote
 schema: "2"
-goal: "Plan strict-by-default validation gates for the next major release"
+goal: "Plan strict-by-default validation gates behind a staged v2.x release flip"
 type: feature
 created: "2026-06-10"
 metadata:
@@ -11,17 +11,27 @@ metadata:
     - hardening
     - strict-defaults
     - pytest-config
-    - major-release
+    - release-flip
   priority: high
 description: |
   Convert the landed anti-gaming hardening work into delivered trust by making
   the strongest gates the default behavior of directory-wide `maid validate`,
-  and by closing the explicitly deferred pytest config coverage gap. Today,
-  identity-backed behavioral coverage and assertion enforcement exist behind
-  opt-in strict flags (030-06, 032-01 through 032-03), so a green default run
-  is weaker than the validator can actually prove. The hardening backlog's
-  final open item already names this closure: make strict identity coverage
-  and assertion enforcement the default in a major-version release.
+  and by closing the explicitly deferred pytest config coverage gap.
+
+  Current-tree premise (re-audited 2026-07-03; supersedes the 2026-06-10
+  framing): `maid verify` is already strict by default — 032-03 hardwired
+  assertion checks, stub checks, and warning failure into `cmd_verify`, with
+  `--advisory` as the labeled warning-policy hatch (082-01), advisory-exempt
+  codes (E307 `VALIDATOR_NOT_AVAILABLE` and legacy chain codes), and
+  severity-proportionate info diagnostics that never block (082-05).
+  Identity-backed behavioral coverage (032-01) and coverage-miss errors
+  (030-05) are already default in behavioral validation. The remaining
+  opt-in gaps this epic closes are therefore: (a) `maid validate`'s
+  `--strict` expansion (assertion checks, stub checks, fail-on-warnings via
+  `_strict_options`) and (b) the artifact execution-coverage gate
+  (`--artifact-coverage`, 068) on both `maid validate` and `maid verify`.
+  A green default `maid validate` run is still weaker than the validator can
+  prove; that is the gap the flip delivers.
 
   This epic follows the repository's hardening constraints: every behavioral
   gate change must be anchored to reproduced false-green paths already on
@@ -32,9 +42,18 @@ description: |
 
   Design constraints agreed for this epic:
 
-  1. Default changes ship in a major version. Until then, the strict behavior
-     is reachable through an explicit opt-in so projects can migrate early.
-  2. An escape hatch (`--legacy-gates` or equivalent) must exist in the major
+  1. Release target (user decision, 2026-07-04, superseding the original
+     major-version constraint): the default flip ships in a later v2.x
+     minor release, after 062-01 through 062-03 are stable in an earlier
+     released minor. Because a minor-version flip changes green/red
+     meaning for existing v2 users, the compensating controls are
+     mandatory, not optional: the preview and delta tooling must be
+     released at least one minor version before the flip, the flip
+     release notes must lead with the behavior change, and the
+     `--legacy-gates` hatch must ship in the same release as the flip.
+     Until the flip, the strict behavior is reachable through the
+     explicit opt-in so projects can migrate early.
+  2. An escape hatch (`--legacy-gates` or equivalent) must exist in the flip
      release, must be visible in text and JSON output when active, and must be
      documented as a migration aid, not a permanent mode.
   3. Migration must be measurable before the flip: users need a command that
@@ -54,18 +73,37 @@ description: |
      enforced; shadowed config files are ignored and must not produce
      diagnostics.
   2. Strict preview flag (062-02): `--strict-preview` on `maid validate`
-     and `maid verify`. JSON output gains a top-level
-     `"strict_preview": true` marker; text output prefixes the summary
-     line with `[strict-preview]`.
+     and `maid verify`. The preview gate set, mapped to the current tree:
+     on `maid validate` it is the union of the existing `--strict`
+     expansion (assertion checks, stub checks, fail-on-warnings) plus
+     `--artifact-coverage`; on `maid verify` (already strict by default)
+     it adds only `--artifact-coverage`. No new gate logic. Combining
+     `--strict-preview` with `--advisory` on `maid verify` is a usage
+     error (exit 2): the caller asked for contradictory gate sets.
+     Fail-on-warnings keeps the current warning policy exactly:
+     advisory-exempt codes stay exempt, and info-severity diagnostics
+     (082-05) never fail a strict run. JSON output gains a top-level
+     `"strict_preview": true` marker (in both full and `--summary` JSON);
+     text output prefixes the summary line with `[strict-preview]` (in
+     both classic and `--summary` text).
   3. Migration delta (062-03): `--strict-delta` on `maid validate` runs the
      default-gate evaluation and the strict-preview evaluation in one
      process and reports only the diagnostics unique to the strict run,
      grouped by manifest then file, in text and JSON (top-level key
-     `"strict_delta"`). The process exit code stays determined by the
+     `"strict_delta"`). Artifact-coverage errors are `ValidationError`
+     records with stable codes (for example E710
+     `ARTIFACT_NOT_EXECUTED_BY_TESTS`) and participate in the delta like
+     any other diagnostic. The process exit code stays determined by the
      default-gate result so CI adoption of the report is non-breaking.
-  4. Major flip (062-04): the strict gates become the default;
-     `--legacy-gates` restores prior behavior, prints a deprecation notice
-     on stderr, and marks JSON output with `"legacy_gates": true`. No
+  4. Major flip (062-04): the strict gates become the default —
+     concretely, `maid validate` defaults gain the `--strict` expansion
+     plus artifact coverage, and `maid verify` defaults gain artifact
+     coverage; verify's existing strict posture is unchanged.
+     `--legacy-gates` restores only the pre-flip defaults of this child
+     (it does not resurrect pre-032-03 lax verify behavior), prints a
+     deprecation notice on stderr, and marks JSON output with
+     `"legacy_gates": true`. `--advisory` remains the orthogonal
+     warning-policy hatch and stays valid alongside `--legacy-gates`. No
      environment-variable escape hatch; the flag is the single opt-out.
 
   Planned child order:
@@ -85,21 +123,38 @@ description: |
      lists, per manifest and file, the diagnostics that would newly fail,
      with stable error codes and locations. JSON output is required so CI can
      track migration progress over time.
-  4. `062-04-flip-strict-defaults-in-major-release` - the major-version child:
-     make the strict gates the default, add the documented legacy escape
-     hatch, update README, troubleshooting, howto, and init payload guidance,
-     and add upgrade notes that map each newly failing error code to its
-     migration fix. This child must not land until 062-01 through 062-03 are
-     stable in a released minor version.
+  4. `062-05-consume-strict-delta-migration-debt` - the migration child
+     (numbered 05 for slug continuity but landing before the flip; added
+     2026-07-04 after the 062-04 implementation hit its own dogfood
+     blocker): capture this repository's strict-delta debt as a regenerable
+     backlog document at `docs/plans/strict-coverage-migration-backlog.md`,
+     make every active manifest's validate commands coverage-safe (zero
+     E900 under strict-delta), and plan the E710 burn-down batch queue.
+     The burn-down batches themselves are follow-up drafts planned in that
+     backlog document.
+  5. `062-04-flip-strict-defaults-in-major-release` - the release-flip child
+     (slug retained for continuity; per the 2026-07-04 user decision the flip
+     ships in a later v2.x minor, not a major): make the strict gates the
+     default, add the documented legacy escape hatch, update README,
+     troubleshooting, howto, and init payload guidance, and add upgrade notes
+     that map each newly failing error code to its migration fix. This child
+     must not land until 062-01 through 062-03 are stable in an earlier
+     released minor version AND this repository's own
+     `uv run maid validate --strict-delta` reports an empty delta (the
+     flip child's dogfood gate). A completed implementation of this child
+     is parked on the scoped branch `feat/062-04-strict-default-flip`
+     (commit 4d654f6, blockers recorded in its plan-revision.md); resume
+     from that branch instead of re-implementing.
 
-  Children must land strictly in order. If 062-04 grows beyond one
+  Children land strictly in the order listed above (062-05 lands before
+  062-04 despite its higher number). If 062-04 grows beyond one
   implementation-sized draft, split the default flip from the documentation
   and init payload refresh before promotion.
 temptations:
   - risk: "Do not add new static analyzers or speculative gate logic while changing defaults."
     instead: "Only flip defaults on gates that already exist and are backed by reproduced false-green evidence; route any new bypass ideas to the hardening backlog first."
-  - risk: "Do not flip strict defaults in a minor release or silently change green/red meaning."
-    instead: "Stage opt-in preview and migration reporting in minor releases, then change defaults only in the major version with explicit upgrade notes."
+  - risk: "Do not flip strict defaults silently or before the migration tooling has shipped."
+    instead: "Release the preview and delta tooling at least one minor version before the flip, lead the flip release notes with the behavior change, and ship --legacy-gates in the same release, per the 2026-07-04 staged v2.x flip decision."
   - risk: "Do not make the legacy escape hatch invisible or permanent."
     instead: "Label legacy-gate runs in text and JSON output and document the hatch as a bounded migration aid."
   - risk: "Do not extend the pytest config guard from documentation alone."
@@ -119,9 +174,14 @@ files:
     - maid_runner/core/_pytest_config_addopts.py
     - maid_runner/core/_validation_test_artifacts.py
     - maid_runner/core/_test_runner_invocation.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/verify_summary.py
     - maid_runner/cli/commands/validate.py
     - maid_runner/cli/commands/verify.py
     - docs/plans/maid-validate-hardening-backlog.md
     - manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml
+    - manifests/032-03-make-verify-strict-by-default.manifest.yaml
+    - manifests/082-01-honest-blocking-warning-summary-label.manifest.yaml
+    - manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/062-00-strict-by-default-validation-gates.epic.yaml --mode schema --quiet

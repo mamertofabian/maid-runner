@@ -1,0 +1,166 @@
+{
+  "manifest_path": "manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml",
+  "manifest_hash": "sha256:bae86b6a87b967e4e594347aaff0daee37fedfd331601797da8ea07f7988e54b",
+  "test_hashes": {
+    "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+    "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+    "tests/core/test_outcome_enrichment.py": "sha256:31ae438ff023ce3e89e702cdc7a92429e4d22c85e0625806de3a21f7d7a99450",
+    "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+    "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f",
+    "tests/test_self_improvement_digest_guidance.py": "sha256:17fc4e7273be6fb052099a384da968823ad223f357204f9b4fa50c766c9fe2d4",
+    "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:45fd89a7bb893dbc7e15b3da351e3de5123e07beed755516d3acedda3603a60d"
+  },
+  "created_at": "2026-07-04T22:59:52.573320+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:7560826de55f707c500a05dd3f914ae72991c29cf7e1048855c7a35c8093e8b0",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:4ec3a1861f42baa5442124d23e94b30670fc37828416a2931ad984fde475fea6"
+      },
+      "revised_at": "2026-07-04T22:59:58.133377+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml -> manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:16159a0cbff6cb4ce4d0300461f029d73ba8c0b4307fe2ab672824a62dd5501f",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:4ec3a1861f42baa5442124d23e94b30670fc37828416a2931ad984fde475fea6"
+      },
+      "revised_at": "2026-07-04T23:02:03.224546+00:00",
+      "reason": "Include read insights and core enrichment regression tests in 083-06 validate scope after MAID command coverage checks"
+    },
+    {
+      "prior_manifest_hash": "sha256:cd820ab0b522dfa203417a907e67f31377a35869769a337824de079b7ad6c5ab",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment.py": "sha256:8f3f444cbefcea67850b1010d71ab59d059f1b4d1e31c7cb446f129c3ad4c9c4",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:45fd89a7bb893dbc7e15b3da351e3de5123e07beed755516d3acedda3603a60d"
+      },
+      "revised_at": "2026-07-04T23:06:04.430596+00:00",
+      "reason": "Include shared insights parser option-surface tests after full pytest exposed allow-stale-digest expectation drift"
+    },
+    {
+      "prior_manifest_hash": "sha256:90fca139e6a98b1d009fca6cbe7ffe25279735d1343ecaa782cb67712aad1530",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment.py": "sha256:8f3f444cbefcea67850b1010d71ab59d059f1b4d1e31c7cb446f129c3ad4c9c4",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f",
+        "tests/test_self_improvement_digest_guidance.py": "sha256:17fc4e7273be6fb052099a384da968823ad223f357204f9b4fa50c766c9fe2d4",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:45fd89a7bb893dbc7e15b3da351e3de5123e07beed755516d3acedda3603a60d"
+      },
+      "revised_at": "2026-07-04T23:17:39.692504+00:00",
+      "reason": "Capture final evidence-backed Outcome after ready implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:bae86b6a87b967e4e594347aaff0daee37fedfd331601797da8ea07f7988e54b",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment.py": "sha256:8f3f444cbefcea67850b1010d71ab59d059f1b4d1e31c7cb446f129c3ad4c9c4",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f",
+        "tests/test_self_improvement_digest_guidance.py": "sha256:17fc4e7273be6fb052099a384da968823ad223f357204f9b4fa50c766c9fe2d4",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:45fd89a7bb893dbc7e15b3da351e3de5123e07beed755516d3acedda3603a60d"
+      },
+      "revised_at": "2026-07-04T23:31:49.707563+00:00",
+      "reason": "083-07 extends shared outcome enrichment behavioral coverage in tests/core/test_outcome_enrichment.py while preserving existing red evidence for staleness prompt hardening."
+    },
+    {
+      "prior_manifest_hash": "sha256:bae86b6a87b967e4e594347aaff0daee37fedfd331601797da8ea07f7988e54b",
+      "prior_test_hashes": {
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d",
+        "tests/core/test_outcome_enrichment.py": "sha256:186a66effcc7a3fea83294277e67fd7302b1f27c1d9f68db45112030f2ef46ee",
+        "tests/core/test_outcome_enrichment_quality.py": "sha256:50a9794ac687a6474983dfc8da27c612856cd0ef98c1b0365b959e321a754467",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f",
+        "tests/test_self_improvement_digest_guidance.py": "sha256:17fc4e7273be6fb052099a384da968823ad223f357204f9b4fa50c766c9fe2d4",
+        "tests/cli/test_enrich_stale_digest_flag_cmd.py": "sha256:45fd89a7bb893dbc7e15b3da351e3de5123e07beed755516d3acedda3603a60d"
+      },
+      "revised_at": "2026-07-04T23:44:13.920945+00:00",
+      "reason": "083-07 review fix extends shared outcome enrichment behavioral coverage in tests/core/test_outcome_enrichment.py while preserving existing red evidence for staleness prompt hardening."
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-04T23:06:05.347240+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_enrich_stale_digest_flag_cmd.py tests/cli/test_enrich_cmd.py tests/cli/test_insights_theme_map_cmd.py tests/core/test_outcome_enrichment.py tests/core/test_outcome_enrichment_quality.py tests/test_insights_skill_guidance.py tests/test_planner_theme_map_guidance.py tests/test_self_improvement_digest_guidance.py",
+        "exit_code": 1,
+        "output_tail": "E         \nE         Extra items in the right set:\nE         '--allow-stale-digest'\nE         Use -v to get more diff\n\ntests/test_self_improvement_digest_guidance.py:119: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_enrich_stale_digest_flag_cmd.py::test_allow_stale_digest_waives_only_digest_staleness\nFAILED tests/cli/test_enrich_stale_digest_flag_cmd.py::test_stale_digest_flag_is_registered_unabbreviated\nFAILED tests/core/test_outcome_enrichment.py::test_build_request_scales_theme_band_to_corpus_size[6-about 2-3 canonical themes]\nFAILED tests/core/test_outcome_enrichment.py::test_build_request_scales_theme_band_to_corpus_size[48-about 6-8 canonical themes]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_theme_summary[-theme summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_theme_summary[   -theme summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_entry_summary[-digest entry summary must not be empty]\nFAILED tests/core/test_outcome_enrichment.py::test_validate_digest_rejects_empty_entry_summary[   -digest entry summary must not be empty]\nFAILED tests/core/test_outcome_enrichment_quality.py::test_request_system_prompt_instructs_canonical_multi_member_grouping\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_uses_only_registered_options\nFAILED tests/test_planner_theme_map_guidance.py::test_planner_theme_map_guidance_uses_only_registered_insights_options\nFAILED tests/test_self_improvement_digest_guidance.py::test_self_improvement_digest_guidance_uses_registered_options_only\n12 failed, 52 passed in 0.71s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/manifest-outcome-records.md:attribute:documentation._stale_digest_optin_docs",
+      "docs/manifest-outcome-records.md:attribute:documentation._stale_digest_optin_docs:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._stale_digest_optin_docs:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._stale_digest_optin_docs:type=doc-section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:kind=function",
+      "maid_runner/cli/commands/enrich.py:function:cmd_enrich:returns=int",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:kind=function",
+      "maid_runner/cli/commands/insights.py:function:cmd_insights:returns=int",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:build_enrichment_request:returns=EnrichmentRequest",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:arg=digest:type=EnrichmentDigest:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:kind=function",
+      "maid_runner/core/outcome_enrichment.py:function:validate_enrichment_digest:returns=None",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_stale_digest_optin_docs",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_stale_digest_optin_docs:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_stale_digest_optin_docs:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_stale_digest_optin_docs:type=doc-section",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_digest_waives_only_digest_staleness",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_digest_waives_only_digest_staleness:kind=test_function",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_digest_waives_only_digest_staleness:returns=None",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_index_keeps_backward_compatible_double_duty",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_index_keeps_backward_compatible_double_duty:kind=test_function",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_allow_stale_index_keeps_backward_compatible_double_duty:returns=None",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_flag_is_registered_unabbreviated",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_flag_is_registered_unabbreviated:kind=test_function",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_flag_is_registered_unabbreviated:returns=None",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_rejected_without_any_allow_flag",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_rejected_without_any_allow_flag:kind=test_function",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py:test_stale_digest_rejected_without_any_allow_flag:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_enrich_cmd.py",
+      "tests/cli/test_enrich_stale_digest_flag_cmd.py",
+      "tests/cli/test_insights_theme_map_cmd.py",
+      "tests/core/test_outcome_enrichment.py",
+      "tests/core/test_outcome_enrichment_quality.py",
+      "tests/test_insights_skill_guidance.py",
+      "tests/test_planner_theme_map_guidance.py",
+      "tests/test_self_improvement_digest_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_enrich_stale_digest_flag_cmd.py tests/cli/test_enrich_cmd.py tests/cli/test_insights_theme_map_cmd.py tests/core/test_outcome_enrichment.py tests/core/test_outcome_enrichment_quality.py tests/test_insights_skill_guidance.py tests/test_planner_theme_map_guidance.py tests/test_self_improvement_digest_guidance.py"
+    ]
+  }
+}

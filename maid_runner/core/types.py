@@ -139,6 +139,7 @@ class ArtifactSpec:
     of: Optional[str] = None
     type_annotation: Optional[str] = None
     test_details: Optional[TestFunctionDetails] = None
+    default_hook: bool = False
 
     @property
     def qualified_name(self) -> str:

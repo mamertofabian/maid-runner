@@ -1,0 +1,157 @@
+{
+  "manifest_path": "manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml",
+  "manifest_hash": "sha256:3421726ef8675df19e22329c0bc590f307f48f83ef64a827aba49f9d9c5f8cd6",
+  "test_hashes": {
+    "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+    "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
+  },
+  "created_at": "2026-07-03T22:57:41.152355+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:aca5d1be2164ef583569b5ef6bd6171609a1ad54423eb99d2435600b7b455a41",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:f543bac2c90533ccbf6d13213a555d8e1584506421ae0263c6f5ec20b94644af"
+      },
+      "revised_at": "2026-07-03T22:57:49.776269+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-01-extend-pytest-config-addopts-guard.manifest.yaml -> manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:f543bac2c90533ccbf6d13213a555d8e1584506421ae0263c6f5ec20b94644af"
+      },
+      "revised_at": "2026-07-03T22:59:01.834622+00:00",
+      "reason": "Revise tests so red evidence captures reproduced pytest config bypass behavior instead of import-time missing-helper failure"
+    },
+    {
+      "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:9e031ccc2bac499b7f2181b284df8e9f730b05dba7e0380df7ad8c0c5cdbb16d"
+      },
+      "revised_at": "2026-07-03T23:04:14.660496+00:00",
+      "reason": "Add direct assertions to pytest config bypass tests so strict assertion checking accepts the behavioral contract"
+    },
+    {
+      "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:333aa5fbd06a7cdc3aeda678498095cff290c00ca222825fa05f7d1701143c09"
+      },
+      "revised_at": "2026-07-03T23:13:37.608657+00:00",
+      "reason": "Add review-driven coverage for arbitrary explicit pytest config files and literal percent INI addopts"
+    },
+    {
+      "prior_manifest_hash": "sha256:858176d82a9e8d37158d5838ac26de7311edb975b1b5903dab69082f850392c0",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:9a6f943952817bf8d8dfa8515c7cea60ffbaf4abcc89b5571acad16af15f7e4d"
+      },
+      "revised_at": "2026-07-03T23:25:26.730002+00:00",
+      "reason": "Add review-driven coverage for arbitrary explicit TOML pytest config files"
+    },
+    {
+      "prior_manifest_hash": "sha256:302f3a2a4c6c6d565d14cbd17fe91c2b50536e95dc1d3471cf610394656d5294",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
+      },
+      "revised_at": "2026-07-03T23:31:54.313405+00:00",
+      "reason": "Capture completed Outcome after ready implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:01897fc3920c905a12e8f6267cd2e32ead5b1a81bf654a8e1b9afe932b89876b",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
+      },
+      "revised_at": "2026-07-03T23:39:00.710644+00:00",
+      "reason": "Update Outcome verify evidence after 083 inventory blocker was fixed"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-03T23:25:31.300751+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_pytest_config_addopts.py -v",
+        "exit_code": 1,
+        "output_tail": "\ntests/core/test_pytest_config_addopts.py:379: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_pytest_config_addopts.py::test_run_manifest_tests_rejects_pytest_ini_selector_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_run_manifest_tests_rejects_tox_ini_collect_only_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_run_manifest_tests_rejects_setup_cfg_selector_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_uses_pytest_precedence[pytest_ini_over_pyproject-<lambda>-expected0]\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_uses_pytest_precedence[tox_ini_over_setup_cfg-<lambda>-expected2]\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_skips_ini_files_without_pytest_sections\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_fails_closed_for_malformed_effective_config[bad_pytest_ini-pytest.ini-[pytest\\naddopts = -q\\n-pytest.ini]\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_fails_closed_for_malformed_effective_config[bad_tox_ini-tox.ini-[pytest\\naddopts = -q\\n-tox.ini]\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_fails_closed_for_malformed_effective_config[bad_setup_cfg-setup.cfg-[tool:pytest\\naddopts = -q\\n-setup.cfg]\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_ignores_malformed_shadowed_config\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_respects_explicit_config_file\nFAILED tests/core/test_pytest_config_addopts.py::test_run_manifest_tests_rejects_explicit_custom_ini_selector_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_run_manifest_tests_rejects_explicit_custom_toml_selector_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_fails_closed_for_malformed_explicit_toml\nFAILED tests/core/test_pytest_config_addopts.py::test_pytest_config_addopts_allows_literal_percent_in_ini_addopts\nFAILED tests/core/test_pytest_config_addopts.py::test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts\n========================= 16 failed, 7 passed in 1.21s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_test_runner.py",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 85%]\n............                                                             [100%]\n84 passed in 2.69s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args:kind=function",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args:returns=tuple[str, ...]",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_errors",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_errors:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_errors:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_errors:kind=function",
+      "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_errors:returns=tuple[str, ...]",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:returns=list[ValidationError]",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_allows_literal_percent_in_ini_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_allows_literal_percent_in_ini_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_fails_closed_for_malformed_effective_config",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_fails_closed_for_malformed_effective_config:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_fails_closed_for_malformed_explicit_toml",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_fails_closed_for_malformed_explicit_toml:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_ignores_malformed_shadowed_config",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_ignores_malformed_shadowed_config:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_respects_explicit_config_file",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_respects_explicit_config_file:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_respects_override_ini_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_respects_override_ini_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_skips_ini_files_without_pytest_sections",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_skips_ini_files_without_pytest_sections:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_uses_pytest_precedence",
+      "tests/core/test_pytest_config_addopts.py:test_pytest_config_addopts_uses_pytest_precedence:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_allows_benign_addopts_in_each_config_format",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_allows_benign_addopts_in_each_config_format:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_explicit_custom_ini_selector_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_explicit_custom_ini_selector_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_explicit_custom_toml_selector_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_explicit_custom_toml_selector_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_pytest_ini_selector_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_pytest_ini_selector_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_setup_cfg_selector_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_setup_cfg_selector_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_tox_ini_collect_only_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_run_manifest_tests_rejects_tox_ini_collect_only_addopts:kind=test_function",
+      "tests/core/test_pytest_config_addopts.py:test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts",
+      "tests/core/test_pytest_config_addopts.py:test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts:kind=test_function"
+    ],
+    "test_files": [
+      "tests/core/test_pytest_config_addopts.py",
+      "tests/core/test_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_pytest_config_addopts.py -v",
+      "uv run python -m pytest -q tests/core/test_test_runner.py",
+      "uv run maid validate manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

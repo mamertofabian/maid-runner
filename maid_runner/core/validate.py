@@ -236,6 +236,7 @@ class ValidationEngine:
 
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
         actual_warnings = [e for e in errors if e.severity == Severity.WARNING]
+        informational = [e for e in errors if e.severity == Severity.INFO]
         success = len(actual_errors) == 0 and not (fail_on_warnings and actual_warnings)
 
         return ValidationResult(
@@ -244,7 +245,7 @@ class ValidationEngine:
             manifest_path=manifest.source_path,
             mode=mode,
             errors=actual_errors,
-            warnings=actual_warnings,
+            warnings=[*actual_warnings, *informational],
             duration_ms=duration,
         )
 

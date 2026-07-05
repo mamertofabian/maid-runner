@@ -280,11 +280,37 @@ def _cmd_plan_revise_with_stashed_implementation(
 
     try:
         manifest = load_manifest(ctx.manifest_path)
+        manifest_rel = _project_relative(ctx.manifest_path, ctx.project_root)
+        lock_rel = _project_relative(ctx.lock_path, ctx.project_root)
+        contracted_writable_paths = {
+            normalized_path
+            for path in (
+                [fs.path for fs in manifest.files_create]
+                + [fs.path for fs in manifest.files_edit]
+                + [ds.path for ds in manifest.files_delete]
+                + [fs.path for fs in manifest.files_snapshot]
+            )
+            for normalized_path in [path.replace("\\", "/")]
+            if not _is_test_file(normalized_path)
+        }
+        read_stash_paths = (
+            {
+                normalized_path
+                for path in manifest.files_read
+                for normalized_path in [path.replace("\\", "/")]
+                if not _is_test_file(normalized_path)
+            }
+            if contracted_writable_paths
+            else set()
+        )
+        read_stash_paths.discard(manifest_rel)
+        read_stash_paths.discard(lock_rel)
         target_paths = tuple(
             sorted(
-                path.replace("\\", "/")
-                for path in manifest.all_writable_paths
-                if not _is_test_file(path)
+                normalized_path
+                for path in manifest.all_writable_paths | read_stash_paths
+                for normalized_path in [path.replace("\\", "/")]
+                if not _is_test_file(normalized_path)
             )
         )
         if not target_paths:
@@ -297,8 +323,8 @@ def _cmd_plan_revise_with_stashed_implementation(
 
         dirty_entries = _git_dirty_entries(ctx.project_root)
         allowed_dirty_paths = set(target_paths)
-        allowed_dirty_paths.add(_project_relative(ctx.manifest_path, ctx.project_root))
-        allowed_dirty_paths.add(_project_relative(ctx.lock_path, ctx.project_root))
+        allowed_dirty_paths.add(manifest_rel)
+        allowed_dirty_paths.add(lock_rel)
         allowed_dirty_paths.update(_behavioral_test_paths_for_revise(manifest))
         allowed_dirty_paths.update(
             _same_task_lifecycle_dirty_paths(
@@ -313,7 +339,9 @@ def _cmd_plan_revise_with_stashed_implementation(
         if unrelated:
             print_error(
                 "--stash-implementation refuses unrelated dirty path(s): "
-                + ", ".join(unrelated),
+                + ", ".join(unrelated)
+                + ". Declare narrow wiring files under files.read to include them "
+                "in the targeted stash.",
                 json_mode=ctx.json_mode,
             )
             return 2
@@ -562,12 +590,16 @@ def _behavioral_test_paths_for_revise(manifest) -> set[str]:
     from maid_runner.core.manifest import _is_test_file
 
     paths = {
-        path.replace("\\", "/") for path in manifest.files_read if _is_test_file(path)
+        normalized_path
+        for path in manifest.files_read
+        for normalized_path in [path.replace("\\", "/")]
+        if _is_test_file(normalized_path)
     }
     paths.update(
-        fs.path.replace("\\", "/")
+        normalized_path
         for fs in manifest.all_file_specs
-        if _is_test_file(fs.path)
+        for normalized_path in [fs.path.replace("\\", "/")]
+        if _is_test_file(normalized_path)
     )
     return paths
 

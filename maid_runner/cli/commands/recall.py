@@ -7,6 +7,12 @@ import json
 from pathlib import Path
 import sys
 
+from maid_runner.core.outcome_enrichment import (
+    digest_is_stale,
+    read_enrichment_digest,
+    theme_map_from_digest,
+    validate_enrichment_theme_map,
+)
 from maid_runner.core.outcome_recall import (
     ManifestQuerySignal,
     PlanPacket,
@@ -88,13 +94,14 @@ def cmd_recall(args: argparse.Namespace) -> int:
             query,
             limit=getattr(args, "limit", 10),
         )
+        theme_map = _load_theme_map(args, index)
     except Exception as exc:
         return _error(str(exc), args)
 
     if getattr(args, "json", False):
         payload = {
             "count": len(matches),
-            "matches": [_match_to_dict(match) for match in matches],
+            "matches": [_match_to_dict(match, theme_map) for match in matches],
         }
         if derivation is not None:
             payload["derived_signals"] = [
@@ -117,6 +124,11 @@ def cmd_recall(args: argparse.Namespace) -> int:
         for reason in match.reasons:
             print(f"  reason: {reason}")
         for lesson in match.record.lessons:
+            if theme_map is not None:
+                print(
+                    "  lesson_type: "
+                    f"{_format_lesson_type_theme(lesson.lesson_type, theme_map)}"
+                )
             print(f"  lesson: {lesson.summary}")
         for note in match.record.review_notes:
             print(f"  review: {note.source}/{note.severity}: {note.summary}")
@@ -137,8 +149,8 @@ def _plan_packet_to_dict(packet: PlanPacket) -> dict:
     }
 
 
-def _match_to_dict(match) -> dict:
-    return {
+def _match_to_dict(match, theme_map: dict[str, str] | None = None) -> dict:
+    data = {
         "lessons": [lesson.summary for lesson in match.record.lessons],
         "manifest_path": match.record.manifest_path,
         "manifest_slug": match.record.manifest_slug,
@@ -149,6 +161,9 @@ def _match_to_dict(match) -> dict:
         ],
         "score": match.score,
     }
+    if theme_map is not None:
+        data["themes"] = _themes_for_match(match, theme_map)
+    return data
 
 
 def _signal_to_dict(signal: ManifestQuerySignal) -> dict:
@@ -176,6 +191,43 @@ def _manual_query_filter_flags(args: argparse.Namespace) -> list[str]:
     if getattr(args, "manifest_slug", None):
         flags.append("--manifest-slug")
     return flags
+
+
+def _load_theme_map(
+    args: argparse.Namespace,
+    index,
+) -> dict[str, str] | None:
+    theme_map_path = getattr(args, "theme_map", None)
+    if theme_map_path is None:
+        return None
+    digest = read_enrichment_digest(theme_map_path)
+    validate_enrichment_theme_map(digest, index)
+    if (
+        digest_is_stale(digest, index)
+        and not getattr(args, "allow_stale_digest", False)
+        and not getattr(args, "allow_stale_index", False)
+    ):
+        raise ValueError(
+            "Outcome theme map is stale; run `maid enrich` or pass "
+            "--allow-stale-digest"
+        )
+    return theme_map_from_digest(digest)
+
+
+def _themes_for_match(match, theme_map: dict[str, str]) -> list[str]:
+    return sorted(
+        {
+            theme_map.get(lesson.lesson_type, lesson.lesson_type)
+            for lesson in match.record.lessons
+        }
+    )
+
+
+def _format_lesson_type_theme(lesson_type: str, theme_map: dict[str, str]) -> str:
+    theme = theme_map.get(lesson_type)
+    if theme is None or theme == lesson_type:
+        return lesson_type
+    return f"{theme} ({lesson_type})"
 
 
 def _error(message: str, args: argparse.Namespace) -> int:

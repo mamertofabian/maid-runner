@@ -138,6 +138,7 @@ def test_planner_theme_map_guidance_uses_only_registered_insights_options() -> N
         "--manifest-dir",
         "--project-root",
         "--allow-stale-index",
+        "--allow-stale-digest",
         "--theme-map",
         "--limit",
         "--json",

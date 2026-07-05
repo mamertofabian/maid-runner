@@ -60,8 +60,11 @@ metadata-only reference cleanup on locked active manifests, use
 so valid red evidence remains attached to the revised contract.
 If review changes behavioral tests after implementation is already present, use
 `uv run maid plan revise <manifest> --reason "<text>" --stash-implementation`
-instead so MAID temporarily removes only declared implementation changes while
-the revised behavioral tests stay in place for fresh red evidence capture.
+instead so MAID temporarily removes only declared implementation changes,
+including non-test wiring paths declared under `files.read` for contracted
+implementation plans, while the revised behavioral tests stay in place for
+fresh red evidence capture. Undeclared dirty paths still fail closed, and
+scope-only manifests still reject separate dirty `files.read` context paths.
 
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the

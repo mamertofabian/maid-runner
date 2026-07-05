@@ -21,6 +21,7 @@ PINNED_RECIPE_CODES = {
     "E301",
     "E302",
     "E303",
+    "E310",
 }
 
 IMPLEMENTATION_FAILURE_CODES = {"E114", "E115", "E300", "E301", "E302", "E303"}
