@@ -5,7 +5,7 @@ from __future__ import annotations
 import shlex
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Sequence
 
 from maid_runner.core.incidents import StoredIncident, read_incident
 from maid_runner.core.manifest import load_manifest
@@ -49,6 +49,22 @@ class RunEvaluation:
     revisions_unclassified: int
     incidents_total: int
     findings: tuple[RunFinding, ...]
+
+
+@dataclass(frozen=True)
+class RunComparisonRow:
+    """Per-agent aggregate counts over run evaluations."""
+
+    provider: Optional[str]
+    model: Optional[str]
+    client: Optional[str]
+    runs: int
+    outcomes_completed: int
+    outcomes_other: int
+    revisions_narrowing_total: int
+    revisions_unclassified_total: int
+    red_evidence_valid: int
+    incidents_total: int
 
 
 def evaluate_run(manifest_path: Path, project_root: Path) -> RunEvaluation:
@@ -122,6 +138,71 @@ def evaluate_run(manifest_path: Path, project_root: Path) -> RunEvaluation:
         revisions_unclassified=revisions_unclassified,
         incidents_total=incidents,
         findings=_sort_findings(findings),
+    )
+
+
+def compare_runs(
+    evaluations: Sequence[RunEvaluation],
+) -> "tuple[RunComparisonRow, ...]":
+    """Aggregate evaluations by agent provenance without scoring or ranking."""
+    groups: dict[tuple[Optional[str], Optional[str], Optional[str]], dict[str, int]] = (
+        {}
+    )
+    for evaluation in evaluations:
+        provenance = evaluation.provenance
+        key = (
+            provenance.provider if provenance is not None else None,
+            provenance.model if provenance is not None else None,
+            provenance.client if provenance is not None else None,
+        )
+        group = groups.setdefault(
+            key,
+            {
+                "runs": 0,
+                "outcomes_completed": 0,
+                "outcomes_other": 0,
+                "revisions_narrowing_total": 0,
+                "revisions_unclassified_total": 0,
+                "red_evidence_valid": 0,
+                "incidents_total": 0,
+            },
+        )
+        group["runs"] += 1
+        if evaluation.outcome_status == "completed":
+            group["outcomes_completed"] += 1
+        else:
+            group["outcomes_other"] += 1
+        group["revisions_narrowing_total"] += evaluation.revisions_narrowing
+        group["revisions_unclassified_total"] += evaluation.revisions_unclassified
+        if evaluation.red_evidence_status == "valid":
+            group["red_evidence_valid"] += 1
+        group["incidents_total"] += evaluation.incidents_total
+
+    rows = tuple(
+        RunComparisonRow(
+            provider=provider,
+            model=model,
+            client=client,
+            runs=counts["runs"],
+            outcomes_completed=counts["outcomes_completed"],
+            outcomes_other=counts["outcomes_other"],
+            revisions_narrowing_total=counts["revisions_narrowing_total"],
+            revisions_unclassified_total=counts["revisions_unclassified_total"],
+            red_evidence_valid=counts["red_evidence_valid"],
+            incidents_total=counts["incidents_total"],
+        )
+        for (provider, model, client), counts in groups.items()
+    )
+    return tuple(
+        sorted(
+            rows,
+            key=lambda row: (
+                -row.runs,
+                row.model or "",
+                row.provider or "",
+                row.client or "",
+            ),
+        )
     )
 
 

@@ -876,6 +876,22 @@ def _register_evaluate_parser(sub: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Suppress info findings from text output",
     )
+    compare = esub.add_parser(
+        "compare", help="Compare stored MAID run evidence across manifests"
+    )
+    compare.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        dest="manifest_dir",
+        help="Manifest directory to sweep for run evidence",
+    )
+    compare.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing .maid evidence",
+    )
+    compare.add_argument("--json", action="store_true", help="Print comparison as JSON")
 
 
 def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:

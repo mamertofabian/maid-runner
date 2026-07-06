@@ -1,0 +1,243 @@
+{
+  "manifest_path": "manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
+  "manifest_hash": "sha256:3c27768df1e6f19fd52d143f6c93158dc1964c55f658a8379fa533c23e292a46",
+  "test_hashes": {
+    "tests/core/test_run_comparison.py": "sha256:3d5a9060711f3a44d24594bd9539adb19966f52c2d05487ac899ca536653ab35",
+    "tests/cli/test_evaluate_compare_cmd.py": "sha256:a76a545a0569227f65c3b2c50f726e10313b0b15f64af022a016351016587b99"
+  },
+  "created_at": "2026-07-06T08:47:28.533350+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d1d8ea404fcff10768d573d0ba9626d5e2f32798259735c68f8c24380b1c8953",
+      "prior_test_hashes": {
+        "tests/core/test_run_comparison.py": "sha256:3d5a9060711f3a44d24594bd9539adb19966f52c2d05487ac899ca536653ab35",
+        "tests/cli/test_evaluate_compare_cmd.py": "sha256:504f92081a3aeaa41df11c724043ac5023af7c0f6386e6209d992586999bead2"
+      },
+      "revised_at": "2026-07-06T08:47:32.850058+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml -> manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:12e829b5fb22a35315c723cc428c27a8f142cb9ffbc62f6705bb8348ee8eea89",
+      "prior_test_hashes": {
+        "tests/core/test_run_comparison.py": "sha256:3d5a9060711f3a44d24594bd9539adb19966f52c2d05487ac899ca536653ab35",
+        "tests/cli/test_evaluate_compare_cmd.py": "sha256:504f92081a3aeaa41df11c724043ac5023af7c0f6386e6209d992586999bead2"
+      },
+      "revised_at": "2026-07-06T08:55:25.751695+00:00",
+      "reason": "Add review-driven project-root manifest-dir regression coverage",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-implementer"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:12e829b5fb22a35315c723cc428c27a8f142cb9ffbc62f6705bb8348ee8eea89",
+      "prior_test_hashes": {
+        "tests/core/test_run_comparison.py": "sha256:3d5a9060711f3a44d24594bd9539adb19966f52c2d05487ac899ca536653ab35",
+        "tests/cli/test_evaluate_compare_cmd.py": "sha256:55cc0d87ced49cd54a2e84916aa534739f20d90d3da2c6fe89363a2f7154b566"
+      },
+      "revised_at": "2026-07-06T09:02:09.288234+00:00",
+      "reason": "Declare review-driven project-root compare regression test artifact",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-implementer"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd",
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd:kind=test_function",
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:fa5ed0d06dfa8961cc92b6c67e51c254f85df69eacf8d7d00b185bbd913d2b5b",
+      "prior_test_hashes": {
+        "tests/core/test_run_comparison.py": "sha256:3d5a9060711f3a44d24594bd9539adb19966f52c2d05487ac899ca536653ab35",
+        "tests/cli/test_evaluate_compare_cmd.py": "sha256:55cc0d87ced49cd54a2e84916aa534739f20d90d3da2c6fe89363a2f7154b566"
+      },
+      "revised_at": "2026-07-06T09:10:19.888266+00:00",
+      "reason": "Declare relative project-root compare regression coverage",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-implementer"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths",
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths:kind=test_function",
+          "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T09:10:21.093223+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_run_comparison.py tests/cli/test_evaluate_compare_cmd.py",
+        "exit_code": 1,
+        "output_tail": ">       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid evaluate [-h] {run} ...\nmaid evaluate: error: argument evaluate_command: invalid choice: 'compare' (choose from run)\n=========================== short test summary info ============================\nFAILED tests/core/test_run_comparison.py::test_compare_runs_groups_by_provenance_with_correct_counts\nFAILED tests/core/test_run_comparison.py::test_compare_runs_buckets_anonymous_runs_explicitly\nFAILED tests/core/test_run_comparison.py::test_compare_runs_orders_rows_deterministically\nFAILED tests/core/test_run_comparison.py::test_compare_runs_empty_input_yields_empty_tuple\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_renders_grouped_table_with_unknown_row\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_reports_skipped_evidence_free_manifests\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_json_matches_text_rows\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_continues_past_unparseable_manifest_loudly\nFAILED tests/cli/test_evaluate_compare_cmd.py::test_evaluate_compare_missing_manifest_dir_fails_loud\n11 failed in 1.03s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:kind=function",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:returns=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.client",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.client:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.client:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.client:type=Optional[str]",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.incidents_total",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.incidents_total:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.incidents_total:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.incidents_total:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.model",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.model:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.model:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.model:type=Optional[str]",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_completed",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_completed:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_completed:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_completed:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_other",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_other:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_other:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.outcomes_other:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.provider",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.provider:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.provider:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.provider:type=Optional[str]",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.red_evidence_valid",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.red_evidence_valid:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.red_evidence_valid:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.red_evidence_valid:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_narrowing_total",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_narrowing_total:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_narrowing_total:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_narrowing_total:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_unclassified_total",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_unclassified_total:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_unclassified_total:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.revisions_unclassified_total:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.runs",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.runs:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.runs:of=RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:attribute:RunComparisonRow.runs:type=int",
+      "maid_runner/core/run_evaluation.py:class:RunComparisonRow",
+      "maid_runner/core/run_evaluation.py:class:RunComparisonRow:kind=class",
+      "maid_runner/core/run_evaluation.py:function:compare_runs",
+      "maid_runner/core/run_evaluation.py:function:compare_runs:arg=evaluations:type=Sequence[RunEvaluation]:default=None",
+      "maid_runner/core/run_evaluation.py:function:compare_runs:kind=function",
+      "maid_runner/core/run_evaluation.py:function:compare_runs:returns=tuple[RunComparisonRow, ...]",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_continues_past_unparseable_manifest_loudly",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_continues_past_unparseable_manifest_loudly:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_continues_past_unparseable_manifest_loudly:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_json_matches_text_rows",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_json_matches_text_rows:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_json_matches_text_rows:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_missing_manifest_dir_fails_loud",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_missing_manifest_dir_fails_loud:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_missing_manifest_dir_fails_loud:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_project_root_resolves_default_manifest_dir_from_other_cwd:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_relative_project_root_does_not_double_prefix_manifest_paths:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_renders_grouped_table_with_unknown_row",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_renders_grouped_table_with_unknown_row:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_renders_grouped_table_with_unknown_row:returns=None",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_reports_skipped_evidence_free_manifests",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_reports_skipped_evidence_free_manifests:kind=test_function",
+      "tests/cli/test_evaluate_compare_cmd.py:test_evaluate_compare_reports_skipped_evidence_free_manifests:returns=None",
+      "tests/core/test_run_comparison.py:test_compare_runs_buckets_anonymous_runs_explicitly",
+      "tests/core/test_run_comparison.py:test_compare_runs_buckets_anonymous_runs_explicitly:kind=test_function",
+      "tests/core/test_run_comparison.py:test_compare_runs_buckets_anonymous_runs_explicitly:returns=None",
+      "tests/core/test_run_comparison.py:test_compare_runs_empty_input_yields_empty_tuple",
+      "tests/core/test_run_comparison.py:test_compare_runs_empty_input_yields_empty_tuple:kind=test_function",
+      "tests/core/test_run_comparison.py:test_compare_runs_empty_input_yields_empty_tuple:returns=None",
+      "tests/core/test_run_comparison.py:test_compare_runs_groups_by_provenance_with_correct_counts",
+      "tests/core/test_run_comparison.py:test_compare_runs_groups_by_provenance_with_correct_counts:kind=test_function",
+      "tests/core/test_run_comparison.py:test_compare_runs_groups_by_provenance_with_correct_counts:returns=None",
+      "tests/core/test_run_comparison.py:test_compare_runs_orders_rows_deterministically",
+      "tests/core/test_run_comparison.py:test_compare_runs_orders_rows_deterministically:kind=test_function",
+      "tests/core/test_run_comparison.py:test_compare_runs_orders_rows_deterministically:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_evaluate_compare_cmd.py",
+        "tests/core/test_run_comparison.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/evaluate.py",
+        "maid_runner/core/run_evaluation.py"
+      ],
+      "read": [
+        "README.md",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/core/types.py",
+        "manifests/drafts/084-04-add-maid-evaluate-run-command.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_evaluate_compare_cmd.py",
+      "tests/core/test_run_comparison.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_run_comparison.py tests/cli/test_evaluate_compare_cmd.py"
+    ]
+  }
+}
