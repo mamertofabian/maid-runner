@@ -1,0 +1,388 @@
+{
+  "manifest_path": "manifests/084-04-add-maid-evaluate-run-command.manifest.yaml",
+  "manifest_hash": "sha256:0b9279c5706130e04692611ce9700bb41fe61768c2f9c4a78a057c9e5bdf7fe1",
+  "test_hashes": {
+    "tests/core/test_run_evaluation.py": "sha256:65cc75d9603ed688f08c02cbf05b91ede997e524cc55b8494d1a7f21bb4041a2",
+    "tests/cli/test_evaluate_run_cmd.py": "sha256:9fb0e96f2968e58047ff9d99e17f92d3a4019ff48beb46fcac1839a6c3b4769b"
+  },
+  "created_at": "2026-07-06T07:30:37.594754+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:179a0ff4c279e5c8c5f5666a8329a35ae0fec886ffa0a909a169d9ebbce94417",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:7dc19db7085075ec2cf92eca9cb7dcc61473b98c1abee02b300ee2fa199249fd",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:63d800426a53b6e68bb3f410ba0b40468129d4d56148454e9ec2efed55d310d0"
+      },
+      "revised_at": "2026-07-06T07:30:42.830602+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-04-add-maid-evaluate-run-command.manifest.yaml -> manifests/084-04-add-maid-evaluate-run-command.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:fbff773020c6c003cf2e6df60b633b2734703d82b6e3766dffcbb6542989efb3",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:7dc19db7085075ec2cf92eca9cb7dcc61473b98c1abee02b300ee2fa199249fd",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:63d800426a53b6e68bb3f410ba0b40468129d4d56148454e9ec2efed55d310d0"
+      },
+      "revised_at": "2026-07-06T07:42:17.917128+00:00",
+      "reason": "Add review-driven coverage for project-root resolution and malformed incident storage",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-runner-draft-implement",
+          "maid-implementer",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd",
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd:kind=test_function",
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd:returns=None",
+          "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning",
+          "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning:kind=test_function",
+          "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:11e82d08e95c10e0e7269eba46b657549988b23dc7bf1d3cd288b6738318f7bf",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:fa75f6a836adc79d31777345845381ef011c51358e1b83f3756216e5bfadda44",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:46d705aa21c0272e03db1fa9676849bd2b579ce319c309ed70cb2e74dcdf99ab"
+      },
+      "revised_at": "2026-07-06T07:46:18.859947+00:00",
+      "reason": "Refresh revised behavioral test hash after review-fix formatting",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-runner-draft-implement",
+          "maid-implementer",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:11e82d08e95c10e0e7269eba46b657549988b23dc7bf1d3cd288b6738318f7bf",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:fa75f6a836adc79d31777345845381ef011c51358e1b83f3756216e5bfadda44",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:fb44050a78ca0957f33bf7a0a7a7aec14c8d8c4970cd65347f1be70ce6bd8468"
+      },
+      "revised_at": "2026-07-06T07:51:28.325275+00:00",
+      "reason": "Add review-driven coverage for malformed plan-lock evidence",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-runner-draft-implement",
+          "maid-implementer",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning",
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning:kind=test_function",
+          "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning:returns=None",
+          "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning",
+          "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning:kind=test_function",
+          "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:a938bcaaecae2b91421b449f955329d1f7b212dd34af46be87b281c354cbef1b",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:a6eaade515936dc7610ab35cf5d9df20bd8579e94d9930f28011106a5258c9ce",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:9fb0e96f2968e58047ff9d99e17f92d3a4019ff48beb46fcac1839a6c3b4769b"
+      },
+      "revised_at": "2026-07-06T07:59:46.810405+00:00",
+      "reason": "Strengthen malformed evidence degradation coverage after review",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-runner-draft-implement",
+          "maid-implementer",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:6f2b1d6528a22b3a86bf717ad9dd36b45618e168fb5eee552723f0be4788e14e",
+      "prior_test_hashes": {
+        "tests/core/test_run_evaluation.py": "sha256:65cc75d9603ed688f08c02cbf05b91ede997e524cc55b8494d1a7f21bb4041a2",
+        "tests/cli/test_evaluate_run_cmd.py": "sha256:9fb0e96f2968e58047ff9d99e17f92d3a4019ff48beb46fcac1839a6c3b4769b"
+      },
+      "revised_at": "2026-07-06T08:08:37.510807+00:00",
+      "reason": "Capture Outcome for completed run evaluation implementation",
+      "agent": {
+        "model": "gpt-5-codex",
+        "provider": "openai",
+        "client": "codex-cli",
+        "skills": [
+          "maid-runner-draft-implement",
+          "maid-implementer",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T07:59:47.653900+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_run_evaluation.py tests/cli/test_evaluate_run_cmd.py",
+        "exit_code": 1,
+        "output_tail": "\ntests/cli/test_evaluate_run_cmd.py:149: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_run_evaluation.py::test_clean_fully_evidenced_run_reports_expected_dimensions\nFAILED tests/core/test_run_evaluation.py::test_delta_removing_validate_command_classified_narrowing_with_citation\nFAILED tests/core/test_run_evaluation.py::test_pre_delta_revisions_reported_unclassified_not_neutral\nFAILED tests/core/test_run_evaluation.py::test_missing_provenance_yields_anonymous_run_warning\nFAILED tests/core/test_run_evaluation.py::test_outcome_corroboration_separates_uncorroborated_and_unevidenced\nFAILED tests/core/test_run_evaluation.py::test_red_evidence_status_values_for_missing_lock_and_missing_red\nFAILED tests/core/test_run_evaluation.py::test_incident_referencing_manifest_counts_with_integrity_finding\nFAILED tests/core/test_run_evaluation.py::test_malformed_incident_storage_reports_integrity_warning\nFAILED tests/core/test_run_evaluation.py::test_malformed_plan_lock_reports_integrity_warning\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_text_and_json_render_same_evaluation\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_exits_zero_despite_findings\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_malformed_lock_exits_zero_with_warning\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_missing_manifest_fails_loud_with_path\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd\nFAILED tests/cli/test_evaluate_run_cmd.py::test_evaluate_run_quiet_drops_info_from_text_only\nFAILED tests/cli/test_evaluate_run_cmd.py::test_readme_documents_evaluate_command\n16 failed in 0.64s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": {
+    "model": "gpt-5-codex",
+    "provider": "openai",
+    "client": "codex-cli",
+    "skills": [
+      "maid-runner-draft-implement",
+      "maid-implementer",
+      "maid-implementation-review"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._evaluate_command_reference_row",
+      "README.md:attribute:documentation._evaluate_command_reference_row:kind=attribute",
+      "README.md:attribute:documentation._evaluate_command_reference_row:of=documentation",
+      "README.md:attribute:documentation._evaluate_command_reference_row:type=markdown table row",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:kind=function",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:returns=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.findings",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.findings:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.findings:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.findings:type=tuple[RunFinding, ...]",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.incidents_total",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.incidents_total:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.incidents_total:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.incidents_total:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.lock_present",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.lock_present:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.lock_present:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.lock_present:type=bool",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_path",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_path:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_path:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_path:type=str",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_slug",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_slug:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_slug:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.manifest_slug:type=str",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_status",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_status:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_status:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_status:type=Optional[str]",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_uncorroborated_commands",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_uncorroborated_commands:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_uncorroborated_commands:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.outcome_uncorroborated_commands:type=tuple[str, ...]",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance:type=Optional[AgentProvenance]",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance_source",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance_source:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance_source:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.provenance_source:type=Optional[str]",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.red_evidence_status",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.red_evidence_status:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.red_evidence_status:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.red_evidence_status:type=str",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_narrowing",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_narrowing:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_narrowing:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_narrowing:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_neutral",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_neutral:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_neutral:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_neutral:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_strengthening",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_strengthening:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_strengthening:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_strengthening:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_total",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_total:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_total:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_total:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_unclassified",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_unclassified:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_unclassified:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.revisions_unclassified:type=int",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.unevidenced_validate_commands",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.unevidenced_validate_commands:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.unevidenced_validate_commands:of=RunEvaluation",
+      "maid_runner/core/run_evaluation.py:attribute:RunEvaluation.unevidenced_validate_commands:type=tuple[str, ...]",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.category",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.category:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.category:of=RunFinding",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.category:type=str",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.evidence",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.evidence:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.evidence:of=RunFinding",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.evidence:type=tuple[str, ...]",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.severity",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.severity:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.severity:of=RunFinding",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.severity:type=str",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.summary",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.summary:kind=attribute",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.summary:of=RunFinding",
+      "maid_runner/core/run_evaluation.py:attribute:RunFinding.summary:type=str",
+      "maid_runner/core/run_evaluation.py:class:RunEvaluation",
+      "maid_runner/core/run_evaluation.py:class:RunEvaluation:kind=class",
+      "maid_runner/core/run_evaluation.py:class:RunFinding",
+      "maid_runner/core/run_evaluation.py:class:RunFinding:kind=class",
+      "maid_runner/core/run_evaluation.py:function:evaluate_run",
+      "maid_runner/core/run_evaluation.py:function:evaluate_run:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/run_evaluation.py:function:evaluate_run:arg=project_root:type=Path:default=None",
+      "maid_runner/core/run_evaluation.py:function:evaluate_run:kind=function",
+      "maid_runner/core/run_evaluation.py:function:evaluate_run:returns=RunEvaluation",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_exits_zero_despite_findings",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_exits_zero_despite_findings:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_exits_zero_despite_findings:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_malformed_lock_exits_zero_with_warning:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_missing_manifest_fails_loud_with_path",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_missing_manifest_fails_loud_with_path:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_missing_manifest_fails_loud_with_path:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_project_root_resolves_relative_manifest_from_other_cwd:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_quiet_drops_info_from_text_only",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_quiet_drops_info_from_text_only:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_quiet_drops_info_from_text_only:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_text_and_json_render_same_evaluation",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_text_and_json_render_same_evaluation:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_evaluate_run_text_and_json_render_same_evaluation:returns=None",
+      "tests/cli/test_evaluate_run_cmd.py:test_readme_documents_evaluate_command",
+      "tests/cli/test_evaluate_run_cmd.py:test_readme_documents_evaluate_command:kind=test_function",
+      "tests/cli/test_evaluate_run_cmd.py:test_readme_documents_evaluate_command:returns=None",
+      "tests/core/test_run_evaluation.py:test_clean_fully_evidenced_run_reports_expected_dimensions",
+      "tests/core/test_run_evaluation.py:test_clean_fully_evidenced_run_reports_expected_dimensions:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_clean_fully_evidenced_run_reports_expected_dimensions:returns=None",
+      "tests/core/test_run_evaluation.py:test_delta_removing_validate_command_classified_narrowing_with_citation",
+      "tests/core/test_run_evaluation.py:test_delta_removing_validate_command_classified_narrowing_with_citation:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_delta_removing_validate_command_classified_narrowing_with_citation:returns=None",
+      "tests/core/test_run_evaluation.py:test_incident_referencing_manifest_counts_with_integrity_finding",
+      "tests/core/test_run_evaluation.py:test_incident_referencing_manifest_counts_with_integrity_finding:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_incident_referencing_manifest_counts_with_integrity_finding:returns=None",
+      "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning",
+      "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_malformed_incident_storage_reports_integrity_warning:returns=None",
+      "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning",
+      "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_malformed_plan_lock_reports_integrity_warning:returns=None",
+      "tests/core/test_run_evaluation.py:test_missing_provenance_yields_anonymous_run_warning",
+      "tests/core/test_run_evaluation.py:test_missing_provenance_yields_anonymous_run_warning:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_missing_provenance_yields_anonymous_run_warning:returns=None",
+      "tests/core/test_run_evaluation.py:test_outcome_corroboration_separates_uncorroborated_and_unevidenced",
+      "tests/core/test_run_evaluation.py:test_outcome_corroboration_separates_uncorroborated_and_unevidenced:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_outcome_corroboration_separates_uncorroborated_and_unevidenced:returns=None",
+      "tests/core/test_run_evaluation.py:test_pre_delta_revisions_reported_unclassified_not_neutral",
+      "tests/core/test_run_evaluation.py:test_pre_delta_revisions_reported_unclassified_not_neutral:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_pre_delta_revisions_reported_unclassified_not_neutral:returns=None",
+      "tests/core/test_run_evaluation.py:test_red_evidence_status_values_for_missing_lock_and_missing_red",
+      "tests/core/test_run_evaluation.py:test_red_evidence_status_values_for_missing_lock_and_missing_red:kind=test_function",
+      "tests/core/test_run_evaluation.py:test_red_evidence_status_values_for_missing_lock_and_missing_red:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/evaluate.py",
+        "maid_runner/core/run_evaluation.py",
+        "tests/cli/test_evaluate_run_cmd.py",
+        "tests/core/test_run_evaluation.py"
+      ],
+      "edit": [
+        "README.md",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "maid_runner/core/incidents.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/types.py",
+        "manifests/drafts/084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+        "manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+        "manifests/drafts/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_evaluate_run_cmd.py",
+      "tests/core/test_run_evaluation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_run_evaluation.py tests/cli/test_evaluate_run_cmd.py"
+    ]
+  }
+}

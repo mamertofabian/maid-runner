@@ -59,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_recall_parser(sub)
     _register_insights_parser(sub)
     _register_enrich_parser(sub)
+    _register_evaluate_parser(sub)
     _register_benchmark_parser(sub)
     _register_incident_parser(sub)
     _register_daemon_parser(sub)
@@ -858,6 +859,25 @@ def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
     )
 
 
+def _register_evaluate_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("evaluate", help="Evaluate stored MAID run evidence")
+    esub = p.add_subparsers(dest="evaluate_command")
+    run = esub.add_parser("run", help="Report after-action evidence for one run")
+    run.add_argument("manifest_path")
+    run.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest and .maid evidence",
+    )
+    run.add_argument("--json", action="store_true", help="Print evaluation as JSON")
+    run.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress info findings from text output",
+    )
+
+
 def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--index",
@@ -1359,6 +1379,7 @@ def main(argv: list[str] | None = None) -> int:
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
         "enrich": "_cmd_enrich",
+        "evaluate": "_cmd_evaluate",
         "benchmark": "_cmd_benchmark",
         "incident": "_cmd_incident",
         "daemon": "_cmd_daemon",
@@ -1396,6 +1417,7 @@ def main(argv: list[str] | None = None) -> int:
         recall as recall_mod,
         insights as insights_mod,
         enrich as enrich_mod,
+        evaluate as evaluate_mod,
         benchmark as benchmark_mod,
         incident as incident_mod,
         daemon as daemon_mod,
@@ -1427,6 +1449,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
         "_cmd_enrich": enrich_mod.cmd_enrich,
+        "_cmd_evaluate": evaluate_mod.cmd_evaluate,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,
         "_cmd_incident": incident_mod.cmd_incident,
         "_cmd_daemon": daemon_mod.cmd_daemon,

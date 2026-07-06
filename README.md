@@ -120,6 +120,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
 | `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
+| `maid evaluate run <manifest>` | Report deterministic after-action run evidence | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
 | `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
