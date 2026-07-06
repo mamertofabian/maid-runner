@@ -285,11 +285,18 @@ def _migrate_promotion_lock(
     from maid_runner.core.plan_lock import (
         capture_red_phase_evidence,
         revise_plan_lock,
+        _load_locked_contract,
     )
 
     reason = f"Migrated by maid manifest promote: {old_rel} -> {new_rel}"
     try:
-        migrated = revise_plan_lock(lock, output_path, project_root, reason)
+        migrated = revise_plan_lock(
+            lock,
+            output_path,
+            project_root,
+            reason,
+            prior_contract=_load_locked_contract(lock_path),
+        )
         if not no_run:
             migrated = replace(
                 migrated,

@@ -89,6 +89,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         PlanLock,
         capture_red_phase_evidence,
         revise_plan_lock,
+        _load_locked_contract,
         _PlanLockLoadError,
     )
 
@@ -166,6 +167,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             ctx.project_root,
             reason,
             agent=provenance.provenance,
+            prior_contract=_load_locked_contract(ctx.lock_path),
         )
         if preserve_red_evidence:
             revised = replace(revised, red_evidence=existing.red_evidence)
@@ -248,6 +250,7 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
                     "revised_at": r.revised_at,
                     "reason": r.reason,
                     "agent": _agent_to_payload(r.agent),
+                    "contract_delta": _contract_delta_to_payload(r.contract_delta),
                 }
                 for r in lock.revisions
             ],
@@ -266,6 +269,8 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
             print(f"  Revision at {r.revised_at}: {r.reason}")
             if r.agent is not None:
                 print(f"    Revision agent: {_format_agent(r.agent)}")
+            if r.contract_delta is not None:
+                print(f"    {_format_contract_delta_summary(r.contract_delta)}")
 
     return 1 if has_mismatch else 0
 
@@ -342,6 +347,45 @@ def _agent_to_payload(agent) -> dict | None:
     return payload
 
 
+def _contract_delta_to_payload(delta) -> dict | None:
+    if delta is None:
+        return None
+    return {
+        "artifacts_added": list(delta.artifacts_added),
+        "artifacts_removed": list(delta.artifacts_removed),
+        "files_added": list(delta.files_added),
+        "files_removed": list(delta.files_removed),
+        "validate_commands_added": list(delta.validate_commands_added),
+        "validate_commands_removed": list(delta.validate_commands_removed),
+    }
+
+
+def _format_contract_delta_summary(delta) -> str:
+    parts = []
+    parts.extend(_delta_count_parts("+", len(delta.artifacts_added), "artifact"))
+    parts.extend(_delta_count_parts("-", len(delta.artifacts_removed), "artifact"))
+    parts.extend(_delta_count_parts("+", len(delta.files_added), "file"))
+    parts.extend(_delta_count_parts("-", len(delta.files_removed), "file"))
+    parts.extend(
+        _delta_count_parts("+", len(delta.validate_commands_added), "validate command")
+    )
+    parts.extend(
+        _delta_count_parts(
+            "-", len(delta.validate_commands_removed), "validate command"
+        )
+    )
+    if not parts:
+        return "Delta: no contract changes"
+    return "Delta: " + ", ".join(parts)
+
+
+def _delta_count_parts(sign: str, count: int, singular: str) -> list[str]:
+    if count == 0:
+        return []
+    noun = singular if count == 1 else f"{singular}s"
+    return [f"{sign}{count} {noun}"]
+
+
 def _format_agent(agent) -> str:
     details = []
     if agent.provider:
@@ -367,7 +411,11 @@ def _cmd_plan_revise_with_stashed_implementation(
 ) -> int:
     """Revise a lock after temporarily stashing declared implementation files."""
     from maid_runner.core.manifest import _is_test_file, load_manifest
-    from maid_runner.core.plan_lock import capture_red_phase_evidence, revise_plan_lock
+    from maid_runner.core.plan_lock import (
+        capture_red_phase_evidence,
+        revise_plan_lock,
+        _load_locked_contract,
+    )
 
     try:
         manifest = load_manifest(ctx.manifest_path)
@@ -496,7 +544,12 @@ def _cmd_plan_revise_with_stashed_implementation(
         restored = False
         try:
             revised = revise_plan_lock(
-                existing, ctx.manifest_path, ctx.project_root, reason, agent=agent
+                existing,
+                ctx.manifest_path,
+                ctx.project_root,
+                reason,
+                agent=agent,
+                prior_contract=_load_locked_contract(ctx.lock_path),
             )
             evidence = capture_red_phase_evidence(
                 ctx.manifest_path, ctx.project_root

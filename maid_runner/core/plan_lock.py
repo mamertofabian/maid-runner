@@ -59,6 +59,18 @@ class _PlanLockLoadError(Exception):
 
 
 @dataclass(frozen=True)
+class ContractDelta:
+    """Deterministic set-difference between two locked manifest contracts."""
+
+    artifacts_added: tuple[str, ...] = ()
+    artifacts_removed: tuple[str, ...] = ()
+    files_added: tuple[str, ...] = ()
+    files_removed: tuple[str, ...] = ()
+    validate_commands_added: tuple[str, ...] = ()
+    validate_commands_removed: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class PlanLockRevision:
     """One immutable revision history entry."""
 
@@ -67,6 +79,7 @@ class PlanLockRevision:
     revised_at: str
     reason: str
     agent: Optional[AgentProvenance] = None
+    contract_delta: Optional[ContractDelta] = None
 
 
 @dataclass(frozen=True)
@@ -144,6 +157,9 @@ class PlanLock:
                     revised_at=item["revised_at"],
                     reason=item["reason"],
                     agent=_agent_from_payload(item.get("agent")),
+                    contract_delta=_contract_delta_from_payload(
+                        item.get("contract_delta")
+                    ),
                 )
                 for item in raw_revisions
             )
@@ -176,6 +192,7 @@ class PlanLock:
                     "revised_at": r.revised_at,
                     "reason": r.reason,
                     "agent": _agent_to_payload(r.agent),
+                    "contract_delta": _contract_delta_to_payload(r.contract_delta),
                 }
                 for r in self.revisions
             ],
@@ -216,17 +233,24 @@ def revise_plan_lock(
     project_root: Path,
     reason: str,
     agent: Optional[AgentProvenance] = None,
+    prior_contract: Optional[dict] = None,
 ) -> PlanLock:
     """Re-lock with current hashes, appending the prior hashes to history."""
     if not reason or not reason.strip():
         raise ValueError("Plan-lock revision requires a non-empty reason")
     fresh = create_plan_lock(manifest_path, project_root, agent=existing.agent)
+    new_contract = _manifest_contract(load_manifest(manifest_path))
     entry = PlanLockRevision(
         prior_manifest_hash=existing.manifest_hash,
         prior_test_hashes=dict(existing.test_hashes),
         revised_at=_utc_now(),
         reason=reason,
         agent=agent,
+        contract_delta=(
+            compute_contract_delta(prior_contract, new_contract)
+            if prior_contract is not None
+            else None
+        ),
     )
     return PlanLock(
         manifest_path=fresh.manifest_path,
@@ -237,6 +261,24 @@ def revise_plan_lock(
         revisions=existing.revisions + (entry,),
         red_evidence=None,
         agent=existing.agent,
+    )
+
+
+def compute_contract_delta(prior_contract: dict, new_contract: dict) -> ContractDelta:
+    """Return sorted set differences between two persisted contract payloads."""
+    prior_artifacts = _contract_string_set(prior_contract, "artifacts")
+    new_artifacts = _contract_string_set(new_contract, "artifacts")
+    prior_files = _contract_file_entries(prior_contract)
+    new_files = _contract_file_entries(new_contract)
+    prior_validate = _contract_string_set(prior_contract, "validate_commands")
+    new_validate = _contract_string_set(new_contract, "validate_commands")
+    return ContractDelta(
+        artifacts_added=tuple(sorted(new_artifacts - prior_artifacts)),
+        artifacts_removed=tuple(sorted(prior_artifacts - new_artifacts)),
+        files_added=tuple(sorted(new_files - prior_files)),
+        files_removed=tuple(sorted(prior_files - new_files)),
+        validate_commands_added=tuple(sorted(new_validate - prior_validate)),
+        validate_commands_removed=tuple(sorted(prior_validate - new_validate)),
     )
 
 
@@ -282,6 +324,43 @@ def _agent_from_payload(value: object) -> AgentProvenance | None:
         instructions_fingerprint=instructions_fingerprint,
         source=source,
     )
+
+
+def _contract_delta_to_payload(delta: ContractDelta | None) -> dict | None:
+    if delta is None:
+        return None
+    return {
+        "artifacts_added": list(delta.artifacts_added),
+        "artifacts_removed": list(delta.artifacts_removed),
+        "files_added": list(delta.files_added),
+        "files_removed": list(delta.files_removed),
+        "validate_commands_added": list(delta.validate_commands_added),
+        "validate_commands_removed": list(delta.validate_commands_removed),
+    }
+
+
+def _contract_delta_from_payload(value: object) -> ContractDelta | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError("contract_delta must be an object or null")
+    return ContractDelta(
+        artifacts_added=_contract_delta_tuple(value, "artifacts_added"),
+        artifacts_removed=_contract_delta_tuple(value, "artifacts_removed"),
+        files_added=_contract_delta_tuple(value, "files_added"),
+        files_removed=_contract_delta_tuple(value, "files_removed"),
+        validate_commands_added=_contract_delta_tuple(value, "validate_commands_added"),
+        validate_commands_removed=_contract_delta_tuple(
+            value, "validate_commands_removed"
+        ),
+    )
+
+
+def _contract_delta_tuple(value: dict, key: str) -> tuple[str, ...]:
+    raw = value.get(key)
+    if not isinstance(raw, list) or not all(isinstance(item, str) for item in raw):
+        raise TypeError(f"contract_delta.{key} must be an array of strings")
+    return tuple(raw)
 
 
 def _optional_agent_string(value: dict, key: str) -> str | None:
@@ -521,11 +600,38 @@ def _project_root_from_lock_path(lock_path: Path) -> Path:
 def _manifest_contract(manifest: Manifest) -> dict:
     return {
         "artifacts": sorted(_artifact_declarations(manifest)),
+        "files": {
+            "create": sorted(file_spec.path for file_spec in manifest.files_create),
+            "edit": sorted(file_spec.path for file_spec in manifest.files_edit),
+            "read": sorted(manifest.files_read),
+        },
         "test_files": sorted(_behavioral_test_paths(manifest)),
         "validate_commands": [
             shlex.join(command) for command in manifest.validate_commands
         ],
     }
+
+
+def _contract_string_set(contract: dict, key: str) -> set[str]:
+    values = contract.get(key, ())
+    if not isinstance(values, (list, tuple, set)):
+        return set()
+    return {value for value in values if isinstance(value, str)}
+
+
+def _contract_file_entries(contract: dict) -> set[str]:
+    raw_files = contract.get("files", {})
+    if not isinstance(raw_files, dict):
+        return set()
+    entries: set[str] = set()
+    for section in ("create", "edit", "read"):
+        values = raw_files.get(section, ())
+        if not isinstance(values, (list, tuple, set)):
+            continue
+        entries.update(
+            f"{section}:{value}" for value in values if isinstance(value, str)
+        )
+    return entries
 
 
 def _artifact_declarations(manifest: Manifest) -> set[str]:
