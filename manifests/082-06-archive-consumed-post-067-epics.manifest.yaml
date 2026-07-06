@@ -12,7 +12,7 @@ metadata:
   priority: medium
 description: |
   Theme 8 of the self-improvement backlog found that split-before-promote
-  epics 067-00, 077-00, and 081-00 still present as live planning inventory
+  epics 067-00, 077-00, 081-00, and later 084-00 present as live planning inventory
   (`# draft-kind: epic` plus `metadata.status: planning`) even though every
   planned child has been promoted and implemented. The existing 043-03
   pattern for consumed draft epics is the right closure shape: preserve the
@@ -34,10 +34,10 @@ description: |
 temptations:
 - risk: Do not delete consumed epic files just because their children are promoted.
   instead: 'Preserve each draft path and rewrite it as an archived pointer with `# archive-kind: consumed-draft-epic`.'
-- risk: Do not leave 067, 077, or 081 marked as live planning inventory after archiving their descriptions.
+- risk: Do not leave 067, 077, 081, or 084 marked as live planning inventory after archiving their descriptions.
   instead: 'Replace the draft marker, set `metadata.status: archived`, and test that only 062 and 064 remain live planning epics.'
 - risk: Do not archive partially consumed epics to make inventory look cleaner.
-  instead: Archive only the three backlog-confirmed consumed epics and keep 062/064 untouched as planning.
+  instead: Archive only confirmed consumed epics and keep 062/064 untouched as planning.
 - risk: Do not rely on prose-only backlog updates as the behavioral contract.
   instead: Add a focused test that reads the draft epic files and proves their archive markers, status, and child pointers are present.
 files:
@@ -46,7 +46,7 @@ files:
     artifacts:
     - kind: test_function
       name: test_consumed_epic_drafts_are_archived_pointers_to_promoted_children
-      description: 'Draft epics 067-00, 077-00, and 081-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest.'
+      description: 'Draft epics 067-00, 077-00, 081-00, and 084-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest.'
     - kind: test_function
       name: test_only_unconsumed_epics_remain_live_planning_inventory
       description: 'The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00 and 064-00.'
@@ -75,6 +75,13 @@ files:
       of: manifest
       type: draft epic
       description: Archived pointer for promoted child manifests 081-01 through 081-06.
+  - path: manifests/drafts/084-00-after-action-run-evaluation.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_after_action_run_evaluation_epic
+      of: manifest
+      type: draft epic
+      description: Archived pointer for promoted child manifests 084-01 through 084-07.
   scope:
   - path: docs/plans/maid-runner-self-improvement-backlog.md
     reason: Mark Theme 8 as completed and update the draft inventory notes so takeover agents no longer reopen consumed epics.
@@ -99,17 +106,25 @@ files:
   - manifests/081-04-add-outcome-enrich-skill.manifest.yaml
   - manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml
   - manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml
+  - manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml
+  - manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml
+  - manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml
+  - manifests/084-04-add-maid-evaluate-run-command.manifest.yaml
+  - manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml
+  - manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml
+  - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
 validate:
 - uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v
 - uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/drafts/084-00-after-action-run-evaluation.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet
 outcome:
   status: completed
   completed_at: "2026-07-03T13:40:42+08:00"
-  summary: "Archived consumed 067, 077, and 081 split-before-promote epics and made the self-improvement backlog truthful for Theme 8."
-  rationale: "Implementation preserved stable draft epic paths as archive pointers, listed promoted child manifests, left only 062 and 064 as live planning epics, and added characterization coverage for both draft inventory and stale backlog prose after implementation review found a takeover-summary contradiction."
+  summary: "Archived consumed split-before-promote epics and made the self-improvement backlog truthful for Theme 8; the contract was later revised to include the consumed 084 after-action run evaluation epic."
+  rationale: "Implementation preserved stable draft epic paths as archive pointers, listed promoted child manifests, left only 062 and 064 as live planning epics, and added characterization coverage for both draft inventory and stale backlog prose after implementation review found a takeover-summary contradiction. A later read-only review found the archive inventory test had been extended for 084 without declaring 084 in this governing manifest, so the contract now includes the 084 archived pointer, child-manifest read dependencies, and schema validation command."
   lessons:
   - lesson_type: workflow
     summary: "Archiving consumed epics must update both machine-readable draft files and human takeover prose; otherwise agents can still reopen completed work even when manifests are archived."
@@ -136,6 +151,9 @@ outcome:
   - source: implementation-review-subagent-Kuhn
     severity: info
     summary: "Re-review found no actionable findings and returned verdict ready; residual risk is limited to phrase-based backlog stale-prose coverage rather than semantic doc analysis."
+  - source: implementation-review-subagent-Bohr
+    severity: warning
+    summary: "Follow-up review found the archive inventory test covered 084 while this manifest still declared only 067, 077, and 081; fixed by adding 084 to the artifact, read, validate, and Outcome evidence sections."
   validation:
   - command:
     - uv
@@ -146,7 +164,51 @@ outcome:
     - tests/core/test_draft_epic_archive_inventory.py
     - -v
     status: passed
-    summary: "Focused archive-inventory suite passed 3 tests covering archive markers, promoted child pointers, only 062/064 live planning epics, and absence of known stale backlog phrases."
+    summary: "Focused archive-inventory suite passed 3 tests covering archive markers for consumed epics including 084, promoted child pointers, only 062/064 live planning epics, and absence of known stale backlog phrases."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml
+    - --mode
+    - schema
+    - --quiet
+    status: passed
+    summary: "Archived 067 epic pointer schema validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+    - --mode
+    - schema
+    - --quiet
+    status: passed
+    summary: "Archived 077 epic pointer schema validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml
+    - --mode
+    - schema
+    - --quiet
+    status: passed
+    summary: "Archived 081 epic pointer schema validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/drafts/084-00-after-action-run-evaluation.epic.yaml
+    - --mode
+    - schema
+    - --quiet
+    status: passed
+    summary: "Archived 084 epic pointer schema validation passed after 084-01 through 084-07 were promoted."
   - command:
     - uv
     - run

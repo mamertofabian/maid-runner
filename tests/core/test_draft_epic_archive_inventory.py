@@ -41,12 +41,20 @@ CONSUMED_EPICS = {
         "083-07-add-improvement-hypotheses-channel.manifest.yaml",
         "083-08-align-recall-stale-digest-flag.manifest.yaml",
     ),
+    "084-00-after-action-run-evaluation.epic.yaml": (
+        "084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+        "084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+        "084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+        "084-04-add-maid-evaluate-run-command.manifest.yaml",
+        "084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
+        "084-06-add-run-review-enrichment-pipeline.manifest.yaml",
+        "084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+    ),
 }
 
 LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
-    "084-00-after-action-run-evaluation.epic.yaml",
 }
 
 

@@ -342,8 +342,12 @@ outcome:
     - -q
     - tests/test_run_review_skill_guidance.py
     - tests/test_agent_payload_distribution.py
-    status: failed
-    summary: "Pre-implementation red phase failed for the intended missing assets: source skills, docs, manifest registry entries, generated distribution, and unchanged instruction payload version."
+    - tests/test_outcome_enrich_skill_guidance.py
+    - tests/cli/test_init_codex_distributable_scope.py
+    - tests/test_insights_skill_guidance.py
+    - tests/test_learning_loop_init_payload.py
+    status: passed
+    summary: "Current manifest validate command passed 33 tests covering run-review guidance, payload distribution, outcome-enrich regression, Codex init distributable-scope, insights guidance, and learning-loop init payload expectations."
   - command:
     - uv
     - run

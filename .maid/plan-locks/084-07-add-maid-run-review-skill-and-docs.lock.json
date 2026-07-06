@@ -1,6 +1,6 @@
 {
   "manifest_path": "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
-  "manifest_hash": "sha256:160af9397965d08077dce679228d768314a7bc69e6ea29f0036c1d5b82d6ed34",
+  "manifest_hash": "sha256:83dfee7e53a1c4c9c2a540ca12b6690cf0da04887f7f8c11fd2ad4505a5ff8d9",
   "test_hashes": {
     "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
     "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
@@ -10,7 +10,7 @@
     "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
   },
   "created_at": "2026-07-06T10:01:23.223082+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:14c8cae1c21f5d5fd5e635866d644dd3583cf8f2e4f36313d784004de21f373e",
@@ -245,6 +245,28 @@
       },
       "revised_at": "2026-07-06T10:26:19.690413+00:00",
       "reason": "Capture final Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:160af9397965d08077dce679228d768314a7bc69e6ea29f0036c1d5b82d6ed34",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+      },
+      "revised_at": "2026-07-06T13:30:42.549140+00:00",
+      "reason": "Correct Outcome validation evidence to cite current 6-file manifest command",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
