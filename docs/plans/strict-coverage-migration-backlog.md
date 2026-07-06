@@ -3,9 +3,9 @@
 ## Evidence Source
 
 **Generated from:** `uv run maid validate --strict-delta --json`
-**Run date:** 2026-07-05T21:06:18+08:00
-**Observed runtime:** 15s
-**Source snapshot:** release/v2.next @ 182e398ddf5374642f2d17f26151ffe2e953d3a1
+**Run date:** 2026-07-06T07:50:02+08:00
+**Observed runtime:** 13.69s
+**Source snapshot:** release/v2.next @ c8bee583fed85566f4c35d97429df56326476ed5
 
 The counts below are generated from the cited strict-delta run, not hand estimates.
 Regenerate this document by rerunning the command above and replacing the
