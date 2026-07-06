@@ -1,0 +1,252 @@
+schema: '2'
+goal: Fix distributed MAID agent skill guidance so Claude and Codex implementers treat files.scope/files.delete as writable while keeping files.read read-only, planners recommend PyPI/package-manager maid-runner installs instead of local dev setup assumptions, generated advisory run-review artifacts are gitignored, and downstream maid init detects the payload update through an instruction-payload version bump
+type: fix
+created: '2026-07-06T22:26:45Z'
+metadata:
+  tags:
+  - agent-skills
+  - init-payloads
+  - files-scope
+  - documentation
+  priority: medium
+description: |
+  A downstream onboarding review found three related payload defects:
+
+  1. Implementer guidance lagged the files.scope contract. Codex source
+     guidance already described files.scope as writable but its hard "NEVER
+     modify" rule omitted files.scope and files.delete; Claude source guidance
+     still only mentioned files.create/files.edit. Both tools must describe
+     files.scope as writable no-artifact implementation scope and files.read as
+     dependency context only.
+
+  2. Planner prerequisites still recommended `pip show` and local review found
+     an overcorrection toward `uv sync --dev`. Distributable skill guidance
+     should not assume a local editable ../maid-runner checkout; it should probe
+     for the `maid` command and tell agents to install `maid-runner` from PyPI
+     using the repository's package manager.
+
+  3. Run-review skills mention `.maid/run-review.json` as generated advisory
+     output, but `.gitignore` omitted that file. The other advisory digest and
+     run-review patterns already exist and remain pinned.
+
+  Related Outcome lessons: prior payload work repeatedly found that source and
+  packaged skill copies must be kept byte-for-byte in sync, guidance-only
+  changes need direct string tests, and init-distributed payload changes must
+  advance INSTRUCTION_PAYLOAD_VERSION so downstream `maid init --check`
+  reports stale installs.
+temptations:
+- risk: Do not patch only repo-local downstream skill copies and leave upstream packaged payloads stale.
+  instead: Edit the upstream source skills, run the payload sync, and assert source/package equality for both Claude and Codex.
+- risk: Do not make files.read writable to solve scope-only implementation friction.
+  instead: State files.scope/files.delete are writable implementation scope and files.read remains dependency context that requires plan revision before editing.
+- risk: Do not change init-distributed skill guidance without bumping the instruction payload version.
+  instead: Advance INSTRUCTION_PAYLOAD_VERSION past 2026.07.06.1 and pin it with a focused test.
+- risk: Do not force downstream repositories into this repo's local editable maid-runner development setup.
+  instead: Keep prerequisite guidance PyPI/package-manager oriented, while still allowing uv projects to run maid through uv.
+- risk: Do not rely on prose review to catch the same guidance regression later.
+  instead: Add behavioral tests that scan both source and packaged payload files for the required positive and negative guidance.
+files:
+  edit:
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_implementer_scope_guidance
+      of: skill
+      type: markdown guidance
+      description: Claude source implementer guidance describes files.scope/files.delete as writable implementation scope and files.read as read-only dependency context.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_implementer_scope_guidance
+      of: skill
+      type: markdown guidance
+      description: Codex source implementer guidance uses the same files.scope/files.delete writable and files.read read-only contract.
+  - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_claude_implementer_scope_guidance
+      of: skill
+      type: markdown guidance
+      description: Packaged Claude implementer payload copy mirrors the source scope guidance.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_codex_implementer_scope_guidance
+      of: skill
+      type: markdown guidance
+      description: Packaged Codex implementer payload copy mirrors the source scope guidance.
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_planner_pypi_prerequisite_guidance
+      of: skill
+      type: markdown guidance
+      description: Claude source planner prerequisites probe maid availability and recommend PyPI/package-manager installation without assuming local dev setup.
+  - path: .codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_planner_pypi_prerequisite_guidance
+      of: skill
+      type: markdown guidance
+      description: Codex source planner prerequisites match the PyPI/package-manager Claude planner guidance.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_claude_planner_pypi_prerequisite_guidance
+      of: skill
+      type: markdown guidance
+      description: Packaged Claude planner payload copy mirrors the PyPI/package-manager prerequisite guidance.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_codex_planner_pypi_prerequisite_guidance
+      of: skill
+      type: markdown guidance
+      description: Packaged Codex planner payload copy mirrors the PyPI/package-manager prerequisite guidance.
+  - path: .gitignore
+    artifacts:
+    - kind: attribute
+      name: _maid_advisory_artifact_ignore_patterns
+      of: gitignore
+      type: ignore pattern list
+      description: Ignore generated advisory Outcome and run-review artifacts, including .maid/run-review.json.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+        - kind: attribute
+          name: INSTRUCTION_PAYLOAD_VERSION
+          type: str
+          description: Date-stamped instruction payload version advanced past 2026.07.06.1 because init-distributed skill guidance changed.
+  read:
+  - scripts/sync_claude_files.py
+  - tests/test_claude_skill_distribution.py
+  - tests/test_run_review_skill_guidance.py
+  - tests/test_outcome_enrich_skill_guidance.py
+  - tests/cli/test_init_instruction_payload_version.py
+  - manifests/add-scope-only-file-section.manifest.yaml
+  - manifests/083-02-point-planner-at-digest-narrative.manifest.yaml
+  - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+  create:
+  - path: tests/test_agent_skill_scope_install_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_implementer_skills_treat_scope_and_delete_as_writable_not_read
+      args: []
+      returns: None
+      description: All source and packaged implementer skills allow files.scope/files.delete while excluding files.read from the hard writable-scope rule.
+    - kind: test_function
+      name: test_planner_prerequisites_use_pypi_install_not_local_dev_flow
+      args: []
+      returns: None
+      description: All source and packaged planner skills probe maid availability and recommend PyPI/package-manager installation without forcing local dev setup.
+    - kind: test_function
+      name: test_gitignore_covers_generated_advisory_payloads
+      args: []
+      returns: None
+      description: .gitignore includes generated advisory Outcome and run-review artifacts including .maid/run-review.json.
+    - kind: test_function
+      name: test_skill_guidance_source_and_package_payloads_match
+      args: []
+      returns: None
+      description: Claude and Codex source planner/implementer skill files match their packaged payload copies byte-for-byte.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_skill_guidance_fix
+      args: []
+      returns: None
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past 2026.07.06.1 for the changed init-distributed payload.
+validate:
+- uv run python -m pytest -q tests/test_agent_skill_scope_install_guidance.py tests/test_claude_skill_distribution.py tests/test_run_review_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_instruction_payload_version.py
+- uv run maid validate manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-07T06:44:52+08:00"
+  summary: "Updated distributed Claude and Codex MAID skill guidance so implementers treat `files.scope` and `files.delete` as writable scope while keeping `files.read` contextual, planners recommend PyPI/package-manager `maid-runner` installation instead of local development setup assumptions, generated run-review advisory files are ignored, and the instruction payload version advances to `2026.07.07.1`."
+  rationale: "The implementation keeps the distributable skill payloads suitable for ordinary downstream repositories: planner prerequisites probe `maid --version` and `uv run maid --version`, then direct unavailable installs to PyPI through the repository package manager rather than `../maid-runner` or `uv sync --dev`. Source skill files were synced into package payloads, byte-for-byte parity is covered by tests, and `INSTRUCTION_PAYLOAD_VERSION` was bumped so downstream `maid init --check` can detect stale guidance."
+  lessons:
+  - lesson_type: agent-skills
+    summary: "Distributable MAID skill guidance must distinguish local maid-runner development repos from ordinary downstream repos; upstream payloads should recommend PyPI/package-manager installation while still allowing uv projects to invoke `maid` through `uv run`."
+    tags:
+    - agent-skills
+    - init-payload
+    - install-guidance
+    paths:
+    - .claude/skills/maid-planner/SKILL.md
+    - .codex/skills/maid-planner/SKILL.md
+    - maid_runner/codex/skills/maid-planner/SKILL.md
+  - lesson_type: validation-trust
+    summary: "Guidance regressions are best pinned with direct string tests across both source and packaged payload copies, including negative assertions for stale local-dev or read-scope wording."
+    tags:
+    - behavioral-tests
+    - payload-sync
+    - files-scope
+    paths:
+    - tests/test_agent_skill_scope_install_guidance.py
+  review_notes:
+  - source: implementation-review-subagent-Curie
+    severity: P2
+    summary: "Initial read-only review found no code-level blockers but flagged untracked `.maid/active-manifest` lifecycle state outside the manifest scope. The active task marker was cleared with `uv run maid task stop` before handoff."
+  - source: implementation-review-subagent-Beauvoir
+    severity: ready
+    summary: "Fresh read-only review found no blockers, confirmed no stale `.maid/active-manifest`, confirmed source/package payload sync, verified PyPI/package-manager planner guidance, and independently reran focused implementation validation and manifest tests."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_agent_skill_scope_install_guidance.py
+    - tests/test_claude_skill_distribution.py
+    - tests/test_run_review_skill_guidance.py
+    - tests/test_outcome_enrich_skill_guidance.py
+    - tests/cli/test_init_instruction_payload_version.py
+    status: passed
+    summary: "Focused payload guidance and distribution test suite passed: 29 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml
+    - --mode
+    - implementation
+    - --quiet
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml
+    status: passed
+    summary: "Manifest test gate passed both declared validation commands."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Ruff reported all checks passed."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - tests/test_agent_skill_scope_install_guidance.py
+    status: passed
+    summary: "Black reported the new focused test file would be left unchanged."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    status: passed
+    summary: "Full verify passed all 9 gates with 0 blocking findings; remaining warnings were non-blocking E307 no-validator notices for Makefile, ts_compiler_resolver.cjs, and declared non-code files."

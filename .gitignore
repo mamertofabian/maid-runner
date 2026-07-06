@@ -38,4 +38,5 @@ maid_agents/.claude/tdd-guard/data/test.json
 .maid/outcomes-digest.md
 .maid/outcomes-enrichment-prompt.json
 .maid/run-review-request.json
+.maid/run-review.json
 .maid/run-reviews/

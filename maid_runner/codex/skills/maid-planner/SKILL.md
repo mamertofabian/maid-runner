@@ -53,14 +53,16 @@ the full single-agent flow.
 Before starting, verify:
 
 ```bash
-which maid 2>/dev/null || pip show maid-runner 2>/dev/null
+maid --version 2>/dev/null || uv run maid --version 2>/dev/null
 ```
 
 If `maid` is not available, tell the user:
 
 ```text
-maid-runner is not installed. Install it with:
-  pip install maid-runner
+maid-runner is not available. Install `maid-runner` from PyPI using this
+repository's package manager, for example:
+  uv add --dev maid-runner
+  python -m pip install maid-runner
 ```
 
 Do not proceed until `maid` is available.
