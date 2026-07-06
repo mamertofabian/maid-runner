@@ -1,0 +1,386 @@
+schema: '2'
+goal: Add the deterministic runner half of LLM-assisted qualitative run review — `maid evaluate prompt|validate|render` building an evidence-itemized review request from a RunEvaluation, validating model output against anti-fabrication rules (every finding must cite known evidence ids), and rendering a labeled advisory markdown report — with zero model calls, credentials, or network access in the runner, mirroring the proven maid enrich pipeline
+type: feature
+created: '2026-07-06T09:25:35Z'
+metadata:
+  epic: 084-00-after-action-run-evaluation
+  tags:
+  - run-evaluation
+  - llm-enrichment
+  - anti-gaming
+  - cli
+  priority: medium
+description: |
+  Deterministic counts (084-04) cannot judge whether a narrowing revision
+  was self-serving or legitimate, or whether tests are meaningful. That
+  judgment needs a model — and per the standing 081/083 architecture, the
+  model call lives in a skill (084-07) while the runner provides the
+  deterministic prompt/validate/render pipeline, exactly like
+  maid enrich prompt|validate|render backing maid-outcome-enrich.
+  Depends on 084-04.
+
+  Pinned decisions (do not redesign):
+
+  1. Core module maid_runner/core/run_review.py, pure and I/O-free:
+
+     - `ReviewEvidenceItem` (frozen: `evidence_id: str` — stable ids like
+       "revision-2", "outcome-lesson-1", "finding-3", "diff";
+       `kind: str`; `text: str`). Every fact the model may cite is
+       itemized with an id; nothing outside the items exists as far as
+       review validation is concerned.
+     - `ReviewRequest` (frozen: `schema_version: str`,
+       `manifest_slug: str`, `evaluation: dict` — the serialized
+       RunEvaluation; `evidence_items: tuple[ReviewEvidenceItem, ...]`,
+       `instructions: str`). Instructions embed the anti-fabrication
+       contract: findings must cite evidence ids, unknown ids are
+       invalid, absence of evidence must be stated as absence,
+       severities restricted to info/warning/attention, and a required
+       top-level `confidence` of low/medium/high.
+     - `build_review_request(evaluation, manifest, lock_payload,
+       diff_text)` assembles items from the evaluation's findings, the
+       lock's revision reasons and deltas, outcome lessons and review
+       notes, and the optional operator-supplied diff text (as the
+       single "diff" item; the runner never invokes git — diff capture
+       is explicitly the operator's/skill's choice and absence is
+       recorded in the request).
+     - `validate_run_review(review_data, request) -> list[str]` returns
+       exhaustive error strings: unknown or missing evidence-id
+       citations, findings without citations, invalid severity or
+       confidence values, unknown top-level keys, and file paths
+       mentioned in finding text that appear nowhere in the request's
+       evidence texts (the 081 anti-fabrication rule). Empty list means
+       valid.
+     - `render_run_review(review_data, request) -> str` renders markdown
+       with a mandatory header labeling the content as LLM-generated
+       advisory review (model-attributed, never authoritative), the
+       run's deterministic counts up top, then findings with their
+       cited evidence inlined.
+
+  2. CLI wiring in maid_runner/cli/commands/evaluate.py: `maid evaluate
+     prompt <manifest> [--diff-file PATH] [--output PATH]` runs
+     evaluate_run, builds the request, writes request JSON (default
+     .maid/run-review-request.json) atomically; `maid evaluate validate
+     <review.json> --request <request.json>` prints errors and exits
+     nonzero when invalid (this one IS a hard gate on the artifact's
+     integrity, not on any workflow); `maid evaluate render
+     <review.json> --request <request.json> [--output PATH]` refuses to
+     render an invalid review (validates first, fail closed) and writes
+     .maid/run-reviews/<slug>.md by default. No subcommand reads
+     provider credentials, opens network connections, or invokes a
+     model; the skill (084-07) owns that step.
+
+  3. Rendered reviews are advisory artifacts: nothing in the runner
+     reads them back into validate/verify/plan/promote decisions.
+     .maid/run-reviews/ is generated output, gitignored like
+     .maid/outcomes.json.
+
+  Planned behavioral tests (red phase pending — handoff stops before
+  tests): tests/core/test_run_review.py asserts: build_review_request
+  itemizes revisions, outcome lessons, and evaluation findings with
+  stable unique ids and includes the diff item only when diff text is
+  supplied (recording its absence otherwise); instructions contain the
+  citation contract and allowed severities; validate_run_review returns
+  [] for a review citing only known ids, and returns targeted errors for
+  an unknown evidence id, a finding with no citations, an invalid
+  severity, an invalid confidence, an unknown top-level key, and a
+  finding naming a file path absent from all evidence texts;
+  render_run_review output starts with the LLM-advisory label, includes
+  deterministic counts before findings, inlines cited evidence, and
+  raises (or is unreachable) for invalid reviews. tests/cli/
+  test_evaluate_review_pipeline_cmd.py drives prompt -> handwritten
+  fake-model review -> validate -> render on a temp project: prompt
+  writes the request JSON with evidence items; validate exits nonzero
+  listing each fabrication error for a doctored review and 0 for a
+  faithful one; render fails closed on the invalid review and writes
+  the labeled markdown for the valid one; --diff-file content appears
+  as the diff evidence item; no subcommand touches the network
+  (asserted by absence of provider/credential options and by running
+  offline).
+temptations:
+- risk: Do not call a model, read provider credentials, or add network access to any maid evaluate subcommand — even behind a flag.
+  instead: The runner builds, validates, and renders artifacts only; the model step belongs exclusively to the maid-run-review skill.
+- risk: Do not accept review findings without evidence-id citations, or silently ignore unknown ids.
+  instead: validate_run_review enumerates every citation failure as an error and render refuses invalid input, mirroring 081 anti-fabrication.
+- risk: Do not invoke git to capture a diff automatically inside prompt.
+  instead: Accept only an explicit --diff-file; record diff absence in the request so the model knows it cannot judge the implementation shape.
+- risk: Do not let rendered reviews feed back into verify, readiness, or promotion, and do not render without the LLM-advisory label.
+  instead: Reviews are labeled advisory markdown artifacts under gitignored .maid/run-reviews/; no runner path reads them back.
+files:
+  edit:
+  - path: maid_runner/cli/commands/evaluate.py
+    artifacts:
+    - kind: function
+      name: cmd_evaluate
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Gains prompt (--diff-file, --output), validate (--request), and render (--request, --output) subcommands; render validates first and fails closed; validate exits nonzero on any anti-fabrication error.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: evaluate command group gains prompt, validate, and render subcommands with their pinned options.
+  - path: .gitignore
+    artifacts:
+    - kind: attribute
+      name: _run_review_generated_output_ignores
+      of: repository configuration
+      type: gitignore entries
+      description: Ignore entries for .maid/run-reviews/ and .maid/run-review-request.json, matching the existing .maid/outcomes* generated-output pattern.
+  read:
+  - maid_runner/core/run_evaluation.py
+  - maid_runner/core/outcome_enrichment.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/manifest.py
+  - manifests/drafts/084-04-add-maid-evaluate-run-command.manifest.yaml
+  create:
+  - path: maid_runner/core/run_review.py
+    artifacts:
+    - kind: class
+      name: ReviewEvidenceItem
+      description: 'Frozen dataclass: one citable fact in a review request; the universe of citable evidence is exactly the item list.'
+    - kind: attribute
+      name: evidence_id
+      of: ReviewEvidenceItem
+      type: str
+      description: Stable unique id such as 'revision-2', 'outcome-lesson-1', 'finding-3', 'diff'.
+    - kind: attribute
+      name: kind
+      of: ReviewEvidenceItem
+      type: str
+      description: Item kind, e.g. 'revision', 'outcome-lesson', 'review-note', 'finding', 'diff'.
+    - kind: attribute
+      name: text
+      of: ReviewEvidenceItem
+      type: str
+      description: The evidence text shown to the model and inlined when cited in rendered output.
+    - kind: class
+      name: ReviewRequest
+      description: 'Frozen dataclass: the complete deterministic prompt packet for one run review, embedding the anti-fabrication instruction contract.'
+    - kind: attribute
+      name: schema_version
+      of: ReviewRequest
+      type: str
+      description: Request schema version for forward compatibility.
+    - kind: attribute
+      name: manifest_slug
+      of: ReviewRequest
+      type: str
+      description: Slug of the run under review.
+    - kind: attribute
+      name: evaluation
+      of: ReviewRequest
+      type: dict
+      description: The serialized deterministic RunEvaluation the review must stay consistent with.
+    - kind: attribute
+      name: evidence_items
+      of: ReviewRequest
+      type: tuple[ReviewEvidenceItem, ...]
+      description: All citable evidence; ids outside this list are fabrication.
+    - kind: attribute
+      name: instructions
+      of: ReviewRequest
+      type: str
+      description: 'Model instructions: cite evidence ids, state absence as absence, allowed severities info/warning/attention, required confidence low/medium/high.'
+    - kind: function
+      name: build_review_request
+      args:
+      - name: evaluation
+        type: RunEvaluation
+      - name: manifest
+        type: Manifest
+      - name: lock_payload
+        type: Optional[dict]
+      - name: diff_text
+        type: Optional[str]
+      returns: ReviewRequest
+      description: Itemizes revisions (reasons plus deltas), outcome lessons and review notes, and evaluation findings with stable ids; includes the diff item only when supplied and records its absence in the request otherwise.
+    - kind: function
+      name: validate_run_review
+      args:
+      - name: review_data
+        type: dict
+      - name: request
+        type: ReviewRequest
+      returns: list[str]
+      description: 'Exhaustive anti-fabrication errors: unknown/missing citations, invalid severity or confidence, unknown top-level keys, and file paths in finding text absent from all evidence texts; empty list means valid.'
+    - kind: function
+      name: render_run_review
+      args:
+      - name: review_data
+        type: dict
+      - name: request
+        type: ReviewRequest
+      returns: str
+      description: Markdown starting with the mandatory LLM-generated-advisory label, deterministic counts first, findings with cited evidence inlined; only called with validated input (render path fails closed).
+  - path: tests/core/test_run_review.py
+    artifacts:
+    - kind: test_function
+      name: test_build_review_request_itemizes_all_evidence_with_stable_ids
+      args: []
+      returns: None
+      description: Revisions, outcome lessons, review notes, and findings each become evidence items with unique stable ids.
+    - kind: test_function
+      name: test_build_review_request_handles_diff_presence_and_absence
+      args: []
+      returns: None
+      description: Supplied diff text becomes the 'diff' item; without it the request records that no diff evidence exists.
+    - kind: test_function
+      name: test_validate_run_review_accepts_faithful_review
+      args: []
+      returns: None
+      description: A review citing only known ids with valid severities and confidence returns no errors.
+    - kind: test_function
+      name: test_validate_run_review_rejects_each_fabrication_mode
+      args: []
+      returns: None
+      description: Unknown evidence id, citation-less finding, invalid severity, invalid confidence, unknown top-level key, and un-evidenced file path each produce a targeted error.
+    - kind: test_function
+      name: test_render_run_review_labels_advisory_and_inlines_citations
+      args: []
+      returns: None
+      description: Rendered markdown starts with the LLM-advisory label, shows deterministic counts before findings, and inlines cited evidence text.
+  - path: tests/cli/test_evaluate_review_pipeline_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_prompt_writes_request_json_with_evidence_items
+      args: []
+      returns: None
+      description: maid evaluate prompt produces a request file whose evidence items cover the run's revisions and outcome facts.
+    - kind: test_function
+      name: test_validate_fails_nonzero_listing_fabrication_errors
+      args: []
+      returns: None
+      description: A doctored review with an unknown citation exits nonzero and lists each error; the faithful review exits 0.
+    - kind: test_function
+      name: test_render_fails_closed_on_invalid_review
+      args: []
+      returns: None
+      description: Render refuses the invalid review without writing output and writes labeled markdown for the valid one at the default path.
+    - kind: test_function
+      name: test_prompt_diff_file_becomes_diff_evidence_item
+      args: []
+      returns: None
+      description: --diff-file content appears as the 'diff' evidence item in the written request.
+    - kind: test_function
+      name: test_pipeline_offers_no_model_or_credential_options
+      args: []
+      returns: None
+      description: prompt/validate/render expose no provider, model, key, or URL options and complete offline.
+validate:
+- uv run python -m pytest -q tests/core/test_run_review.py tests/cli/test_evaluate_review_pipeline_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-07-06T17:45:28+08:00"
+  summary: "Added deterministic `maid evaluate prompt|validate|render` support for evidence-itemized advisory run review requests, anti-fabrication validation, and labeled markdown rendering without model calls, credential reads, network access, or automatic git diff capture."
+  rationale: "The implementation keeps qualitative review orchestration split at the runner boundary: `maid evaluate prompt` builds a bounded request from live RunEvaluation data, plan-lock revisions, outcome lessons/review notes, and an explicit operator-supplied diff file; `validate_run_review` treats the request evidence ids as the citation universe and fails closed on malformed requests or fabricated paths; `render_run_review` validates before writing advisory markdown under generated .maid output. Review-driven hardening expanded the contract around project-root resolution, malformed request JSON, missing finding summaries, root-level/dotfile path fabrication, top-level summary fabrication, and unknown finding fields."
+  agent:
+    model: gpt-5-codex
+    provider: openai
+    client: codex-cli
+    skills:
+    - maid-implementer
+    - maid-implementation-review
+    source: outcome-capture
+  lessons:
+  - lesson_type: anti-fabrication-validation
+    summary: "Citation checks are not enough for generated advisory artifacts: every rendered free-text field needs the same evidence-bound path fabrication checks, and unknown per-finding fields should be rejected so ungrounded model text cannot hide outside the expected schema."
+    tags:
+    - anti-fabrication
+    - llm-enrichment
+    - validation-trust
+    paths:
+    - maid_runner/core/run_review.py
+    - tests/core/test_run_review.py
+  - lesson_type: implementation-review
+    summary: "Independent review found realistic fail-open cases after green validation: prompt project-root drift, malformed request coercion, missing summaries, narrow path detection, top-level summary fabrication, and unknown finding fields. Each was closed with regression coverage and fresh plan-lock red evidence before Outcome capture."
+    tags:
+    - implementation-review
+    - review-loop
+    - run-evaluation
+    paths:
+    - maid_runner/core/run_review.py
+    - maid_runner/cli/commands/evaluate.py
+    - tests/core/test_run_review.py
+    - tests/cli/test_evaluate_review_pipeline_cmd.py
+  review_notes:
+  - source: Popper
+    severity: P2
+    summary: "Initial implementation review found prompt ignored --project-root, malformed findings without summary could validate, path fabrication checks missed root-level and extensionless files, and malformed request JSON was coerced instead of rejected."
+  - source: Goodall
+    severity: P2
+    summary: "Second review confirmed the first four fixes but found fabricated paths could still appear in top-level review summary and unknown finding fields."
+  - source: Archimedes
+    severity: ready
+    summary: "Final re-review reported no blocking findings, confirmed prior fixes were present, and found no model/provider options, credential reads, network calls, subprocess/git diff capture, or rendered-review feedback into validation or promotion paths."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_run_review.py
+    - tests/cli/test_evaluate_review_pipeline_cmd.py
+    status: passed
+    summary: "Focused run-review suite passed 14 tests covering request evidence itemization, diff presence/absence, faithful review acceptance, citation and schema fabrication errors, top-level summary/finding-field hardening, advisory rendering, project-root prompt behavior, malformed request JSON, and no model/credential parser options."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Promoted manifest implementation validation passed with the expected non-blocking .gitignore E307 warning."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Ruff reported all checks passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository MAID validation passed for 417 manifests with 324 passed, 0 failed, and 93 superseded/skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository MAID test gate passed 173 declared commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - origin/release/v2.next
+    status: passed
+    summary: "Final explicit-baseline verify passed with 0 blocking findings; warnings were limited to existing non-code E307 validator notices."
+  - command:
+    - uv
+    - run
+    - maid
+    - plan
+    - revise
+    - manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml
+    - --reason
+    - Harden run-review validation for top-level summary and unknown finding fields after re-review.
+    - --stash-implementation
+    status: passed
+    summary: "Plan lock was revised to revision 5 with implementation stashing so red evidence and behavioral test hashes include the final review-driven hardening coverage."

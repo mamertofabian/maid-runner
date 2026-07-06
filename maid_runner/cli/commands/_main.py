@@ -892,6 +892,44 @@ def _register_evaluate_parser(sub: argparse._SubParsersAction) -> None:
         help="Project root containing .maid evidence",
     )
     compare.add_argument("--json", action="store_true", help="Print comparison as JSON")
+    prompt = esub.add_parser("prompt", help="Build a deterministic run-review request")
+    prompt.add_argument("manifest_path")
+    prompt.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest and .maid evidence",
+    )
+    prompt.add_argument(
+        "--diff-file",
+        default=None,
+        dest="diff_file",
+        help="Read operator-supplied diff evidence from this file",
+    )
+    prompt.add_argument(
+        "--output",
+        default=None,
+        help="Write request JSON to this path",
+    )
+    validate = esub.add_parser("validate", help="Validate a run-review JSON artifact")
+    validate.add_argument("review_path")
+    validate.add_argument(
+        "--request",
+        required=True,
+        help="Run-review request JSON path used as the evidence universe",
+    )
+    render = esub.add_parser("render", help="Render a validated run review")
+    render.add_argument("review_path")
+    render.add_argument(
+        "--request",
+        required=True,
+        help="Run-review request JSON path used as the evidence universe",
+    )
+    render.add_argument(
+        "--output",
+        default=None,
+        help="Markdown output path for the advisory run review",
+    )
 
 
 def _add_enrich_common_options(parser: argparse.ArgumentParser) -> None:

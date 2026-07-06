@@ -7,9 +7,17 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 import sys
+from tempfile import NamedTemporaryFile
 
 from maid_runner.core.manifest import load_manifest, slug_from_path
 from maid_runner.core.plan_lock import default_plan_lock_path
+from maid_runner.core.run_review import (
+    ReviewEvidenceItem,
+    ReviewRequest,
+    build_review_request,
+    render_run_review,
+    validate_run_review,
+)
 from maid_runner.core.run_evaluation import (
     RunComparisonRow,
     RunEvaluation,
@@ -22,10 +30,19 @@ from maid_runner.core.types import AgentProvenance, Manifest
 
 def cmd_evaluate(args: argparse.Namespace) -> int:
     subcommand = getattr(args, "evaluate_command", None)
+    if subcommand == "prompt":
+        return _cmd_prompt(args)
+    if subcommand == "validate":
+        return _cmd_validate_review(args)
+    if subcommand == "render":
+        return _cmd_render_review(args)
     if subcommand == "compare":
         return _cmd_compare(args)
     if subcommand != "run":
-        return _error("maid evaluate requires subcommand: run or compare", args)
+        return _error(
+            "maid evaluate requires one of: run, compare, prompt, validate, render",
+            args,
+        )
 
     manifest_path = Path(args.manifest_path)
     project_root = Path(args.project_root)
@@ -38,6 +55,65 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         print(json.dumps(_evaluation_to_dict(evaluation), indent=2, sort_keys=True))
     else:
         print(_render_text(evaluation, quiet=getattr(args, "quiet", False)))
+    return 0
+
+
+def _cmd_prompt(args: argparse.Namespace) -> int:
+    manifest_path = Path(args.manifest_path)
+    project_root = Path(getattr(args, "project_root", "."))
+    try:
+        evaluation = evaluate_run(manifest_path, project_root)
+        manifest = load_manifest(_resolve_manifest_path(manifest_path, project_root))
+        lock_payload = _read_lock_payload(project_root, evaluation.manifest_slug)
+        diff_text = _read_diff_text(getattr(args, "diff_file", None))
+        request = build_review_request(evaluation, manifest, lock_payload, diff_text)
+        output_path = Path(args.output or ".maid/run-review-request.json")
+        _write_text_atomic(
+            output_path,
+            json.dumps(_request_to_dict(request), indent=2, sort_keys=True) + "\n",
+        )
+    except Exception as exc:
+        return _error(f"{manifest_path}: {exc}", args)
+
+    print(f"Run review request written: {output_path}")
+    return 0
+
+
+def _cmd_validate_review(args: argparse.Namespace) -> int:
+    try:
+        review_data = _read_json_object(Path(args.review_path), "run review")
+        request = _read_request(Path(args.request))
+    except Exception as exc:
+        return _error(str(exc), args)
+
+    errors = validate_run_review(review_data, request)
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        return 2
+    print(f"Run review valid: {Path(args.review_path)}")
+    return 0
+
+
+def _cmd_render_review(args: argparse.Namespace) -> int:
+    try:
+        review_data = _read_json_object(Path(args.review_path), "run review")
+        request = _read_request(Path(args.request))
+    except Exception as exc:
+        return _error(str(exc), args)
+
+    errors = validate_run_review(review_data, request)
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
+        return 2
+
+    output_path = Path(args.output or f".maid/run-reviews/{request.manifest_slug}.md")
+    try:
+        _write_text_atomic(output_path, render_run_review(review_data, request))
+    except Exception as exc:
+        return _error(str(exc), args)
+    print(f"Run review rendered: {output_path}")
     return 0
 
 
@@ -81,6 +157,12 @@ def _resolve_manifest_dir(manifest_dir: Path, project_root: Path) -> Path:
     if manifest_dir.is_absolute():
         return manifest_dir
     return project_root / manifest_dir
+
+
+def _resolve_manifest_path(manifest_path: Path, project_root: Path) -> Path:
+    if manifest_path.is_absolute():
+        return manifest_path
+    return project_root / manifest_path
 
 
 def _render_text(evaluation: RunEvaluation, *, quiet: bool) -> str:
@@ -241,6 +323,111 @@ def _agent_to_dict(agent: AgentProvenance | None) -> dict | None:
     if agent.source is not None:
         data["source"] = agent.source
     return data
+
+
+def _read_lock_payload(project_root: Path, manifest_slug: str) -> dict | None:
+    lock_path = default_plan_lock_path(project_root, manifest_slug)
+    if not lock_path.exists():
+        return None
+    try:
+        data = json.loads(lock_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _read_diff_text(diff_file: str | None) -> str | None:
+    if diff_file is None:
+        return None
+    return Path(diff_file).read_text(encoding="utf-8")
+
+
+def _read_json_object(path: Path, label: str) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"Malformed {label} JSON at {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"Malformed {label} JSON at {path}: top-level value is not an object"
+        )
+    return data
+
+
+def _read_request(path: Path) -> ReviewRequest:
+    return _request_from_dict(_read_json_object(path, "run review request"))
+
+
+def _request_to_dict(request: ReviewRequest) -> dict:
+    return {
+        "schema_version": request.schema_version,
+        "manifest_slug": request.manifest_slug,
+        "evaluation": request.evaluation,
+        "evidence_items": [asdict(item) for item in request.evidence_items],
+        "instructions": request.instructions,
+    }
+
+
+def _request_from_dict(data: dict) -> ReviewRequest:
+    evidence_items = data.get("evidence_items")
+    if not isinstance(evidence_items, list):
+        raise ValueError("run review request evidence_items must be a list")
+    try:
+        items = tuple(_evidence_item_from_dict(item) for item in evidence_items)
+        return ReviewRequest(
+            schema_version=_request_string(data, "schema_version"),
+            manifest_slug=_request_string(data, "manifest_slug"),
+            evaluation=_request_dict(data, "evaluation"),
+            evidence_items=items,
+            instructions=_request_string(data, "instructions"),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(f"Malformed run review request: {exc}") from exc
+
+
+def _evidence_item_from_dict(item: object) -> ReviewEvidenceItem:
+    if not isinstance(item, dict):
+        raise ValueError("evidence_items entries must be objects")
+    return ReviewEvidenceItem(
+        evidence_id=_request_string(item, "evidence_id"),
+        kind=_request_string(item, "kind"),
+        text=_request_string(item, "text"),
+    )
+
+
+def _request_string(data: dict, key: str) -> str:
+    value = data[key]
+    if not isinstance(value, str):
+        raise ValueError(f"{key} must be a string")
+    return value
+
+
+def _request_dict(data: dict, key: str) -> dict:
+    value = data[key]
+    if not isinstance(value, dict):
+        raise ValueError(f"{key} must be an object")
+    return value
+
+
+def _write_text_atomic(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+            temp_file.write(text)
+            temp_file.flush()
+        temp_path.replace(path)
+    finally:
+        if temp_path is not None and temp_path.exists():
+            temp_path.unlink()
 
 
 _MANIFEST_SUFFIXES = (".manifest.yaml", ".manifest.yml", ".manifest.json")
