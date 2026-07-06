@@ -32,7 +32,7 @@ from maid_runner.core.chain import ManifestChain
 from maid_runner.core.manifest import _is_test_file, load_manifest, slug_from_path
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
-from maid_runner.core.types import Manifest
+from maid_runner.core.types import AgentProvenance, Manifest
 
 
 class _PlanLockLoadError(Exception):
@@ -66,6 +66,7 @@ class PlanLockRevision:
     prior_test_hashes: dict[str, str]
     revised_at: str
     reason: str
+    agent: Optional[AgentProvenance] = None
 
 
 @dataclass(frozen=True)
@@ -114,6 +115,7 @@ class PlanLock:
     revision: int = 1
     revisions: tuple[PlanLockRevision, ...] = ()
     red_evidence: Optional[dict] = None
+    agent: Optional[AgentProvenance] = None
 
     @classmethod
     def load(cls, path: Path) -> "PlanLock":
@@ -141,6 +143,7 @@ class PlanLock:
                     prior_test_hashes=dict(item["prior_test_hashes"]),
                     revised_at=item["revised_at"],
                     reason=item["reason"],
+                    agent=_agent_from_payload(item.get("agent")),
                 )
                 for item in raw_revisions
             )
@@ -152,6 +155,7 @@ class PlanLock:
                 revision=int(data["revision"]),
                 revisions=revisions,
                 red_evidence=data.get("red_evidence"),
+                agent=_agent_from_payload(data.get("agent")),
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise _PlanLockLoadError(p, f"malformed lock record ({exc})") from exc
@@ -171,10 +175,12 @@ class PlanLock:
                     "prior_test_hashes": dict(r.prior_test_hashes),
                     "revised_at": r.revised_at,
                     "reason": r.reason,
+                    "agent": _agent_to_payload(r.agent),
                 }
                 for r in self.revisions
             ],
             "red_evidence": self.red_evidence,
+            "agent": _agent_to_payload(self.agent),
         }
         contract = _load_manifest_contract_for_lock(self, p)
         if contract is not None:
@@ -187,7 +193,11 @@ def default_plan_lock_path(project_root: Path, manifest_slug: str) -> Path:
     return Path(project_root) / ".maid" / "plan-locks" / f"{manifest_slug}.lock.json"
 
 
-def create_plan_lock(manifest_path: Path, project_root: Path) -> PlanLock:
+def create_plan_lock(
+    manifest_path: Path,
+    project_root: Path,
+    agent: Optional[AgentProvenance] = None,
+) -> PlanLock:
     """Build a revision-1 lock over the manifest and its behavioral tests."""
     manifest = load_manifest(manifest_path)
     root = Path(project_root)
@@ -196,6 +206,7 @@ def create_plan_lock(manifest_path: Path, project_root: Path) -> PlanLock:
         manifest_hash=compute_manifest_hash(Path(manifest_path)),
         test_hashes=_hash_test_files(root, _behavioral_test_paths(manifest)),
         created_at=_utc_now(),
+        agent=agent,
     )
 
 
@@ -204,16 +215,18 @@ def revise_plan_lock(
     manifest_path: Path,
     project_root: Path,
     reason: str,
+    agent: Optional[AgentProvenance] = None,
 ) -> PlanLock:
     """Re-lock with current hashes, appending the prior hashes to history."""
     if not reason or not reason.strip():
         raise ValueError("Plan-lock revision requires a non-empty reason")
-    fresh = create_plan_lock(manifest_path, project_root)
+    fresh = create_plan_lock(manifest_path, project_root, agent=existing.agent)
     entry = PlanLockRevision(
         prior_manifest_hash=existing.manifest_hash,
         prior_test_hashes=dict(existing.test_hashes),
         revised_at=_utc_now(),
         reason=reason,
+        agent=agent,
     )
     return PlanLock(
         manifest_path=fresh.manifest_path,
@@ -223,7 +236,61 @@ def revise_plan_lock(
         revision=existing.revision + 1,
         revisions=existing.revisions + (entry,),
         red_evidence=None,
+        agent=existing.agent,
     )
+
+
+def _agent_to_payload(agent: AgentProvenance | None) -> dict | None:
+    if agent is None:
+        return None
+    payload = {"model": agent.model}
+    if agent.provider is not None:
+        payload["provider"] = agent.provider
+    if agent.client is not None:
+        payload["client"] = agent.client
+    if agent.skills:
+        payload["skills"] = list(agent.skills)
+    if agent.instructions_fingerprint is not None:
+        payload["instructions_fingerprint"] = agent.instructions_fingerprint
+    if agent.source is not None:
+        payload["source"] = agent.source
+    return payload
+
+
+def _agent_from_payload(value: object) -> AgentProvenance | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError("agent must be an object or null")
+    model = value.get("model")
+    if not isinstance(model, str) or not model.strip():
+        raise TypeError("agent.model must be a non-empty string")
+    provider = _optional_agent_string(value, "provider")
+    client = _optional_agent_string(value, "client")
+    instructions_fingerprint = _optional_agent_string(value, "instructions_fingerprint")
+    source = _optional_agent_string(value, "source")
+    raw_skills = value.get("skills", [])
+    if not isinstance(raw_skills, list) or not all(
+        isinstance(item, str) for item in raw_skills
+    ):
+        raise TypeError("agent.skills must be an array of strings")
+    return AgentProvenance(
+        model=model,
+        provider=provider,
+        client=client,
+        skills=tuple(raw_skills),
+        instructions_fingerprint=instructions_fingerprint,
+        source=source,
+    )
+
+
+def _optional_agent_string(value: dict, key: str) -> str | None:
+    raw = value.get(key)
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raise TypeError(f"agent.{key} must be a string or null")
+    return raw
 
 
 def classify_red_exit_code(exit_code: int) -> str:

@@ -1,0 +1,164 @@
+{
+  "manifest_path": "manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+  "manifest_hash": "sha256:1483b166b3c2cb4f1eb5427916caa1f9207197a9dc36ca4afe0f81ec7b30fdff",
+  "test_hashes": {
+    "tests/core/test_agent_provenance_resolution.py": "sha256:8f09f3ffc2166af8784440c30a60d5a1ae923470a3133a9a9c5c509d89229663",
+    "tests/cli/test_plan_lock_provenance_cmd.py": "sha256:cd7c02583a4f731b50f3f2089549253535e280e5442a745aa64110100ef1f230"
+  },
+  "created_at": "2026-07-06T04:39:03.805982+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:029592fc1636a8f741c5ad965a6328f37ab6d05218077f1aa5ddbbfc21e14fa6",
+      "prior_test_hashes": {
+        "tests/core/test_agent_provenance_resolution.py": "sha256:25a63345cd5ee9de9ad6bad14aeadaf99ff4c363ec934940a3db838ca108a84a",
+        "tests/cli/test_plan_lock_provenance_cmd.py": "sha256:3e81df21774d316c8102b03cc5d8a0966398136162c9914d029e7fbb1021ab2e"
+      },
+      "revised_at": "2026-07-06T04:39:04.454734+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml -> manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+      "agent": null
+    },
+    {
+      "prior_manifest_hash": "sha256:efc83071cd80757fdeb0f195d2cb0637e4601a8d7bf7bd888225f4339148af94",
+      "prior_test_hashes": {
+        "tests/core/test_agent_provenance_resolution.py": "sha256:25a63345cd5ee9de9ad6bad14aeadaf99ff4c363ec934940a3db838ca108a84a",
+        "tests/cli/test_plan_lock_provenance_cmd.py": "sha256:3e81df21774d316c8102b03cc5d8a0966398136162c9914d029e7fbb1021ab2e"
+      },
+      "revised_at": "2026-07-06T04:47:26.547181+00:00",
+      "reason": "Format behavioral tests before implementation handoff",
+      "agent": null
+    },
+    {
+      "prior_manifest_hash": "sha256:efc83071cd80757fdeb0f195d2cb0637e4601a8d7bf7bd888225f4339148af94",
+      "prior_test_hashes": {
+        "tests/core/test_agent_provenance_resolution.py": "sha256:8f09f3ffc2166af8784440c30a60d5a1ae923470a3133a9a9c5c509d89229663",
+        "tests/cli/test_plan_lock_provenance_cmd.py": "sha256:e4c8f2fff54fdbb243f42a57b513de50c736c02d0bd95d32eb47d0d8e5c6f55e"
+      },
+      "revised_at": "2026-07-06T05:04:35.409387+00:00",
+      "reason": "Add review-driven malformed provenance and enforcement coverage",
+      "agent": null
+    },
+    {
+      "prior_manifest_hash": "sha256:37452966bf473af6b0f4c30eb698c1b19b47e512e0cf2be8106625dfaf2b1ccc",
+      "prior_test_hashes": {
+        "tests/core/test_agent_provenance_resolution.py": "sha256:8f09f3ffc2166af8784440c30a60d5a1ae923470a3133a9a9c5c509d89229663",
+        "tests/cli/test_plan_lock_provenance_cmd.py": "sha256:cd7c02583a4f731b50f3f2089549253535e280e5442a745aa64110100ef1f230"
+      },
+      "revised_at": "2026-07-06T05:17:14.114717+00:00",
+      "reason": "Capture completed Outcome for plan-lock provenance",
+      "agent": null
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T05:04:35.850134+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_agent_provenance_resolution.py tests/cli/test_plan_lock_provenance_cmd.py",
+        "exit_code": 1,
+        "output_tail": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'Exception'>\n\ntests/cli/test_plan_lock_provenance_cmd.py:357: Failed\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-327/test_malformed_agent_payload_f0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/core/test_agent_provenance_resolution.py::test_resolve_from_flags_only_sets_source_flags\nFAILED tests/core/test_agent_provenance_resolution.py::test_resolve_from_env_only_sets_source_environment\nFAILED tests/core/test_agent_provenance_resolution.py::test_resolve_merges_flags_over_env_as_mixed\nFAILED tests/core/test_agent_provenance_resolution.py::test_resolve_without_input_returns_none_without_warning\nFAILED tests/core/test_agent_provenance_resolution.py::test_resolve_without_model_returns_warning_not_provenance\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_plan_lock_records_agent_from_flags\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_plan_lock_records_agent_from_env_fallback\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_plan_revise_attaches_agent_to_revision_entry\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_plan_lock_without_model_warns_and_records_no_agent\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_plan_status_reports_agent_in_json_and_text\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_pre_provenance_lock_loads_and_verifies_identically\nFAILED tests/cli/test_plan_lock_provenance_cmd.py::test_malformed_agent_payload_fails_closed\n12 failed in 0.25s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:returns=int",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.provenance",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.provenance:kind=attribute",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.provenance:of=ProvenanceResolution",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.provenance:type=Optional[AgentProvenance]",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.warning",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.warning:kind=attribute",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.warning:of=ProvenanceResolution",
+      "maid_runner/core/agent_provenance.py:attribute:ProvenanceResolution.warning:type=Optional[str]",
+      "maid_runner/core/agent_provenance.py:class:ProvenanceResolution",
+      "maid_runner/core/agent_provenance.py:class:ProvenanceResolution:kind=class",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:arg=env:type=Mapping[str, str]:default=None",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:arg=flag_values:type=Mapping[str, object]:default=None",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:kind=function",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:returns=ProvenanceResolution",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.agent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.agent:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.agent:of=PlanLock",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.agent:type=Optional[AgentProvenance]",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.agent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.agent:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.agent:of=PlanLockRevision",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.agent:type=Optional[AgentProvenance]",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:returns=PlanLock",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:returns=PlanLock",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_malformed_agent_payload_fails_closed",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_malformed_agent_payload_fails_closed:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_malformed_agent_payload_fails_closed:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_env_fallback",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_env_fallback:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_env_fallback:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_flags",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_flags:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_records_agent_from_flags:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_without_model_warns_and_records_no_agent",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_without_model_warns_and_records_no_agent:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_lock_without_model_warns_and_records_no_agent:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_revise_attaches_agent_to_revision_entry",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_revise_attaches_agent_to_revision_entry:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_revise_attaches_agent_to_revision_entry:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_status_reports_agent_in_json_and_text",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_status_reports_agent_in_json_and_text:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_plan_status_reports_agent_in_json_and_text:returns=None",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_pre_provenance_lock_loads_and_verifies_identically",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_pre_provenance_lock_loads_and_verifies_identically:kind=test_function",
+      "tests/cli/test_plan_lock_provenance_cmd.py:test_pre_provenance_lock_loads_and_verifies_identically:returns=None",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_env_only_sets_source_environment",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_env_only_sets_source_environment:kind=test_function",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_env_only_sets_source_environment:returns=None",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_flags_only_sets_source_flags",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_flags_only_sets_source_flags:kind=test_function",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_from_flags_only_sets_source_flags:returns=None",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_merges_flags_over_env_as_mixed",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_merges_flags_over_env_as_mixed:kind=test_function",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_merges_flags_over_env_as_mixed:returns=None",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_input_returns_none_without_warning",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_input_returns_none_without_warning:kind=test_function",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_input_returns_none_without_warning:returns=None",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_model_returns_warning_not_provenance",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_model_returns_warning_not_provenance:kind=test_function",
+      "tests/core/test_agent_provenance_resolution.py:test_resolve_without_model_returns_warning_not_provenance:returns=None"
+    ],
+    "test_files": [
+      "tests/cli/test_plan_lock_provenance_cmd.py",
+      "tests/core/test_agent_provenance_resolution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_agent_provenance_resolution.py tests/cli/test_plan_lock_provenance_cmd.py"
+    ]
+  }
+}

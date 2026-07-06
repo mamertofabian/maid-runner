@@ -454,6 +454,7 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     psub = p.add_subparsers(dest="plan_command")
     lp = psub.add_parser("lock", help="Create a plan lock for a manifest")
     lp.add_argument("manifest_path")
+    _add_agent_provenance_args(lp)
     lp.add_argument(
         "--no-run",
         action="store_true",
@@ -468,6 +469,7 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     )
     rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
     rp.add_argument("manifest_path")
+    _add_agent_provenance_args(rp)
     rp.add_argument(
         "--reason",
         default=None,
@@ -507,6 +509,40 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+
+
+def _add_agent_provenance_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--agent-model",
+        default=None,
+        dest="agent_model",
+        help="Agent model to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-provider",
+        default=None,
+        dest="agent_provider",
+        help="Agent model provider to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-client",
+        default=None,
+        dest="agent_client",
+        help="Agent client or harness to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-skill",
+        action="append",
+        default=None,
+        dest="agent_skill",
+        help="Agent skill identifier to record; may be passed more than once",
+    )
+    parser.add_argument(
+        "--agent-instructions-fingerprint",
+        default=None,
+        dest="agent_instructions_fingerprint",
+        help="Opaque instruction-set fingerprint to record as advisory provenance",
     )
 
 

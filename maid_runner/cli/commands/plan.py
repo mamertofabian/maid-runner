@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
+import sys
 import uuid
 from dataclasses import replace
 from pathlib import Path
@@ -58,7 +60,11 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        lock = create_plan_lock(ctx.manifest_path, ctx.project_root)
+        provenance = _resolve_agent_provenance_from_args(args)
+        _print_provenance_warning(provenance.warning)
+        lock = create_plan_lock(
+            ctx.manifest_path, ctx.project_root, agent=provenance.provenance
+        )
         if not getattr(args, "no_run", False):
             lock = replace(
                 lock,
@@ -142,16 +148,24 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
 
+    provenance = _resolve_agent_provenance_from_args(args)
+    _print_provenance_warning(provenance.warning)
+
     if stash_implementation:
         return _cmd_plan_revise_with_stashed_implementation(
             ctx=ctx,
             existing=existing,
             reason=reason,
+            agent=provenance.provenance,
         )
 
     try:
         revised = revise_plan_lock(
-            existing, ctx.manifest_path, ctx.project_root, reason
+            existing,
+            ctx.manifest_path,
+            ctx.project_root,
+            reason,
+            agent=provenance.provenance,
         )
         if preserve_red_evidence:
             revised = replace(revised, red_evidence=existing.red_evidence)
@@ -228,8 +242,14 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
             "manifest_match": manifest_match,
             "test_files": test_files,
             "red_evidence": lock.red_evidence,
+            "agent": _agent_to_payload(lock.agent),
             "revisions": [
-                {"revised_at": r.revised_at, "reason": r.reason} for r in lock.revisions
+                {
+                    "revised_at": r.revised_at,
+                    "reason": r.reason,
+                    "agent": _agent_to_payload(r.agent),
+                }
+                for r in lock.revisions
             ],
         }
         print(json.dumps(payload, indent=2))
@@ -240,8 +260,12 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         for rel, entry in test_files.items():
             print(f"  {rel}: {'match' if entry['match'] else 'MISMATCH'}")
         print(f"  Red evidence: {'recorded' if lock.red_evidence else 'none'}")
+        if lock.agent is not None:
+            print(f"  Agent: {_format_agent(lock.agent)}")
         for r in lock.revisions:
             print(f"  Revision at {r.revised_at}: {r.reason}")
+            if r.agent is not None:
+                print(f"    Revision agent: {_format_agent(r.agent)}")
 
     return 1 if has_mismatch else 0
 
@@ -268,11 +292,78 @@ def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
     return "red" in classifications and "invalid" not in classifications
 
 
+def _resolve_agent_provenance_from_args(args: argparse.Namespace):
+    from maid_runner.core.agent_provenance import resolve_agent_provenance
+
+    env = {
+        key: os.environ[key]
+        for key in (
+            "MAID_AGENT_MODEL",
+            "MAID_AGENT_PROVIDER",
+            "MAID_AGENT_CLIENT",
+            "MAID_AGENT_SKILLS",
+            "MAID_AGENT_INSTRUCTIONS_FINGERPRINT",
+        )
+        if key in os.environ
+    }
+    return resolve_agent_provenance(
+        {
+            "model": getattr(args, "agent_model", None),
+            "provider": getattr(args, "agent_provider", None),
+            "client": getattr(args, "agent_client", None),
+            "skills": getattr(args, "agent_skill", None),
+            "instructions_fingerprint": getattr(
+                args, "agent_instructions_fingerprint", None
+            ),
+        },
+        env,
+    )
+
+
+def _print_provenance_warning(warning: str | None) -> None:
+    if warning is not None:
+        print(warning, file=sys.stderr)
+
+
+def _agent_to_payload(agent) -> dict | None:
+    if agent is None:
+        return None
+    payload = {"model": agent.model}
+    if agent.provider is not None:
+        payload["provider"] = agent.provider
+    if agent.client is not None:
+        payload["client"] = agent.client
+    if agent.skills:
+        payload["skills"] = list(agent.skills)
+    if agent.instructions_fingerprint is not None:
+        payload["instructions_fingerprint"] = agent.instructions_fingerprint
+    if agent.source is not None:
+        payload["source"] = agent.source
+    return payload
+
+
+def _format_agent(agent) -> str:
+    details = []
+    if agent.provider:
+        details.append(f"provider={agent.provider}")
+    if agent.client:
+        details.append(f"client={agent.client}")
+    if agent.skills:
+        details.append(f"skills={','.join(agent.skills)}")
+    if agent.instructions_fingerprint:
+        details.append(f"instructions={agent.instructions_fingerprint}")
+    if agent.source:
+        details.append(f"source={agent.source}")
+    suffix = f" ({'; '.join(details)})" if details else ""
+    return f"{agent.model}{suffix}"
+
+
 def _cmd_plan_revise_with_stashed_implementation(
     *,
     ctx: "_PlanContext",
     existing,
     reason: str,
+    agent,
 ) -> int:
     """Revise a lock after temporarily stashing declared implementation files."""
     from maid_runner.core.manifest import _is_test_file, load_manifest
@@ -405,7 +496,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         restored = False
         try:
             revised = revise_plan_lock(
-                existing, ctx.manifest_path, ctx.project_root, reason
+                existing, ctx.manifest_path, ctx.project_root, reason, agent=agent
             )
             evidence = capture_red_phase_evidence(
                 ctx.manifest_path, ctx.project_root
