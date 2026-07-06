@@ -21,6 +21,7 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-implementation-review",
     "maid-auditor",
     "maid-outcome-enrich",
+    "maid-run-review",
 ]
 
 
@@ -85,6 +86,44 @@ def test_codex_payload_manifest_matches_source_skills(tmp_path: Path):
         source_agent = f".codex/skills/{relative_agent}"
         distributed_agent = f"maid_runner/codex/skills/{relative_agent}"
         assert _read(distributed_agent, root=synced_workspace) == _read(source_agent)
+
+
+def test_run_review_skill_distributed_to_both_payloads(tmp_path: Path):
+    synced_workspace = _sync_distribution(tmp_path)
+
+    claude_manifest = json.loads(
+        _read("maid_runner/claude/manifest.json", root=synced_workspace)
+    )
+    codex_manifest = json.loads(
+        _read("maid_runner/codex/manifest.json", root=synced_workspace)
+    )
+
+    assert "maid-run-review" in claude_manifest["skills"]["distributable"]
+    assert "maid-run-review" in claude_manifest["skills"]["descriptions"]
+    assert "maid-run-review" in codex_manifest["skills"]["distributable"]
+    assert "maid-run-review" in codex_manifest["skills"]["descriptions"]
+    assert (
+        "maid-run-review/agents/openai.yaml"
+        in codex_manifest["skill_agents"]["distributable"]
+    )
+
+    for source, generated in (
+        (
+            ".claude/skills/maid-run-review/SKILL.md",
+            "maid_runner/claude/skills/maid-run-review/SKILL.md",
+        ),
+        (
+            ".codex/skills/maid-run-review/SKILL.md",
+            "maid_runner/codex/skills/maid-run-review/SKILL.md",
+        ),
+        (
+            ".codex/skills/maid-run-review/agents/openai.yaml",
+            "maid_runner/codex/skills/maid-run-review/agents/openai.yaml",
+        ),
+    ):
+        assert _read(generated, root=synced_workspace) == _read(
+            source, root=synced_workspace
+        )
 
 
 def test_agent_payload_package_data_includes_claude_and_codex_assets():

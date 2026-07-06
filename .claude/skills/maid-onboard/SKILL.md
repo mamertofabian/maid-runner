@@ -129,7 +129,7 @@ old flow (e.g. ending at `make check`, with no `maid plan lock` or
 
 ```bash
 <maid> validate                            # should pass for existing manifests
-ls .codex/skills 2>/dev/null               # only the 6 generic skills, including maid-auditor and maid-outcome-enrich
+ls .codex/skills 2>/dev/null               # only the 7 generic skills, including maid-auditor, maid-outcome-enrich, and maid-run-review
 grep -c "maid-runner-" AGENTS.md 2>/dev/null   # expect 0
 ```
 

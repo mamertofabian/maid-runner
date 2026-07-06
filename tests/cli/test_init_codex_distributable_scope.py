@@ -18,6 +18,7 @@ GENERIC_CODEX_SKILLS = [
     "maid-outcome-enrich",
     "maid-plan-review",
     "maid-planner",
+    "maid-run-review",
 ]
 
 REPO_INTERNAL_CODEX_SKILLS = [

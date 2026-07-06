@@ -4,12 +4,12 @@
   "test_hashes": {
     "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
     "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
   },
   "created_at": "2026-06-26T15:40:51.445215+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c85a5f1aacba8177d19f8b248aa51da35b4d9fbe74c5aa0c69830dd3e2934c2b",
@@ -21,7 +21,9 @@
         "tests/test_learning_loop_workflow_guidance.py": "sha256:0ffe95da4a07387f28ec48f1f92586ff9039892db84b9268cbb727ecbbe8be8e"
       },
       "revised_at": "2026-06-26T15:40:57.055209+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml -> manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml -> manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b4df47f7cd21d53b50894541b275efc9294761e44bdd21c3fc0670a4ab1102b6",
@@ -33,7 +35,9 @@
         "tests/test_learning_loop_workflow_guidance.py": "sha256:0ffe95da4a07387f28ec48f1f92586ff9039892db84b9268cbb727ecbbe8be8e"
       },
       "revised_at": "2026-06-26T15:47:15.193079+00:00",
-      "reason": "Include declared learn CLI behavioral dependency in the focused validate command after Black formatting changed the new test hash"
+      "reason": "Include declared learn CLI behavioral dependency in the focused validate command after Black formatting changed the new test hash",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b9ee36eb2f22db82d202c4e9af22e8d15b404ed398643fda64540a5847cfa780",
@@ -45,7 +49,9 @@
         "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
       },
       "revised_at": "2026-06-26T15:52:51.968347+00:00",
-      "reason": "Refresh red evidence after adding the declared learn CLI behavioral dependency to the focused validate command"
+      "reason": "Refresh red evidence after adding the declared learn CLI behavioral dependency to the focused validate command",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b9ee36eb2f22db82d202c4e9af22e8d15b404ed398643fda64540a5847cfa780",
@@ -57,7 +63,9 @@
         "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
       },
       "revised_at": "2026-06-26T16:04:58.268665+00:00",
-      "reason": "Capture completed Outcome after ready implementation review"
+      "reason": "Capture completed Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4da1964e401dc2e5a613eb86d8452c3739f020511e3cef5b2167f2b822b49018",
@@ -69,7 +77,64 @@
         "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
       },
       "revised_at": "2026-06-28T11:41:21.076128+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:4da1964e401dc2e5a613eb86d8452c3739f020511e3cef5b2167f2b822b49018",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
+      },
+      "revised_at": "2026-07-06T10:18:24.499235+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/test_learning_loop_workflow_guidance.py",
+          "edit:.claude/skills/maid-implementation-review/SKILL.md",
+          "edit:.claude/skills/maid-implementer/SKILL.md",
+          "edit:.claude/skills/maid-plan-review/SKILL.md",
+          "edit:.claude/skills/maid-planner/SKILL.md",
+          "edit:.codex/skills/maid-implementation-review/SKILL.md",
+          "edit:.codex/skills/maid-implementer/SKILL.md",
+          "edit:.codex/skills/maid-plan-review/SKILL.md",
+          "edit:.codex/skills/maid-planner/SKILL.md",
+          "edit:maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "edit:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "edit:maid_runner/claude/skills/maid-plan-review/SKILL.md",
+          "edit:maid_runner/claude/skills/maid-planner/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-plan-review/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-planner/SKILL.md",
+          "read:.claude/manifest.json",
+          "read:docs/agent-skills.md",
+          "read:docs/manifest-outcome-records.md",
+          "read:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/insights.py",
+          "read:maid_runner/cli/commands/learn.py",
+          "read:manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+          "read:manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+          "read:manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+          "read:manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+          "read:manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+          "read:scripts/sync_claude_files.py",
+          "read:tests/cli/test_learn_cmd.py",
+          "read:tests/test_agent_payload_distribution.py",
+          "read:tests/test_recall_payload_sync.py",
+          "read:tests/test_recall_skill_guidance.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -84,6 +149,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._implementation_review_learning_loop_guidance",
@@ -186,6 +252,47 @@
       "tests/test_learning_loop_workflow_guidance.py:test_workflow_skills_have_active_insights_trigger:kind=test_function",
       "tests/test_learning_loop_workflow_guidance.py:test_workflow_skills_have_active_insights_trigger:returns=None"
     ],
+    "files": {
+      "create": [
+        "tests/test_learning_loop_workflow_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-plan-review/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-plan-review/SKILL.md",
+        ".codex/skills/maid-planner/SKILL.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/claude/skills/maid-plan-review/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-plan-review/SKILL.md",
+        "maid_runner/codex/skills/maid-planner/SKILL.md"
+      ],
+      "read": [
+        ".claude/manifest.json",
+        "docs/agent-skills.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/cli/commands/learn.py",
+        "manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+        "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_learn_cmd.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_recall_payload_sync.py",
+        "tests/test_recall_skill_guidance.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_learn_cmd.py",
       "tests/test_agent_payload_distribution.py",

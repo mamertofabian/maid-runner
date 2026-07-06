@@ -2,11 +2,11 @@
   "manifest_path": "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
   "manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
   },
   "created_at": "2026-06-16T23:38:48.527182+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:8a870f317a7f15384931a0acba16cea943679d8b440ed488b725e80b71e9905c",
@@ -15,7 +15,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:dafd286cb630992bd7efe3798944645a0c7684805e16eed57d21ff398e3133c0"
       },
       "revised_at": "2026-06-16T23:40:03.372030+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/069-02-add-hook-scope-check-command.manifest.yaml -> manifests/069-02-add-hook-scope-check-command.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-02-add-hook-scope-check-command.manifest.yaml -> manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
@@ -24,7 +26,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:dafd286cb630992bd7efe3798944645a0c7684805e16eed57d21ff398e3133c0"
       },
       "revised_at": "2026-06-16T23:53:53.560898+00:00",
-      "reason": "Add direct declared-artifact references to hook behavioral tests without weakening the scope-check behavior assertions."
+      "reason": "Add direct declared-artifact references to hook behavioral tests without weakening the scope-check behavior assertions.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
@@ -33,7 +37,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:de018249105050b06535c7f2e5d31296ade9ad33b03c4c4b2c7533d108663c0a"
       },
       "revised_at": "2026-06-17T00:01:56.388218+00:00",
-      "reason": "Strengthen hook scope tests for draft path traversal denial and cd-based validate-command test paths after implementation review."
+      "reason": "Strengthen hook scope tests for draft path traversal denial and cd-based validate-command test paths after implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
@@ -42,7 +48,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:e7ec5d71e6568db415210a46194cbae6fa7c264ae547fd4e184bfc9bdc8e07b0"
       },
       "revised_at": "2026-06-17T00:08:52.954323+00:00",
-      "reason": "Strengthen hook internal-error tests for corrupt active-manifest resolution after implementation review."
+      "reason": "Strengthen hook internal-error tests for corrupt active-manifest resolution after implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:53fd2e46d87ac1ce497d3ce7f898b60b8a4937ae2bdfb1c3183c2a0c962d8fe5",
@@ -51,7 +59,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
       },
       "revised_at": "2026-06-22T02:44:44.966885+00:00",
-      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
@@ -60,7 +70,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
       },
       "revised_at": "2026-06-25T12:10:51.605740+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
@@ -69,7 +81,9 @@
         "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
       },
       "revised_at": "2026-06-26T15:24:29.106844+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
@@ -78,7 +92,37 @@
         "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
       },
       "revised_at": "2026-06-28T11:41:19.953446+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
+      },
+      "revised_at": "2026-07-06T10:18:23.283334+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/cli/commands/hook.py",
+          "create:maid_runner/core/scope_check.py",
+          "edit:README.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:tests/cli/test_hook_cmd.py",
+          "read:maid_runner/cli/commands/files.py",
+          "read:maid_runner/core/active_task.py",
+          "read:maid_runner/core/manifest.py",
+          "read:tests/test_agent_payload_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -105,6 +149,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "README.md:attribute:documentation._maid_hook_cli_reference",
@@ -161,6 +206,23 @@
       "tests/cli/test_hook_cmd.py:test_scope_check_no_active_task_defaults_to_allow_and_strict_denies",
       "tests/cli/test_hook_cmd.py:test_scope_check_no_active_task_defaults_to_allow_and_strict_denies:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/hook.py",
+        "maid_runner/core/scope_check.py"
+      ],
+      "edit": [
+        "README.md",
+        "maid_runner/cli/commands/_main.py",
+        "tests/cli/test_hook_cmd.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/files.py",
+        "maid_runner/core/active_task.py",
+        "maid_runner/core/manifest.py",
+        "tests/test_agent_payload_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_hook_cmd.py",
       "tests/test_agent_payload_distribution.py"

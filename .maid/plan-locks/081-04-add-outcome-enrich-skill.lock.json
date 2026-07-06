@@ -3,13 +3,13 @@
   "manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
   "test_hashes": {
     "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
-    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
-    "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
   },
   "created_at": "2026-06-28T11:25:07.010877+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ba8e660b0e744db10714000cba6954ba14c33b2e9b7b9f40573e0e213309f72e",
@@ -19,7 +19,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
       },
       "revised_at": "2026-06-28T11:25:11.934968+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/081-04-add-outcome-enrich-skill.manifest.yaml -> manifests/081-04-add-outcome-enrich-skill.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-04-add-outcome-enrich-skill.manifest.yaml -> manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:5c90a27d247673c08bdbcea688022f7740ab051d33de04ea7148c511e9566020",
@@ -29,7 +31,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
       },
       "revised_at": "2026-06-28T11:29:30.811118+00:00",
-      "reason": "Correct sync script artifact declaration to public sync_codex_payload contract"
+      "reason": "Correct sync script artifact declaration to public sync_codex_payload contract",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:2dd3cabcce72df3a424e001e8c98fd736eeb5476596a4cee62b3231fcc46c8dc",
@@ -39,7 +43,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
       },
       "revised_at": "2026-06-28T11:32:02.573342+00:00",
-      "reason": "Refresh lock after formatting behavioral test file"
+      "reason": "Refresh lock after formatting behavioral test file",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:2dd3cabcce72df3a424e001e8c98fd736eeb5476596a4cee62b3231fcc46c8dc",
@@ -49,7 +55,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
       },
       "revised_at": "2026-06-28T11:36:42.928403+00:00",
-      "reason": "Add missed shared distribution tests and onboard guidance for outcome-enrich skill"
+      "reason": "Add missed shared distribution tests and onboard guidance for outcome-enrich skill",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:a303f6c9f3943bf3ba66aff2a98a636b02ec91686ceb2438fb35c3af3bd3eef8",
@@ -61,7 +69,9 @@
         "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
       },
       "revised_at": "2026-06-28T11:40:45.170448+00:00",
-      "reason": "Refresh lock after adding explicit assertion statements to behavioral tests"
+      "reason": "Refresh lock after adding explicit assertion statements to behavioral tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:a303f6c9f3943bf3ba66aff2a98a636b02ec91686ceb2438fb35c3af3bd3eef8",
@@ -73,7 +83,9 @@
         "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
       },
       "revised_at": "2026-06-28T11:46:05.099971+00:00",
-      "reason": "Refresh lock after Outcome capture"
+      "reason": "Refresh lock after Outcome capture",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
@@ -85,7 +97,9 @@
         "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
       },
       "revised_at": "2026-06-28T23:56:20.419998+00:00",
-      "reason": "Refresh behavioral test hash after verify reported existing 081-04 lock drift for tests/test_outcome_enrich_skill_guidance.py."
+      "reason": "Refresh behavioral test hash after verify reported existing 081-04 lock drift for tests/test_outcome_enrich_skill_guidance.py.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
@@ -97,7 +111,56 @@
         "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
       },
       "revised_at": "2026-07-04T23:09:56.516200+00:00",
-      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-07-06T10:18:25.521491+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:.claude/skills/maid-outcome-enrich/SKILL.md",
+          "create:.codex/skills/maid-outcome-enrich/SKILL.md",
+          "create:.codex/skills/maid-outcome-enrich/agents/openai.yaml",
+          "create:maid_runner/claude/skills/maid-outcome-enrich/SKILL.md",
+          "create:maid_runner/codex/skills/maid-outcome-enrich/SKILL.md",
+          "create:maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml",
+          "create:tests/test_outcome_enrich_skill_guidance.py",
+          "edit:.claude/manifest.json",
+          "edit:.claude/skills/maid-onboard/SKILL.md",
+          "edit:.codex/skills/maid-onboard/SKILL.md",
+          "edit:docs/agent-skills.md",
+          "edit:maid_runner/claude/manifest.json",
+          "edit:maid_runner/codex/manifest.json",
+          "edit:maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "edit:maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+          "edit:scripts/sync_claude_files.py",
+          "edit:tests/cli/test_init_codex_distributable_scope.py",
+          "edit:tests/test_agent_payload_distribution.py",
+          "edit:tests/test_insights_skill_guidance.py",
+          "edit:tests/test_learning_loop_init_payload.py",
+          "read:.claude/skills/maid-auditor/SKILL.md",
+          "read:docs/manifest-outcome-records.md",
+          "read:manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+          "read:manifests/081-02-add-maid-enrich-command.manifest.yaml",
+          "read:scripts/sync_claude_files.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -112,6 +175,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/manifest.json:attribute:claude_payload._claude_manifest_outcome_enrich_distribution",
@@ -231,6 +295,39 @@
       "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_uses_only_registered_options:kind=test_function",
       "tests/test_outcome_enrich_skill_guidance.py:test_outcome_enrich_skill_uses_only_registered_options:returns=None"
     ],
+    "files": {
+      "create": [
+        ".claude/skills/maid-outcome-enrich/SKILL.md",
+        ".codex/skills/maid-outcome-enrich/SKILL.md",
+        ".codex/skills/maid-outcome-enrich/agents/openai.yaml",
+        "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md",
+        "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md",
+        "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml",
+        "tests/test_outcome_enrich_skill_guidance.py"
+      ],
+      "edit": [
+        ".claude/manifest.json",
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-onboard/SKILL.md",
+        "docs/agent-skills.md",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+        "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_insights_skill_guidance.py",
+        "tests/test_learning_loop_init_payload.py"
+      ],
+      "read": [
+        ".claude/skills/maid-auditor/SKILL.md",
+        "docs/manifest-outcome-records.md",
+        "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+        "manifests/081-02-add-maid-enrich-command.manifest.yaml",
+        "scripts/sync_claude_files.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_codex_distributable_scope.py",
       "tests/test_agent_payload_distribution.py",

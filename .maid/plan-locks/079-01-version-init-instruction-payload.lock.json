@@ -3,12 +3,12 @@
   "manifest_hash": "sha256:8cfa03f563393ca6d26bcd691ded690773634c097dd657da672825d849a16181",
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
-    "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939",
     "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
   },
   "created_at": "2026-06-27T06:02:17.382198+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:eace2b13a3da7c66b745a7abd61764fa9ffb89f94d1b9e40539737a0b4c0d4ff",
@@ -19,7 +19,9 @@
         "tests/cli/test_init_instruction_payload_version.py": "sha256:fbd9ecc5d230199644f83084374b80f8078ae9d400915c1471056fe3607dfe0f"
       },
       "revised_at": "2026-06-27T06:02:29.528833+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/079-01-version-init-instruction-payload.manifest.yaml -> manifests/079-01-version-init-instruction-payload.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/079-01-version-init-instruction-payload.manifest.yaml -> manifests/079-01-version-init-instruction-payload.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4f8b5fee61a29cb9c6dc5cf7886ba2d578d71ab11ef2951afd9dc607bf4cb653",
@@ -30,7 +32,9 @@
         "tests/cli/test_init_instruction_payload_version.py": "sha256:fbd9ecc5d230199644f83084374b80f8078ae9d400915c1471056fe3607dfe0f"
       },
       "revised_at": "2026-06-27T06:06:36.330848+00:00",
-      "reason": "valid red evidence for payload module contract"
+      "reason": "valid red evidence for payload module contract",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e080695d4eee77923d5bbfef23c34ca3d010c69950d6e6768846556bd9f817d3",
@@ -41,7 +45,9 @@
         "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
       },
       "revised_at": "2026-06-27T06:07:39.502354+00:00",
-      "reason": "run all declared behavioral test files"
+      "reason": "run all declared behavioral test files",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:735812350bb15b3463140a7fb26cc4946590c86915acc343902d87d48b6d7d4b",
@@ -52,7 +58,45 @@
         "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
       },
       "revised_at": "2026-06-28T11:41:21.459371+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:8cfa03f563393ca6d26bcd691ded690773634c097dd657da672825d849a16181",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
+      },
+      "revised_at": "2026-07-06T10:18:24.917659+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/instruction_payload.py",
+          "create:tests/cli/test_init_instruction_payload_version.py",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/init.py",
+          "read:.claude/manifest.json",
+          "read:maid_runner/__version__.py",
+          "read:maid_runner/claude/manifest.json",
+          "read:maid_runner/codex/manifest.json",
+          "read:manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml",
+          "read:manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
+          "read:pyproject.toml",
+          "read:scripts/sync_claude_files.py",
+          "read:tests/cli/test_init_cmd.py",
+          "read:tests/test_agent_payload_distribution.py",
+          "read:tests/test_learning_loop_init_payload.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -79,6 +123,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/_main.py:function:build_parser",
@@ -135,6 +180,29 @@
       "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:kind=test_function",
       "tests/cli/test_init_instruction_payload_version.py:test_init_stamps_instruction_payload_version_into_codex_payload:returns=None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/instruction_payload.py",
+        "tests/cli/test_init_instruction_payload_version.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/init.py"
+      ],
+      "read": [
+        ".claude/manifest.json",
+        "maid_runner/__version__.py",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml",
+        "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
+        "pyproject.toml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_learning_loop_init_payload.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_cmd.py",
       "tests/cli/test_init_instruction_payload_version.py",

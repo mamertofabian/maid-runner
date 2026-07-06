@@ -2,12 +2,12 @@
   "manifest_path": "manifests/069-04-document-edit-time-scope-workflow.manifest.yaml",
   "manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
     "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
   },
   "created_at": "2026-06-17T03:58:49.712423+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4229cbd6fbbde6ba8783f11e9659b0f8932be6cf3b9080317e2d200475ce59ae",
@@ -18,7 +18,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:77b00d059a596833c59109fffdba5ea6a7dc3dfdb56c7cc573c6c06dc00b7146"
       },
       "revised_at": "2026-06-17T03:58:55.050116+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/069-04-document-edit-time-scope-workflow.manifest.yaml -> manifests/069-04-document-edit-time-scope-workflow.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-04-document-edit-time-scope-workflow.manifest.yaml -> manifests/069-04-document-edit-time-scope-workflow.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:388cbd81c366e55f4e1bed6bc5a89e4c6539fab6a9868c0a2d5a3746890bd8ea",
@@ -29,7 +31,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:77b00d059a596833c59109fffdba5ea6a7dc3dfdb56c7cc573c6c06dc00b7146"
       },
       "revised_at": "2026-06-17T04:03:51.584871+00:00",
-      "reason": "Include all discovered documentation behavioral tests in the promoted manifest validation command after maid test reported E230."
+      "reason": "Include all discovered documentation behavioral tests in the promoted manifest validation command after maid test reported E230.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:1674c4f6705ef1fbefe60dda815adb8393752b3e52ddde711de0b0652bfbfce7",
@@ -40,7 +44,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:77b00d059a596833c59109fffdba5ea6a7dc3dfdb56c7cc573c6c06dc00b7146"
       },
       "revised_at": "2026-06-17T04:05:58.115096+00:00",
-      "reason": "Remove context-only outcome docs test from 069-04 scope so validate commands match owned behavioral docs tests."
+      "reason": "Remove context-only outcome docs test from 069-04 scope so validate commands match owned behavioral docs tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:2cee000e27cb0b3c51184de90fb8f7c4395eb2d9ce51a00b11dba94de783140c",
@@ -50,7 +56,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:77b00d059a596833c59109fffdba5ea6a7dc3dfdb56c7cc573c6c06dc00b7146"
       },
       "revised_at": "2026-06-17T04:14:26.531679+00:00",
-      "reason": "Strengthen documentation tests for implementation-review findings about hook exit codes and maid init payload wiring."
+      "reason": "Strengthen documentation tests for implementation-review findings about hook exit codes and maid init payload wiring.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:2cee000e27cb0b3c51184de90fb8f7c4395eb2d9ce51a00b11dba94de783140c",
@@ -60,7 +68,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
       },
       "revised_at": "2026-06-17T04:24:11.699874+00:00",
-      "reason": "Capture evidence-backed Outcome after ready implementation review."
+      "reason": "Capture evidence-backed Outcome after ready implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
@@ -70,7 +80,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
       },
       "revised_at": "2026-06-22T02:44:45.352879+00:00",
-      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
@@ -80,7 +92,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
       },
       "revised_at": "2026-06-25T12:10:51.976523+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
@@ -90,7 +104,9 @@
         "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
       },
       "revised_at": "2026-06-26T15:24:29.087091+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
@@ -100,7 +116,41 @@
         "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
       },
       "revised_at": "2026-06-28T11:41:20.335327+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
+      },
+      "revised_at": "2026-07-06T10:18:23.688807+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/test_edit_time_scope_docs.py",
+          "edit:.claude/skills/maid-implementer/SKILL.md",
+          "edit:.codex/skills/maid-runner-draft-implement/SKILL.md",
+          "edit:README.md",
+          "edit:docs/agent-skills.md",
+          "edit:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "read:docs/draft-manifest-workflow.md",
+          "read:manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml",
+          "read:scripts/sync_claude_files.py",
+          "read:tests/test_agent_payload_distribution.py",
+          "read:tests/test_claude_skill_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -127,6 +177,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_active_task_guidance",
@@ -160,6 +211,26 @@
       "tests/test_edit_time_scope_docs.py:test_skill_guidance_anchors_are_synced_to_distribution_copies",
       "tests/test_edit_time_scope_docs.py:test_skill_guidance_anchors_are_synced_to_distribution_copies:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "tests/test_edit_time_scope_docs.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "README.md",
+        "docs/agent-skills.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_claude_skill_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/test_agent_payload_distribution.py",
       "tests/test_claude_skill_distribution.py",

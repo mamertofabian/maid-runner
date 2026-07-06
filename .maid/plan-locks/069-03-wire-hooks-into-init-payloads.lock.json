@@ -3,11 +3,11 @@
   "manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
   },
   "created_at": "2026-06-17T01:56:53.748596+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d0584dbd7d9ca6e15ca940fd9bf8c31bce1a7af70d53da3a78f8859ec8d222fe",
@@ -17,7 +17,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:10d67eef77aa66b8fa439cd0020915db03607b94f96821db94859b3c6c0b2a3f"
       },
       "revised_at": "2026-06-17T01:56:58.467840+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/069-03-wire-hooks-into-init-payloads.manifest.yaml -> manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-03-wire-hooks-into-init-payloads.manifest.yaml -> manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
@@ -27,7 +29,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:10d67eef77aa66b8fa439cd0020915db03607b94f96821db94859b3c6c0b2a3f"
       },
       "revised_at": "2026-06-17T01:57:47.378853+00:00",
-      "reason": "Align Cursor payload parity tests with declared source hooks file and generated package manifest before implementation."
+      "reason": "Align Cursor payload parity tests with declared source hooks file and generated package manifest before implementation.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
@@ -37,7 +41,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:1e4b9a3c1fe1d05a22b130ad3e46e7de16a49bda1075bf42b92a1f39cc89c01e"
       },
       "revised_at": "2026-06-17T02:01:55.679196+00:00",
-      "reason": "Refresh locked behavioral test hashes after formatter-only changes; preserve pre-implementation red evidence."
+      "reason": "Refresh locked behavioral test hashes after formatter-only changes; preserve pre-implementation red evidence.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f9870874cac2b732e2ab4aaa071fa561bf47eb17f282166c093d449591663111",
@@ -47,7 +53,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:5256b8c68f33b6bd88375b324b1955bd7afacd9e35ffc06730589cc54ab8e11b"
       },
       "revised_at": "2026-06-17T02:03:10.844023+00:00",
-      "reason": "Move hook payload package-data parity assertions into the 069-03 test file to avoid modifying older locked shared behavioral tests; preserve pre-implementation red evidence."
+      "reason": "Move hook payload package-data parity assertions into the 069-03 test file to avoid modifying older locked shared behavioral tests; preserve pre-implementation red evidence.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:a5d574b96d3d1f62f420ba12cdbcac96f08faf1840b7aec18078bf57361d988a",
@@ -57,7 +65,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
       },
       "revised_at": "2026-06-17T02:10:42.285848+00:00",
-      "reason": "Capture completed Outcome after ready implementation review; preserve pre-implementation red evidence."
+      "reason": "Capture completed Outcome after ready implementation review; preserve pre-implementation red evidence.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
@@ -67,7 +77,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
       },
       "revised_at": "2026-06-22T02:44:45.160030+00:00",
-      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
@@ -77,7 +89,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
       },
       "revised_at": "2026-06-25T12:10:51.798796+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
@@ -87,7 +101,9 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
       },
       "revised_at": "2026-06-26T15:24:29.053318+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
@@ -97,7 +113,45 @@
         "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
       },
       "revised_at": "2026-06-28T11:41:20.141915+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+      },
+      "revised_at": "2026-07-06T10:18:23.488967+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:.claude/settings.json",
+          "create:.cursor/hooks.json",
+          "create:maid_runner/claude/settings.json",
+          "create:maid_runner/cursor/hooks.json",
+          "create:maid_runner/cursor/manifest.json",
+          "create:tests/cli/test_init_hook_payloads.py",
+          "edit:.claude/manifest.json",
+          "edit:Makefile",
+          "edit:maid_runner/claude/manifest.json",
+          "edit:maid_runner/cli/commands/init.py",
+          "edit:pyproject.toml",
+          "edit:scripts/sync_claude_files.py",
+          "read:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/codex/manifest.json",
+          "read:tests/cli/test_init_cmd.py",
+          "read:tests/test_agent_payload_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -124,6 +178,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/manifest.json:attribute:claude_payload._claude_root_settings_payload_manifest",
@@ -191,6 +246,30 @@
       "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:kind=test_function",
       "tests/cli/test_init_hook_payloads.py:test_init_hook_payload_dry_run_and_distribution_parity:returns=None"
     ],
+    "files": {
+      "create": [
+        ".claude/settings.json",
+        ".cursor/hooks.json",
+        "maid_runner/claude/settings.json",
+        "maid_runner/cursor/hooks.json",
+        "maid_runner/cursor/manifest.json",
+        "tests/cli/test_init_hook_payloads.py"
+      ],
+      "edit": [
+        ".claude/manifest.json",
+        "Makefile",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/cli/commands/init.py",
+        "pyproject.toml",
+        "scripts/sync_claude_files.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/codex/manifest.json",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_cmd.py",
       "tests/cli/test_init_hook_payloads.py",
