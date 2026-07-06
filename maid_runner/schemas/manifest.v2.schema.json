@@ -194,6 +194,36 @@
         "completed_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "agent": {
+          "$ref": "#/definitions/AgentProvenance"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AgentProvenance": {
+      "type": "object",
+      "required": ["model"],
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string"
+        },
+        "client": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "instructions_fingerprint": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
         }
       },
       "additionalProperties": false

@@ -10,6 +10,7 @@ from typing import Collection, Iterable, Union
 
 from maid_runner.core.manifest import load_manifest, slug_from_path
 from maid_runner.core.types import (
+    AgentProvenance,
     Manifest,
     OutcomeLesson,
     OutcomeReviewNote,
@@ -36,6 +37,7 @@ class OutcomeIndexRecord:
     lessons: tuple[OutcomeLesson, ...]
     review_notes: tuple[OutcomeReviewNote, ...]
     source_fingerprint: str
+    agent: AgentProvenance | None = None
 
 
 @dataclass(frozen=True)
@@ -243,6 +245,7 @@ def _record_from_manifest(
         lessons=manifest.outcome.lessons,
         review_notes=manifest.outcome.review_notes,
         source_fingerprint=_source_fingerprint(path),
+        agent=manifest.outcome.agent,
     )
 
 
@@ -322,6 +325,7 @@ def _index_to_dict(index: OutcomeIndex) -> dict:
 def _record_to_dict(record: OutcomeIndexRecord) -> dict:
     return {
         "artifacts": list(record.artifacts),
+        "agent": _agent_to_dict(record.agent) if record.agent is not None else None,
         "completed_at": record.completed_at,
         "created": record.created,
         "declared_paths": list(record.declared_paths),
@@ -343,6 +347,21 @@ def _record_to_dict(record: OutcomeIndexRecord) -> dict:
             for evidence in record.validation_evidence
         ],
     }
+
+
+def _agent_to_dict(agent: AgentProvenance) -> dict:
+    data = {"model": agent.model}
+    if agent.provider is not None:
+        data["provider"] = agent.provider
+    if agent.client is not None:
+        data["client"] = agent.client
+    if agent.skills:
+        data["skills"] = list(agent.skills)
+    if agent.instructions_fingerprint is not None:
+        data["instructions_fingerprint"] = agent.instructions_fingerprint
+    if agent.source is not None:
+        data["source"] = agent.source
+    return data
 
 
 def _lesson_to_dict(lesson: OutcomeLesson) -> dict:
@@ -436,6 +455,24 @@ def _record_from_dict(data: dict) -> OutcomeIndexRecord:
             for item in _expect_object_list(data, "review_notes")
         ),
         source_fingerprint=_expect_str(data, "source_fingerprint"),
+        agent=_agent_from_dict(data.get("agent")),
+    )
+
+
+def _agent_from_dict(value: object) -> AgentProvenance | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise ValueError("agent must be an object or null")
+    return AgentProvenance(
+        model=_expect_str(value, "model"),
+        provider=_expect_optional_str(value, "provider"),
+        client=_expect_optional_str(value, "client"),
+        skills=_expect_str_tuple(value, "skills") if "skills" in value else (),
+        instructions_fingerprint=_expect_optional_str(
+            value, "instructions_fingerprint"
+        ),
+        source=_expect_optional_str(value, "source"),
     )
 
 

@@ -17,6 +17,7 @@ import yaml
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import (
     AcceptanceConfig,
+    AgentProvenance,
     ArgSpec,
     ArtifactKind,
     ArtifactSpec,
@@ -517,6 +518,20 @@ def _parse_outcome(data: dict | None) -> OutcomeRecord | None:
             for item in data.get("validation", [])
         ),
         completed_at=data.get("completed_at"),
+        agent=_parse_agent_provenance(data.get("agent")),
+    )
+
+
+def _parse_agent_provenance(data: dict | None) -> AgentProvenance | None:
+    if data is None:
+        return None
+    return AgentProvenance(
+        model=data["model"],
+        provider=data.get("provider"),
+        client=data.get("client"),
+        skills=tuple(data.get("skills", [])),
+        instructions_fingerprint=data.get("instructions_fingerprint"),
+        source=data.get("source"),
     )
 
 
@@ -736,6 +751,23 @@ def _outcome_to_dict(outcome: OutcomeRecord) -> dict:
         ]
     if outcome.completed_at is not None:
         data["completed_at"] = outcome.completed_at
+    if outcome.agent is not None:
+        data["agent"] = _agent_provenance_to_dict(outcome.agent)
+    return data
+
+
+def _agent_provenance_to_dict(agent: AgentProvenance) -> dict:
+    data = {"model": agent.model}
+    if agent.provider is not None:
+        data["provider"] = agent.provider
+    if agent.client is not None:
+        data["client"] = agent.client
+    if agent.skills:
+        data["skills"] = list(agent.skills)
+    if agent.instructions_fingerprint is not None:
+        data["instructions_fingerprint"] = agent.instructions_fingerprint
+    if agent.source is not None:
+        data["source"] = agent.source
     return data
 
 
