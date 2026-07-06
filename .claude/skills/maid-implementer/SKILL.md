@@ -14,6 +14,8 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - `files.create` is Strict Mode. `files.edit` is Permissive Mode.
 - Implementer sessions run validation gates with `--packet`; for example,
   `maid validate --packet` and `maid verify --packet`.
+- strict gates are the default. Use `--legacy-gates` only as a bounded
+  migration aid when comparing behavior against pre-flip defaults.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
 - NEVER modify code not listed in the manifest `files.create` or `files.edit`.
