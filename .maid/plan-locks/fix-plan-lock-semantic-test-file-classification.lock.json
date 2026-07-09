@@ -1,0 +1,75 @@
+{
+  "manifest_path": "manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
+  "manifest_hash": "sha256:e20f3b31bb5da24be575198f476ef8fcafab6c7e01b44fcee483400569c1e91b",
+  "test_hashes": {
+    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a96290773013716786ea2b0910d4f55234582fb1aae8bc768c18cf780e70e8e9"
+  },
+  "created_at": "2026-07-09T22:37:14.519757+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c6568d755952099237a3edc113c07478650d430a0d6ec80f6e7ef3fdf6b356e8",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a96290773013716786ea2b0910d4f55234582fb1aae8bc768c18cf780e70e8e9"
+      },
+      "revised_at": "2026-07-09T22:37:49.566304+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-plan-lock-semantic-test-file-classification.manifest.yaml -> manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-09T22:37:49.835563+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py",
+        "exit_code": 1,
+        "output_tail": "                            }\n                        ]\n                    },\n                    \"validate\": [f\"python -m pytest -q {behavioral_path}\"],\n                },\n                sort_keys=False,\n            )\n        )\n    \n        lock = create_plan_lock(manifest_path, tmp_path)\n    \n>       assert lock.test_hashes.keys() == {behavioral_path}\nE       AssertionError: assert dict_keys(['s..._catalog.py']) == {'quality/tes..._contract.py'}\nE         \nE         Use -v to get more diff\n\ntests/core/test_plan_lock_semantic_test_discovery.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_semantic_test_discovery.py::test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests\n1 failed, 1 passed in 0.11s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:create_plan_lock",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:returns=PlanLock",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests:kind=test_function",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_plan_lock_semantic_test_discovery.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/_test_command_targets.py",
+        "manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_plan_lock_semantic_test_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py"
+    ]
+  }
+}

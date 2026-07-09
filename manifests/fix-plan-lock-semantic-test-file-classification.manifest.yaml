@@ -1,0 +1,157 @@
+schema: '2'
+goal: Prevent plan locks from treating production Python modules with test-like basenames as behavioral tests
+type: fix
+created: '2026-07-09T22:37:49Z'
+metadata:
+  tags:
+  - plan-lock
+  - test-discovery
+  - python
+  - false-positive
+  - anti-gaming
+  priority: high
+description: |
+  Arch Spec has a production prompt module at
+  `backend/app/ai/prompts/test_cases.py`. The manifest correctly declares it
+  under files.edit, but plan-lock discovery uses filename shape alone and
+  stores the production file in test_hashes. Normal implementation edits then
+  trigger E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.
+
+  Reuse the existing semantic command-integrity test discovery service when
+  creating and revising plan locks. For Python files, that service parses the
+  module and requires an actual top-level pytest test function or Test-class
+  test method; a production module merely named test_cases.py is excluded.
+  Genuine behavioral tests remain hashed, including tests declared through
+  files.read, files.create/edit/snapshot, or recognized validate-command
+  targets. files.scope remains no-artifact writable production scope and is
+  not reclassified as behavioral test inventory by this fix.
+
+  Pinned decisions:
+
+  - Do not weaken Python test naming globally. Plan-lock discovery adopts the
+    existing AST-aware classifier already used by validate-command integrity.
+  - Parse failures stay fail-closed as test-like, preserving tamper evidence
+    until normal validation surfaces the syntax/read error.
+  - Plan locks continue to hash every genuine behavioral test file; only
+    production false positives are removed.
+  - This is a behavioral refinement of create_plan_lock with no signature or
+    stored lock schema change, so chain evolution is sufficient and existing
+    plan-lock manifests remain active.
+temptations:
+- risk: Do not special-case the Arch Spec path or the basename test_cases.py.
+  instead: Route plan-lock discovery through the shared semantic classifier and cover a generic production-module fixture.
+- risk: Do not require all Python tests to live under a tests directory.
+  instead: Preserve semantic recognition of valid pytest functions/classes wherever manifest and command discovery find them.
+- risk: Do not drop unparseable test-like files from plan-lock hashing.
+  instead: Keep the shared classifier's fail-closed parse-error behavior so malformed behavioral tests cannot evade tamper evidence.
+- risk: Do not change the PlanLock JSON schema or revise old lock files in this fix.
+  instead: Change only future create/revise discovery and verify it through create_plan_lock's public result.
+files:
+  create:
+  - path: tests/core/test_plan_lock_semantic_test_discovery.py
+    artifacts:
+    - kind: test_function
+      name: test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests
+      source_scenario: A manifest edits a generic production Python module whose basename starts with test_ but whose AST contains no pytest test functions; a real pytest file outside a conventional tests directory is discoverable only from the validate command.
+      actions:
+      - type: api_call
+        subject:
+          export: create_plan_lock
+      expected:
+        behavior: The new lock hashes the validate-only real behavioral test file and excludes the test-prefixed production module, proving discovery is semantic rather than a path special case.
+    - kind: test_function
+      name: test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed
+      source_scenario: A manifest reads a test-like Python file that cannot be parsed and targets it from the validate command.
+      actions:
+      - type: api_call
+        subject:
+          export: create_plan_lock
+      expected:
+        behavior: The lock still hashes the unparseable test-like file so malformed tests cannot evade tamper evidence before normal validation reports the parse error.
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: create_plan_lock
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: agent
+        type: Optional[AgentProvenance]
+        default: None
+      returns: PlanLock
+      description: Hash semantically discovered behavioral tests while excluding production Python modules whose basenames merely resemble pytest files.
+  read:
+  - maid_runner/core/_command_integrity_test_discovery.py
+  - maid_runner/core/_test_command_targets.py
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py
+outcome:
+  status: completed
+  summary: "Plan locks now use the shared semantic command-integrity discovery service, excluding test-prefixed production modules while retaining validate-only and malformed behavioral test files."
+  rationale: "Reusing one AST-aware discovery path keeps lock creation, saved contract snapshots, revision deltas, and enforcement comparisons consistent without adding path special-cases or changing the PlanLock schema."
+  lessons:
+  - lesson_type: validation
+    summary: "Tamper-evidence code must share the same semantic test discovery used by validation; filename-only copies can turn production modules into behavioral lock inputs and produce false E701 failures."
+    tags:
+    - plan-lock
+    - semantic-discovery
+    - fail-closed
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/core/_command_integrity_test_discovery.py
+  - lesson_type: test-design
+    summary: "A validate-only pytest target outside conventional test directories prevents a hollow fix that merely filters the old manifest path list, while a malformed-file characterization preserves fail-closed behavior."
+    tags:
+    - anti-gaming
+    - behavioral-contract
+    paths:
+    - tests/core/test_plan_lock_semantic_test_discovery.py
+  review_notes:
+  - source: independent-reviewer-subagent
+    severity: ready
+    summary: "No actionable findings; semantic discovery, saved snapshots, revision, and enforcement consistency were covered by focused regressions and an additional read-only probe."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_plan_lock_semantic_test_discovery.py
+    - tests/core/test_plan_lock_enforcement.py
+    - tests/core/test_plan_lock_scope_enforcement.py
+    - tests/cli/test_plan_cmd_red_evidence.py
+    status: passed
+    summary: "38 focused semantic-discovery and enforcement regressions passed."
+  - command:
+    - bash
+    - -lc
+    - "uv run python -m pytest -q $(rg --files tests | rg 'plan_lock|plan_cmd' | tr '\\n' ' ')"
+    status: passed
+    summary: "All 137 plan-lock and plan-command regressions passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed for the evolved create_plan_lock contract."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml
+    status: passed
+    summary: "The manifest validation command passed."
+  completed_at: "2026-07-09T22:47:22Z"

@@ -27,9 +27,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from maid_runner.core._command_integrity_test_discovery import (
+    find_command_integrity_test_files,
+)
 from maid_runner.core._test_command_execution import _run_test_command
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.manifest import _is_test_file, load_manifest, slug_from_path
+from maid_runner.core.manifest import load_manifest, slug_from_path
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
@@ -221,7 +224,7 @@ def create_plan_lock(
     return PlanLock(
         manifest_path=_project_relative_path(manifest_path, root),
         manifest_hash=compute_manifest_hash(Path(manifest_path)),
-        test_hashes=_hash_test_files(root, _behavioral_test_paths(manifest)),
+        test_hashes=_hash_test_files(root, _behavioral_test_paths(manifest, root)),
         created_at=_utc_now(),
         agent=agent,
     )
@@ -239,7 +242,7 @@ def revise_plan_lock(
     if not reason or not reason.strip():
         raise ValueError("Plan-lock revision requires a non-empty reason")
     fresh = create_plan_lock(manifest_path, project_root, agent=existing.agent)
-    new_contract = _manifest_contract(load_manifest(manifest_path))
+    new_contract = _manifest_contract(load_manifest(manifest_path), project_root)
     entry = PlanLockRevision(
         prior_manifest_hash=existing.manifest_hash,
         prior_test_hashes=dict(existing.test_hashes),
@@ -466,7 +469,7 @@ def enforce_plan_locks(
             continue
 
         errors.extend(_test_hash_errors(lock, manifest, root))
-        weakening_detail = _contract_weakening_detail(lock_path, lock, manifest)
+        weakening_detail = _contract_weakening_detail(lock_path, lock, manifest, root)
         if weakening_detail is not None:
             errors.append(
                 _lock_error(
@@ -534,20 +537,9 @@ def _manifest_in_changed_paths(
     return _manifest_location(manifest, project_root) in changed_paths
 
 
-def _behavioral_test_paths(manifest: Manifest) -> list[str]:
-    """Collect the manifest's behavioral test files.
-
-    Test files come from `files.read` entries that look like test files plus
-    test files declared under `files.create`/`files.edit`/`files.snapshot`.
-    """
-    paths: list[str] = []
-    for path in manifest.files_read:
-        if _is_test_file(path) and path not in paths:
-            paths.append(path)
-    for fs in manifest.all_file_specs:
-        if _is_test_file(fs.path) and fs.path not in paths:
-            paths.append(fs.path)
-    return paths
+def _behavioral_test_paths(manifest: Manifest, project_root: Path) -> list[str]:
+    """Collect semantically classified behavioral test files."""
+    return find_command_integrity_test_files(manifest, Path(project_root))
 
 
 def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
@@ -584,10 +576,11 @@ def _combined_output_tail(stdout: str, stderr: str, max_lines: int = 20) -> str:
 
 
 def _load_manifest_contract_for_lock(lock: PlanLock, lock_path: Path) -> dict | None:
-    manifest_path = _project_root_from_lock_path(lock_path) / lock.manifest_path
+    project_root = _project_root_from_lock_path(lock_path)
+    manifest_path = project_root / lock.manifest_path
     if not manifest_path.exists():
         return None
-    return _manifest_contract(load_manifest(manifest_path))
+    return _manifest_contract(load_manifest(manifest_path), project_root)
 
 
 def _project_root_from_lock_path(lock_path: Path) -> Path:
@@ -597,7 +590,7 @@ def _project_root_from_lock_path(lock_path: Path) -> Path:
         return Path(".")
 
 
-def _manifest_contract(manifest: Manifest) -> dict:
+def _manifest_contract(manifest: Manifest, project_root: Path) -> dict:
     return {
         "artifacts": sorted(_artifact_declarations(manifest)),
         "files": {
@@ -605,7 +598,7 @@ def _manifest_contract(manifest: Manifest) -> dict:
             "edit": sorted(file_spec.path for file_spec in manifest.files_edit),
             "read": sorted(manifest.files_read),
         },
-        "test_files": sorted(_behavioral_test_paths(manifest)),
+        "test_files": sorted(_behavioral_test_paths(manifest, project_root)),
         "validate_commands": [
             shlex.join(command) for command in manifest.validate_commands
         ],
@@ -681,7 +674,7 @@ def _test_hash_errors(
     project_root: Path,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
-    current_test_paths = set(_behavioral_test_paths(manifest))
+    current_test_paths = set(_behavioral_test_paths(manifest, project_root))
     if set(lock.test_hashes) - current_test_paths:
         return []
 
@@ -704,9 +697,10 @@ def _contract_weakening_detail(
     lock_path: Path,
     lock: PlanLock,
     manifest: Manifest,
+    project_root: Path,
 ) -> str | None:
     locked_tests = set(lock.test_hashes)
-    current_contract = _manifest_contract(manifest)
+    current_contract = _manifest_contract(manifest, project_root)
     if locked_tests - set(current_contract["test_files"]):
         return "behavioral test entries shrank"
 
