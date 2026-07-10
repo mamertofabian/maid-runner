@@ -29,6 +29,7 @@ from typing import Optional
 
 from maid_runner.core._command_integrity_test_discovery import (
     find_command_integrity_test_files,
+    is_command_integrity_test_file,
 )
 from maid_runner.core._test_command_execution import _run_test_command
 from maid_runner.core.chain import ManifestChain
@@ -468,7 +469,7 @@ def enforce_plan_locks(
             )
             continue
 
-        errors.extend(_test_hash_errors(lock, manifest, root))
+        errors.extend(_test_hash_errors(lock_path, lock, manifest, root))
         weakening_detail = _contract_weakening_detail(lock_path, lock, manifest, root)
         if weakening_detail is not None:
             errors.append(
@@ -552,6 +553,16 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
     return hashes
 
 
+def _file_hash_or_none(path: Path) -> str | None:
+    """Hash a regular file, returning None for missing or unreadable paths."""
+    try:
+        if not path.is_file():
+            return None
+        return compute_manifest_hash(path)
+    except OSError:
+        return None
+
+
 def _project_relative_path(manifest_path: Path, project_root: Path) -> str:
     full = Path(manifest_path).resolve()
     try:
@@ -627,6 +638,55 @@ def _contract_file_entries(contract: dict) -> set[str]:
     return entries
 
 
+def _historical_production_test_paths(
+    lock_path: Path,
+    lock: PlanLock,
+    manifest: Manifest,
+    project_root: Path,
+) -> set[str]:
+    """Identify immutable filename-only false positives in older lock snapshots.
+
+    A path is safe to ignore only while the current manifest still declares
+    it, its bytes match the locked hash, it remains semantically non-test, and
+    the saved contract structure is valid. Every removed, changed, or
+    ambiguous path stays fail-closed.
+    """
+    contract = _load_locked_contract(lock_path)
+    if not contract:
+        return set()
+
+    validate_commands = contract.get("validate_commands")
+    test_files = contract.get("test_files")
+    if not isinstance(validate_commands, list) or not all(
+        isinstance(command, str) for command in validate_commands
+    ):
+        return set()
+    if not isinstance(test_files, list) or not all(
+        isinstance(path, str) for path in test_files
+    ):
+        return set()
+    if not validate_commands or not test_files:
+        return set()
+
+    current_validate_commands = Counter(
+        _manifest_contract(manifest, project_root)["validate_commands"]
+    )
+    if Counter(validate_commands) - current_validate_commands:
+        return set()
+
+    declared_paths = manifest.all_referenced_paths
+
+    production_paths: set[str] = set()
+    for path in set(lock.test_hashes) & declared_paths & set(test_files):
+        full_path = project_root / path
+        current_hash = _file_hash_or_none(full_path)
+        if current_hash == lock.test_hashes[
+            path
+        ] and not is_command_integrity_test_file(path, project_root):
+            production_paths.add(path)
+    return production_paths
+
+
 def _artifact_declarations(manifest: Manifest) -> set[str]:
     declarations: set[str] = set()
     for file_spec in manifest.all_file_specs:
@@ -669,18 +729,24 @@ def _load_lock_or_error(
 
 
 def _test_hash_errors(
+    lock_path: Path,
     lock: PlanLock,
     manifest: Manifest,
     project_root: Path,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
-    current_test_paths = set(_behavioral_test_paths(manifest, project_root))
-    if set(lock.test_hashes) - current_test_paths:
-        return []
+    historical_production_paths = _historical_production_test_paths(
+        lock_path, lock, manifest, project_root
+    )
+    locked_test_hashes = {
+        path: locked_hash
+        for path, locked_hash in lock.test_hashes.items()
+        if path not in historical_production_paths
+    }
 
-    for rel, locked_hash in lock.test_hashes.items():
+    for rel, locked_hash in locked_test_hashes.items():
         full = project_root / rel
-        current_hash = compute_manifest_hash(full) if full.exists() else None
+        current_hash = _file_hash_or_none(full)
         if current_hash != locked_hash:
             errors.append(
                 _lock_error(
@@ -699,7 +765,10 @@ def _contract_weakening_detail(
     manifest: Manifest,
     project_root: Path,
 ) -> str | None:
-    locked_tests = set(lock.test_hashes)
+    historical_production_paths = _historical_production_test_paths(
+        lock_path, lock, manifest, project_root
+    )
+    locked_tests = set(lock.test_hashes) - historical_production_paths
     current_contract = _manifest_contract(manifest, project_root)
     if locked_tests - set(current_contract["test_files"]):
         return "behavioral test entries shrank"

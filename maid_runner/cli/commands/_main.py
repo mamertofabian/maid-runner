@@ -387,6 +387,15 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Ref whose merge-base with HEAD is used as the --changed-scope baseline",
     )
     p.add_argument(
+        "--file-tracking-scope",
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Scope file tracking to the whole repository (default) or to "
+            "paths changed from the explicit task baseline"
+        ),
+    )
+    p.add_argument(
         "--include-tests",
         action="store_true",
         help="Include changed test files in scope gates",

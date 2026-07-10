@@ -1,0 +1,265 @@
+schema: '2'
+goal: Allow incremental brownfield handoffs to scope verify file tracking to the explicit task baseline without weakening repository-wide strict tracking
+type: fix
+created: '2026-07-09T22:37:53Z'
+metadata:
+  tags:
+  - file-tracking
+  - brownfield
+  - verify
+  - incremental-adoption
+  - anti-gaming
+  priority: high
+description: |
+  Three independently reproduced bug reports from Hubb Ops, bolt2github /
+  bolt-to-github, and life-dashboard expose one runner-level workflow gap:
+  `maid verify` always applies repository-wide file tracking, so hundreds of
+  untouched pre-adoption files block a small, otherwise valid MAID task. The
+  existing `--since`, `--base-ref`, `--no-changed-scope`, and `--advisory`
+  options do not alter that stage.
+
+  Add an explicit `maid verify --file-tracking-scope task` mode. In task mode,
+  the file-tracking stage resolves the same explicit task window used by
+  changed-scope (`--since`, `--base-ref`, or `metadata.maid_task_base`) and
+  filters the ordinary FileTrackingReport to source paths changed in that
+  window. Newly added or edited undeclared/weakly registered production files
+  remain blocking. Untouched historical inventory is omitted from the verify
+  stage, while `maid files` continues to expose the full repository inventory.
+
+  Pinned decisions:
+
+  - Repository-wide file tracking remains the default. This is an explicit
+    brownfield adoption mode, not a silent weakening of strict verification.
+  - Task mode requires a resolvable explicit/manifest baseline and reuses E115
+    or E116 for missing/invalid baselines. It never guesses main, dev, HEAD~1,
+    or a remote branch.
+  - `--no-changed-scope` disables only the changed_scope stage. It cannot
+    disable task-scoped file tracking or allow a newly changed undeclared file.
+  - `--advisory` remains warning policy only and does not affect file tracking.
+  - `maid files` and `maid validate --file-tracking` retain repository-wide
+    semantics. This slice changes only the `maid verify` composition root.
+  - Filtering is implemented as a pure core helper over FileTrackingReport and
+    normalized project-relative paths; git/baseline I/O stays in verify/worktree
+    orchestration.
+
+  This is an additive chain evolution of the 030-07/030-10/037-01/038-07
+  contracts. No existing public signature or default behavior is removed, so
+  supersession is not required.
+temptations:
+- risk: Do not make brownfield mode skip the file-tracking stage or always mark it successful.
+  instead: Run normal file discovery, filter the report to baseline-changed source paths, and fail on changed undeclared or registered entries.
+- risk: Do not make --since or --base-ref silently weaken repository-wide file tracking.
+  instead: Require the explicit --file-tracking-scope task selector; keep repository scope as the default.
+- risk: Do not let --no-changed-scope bypass new uncovered production files.
+  instead: Resolve and enforce the file-tracking task window independently, then prove the behavior with the dedicated CLI regression.
+- risk: Do not hide the historical inventory everywhere.
+  instead: Leave maid files and validate --file-tracking repository-wide; only the explicitly selected verify stage is filtered.
+files:
+  create:
+  - path: tests/cli/test_verify_task_scoped_file_tracking.py
+    artifacts:
+    - kind: test_function
+      name: test_filter_file_tracking_report_keeps_only_normalized_task_paths
+      source_scenario: A full file-tracking report contains historical, registered, and tracked entries with metadata, while the task path set uses mixed path separators and reversed membership order.
+      actions:
+      - type: api_call
+        subject:
+          export: filter_file_tracking_report
+      expected:
+        behavior: The pure helper normalizes paths, preserves original deterministic report order plus status/manifests/issues metadata, and returns only task entries.
+    - kind: test_function
+      name: test_repository_file_tracking_remains_strict_by_default
+      source_scenario: A brownfield repository contains an untouched historical undeclared source file and one changed manifest-covered source file; verify receives an explicit baseline but not the new scope selector.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Default verify still fails repository-wide file_tracking and reports the historical undeclared source path, proving baseline flags alone do not activate task mode.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_ignores_untouched_historical_inventory
+      source_scenario: The same repository commits the covered source edit after the baseline, has a clean worktree, and runs verify with --file-tracking-scope task plus --since.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Verify uses baseline history rather than worktree-only changes, passes file_tracking, reports the committed covered source as tracked, and ignores the untouched historical path.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_accepts_explicit_base_ref
+      source_scenario: A clean repository has a covered change committed after the supplied --base-ref.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Task-scoped file tracking resolves the merge-base, includes the committed covered source, and passes without reporting historical inventory.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_accepts_manifest_metadata_baseline
+      source_scenario: The active manifest declares metadata.maid_task_base and verify requests task file tracking without a baseline CLI flag.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Task-scoped file tracking resolves the manifest baseline, includes the covered source change, and passes.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_blocks_new_undeclared_source_even_when_changed_scope_is_disabled
+      source_scenario: Task-scoped file tracking sees a newly added undeclared source file while verify is passed both --no-changed-scope and --advisory.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Verify fails file_tracking on the new uncovered source, proving task tracking is independent from changed_scope and warning advisory policy, while ignoring untouched historical inventory.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_blocks_changed_read_only_production_file
+      source_scenario: A new task-window production file is declared only under files.read while historical undeclared inventory also exists.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Task-scoped verify fails file_tracking with the changed path in the registered bucket and does not report untouched historical undeclared inventory.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_fails_closed_without_resolvable_baseline
+      source_scenario: Verify explicitly requests task-scoped file tracking without --since, --base-ref, or metadata.maid_task_base.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The file_tracking stage fails with E115 instead of guessing a branch or treating an empty path set as success.
+    - kind: test_function
+      name: test_task_scoped_file_tracking_reports_invalid_explicit_baseline
+      source_scenario: Verify requests task file tracking with a --since commit-ish that git cannot resolve.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The file_tracking stage fails with E116 instead of falling back to worktree-only or repository-wide behavior.
+    - kind: test_function
+      name: test_readme_documents_task_scoped_file_tracking_recipe
+      source_scenario: A user consults the README for the supported incremental brownfield verification command.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: The README gives the explicit --file-tracking-scope task recipe, states repository-wide tracking remains default, and points to maid files for the full repository inventory.
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: The verify parser accepts --file-tracking-scope with repository (default) and task choices.
+  - path: maid_runner/cli/commands/verify.py
+    artifacts:
+    - kind: function
+      name: cmd_verify
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Compose repository-wide or explicit-baseline task-scoped file tracking without changing warning or changed-scope policy.
+  - path: maid_runner/core/_file_tracking.py
+    artifacts:
+    - kind: function
+      name: filter_file_tracking_report
+      args:
+      - name: report
+        type: FileTrackingReport
+      - name: paths
+        type: Collection[str]
+      returns: FileTrackingReport
+      description: Return a deterministic report containing only entries whose normalized project-relative paths are in the supplied task path set.
+  scope:
+  - path: README.md
+    reason: Document the explicit brownfield task-scoped verify recipe while retaining repository-wide defaults and maid files inventory guidance.
+  read:
+  - maid_runner/core/worktree.py
+  - maid_runner/core/result.py
+  - manifests/030-07-add-file-tracking-fail-gates.manifest.yaml
+  - manifests/030-10-add-maid-verify-done-gate.manifest.yaml
+  - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+  - manifests/038-07-extract-file-tracking-helper.manifest.yaml
+  - docs/plans/maid-runner-self-improvement-backlog.md
+validate:
+- uv run python -m pytest -q tests/cli/test_verify_task_scoped_file_tracking.py
+outcome:
+  status: completed
+  summary: "Verify now offers an explicit task-scoped file-tracking mode for incremental brownfield handoffs while repository-wide tracking remains the default and changed uncovered production files remain blocking."
+  rationale: "The implementation reuses the existing baseline resolver and Git changed-file service, filters the ordinary full FileTrackingReport through a pure normalized-path helper, and keeps file-tracking enforcement independent from advisory and changed-scope policy."
+  lessons:
+  - lesson_type: validation
+    summary: "Brownfield scoping is safest as a filter over the normal file-tracking report: discovery and status classification stay unchanged, while only untouched historical entries leave the verify-stage view."
+    tags:
+    - brownfield
+    - file-tracking
+    - fail-closed
+    paths:
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/core/_file_tracking.py
+  - lesson_type: test-design
+    summary: "Success fixtures for strict verify must avoid unrelated E310 stub failures, and path-filter contracts must exercise Windows separators on both the requested paths and report entries to prevent uncovered files from disappearing."
+    tags:
+    - behavioral-contract
+    - windows
+    - strict-validation
+    paths:
+    - tests/cli/test_verify_task_scoped_file_tracking.py
+  review_notes:
+  - source: independent-reviewer-subagent
+    severity: ready
+    summary: "Final read-only review found no remaining issues after symmetric Windows path normalization fixed the initial finding; defaults, fail-closed baseline behavior, daemon compatibility, metadata/order preservation, and scope all matched the contract."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_verify_task_scoped_file_tracking.py
+    status: passed
+    summary: "All 10 task-scoped file-tracking behavioral tests passed."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: "The full repository suite passed with 3260 tests and 5 skips."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "All 328 active manifests passed; 93 superseded manifests were skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 175 manifest validation commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "All nine handoff stages passed with only existing non-blocking E307 warnings."
+  completed_at: "2026-07-10T00:46:42Z"

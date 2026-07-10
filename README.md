@@ -107,7 +107,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--artifact-coverage`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -339,6 +339,20 @@ When validating with manifest chains (default), MAID Runner reports file complia
 - **UNDECLARED**: Files not in any manifest (no audit trail)
 - **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
 - **TRACKED**: Files with full MAID compliance
+
+During normal verification, repository-wide file tracking remains the default
+for `maid verify`. During incremental brownfield adoption, scope only the
+verify file-tracking stage to an explicit task window:
+
+```bash
+maid verify --file-tracking-scope task --base-ref <parent-branch>
+maid verify --file-tracking-scope task --since <task-start-commit>
+```
+
+Task scope still blocks changed undeclared or weakly registered production
+files; it only omits untouched historical inventory from that verify stage.
+Use `maid files` whenever you need the full repository inventory. The
+`--advisory` and `--no-changed-scope` options do not disable file tracking.
 
 ### Changed-Scope Handoff Gate
 

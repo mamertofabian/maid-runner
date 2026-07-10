@@ -34,6 +34,13 @@ description: |
     until normal validation surfaces the syntax/read error.
   - Plan locks continue to hash every genuine behavioral test file; only
     production false positives are removed.
+  - Enforcement recognizes a historical filename-only entry as a safe
+    production false positive only when it remains explicitly declared by the
+    current manifest, is byte-identical to its locked hash, remains
+    semantically non-test, the saved contract structure is valid and non-empty,
+    and every locked validate command remains present unchanged. Removed,
+    changed, missing, command-narrowed, or structurally ambiguous entries
+    remain protected and require an explicit plan revision.
   - This is a behavioral refinement of create_plan_lock with no signature or
     stored lock schema change, so chain evolution is sufficient and existing
     plan-lock manifests remain active.
@@ -44,8 +51,8 @@ temptations:
   instead: Preserve semantic recognition of valid pytest functions/classes wherever manifest and command discovery find them.
 - risk: Do not drop unparseable test-like files from plan-lock hashing.
   instead: Keep the shared classifier's fail-closed parse-error behavior so malformed behavioral tests cannot evade tamper evidence.
-- risk: Do not change the PlanLock JSON schema or revise old lock files in this fix.
-  instead: Change only future create/revise discovery and verify it through create_plan_lock's public result.
+- risk: Do not change the PlanLock JSON schema or bulk-rewrite historical lock files in this fix.
+  instead: Change future create/revise discovery and conservatively normalize only byte-identical, still-declared historical false positives while every ambiguity remains fail-closed.
 files:
   create:
   - path: tests/core/test_plan_lock_semantic_test_discovery.py
@@ -68,6 +75,33 @@ files:
           export: create_plan_lock
       expected:
         behavior: The lock still hashes the unparseable test-like file so malformed tests cannot evade tamper evidence before normal validation reports the parse error.
+    - kind: test_function
+      name: test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry
+      source_scenario: A lock created by the former filename-only discovery stores byte-identical production runner/helper modules alongside genuine behavioral tests, including a mixed-purpose module with a normal helper artifact plus a pytest node-selector target.
+      actions:
+      - type: api_call
+        subject:
+          export: enforce_plan_locks
+      expected:
+        behavior: Enforcement ignores only byte-identical historical production false positives that remain declared, including a path moved from files.read to files.scope, but still reports E701 when a legacy production entry changes or becomes a directory, the selector-covered test is stripped from the mixed-purpose module, or every test function is stripped from the separate genuine behavioral test, without rewriting the historical lock.
+    - kind: test_function
+      name: test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed
+      source_scenario: A historical filename-only lock contains a pytest-collected unittest.TestCase file under a compound `cd tests && pytest` implicit-root command, then the current manifest drops that file and narrows validation to an unrelated explicit target.
+      actions:
+      - type: api_call
+        subject:
+          export: enforce_plan_locks
+      expected:
+        behavior: Narrowing the locked validate command reports E702 even while the historical test stays declared; removing it also reports E702, and empty, malformed, or mixed-type saved command/test containers fail closed.
+    - kind: test_function
+      name: test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd
+      source_scenario: A historical lock targets a pytest-collected unittest.TestCase through `cd tests && pytest ../quality/test_file.py::ContractCase::test_contract`, then the current manifest removes that file and narrows validation.
+      actions:
+      - type: api_call
+        subject:
+          export: enforce_plan_locks
+      expected:
+        behavior: Removing the locked quality test from the current manifest reports E702 regardless of parent-relative command parsing.
   edit:
   - path: maid_runner/core/plan_lock.py
     artifacts:
@@ -86,14 +120,15 @@ files:
   read:
   - maid_runner/core/_command_integrity_test_discovery.py
   - maid_runner/core/_test_command_targets.py
+  - maid_runner/core/chain.py
   - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
   - manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml
 validate:
 - uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py
 outcome:
   status: completed
-  summary: "Plan locks now use the shared semantic command-integrity discovery service, excluding test-prefixed production modules while retaining validate-only and malformed behavioral test files."
-  rationale: "Reusing one AST-aware discovery path keeps lock creation, saved contract snapshots, revision deltas, and enforcement comparisons consistent without adding path special-cases or changing the PlanLock schema."
+  summary: "Plan locks now use shared semantic test discovery for new and revised locks, while conservative historical compatibility ignores only byte-identical, still-declared production false positives whose locked command contract remains intact."
+  rationale: "Shared AST-aware discovery prevents future filename false positives. Historical entries lack immutable semantic provenance, so enforcement permits compatibility only across a fail-closed predicate covering snapshot structure, command multiplicity, declaration presence, regular-file hashing, and current non-test semantics."
   lessons:
   - lesson_type: validation
     summary: "Tamper-evidence code must share the same semantic test discovery used by validation; filename-only copies can turn production modules into behavioral lock inputs and produce false E701 failures."
@@ -105,7 +140,7 @@ outcome:
     - maid_runner/core/plan_lock.py
     - maid_runner/core/_command_integrity_test_discovery.py
   - lesson_type: test-design
-    summary: "A validate-only pytest target outside conventional test directories prevents a hollow fix that merely filters the old manifest path list, while a malformed-file characterization preserves fail-closed behavior."
+    summary: "Behavioral coverage must attack tamper boundaries, not just the reported filename case: stripped tests, mixed-purpose modules, command narrowing and duplication, scope moves, malformed snapshots, and file-to-directory replacement exposed unsafe compatibility shortcuts during review."
     tags:
     - anti-gaming
     - behavioral-contract
@@ -114,7 +149,7 @@ outcome:
   review_notes:
   - source: independent-reviewer-subagent
     severity: ready
-    summary: "No actionable findings; semantic discovery, saved snapshots, revision, and enforcement consistency were covered by focused regressions and an additional read-only probe."
+    summary: "Final read-only review found no actionable issues after the review-fix loop closed current-content, selector/root-command, command-narrowing/multiplicity, files.scope, malformed-snapshot, and unsafe-hash findings."
   validation:
   - command:
     - uv
@@ -128,13 +163,13 @@ outcome:
     - tests/core/test_plan_lock_scope_enforcement.py
     - tests/cli/test_plan_cmd_red_evidence.py
     status: passed
-    summary: "38 focused semantic-discovery and enforcement regressions passed."
+    summary: "41 focused semantic-discovery and enforcement regressions passed."
   - command:
     - bash
     - -lc
     - "uv run python -m pytest -q $(rg --files tests | rg 'plan_lock|plan_cmd' | tr '\\n' ' ')"
     status: passed
-    summary: "All 137 plan-lock and plan-command regressions passed."
+    summary: "All 140 plan-lock and plan-command regressions passed."
   - command:
     - uv
     - run
@@ -154,4 +189,16 @@ outcome:
     - manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml
     status: passed
     summary: "The manifest validation command passed."
-  completed_at: "2026-07-09T22:47:22Z"
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "All nine handoff stages passed; only existing non-blocking E307 warnings remained."
+  completed_at: "2026-07-10T00:32:25Z"

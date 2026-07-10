@@ -64,6 +64,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             changed_scope_explicit=getattr(args, "changed_scope_explicit", False),
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
+            file_tracking_scope=getattr(args, "file_tracking_scope", "repository"),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
@@ -193,6 +194,7 @@ def _run_verify(
     changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
+    file_tracking_scope: str = "repository",
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -222,6 +224,7 @@ def _run_verify(
             changed_scope_explicit=changed_scope_explicit,
             since=since,
             base_ref=base_ref,
+            file_tracking_scope=file_tracking_scope,
             include_tests=include_tests,
             test_jobs=test_jobs,
             require_plan_lock=require_plan_lock,
@@ -249,6 +252,7 @@ def _run_verify_cached(
     changed_scope_explicit: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
+    file_tracking_scope: str = "repository",
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -347,7 +351,16 @@ def _run_verify_cached(
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
 
-        stages.append(_file_tracking_stage(root, manifest_dir, engine))
+        stages.append(
+            _file_tracking_stage(
+                root,
+                manifest_dir,
+                engine,
+                scope=file_tracking_scope,
+                since=since,
+                base_ref=base_ref,
+            )
+        )
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
 
@@ -452,13 +465,43 @@ def _file_tracking_stage(
     root: Path,
     manifest_dir: str,
     engine,
+    *,
+    scope: str = "repository",
+    since: str | None = None,
+    base_ref: str | None = None,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.core.chain import get_cached_manifest_chain
+        from maid_runner.core._file_tracking import filter_file_tracking_report
+        from maid_runner.core.worktree import (
+            changed_files_since,
+            resolve_changed_scope_baseline,
+        )
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         report = engine.run_file_tracking(chain)
+        if scope == "task":
+            try:
+                baseline = resolve_changed_scope_baseline(
+                    chain, since=since, base_ref=base_ref
+                )
+                task_paths = changed_files_since(root, baseline)
+            except RuntimeError as exc:
+                error = getattr(exc, "error", None)
+                if error is None:
+                    error = ValidationError(
+                        code=ErrorCode.FILE_READ_ERROR,
+                        message=str(exc),
+                        severity=Severity.ERROR,
+                    )
+                return VerificationStageResult(
+                    name="file_tracking",
+                    success=False,
+                    _duration_ms=_elapsed_ms(started),
+                    _errors=(error,),
+                )
+            report = filter_file_tracking_report(report, task_paths)
         return VerificationStageResult(
             name="file_tracking",
             success=not report.undeclared and not report.registered,

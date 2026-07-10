@@ -1,0 +1,136 @@
+{
+  "manifest_path": "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+  "manifest_hash": "sha256:641fc2a86198f3c64bde227376d68c0a03b7a93a5d795d94df3380d391740966",
+  "test_hashes": {
+    "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256:4ed492b482533f64ee3e108e1cc32dab9b653f5c9b05be52d1d8f4f3fdf066e6"
+  },
+  "created_at": "2026-07-09T22:37:32.635177+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:0c20d954b54ec119c262983f32144c7ab85ffa933aaa8d5e264ba36a93a7a11a",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256:fce9126fabaa0e937d4d7c60c2faaca1ae8e901ad93d9d64d8d31e0aa67814fb"
+      },
+      "revised_at": "2026-07-09T22:37:53.872688+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-brownfield-task-scoped-file-tracking.manifest.yaml -> manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:641fc2a86198f3c64bde227376d68c0a03b7a93a5d795d94df3380d391740966",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256:fce9126fabaa0e937d4d7c60c2faaca1ae8e901ad93d9d64d8d31e0aa67814fb"
+      },
+      "revised_at": "2026-07-09T22:50:55.913182+00:00",
+      "reason": "Correct success fixtures to use non-stub two-statement implementations so strict verify measures file-tracking behavior without unrelated E310 failures.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:641fc2a86198f3c64bde227376d68c0a03b7a93a5d795d94df3380d391740966",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256:ff3d92173d3caaad66dce9c5b7f83623795024612803d2d20b98936414e0ad79"
+      },
+      "revised_at": "2026-07-10T00:43:34.613637+00:00",
+      "reason": "Normalize Windows-shaped report entries as well as task paths so changed uncovered files cannot be filtered out.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-10T00:43:37.961401+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_task_scoped_file_tracking.py",
+        "exit_code": 1,
+        "output_tail": "____________ test_readme_documents_task_scoped_file_tracking_recipe ____________\n\n    def test_readme_documents_task_scoped_file_tracking_recipe() -> None:\n        readme = Path(\"README.md\").read_text()\n    \n>       assert \"--file-tracking-scope task\" in readme\nE       AssertionError: assert '--file-tracking-scope task' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_verify_task_scoped_file_tracking.py:357: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_filter_file_tracking_report_keeps_only_normalized_task_paths\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_ignores_untouched_historical_inventory\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_accepts_explicit_base_ref\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_accepts_manifest_metadata_baseline\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_blocks_new_undeclared_source_even_when_changed_scope_is_disabled\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_blocks_changed_read_only_production_file\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_fails_closed_without_resolvable_baseline\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_task_scoped_file_tracking_reports_invalid_explicit_baseline\nFAILED tests/cli/test_verify_task_scoped_file_tracking.py::test_readme_documents_task_scoped_file_tracking_recipe\n9 failed, 1 passed in 3.15s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/_file_tracking.py:function:filter_file_tracking_report",
+      "maid_runner/core/_file_tracking.py:function:filter_file_tracking_report:arg=paths:type=Collection[str]:default=None",
+      "maid_runner/core/_file_tracking.py:function:filter_file_tracking_report:arg=report:type=FileTrackingReport:default=None",
+      "maid_runner/core/_file_tracking.py:function:filter_file_tracking_report:kind=function",
+      "maid_runner/core/_file_tracking.py:function:filter_file_tracking_report:returns=FileTrackingReport",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_filter_file_tracking_report_keeps_only_normalized_task_paths",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_filter_file_tracking_report_keeps_only_normalized_task_paths:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_readme_documents_task_scoped_file_tracking_recipe",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_readme_documents_task_scoped_file_tracking_recipe:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_repository_file_tracking_remains_strict_by_default",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_repository_file_tracking_remains_strict_by_default:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_accepts_explicit_base_ref",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_accepts_explicit_base_ref:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_accepts_manifest_metadata_baseline",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_accepts_manifest_metadata_baseline:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_blocks_changed_read_only_production_file",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_blocks_changed_read_only_production_file:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_blocks_new_undeclared_source_even_when_changed_scope_is_disabled",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_blocks_new_undeclared_source_even_when_changed_scope_is_disabled:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_fails_closed_without_resolvable_baseline",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_fails_closed_without_resolvable_baseline:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_ignores_untouched_historical_inventory",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_ignores_untouched_historical_inventory:kind=test_function",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_reports_invalid_explicit_baseline",
+      "tests/cli/test_verify_task_scoped_file_tracking.py:test_task_scoped_file_tracking_reports_invalid_explicit_baseline:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_verify_task_scoped_file_tracking.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_file_tracking.py"
+      ],
+      "read": [
+        "docs/plans/maid-runner-self-improvement-backlog.md",
+        "maid_runner/core/result.py",
+        "maid_runner/core/worktree.py",
+        "manifests/030-07-add-file-tracking-fail-gates.manifest.yaml",
+        "manifests/030-10-add-maid-verify-done-gate.manifest.yaml",
+        "manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml",
+        "manifests/038-07-extract-file-tracking-helper.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_task_scoped_file_tracking.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_task_scoped_file_tracking.py"
+    ]
+  }
+}
