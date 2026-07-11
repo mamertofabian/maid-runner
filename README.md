@@ -92,7 +92,7 @@ maid init --tool generic         # Generic MAID.md
 formatting, and other project configuration. The managed hook runs:
 
 ```bash
-maid verify --summary --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope
+maid verify --summary --advisory --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
 ```
 
 MAID provisions the project configuration but does not replace or activate Git
@@ -123,7 +123,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--artifact-coverage`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |

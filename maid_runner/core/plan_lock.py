@@ -418,10 +418,13 @@ def enforce_plan_locks(
     require_red_evidence: bool,
     *,
     changed_paths: Collection[str] | None = None,
+    plan_lock_scope: str = "repository",
 ) -> "tuple[ValidationError, ...]":
     """Evaluate active manifests against their plan locks."""
     if not require_plan_lock and not require_red_evidence:
         return ()
+    if plan_lock_scope not in {"repository", "task"}:
+        raise ValueError("plan_lock_scope must be either 'repository' or 'task'")
 
     root = Path(project_root)
     changed_path_set = _normalize_changed_paths(changed_paths)
@@ -431,9 +434,11 @@ def enforce_plan_locks(
     for manifest in chain.active_manifests():
         lock_path = default_plan_lock_path(root, manifest.slug)
         loaded_lock_paths.add(lock_path)
-        in_scope = _manifest_in_changed_paths(manifest, root, changed_path_set)
+        requirement_in_scope = _manifest_in_changed_paths(
+            manifest, root, changed_path_set
+        )
         if not lock_path.exists():
-            if in_scope and require_plan_lock:
+            if requirement_in_scope and require_plan_lock:
                 errors.append(
                     _lock_error(
                         ErrorCode.PLAN_LOCK_MISSING,
@@ -442,7 +447,7 @@ def enforce_plan_locks(
                         detail=f"missing lock: {_project_relative_path(lock_path, root)}",
                     )
                 )
-            if in_scope and require_red_evidence:
+            if requirement_in_scope and require_red_evidence:
                 errors.append(
                     _lock_error(
                         ErrorCode.RED_PHASE_EVIDENCE_MISSING,
@@ -455,7 +460,26 @@ def enforce_plan_locks(
 
         lock = _load_lock_or_error(lock_path, root)
         if isinstance(lock, ValidationError):
+            if (
+                plan_lock_scope == "task"
+                and changed_path_set is not None
+                and not _manifest_in_task_paths(manifest, root, changed_path_set)
+            ):
+                continue
             errors.append(lock)
+            continue
+
+        if (
+            plan_lock_scope == "task"
+            and changed_path_set is not None
+            and not _manifest_in_task_paths(
+                manifest,
+                root,
+                changed_path_set,
+                lock_path=lock_path,
+                lock=lock,
+            )
+        ):
             continue
 
         recorded_manifest = root / lock.manifest_path
@@ -491,7 +515,7 @@ def enforce_plan_locks(
                 )
             )
 
-        if in_scope and require_red_evidence:
+        if requirement_in_scope and require_red_evidence:
             if lock.red_evidence is None:
                 errors.append(
                     _lock_error(ErrorCode.RED_PHASE_EVIDENCE_MISSING, manifest, root)
@@ -500,6 +524,9 @@ def enforce_plan_locks(
                 errors.append(
                     _lock_error(ErrorCode.RED_PHASE_EVIDENCE_INVALID, manifest, root)
                 )
+
+    if plan_lock_scope == "task" and changed_path_set is not None:
+        return tuple(errors)
 
     for lock_path in _plan_lock_files(root):
         if lock_path in loaded_lock_paths:
@@ -536,6 +563,26 @@ def _manifest_in_changed_paths(
     if changed_paths is None:
         return True
     return _manifest_location(manifest, project_root) in changed_paths
+
+
+def _manifest_in_task_paths(
+    manifest: Manifest,
+    project_root: Path,
+    changed_paths: set[str],
+    *,
+    lock_path: Path | None = None,
+    lock: PlanLock | None = None,
+) -> bool:
+    task_contract_paths = {
+        _manifest_location(manifest, project_root),
+        *_behavioral_test_paths(manifest, project_root),
+    }
+    if lock_path is not None and lock is not None:
+        historical_production_paths = _historical_production_test_paths(
+            lock_path, lock, manifest, project_root
+        )
+        task_contract_paths.update(set(lock.test_hashes) - historical_production_paths)
+    return not task_contract_paths.isdisjoint(changed_paths)
 
 
 def _behavioral_test_paths(manifest: Manifest, project_root: Path) -> list[str]:

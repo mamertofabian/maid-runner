@@ -55,7 +55,9 @@ class TypeScriptValidator(BaseValidator):
     ) -> CollectionResult:
         def _collect_implementation(session):
             artifacts = collect_ts_implementation_artifacts(
-                session.tree.root_node, session.source_bytes
+                session.tree.root_node,
+                session.source_bytes,
+                allow_jsdoc_returns=Path(file_path).suffix.lower() in {".js", ".jsx"},
             )
             if session.module_id:
                 artifacts = [

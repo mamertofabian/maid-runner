@@ -3,10 +3,10 @@
   "manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/cli/test_init_pre_commit.py": "sha256:7e4f4ff92c6e69e58579cd64c7483852cae2dc270a98fcf3f28fb7cdd6256a54"
+    "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
   },
   "created_at": "2026-07-11T01:23:49.347116+00:00",
-  "revision": 8,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:798e13b0b7afbe4fd716044068d141602736ebaa7c179c733d28cb384c449727",
@@ -167,6 +167,60 @@
       },
       "revised_at": "2026-07-11T02:00:14.936125+00:00",
       "reason": "Record final independent review and completed validation evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:7e4f4ff92c6e69e58579cd64c7483852cae2dc270a98fcf3f28fb7cdd6256a54"
+      },
+      "revised_at": "2026-07-11T04:23:38.892411+00:00",
+      "reason": "Refresh the shared init pre-commit behavioral test hash after the approved chain-merged brownfield hook evolution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:d9b95502e64245e6e20de57aaae0549e638cfd653ad3e68a224c58bb54b5c1eb"
+      },
+      "revised_at": "2026-07-11T04:41:55.577870+00:00",
+      "reason": "Refresh the shared init pre-commit behavioral test hash after the advisory brownfield policy evolution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:135b1785055f07aad79935a7167b0661f26a0e001fba44800274fcb603231918"
+      },
+      "revised_at": "2026-07-11T05:28:04.611001+00:00",
+      "reason": "Accept chain-merged generated hook policy coverage",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

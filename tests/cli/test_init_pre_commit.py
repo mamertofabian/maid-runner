@@ -16,8 +16,9 @@ CONFIG_NAME = ".pre-commit-config.yaml"
 START_MARKER = "# BEGIN MAID RUNNER PRE-COMMIT"
 END_MARKER = "# END MAID RUNNER PRE-COMMIT"
 VERIFY_ENTRY = (
-    "maid verify --summary --require-plan-lock --require-red-evidence "
-    "--fail-fast --no-changed-scope"
+    "maid verify --summary --advisory --require-plan-lock --require-red-evidence "
+    "--fail-fast --no-changed-scope --file-tracking-scope task "
+    "--plan-lock-scope task --since HEAD"
 )
 
 
@@ -58,6 +59,17 @@ def test_init_creates_managed_maid_verify_pre_commit_config(
     output = capsys.readouterr().out
     assert "pre-commit install" in output
     assert "core.hooksPath" in output
+
+
+def test_init_managed_hook_tracks_only_head_commit_candidates(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    assert main(["init", "--tool", "generic"]) == 0
+
+    assert _maid_hooks(tmp_path / CONFIG_NAME)[0]["entry"] == VERIFY_ENTRY
 
 
 def test_init_appends_managed_hook_without_rewriting_existing_config(

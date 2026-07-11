@@ -65,6 +65,7 @@ def _verify_args(**overrides) -> argparse.Namespace:
         "changed_scope": False,
         "since": None,
         "base_ref": None,
+        "plan_lock_scope": "repository",
         "include_tests": False,
         "test_jobs": 1,
         "require_plan_lock": False,
@@ -89,6 +90,29 @@ def test_verify_parser_exposes_plan_lock_flags() -> None:
 
     assert args.require_plan_lock is True
     assert args.require_red_evidence is True
+
+
+def test_verify_parser_exposes_task_scoped_plan_lock_policy() -> None:
+    parser = build_parser()
+
+    args = parser.parse_args(["verify", "--plan-lock-scope", "task"])
+
+    assert args.plan_lock_scope == "task"
+
+
+def test_cmd_verify_passes_plan_lock_scope_to_run_verify(monkeypatch, capsys) -> None:
+    captured = {}
+
+    def fake_run_verify(**kwargs):
+        captured["plan_lock_scope"] = kwargs["plan_lock_scope"]
+        return VerificationResult(stages=(), duration_ms=1.0)
+
+    monkeypatch.setattr("maid_runner.cli.commands.verify._run_verify", fake_run_verify)
+
+    exit_code = cmd_verify(_verify_args(plan_lock_scope="task"))
+
+    assert exit_code == 0
+    assert captured == {"plan_lock_scope": "task"}
 
 
 def test_cmd_verify_passes_plan_lock_flags_to_run_verify(monkeypatch, capsys) -> None:

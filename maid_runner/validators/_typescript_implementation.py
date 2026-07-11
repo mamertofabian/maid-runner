@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from maid_runner.core.types import ArtifactKind, ArgSpec
+from maid_runner.validators._jsdoc import extract_leading_jsdoc_return_type
 from maid_runner.validators.base import FoundArtifact
 
 
@@ -111,9 +112,17 @@ def _is_stub_body_ts(node, source: bytes) -> bool:
     return False
 
 
-def collect_implementation_artifacts(root: Any, source: bytes) -> list[FoundArtifact]:
+def collect_implementation_artifacts(
+    root: Any, source: bytes, *, allow_jsdoc_returns: bool = False
+) -> list[FoundArtifact]:
     artifacts: list[FoundArtifact] = []
-    _collect_impl(root, source, artifacts, current_class=None)
+    _collect_impl(
+        root,
+        source,
+        artifacts,
+        current_class=None,
+        allow_jsdoc_returns=allow_jsdoc_returns,
+    )
     return _filter_public_implementation_artifacts(artifacts, root, source)
 
 
@@ -277,32 +286,66 @@ def _has_private_or_protected_modifier(node, source: bytes) -> bool:
 
 
 def _collect_impl(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    *,
+    allow_jsdoc_returns: bool,
 ) -> None:
+    if _collect_class_declaration(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+    if _collect_function_declaration(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+    if _collect_default_arrow_function(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+    if _collect_class_method_definition(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+    if _collect_module_scope_variable_declaration(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+    if _collect_export_statement(
+        node, source, artifacts, current_class, allow_jsdoc_returns
+    ):
+        return
+
     handlers = (
-        _collect_class_declaration,
         _collect_interface_declaration,
         _collect_type_alias_declaration,
         _collect_enum_declaration,
         _collect_namespace_declaration,
-        _collect_function_declaration,
-        _collect_default_arrow_function,
         _collect_class_method_signature,
-        _collect_class_method_definition,
         _collect_class_field_definition,
-        _collect_module_scope_variable_declaration,
-        _collect_export_statement,
     )
     for handler in handlers:
         if handler(node, source, artifacts, current_class):
             return
 
     for child in node.children:
-        _collect_impl(child, source, artifacts, current_class)
+        _collect_impl(
+            child,
+            source,
+            artifacts,
+            current_class,
+            allow_jsdoc_returns=allow_jsdoc_returns,
+        )
 
 
 def _collect_class_declaration(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type not in ("class_declaration", "abstract_class_declaration", "class"):
         return False
@@ -323,7 +366,13 @@ def _collect_class_declaration(
     body = _child_by_type(node, "class_body")
     if body:
         for child in body.children:
-            _collect_impl(child, source, artifacts, current_class=name)
+            _collect_impl(
+                child,
+                source,
+                artifacts,
+                current_class=name,
+                allow_jsdoc_returns=allow_jsdoc_returns,
+            )
     return True
 
 
@@ -464,7 +513,11 @@ def _collect_namespace_declaration(
 
 
 def _collect_function_declaration(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type not in (
         "function_declaration",
@@ -476,24 +529,34 @@ def _collect_function_declaration(
 
     name = _function_declaration_name(node, source)
     if name:
-        _append_function_artifact(node, source, artifacts, name)
+        _append_function_artifact(node, source, artifacts, name, allow_jsdoc_returns)
     return True
 
 
 def _collect_default_arrow_function(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type != "arrow_function" or not _is_default_export_child(node):
         return False
 
-    _append_function_artifact(node, source, artifacts, "default")
+    _append_function_artifact(node, source, artifacts, "default", allow_jsdoc_returns)
     return True
 
 
 def _append_function_artifact(
-    node, source: bytes, artifacts: list[FoundArtifact], name: str
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    name: str,
+    allow_jsdoc_returns: bool,
 ) -> None:
     args, returns = _extract_func_signature(node, source)
+    if returns is None and allow_jsdoc_returns:
+        returns = extract_leading_jsdoc_return_type(node, source)
     artifacts.append(
         FoundArtifact(
             kind=ArtifactKind.FUNCTION,
@@ -534,7 +597,11 @@ def _collect_class_method_signature(
 
 
 def _collect_class_method_definition(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type != "method_definition" or not current_class:
         return False
@@ -548,7 +615,14 @@ def _collect_class_method_definition(
                 node, source, artifacts, current_class
             )
         else:
-            _append_method_artifact(node, source, artifacts, current_class, name)
+            _append_method_artifact(
+                node,
+                source,
+                artifacts,
+                current_class,
+                name,
+                allow_jsdoc_returns,
+            )
     return True
 
 
@@ -558,8 +632,11 @@ def _append_method_artifact(
     artifacts: list[FoundArtifact],
     current_class: str,
     name: str,
+    allow_jsdoc_returns: bool,
 ) -> None:
     args, returns = _extract_func_signature(node, source)
+    if returns is None and allow_jsdoc_returns:
+        returns = extract_leading_jsdoc_return_type(node, source)
     artifacts.append(
         FoundArtifact(
             kind=ArtifactKind.METHOD,
@@ -586,7 +663,11 @@ def _collect_class_field_definition(
 
 
 def _collect_module_scope_variable_declaration(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type not in ("lexical_declaration", "variable_declaration"):
         return False
@@ -597,7 +678,7 @@ def _collect_module_scope_variable_declaration(
 
     for child in node.children:
         if child.type == "variable_declarator":
-            _handle_variable_declarator(child, source, artifacts)
+            _handle_variable_declarator(child, source, artifacts, allow_jsdoc_returns)
     return True
 
 
@@ -615,20 +696,35 @@ def _is_module_scope_declaration(node) -> bool:
 
 
 def _collect_export_statement(
-    node, source: bytes, artifacts: list[FoundArtifact], current_class: Optional[str]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    current_class: Optional[str],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if node.type != "export_statement":
         return False
-    if _collect_default_react_wrapped_component(node, source, artifacts):
+    if _collect_default_react_wrapped_component(
+        node, source, artifacts, allow_jsdoc_returns
+    ):
         return True
 
     for child in node.children:
-        _collect_impl(child, source, artifacts, current_class)
+        _collect_impl(
+            child,
+            source,
+            artifacts,
+            current_class,
+            allow_jsdoc_returns=allow_jsdoc_returns,
+        )
     return True
 
 
 def _collect_default_react_wrapped_component(
-    node, source: bytes, artifacts: list[FoundArtifact]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    allow_jsdoc_returns: bool,
 ) -> bool:
     if not any(child.type == "default" for child in node.children):
         return False
@@ -644,6 +740,8 @@ def _collect_default_react_wrapped_component(
         return False
 
     args, returns = _extract_func_signature(wrapped_value, source)
+    if returns is None and allow_jsdoc_returns:
+        returns = extract_leading_jsdoc_return_type(node, source)
     artifacts.append(
         FoundArtifact(
             kind=ArtifactKind.FUNCTION,
@@ -660,7 +758,10 @@ def _collect_default_react_wrapped_component(
 
 
 def _handle_variable_declarator(
-    node, source: bytes, artifacts: list[FoundArtifact]
+    node,
+    source: bytes,
+    artifacts: list[FoundArtifact],
+    allow_jsdoc_returns: bool,
 ) -> None:
     name_node = _child_by_type(node, "identifier")
     if not name_node:
@@ -686,6 +787,8 @@ def _handle_variable_declarator(
         # Also check type annotation on the variable for return type
         if not returns:
             returns = _extract_type_annotation_return(node, source)
+        if not returns and allow_jsdoc_returns:
+            returns = extract_leading_jsdoc_return_type(value, source)
         is_async = any(c.type == "async" for c in value.children)
         artifacts.append(
             FoundArtifact(
@@ -715,6 +818,8 @@ def _handle_variable_declarator(
             type_parameters = _extract_type_parameters_from_annotation(node, source)
         if not returns:
             returns = _extract_type_annotation_return(node, source)
+        if not returns and allow_jsdoc_returns:
+            returns = extract_leading_jsdoc_return_type(wrapped_value, source)
         is_async = any(c.type == "async" for c in wrapped_value.children)
         artifacts.append(
             FoundArtifact(

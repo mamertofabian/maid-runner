@@ -417,6 +417,15 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Fail when plan locks lack valid red-phase evidence",
     )
     p.add_argument(
+        "--plan-lock-scope",
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Check plan-lock integrity across the repository (default) or "
+            "only for manifests and behavioral tests changed from the task baseline"
+        ),
+    )
+    p.add_argument(
         "--artifact-coverage",
         action="store_true",
         help="Run validate commands under coverage and require declared artifacts to execute",

@@ -1,0 +1,217 @@
+{
+  "manifest_path": "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml",
+  "manifest_hash": "sha256:956e41997c8ac66c639a9d7bf350aadfb57587492e877e62dd365abfc8b90500",
+  "test_hashes": {
+    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+    "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+  },
+  "created_at": "2026-07-11T04:55:11.709662+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c05ccf664b38a705ff07b174bca59856d1520ba1e3d487e652ea6bf0166f47a5",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:34b9c6d0246ff4123beaf0e14c6d57ab95f77d6d56950d3584c67842d1687233",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-11T04:55:15.970672+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-pre-commit-task-scoped-plan-locks.manifest.yaml -> manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-pre-commit-task-scoped-plan-locks.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ba91ec0aa4c5c4f74023521980eac1407cb830fa54b6f1d72cc7c3e1866b1921",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:34b9c6d0246ff4123beaf0e14c6d57ab95f77d6d56950d3584c67842d1687233",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-11T04:57:12.080031+00:00",
+      "reason": "Include every discovered behavioral plan-lock CLI test in the focused validation command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/cli/test_init_pre_commit.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/cli/test_init_pre_commit.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:a5f4590c0a588dfc1d7947d78eeaf04ef56a12b12b1a5287acd9460eb2fc1769",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:34b9c6d0246ff4123beaf0e14c6d57ab95f77d6d56950d3584c67842d1687233",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-11T05:02:41.108215+00:00",
+      "reason": "Do not require retroactive locks for changed tests owned only by untouched historical manifests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:kind=test_function",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:c1aa5366a5f368c6d34791f04e17bfd72176ad09f7842356b94a4ea45d071ae1",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:218da3179215cac17e5f1b44fa1cfd7bf5a0cedef5620fc05e2e190cf030c01f",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-11T05:09:13.662494+00:00",
+      "reason": "Cover deletion of directory-discovered locked behavioral tests in task scope",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:kind=test_function",
+          "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:956e41997c8ac66c639a9d7bf350aadfb57587492e877e62dd365abfc8b90500",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:201113cb9837f51b47f432d791ae1447afde6de9a3b0e7453772283f38359a4c",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-11T05:10:20.117972+00:00",
+      "reason": "Accept E702 alongside required E701 when deleted test discovery shrinks the locked contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-11T05:10:26.025982+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/cli/test_init_pre_commit.py",
+        "exit_code": 1,
+        "output_tail": "    def test_readme_documents_init_managed_pre_commit_behavior() -> None:\n        readme = (ROOT / \"README.md\").read_text(encoding=\"utf-8\")\n    \n>       assert VERIFY_ENTRY in readme\nE       AssertionError: assert 'maid verify --summary --advisory --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_init_pre_commit.py:416: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_task_integrity_scope_ignores_untouched_historical_test_drift\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_task_integrity_scope_still_rejects_tampering_in_changed_task\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test\nFAILED tests/core/test_plan_lock_scope_enforcement.py::test_task_scope_rejects_deleted_locked_test_from_directory_target\nFAILED tests/cli/test_verify_plan_lock_cmd.py::test_verify_parser_exposes_task_scoped_plan_lock_policy\nFAILED tests/cli/test_verify_plan_lock_cmd.py::test_cmd_verify_passes_plan_lock_scope_to_run_verify\nFAILED tests/cli/test_init_pre_commit.py::test_init_creates_managed_maid_verify_pre_commit_config\nFAILED tests/cli/test_init_pre_commit.py::test_init_managed_hook_tracks_only_head_commit_candidates\nFAILED tests/cli/test_init_pre_commit.py::test_init_appends_managed_hook_without_rewriting_existing_config\nFAILED tests/cli/test_init_pre_commit.py::test_init_force_refresh_replaces_only_stale_managed_block\nFAILED tests/cli/test_init_pre_commit.py::test_readme_documents_init_managed_pre_commit_behavior\n11 failed, 47 passed in 2.82s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=plan_lock_scope:type=str:default=repository",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:returns=None",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_cmd_verify_passes_plan_lock_scope_to_run_verify",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_cmd_verify_passes_plan_lock_scope_to_run_verify:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_cmd_verify_passes_plan_lock_scope_to_run_verify:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_cmd_verify_passes_plan_lock_scope_to_run_verify:kind=test_function",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_cmd_verify_passes_plan_lock_scope_to_run_verify:returns=None",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_verify_parser_exposes_task_scoped_plan_lock_policy",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_verify_parser_exposes_task_scoped_plan_lock_policy:kind=test_function",
+      "tests/cli/test_verify_plan_lock_cmd.py:test_verify_parser_exposes_task_scoped_plan_lock_policy:returns=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_ignores_untouched_historical_test_drift",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_ignores_untouched_historical_test_drift:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_ignores_untouched_historical_test_drift:kind=test_function",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_ignores_untouched_historical_test_drift:returns=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_still_rejects_tampering_in_changed_task",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_still_rejects_tampering_in_changed_task:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_still_rejects_tampering_in_changed_task:kind=test_function",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_integrity_scope_still_rejects_tampering_in_changed_task:returns=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:kind=test_function",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test:returns=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:kind=test_function",
+      "tests/core/test_plan_lock_scope_enforcement.py:test_task_scope_rejects_deleted_locked_test_from_directory_target:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/plan_lock.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_verify_plan_lock_cmd.py",
+        "tests/core/test_plan_lock_scope_enforcement.py"
+      ],
+      "read": [
+        "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
+        "manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_verify_plan_lock_cmd.py",
+      "tests/cli/test_verify_plan_lock_scope_cmd.py",
+      "tests/core/test_plan_lock_scope_enforcement.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/cli/test_init_pre_commit.py",
+      "uv run maid validate manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

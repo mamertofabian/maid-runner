@@ -184,6 +184,98 @@ def test_out_of_scope_locked_manifest_with_tampered_test_still_fails_e701(
     assert ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK in _codes(errors)
 
 
+def test_task_integrity_scope_ignores_untouched_historical_test_drift(
+    tmp_path: Path,
+) -> None:
+    old_path, new_path = _write_two_manifest_project(tmp_path)
+    _lock(old_path, tmp_path, "old-task")
+    _lock(new_path, tmp_path, "new-task")
+    (tmp_path / "tests" / "test_old.py").write_text(
+        "from src.old import old_demo\n\n\ndef test_old_demo_contract():\n"
+        "    old_demo()\n    assert True  # historical drift\n"
+    )
+
+    errors = enforce_plan_locks(
+        _chain(tmp_path),
+        tmp_path,
+        require_plan_lock=True,
+        require_red_evidence=False,
+        changed_paths=[NEW_MANIFEST],
+        plan_lock_scope="task",
+    )
+
+    assert errors == ()
+
+
+def test_task_integrity_scope_still_rejects_tampering_in_changed_task(
+    tmp_path: Path,
+) -> None:
+    old_path, new_path = _write_two_manifest_project(tmp_path)
+    _lock(old_path, tmp_path, "old-task")
+    _lock(new_path, tmp_path, "new-task")
+    (tmp_path / "tests" / "test_new.py").write_text(
+        "from src.new import new_demo\n\n\ndef test_new_demo_contract():\n"
+        "    new_demo()\n    assert True  # weakened in current task\n"
+    )
+
+    errors = enforce_plan_locks(
+        _chain(tmp_path),
+        tmp_path,
+        require_plan_lock=True,
+        require_red_evidence=False,
+        changed_paths=["tests/test_new.py"],
+        plan_lock_scope="task",
+    )
+
+    assert ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK in _codes(errors)
+    assert set(_locations(errors)) == {NEW_MANIFEST}
+
+
+def test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test(
+    tmp_path: Path,
+) -> None:
+    _write_two_manifest_project(tmp_path)
+
+    errors = enforce_plan_locks(
+        _chain(tmp_path),
+        tmp_path,
+        require_plan_lock=True,
+        require_red_evidence=True,
+        changed_paths=["tests/test_new.py"],
+        plan_lock_scope="task",
+    )
+
+    assert errors == ()
+
+
+def test_task_scope_rejects_deleted_locked_test_from_directory_target(
+    tmp_path: Path,
+) -> None:
+    _, new_path = _write_two_manifest_project(tmp_path)
+    new_path.write_text(
+        new_path.read_text()
+        .replace(
+            "python -m pytest -q tests/test_new.py",
+            "python -m pytest -q tests",
+        )
+        .replace("  read:\n    - tests/test_new.py\n", "")
+    )
+    _lock(new_path, tmp_path, "new-task")
+    (tmp_path / "tests" / "test_new.py").unlink()
+
+    errors = enforce_plan_locks(
+        _chain(tmp_path),
+        tmp_path,
+        require_plan_lock=True,
+        require_red_evidence=False,
+        changed_paths=["tests/test_new.py"],
+        plan_lock_scope="task",
+    )
+
+    assert ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK in _codes(errors)
+    assert set(_locations(errors)) == {NEW_MANIFEST}
+
+
 def test_out_of_scope_locked_manifest_with_null_evidence_passes_e704(
     tmp_path: Path,
 ) -> None:

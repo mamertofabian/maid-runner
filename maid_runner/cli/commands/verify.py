@@ -69,6 +69,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
+            plan_lock_scope=getattr(args, "plan_lock_scope", "repository"),
             artifact_coverage=getattr(args, "artifact_coverage", False)
             or strict_preview,
             knockout=getattr(args, "knockout", False),
@@ -199,6 +200,7 @@ def _run_verify(
     test_jobs: int = 1,
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
+    plan_lock_scope: str = "repository",
     artifact_coverage: bool = False,
     knockout: bool = False,
     knockout_limit: int | None = None,
@@ -229,6 +231,7 @@ def _run_verify(
             test_jobs=test_jobs,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
+            plan_lock_scope=plan_lock_scope,
             artifact_coverage=artifact_coverage,
             knockout=knockout,
             knockout_limit=knockout_limit,
@@ -257,6 +260,7 @@ def _run_verify_cached(
     test_jobs: int = 1,
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
+    plan_lock_scope: str = "repository",
     artifact_coverage: bool = False,
     knockout: bool = False,
     knockout_limit: int | None = None,
@@ -373,6 +377,7 @@ def _run_verify_cached(
                     base_ref=base_ref,
                     require_plan_lock=require_plan_lock,
                     require_red_evidence=require_red_evidence,
+                    plan_lock_scope=plan_lock_scope,
                 )
             )
             if not _should_continue(stages[-1], fail_fast):
@@ -579,6 +584,7 @@ def _plan_lock_stage(
     base_ref: str | None,
     require_plan_lock: bool,
     require_red_evidence: bool,
+    plan_lock_scope: str,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
@@ -593,6 +599,7 @@ def _plan_lock_stage(
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
             changed_paths=changed_paths,
+            plan_lock_scope=plan_lock_scope,
         )
         return VerificationStageResult(
             name="plan_lock",

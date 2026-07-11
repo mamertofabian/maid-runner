@@ -1,16 +1,83 @@
 {
   "manifest_path": "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
-  "manifest_hash": "sha256:09a489e6f2373dfb9a6c8ec6097f70c1b809e24fda6678be21e9c4bb68f5b71d",
+  "manifest_hash": "sha256:32586a0eb0ec68e85d1259eb7636233b6873c7d0a245d3cf8979b70b1b729bfa",
   "test_hashes": {
-    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:32c5e2551f171810cac52be57aeb4dc31b7d6272f1909bda05893a800dc77a89",
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
     "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
     "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
-    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:50ce56fca5b6d51ef788302470a530e7503d109e2bc467dc59051f46b2884adf",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
     "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
   },
   "created_at": "2026-06-10T23:05:23.305360+00:00",
-  "revision": 1,
-  "revisions": [],
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:09a489e6f2373dfb9a6c8ec6097f70c1b809e24fda6678be21e9c4bb68f5b71d",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:32c5e2551f171810cac52be57aeb4dc31b7d6272f1909bda05893a800dc77a89",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:50ce56fca5b6d51ef788302470a530e7503d109e2bc467dc59051f46b2884adf",
+        "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
+      },
+      "revised_at": "2026-07-11T05:28:04.317977+00:00",
+      "reason": "Accept chain-merged task-scope plan-lock regression coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:.claude/skills/maid-implementation-review/SKILL.md",
+          "edit:.codex/skills/maid-implementation-review/SKILL.md",
+          "edit:CLAUDE.md",
+          "edit:README.md",
+          "edit:docs/maid_specs.md",
+          "edit:maid_runner/cli/commands/howto.py",
+          "edit:maid_runner/cli/commands/verify.py",
+          "edit:maid_runner/core/plan_lock.py",
+          "edit:maid_runner/core/result.py",
+          "read:maid_runner/cli/commands/_format.py",
+          "read:maid_runner/core/chain.py",
+          "read:maid_runner/core/manifest.py",
+          "read:maid_runner/core/worktree.py",
+          "read:manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml",
+          "read:tests/cli/test_verify_plan_lock_cmd.py",
+          "read:tests/cli/test_verify_plan_lock_scope_cmd.py",
+          "read:tests/core/test_plan_lock_enforcement.py",
+          "read:tests/core/test_plan_lock_scope_enforcement.py",
+          "read:tests/test_plan_lock_docs.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet",
+          "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/test_plan_lock_docs.py"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:32586a0eb0ec68e85d1259eb7636233b6873c7d0a245d3cf8979b70b1b729bfa",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
+      },
+      "revised_at": "2026-07-11T05:29:13.998127+00:00",
+      "reason": "Normalize preserved red-evidence self-references after historical draft promotion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
   "red_evidence": {
     "red": true,
     "captured_at": "2026-06-10T23:05:27.380965+00:00",
@@ -22,19 +89,20 @@
         "classification": "red"
       },
       {
-        "command": "uv run maid validate manifests/drafts/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet",
+        "command": "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet",
         "exit_code": 0,
         "output_tail": "",
         "classification": "not_red"
       },
       {
-        "command": "uv run maid validate manifests/drafts/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet",
+        "command": "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet",
         "exit_code": 0,
         "output_tail": "",
         "classification": "not_red"
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_plan_lock_scope_guidance",
@@ -78,12 +146,43 @@
       "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE:of=ErrorCode",
       "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_UNREADABLE:type=str"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "CLAUDE.md",
+        "README.md",
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/howto.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/result.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/worktree.py",
+        "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml",
+        "tests/cli/test_verify_plan_lock_cmd.py",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py",
+        "tests/core/test_plan_lock_enforcement.py",
+        "tests/core/test_plan_lock_scope_enforcement.py",
+        "tests/test_plan_lock_docs.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_verify_plan_lock_cmd.py",
       "tests/cli/test_verify_plan_lock_scope_cmd.py",
       "tests/core/test_plan_lock_enforcement.py",
       "tests/core/test_plan_lock_scope_enforcement.py",
       "tests/test_plan_lock_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_scope_enforcement.py tests/cli/test_verify_plan_lock_scope_cmd.py tests/core/test_plan_lock_enforcement.py tests/cli/test_verify_plan_lock_cmd.py tests/test_plan_lock_docs.py",
+      "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml --mode schema --quiet"
     ]
   }
 }
