@@ -21,19 +21,10 @@ repos:
         types: [python]
         pass_filenames: true
 
-      # MAID validation - validates all active manifests
-      - id: maid-validate
-        name: MAID validation (all manifests)
-        entry: uv run maid validate
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-
-      # MAID tests - runs validation commands from manifests
-      - id: maid-test
-        name: MAID tests (validation commands)
-        entry: uv run maid test
+      # Comprehensive MAID handoff gate; fail before tests on lock/scope errors
+      - id: maid-verify
+        name: MAID verification (fail-fast handoff gates)
+        entry: uv run maid verify --summary --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope
         language: system
         pass_filenames: false
         always_run: true

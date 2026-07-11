@@ -1,0 +1,103 @@
+{
+  "manifest_path": "manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml",
+  "manifest_hash": "sha256:c67a89be75ab9ad2dabab99f5e615887aa27905ea29a0629709b4bd6bd0b45d0",
+  "test_hashes": {
+    "tests/test_pre_commit_config.py": "sha256:c2508306548475b0b7bde25849fdb8c9d9bb7a1aca715a7edc4ec95a461ada3e"
+  },
+  "created_at": "2026-07-11T00:11:23.959062+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:173ef5a1b09873454cfec2c1e0ea2453dff83e23920ed7e9320c0e1ab28fcf32",
+      "prior_test_hashes": {
+        "tests/test_pre_commit_config.py": "sha256:4524d8f26ee6efd9d53065be4464d0b96576d6a131ab737f80930c5bfbbb8a1b"
+      },
+      "revised_at": "2026-07-11T00:11:24.479879+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/use-verify-for-pre-commit-maid-gate.manifest.yaml -> manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:a3106b73e048618e300722b1719f367bf320eb59646f66546b2827529782beb9",
+      "prior_test_hashes": {
+        "tests/test_pre_commit_config.py": "sha256:4524d8f26ee6efd9d53065be4464d0b96576d6a131ab737f80930c5bfbbb8a1b"
+      },
+      "revised_at": "2026-07-11T00:15:18.402726+00:00",
+      "reason": "Runtime hook validation found verify requires a changed-scope baseline unavailable during ordinary commits; disable only that baseline-dependent gate while preserving plan-lock, red-evidence, worktree-scope, validation, and tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f7c936b19e55c310b91b7ab32636b78acd2cba631506ce8b0831125469aa14f5",
+      "prior_test_hashes": {
+        "tests/test_pre_commit_config.py": "sha256:c2508306548475b0b7bde25849fdb8c9d9bb7a1aca715a7edc4ec95a461ada3e"
+      },
+      "revised_at": "2026-07-11T00:19:04.423531+00:00",
+      "reason": "Capture the evidence-backed post-review Outcome without changing the approved behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-11T00:15:21.438261+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_pre_commit_config.py",
+        "exit_code": 1,
+        "output_tail": "    def test_pre_commit_preserves_format_lint_and_sync_hooks() -> None:\n        hooks = _hooks()\n    \n>       assert [hook[\"id\"] for hook in hooks] == [\n            \"black\",\n            \"ruff\",\n            \"maid-verify\",\n            \"sync-claude\",\n        ]\nE       AssertionError: assert ['black', 'ru...'sync-claude'] == ['black', 'ru...'sync-claude']\nE         \nE         At index 2 diff: 'maid-validate' != 'maid-verify'\nE         Left contains one more item: 'sync-claude'\nE         Use -v to get more diff\n\ntests/test_pre_commit_config.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_pre_commit_config.py::test_pre_commit_uses_single_fail_fast_maid_verify_gate\nFAILED tests/test_pre_commit_config.py::test_pre_commit_preserves_format_lint_and_sync_hooks\n2 failed in 0.04s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_pre_commit_config.py:test_pre_commit_preserves_format_lint_and_sync_hooks",
+      "tests/test_pre_commit_config.py:test_pre_commit_preserves_format_lint_and_sync_hooks:kind=test_function",
+      "tests/test_pre_commit_config.py:test_pre_commit_uses_single_fail_fast_maid_verify_gate",
+      "tests/test_pre_commit_config.py:test_pre_commit_uses_single_fail_fast_maid_verify_gate:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_pre_commit_config.py"
+      ],
+      "edit": [],
+      "read": []
+    },
+    "test_files": [
+      "tests/test_pre_commit_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_pre_commit_config.py",
+      "uv run maid validate manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}
