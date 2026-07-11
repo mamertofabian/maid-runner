@@ -1,0 +1,80 @@
+schema: '2'
+goal: Rewrite argv-form self-referencing validate paths when promoting draft manifests
+type: fix
+created: '2026-07-11T05:45:40Z'
+metadata:
+  tags:
+  - manifest-promotion
+  - plan-lock
+  - regression
+  priority: high
+description: |
+  Chain-merge a regression fix over `073-01-migrate-plan-locks-on-draft-promotion`.
+  Promotion currently rewrites a draft manifest's own path only when a validate
+  command is represented as a shell string. Schema-valid argv-list commands keep
+  the deleted draft path, so the promoted implementation gate later targets a
+  nonexistent manifest. Preserve command representation and replace only argv
+  elements exactly equal to the promoted draft's project-relative path.
+temptations:
+- risk: Do not stringify argv commands to reuse the existing string replacement.
+  instead: Preserve list-form commands and rewrite exact string elements in place.
+- risk: Do not replace draft-path substrings embedded in unrelated argv values.
+  instead: Replace only an argv element that exactly equals the old self-reference.
+- risk: Do not limit the regression to locked drafts.
+  instead: Exercise unlocked promotion because self-reference migration is required regardless of plan-lock state.
+files:
+  scope:
+  - path: maid_runner/cli/commands/manifest.py
+    reason: Extend the private promotion rewrite helper without changing the public CLI signature.
+  create:
+  - path: tests/cli/test_manifest_promote_argv_self_reference.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_rewrites_argv_form_self_referencing_validate_path
+      source_scenario: An unlocked draft uses the repository wrapper and a nested argv validate command targeting its own draft path.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Promotion succeeds, removes the draft, preserves argv form, and writes the active manifest path into the promoted validate command.
+    - kind: test_function
+      name: test_promote_preserves_argv_values_that_only_contain_draft_path_substring
+      source_scenario: An argv value embeds the draft path inside an unrelated report option rather than using it as the self-reference argument.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Promotion preserves the embedded argv value byte-for-byte instead of rewriting a path substring.
+  read:
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - docs/draft-manifest-workflow.md
+validate:
+- uv run python -m pytest -q tests/cli/test_manifest_promote_argv_self_reference.py
+outcome:
+  status: completed
+  completed_at: '2026-07-11T06:50:00Z'
+  summary: Draft promotion now rewrites exact self-referencing path elements in argv-form validate commands while preserving list representation and unrelated embedded substrings.
+  rationale: The promotion helper retains existing shell-string behavior and applies a bounded element-wise replacement only to schema-valid list commands, so wrapper commands no longer target a deleted draft after promotion.
+  lessons:
+  - lesson_type: test-design
+    summary: Promotion regressions should cover both the required exact rewrite and a near-match that must remain byte-identical so broad substring replacement cannot satisfy the contract.
+    tags: [manifest-promotion, argv, regression]
+    paths:
+    - maid_runner/cli/commands/manifest.py
+    - tests/cli/test_manifest_promote_argv_self_reference.py
+  review_notes:
+  - source: independent-reviewer-subagent-review_promote_argv
+    severity: ready
+    summary: No blocking findings; contract scope, exact-element behavior, unlocked promotion, and all temptations matched the implementation.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_manifest_promote_argv_self_reference.py, tests/cli/test_manifest_promote_lock_cmd.py, tests/cli/test_manifest_cmd.py]
+    status: passed
+    summary: Coordinator run passed 37 promotion CLI tests; independent reviewer expanded the promotion-focused run to 40 passing tests.
+  - command: [uv, run, maid, validate, manifests/fix-promote-argv-self-reference.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: Promoted manifest implementation validation passed.
+  - command: [uv, run, ruff, check, maid_runner/cli/commands/manifest.py, tests/cli/test_manifest_promote_argv_self_reference.py]
+    status: passed
+    summary: Ruff passed on the implementation and behavioral regression module.

@@ -1,0 +1,212 @@
+{
+  "manifest_path": "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+  "manifest_hash": "sha256:247a6a6e3418217da4ec1bbed39bb919e9775e1c883ded9a759d3c513029c751",
+  "test_hashes": {
+    "tests/core/test_contract_delta.py": "sha256:95fce565ff1faa2026a92fd4318240454b4d21fd73ed43761418c2d1fba41b5e",
+    "tests/cli/test_plan_status_contract_delta_cmd.py": "sha256:4e9df44db7c74bb7a377d33845abaa4a0af48f206fee80055ed61df46dfa23b9"
+  },
+  "created_at": "2026-07-06T06:21:32.457240+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:f6339f92922982e59d321bab13c3d691207c9c22f198f66c319427287010da74",
+      "prior_test_hashes": {
+        "tests/core/test_contract_delta.py": "sha256:0c55bd3eb0739df6c100333c50bbe280fc424ee7e6e050967d8a719e411ed870",
+        "tests/cli/test_plan_status_contract_delta_cmd.py": "sha256:9fa98d635972121e1ae9b97bc3b5025766cb05327e3c46ea77e7a0e222beacb8"
+      },
+      "revised_at": "2026-07-06T06:21:37.394685+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml -> manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:fc5d4ea48ac5d9553ff9cf2fd720d0aa8b5cf8225b6f75e957ead11aba96a470",
+      "prior_test_hashes": {
+        "tests/core/test_contract_delta.py": "sha256:0c55bd3eb0739df6c100333c50bbe280fc424ee7e6e050967d8a719e411ed870",
+        "tests/cli/test_plan_status_contract_delta_cmd.py": "sha256:9fa98d635972121e1ae9b97bc3b5025766cb05327e3c46ea77e7a0e222beacb8"
+      },
+      "revised_at": "2026-07-06T06:26:14.859117+00:00",
+      "reason": "format behavioral tests after lock",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/cli/test_plan_status_contract_delta_cmd.py",
+          "create:tests/core/test_contract_delta.py",
+          "edit:maid_runner/cli/commands/plan.py",
+          "edit:maid_runner/core/plan_lock.py",
+          "read:maid_runner/core/manifest.py",
+          "read:maid_runner/core/types.py",
+          "read:manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+          "read:manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:fc5d4ea48ac5d9553ff9cf2fd720d0aa8b5cf8225b6f75e957ead11aba96a470",
+      "prior_test_hashes": {
+        "tests/core/test_contract_delta.py": "sha256:95fce565ff1faa2026a92fd4318240454b4d21fd73ed43761418c2d1fba41b5e",
+        "tests/cli/test_plan_status_contract_delta_cmd.py": "sha256:70996515182233855ab886724d2b3357430862949ba0bd3d156addd8eba1d957"
+      },
+      "revised_at": "2026-07-06T06:32:47.181459+00:00",
+      "reason": "cover promotion contract deltas",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision",
+          "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision:kind=test_function",
+          "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:c0226b55bc53c79fbbfdd93d25f17d1e6d62304d795489e208a305ce4ae35505",
+      "prior_test_hashes": {
+        "tests/core/test_contract_delta.py": "sha256:95fce565ff1faa2026a92fd4318240454b4d21fd73ed43761418c2d1fba41b5e",
+        "tests/cli/test_plan_status_contract_delta_cmd.py": "sha256:4e9df44db7c74bb7a377d33845abaa4a0af48f206fee80055ed61df46dfa23b9"
+      },
+      "revised_at": "2026-07-06T06:41:37.615509+00:00",
+      "reason": "capture outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T06:32:47.520598+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_contract_delta.py tests/cli/test_plan_status_contract_delta_cmd.py",
+        "exit_code": 1,
+        "output_tail": "        payload = json.loads(lock_path.read_text())\n>       delta = payload[\"revisions\"][-1][\"contract_delta\"]\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'contract_delta'\n\ntests/cli/test_plan_status_contract_delta_cmd.py:211: KeyError\n----------------------------- Captured stdout call -----------------------------\nPromoted /tmp/pytest-of-atomrem/pytest-359/test_manifest_promote_stores_c0/manifests/drafts/demo-task.manifest.yaml -> /tmp/pytest-of-atomrem/pytest-359/test_manifest_promote_stores_c0/manifests/demo-task.manifest.yaml\n=========================== short test summary info ============================\nFAILED tests/core/test_contract_delta.py::test_compute_contract_delta_reports_artifact_changes_sorted\nFAILED tests/core/test_contract_delta.py::test_compute_contract_delta_qualifies_file_changes_by_section\nFAILED tests/core/test_contract_delta.py::test_compute_contract_delta_reports_validate_command_changes\nFAILED tests/core/test_contract_delta.py::test_compute_contract_delta_identical_contracts_yield_empty_delta\nFAILED tests/core/test_contract_delta.py::test_revise_plan_lock_stores_delta_for_contract_change\nFAILED tests/core/test_contract_delta.py::test_revise_plan_lock_stores_none_when_prior_contract_unavailable\nFAILED tests/core/test_contract_delta.py::test_locks_with_and_without_deltas_verify_identically\nFAILED tests/cli/test_plan_status_contract_delta_cmd.py::test_plan_status_json_exposes_contract_delta_per_revision\nFAILED tests/cli/test_plan_status_contract_delta_cmd.py::test_plan_status_text_prints_delta_counts_only_when_present\nFAILED tests/cli/test_plan_status_contract_delta_cmd.py::test_manifest_promote_stores_contract_delta_for_migrated_revision\n10 failed in 0.18s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:returns=int",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_added",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_added:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_added:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_added:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_removed",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_removed:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_removed:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.artifacts_removed:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_added",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_added:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_added:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_added:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_removed",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_removed:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_removed:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.files_removed:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_added",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_added:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_added:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_added:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_removed",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_removed:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_removed:of=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:ContractDelta.validate_commands_removed:type=tuple[str, ...]",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.contract_delta",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.contract_delta:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.contract_delta:of=PlanLockRevision",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockRevision.contract_delta:type=Optional[ContractDelta]",
+      "maid_runner/core/plan_lock.py:class:ContractDelta",
+      "maid_runner/core/plan_lock.py:class:ContractDelta:kind=class",
+      "maid_runner/core/plan_lock.py:function:compute_contract_delta",
+      "maid_runner/core/plan_lock.py:function:compute_contract_delta:arg=new_contract:type=dict:default=None",
+      "maid_runner/core/plan_lock.py:function:compute_contract_delta:arg=prior_contract:type=dict:default=None",
+      "maid_runner/core/plan_lock.py:function:compute_contract_delta:kind=function",
+      "maid_runner/core/plan_lock.py:function:compute_contract_delta:returns=ContractDelta",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=prior_contract:type=Optional[dict]:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:returns=PlanLock",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision:kind=test_function",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_manifest_promote_stores_contract_delta_for_migrated_revision:returns=None",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_json_exposes_contract_delta_per_revision",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_json_exposes_contract_delta_per_revision:kind=test_function",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_json_exposes_contract_delta_per_revision:returns=None",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_text_prints_delta_counts_only_when_present",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_text_prints_delta_counts_only_when_present:kind=test_function",
+      "tests/cli/test_plan_status_contract_delta_cmd.py:test_plan_status_text_prints_delta_counts_only_when_present:returns=None",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_identical_contracts_yield_empty_delta",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_identical_contracts_yield_empty_delta:kind=test_function",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_identical_contracts_yield_empty_delta:returns=None",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_qualifies_file_changes_by_section",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_qualifies_file_changes_by_section:kind=test_function",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_qualifies_file_changes_by_section:returns=None",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_artifact_changes_sorted",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_artifact_changes_sorted:kind=test_function",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_artifact_changes_sorted:returns=None",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_validate_command_changes",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_validate_command_changes:kind=test_function",
+      "tests/core/test_contract_delta.py:test_compute_contract_delta_reports_validate_command_changes:returns=None",
+      "tests/core/test_contract_delta.py:test_locks_with_and_without_deltas_verify_identically",
+      "tests/core/test_contract_delta.py:test_locks_with_and_without_deltas_verify_identically:kind=test_function",
+      "tests/core/test_contract_delta.py:test_locks_with_and_without_deltas_verify_identically:returns=None",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_delta_for_contract_change",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_delta_for_contract_change:kind=test_function",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_delta_for_contract_change:returns=None",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_none_when_prior_contract_unavailable",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_none_when_prior_contract_unavailable:kind=test_function",
+      "tests/core/test_contract_delta.py:test_revise_plan_lock_stores_none_when_prior_contract_unavailable:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_status_contract_delta_cmd.py",
+        "tests/core/test_contract_delta.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_status_contract_delta_cmd.py",
+      "tests/core/test_contract_delta.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_contract_delta.py tests/cli/test_plan_status_contract_delta_cmd.py"
+    ]
+  }
+}

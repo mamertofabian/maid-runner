@@ -2,11 +2,11 @@
   "manifest_path": "manifests/081-02-add-maid-enrich-command.manifest.yaml",
   "manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
   },
   "created_at": "2026-06-28T08:18:22.993393+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee666fa3e19316551a73b46cfcae6d882b696cd2e93984ab0cb843c3606e58d0",
@@ -15,7 +15,9 @@
         "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
       },
       "revised_at": "2026-06-28T08:18:31.023567+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/081-02-add-maid-enrich-command.manifest.yaml -> manifests/081-02-add-maid-enrich-command.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-02-add-maid-enrich-command.manifest.yaml -> manifests/081-02-add-maid-enrich-command.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
@@ -24,7 +26,9 @@
         "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
       },
       "revised_at": "2026-06-28T08:20:14.331795+00:00",
-      "reason": "Fix enrich behavioral test monkeypatch restoration so direct cmd_enrich execution exercises the real implementation"
+      "reason": "Fix enrich behavioral test monkeypatch restoration so direct cmd_enrich execution exercises the real implementation",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
@@ -33,7 +37,9 @@
         "tests/cli/test_enrich_cmd.py": "sha256:aab6b6c9d058e26623af4c095f614fe903c50da1273cc0e198e90cecd9e944d1"
       },
       "revised_at": "2026-06-28T08:20:51.062489+00:00",
-      "reason": "Refresh corrected enrich behavioral test lock after fixing monkeypatch restoration"
+      "reason": "Refresh corrected enrich behavioral test lock after fixing monkeypatch restoration",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:0a10270749e79a43d0b412d058d0873083c210671172bda44fff1b719790e8fc",
@@ -42,7 +48,9 @@
         "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
       },
       "revised_at": "2026-06-28T09:59:37.375698+00:00",
-      "reason": "Update promoted enrich manifest read dependency from draft 081-01 path to active promoted 081-01 manifest"
+      "reason": "Update promoted enrich manifest read dependency from draft 081-01 path to active promoted 081-01 manifest",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4e7fdcdbe54991695faa229c7545e458e9c5fa9c0c643cf51ae43c86ff45cb79",
@@ -51,7 +59,9 @@
         "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
       },
       "revised_at": "2026-06-28T10:03:32.750769+00:00",
-      "reason": "Capture completed Outcome after ready implementation review"
+      "reason": "Capture completed Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
@@ -60,7 +70,42 @@
         "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
       },
       "revised_at": "2026-06-28T11:41:21.646087+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+      },
+      "revised_at": "2026-07-06T10:18:25.119874+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/cli/commands/enrich.py",
+          "create:tests/cli/test_enrich_cmd.py",
+          "edit:.gitignore",
+          "edit:README.md",
+          "edit:docs/ROADMAP.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/insights.py",
+          "read:maid_runner/cli/commands/learn.py",
+          "read:maid_runner/core/outcome_enrichment.py",
+          "read:maid_runner/core/outcomes.py",
+          "read:manifests/047-04-add-maid-recall-outcome-search.manifest.yaml",
+          "read:manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+          "read:manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
+          "read:tests/test_agent_payload_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -75,6 +120,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".gitignore:attribute:gitignore._ignore_outcome_digest_artifacts",
@@ -116,6 +162,28 @@
       "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_stale_digest_without_allow_flag:kind=test_function",
       "tests/cli/test_enrich_cmd.py:test_enrich_validate_rejects_stale_digest_without_allow_flag:returns=None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/enrich.py",
+        "tests/cli/test_enrich_cmd.py"
+      ],
+      "edit": [
+        ".gitignore",
+        "README.md",
+        "docs/ROADMAP.md",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/cli/commands/learn.py",
+        "maid_runner/core/outcome_enrichment.py",
+        "maid_runner/core/outcomes.py",
+        "manifests/047-04-add-maid-recall-outcome-search.manifest.yaml",
+        "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+        "manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
+        "tests/test_agent_payload_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_enrich_cmd.py",
       "tests/test_agent_payload_distribution.py"

@@ -71,7 +71,7 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
   honest warning-summary labels, clean-tree `changed_scope` skip, dirty
   `files.read` stash-revise support, manifest-visible E310 default-hook
   acknowledgments, proportionate E307 no-validator diagnostics, and archived
-  consumed 067/077/081 epics.
+  consumed 067/077/081/084 epics.
 - **verify summary** (`6cb3107`): `maid verify --summary` deduplicated output;
   now the preferred handoff command per `AGENTS.md`.
 - **Brownfield validator fixes** from the June 24-27 bug-report burst: Claude
@@ -101,8 +101,8 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
   and the misleading warning-summary label were closed by Theme 1
   (`082-01`).
 - Epic drafts under `manifests/drafts/` header-checked: 061/063/065/066/067/
-  068/069/070/071/077/081 archived; 062/064 still `status: planning`.
-  Theme 8 closed the stale 067/077/081 planning records under
+  068/069/070/071/077/081/084 archived; 062/064 still `status: planning`.
+  Theme 8 closed the stale consumed epic planning records under
   `manifests/082-06-archive-consumed-post-067-epics.manifest.yaml`.
 - Specialist backlog freshness: hardening backlog last touched 2026-05-29,
   cleanup backlog 2026-05-31 (both predate the 061-081 waves); performance
@@ -408,7 +408,7 @@ Completed:
 - Theme 3 — completed by `082-03`.
 - Theme 4 — completed by `082-04`.
 - Theme 5 — completed by `082-05`.
-- Theme 8 — completed by `082-06`; consumed epics 067/077/081 are archived.
+- Theme 8 — completed by `082-06`; consumed epics 067/077/081/084 are archived.
 
 Sequencing note: Themes 1-5 were prerequisites for flipping strict defaults
 (062-04), and they are now complete. Execute 062 in child order; do not treat

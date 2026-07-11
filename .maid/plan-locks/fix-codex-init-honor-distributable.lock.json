@@ -4,11 +4,11 @@
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db"
   },
   "created_at": "2026-06-22T02:17:12.222652+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
@@ -19,7 +19,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
       },
       "revised_at": "2026-06-25T12:10:52.156347+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
@@ -30,7 +32,9 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:8a010ca4fc2508008742e3a65a7836386af1568c461c051c3e46bdac2c1be3bf"
       },
       "revised_at": "2026-06-26T15:24:29.122520+00:00",
-      "reason": "Refresh lock after shared payload and Codex init test expectation updates for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload and Codex init test expectation updates for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
@@ -41,7 +45,44 @@
         "tests/cli/test_init_codex_distributable_scope.py": "sha256:cd19fb6161e9b479dfe1d63eec82ec2cb130c169dd12865388c58cf590189460"
       },
       "revised_at": "2026-06-28T11:41:20.517611+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9"
+      },
+      "revised_at": "2026-07-06T10:18:23.882214+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/codex/skills/maid-plan-review/SKILL.md",
+          "create:maid_runner/codex/skills/maid-plan-review/agents/openai.yaml",
+          "create:tests/cli/test_init_codex_distributable_scope.py",
+          "edit:maid_runner/cli/commands/init.py",
+          "edit:maid_runner/codex/manifest.json",
+          "edit:scripts/sync_claude_files.py",
+          "read:.codex/skills/maid-plan-review/SKILL.md",
+          "read:maid_runner/cli/commands/_main.py",
+          "read:manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+          "read:manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+          "read:manifests/fix-claude-skill-only-distribution.manifest.yaml",
+          "read:tests/cli/test_init_cmd.py",
+          "read:tests/test_agent_payload_distribution.py",
+          "read:tests/test_recall_payload_sync.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -56,6 +97,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/init.py:function:cmd_init",
@@ -93,6 +135,28 @@
       "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:kind=test_function",
       "tests/cli/test_init_codex_distributable_scope.py:test_codex_payload_manifest_distributable_excludes_repo_internal_skills:returns=None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/codex/skills/maid-plan-review/SKILL.md",
+        "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml",
+        "tests/cli/test_init_codex_distributable_scope.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/codex/manifest.json",
+        "scripts/sync_claude_files.py"
+      ],
+      "read": [
+        ".codex/skills/maid-plan-review/SKILL.md",
+        "maid_runner/cli/commands/_main.py",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "manifests/fix-claude-skill-only-distribution.manifest.yaml",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_recall_payload_sync.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_cmd.py",
       "tests/cli/test_init_codex_distributable_scope.py",

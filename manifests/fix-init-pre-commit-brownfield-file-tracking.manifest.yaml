@@ -1,0 +1,98 @@
+schema: '2'
+goal: Scope maid init pre-commit file tracking to current commit candidates in brownfield repositories
+type: fix
+created: '2026-07-11T04:11:40Z'
+metadata:
+  tags:
+  - init
+  - pre-commit
+  - file-tracking
+  - brownfield
+  priority: high
+description: |
+  Correct the managed pre-commit command installed by `maid init` so its
+  file-tracking stage checks paths changed from `HEAD` instead of requiring
+  complete manifest coverage of untouched historical inventory. Append
+  `--advisory --file-tracking-scope task --since HEAD` while retaining the
+  existing summary, plan-lock, red-evidence, fail-fast, and no-changed-scope
+  policy. Advisory mode keeps repository-wide legacy warnings visible without
+  making unrelated commits pay down that historical debt; errors and all
+  explicit contract, scope, and test gates remain blocking. Explicit handoff
+  and CI verification remain strict unless their callers deliberately opt into
+  advisory behavior.
+
+  This is an additive chain-merged correction to
+  `add-init-pre-commit-verification` and
+  `fix-brownfield-task-scoped-file-tracking`; neither prior manifest is
+  modified or superseded. The existing task-scope implementation already
+  fails closed on changed undeclared and read-only production paths. This
+  slice changes only the downstream init policy and its documentation.
+temptations:
+- risk: Do not disable file tracking to make brownfield repositories pass.
+  instead: Select the existing task-scoped mode with HEAD as the explicit commit-time baseline.
+- risk: Do not enable changed-scope without a stable branch baseline during ordinary commits.
+  instead: Retain --no-changed-scope while independently providing --since HEAD to task-scoped file tracking.
+- risk: Do not weaken explicit handoff or CI verification to accommodate brownfield pre-commit warnings.
+  instead: Add --advisory only to the generated pre-commit entry and leave maid verify defaults unchanged.
+- risk: Do not modify the prior approved init or task-scope manifests.
+  instead: Chain-merge this behavioral correction through a new test and private renderer scope.
+files:
+  edit:
+  - path: tests/cli/test_init_pre_commit.py
+    artifacts:
+    - kind: test_function
+      name: test_init_managed_hook_tracks_only_head_commit_candidates
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A brownfield repository initializes MAID while historical source files remain outside manifest coverage.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated hook keeps errors and canonical contract gates blocking, reports warnings advisory-only, and selects task-scoped file tracking from HEAD so current commit candidates remain enforced without scanning untouched brownfield inventory.
+  scope:
+  - path: maid_runner/cli/commands/init.py
+    reason: Update the private managed pre-commit entry constant without changing cmd_init's public signature.
+  - path: README.md
+    reason: Keep the documented generated hook command identical to the managed configuration.
+  read:
+  - manifests/add-init-pre-commit-verification.manifest.yaml
+  - manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_init_pre_commit.py tests/cli/test_init_cmd.py
+- uv run maid validate manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-11T12:46:28+08:00'
+  summary: maid init now provisions warning-advisory, task-scoped HEAD verification so pre-commit enforces current commit candidates without blocking on unrelated brownfield warnings or inventory.
+  rationale: The generated hook retains blocking errors, plan locks, red evidence, worktree scope, changed-file coverage, and tests. Advisory warning policy and task-scoped file tracking form a commit-time boundary, while explicit handoff and CI commands retain strict defaults for repository or branch debt enforcement.
+  lessons:
+  - lesson_type: workflow
+    summary: Brownfield pre-commit should make warnings visible but advisory and use a worktree-relative task baseline; strict repository-wide warning enforcement belongs in explicit handoff or CI.
+    tags:
+    - pre-commit
+    - brownfield
+    - advisory
+    - file-tracking
+    paths:
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_init_pre_commit.py
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: info
+    summary: Final review confirmed advisory changes warning policy only, HEAD covers staged, unstaged, and untracked candidates, and all error, contract, scope, and test gates remain blocking.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_pre_commit.py, tests/cli/test_init_cmd.py]
+    status: passed
+    summary: All 40 focused init tests passed.
+  - command: [uv, run, maid, validate, manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: Focused implementation validation passed.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml]
+    status: passed
+    summary: Both declared manifest commands passed.

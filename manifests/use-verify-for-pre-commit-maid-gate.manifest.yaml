@@ -1,0 +1,124 @@
+schema: '2'
+goal: Use one fail-fast MAID verify gate in pre-commit instead of separate validate and test hooks
+type: refactor
+created: '2026-07-11T00:11:24Z'
+metadata:
+  tags:
+  - pre-commit
+  - verification
+  - plan-lock
+  priority: medium
+description: |
+  Keep the repository's acceptable pre-commit validation coverage while making
+  the handoff gate harder to forget. Replace the separate directory-wide
+  `maid validate` and `maid test` hooks with one `maid verify` invocation that
+  requires plan locks and red evidence, uses summary output, fails fast, and
+  disables the baseline-dependent changed-scope gate for commit-time use.
+
+  This is intentionally a configuration-only consolidation, not a new quick
+  verify CLI mode or a broad performance effort. A successful verify still
+  reaches its test stage, while a stale or invalid plan-lock gate stops before
+  the expensive tests. Outcome-only additive metadata remains legal under the
+  existing semantic plan-lock contract; the gate catches MAID's actual lock,
+  red-evidence, worktree-scope, validation, and test failures. Agent handoff
+  verification remains responsible for the explicit changed-scope baseline.
+temptations:
+- risk: Do not add full verify after the existing validate and test hooks, which would duplicate the expensive test stage.
+  instead: Replace those two hooks with one comprehensive verify hook.
+- risk: Do not invent a new quick-verify CLI flag for this morning optimization.
+  instead: Use the existing fail-fast verify command and leave CLI performance work out of scope.
+files:
+  scope:
+  - path: .pre-commit-config.yaml
+    reason: Repository hook configuration has no analyzer-visible public artifact contract.
+  create:
+  - path: tests/test_pre_commit_config.py
+    artifacts:
+    - kind: test_function
+      name: test_pre_commit_uses_single_fail_fast_maid_verify_gate
+      source_scenario: The repository pre-commit configuration is loaded.
+      actions:
+      - type: api_call
+        subject:
+          function: yaml.safe_load
+      expected:
+        behavior: Exactly one MAID verification hook runs verify with summary, plan-lock, red-evidence, fail-fast, and no-changed-scope flags; legacy standalone maid validate and maid test hooks are absent.
+    - kind: test_function
+      name: test_pre_commit_preserves_format_lint_and_sync_hooks
+      source_scenario: The MAID hooks are consolidated into verify.
+      actions:
+      - type: api_call
+        subject:
+          function: yaml.safe_load
+      expected:
+        behavior: Black, Ruff, and conditional Claude payload synchronization hooks retain their existing entries and ordering around the MAID gate.
+validate:
+- uv run python -m pytest -q tests/test_pre_commit_config.py
+- uv run maid validate manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-11T08:18:07+08:00"
+  summary: "Consolidated the repository's standalone MAID validate and test pre-commit hooks into one fail-fast verify gate that enforces plan locks and red evidence without requiring a commit-time changed-scope baseline."
+  rationale: "The exact initial verify command exposed E115 because ordinary commits do not carry an explicit changed-scope baseline. The locked contract was revised with fresh red evidence to add --no-changed-scope while retaining schema, behavioral, implementation, coherence, file tracking, plan-lock, worktree-scope, and test stages. The final exact hook command passed all eight enabled stages in 122206ms, and independent implementation review found no actionable issues."
+  lessons:
+  - lesson_type: workflow
+    summary: "Repository pre-commit verify should disable the baseline-dependent changed-scope gate when ordinary commits have no task baseline; retain changed-scope enforcement in the explicit agent handoff command while preserving plan-lock and worktree-scope gates in pre-commit."
+    tags:
+    - pre-commit
+    - verify
+    - changed-scope
+    - plan-lock
+    paths:
+    - .pre-commit-config.yaml
+    - tests/test_pre_commit_config.py
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: info
+    summary: "No actionable findings; the reviewer confirmed that --no-changed-scope preserves the former validate/test coverage while plan-lock, worktree-scope, and tests remain enabled."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_pre_commit_config.py
+    status: passed
+    summary: "Both focused pre-commit configuration contract tests passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Focused implementation validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "All 329 active manifests passed; 93 superseded manifests were skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 176 declared MAID test commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --fail-fast
+    - --no-changed-scope
+    status: passed
+    summary: "All eight enabled verify stages passed in 122206ms with no blocking findings."

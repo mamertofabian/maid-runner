@@ -1,0 +1,281 @@
+schema: '2'
+goal: Capture this repository's strict-defaults migration debt as a regenerable backlog document, prove the current strict-delta run has zero E900 coverage-safety failures, and record the E710 burn-down queue as empty unless a cited rerun finds remaining debt
+type: fix
+created: '2026-07-05T13:05:06Z'
+metadata:
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+  - validation-trust
+  - strict-defaults
+  - migration
+  - artifact-coverage
+  priority: high
+description: |
+  Migration child of the strict-by-default epic, created because the 062-04
+  release-flip implementation hit its own pinned dogfood blocker on its scoped
+  branch: with strict gates flipped on, that branch's default
+  `uv run maid validate` failed the now-default artifact-coverage layer with
+  pre-existing `E710` (`ARTIFACT_NOT_EXECUTED_BY_TESTS`) findings and `E900`
+  (`INTERNAL_ERROR`) failures from validate commands that were not
+  coverage-safe. Per the 062-04 manifest, any such migration work must go
+  through the 062-03 strict-delta path — not through exemptions added to the
+  flip child. The completed flip implementation is parked on the scoped branch
+  `feat/062-04-strict-default-flip` (commit 4d654f6) and must not merge until
+  this migration path records strict-delta evidence for the current integration
+  branch.
+
+  Current-tree planning evidence (2026-07-05, before plan lock): on
+  `release/v2.next`, `uv run maid validate --strict-delta --json` produced an
+  empty strict delta (`TOTAL_ENTRIES 0`, no E710, no E900). That means this
+  child no longer has an unknown writable E900 repair surface to declare before
+  lock. The implementation contract is therefore the regenerable evidence
+  document plus an explicit empty E710 batch queue, not edits to discovered
+  manifests.
+
+  This child is deliberately the measurement-and-unblock slice, not a hidden
+  burn-down. It has three outcomes:
+
+  1. Debt inventory: run `uv run maid validate --strict-delta --json` on the
+     current tree, and record the results in a new backlog document at
+     `docs/plans/strict-coverage-migration-backlog.md` (same family as
+     `docs/plans/maid-validate-hardening-backlog.md`). The document must
+     contain: the generation command and date, observed runtime, source
+     snapshot, numeric per-code counts (at minimum E710 and E900), and a
+     per-manifest/per-cohort breakdown. If the strict delta is empty, the
+     breakdown explicitly says there are no manifest cohorts in the cited run.
+     Numbers in the document must come from a cited strict-delta run, never
+     from hand estimates; the document states its own regeneration command so
+     later batches can refresh it.
+  2. E900 proof: the backlog document records `E900 count: 0` from the cited
+     strict-delta run and cites the exact run metadata that demonstrated zero
+     coverage-safety failures. Because the current run has no E900 entries, no
+     manifest validate-command edits are in scope for this child. If a rerun
+     before implementation review produces E900 entries, stop for plan
+     revision and declare each affected manifest path before touching it.
+  3. Batch queue: the backlog document records the E710 burn-down queue. For
+     the current empty strict-delta evidence, the queue is explicitly empty
+     and states that no `062-06` burn-down batch is currently required. If a
+     future regeneration finds E710 debt, those batches must be planned as
+     follow-up draft manifests rather than implemented here.
+
+  Mechanics the implementer must respect (evidence from the 068-01 and
+  062-03 Outcome records):
+
+  - E710 applies to declared Python function/method/class artifacts and is
+    satisfied only by runtime body execution under the coverage harness.
+    Import-only or mention-only tests cannot satisfy it, by design; class
+    artifacts count as executed only when a declared method body executes.
+    Burn-down therefore means strengthening tests/validate commands or
+    intentionally retiring stale contracts via the supersession workflow —
+    never loosening the gate.
+  - `--strict-delta` appends structured output and keeps the process exit
+    code determined by the default-gate result, so inventory runs are safe
+    in CI and on the current pre-flip tree.
+  - A full-tree strict-delta run can execute every active manifest's validation
+    commands under coverage and may take tens of minutes depending on current
+    debt. The backlog document must record the observed runtime, and
+    validation of this child must not embed a full-tree delta run in a pytest
+    test. The cited full-run summary is captured as Outcome evidence instead.
+
+  Epic gate this child feeds: 062-04 may merge only after (a) 062-01..062-03
+  ship in a released minor, and (b) `uv run maid validate --strict-delta`
+  reports an empty delta on this repository, at which point the flip's
+  dogfood clause is satisfiable. This child records the current empty-delta
+  evidence for that gate. It does not itself flip any default and adds no gate
+  logic.
+
+  Behavioral tests (created during contract hardening, following the 047-02
+  Path.read_text pattern):
+
+  - tests/test_strict_coverage_migration_docs.py asserts the backlog document
+    exists; names its regeneration command (`maid validate --strict-delta
+    --json`); contains numeric per-code counts covering E710 and E900; records
+    run metadata, observed runtime, and source snapshot; contains an E710
+    burn-down queue section; contains a deferral-rationale section; and states
+    the zero-E900 completion claim with the citation of the delta run that
+    demonstrated it.
+
+  Validate commands:
+
+  - uv run python -m pytest tests/test_strict_coverage_migration_docs.py -v
+  - uv run maid validate manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml --mode schema --quiet
+temptations:
+- risk: Do not weaken, waive, or special-case the artifact-coverage gate to make the dogfood run pass.
+  instead: Strengthen validate commands and tests so declared artifacts execute, or retire genuinely stale contracts through the supersession workflow with rationale recorded in the backlog document. Gate logic in maid_runner/ stays untouched.
+- risk: Do not bulk-supersede or bulk-archive old manifests just to empty the strict-delta report.
+  instead: Every deferred or retired contract gets an individual entry in the deferral section stating why the contract no longer earns enforcement; batches of mechanical supersessions without per-contract rationale are a review blocker.
+- risk: Do not fix E900 commands by deleting them, stubbing them, or pointing them at trivial tests.
+  instead: If E900 appears in a rerun, stop for plan revision and declare the affected manifest paths before repairing commands; do not make discovered manifest edits under this locked inventory-only scope.
+- risk: Do not hand-write or hand-adjust the debt numbers in the backlog document.
+  instead: Regenerate the numbers from a cited `maid validate --strict-delta --json` run and record the command, date, and runtime alongside them.
+- risk: Do not let this child grow into the E710 burn-down itself.
+  instead: This child ends at inventory + zero E900 + an explicitly empty E710 queue for the cited run; any future E710 batch becomes its own draft manifest consumed later, sized to one implementation-sized change.
+files:
+  create:
+  - path: docs/plans/strict-coverage-migration-backlog.md
+    artifacts:
+    - kind: attribute
+      name: _strict_coverage_migration_backlog
+      of: documentation
+      type: markdown document
+      description: 'Regenerable strict-defaults migration backlog: cited strict-delta inventory with per-code counts, per-cohort breakdown, E900 fix log, E710 burn-down batch queue, and per-contract deferral rationale.'
+  - path: tests/test_strict_coverage_migration_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_strict_coverage_migration_backlog_records_regenerable_inventory
+      source_scenario: The strict-defaults migration backlog is created from a cited full-tree strict-delta run.
+      actions:
+      - type: api_call
+        subject:
+          path: docs/plans/strict-coverage-migration-backlog.md
+          function: Path.read_text
+      expected:
+        behavior: The document names the regeneration command, records the observed strict-delta run date/runtime/source, includes per-code counts for E710 and E900, and states that the counts are generated from the cited run rather than hand estimates.
+    - kind: test_function
+      name: test_strict_coverage_migration_backlog_plans_e710_batches_and_deferrals
+      source_scenario: The strict-defaults migration backlog records the remaining E710 migration path without weakening artifact coverage.
+      actions:
+      - type: api_call
+        subject:
+          path: docs/plans/strict-coverage-migration-backlog.md
+          function: Path.read_text
+      expected:
+        behavior: The document includes an E710 burn-down batch plan, a per-contract deferral rationale section, and a zero-E900 completion claim citing the strict-delta run that demonstrated E900 cleanup.
+  read:
+  - maid_runner/core/artifact_coverage.py
+  - maid_runner/core/strict_delta.py
+  - maid_runner/cli/commands/validate.py
+  - docs/plans/maid-validate-hardening-backlog.md
+  - manifests/062-03-report-strict-migration-delta.manifest.yaml
+  - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+  - manifests/drafts/062-04-flip-strict-defaults-in-major-release.manifest.yaml
+validate:
+- uv run python -m pytest tests/test_strict_coverage_migration_docs.py -v
+- uv run maid validate manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-05T21:20:00+08:00"
+  summary: "Promoted 062-05 and recorded a regenerable strict-defaults migration backlog showing the current integration branch has an empty strict-delta inventory: zero E710 artifact-execution debt, zero E900 coverage-safety failures, no manifest cohorts, no deferrals, and no required 062-06 burn-down batch."
+  rationale: "The initial 062-05 draft was unsafe to lock because it described unknown E900 manifest edits discovered after approval. Plan review forced the contract to narrow to evidence capture only after a current `maid validate --strict-delta --json` run returned an empty delta. The promoted implementation creates only the declared backlog document and doc-test coverage, preserves artifact-coverage gate semantics, and leaves future E710 or E900 findings to explicit follow-up drafts or plan revision."
+  review_notes:
+    - source: implementation-review-subagent-019f3268-ea51-7830-8bdb-e79b53b769de
+      severity: P2
+      summary: "Initial implementation review found `.maid/active-manifest` still present as generated task state; no manifest, backlog, or test contract-fidelity findings were reported."
+    - source: implementation-review-subagent-019f326b-9d59-7be0-baad-6dbdb9e57b01
+      severity: ready
+      summary: "Re-review confirmed `.maid/active-manifest` was cleared, the remaining working tree matched the expected promotion shape, no plan-revision stop signal existed, and there were no blockers before Outcome capture."
+  lessons:
+    - lesson_type: workflow
+      summary: "Drafts that plan to repair files discovered by a measurement command are not safe to lock until that measurement has either enumerated the writable scope or proved the repair surface is empty."
+      tags:
+        - plan-lock
+        - strict-delta
+        - scope-control
+      paths:
+        - manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml
+        - docs/plans/strict-coverage-migration-backlog.md
+    - lesson_type: validation-hardening
+      summary: "Strict-defaults migration evidence should preserve structured zero counts, source snapshot, runtime, and no-cohort statements so an empty delta is auditable rather than implied by a missing backlog."
+      tags:
+        - strict-defaults
+        - artifact-coverage
+        - migration-evidence
+      paths:
+        - docs/plans/strict-coverage-migration-backlog.md
+        - tests/test_strict_coverage_migration_docs.py
+    - lesson_type: promotion-cleanup
+      summary: "After promoted MAID work, stop the active task before handoff so `.maid/active-manifest` does not leak into the commit set or implementation review packet."
+      tags:
+        - promotion
+        - task-state
+        - implementation-review
+      paths:
+        - .maid/active-manifest
+        - manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/test_strict_coverage_migration_docs.py
+        - -v
+      status: passed
+      summary: "Two doc tests passed, verifying concrete strict-delta run metadata, numeric zero E710/E900 counts, an explicit no-cohorts statement, zero-E900 evidence, empty E710 batch plan, and no gate weakening."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml
+        - --mode
+        - behavioral
+        - --packet
+      status: passed
+      summary: "Promoted manifest behavioral validation passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml
+        - --mode
+        - implementation
+        - --packet
+      status: passed
+      summary: "Promoted manifest implementation validation passed with one expected E307 warning for the markdown backlog document."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/062-05-consume-strict-delta-migration-debt.manifest.yaml
+      status: passed
+      summary: "The promoted manifest's two declared validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --packet
+      status: passed
+      summary: "Repository-wide validation passed for 411 manifests: 318 passed, 93 superseded skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed all 173 commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --strict-delta
+        - --json
+      status: passed
+      summary: "Strict-delta inventory contained zero entries after the backlog document existed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+        - --packet
+      status: passed
+      summary: "Handoff verify passed all 9 stages with the explicit dirty-worktree baseline; only existing non-blocking E307 no-validator warnings remained."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - tests/test_strict_coverage_migration_docs.py
+      status: passed
+      summary: "Ruff passed on the new doc-test file."

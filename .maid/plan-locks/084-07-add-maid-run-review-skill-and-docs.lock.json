@@ -1,0 +1,445 @@
+{
+  "manifest_path": "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+  "manifest_hash": "sha256:83dfee7e53a1c4c9c2a540ca12b6690cf0da04887f7f8c11fd2ad4505a5ff8d9",
+  "test_hashes": {
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+    "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+  },
+  "created_at": "2026-07-06T10:01:23.223082+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:14c8cae1c21f5d5fd5e635866d644dd3583cf8f2e4f36313d784004de21f373e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-06T10:01:23.899458+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-07-add-maid-run-review-skill-and-docs.manifest.yaml -> manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:28420bb29264aacc916ed4311c0a9b61db774143033c06d87befd2d0fb38f81b",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-06T10:02:27.976151+00:00",
+      "reason": "Declare generated run-review payload copies that sync creates before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry",
+          "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:kind=attribute",
+          "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:of=repository configuration",
+          "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:type=JSON skill registry entry",
+          "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill",
+          "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:kind=attribute",
+          "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:of=documentation",
+          "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:type=markdown skill definition",
+          "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill",
+          "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:kind=attribute",
+          "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:of=documentation",
+          "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:type=markdown skill definition",
+          "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config",
+          "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:kind=attribute",
+          "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:of=repository configuration",
+          "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:type=YAML agent config"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/claude/skills/maid-run-review/SKILL.md",
+          "create:maid_runner/codex/skills/maid-run-review/SKILL.md",
+          "create:maid_runner/codex/skills/maid-run-review/agents/openai.yaml",
+          "edit:maid_runner/claude/manifest.json"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:57e0b80b4a7e1f67e663a7506e23581373785d4d8c9d9809f3fe45fd8e24311d",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-06T10:06:01.934227+00:00",
+      "reason": "Use validator-detectable module attributes for sync and payload version artifacts",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+          "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS",
+          "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:kind=attribute",
+          "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:type=list[str]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/instruction_payload.py:attribute:instruction payload metadata.INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:instruction payload metadata.INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:instruction payload metadata.INSTRUCTION_PAYLOAD_VERSION:of=instruction payload metadata",
+          "maid_runner/instruction_payload.py:attribute:instruction payload metadata.INSTRUCTION_PAYLOAD_VERSION:type=str",
+          "scripts/sync_claude_files.py:attribute:repository configuration._sync_run_review_skill_entry",
+          "scripts/sync_claude_files.py:attribute:repository configuration._sync_run_review_skill_entry:kind=attribute",
+          "scripts/sync_claude_files.py:attribute:repository configuration._sync_run_review_skill_entry:of=repository configuration",
+          "scripts/sync_claude_files.py:attribute:repository configuration._sync_run_review_skill_entry:type=skill list entry"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ad8da4d173218a4f68b513f832e60caa5a31be4277722628f00fc1af4e0085c9",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-06T10:06:35.797025+00:00",
+      "reason": "Include read guidance regression test in manifest validate command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:6ec6867ebf7016666d2380f45078e0e51edf36ac90f9eb3fdf8f7af505b8c021",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-06T10:09:15.616310+00:00",
+      "reason": "Cover existing Codex init and payload regression fixtures affected by new distributable skill",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS",
+          "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS:kind=attribute",
+          "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS:type=list[str]",
+          "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS",
+          "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:kind=attribute",
+          "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:type=list[str]",
+          "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS",
+          "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS:kind=attribute",
+          "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS:type=list[str]"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_init_codex_distributable_scope.py",
+          "edit:tests/test_insights_skill_guidance.py",
+          "edit:tests/test_learning_loop_init_payload.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:cb889d198eb08c993d79fcf5da5f045ea19fc9a9450b8084fd7383b68af5058e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-07-06T10:09:47.559573+00:00",
+      "reason": "Cover onboard guidance updated for seven Codex generic skills",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance",
+          ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:kind=attribute",
+          ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:of=documentation",
+          ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:type=markdown guidance",
+          ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance",
+          ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:kind=attribute",
+          ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:of=documentation",
+          ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:type=markdown guidance",
+          "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance",
+          "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:kind=attribute",
+          "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:of=documentation",
+          "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:type=markdown guidance",
+          "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance",
+          "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:kind=attribute",
+          "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:of=documentation",
+          "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:type=markdown guidance"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:.claude/skills/maid-onboard/SKILL.md",
+          "edit:.codex/skills/maid-onboard/SKILL.md",
+          "edit:maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "edit:maid_runner/user_skills/codex/maid-onboard/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ad0375b3bc71bdfcc0ae0dba4c5afd1f80458e92bf594dd438ddddcb0ed101f6",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:dc774f49865468436f503039fe578cabd85674e23bd6b394d3956ad4dc6f4068",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/test_learning_loop_init_payload.py": "sha256:4ce224171a27f299789d4d73fbe8b1251e9df2138b65ac47a14ee6256bbf32ee"
+      },
+      "revised_at": "2026-07-06T10:16:35.356144+00:00",
+      "reason": "Refactor run-review guidance test to use validator-visible direct assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ad0375b3bc71bdfcc0ae0dba4c5afd1f80458e92bf594dd438ddddcb0ed101f6",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+      },
+      "revised_at": "2026-07-06T10:26:19.690413+00:00",
+      "reason": "Capture final Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:160af9397965d08077dce679228d768314a7bc69e6ea29f0036c1d5b82d6ed34",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+      },
+      "revised_at": "2026-07-06T13:30:42.549140+00:00",
+      "reason": "Correct Outcome validation evidence to cite current 6-file manifest command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T10:16:36.301777+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py",
+        "exit_code": 1,
+        "output_tail": "  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Updated: .codex/\n  Updated: AGENTS.md\n=========================== short test summary info ============================\nFAILED tests/test_run_review_skill_guidance.py::test_both_source_skills_pin_cloud_privacy_disclosure\nFAILED tests/test_run_review_skill_guidance.py::test_skill_pins_validate_before_render_and_no_citation_editing\nFAILED tests/test_run_review_skill_guidance.py::test_skill_and_docs_pin_advisory_never_gate_rule\nFAILED tests/test_run_review_skill_guidance.py::test_run_evaluation_docs_cover_provenance_and_commands\nFAILED tests/test_run_review_skill_guidance.py::test_agent_skills_doc_lists_run_review_for_both_payloads\nFAILED tests/test_run_review_skill_guidance.py::test_instruction_payload_version_bumped_for_run_review_skill\nFAILED tests/test_agent_payload_distribution.py::test_codex_payload_manifest_matches_source_skills\nFAILED tests/test_agent_payload_distribution.py::test_run_review_skill_distributed_to_both_payloads\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_init_installs_only_distributable_skills\nFAILED tests/cli/test_init_codex_distributable_scope.py::test_codex_payload_manifest_distributable_excludes_repo_internal_skills\nFAILED tests/test_insights_skill_guidance.py::test_auditor_insights_guidance_is_distributed_to_codex\nFAILED tests/test_insights_skill_guidance.py::test_codex_init_installs_auditor_insights_skill\nFAILED tests/test_learning_loop_init_payload.py::test_learning_digest_payload_sources_and_packages_match\nFAILED tests/test_learning_loop_init_payload.py::test_init_learning_digest_guidance_stays_advisory\n14 failed, 19 passed in 0.74s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/manifest.json:attribute:repository configuration._claude_manifest_run_review_entry",
+      ".claude/manifest.json:attribute:repository configuration._claude_manifest_run_review_entry:kind=attribute",
+      ".claude/manifest.json:attribute:repository configuration._claude_manifest_run_review_entry:of=repository configuration",
+      ".claude/manifest.json:attribute:repository configuration._claude_manifest_run_review_entry:type=JSON skill registry entry",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:kind=attribute",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:of=documentation",
+      ".claude/skills/maid-onboard/SKILL.md:attribute:documentation._claude_onboard_codex_skill_count_guidance:type=markdown guidance",
+      ".claude/skills/maid-run-review/SKILL.md:attribute:documentation._claude_run_review_skill",
+      ".claude/skills/maid-run-review/SKILL.md:attribute:documentation._claude_run_review_skill:kind=attribute",
+      ".claude/skills/maid-run-review/SKILL.md:attribute:documentation._claude_run_review_skill:of=documentation",
+      ".claude/skills/maid-run-review/SKILL.md:attribute:documentation._claude_run_review_skill:type=markdown skill definition",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:kind=attribute",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:of=documentation",
+      ".codex/skills/maid-onboard/SKILL.md:attribute:documentation._codex_onboard_codex_skill_count_guidance:type=markdown guidance",
+      ".codex/skills/maid-run-review/SKILL.md:attribute:documentation._codex_run_review_skill",
+      ".codex/skills/maid-run-review/SKILL.md:attribute:documentation._codex_run_review_skill:kind=attribute",
+      ".codex/skills/maid-run-review/SKILL.md:attribute:documentation._codex_run_review_skill:of=documentation",
+      ".codex/skills/maid-run-review/SKILL.md:attribute:documentation._codex_run_review_skill:type=markdown skill definition",
+      ".codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._codex_run_review_agent_config",
+      ".codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._codex_run_review_agent_config:kind=attribute",
+      ".codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._codex_run_review_agent_config:of=repository configuration",
+      ".codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._codex_run_review_agent_config:type=YAML agent config",
+      "README.md:attribute:documentation._run_evaluation_docs_pointer",
+      "README.md:attribute:documentation._run_evaluation_docs_pointer:kind=attribute",
+      "README.md:attribute:documentation._run_evaluation_docs_pointer:of=documentation",
+      "README.md:attribute:documentation._run_evaluation_docs_pointer:type=markdown reference",
+      "docs/agent-skills.md:attribute:documentation._maid_run_review_skill_row",
+      "docs/agent-skills.md:attribute:documentation._maid_run_review_skill_row:kind=attribute",
+      "docs/agent-skills.md:attribute:documentation._maid_run_review_skill_row:of=documentation",
+      "docs/agent-skills.md:attribute:documentation._maid_run_review_skill_row:type=markdown table row",
+      "docs/run-evaluation.md:attribute:documentation._run_evaluation_guide",
+      "docs/run-evaluation.md:attribute:documentation._run_evaluation_guide:kind=attribute",
+      "docs/run-evaluation.md:attribute:documentation._run_evaluation_guide:of=documentation",
+      "docs/run-evaluation.md:attribute:documentation._run_evaluation_guide:type=markdown document",
+      "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry",
+      "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:kind=attribute",
+      "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:of=repository configuration",
+      "maid_runner/claude/manifest.json:attribute:repository configuration._generated_claude_manifest_run_review_entry:type=JSON skill registry entry",
+      "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill",
+      "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:kind=attribute",
+      "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:of=documentation",
+      "maid_runner/claude/skills/maid-run-review/SKILL.md:attribute:documentation._generated_claude_run_review_skill:type=markdown skill definition",
+      "maid_runner/codex/manifest.json:attribute:repository configuration._codex_manifest_run_review_entry",
+      "maid_runner/codex/manifest.json:attribute:repository configuration._codex_manifest_run_review_entry:kind=attribute",
+      "maid_runner/codex/manifest.json:attribute:repository configuration._codex_manifest_run_review_entry:of=repository configuration",
+      "maid_runner/codex/manifest.json:attribute:repository configuration._codex_manifest_run_review_entry:type=JSON skill registry entry",
+      "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill",
+      "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:kind=attribute",
+      "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:of=documentation",
+      "maid_runner/codex/skills/maid-run-review/SKILL.md:attribute:documentation._generated_codex_run_review_skill:type=markdown skill definition",
+      "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config",
+      "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:kind=attribute",
+      "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:of=repository configuration",
+      "maid_runner/codex/skills/maid-run-review/agents/openai.yaml:attribute:repository configuration._generated_codex_run_review_agent_config:type=YAML agent config",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:kind=attribute",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:of=documentation",
+      "maid_runner/user_skills/claude/maid-onboard/SKILL.md:attribute:documentation._generated_claude_onboard_codex_skill_count_guidance:type=markdown guidance",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:kind=attribute",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:of=documentation",
+      "maid_runner/user_skills/codex/maid-onboard/SKILL.md:attribute:documentation._generated_codex_onboard_codex_skill_count_guidance:type=markdown guidance",
+      "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS",
+      "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:kind=attribute",
+      "scripts/sync_claude_files.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:type=list[str]",
+      "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS",
+      "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS:kind=attribute",
+      "tests/cli/test_init_codex_distributable_scope.py:attribute:GENERIC_CODEX_SKILLS:type=list[str]",
+      "tests/test_agent_payload_distribution.py:test_run_review_skill_distributed_to_both_payloads",
+      "tests/test_agent_payload_distribution.py:test_run_review_skill_distributed_to_both_payloads:kind=test_function",
+      "tests/test_agent_payload_distribution.py:test_run_review_skill_distributed_to_both_payloads:returns=None",
+      "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS",
+      "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:kind=attribute",
+      "tests/test_insights_skill_guidance.py:attribute:CODEX_DISTRIBUTABLE_SKILLS:type=list[str]",
+      "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS",
+      "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS:kind=attribute",
+      "tests/test_learning_loop_init_payload.py:attribute:GENERIC_CODEX_SKILLS:type=list[str]",
+      "tests/test_run_review_skill_guidance.py:test_agent_skills_doc_lists_run_review_for_both_payloads",
+      "tests/test_run_review_skill_guidance.py:test_agent_skills_doc_lists_run_review_for_both_payloads:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_agent_skills_doc_lists_run_review_for_both_payloads:returns=None",
+      "tests/test_run_review_skill_guidance.py:test_both_source_skills_pin_cloud_privacy_disclosure",
+      "tests/test_run_review_skill_guidance.py:test_both_source_skills_pin_cloud_privacy_disclosure:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_both_source_skills_pin_cloud_privacy_disclosure:returns=None",
+      "tests/test_run_review_skill_guidance.py:test_instruction_payload_version_bumped_for_run_review_skill",
+      "tests/test_run_review_skill_guidance.py:test_instruction_payload_version_bumped_for_run_review_skill:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_instruction_payload_version_bumped_for_run_review_skill:returns=None",
+      "tests/test_run_review_skill_guidance.py:test_run_evaluation_docs_cover_provenance_and_commands",
+      "tests/test_run_review_skill_guidance.py:test_run_evaluation_docs_cover_provenance_and_commands:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_run_evaluation_docs_cover_provenance_and_commands:returns=None",
+      "tests/test_run_review_skill_guidance.py:test_skill_and_docs_pin_advisory_never_gate_rule",
+      "tests/test_run_review_skill_guidance.py:test_skill_and_docs_pin_advisory_never_gate_rule:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_skill_and_docs_pin_advisory_never_gate_rule:returns=None",
+      "tests/test_run_review_skill_guidance.py:test_skill_pins_validate_before_render_and_no_citation_editing",
+      "tests/test_run_review_skill_guidance.py:test_skill_pins_validate_before_render_and_no_citation_editing:kind=test_function",
+      "tests/test_run_review_skill_guidance.py:test_skill_pins_validate_before_render_and_no_citation_editing:returns=None"
+    ],
+    "files": {
+      "create": [
+        ".claude/skills/maid-run-review/SKILL.md",
+        ".codex/skills/maid-run-review/SKILL.md",
+        ".codex/skills/maid-run-review/agents/openai.yaml",
+        "docs/run-evaluation.md",
+        "maid_runner/claude/skills/maid-run-review/SKILL.md",
+        "maid_runner/codex/skills/maid-run-review/SKILL.md",
+        "maid_runner/codex/skills/maid-run-review/agents/openai.yaml",
+        "tests/test_run_review_skill_guidance.py"
+      ],
+      "edit": [
+        ".claude/manifest.json",
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-onboard/SKILL.md",
+        "README.md",
+        "docs/agent-skills.md",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "maid_runner/instruction_payload.py",
+        "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+        "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_insights_skill_guidance.py",
+        "tests/test_learning_loop_init_payload.py"
+      ],
+      "read": [
+        ".claude/skills/maid-outcome-enrich/SKILL.md",
+        ".codex/skills/maid-outcome-enrich/SKILL.md",
+        "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
+        "manifests/drafts/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
+        "tests/test_outcome_enrich_skill_guidance.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_codex_distributable_scope.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_insights_skill_guidance.py",
+      "tests/test_learning_loop_init_payload.py",
+      "tests/test_outcome_enrich_skill_guidance.py",
+      "tests/test_run_review_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py"
+    ]
+  }
+}

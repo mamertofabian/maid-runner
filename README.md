@@ -85,6 +85,22 @@ maid init --tool windsurf        # Windsurf IDE
 maid init --tool generic         # Generic MAID.md
 ```
 
+### Commit-Time MAID Verification
+
+`maid init` creates or safely updates a MAID-managed block in
+`.pre-commit-config.yaml` while it preserves existing hooks, comments,
+formatting, and other project configuration. The managed hook runs:
+
+```bash
+maid verify --summary --advisory --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
+```
+
+MAID provisions the project configuration but does not replace or activate Git
+hooks. For a standard pre-commit setup, run `pre-commit install`. If Git
+`core.hooksPath` points to a global hook directory, keep that dispatcher and
+have it invoke the repository's pre-commit configuration instead of replacing
+the global hook.
+
 ### Repo-Level Claude Install
 
 Use `maid init --tool claude` inside shared repositories as a repo-level Claude install
@@ -107,7 +123,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validate [manifest]` | Validate manifest against code | `--mode schema\|behavioral\|implementation`, `--artifact-coverage`, `--no-chain`, `--coherence`, `--file-tracking`, `--worktree-scope`, `--changed-scope`, `--json`, `--packet [path]`, `--watch`, `--watch-all` |
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
-| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -120,6 +136,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
 | `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
+| `maid evaluate run <manifest>` | Report deterministic after-action run evidence; see `docs/run-evaluation.md` | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
 | `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
@@ -338,6 +355,20 @@ When validating with manifest chains (default), MAID Runner reports file complia
 - **UNDECLARED**: Files not in any manifest (no audit trail)
 - **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
 - **TRACKED**: Files with full MAID compliance
+
+During normal verification, repository-wide file tracking remains the default
+for `maid verify`. During incremental brownfield adoption, scope only the
+verify file-tracking stage to an explicit task window:
+
+```bash
+maid verify --file-tracking-scope task --base-ref <parent-branch>
+maid verify --file-tracking-scope task --since <task-start-commit>
+```
+
+Task scope still blocks changed undeclared or weakly registered production
+files; it only omits untouched historical inventory from that verify stage.
+Use `maid files` whenever you need the full repository inventory. The
+`--advisory` and `--no-changed-scope` options do not disable file tracking.
 
 ### Changed-Scope Handoff Gate
 

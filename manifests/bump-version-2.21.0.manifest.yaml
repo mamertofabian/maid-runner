@@ -1,0 +1,145 @@
+schema: '2'
+goal: Bump maid-runner minor version to 2.21.0
+type: feature
+created: '2026-07-11T13:02:56Z'
+supersedes:
+- bump-version-2.20.0
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package version from 2.20.0 to 2.21.0 for the next release batch.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized. The minor version is
+  intentional because the post-2.20.0 branch includes new run evaluation,
+  provenance, plan-lock evidence, init provisioning, and verification features.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release metadata test alongside the package version.
+- risk: Do not derive release notes only from commit subjects.
+  instead: Summarize the observable behavior and safety properties of every user-facing change since v2.20.0.
+- risk: Do not omit the changelog compare link from automated coverage.
+  instead: Assert the 2.21.0 heading and v2.20.0...v2.21.0 compare link in the release metadata test.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package/source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the new minor version and compare link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_2_21_0
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.21.0 minor release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog heading and compare link, and roadmap all report 2.21.0.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.20.0.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: '2026-07-11T13:09:33Z'
+  summary: Bumped maid-runner from 2.20.0 to 2.21.0 and synchronized package metadata, editable lock metadata, changelog release notes and compare link, roadmap version text, release metadata coverage, and MAID plan-lock evidence.
+  rationale: The 2.21.0 minor release captures the feature work landed after v2.20.0, including deterministic run evaluation and review, agent provenance, plan-lock contract deltas, managed pre-commit provisioning, task-scoped verification, and payload portability hardening.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: Minor release preparation should derive changelog groups from the complete tagged commit range and update every release mirror under one observable integration contract.
+    tags:
+    - release
+    - version
+    - changelog
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: plan-lock
+    summary: A shared release metadata test can require dependent historical lock revisions; use preserved red evidence and explicit reasons rather than bypassing the handoff gate.
+    tags:
+    - release
+    - plan-lock
+    - red-evidence
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+  review_notes:
+  - source: maid-implementation-review-subagent/release_221_review
+    severity: info
+    summary: Ready to merge with no blocking or should-fix findings; the reviewer confirmed scope fidelity, consistent 2.21.0 mirrors, complete and accurate post-v2.20.0 changelog coverage, genuine red evidence, and sanctioned lock revisions.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0
+    status: failed
+    summary: Red phase failed before implementation because runtime version still reported 2.20.0 while the behavioral contract expected 2.21.0.
+  - command:
+    - uv
+    - run
+    - maid
+    - --version
+    status: passed
+    summary: Local CLI reported maid 2.21.0.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: Focused public API and release metadata suite passed with 28 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository-wide MAID validation passed with 335 active contracts, 0 failed, and 94 superseded.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Repository-wide manifest test gate passed all 180 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --no-changed-scope
+    status: passed
+    summary: Strict handoff verification passed all eight stages after the sanctioned dependent shared-test lock revision.
+  - command:
+    - git
+    - diff
+    - --check
+    status: passed
+    summary: Whitespace validation passed.

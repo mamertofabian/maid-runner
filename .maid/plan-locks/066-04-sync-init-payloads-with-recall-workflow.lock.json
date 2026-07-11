@@ -2,12 +2,12 @@
   "manifest_path": "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
   "manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
     "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
     "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
   },
   "created_at": "2026-06-13T13:16:39.921655+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:7dffb970dd76a38d9f23617ae834dd50e4b682495b1bfa18a7aef124dac5567b",
@@ -17,7 +17,9 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-13T13:26:16.389381+00:00",
-      "reason": "Record completed outcome and review evidence after implementation review"
+      "reason": "Record completed outcome and review evidence after implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
@@ -27,7 +29,9 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-13T13:27:18.341692+00:00",
-      "reason": "Recapture red evidence after outcome lock refresh"
+      "reason": "Recapture red evidence after outcome lock refresh",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
@@ -37,7 +41,9 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-22T02:44:44.575341+00:00",
-      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
@@ -47,7 +53,9 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-25T12:10:51.248113+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
@@ -57,7 +65,9 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-26T15:24:29.030461+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
@@ -67,7 +77,47 @@
         "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
       },
       "revised_at": "2026-06-28T11:41:19.588059+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+      },
+      "revised_at": "2026-07-06T10:18:22.883365+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "create:maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml",
+          "create:maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "create:maid_runner/codex/skills/maid-implementer/agents/openai.yaml",
+          "create:maid_runner/codex/skills/maid-planner/SKILL.md",
+          "create:maid_runner/codex/skills/maid-planner/agents/openai.yaml",
+          "create:tests/test_recall_payload_sync.py",
+          "edit:maid_runner/codex/manifest.json",
+          "edit:pyproject.toml",
+          "edit:scripts/sync_claude_files.py",
+          "read:maid_runner/cli/commands/init.py",
+          "read:manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+          "read:manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+          "read:manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+          "read:manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+          "read:tests/test_agent_payload_distribution.py",
+          "read:tests/test_claude_skill_distribution.py",
+          "read:tests/test_recall_payload_sync.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -82,6 +132,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/codex/manifest.json:attribute:codex_payload._codex_payload_manifest_workflow_skills",
@@ -131,6 +182,32 @@
       "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources:kind=test_function",
       "tests/test_recall_payload_sync.py:test_recall_guidance_payload_sync_matches_sources:returns=None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/agents/openai.yaml",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-planner/agents/openai.yaml",
+        "tests/test_recall_payload_sync.py"
+      ],
+      "edit": [
+        "maid_runner/codex/manifest.json",
+        "pyproject.toml",
+        "scripts/sync_claude_files.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/init.py",
+        "manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_claude_skill_distribution.py",
+        "tests/test_recall_payload_sync.py"
+      ]
+    },
     "test_files": [
       "tests/test_agent_payload_distribution.py",
       "tests/test_claude_skill_distribution.py",

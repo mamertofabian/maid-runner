@@ -1,0 +1,221 @@
+{
+  "manifest_path": "manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
+  "manifest_hash": "sha256:1946cae5caa234062fb0d9a2c032f22c78809b608087c97b2255ef26a1b8bcb6",
+  "test_hashes": {
+    "tests/core/test_run_review.py": "sha256:d95d1d529fb9ede8bcfc8f82bda92a4634dfe352a549e4cae094520fe661b55d",
+    "tests/cli/test_evaluate_review_pipeline_cmd.py": "sha256:225f070d81694d5a7270c195ddffdb5791f5d059f373f593ef0556e02f205a9b"
+  },
+  "created_at": "2026-07-06T09:25:31.019031+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9ee52fbf594e33bb7441b6da7777079d1d69f401f33bc3bae94fa794fadae626",
+      "prior_test_hashes": {
+        "tests/core/test_run_review.py": "sha256:7f048a812b2e23ae18ac00d4251d6a52912cef7ab43c9dde443921aaf76d0432",
+        "tests/cli/test_evaluate_review_pipeline_cmd.py": "sha256:bc807f6db2683e276239edde46ebbd4f0a7336f2495f8a3e930dae21ff1557e9"
+      },
+      "revised_at": "2026-07-06T09:25:35.542770+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-06-add-run-review-enrichment-pipeline.manifest.yaml -> manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:1946cae5caa234062fb0d9a2c032f22c78809b608087c97b2255ef26a1b8bcb6",
+      "prior_test_hashes": {
+        "tests/core/test_run_review.py": "sha256:7f048a812b2e23ae18ac00d4251d6a52912cef7ab43c9dde443921aaf76d0432",
+        "tests/cli/test_evaluate_review_pipeline_cmd.py": "sha256:bc807f6db2683e276239edde46ebbd4f0a7336f2495f8a3e930dae21ff1557e9"
+      },
+      "revised_at": "2026-07-06T09:31:13.963287+00:00",
+      "reason": "Refresh plan lock after formatting behavioral tests before implementation handoff.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:1946cae5caa234062fb0d9a2c032f22c78809b608087c97b2255ef26a1b8bcb6",
+      "prior_test_hashes": {
+        "tests/core/test_run_review.py": "sha256:fe5ed9cbcc7297782e84f6bd0904f2c635f13a5bdd87412291356747dd1be812",
+        "tests/cli/test_evaluate_review_pipeline_cmd.py": "sha256:86420612638dbfd4b202004d9e19e3387aff37be40c02b7b6702f09569ffa90d"
+      },
+      "revised_at": "2026-07-06T09:34:55.467081+00:00",
+      "reason": "Harden run-review contract after implementation review findings for project-root, malformed request, summary, and path fabrication validation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:1946cae5caa234062fb0d9a2c032f22c78809b608087c97b2255ef26a1b8bcb6",
+      "prior_test_hashes": {
+        "tests/core/test_run_review.py": "sha256:b59b2519188c244d809671ef755b65ebc7e70ce90007042f85df54e2e5f119f7",
+        "tests/cli/test_evaluate_review_pipeline_cmd.py": "sha256:225f070d81694d5a7270c195ddffdb5791f5d059f373f593ef0556e02f205a9b"
+      },
+      "revised_at": "2026-07-06T09:40:47.916066+00:00",
+      "reason": "Harden run-review validation for top-level summary and unknown finding fields after re-review.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T09:40:49.124586+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_run_review.py tests/cli/test_evaluate_review_pipeline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid evaluate [-h] {run,compare} ...\nmaid evaluate: error: argument evaluate_command: invalid choice: 'prompt' (choose from run, compare)\n=========================== short test summary info ============================\nFAILED tests/core/test_run_review.py::test_build_review_request_itemizes_all_evidence_with_stable_ids\nFAILED tests/core/test_run_review.py::test_build_review_request_handles_diff_presence_and_absence\nFAILED tests/core/test_run_review.py::test_validate_run_review_accepts_faithful_review\nFAILED tests/core/test_run_review.py::test_validate_run_review_rejects_each_fabrication_mode\nFAILED tests/core/test_run_review.py::test_validate_run_review_rejects_missing_summary_and_root_file_fabrication\nFAILED tests/core/test_run_review.py::test_validate_run_review_rejects_fabrication_outside_finding_summary\nFAILED tests/core/test_run_review.py::test_render_run_review_labels_advisory_and_inlines_citations\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_prompt_writes_request_json_with_evidence_items\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_validate_fails_nonzero_listing_fabrication_errors\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_render_fails_closed_on_invalid_review\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_prompt_diff_file_becomes_diff_evidence_item\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_prompt_project_root_resolves_relative_manifest_from_other_cwd\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_validate_fails_closed_on_malformed_request_json\nFAILED tests/cli/test_evaluate_review_pipeline_cmd.py::test_pipeline_offers_no_model_or_credential_options\n14 failed in 1.01s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".gitignore:attribute:repository configuration._run_review_generated_output_ignores",
+      ".gitignore:attribute:repository configuration._run_review_generated_output_ignores:kind=attribute",
+      ".gitignore:attribute:repository configuration._run_review_generated_output_ignores:of=repository configuration",
+      ".gitignore:attribute:repository configuration._run_review_generated_output_ignores:type=gitignore entries",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:kind=function",
+      "maid_runner/cli/commands/evaluate.py:function:cmd_evaluate:returns=int",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.evidence_id",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.evidence_id:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.evidence_id:of=ReviewEvidenceItem",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.evidence_id:type=str",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.kind",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.kind:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.kind:of=ReviewEvidenceItem",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.kind:type=str",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.text",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.text:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.text:of=ReviewEvidenceItem",
+      "maid_runner/core/run_review.py:attribute:ReviewEvidenceItem.text:type=str",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evaluation",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evaluation:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evaluation:of=ReviewRequest",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evaluation:type=dict",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evidence_items",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evidence_items:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evidence_items:of=ReviewRequest",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.evidence_items:type=tuple[ReviewEvidenceItem, ...]",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.instructions",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.instructions:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.instructions:of=ReviewRequest",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.instructions:type=str",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.manifest_slug",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.manifest_slug:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.manifest_slug:of=ReviewRequest",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.manifest_slug:type=str",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.schema_version",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.schema_version:kind=attribute",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.schema_version:of=ReviewRequest",
+      "maid_runner/core/run_review.py:attribute:ReviewRequest.schema_version:type=str",
+      "maid_runner/core/run_review.py:class:ReviewEvidenceItem",
+      "maid_runner/core/run_review.py:class:ReviewEvidenceItem:kind=class",
+      "maid_runner/core/run_review.py:class:ReviewRequest",
+      "maid_runner/core/run_review.py:class:ReviewRequest:kind=class",
+      "maid_runner/core/run_review.py:function:build_review_request",
+      "maid_runner/core/run_review.py:function:build_review_request:arg=diff_text:type=Optional[str]:default=None",
+      "maid_runner/core/run_review.py:function:build_review_request:arg=evaluation:type=RunEvaluation:default=None",
+      "maid_runner/core/run_review.py:function:build_review_request:arg=lock_payload:type=Optional[dict]:default=None",
+      "maid_runner/core/run_review.py:function:build_review_request:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/run_review.py:function:build_review_request:kind=function",
+      "maid_runner/core/run_review.py:function:build_review_request:returns=ReviewRequest",
+      "maid_runner/core/run_review.py:function:render_run_review",
+      "maid_runner/core/run_review.py:function:render_run_review:arg=request:type=ReviewRequest:default=None",
+      "maid_runner/core/run_review.py:function:render_run_review:arg=review_data:type=dict:default=None",
+      "maid_runner/core/run_review.py:function:render_run_review:kind=function",
+      "maid_runner/core/run_review.py:function:render_run_review:returns=str",
+      "maid_runner/core/run_review.py:function:validate_run_review",
+      "maid_runner/core/run_review.py:function:validate_run_review:arg=request:type=ReviewRequest:default=None",
+      "maid_runner/core/run_review.py:function:validate_run_review:arg=review_data:type=dict:default=None",
+      "maid_runner/core/run_review.py:function:validate_run_review:kind=function",
+      "maid_runner/core/run_review.py:function:validate_run_review:returns=list[str]",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_pipeline_offers_no_model_or_credential_options",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_pipeline_offers_no_model_or_credential_options:kind=test_function",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_pipeline_offers_no_model_or_credential_options:returns=None",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_diff_file_becomes_diff_evidence_item",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_diff_file_becomes_diff_evidence_item:kind=test_function",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_diff_file_becomes_diff_evidence_item:returns=None",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_writes_request_json_with_evidence_items",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_writes_request_json_with_evidence_items:kind=test_function",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_prompt_writes_request_json_with_evidence_items:returns=None",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_render_fails_closed_on_invalid_review",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_render_fails_closed_on_invalid_review:kind=test_function",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_render_fails_closed_on_invalid_review:returns=None",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_validate_fails_nonzero_listing_fabrication_errors",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_validate_fails_nonzero_listing_fabrication_errors:kind=test_function",
+      "tests/cli/test_evaluate_review_pipeline_cmd.py:test_validate_fails_nonzero_listing_fabrication_errors:returns=None",
+      "tests/core/test_run_review.py:test_build_review_request_handles_diff_presence_and_absence",
+      "tests/core/test_run_review.py:test_build_review_request_handles_diff_presence_and_absence:kind=test_function",
+      "tests/core/test_run_review.py:test_build_review_request_handles_diff_presence_and_absence:returns=None",
+      "tests/core/test_run_review.py:test_build_review_request_itemizes_all_evidence_with_stable_ids",
+      "tests/core/test_run_review.py:test_build_review_request_itemizes_all_evidence_with_stable_ids:kind=test_function",
+      "tests/core/test_run_review.py:test_build_review_request_itemizes_all_evidence_with_stable_ids:returns=None",
+      "tests/core/test_run_review.py:test_render_run_review_labels_advisory_and_inlines_citations",
+      "tests/core/test_run_review.py:test_render_run_review_labels_advisory_and_inlines_citations:kind=test_function",
+      "tests/core/test_run_review.py:test_render_run_review_labels_advisory_and_inlines_citations:returns=None",
+      "tests/core/test_run_review.py:test_validate_run_review_accepts_faithful_review",
+      "tests/core/test_run_review.py:test_validate_run_review_accepts_faithful_review:kind=test_function",
+      "tests/core/test_run_review.py:test_validate_run_review_accepts_faithful_review:returns=None",
+      "tests/core/test_run_review.py:test_validate_run_review_rejects_each_fabrication_mode",
+      "tests/core/test_run_review.py:test_validate_run_review_rejects_each_fabrication_mode:kind=test_function",
+      "tests/core/test_run_review.py:test_validate_run_review_rejects_each_fabrication_mode:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/run_review.py",
+        "tests/cli/test_evaluate_review_pipeline_cmd.py",
+        "tests/core/test_run_review.py"
+      ],
+      "edit": [
+        ".gitignore",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/evaluate.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/outcome_enrichment.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/run_evaluation.py",
+        "manifests/drafts/084-04-add-maid-evaluate-run-command.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_evaluate_review_pipeline_cmd.py",
+      "tests/core/test_run_review.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_run_review.py tests/cli/test_evaluate_review_pipeline_cmd.py"
+    ]
+  }
+}

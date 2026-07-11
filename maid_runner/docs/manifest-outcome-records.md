@@ -13,6 +13,35 @@ validates and later learns from the explicit structured data in the manifest.
 MAID does not infer missing lessons from unstructured history, commit messages,
 or AI-only conversation state.
 
+## Agent Provenance
+
+Outcome records may include an optional `agent` block that records which agent
+produced the completed run. Provenance is optional, advisory, and never a gate:
+missing provenance must not fail validation, learning, plan locking, promotion,
+or handoff. Evaluation commands may report missing provenance later as an
+after-action finding, but existing flows stay silent.
+
+```yaml
+outcome:
+  status: completed
+  summary: "Implementation completed after review."
+  agent:
+    model: gpt-5-codex
+    provider: openai
+    client: codex-cli
+    skills:
+      - maid-implementer@1
+      - maid-implementation-review@1
+    instructions_fingerprint: sha256:abc123
+    source: mixed
+```
+
+`agent.model` is required when the block is present because it is the primary
+comparison key for future after-action evaluation. The remaining fields are
+optional: `provider`, `client`, `skills`, `instructions_fingerprint`, and
+`source`. Agent-authored Outcome YAML normally omits `source`; CLI-captured
+provenance may use values such as `flags`, `environment`, or `mixed`.
+
 ## Lifecycle
 
 The normal MAID implementation lifecycle remains authoritative:

@@ -2,12 +2,12 @@
   "manifest_path": "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
   "manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
-    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f"
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40"
   },
   "created_at": "2026-06-26T15:11:22.630016+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c3015811b406cecae78d12db651ff95660add175760e5593d3f6029e5cd3d00f",
@@ -18,7 +18,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
       },
       "revised_at": "2026-06-26T15:11:28.855758+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml -> manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml -> manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:59230d1fb8fdba0fe6f2fcb94ac7d843a228c3f44c3d90653b789a9eccc02cd5",
@@ -29,7 +31,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
       },
       "revised_at": "2026-06-26T15:14:37.941913+00:00",
-      "reason": "Remove contextual recall-guidance test read dependency so manifest test coverage matches the declared validation command."
+      "reason": "Remove contextual recall-guidance test read dependency so manifest test coverage matches the declared validation command.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f5fd7f98a6f392b1a85c0d8f08e2f51e361597f9542974d6178df219a4f8ed70",
@@ -39,7 +43,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:804cace5acc1347b1a153d804bf0eaa59ada2acb24f4241ba834c5499ffe2b8c"
       },
       "revised_at": "2026-06-26T15:19:16.994495+00:00",
-      "reason": "Refresh plan lock after Black formatting of the new behavioral test file."
+      "reason": "Refresh plan lock after Black formatting of the new behavioral test file.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f5fd7f98a6f392b1a85c0d8f08e2f51e361597f9542974d6178df219a4f8ed70",
@@ -49,7 +55,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
       },
       "revised_at": "2026-06-26T15:33:28.893992+00:00",
-      "reason": "Capture completed Outcome metadata after ready implementation review."
+      "reason": "Capture completed Outcome metadata after ready implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
@@ -59,7 +67,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:b45b176c8825d394ad79e7846491fecd19fe4f5494943b4d9ccf7227d151e27a"
       },
       "revised_at": "2026-06-28T10:21:11.904173+00:00",
-      "reason": "Refresh shared insights parser option test after 081-03 adds --theme-map"
+      "reason": "Refresh shared insights parser option test after 081-03 adds --theme-map",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
@@ -69,7 +79,9 @@
         "tests/test_insights_skill_guidance.py": "sha256:9be917a685e96cbf5160836ccfa034d9e58f2101690f3ec732582c9f0856f51e"
       },
       "revised_at": "2026-06-28T11:41:20.884432+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
@@ -79,7 +91,53 @@
         "tests/test_insights_skill_guidance.py": "sha256:a8f43a74073e5bc477b625ffe53d670c725fd484d1e7eaf2ae9b70ecf89b8175"
       },
       "revised_at": "2026-07-04T23:09:55.928633+00:00",
-      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:ba991a5986393bf0f2bf2d401314df1d9c6ec9fa67abfe19b8fe9eb05db2f1d9",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f"
+      },
+      "revised_at": "2026-07-06T10:18:24.285218+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:.codex/skills/maid-auditor/SKILL.md",
+          "create:.codex/skills/maid-auditor/agents/openai.yaml",
+          "create:maid_runner/codex/skills/maid-auditor/SKILL.md",
+          "create:maid_runner/codex/skills/maid-auditor/agents/openai.yaml",
+          "create:tests/test_insights_skill_guidance.py",
+          "edit:.claude/skills/maid-auditor/SKILL.md",
+          "edit:docs/agent-skills.md",
+          "edit:maid_runner/claude/skills/maid-auditor/SKILL.md",
+          "edit:maid_runner/codex/manifest.json",
+          "edit:scripts/sync_claude_files.py",
+          "edit:tests/cli/test_init_codex_distributable_scope.py",
+          "edit:tests/test_agent_payload_distribution.py",
+          "read:.claude/manifest.json",
+          "read:docs/agent-skills.md",
+          "read:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/init.py",
+          "read:maid_runner/cli/commands/insights.py",
+          "read:maid_runner/codex/manifest.json",
+          "read:manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+          "read:manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+          "read:manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+          "read:scripts/sync_claude_files.py",
+          "read:tests/cli/test_init_codex_distributable_scope.py",
+          "read:tests/test_agent_payload_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -94,6 +152,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-auditor/SKILL.md:attribute:skill._auditor_insights_cadence_guidance",
@@ -163,6 +222,38 @@
       "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:kind=test_function",
       "tests/test_insights_skill_guidance.py:test_codex_init_installs_auditor_insights_skill:returns=None"
     ],
+    "files": {
+      "create": [
+        ".codex/skills/maid-auditor/SKILL.md",
+        ".codex/skills/maid-auditor/agents/openai.yaml",
+        "maid_runner/codex/skills/maid-auditor/SKILL.md",
+        "maid_runner/codex/skills/maid-auditor/agents/openai.yaml",
+        "tests/test_insights_skill_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-auditor/SKILL.md",
+        "docs/agent-skills.md",
+        "maid_runner/claude/skills/maid-auditor/SKILL.md",
+        "maid_runner/codex/manifest.json",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "read": [
+        ".claude/manifest.json",
+        "docs/agent-skills.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/codex/manifest.json",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "tests/test_agent_payload_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_codex_distributable_scope.py",
       "tests/test_agent_payload_distribution.py",

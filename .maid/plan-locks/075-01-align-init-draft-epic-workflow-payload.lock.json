@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
     "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3"
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
   },
   "created_at": "2026-06-25T12:01:58.480418+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:54d31c119b73f9a317b3b190e1931559960b29bee070857018c29939eaeece8a",
@@ -20,7 +20,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
       },
       "revised_at": "2026-06-25T12:02:05.514314+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/075-01-align-init-draft-epic-workflow-payload.manifest.yaml -> manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/075-01-align-init-draft-epic-workflow-payload.manifest.yaml -> manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b2603b9389275b243a445331fe5d257ce7b62cc5f898d6fea31bff67f82ccb7c",
@@ -33,7 +35,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
       },
       "revised_at": "2026-06-25T12:05:49.114797+00:00",
-      "reason": "Add read-context behavioral tests to validate commands"
+      "reason": "Add read-context behavioral tests to validate commands",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c3d17e4abb15842b4e5b8344a895e8d8f5d52e4532ea4a2280de2ff46b14c44a",
@@ -46,7 +50,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-25T12:10:36.941633+00:00",
-      "reason": "Finalize init workflow payload contract after implementation review of E230 scope"
+      "reason": "Finalize init workflow payload contract after implementation review of E230 scope",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:78a4ee6e3f4b531c3f1d20bcbb2006a6ba03a69961638c1ceaecd736bfe3f0e4",
@@ -56,7 +62,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-26T05:37:43.583599+00:00",
-      "reason": "Update shared init draft workflow tests for recall before promotion guidance"
+      "reason": "Update shared init draft workflow tests for recall before promotion guidance",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
@@ -66,7 +74,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-26T05:55:12.090459+00:00",
-      "reason": "Assert implementation validation boundary in init draft workflow tests"
+      "reason": "Assert implementation validation boundary in init draft workflow tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
@@ -76,7 +86,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-26T08:37:40.801277+00:00",
-      "reason": "Assert full draft recall advisory boundary in init workflow tests"
+      "reason": "Assert full draft recall advisory boundary in init workflow tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
@@ -86,7 +98,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-26T15:24:29.180741+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
@@ -96,7 +110,45 @@
         "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813"
       },
       "revised_at": "2026-06-28T11:41:20.698384+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3"
+      },
+      "revised_at": "2026-07-06T10:18:24.084635+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/docs/draft-manifest-workflow.md",
+          "create:maid_runner/docs/manifest-outcome-records.md",
+          "create:maid_runner/manifests/drafts/README.md",
+          "create:tests/test_init_draft_workflow_payload.py",
+          "edit:docs/draft-manifest-workflow.md",
+          "edit:maid_runner/cli/commands/init.py",
+          "edit:manifests/drafts/README.md",
+          "edit:pyproject.toml",
+          "edit:scripts/sync_claude_files.py",
+          "edit:tests/cli/test_init_cmd.py",
+          "edit:tests/test_agent_payload_distribution.py",
+          "read:docs/manifest-outcome-records.md",
+          "read:manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml",
+          "read:manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+          "read:manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
+          "read:manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -123,6 +175,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/draft-manifest-workflow.md:attribute:documentation._sanctioned_draft_manifest_workflow_docs",
@@ -176,6 +229,30 @@
       "tests/test_init_draft_workflow_payload.py:test_packaged_workflow_docs_match_source_docs:kind=test_function",
       "tests/test_init_draft_workflow_payload.py:test_packaged_workflow_docs_match_source_docs:returns=None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/manifests/drafts/README.md",
+        "tests/test_init_draft_workflow_payload.py"
+      ],
+      "edit": [
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/cli/commands/init.py",
+        "manifests/drafts/README.md",
+        "pyproject.toml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "read": [
+        "docs/manifest-outcome-records.md",
+        "manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
+        "manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_cmd.py",
       "tests/test_agent_payload_distribution.py",

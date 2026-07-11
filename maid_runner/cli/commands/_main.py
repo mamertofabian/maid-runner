@@ -59,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_recall_parser(sub)
     _register_insights_parser(sub)
     _register_enrich_parser(sub)
+    _register_evaluate_parser(sub)
     _register_benchmark_parser(sub)
     _register_incident_parser(sub)
     _register_daemon_parser(sub)
@@ -386,6 +387,15 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Ref whose merge-base with HEAD is used as the --changed-scope baseline",
     )
     p.add_argument(
+        "--file-tracking-scope",
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Scope file tracking to the whole repository (default) or to "
+            "paths changed from the explicit task baseline"
+        ),
+    )
+    p.add_argument(
         "--include-tests",
         action="store_true",
         help="Include changed test files in scope gates",
@@ -405,6 +415,15 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         "--require-red-evidence",
         action="store_true",
         help="Fail when plan locks lack valid red-phase evidence",
+    )
+    p.add_argument(
+        "--plan-lock-scope",
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Check plan-lock integrity across the repository (default) or "
+            "only for manifests and behavioral tests changed from the task baseline"
+        ),
     )
     p.add_argument(
         "--artifact-coverage",
@@ -454,6 +473,7 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     psub = p.add_subparsers(dest="plan_command")
     lp = psub.add_parser("lock", help="Create a plan lock for a manifest")
     lp.add_argument("manifest_path")
+    _add_agent_provenance_args(lp)
     lp.add_argument(
         "--no-run",
         action="store_true",
@@ -468,6 +488,7 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
     )
     rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
     rp.add_argument("manifest_path")
+    _add_agent_provenance_args(rp)
     rp.add_argument(
         "--reason",
         default=None,
@@ -507,6 +528,40 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+
+
+def _add_agent_provenance_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--agent-model",
+        default=None,
+        dest="agent_model",
+        help="Agent model to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-provider",
+        default=None,
+        dest="agent_provider",
+        help="Agent model provider to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-client",
+        default=None,
+        dest="agent_client",
+        help="Agent client or harness to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
+        "--agent-skill",
+        action="append",
+        default=None,
+        dest="agent_skill",
+        help="Agent skill identifier to record; may be passed more than once",
+    )
+    parser.add_argument(
+        "--agent-instructions-fingerprint",
+        default=None,
+        dest="agent_instructions_fingerprint",
+        help="Opaque instruction-set fingerprint to record as advisory provenance",
     )
 
 
@@ -819,6 +874,79 @@ def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
         "--md-output",
         default=".maid/outcomes-digest.md",
         help="Markdown output path for the rendered digest",
+    )
+
+
+def _register_evaluate_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("evaluate", help="Evaluate stored MAID run evidence")
+    esub = p.add_subparsers(dest="evaluate_command")
+    run = esub.add_parser("run", help="Report after-action evidence for one run")
+    run.add_argument("manifest_path")
+    run.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest and .maid evidence",
+    )
+    run.add_argument("--json", action="store_true", help="Print evaluation as JSON")
+    run.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress info findings from text output",
+    )
+    compare = esub.add_parser(
+        "compare", help="Compare stored MAID run evidence across manifests"
+    )
+    compare.add_argument(
+        "--manifest-dir",
+        default="manifests",
+        dest="manifest_dir",
+        help="Manifest directory to sweep for run evidence",
+    )
+    compare.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing .maid evidence",
+    )
+    compare.add_argument("--json", action="store_true", help="Print comparison as JSON")
+    prompt = esub.add_parser("prompt", help="Build a deterministic run-review request")
+    prompt.add_argument("manifest_path")
+    prompt.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing the manifest and .maid evidence",
+    )
+    prompt.add_argument(
+        "--diff-file",
+        default=None,
+        dest="diff_file",
+        help="Read operator-supplied diff evidence from this file",
+    )
+    prompt.add_argument(
+        "--output",
+        default=None,
+        help="Write request JSON to this path",
+    )
+    validate = esub.add_parser("validate", help="Validate a run-review JSON artifact")
+    validate.add_argument("review_path")
+    validate.add_argument(
+        "--request",
+        required=True,
+        help="Run-review request JSON path used as the evidence universe",
+    )
+    render = esub.add_parser("render", help="Render a validated run review")
+    render.add_argument("review_path")
+    render.add_argument(
+        "--request",
+        required=True,
+        help="Run-review request JSON path used as the evidence universe",
+    )
+    render.add_argument(
+        "--output",
+        default=None,
+        help="Markdown output path for the advisory run review",
     )
 
 
@@ -1323,6 +1451,7 @@ def main(argv: list[str] | None = None) -> int:
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
         "enrich": "_cmd_enrich",
+        "evaluate": "_cmd_evaluate",
         "benchmark": "_cmd_benchmark",
         "incident": "_cmd_incident",
         "daemon": "_cmd_daemon",
@@ -1360,6 +1489,7 @@ def main(argv: list[str] | None = None) -> int:
         recall as recall_mod,
         insights as insights_mod,
         enrich as enrich_mod,
+        evaluate as evaluate_mod,
         benchmark as benchmark_mod,
         incident as incident_mod,
         daemon as daemon_mod,
@@ -1391,6 +1521,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
         "_cmd_enrich": enrich_mod.cmd_enrich,
+        "_cmd_evaluate": evaluate_mod.cmd_evaluate,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,
         "_cmd_incident": incident_mod.cmd_incident,
         "_cmd_daemon": daemon_mod.cmd_daemon,

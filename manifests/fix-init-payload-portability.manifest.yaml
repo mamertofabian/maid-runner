@@ -1,0 +1,138 @@
+schema: '2'
+goal: Keep maid init payloads portable across consuming repositories
+type: fix
+created: '2026-07-11T05:49:16Z'
+metadata:
+  tags:
+  - init
+  - payload
+  - portability
+  - hooks
+  priority: high
+description: |
+  Chain-merge corrections over the existing init and payload contracts. Installed
+  draft guidance must not expose maid-runner-only roadmap or performance rules;
+  generated advisory Outcome files described as ignored must receive matching
+  `.gitignore` entries without replacing user rules; and generated pre-commit and
+  Claude scope-check hooks must route through `scripts/maid` when the consuming
+  repository already provides that launcher. Bare `maid` remains the portable
+  fallback when no wrapper exists.
+temptations:
+- risk: Do not copy the maid-runner repository's entire .gitignore into consuming projects.
+  instead: Maintain a narrow marked block containing only MAID-generated advisory paths and preserve all user-owned content.
+- risk: Do not hard-code scripts/maid for repositories that do not provide it.
+  instead: Detect the project launcher and retain bare maid as the fallback.
+- risk: Do not patch only the source workflow README while leaving the packaged resource stale.
+  instead: Update the canonical source and synchronize the distribution payload with the existing sync workflow.
+- risk: Do not overwrite existing Claude settings while correcting the packaged hook command.
+  instead: Keep the merge behavior and transform only MAID's installed scope-check entry for the detected launcher.
+files:
+  scope:
+  - path: maid_runner/cli/commands/init.py
+    reason: Extend private init preparation and payload-install helpers without changing cmd_init's public signature.
+  - path: maid_runner/instruction_payload.py
+    reason: Bump installed payload metadata so downstream check mode detects the corrected guidance.
+  - path: manifests/drafts/README.md
+    reason: Remove repository-specific roadmap and performance guidance from the canonical distributable document.
+  - path: maid_runner/manifests/drafts/README.md
+    reason: Keep the packaged workflow document synchronized with its canonical source.
+  - path: .gitignore
+    reason: The repository dogfoods the same generated advisory ignore inventory asserted for downstream init.
+  create:
+  - path: tests/cli/test_init_payload_portability.py
+    artifacts:
+    - kind: test_function
+      name: test_init_installs_generic_draft_guidance_without_runner_only_references
+      source_scenario: A non-runner repository initializes the generic MAID workflow payload.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The installed draft README contains no parser roadmap reference or compiler fast-path obligation.
+    - kind: test_function
+      name: test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering
+      source_scenario: A consuming repository already has user-owned ignore rules before init.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Init preserves user rules and adds every documented MAID advisory output to a bounded ignore block.
+    - kind: test_function
+      name: test_init_uses_existing_project_maid_wrapper_for_generated_hooks
+      source_scenario: A consuming repository provides scripts/maid before Claude initialization.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Both the generated pre-commit verify hook and Claude scope-check hook invoke the repository launcher.
+    - kind: test_function
+      name: test_force_reinit_migrates_bare_scope_hook_to_project_wrapper
+      source_scenario: Claude init first installs a bare scope hook, a user adds a sibling command plus an unrelated empty user hook container, then the repository adds scripts/maid and force-refreshes the payload.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The refreshed settings contain exactly one wrapper-backed MAID scope hook, remove the obsolete bare variant, preserve the sibling user command exactly once, and retain the unrelated empty user container.
+    - kind: test_function
+      name: test_init_reports_malformed_gitignore_markers_as_gitignore_conflict
+      source_scenario: A consuming repository has an incomplete MAID generated-files marker pair before init.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Init fails before writes, identifies .gitignore as the conflicting configuration, and does not mislabel it as a pre-commit conflict.
+  read:
+  - maid_runner/claude/settings.json
+  - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+  - manifests/079-01-version-init-instruction-payload.manifest.yaml
+  - manifests/add-init-pre-commit-verification.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_init_payload_portability.py
+outcome:
+  status: completed
+  completed_at: '2026-07-11T08:05:00Z'
+  summary: MAID init now installs repository-neutral draft guidance, manages documented advisory outputs in a bounded gitignore block, and routes generated verification and scope hooks through an existing project launcher without losing user Claude settings.
+  rationale: The implementation selects scripts/maid only when present, migrates exact MAID scope-check leaves during force refresh, preserves sibling and unrelated hook containers, and retains bare maid as the generic fallback. Gitignore updates are atomic, idempotent, marker-bounded, and fail loudly with an accurately labeled conflict.
+  lessons:
+  - lesson_type: safety
+    summary: Structured settings migration must remove the owned command leaf rather than its enclosing user-extensible hook container, and cleanup must track whether an owned leaf was actually removed before pruning empty containers.
+    tags: [init, hooks, settings-merge]
+    paths: [maid_runner/cli/commands/init.py, tests/cli/test_init_payload_portability.py]
+  - lesson_type: distribution
+    summary: Distributable workflow documents must be audited for source-repository roadmap and performance assumptions, not merely kept byte-synchronized with their packaged copies.
+    tags: [payload, portability, documentation]
+    paths: [manifests/drafts/README.md, maid_runner/manifests/drafts/README.md]
+  review_notes:
+  - source: independent-reviewer-review_init_portability
+    severity: P1 fixed
+    summary: Found launcher-transition hook duplication and missing managed gitignore markers; both received revised red contracts and fixes.
+  - source: independent-reviewer-rereview_init_portability
+    severity: P2 fixed
+    summary: Found missing repository dogfood markers and misleading gitignore conflict labeling; both were corrected with coverage.
+  - source: independent-reviewer-final_review_init_portability
+    severity: P1 fixed
+    summary: Found that whole-entry cleanup could delete a sibling user command; cleanup was narrowed to exact MAID command leaves.
+  - source: independent-reviewer-ready_review_init_portability
+    severity: P1 fixed
+    summary: Found an unrelated empty user hook container could be pruned; removal tracking now prunes only containers emptied by an owned-leaf removal.
+  - source: independent-reviewer-definitive_review_init
+    severity: ready
+    summary: Final review found no actionable findings and independently confirmed 62 init tests, implementation validation, Ruff, and Black.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_payload_portability.py, tests/cli/test_init_pre_commit.py, tests/cli/test_init_hook_payloads.py]
+    status: passed
+    summary: Focused portability, pre-commit, and hook suite passed 36 tests.
+  - command: [uv, run, python, -m, pytest, -q, 'tests/cli/test_init*.py', tests/test_agent_payload_distribution.py, tests/test_agent_skill_scope_install_guidance.py, tests/test_edit_time_scope_docs.py]
+    status: passed
+    summary: Expanded init and payload regression suite passed 75 tests.
+  - command: [uv, run, maid, validate, manifests/fix-init-payload-portability.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: Promoted manifest implementation validation passed through revision 6.
+  - command: [uv, run, ruff, check, maid_runner/cli/commands/init.py, tests/cli/test_init_payload_portability.py]
+    status: passed
+    summary: Ruff passed on changed Python surfaces; Black check also passed independently.

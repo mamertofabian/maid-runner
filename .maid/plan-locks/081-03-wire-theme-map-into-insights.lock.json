@@ -3,11 +3,11 @@
   "manifest_hash": "sha256:3239f3b96af680cb8ea7851ddfc07f32ede909f63a0b01edb5e452d1e4317ffe",
   "test_hashes": {
     "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
-    "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
     "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
   },
   "created_at": "2026-06-28T10:12:12.333345+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4925fd9bab1ff2b7c08252c8dddd9582e0e9a2360827706bd27c1f936160d4b6",
@@ -16,7 +16,9 @@
         "tests/cli/test_insights_theme_map_cmd.py": "sha256:04eaf42124fbde17d94edcbfdb78d7acadc99803ba7b100f4fd8f453dd52a39b"
       },
       "revised_at": "2026-06-28T10:12:16.597464+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/081-03-wire-theme-map-into-insights.manifest.yaml -> manifests/081-03-wire-theme-map-into-insights.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/081-03-wire-theme-map-into-insights.manifest.yaml -> manifests/081-03-wire-theme-map-into-insights.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:7cff68cf9427cc4ee3343099153baa9ac815345194e4a7dc7bb2f8cf6b32e41e",
@@ -25,7 +27,9 @@
         "tests/cli/test_insights_theme_map_cmd.py": "sha256:04eaf42124fbde17d94edcbfdb78d7acadc99803ba7b100f4fd8f453dd52a39b"
       },
       "revised_at": "2026-06-28T10:18:10.882242+00:00",
-      "reason": "Add existing insights parser-surface guidance test to scope for the new --theme-map flag"
+      "reason": "Add existing insights parser-surface guidance test to scope for the new --theme-map flag",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:7cff68cf9427cc4ee3343099153baa9ac815345194e4a7dc7bb2f8cf6b32e41e",
@@ -34,7 +38,9 @@
         "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
       },
       "revised_at": "2026-06-28T10:21:11.896133+00:00",
-      "reason": "Include shared insights guidance parser-surface test in the 081-03 validation command"
+      "reason": "Include shared insights guidance parser-surface test in the 081-03 validation command",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8dfd677f2c229582b8ee66634dab9998336cad222d2cc54a8d52b4edbf91e76d",
@@ -44,7 +50,9 @@
         "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
       },
       "revised_at": "2026-06-28T11:41:21.822630+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:3239f3b96af680cb8ea7851ddfc07f32ede909f63a0b01edb5e452d1e4317ffe",
@@ -54,7 +62,40 @@
         "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
       },
       "revised_at": "2026-07-04T23:09:56.323725+00:00",
-      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage"
+      "reason": "Update shared behavioral test hash after 083-06 added allow-stale-digest parser and enrichment validation coverage",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:3239f3b96af680cb8ea7851ddfc07f32ede909f63a0b01edb5e452d1e4317ffe",
+      "prior_test_hashes": {
+        "tests/cli/test_insights_cmd.py": "sha256:32bebcb29c672a3b7eb0d0b2f1d14933156d43779eb69cfac1ef49b99228d005",
+        "tests/test_insights_skill_guidance.py": "sha256:12a5626720d6a00e32bad13279d9c435a926b4814c9521cbe46bd42c3f395c1f",
+        "tests/cli/test_insights_theme_map_cmd.py": "sha256:d2d6da7c2390ff5ee15f1c8f375a0d940aae5b8488050df1e719964e6bb0376d"
+      },
+      "revised_at": "2026-07-06T10:18:25.315697+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/cli/test_insights_theme_map_cmd.py",
+          "edit:docs/manifest-outcome-records.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/insights.py",
+          "edit:maid_runner/docs/manifest-outcome-records.md",
+          "read:maid_runner/core/outcome_enrichment.py",
+          "read:maid_runner/core/outcome_insights.py",
+          "read:manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+          "read:manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
+          "read:tests/cli/test_insights_cmd.py",
+          "read:tests/test_insights_skill_guidance.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -69,6 +110,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/manifest-outcome-records.md:attribute:documentation._outcome_enrichment_advisory_guidance",
@@ -102,6 +144,25 @@
       "tests/cli/test_insights_theme_map_cmd.py:test_insights_without_theme_map_keeps_default_aggregation:kind=test_function",
       "tests/cli/test_insights_theme_map_cmd.py:test_insights_without_theme_map_keeps_default_aggregation:returns=None"
     ],
+    "files": {
+      "create": [
+        "tests/cli/test_insights_theme_map_cmd.py"
+      ],
+      "edit": [
+        "docs/manifest-outcome-records.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/docs/manifest-outcome-records.md"
+      ],
+      "read": [
+        "maid_runner/core/outcome_enrichment.py",
+        "maid_runner/core/outcome_insights.py",
+        "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+        "manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
+        "tests/cli/test_insights_cmd.py",
+        "tests/test_insights_skill_guidance.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_insights_cmd.py",
       "tests/cli/test_insights_theme_map_cmd.py",

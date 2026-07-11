@@ -1,0 +1,437 @@
+{
+  "manifest_path": "manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
+  "manifest_hash": "sha256:38e9621381e4230d273113ecfde52e4019bb41a2744d15f5f46ad5f4043ff44d",
+  "test_hashes": {
+    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:996890b76f2d747918c0545238969de148dc7df6263d09084e16f95e58a881ee"
+  },
+  "created_at": "2026-07-09T22:37:14.519757+00:00",
+  "revision": 22,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:c6568d755952099237a3edc113c07478650d430a0d6ec80f6e7ef3fdf6b356e8",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a96290773013716786ea2b0910d4f55234582fb1aae8bc768c18cf780e70e8e9"
+      },
+      "revised_at": "2026-07-09T22:37:49.566304+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-plan-lock-semantic-test-file-classification.manifest.yaml -> manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:e20f3b31bb5da24be575198f476ef8fcafab6c7e01b44fcee483400569c1e91b",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a96290773013716786ea2b0910d4f55234582fb1aae8bc768c18cf780e70e8e9"
+      },
+      "revised_at": "2026-07-09T22:57:00.292596+00:00",
+      "reason": "Preserve historical filename-only plan locks by semantically ignoring stored production false positives during weakening checks.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry",
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/chain.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:08ceea283aeb3b45966caf2866f4e16397d29a90a60d60499151eb8d9615a7f3",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:3f8625edc5a59fc1ca0077c72a603018bf134c80ddfd621add1bb70364ccd1eb"
+      },
+      "revised_at": "2026-07-09T22:57:31.313564+00:00",
+      "reason": "Strengthen legacy-lock compatibility coverage so genuine behavioral test hash changes still fail with E701.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:79b5a8dad31eefd9a45d9c028916cc858e8ad25623bb22e33d5e155d8d62b3cb",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:51bcba2c28ee3feb92cd83369922120835bfcb2775af7ca453d120e259fdbb1c"
+      },
+      "revised_at": "2026-07-09T23:03:44.866476+00:00",
+      "reason": "Close the reviewer-found tamper bypass by requiring immutable locked-contract provenance before ignoring historical production false positives.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f3f6ba32cefb4a9010ecf71afa28b9ffb54d6e96ff49dcefef91209a323556db",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:3548edefdcacdde15f2c90dbf8172354c64c32d7ec55950f551d78cdb2eefcf1"
+      },
+      "revised_at": "2026-07-09T23:05:10.313839+00:00",
+      "reason": "Refresh the behavioral test hash after formatting the reviewer-driven immutable-provenance regression.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f3f6ba32cefb4a9010ecf71afa28b9ffb54d6e96ff49dcefef91209a323556db",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:415d5a8c9cf1963e3aa4ef82306663257e782bfb76a95b14f4eaa51104ffcec0"
+      },
+      "revised_at": "2026-07-09T23:06:22.998098+00:00",
+      "reason": "Cover unchanged ambiguous filename-only lock entries using their immutable content hashes while keeping changed ambiguity fail-closed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:bfbaf88c203d5fa890fbea97cace3f87ef08ee47317b9469a3267fa33f172f13",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:98f35abc804fad8dc9f061396a3308c79d8645fd37020cd284b28cf5bbdd0e62"
+      },
+      "revised_at": "2026-07-09T23:06:47.761164+00:00",
+      "reason": "Refresh the lock after formatting the immutable-hash legacy compatibility regression.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:bfbaf88c203d5fa890fbea97cace3f87ef08ee47317b9469a3267fa33f172f13",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:efd73bff11543e9474af000739e6d9b9e0f10ffead4dcde6e47a94f23a8d52fd"
+      },
+      "revised_at": "2026-07-09T23:13:27.806058+00:00",
+      "reason": "Cover mixed-purpose behavioral files targeted through pytest node selectors so non-test helper artifacts cannot bypass tamper evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:6d85c5c12def2cf945bea1ac1487060df0d4eadb75d10769a3c6e03a18387583",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a23bd69e98588f125b62756ca1ae8fdde7119904f255970eb5c86d90ec5f343a"
+      },
+      "revised_at": "2026-07-09T23:13:51.453453+00:00",
+      "reason": "Refresh the lock after formatting mixed-purpose selector tamper coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:6d85c5c12def2cf945bea1ac1487060df0d4eadb75d10769a3c6e03a18387583",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:7d250cf7ec6c418e81a2075348f5e92ef7d4f58214ffcb06b5d9ef715c1eb9d8"
+      },
+      "revised_at": "2026-07-09T23:14:26.029779+00:00",
+      "reason": "Make historical compatibility conservative: only byte-identical semantic false positives are normalized, while every changed legacy entry remains fail-closed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:032a75c0050b780972d8bd995d1f45c05e4d1cdbb862966ac2ede91253650765",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:7d250cf7ec6c418e81a2075348f5e92ef7d4f58214ffcb06b5d9ef715c1eb9d8"
+      },
+      "revised_at": "2026-07-09T23:15:18.776435+00:00",
+      "reason": "Prove changed legacy production entries remain fail-closed before covering mixed-purpose and stripped-test tampering.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:e2d53646d53d6785144d21950b714df704302d256c51bb8fef0606544ef6dfdc",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:49b5165ea47319be395a55cb9f9c7c3d812c817ec0e4c4492d45271a36ce7950"
+      },
+      "revised_at": "2026-07-09T23:24:07.770659+00:00",
+      "reason": "Fail closed for implicit-root historical test commands and malformed saved command strings so empty parsing cannot erase E702 coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed",
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/_test_runner_invocation.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:55a156e1f3190ad00906abfdb669c52a0558fd4581906280f9fdd4ee11e523ba",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:57f12c28caa17cc3aa033dc86f745f405c12a6554fdb556025b2e0d130798a6a"
+      },
+      "revised_at": "2026-07-09T23:24:55.367678+00:00",
+      "reason": "Refresh the behavioral lock after formatting and correctly positioning implicit-root coverage alongside legacy tamper scenarios.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:55a156e1f3190ad00906abfdb669c52a0558fd4581906280f9fdd4ee11e523ba",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:c8809f3b4ef316c7a45b689c5ffccd31b98e8a113074b9281b723db2ae4af871"
+      },
+      "revised_at": "2026-07-09T23:34:03.982063+00:00",
+      "reason": "Carry working-directory context across compound validate-command segments so implicit-root pytest coverage remains fail-closed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:2028cf4a48ba8399b229345dd28491b651c81b1b29945a4320eedb681758687d",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:6cbdf4398c6df24cfbec60504decc088ee59de45785fc6d1324a1cd8bddaf16a"
+      },
+      "revised_at": "2026-07-09T23:40:47.887099+00:00",
+      "reason": "Preserve parent-relative selector coverage after carried working-directory segments by resolving conservative root and cwd candidates.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd",
+          "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:2daf47921eeca72577eb2ab27d465ed516b9dbf6fdadc1858203f7154b82b894",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:99a187dbeacc12c4c7811c379ee5755f87331cf0ceb86f40a461794426607602"
+      },
+      "revised_at": "2026-07-09T23:41:14.492208+00:00",
+      "reason": "Refresh the behavioral lock after formatting parent-relative selector coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:2daf47921eeca72577eb2ab27d465ed516b9dbf6fdadc1858203f7154b82b894",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:b227c5528c37a2a3050840a7df5aad2430946cd430c1a36e749be2bae5426095"
+      },
+      "revised_at": "2026-07-09T23:48:24.736509+00:00",
+      "reason": "Replace historical command reconstruction with a conservative current-declaration and immutable-hash compatibility boundary, with malformed snapshots fail-closed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:maid_runner/core/_test_runner_invocation.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:007c3f4b3b223ccb90257cebe6558d688718abb4c5230c9ec8a7bb200ca1d843",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:06ae5ae81341cf1e90e5013a8aba9289b594c069001c8c16238e4aa71e478b25"
+      },
+      "revised_at": "2026-07-09T23:56:29.260249+00:00",
+      "reason": "Require non-empty saved test inventory and exact preservation of locked validate commands before any historical compatibility exemption.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:296c96e4396f4d5ba6789147ff79c869f3b9f9ffa1cffb537c5b531f72154c06",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:daf94337d3a28eec130bac086b5b787ab667d583c3a6ed81863c5c41345b6947"
+      },
+      "revised_at": "2026-07-10T00:04:44.787502+00:00",
+      "reason": "Preserve duplicate locked validate-command multiplicity and align the historical-enforcement scope guidance with the evolved contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:7ded6eddefd59f884f61f61d4b2698bed68b98f1ed918950de419f3acc5e2007",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:a77cfe31b5af5725518ffe34b9c6ccfb3e4667e31ca1d4de8dd8879e09a04420"
+      },
+      "revised_at": "2026-07-10T00:12:36.971010+00:00",
+      "reason": "Treat files.scope as an explicit current declaration through Manifest.all_referenced_paths and cover read-to-scope compatibility.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:536988018bbcd6e17e955aedaa037d8c30f7c058173450595b36fed0cbabb219",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:6ec8ec06ded5c08911c266b29ca64ff4d5a2c491bf3334f71f1efdec949ba7e5"
+      },
+      "revised_at": "2026-07-10T00:21:38.134550+00:00",
+      "reason": "Fail closed with E701 when a locked file becomes a directory or cannot be hashed, instead of crashing enforcement.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-10T00:21:38.451156+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py",
+        "exit_code": 1,
+        "output_tail": "        )\n        lock_path.write_text(json.dumps(payload, indent=2))\n    \n        errors = enforce_plan_locks(\n            ManifestChain(tmp_path / \"manifests\", tmp_path),\n            tmp_path,\n            require_plan_lock=True,\n            require_red_evidence=False,\n        )\n    \n>       assert errors == ()\nE       AssertionError: assert (ValidationEr...estion=None),) == ()\nE         \nE         Left contains one more item: ValidationError(code=<ErrorCode.MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK: 'E702'>, message='MANIFEST_CONTRACT_WEAKENED_AF...n(file='manifests/runner-task.manifest.yaml', line=None, column=None, end_line=None, end_column=None), suggestion=None)\nE         Use -v to get more diff\n\ntests/core/test_plan_lock_semantic_test_discovery.py:219: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_semantic_test_discovery.py::test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry\n1 failed, 4 passed in 0.15s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:create_plan_lock",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:returns=PlanLock",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests:kind=test_function",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed:kind=test_function",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry:kind=test_function",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed:kind=test_function",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd",
+      "tests/core/test_plan_lock_semantic_test_discovery.py:test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_plan_lock_semantic_test_discovery.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/chain.py",
+        "manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_plan_lock_semantic_test_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py"
+    ]
+  }
+}

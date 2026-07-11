@@ -85,6 +85,16 @@ class OutcomeValidationEvidence:
 
 
 @dataclass(frozen=True)
+class AgentProvenance:
+    model: str
+    provider: Optional[str] = None
+    client: Optional[str] = None
+    skills: tuple[str, ...] = ()
+    instructions_fingerprint: Optional[str] = None
+    source: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class OutcomeRecord:
     status: OutcomeStatus
     summary: str
@@ -93,6 +103,7 @@ class OutcomeRecord:
     review_notes: tuple[OutcomeReviewNote, ...] = ()
     validation: tuple[OutcomeValidationEvidence, ...] = ()
     completed_at: Optional[str] = None
+    agent: Optional[AgentProvenance] = None
 
 
 @dataclass(frozen=True)

@@ -4,10 +4,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import shutil
+import stat
 import sys
+import tempfile
 from importlib import resources
 from pathlib import Path
+
+import yaml
+from yaml.nodes import MappingNode, SequenceNode
 
 from maid_runner.instruction_payload import (
     INSTRUCTION_PAYLOAD_VERSION,
@@ -17,6 +24,27 @@ from maid_runner.instruction_payload import (
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
 _MAID_SECTION_END = "<!-- END MAID RUNNER -->"
+_PRE_COMMIT_CONFIG = Path(".pre-commit-config.yaml")
+_PRE_COMMIT_SECTION_START = "# BEGIN MAID RUNNER PRE-COMMIT"
+_PRE_COMMIT_SECTION_END = "# END MAID RUNNER PRE-COMMIT"
+_PRE_COMMIT_HOOK_ID = "maid-verify"
+_PRE_COMMIT_VERIFY_ARGS = (
+    "verify --summary --advisory --require-plan-lock --require-red-evidence "
+    "--fail-fast --no-changed-scope --file-tracking-scope task "
+    "--plan-lock-scope task --since HEAD"
+)
+_GITIGNORE_PATH = Path(".gitignore")
+_GITIGNORE_SECTION_START = "# BEGIN MAID RUNNER GENERATED FILES"
+_GITIGNORE_SECTION_END = "# END MAID RUNNER GENERATED FILES"
+_MAID_GENERATED_IGNORE_PATHS = (
+    ".maid/outcomes.json",
+    ".maid/outcomes-digest.json",
+    ".maid/outcomes-digest.md",
+    ".maid/outcomes-enrichment-prompt.json",
+    ".maid/run-review-request.json",
+    ".maid/run-review.json",
+    ".maid/run-reviews/",
+)
 _CHECKED_AGENT_MANIFESTS = {
     "claude": Path(".claude/manifest.json"),
     "codex": Path(".codex/manifest.json"),
@@ -54,12 +82,37 @@ def cmd_init(args: argparse.Namespace) -> int:
             )
             return 2
 
+    try:
+        pre_commit_action, pre_commit_content = _prepare_pre_commit_config(
+            _PRE_COMMIT_CONFIG
+        )
+    except ValueError as exc:
+        print(f"Pre-commit configuration conflict: {exc}", file=sys.stderr)
+        return 1
+    try:
+        gitignore_action, gitignore_content = _prepare_gitignore(_GITIGNORE_PATH)
+    except ValueError as exc:
+        print(f".gitignore configuration conflict: {exc}", file=sys.stderr)
+        return 1
+
     if args.dry_run:
         print(f"Would create: {manifest_dir}/")
         print(f"Would create: {drafts_dir}/")
         print(f"Would create: {config_file}")
         for _, destination in _INIT_WORKFLOW_PAYLOADS:
             print(f"Would create: {destination.as_posix()}")
+        if pre_commit_action == "create":
+            print(f"Would create: {_PRE_COMMIT_CONFIG}")
+        elif pre_commit_action == "update":
+            print(f"Would update: {_PRE_COMMIT_CONFIG}")
+        else:
+            print(f"Already current: {_PRE_COMMIT_CONFIG}")
+        if gitignore_action == "create":
+            print(f"Would create: {_GITIGNORE_PATH}")
+        elif gitignore_action == "update":
+            print(f"Would update: {_GITIGNORE_PATH}")
+        else:
+            print(f"Already current: {_GITIGNORE_PATH}")
         if install_claude:
             _print_agent_dry_run("claude", ".claude", "CLAUDE.md")
         if install_codex:
@@ -67,6 +120,19 @@ def cmd_init(args: argparse.Namespace) -> int:
         if install_cursor:
             _print_agent_dry_run("cursor", ".cursor", None)
         return 0
+
+    if pre_commit_action != "current":
+        try:
+            _write_pre_commit_config_atomically(_PRE_COMMIT_CONFIG, pre_commit_content)
+        except OSError as exc:
+            print(f"Failed to update {_PRE_COMMIT_CONFIG}: {exc}", file=sys.stderr)
+            return 1
+    if gitignore_action != "current":
+        try:
+            _write_pre_commit_config_atomically(_GITIGNORE_PATH, gitignore_content)
+        except OSError as exc:
+            print(f"Failed to update {_GITIGNORE_PATH}: {exc}", file=sys.stderr)
+            return 1
 
     drafts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -93,6 +159,18 @@ def cmd_init(args: argparse.Namespace) -> int:
     print(f"  Created: {config_file}")
     for _, destination in _INIT_WORKFLOW_PAYLOADS:
         print(f"  Created: {destination.as_posix()}")
+    pre_commit_label = {
+        "create": "Created",
+        "update": "Updated",
+        "current": "Current",
+    }[pre_commit_action]
+    print(f"  {pre_commit_label}: {_PRE_COMMIT_CONFIG}")
+    gitignore_label = {
+        "create": "Created",
+        "update": "Updated",
+        "current": "Current",
+    }[gitignore_action]
+    print(f"  {gitignore_label}: {_GITIGNORE_PATH}")
     if install_claude:
         print("  Updated: .claude/")
         print("  Updated: CLAUDE.md")
@@ -101,7 +179,283 @@ def cmd_init(args: argparse.Namespace) -> int:
         print("  Updated: AGENTS.md")
     if install_cursor:
         print("  Updated: .cursor/")
+    print(
+        "  Ensure your Git hook runner invokes .pre-commit-config.yaml "
+        "(standard setup: pre-commit install)."
+    )
+    print(
+        "  If core.hooksPath is configured, keep its dispatcher and have it "
+        "run the project pre-commit configuration."
+    )
     return 0
+
+
+def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
+    """Return the write action and complete managed pre-commit config text."""
+    if path.is_symlink():
+        raise ValueError(f"{path} must not be a symbolic link")
+    if not path.exists():
+        return (
+            "create",
+            (
+                "repos:\n"
+                + _pre_commit_managed_block("\n", _maid_verify_entry(path.parent))
+            ).encode(),
+        )
+
+    try:
+        original = path.read_bytes()
+        text = original.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"cannot read {path}: {exc}") from exc
+
+    newline = _pre_commit_newline(text)
+    start_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_START)
+    end_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_END)
+    if (len(start_matches), len(end_matches)) not in {(0, 0), (1, 1)}:
+        raise ValueError(
+            f"{path} has malformed MAID managed markers; reconcile them manually"
+        )
+
+    managed = len(start_matches) == len(end_matches) == 1
+    if managed and start_matches[0].start() > end_matches[0].start():
+        raise ValueError(
+            f"{path} has reversed MAID managed markers; reconcile them manually"
+        )
+
+    data, root = _parse_pre_commit_config(text, path)
+    hook_count = _maid_verify_hook_count(data)
+    if managed:
+        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
+        block_data, _ = _parse_pre_commit_config(
+            "repos:" + newline + text[start:end], path
+        )
+        if _maid_verify_hook_count(block_data) != 1 or hook_count != 1:
+            raise ValueError(
+                f"{path} managed block must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
+            )
+        updated_text = _replace_managed_pre_commit_block(
+            text, start, end, newline, _maid_verify_entry(path.parent)
+        )
+        _validate_prepared_pre_commit_config(updated_text, path)
+        updated = updated_text.encode("utf-8")
+        return ("current", original) if updated == original else ("update", updated)
+
+    if hook_count:
+        raise ValueError(
+            f"{path} contains an unmanaged {_PRE_COMMIT_HOOK_ID} hook; "
+            "remove it or adopt the MAID managed markers"
+        )
+
+    updated_text = _insert_managed_pre_commit_block(
+        text, root, path, newline, _maid_verify_entry(path.parent)
+    )
+    _validate_prepared_pre_commit_config(updated_text, path)
+    return "update", updated_text.encode("utf-8")
+
+
+def _prepare_gitignore(path: Path) -> tuple[str, bytes]:
+    """Return an idempotent update containing MAID-generated advisory paths."""
+    if path.is_symlink():
+        raise ValueError(f"{path} must not be a symbolic link")
+    if path.exists():
+        try:
+            original = path.read_bytes()
+            text = original.decode("utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            raise ValueError(f"cannot read {path}: {exc}") from exc
+    else:
+        original = b""
+        text = ""
+
+    start_matches = _standalone_marker_matches(text, _GITIGNORE_SECTION_START)
+    end_matches = _standalone_marker_matches(text, _GITIGNORE_SECTION_END)
+    if (len(start_matches), len(end_matches)) not in {(0, 0), (1, 1)}:
+        raise ValueError(
+            f"{path} has malformed MAID generated-file markers; reconcile them manually"
+        )
+    if start_matches and start_matches[0].start() > end_matches[0].start():
+        raise ValueError(
+            f"{path} has reversed MAID generated-file markers; reconcile them manually"
+        )
+
+    newline = _pre_commit_newline(text)
+    block = newline.join(
+        (
+            _GITIGNORE_SECTION_START,
+            *_MAID_GENERATED_IGNORE_PATHS,
+            _GITIGNORE_SECTION_END,
+            "",
+        )
+    )
+    if start_matches:
+        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
+        updated = text[:start] + block + text[end:]
+    else:
+        separator = "" if not text or text.endswith(("\n", "\r")) else newline
+        blank = newline if text else ""
+        updated = text + separator + blank + block
+    if updated.encode("utf-8") == original:
+        return "current", original
+    return ("update" if path.exists() else "create"), updated.encode("utf-8")
+
+
+def _parse_pre_commit_config(text: str, path: Path) -> tuple[dict, MappingNode]:
+    try:
+        data = yaml.safe_load(text)
+        root = yaml.compose(text)
+    except yaml.YAMLError as exc:
+        raise ValueError(f"{path} is invalid YAML: {exc}") from exc
+    if not isinstance(data, dict) or not isinstance(root, MappingNode):
+        raise ValueError(f"{path} must contain a top-level YAML mapping")
+    if root.flow_style:
+        raise ValueError(
+            f"{path} uses a flow-style top-level mapping; convert it to block "
+            "style before MAID manages a hook"
+        )
+    top_level_keys = [key_node.value for key_node, _ in root.value]
+    if top_level_keys.count("repos") > 1:
+        raise ValueError(f"{path} contains duplicate top-level repos keys")
+    if "<<" in top_level_keys:
+        raise ValueError(f"{path} cannot supply repos through a YAML merge key")
+    for key_node, value_node in root.value:
+        if (
+            key_node.value == "repos"
+            and value_node.start_mark.index < key_node.end_mark.index
+        ):
+            raise ValueError(f"{path} cannot supply repos through a YAML alias")
+    if "repos" in data and not isinstance(data["repos"], list):
+        raise ValueError(f"{path} top-level repos value must be a sequence")
+    return data, root
+
+
+def _maid_verify_hook_count(data: dict) -> int:
+    count = 0
+    for repo in data.get("repos", []):
+        if not isinstance(repo, dict):
+            continue
+        hooks = repo.get("hooks", [])
+        if not isinstance(hooks, list):
+            continue
+        count += sum(
+            isinstance(hook, dict) and hook.get("id") == _PRE_COMMIT_HOOK_ID
+            for hook in hooks
+        )
+    return count
+
+
+def _validate_prepared_pre_commit_config(text: str, path: Path) -> None:
+    data, _ = _parse_pre_commit_config(text, path)
+    if _maid_verify_hook_count(data) != 1:
+        raise ValueError(
+            f"generated {path} must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
+        )
+    start_count = len(_standalone_marker_matches(text, _PRE_COMMIT_SECTION_START))
+    end_count = len(_standalone_marker_matches(text, _PRE_COMMIT_SECTION_END))
+    if (start_count, end_count) != (1, 1):
+        raise ValueError(f"generated {path} must contain one MAID managed block")
+
+
+def _maid_verify_entry(project_root: Path) -> str:
+    launcher = (
+        "scripts/maid" if (project_root / "scripts" / "maid").is_file() else "maid"
+    )
+    return f"{launcher} {_PRE_COMMIT_VERIFY_ARGS}"
+
+
+def _pre_commit_managed_block(newline: str, entry: str) -> str:
+    lines = (
+        _PRE_COMMIT_SECTION_START,
+        "  - repo: local",
+        "    hooks:",
+        f"      - id: {_PRE_COMMIT_HOOK_ID}",
+        "        name: MAID verification (fail-fast handoff gates)",
+        f"        entry: {entry}",
+        "        language: system",
+        "        pass_filenames: false",
+        "        always_run: true",
+        "        stages: [pre-commit]",
+        _PRE_COMMIT_SECTION_END,
+    )
+    return newline.join(lines) + newline
+
+
+def _pre_commit_newline(text: str) -> str:
+    without_crlf = text.replace("\r\n", "")
+    return "\r\n" if "\r\n" in text and "\n" not in without_crlf else "\n"
+
+
+def _standalone_marker_matches(text: str, marker: str) -> list[re.Match[str]]:
+    return list(re.finditer(rf"(?m)^{re.escape(marker)}\r?$", text))
+
+
+def _managed_marker_span(
+    text: str, start_match: re.Match[str], end_match: re.Match[str]
+) -> tuple[int, int]:
+    start = start_match.start()
+    end = end_match.end()
+    if end < len(text) and text[end : end + 2] == "\r\n":
+        end += 2
+    elif end < len(text) and text[end] == "\n":
+        end += 1
+    return start, end
+
+
+def _replace_managed_pre_commit_block(
+    text: str, start: int, end: int, newline: str, entry: str
+) -> str:
+    return text[:start] + _pre_commit_managed_block(newline, entry) + text[end:]
+
+
+def _insert_managed_pre_commit_block(
+    text: str, root: MappingNode, path: Path, newline: str, entry: str
+) -> str:
+    repos_node = None
+    for key_node, value_node in root.value:
+        if key_node.value == "repos":
+            repos_node = value_node
+            break
+
+    block = _pre_commit_managed_block(newline, entry)
+    if repos_node is None:
+        position = root.end_mark.index
+        separator = "" if position == 0 or text[position - 1] == "\n" else newline
+        addition = separator + "repos:" + newline + block
+        return text[:position] + addition + text[position:]
+    if not isinstance(repos_node, SequenceNode):
+        raise ValueError(f"{path} top-level repos value must be a sequence")
+    if repos_node.flow_style:
+        raise ValueError(
+            f"{path} uses a flow-style repos sequence; convert it to block "
+            "style before MAID manages a hook"
+        )
+
+    position = repos_node.end_mark.index
+    separator = "" if position == 0 or text[position - 1] == "\n" else newline
+    return text[:position] + separator + block + text[position:]
+
+
+def _write_pre_commit_config_atomically(path: Path, content: bytes) -> None:
+    destination = path.absolute()
+    if destination.is_symlink():
+        raise OSError(f"refusing to replace symbolic link: {path}")
+    mode = stat.S_IMODE(destination.stat().st_mode) if destination.exists() else 0o644
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
+    )
+    temporary_path = Path(temporary_name)
+    try:
+        os.fchmod(descriptor, mode)
+        with os.fdopen(descriptor, "wb") as temporary:
+            descriptor = -1
+            temporary.write(content)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        os.replace(temporary_path, destination)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        temporary_path.unlink(missing_ok=True)
 
 
 def _agent_payload_root(tool: str):
@@ -198,7 +552,11 @@ def _install_agent_payload(
         if relative_path == Path("manifest.json"):
             destination.write_text(json.dumps(manifest, indent=2) + "\n")
         elif tool == "claude" and relative_path == Path("settings.json"):
-            _merge_claude_settings(destination, json.loads(source_file.read_text()))
+            packaged_settings = json.loads(source_file.read_text())
+            _merge_claude_settings(
+                destination,
+                _settings_for_project_launcher(packaged_settings, project_root),
+            )
         else:
             destination.write_bytes(source_file.read_bytes())
 
@@ -265,11 +623,84 @@ def _merge_claude_settings(destination: Path, packaged_settings: dict) -> None:
     for hook_name, packaged_entries in packaged_hooks.items():
         existing_entries = list(merged_hooks.get(hook_name, []))
         for packaged_entry in packaged_entries:
+            if _contains_maid_scope_check_hook(packaged_entry):
+                cleaned_entries = (
+                    _without_maid_scope_check_hooks(entry) for entry in existing_entries
+                )
+                existing_entries = [
+                    entry for entry, _removed in cleaned_entries if entry is not None
+                ]
             if packaged_entry not in existing_entries:
                 existing_entries.append(packaged_entry)
         merged_hooks[hook_name] = existing_entries
     merged["hooks"] = merged_hooks
     destination.write_text(json.dumps(merged, indent=2) + "\n")
+
+
+def _contains_maid_scope_check_hook(value: object) -> bool:
+    if isinstance(value, dict):
+        command = value.get("command")
+        if _is_maid_scope_check_command(command):
+            return True
+        return any(_contains_maid_scope_check_hook(child) for child in value.values())
+    if isinstance(value, list):
+        return any(_contains_maid_scope_check_hook(child) for child in value)
+    return False
+
+
+def _without_maid_scope_check_hooks(value: object) -> tuple[object | None, bool]:
+    if isinstance(value, dict):
+        if _is_maid_scope_check_command(value.get("command")):
+            return None, True
+        cleaned: dict = {}
+        removed_from_hooks = False
+        for key, child in value.items():
+            cleaned_child, removed = _without_maid_scope_check_hooks(child)
+            if cleaned_child is not None:
+                cleaned[key] = cleaned_child
+            if key == "hooks" and removed:
+                removed_from_hooks = True
+        if removed_from_hooks and not cleaned.get("hooks"):
+            return None, True
+        return cleaned, removed_from_hooks
+    if isinstance(value, list):
+        cleaned_items: list[object] = []
+        removed_any = False
+        for child in value:
+            cleaned_child, removed = _without_maid_scope_check_hooks(child)
+            removed_any = removed_any or removed
+            if cleaned_child is not None:
+                cleaned_items.append(cleaned_child)
+        return cleaned_items, removed_any
+    return value, False
+
+
+def _is_maid_scope_check_command(value: object) -> bool:
+    return value in {
+        "maid hook scope-check --stdin",
+        "./scripts/maid hook scope-check --stdin",
+    }
+
+
+def _settings_for_project_launcher(settings: dict, project_root: Path) -> dict:
+    """Route packaged MAID hook commands through a repository launcher if present."""
+    if not (project_root / "scripts" / "maid").is_file():
+        return settings
+
+    transformed = json.loads(json.dumps(settings))
+
+    def rewrite(value: object) -> None:
+        if isinstance(value, dict):
+            if value.get("command") == "maid hook scope-check --stdin":
+                value["command"] = "./scripts/maid hook scope-check --stdin"
+            for child in value.values():
+                rewrite(child)
+        elif isinstance(value, list):
+            for child in value:
+                rewrite(child)
+
+    rewrite(transformed)
+    return transformed
 
 
 def _prune_empty_agent_parents(path: Path, target_dir: Path) -> None:

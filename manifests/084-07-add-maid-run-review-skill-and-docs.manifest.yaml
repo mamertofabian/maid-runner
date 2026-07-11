@@ -1,0 +1,421 @@
+schema: '2'
+goal: Ship the maid-run-review skill through the full agent-payload distribution surface (source .claude/.codex skills, generated maid_runner payload copies, manifest registries, sync script, distribution tests) that orchestrates the 084-06 pipeline — evaluate run, prompt, agent-available model generation with explicit cloud privacy disclosure, validate, render — plus docs/run-evaluation.md documenting the whole after-action evaluation layer
+type: feature
+created: '2026-07-06T10:01:23Z'
+metadata:
+  epic: 084-00-after-action-run-evaluation
+  tags:
+  - run-evaluation
+  - llm-enrichment
+  - agent-skills
+  - documentation
+  priority: medium
+description: |
+  Final child: the model-calling half lives here, as a skill, keeping the
+  runner AI-free. Mirrors the maid-outcome-enrich skill's structure,
+  payload distribution, and guidance-test pattern established by 081-04.
+  Depends on 084-06.
+
+  Pinned decisions (do not redesign):
+
+  1. Distribution follows the 081-04 surface exactly. Skill sources of
+     truth are .claude/skills/maid-run-review/SKILL.md and
+     .codex/skills/maid-run-review/SKILL.md (with the Codex
+     agents/openai.yaml companion); scripts/sync_claude_files.py copies
+     them into the generated maid_runner/claude/ and maid_runner/codex/
+     payload trees, and the .claude/manifest.json /
+     maid_runner/codex/manifest.json registries gain the skill entry.
+     Never hand-edit generated copies out of sync with sources; the
+     distribution tests (tests/test_agent_payload_distribution.py and
+     the skill-list assertions they carry) are extended in the same
+     change, per the 081-04 pattern.
+
+  2. The skill procedure is fixed: (a) run `maid evaluate run
+     <manifest>` and show the deterministic result first; (b) run `maid
+     evaluate prompt <manifest> [--diff-file]` — the skill may prepare a
+     diff file explicitly and must say so; (c) generate the review with
+     an agent-available model, preceded by an explicit disclosure when
+     that model is a cloud model naming what run evidence leaves the
+     machine (mirroring maid-outcome-enrich's cloud privacy disclosure);
+     (d) run `maid evaluate validate` and fix-or-regenerate on errors —
+     never hand-edit citations to force validity; (e) run `maid evaluate
+     render` and present the labeled advisory report. The skill must
+     state that the review is advisory, never a gate, and must not be
+     fed back to the implementing agent as instructions during an active
+     run.
+
+  3. docs/run-evaluation.md documents the full layer for humans:
+     provenance capture (--agent-* flags, MAID_AGENT_* env), contract
+     deltas, evaluate run/compare semantics including the honest-gap
+     statuses (unclassified, unknown agent, no-lock), the review
+     pipeline, the advisory-never-gate rule, and the
+     no-composite-scores rationale. README gets the pointer;
+     docs/agent-skills.md gains the maid-run-review distribution row.
+
+  4. Guidance tests follow tests/test_outcome_enrich_skill_guidance.py:
+     a new tests/test_run_review_skill_guidance.py pins the
+     safety-critical strings in BOTH source SKILL.md files — cloud
+     privacy disclosure requirement, validate-before-render order, the
+     never-hand-edit-citations rule, and the advisory-never-gate
+     statement — plus docs/run-evaluation.md's coverage of the
+     MAID_AGENT_* variables and both evaluate subcommands.
+
+  5. Because maid-run-review is installed through `maid init`, this child
+     changes the init instruction payload. Advance
+     `INSTRUCTION_PAYLOAD_VERSION` past the pre-change baseline
+     `2026.07.05.1` so downstream `maid init --check` reports older
+     installed payloads as stale.
+
+  Planned behavioral tests (red phase pending — handoff stops before
+  tests): tests/test_run_review_skill_guidance.py asserts both source
+  SKILL.md files exist and contain the cloud privacy disclosure
+  requirement, the prompt->model->validate->render order with
+  fail-closed render, the prohibition on hand-editing citations to pass
+  validation, and the advisory-never-gate statement; asserts
+  docs/run-evaluation.md documents --agent-model, MAID_AGENT_MODEL,
+  evaluate run, evaluate compare, and the unknown/unclassified honest
+  gaps; asserts README references docs/run-evaluation.md; asserts
+  docs/agent-skills.md lists maid-run-review for both payloads.
+  tests/test_agent_payload_distribution.py additions assert the skill
+  reaches both generated payload trees and both manifest registries.
+temptations:
+- risk: Do not edit generated maid_runner payload copies directly or let sources and generated trees diverge.
+  instead: Author the .claude/.codex sources, register them in the sync script and manifests, and regenerate via make sync-agent-payloads, as the distribution tests enforce.
+- risk: Do not soften or omit the cloud privacy disclosure to streamline the skill.
+  instead: Keep the disclosure step mandatory before any cloud model call, naming what run evidence leaves the machine, and pin it with a guidance test.
+- risk: Do not instruct the skill to fix validation failures by editing citations or evidence ids in the model output.
+  instead: The skill regenerates or corrects via the model; hand-forcing validity defeats anti-fabrication and is explicitly forbidden in the SKILL.md.
+- risk: Do not position the review as a quality gate or feed it to the implementing agent mid-run.
+  instead: Document and pin the advisory-never-gate rule; reviews inform the human operator after the run.
+- risk: Do not add or change an init-distributed skill without bumping the instruction payload version.
+  instead: Advance INSTRUCTION_PAYLOAD_VERSION past 2026.07.05.1 and pin the bump with a guidance test.
+files:
+  edit:
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _run_evaluation_docs_pointer
+      of: documentation
+      type: markdown reference
+      description: Pointer from the README to docs/run-evaluation.md alongside the evaluate command reference.
+  - path: docs/agent-skills.md
+    artifacts:
+    - kind: attribute
+      name: _maid_run_review_skill_row
+      of: documentation
+      type: markdown table row
+      description: Distribution row for maid-run-review across Claude and Codex payloads.
+  - path: .claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _claude_manifest_run_review_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Registers maid-run-review in the Claude payload manifest so sync and init distribute it.
+  - path: maid_runner/claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_manifest_run_review_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Generated Claude payload manifest mirrors the source maid-run-review registry entry after sync.
+  - path: maid_runner/codex/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _codex_manifest_run_review_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Registers maid-run-review in the Codex distributable payload manifest.
+  - path: scripts/sync_claude_files.py
+    artifacts:
+    - kind: attribute
+      name: CODEX_DISTRIBUTABLE_SKILLS
+      type: list[str]
+      description: Adds maid-run-review to the synced skill set so generated payload trees include it.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version advanced past the pre-change baseline 2026.07.05.1 because maid-run-review is installed through maid init.
+  - path: .claude/skills/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_onboard_codex_skill_count_guidance
+      of: documentation
+      type: markdown guidance
+      description: Claude source maid-onboard guidance says Codex init installs the seven generic skills including maid-run-review.
+  - path: .codex/skills/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_onboard_codex_skill_count_guidance
+      of: documentation
+      type: markdown guidance
+      description: Codex source maid-onboard guidance says Codex init installs the seven generic skills including maid-run-review.
+  - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_onboard_codex_skill_count_guidance
+      of: documentation
+      type: markdown guidance
+      description: Generated Claude user-skill copy mirrors the seven-skill Codex init guidance after sync.
+  - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_onboard_codex_skill_count_guidance
+      of: documentation
+      type: markdown guidance
+      description: Generated Codex user-skill copy mirrors the seven-skill Codex init guidance after sync.
+  - path: tests/test_agent_payload_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_run_review_skill_distributed_to_both_payloads
+      args: []
+      returns: None
+      description: The maid-run-review skill reaches both generated payload trees and both manifest registries.
+  - path: tests/cli/test_init_codex_distributable_scope.py
+    artifacts:
+    - kind: attribute
+      name: GENERIC_CODEX_SKILLS
+      type: list[str]
+      description: Existing Codex init distributable-skill expectation includes maid-run-review as a generic installed skill.
+  - path: tests/test_insights_skill_guidance.py
+    artifacts:
+    - kind: attribute
+      name: CODEX_DISTRIBUTABLE_SKILLS
+      type: list[str]
+      description: Existing Codex payload distribution expectation includes maid-run-review as a generic installed skill.
+  - path: tests/test_learning_loop_init_payload.py
+    artifacts:
+    - kind: attribute
+      name: GENERIC_CODEX_SKILLS
+      type: list[str]
+      description: Existing learning-loop init payload expectation includes maid-run-review as a generic installed skill.
+  read:
+  - .claude/skills/maid-outcome-enrich/SKILL.md
+  - .codex/skills/maid-outcome-enrich/SKILL.md
+  - tests/test_outcome_enrich_skill_guidance.py
+  - manifests/081-04-add-outcome-enrich-skill.manifest.yaml
+  - manifests/drafts/084-06-add-run-review-enrichment-pipeline.manifest.yaml
+  create:
+  - path: .claude/skills/maid-run-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_run_review_skill
+      of: documentation
+      type: markdown skill definition
+      description: 'Claude source skill: deterministic-first procedure, explicit diff preparation, mandatory cloud privacy disclosure, validate-before-render fail-closed loop, no hand-edited citations, advisory-never-gate.'
+  - path: .codex/skills/maid-run-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_run_review_skill
+      of: documentation
+      type: markdown skill definition
+      description: 'Codex source skill: same pinned procedure and safety rules adapted to Codex conventions.'
+  - path: .codex/skills/maid-run-review/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _codex_run_review_agent_config
+      of: repository configuration
+      type: YAML agent config
+      description: Codex agent companion config mirroring the maid-outcome-enrich skill layout.
+  - path: maid_runner/claude/skills/maid-run-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_run_review_skill
+      of: documentation
+      type: markdown skill definition
+      description: Generated Claude package copy of the source maid-run-review skill after sync.
+  - path: maid_runner/codex/skills/maid-run-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_run_review_skill
+      of: documentation
+      type: markdown skill definition
+      description: Generated Codex package copy of the source maid-run-review skill after sync.
+  - path: maid_runner/codex/skills/maid-run-review/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_run_review_agent_config
+      of: repository configuration
+      type: YAML agent config
+      description: Generated Codex package copy of the source maid-run-review agent config after sync.
+  - path: docs/run-evaluation.md
+    artifacts:
+    - kind: attribute
+      name: _run_evaluation_guide
+      of: documentation
+      type: markdown document
+      description: 'Human guide to the after-action layer: provenance capture (--agent-* flags, MAID_AGENT_* env), contract deltas, evaluate run/compare with honest-gap statuses, review pipeline, advisory-never-gate rule, no-composite-scores rationale.'
+  - path: tests/test_run_review_skill_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_both_source_skills_pin_cloud_privacy_disclosure
+      args: []
+      returns: None
+      description: Claude and Codex source SKILL.md files exist and require the cloud disclosure naming what run evidence leaves the machine.
+    - kind: test_function
+      name: test_skill_pins_validate_before_render_and_no_citation_editing
+      args: []
+      returns: None
+      description: Both sources mandate the prompt->model->validate->render order, fail-closed render, and forbid hand-editing citations to pass validation.
+    - kind: test_function
+      name: test_skill_and_docs_pin_advisory_never_gate_rule
+      args: []
+      returns: None
+      description: Both sources and docs/run-evaluation.md state that reviews are advisory and never a workflow gate.
+    - kind: test_function
+      name: test_run_evaluation_docs_cover_provenance_and_commands
+      args: []
+      returns: None
+      description: docs/run-evaluation.md documents --agent-model, MAID_AGENT_MODEL, evaluate run, evaluate compare, and the unknown/unclassified honest-gap statuses; README points to the doc.
+    - kind: test_function
+      name: test_agent_skills_doc_lists_run_review_for_both_payloads
+      args: []
+      returns: None
+      description: docs/agent-skills.md includes the maid-run-review distribution row.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_run_review_skill
+      args: []
+      returns: None
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past 2026.07.05.1 because maid init distributes the new skill payload.
+validate:
+- uv run python -m pytest -q tests/test_run_review_skill_guidance.py tests/test_agent_payload_distribution.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py
+outcome:
+  status: completed
+  completed_at: "2026-07-06T19:04:00+08:00"
+  summary: "Added the `maid-run-review` Claude and Codex skill payloads, Codex agent metadata, run-evaluation docs, registry and sync wiring, distributable Codex init expectations, and an instruction payload version bump to `2026.07.06.1`."
+  rationale: "The implementation keeps model calls outside maid-runner: deterministic `maid evaluate run|prompt|validate|render` commands remain the runner boundary, while the new skill owns agent-available model generation, explicit CLOUD-PRIVACY disclosure naming the run evidence that leaves the machine, validate-before-render fail-closed behavior, and the advisory-never-gate/no-mid-run-feedback rule. Source skills are synced into generated payloads, docs/run-evaluation.md documents provenance, contract deltas, honest-gap statuses, review pipeline, and no composite scores, and existing Codex init fixtures now treat `maid-run-review` as the seventh generic distributable skill."
+  agent:
+    model: gpt-5-codex
+    provider: openai
+    client: codex-cli
+    skills:
+    - maid-implementer
+    - maid-implementation-review
+    source: outcome-capture
+  lessons:
+  - lesson_type: agent-skills
+    summary: "Adding a generic init-distributed skill requires updating the whole payload surface together: source skill manifests, sync script distributable lists, generated package manifests, init/onboard guidance, package payload tests, and INSTRUCTION_PAYLOAD_VERSION so downstream `maid init --check` can report stale installs."
+    tags:
+    - agent-skills
+    - init-payload
+    - documentation
+    paths:
+    - .claude/skills/maid-run-review/SKILL.md
+    - .codex/skills/maid-run-review/SKILL.md
+    - scripts/sync_claude_files.py
+    - maid_runner/instruction_payload.py
+  - lesson_type: validation-trust
+    summary: "Behavioral guidance tests should keep safety-critical assertions visible directly in test bodies; helper-only assertions can pass pytest while failing MAID verify assertion-shape checks."
+    tags:
+    - validation-trust
+    - tdd-evidence
+    - run-evaluation
+    paths:
+    - tests/test_run_review_skill_guidance.py
+  - lesson_type: plan-lock
+    summary: "When a valid feature change intentionally updates shared behavioral payload tests, older manifests that locked those files need explicit `maid plan revise --preserve-red-evidence` revisions so verify distinguishes sanctioned shared-test evolution from test tampering."
+    tags:
+    - plan-lock
+    - validation-trust
+    - agent-skills
+    paths:
+    - tests/test_agent_payload_distribution.py
+    - tests/cli/test_init_codex_distributable_scope.py
+    - tests/test_insights_skill_guidance.py
+    - tests/test_learning_loop_init_payload.py
+  review_notes:
+  - source: Popper
+    severity: P1
+    summary: "Initial read-only review found repository verify failed E210 because the cloud privacy guidance test used helper-only assertions. The test was refactored to direct assertions and the active lock was revised with fresh red evidence."
+  - source: Zeno
+    severity: ready
+    summary: "Fresh read-only re-review found no blockers, confirmed the E210 issue was fixed, source/generated skill copies matched, preserve-red-evidence lock updates were appropriate for shared tests, and scoped verify passed."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_run_review_skill_guidance.py
+    - tests/test_agent_payload_distribution.py
+    - tests/test_outcome_enrich_skill_guidance.py
+    - tests/cli/test_init_codex_distributable_scope.py
+    - tests/test_insights_skill_guidance.py
+    - tests/test_learning_loop_init_payload.py
+    status: passed
+    summary: "Current manifest validate command passed 33 tests covering run-review guidance, payload distribution, outcome-enrich regression, Codex init distributable-scope, insights guidance, and learning-loop init payload expectations."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+    - --mode
+    - behavioral
+    status: passed
+    summary: "Behavioral validation passed after drafting direct guidance and payload distribution tests."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed; warnings were limited to expected E307 no-validator notices for markdown, JSON, and YAML payload files."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+    status: passed
+    summary: "Manifest validate command passed for run-review guidance, payload distribution, outcome-enrich regression, Codex init distributable-scope, insights guidance, and learning-loop init payload tests."
+  - command:
+    - uv
+    - run
+    - pytest
+    - --lf
+    - -q
+    status: passed
+    summary: "After fixing the expanded Codex distributable-skill expectations, the pytest rerun passed 3240 tests with 5 skipped."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Ruff reported all checks passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "Repository MAID validation passed for 418 manifests with 325 passed, 0 failed, and 93 superseded/skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "Repository MAID test gate passed 173 declared commands."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Scoped verify passed with 0 blocking findings across schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, and tests; warnings were existing non-code E307 notices."

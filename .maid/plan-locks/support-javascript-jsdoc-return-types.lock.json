@@ -1,0 +1,199 @@
+{
+  "manifest_path": "manifests/support-javascript-jsdoc-return-types.manifest.yaml",
+  "manifest_hash": "sha256:c4d843d99a0ae6bc84a2cf700c2fb9d170483f2bc2dc6c13abdd1fd178a0205e",
+  "test_hashes": {
+    "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+    "tests/core/validation/test_annotation_warnings.py": "sha256:a2411405423ea2b9a8d34bbb108688557f87a9520c843896a75edc3922b0827f"
+  },
+  "created_at": "2026-07-11T04:11:36.352336+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:8189ca201ebf8b4ca2bd4e3c1c441858fc54314255e9046ef54f9bd6a1a80fe3",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+        "tests/core/validation/test_annotation_warnings.py": "sha256:db335695b891ac32dd0a61f04889419e39d323eaf24684281cbb27b690a94329"
+      },
+      "revised_at": "2026-07-11T04:11:45.697196+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/support-javascript-jsdoc-return-types.manifest.yaml -> manifests/support-javascript-jsdoc-return-types.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/support-javascript-jsdoc-return-types.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/support-javascript-jsdoc-return-types.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:827f63f2890bbafae4ae7985a4aa6f2056df358508edf44f695aa56225e36dc2",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+        "tests/core/validation/test_annotation_warnings.py": "sha256:db335695b891ac32dd0a61f04889419e39d323eaf24684281cbb27b690a94329"
+      },
+      "revised_at": "2026-07-11T04:22:22.955187+00:00",
+      "reason": "Independent review requires exported variable-function coverage and JavaScript-only JSDoc fallback boundaries",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:arg=project:type=Path:default=None",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:kind=test_function",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:returns=None",
+          "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing",
+          "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:arg=project:type=Path:default=None",
+          "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:kind=test_function",
+          "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:34b783f04def4aabe25b8972c289632522e1d4d9e42a2c327ac2ef8c89c3b2c2",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+        "tests/core/validation/test_annotation_warnings.py": "sha256:754c694308ef617c1f1c8000656ee11649aeee8831df1e6ae09bcb72579b5b38"
+      },
+      "revised_at": "2026-07-11T04:27:45.335465+00:00",
+      "reason": "Independent re-review requires detached JSDoc to stop at an intervening ordinary block-comment boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:34b783f04def4aabe25b8972c289632522e1d4d9e42a2c327ac2ef8c89c3b2c2",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+        "tests/core/validation/test_annotation_warnings.py": "sha256:3adefe7e593c43c728b196c4a746e6636c6e38a9e3b778d7f394f7da03685ff6"
+      },
+      "revised_at": "2026-07-11T04:33:31.600393+00:00",
+      "reason": "Final review requires node-precise JSDoc support for class methods without same-line declarator bleed",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:arg=project:type=Path:default=None",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:kind=test_function",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:returns=None",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:arg=project:type=Path:default=None",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:kind=test_function",
+          "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:86d908583f61e1ad30bd246e375ee6140410b5c5f49dd851e1037e5746b53928",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256:461e1dbfe66b198b3dcc0a3a04b14245600811f78b440dc68eb8994a3870bf3d",
+        "tests/core/validation/test_annotation_warnings.py": "sha256:a2411405423ea2b9a8d34bbb108688557f87a9520c843896a75edc3922b0827f"
+      },
+      "revised_at": "2026-07-11T04:40:24.805091+00:00",
+      "reason": "Capture final reviewed validation evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-11T04:33:35.781218+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_annotation_warnings.py tests/validators/test_typescript.py",
+        "exit_code": 1,
+        "output_tail": "        engine = ValidationEngine(project_root=project)\n        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)\n    \n        missing_messages = [\n            warning.message\n            for warning in result.warnings\n            if warning.code == ErrorCode.MISSING_RETURN_TYPE\n        ]\n>       assert all(\"getTypedLintProjects\" not in message for message in missing_messages)\nE       assert False\nE        +  where False = all(<generator object test_javascript_jsdoc_does_not_bleed_between_same_line_declarators.<locals>.<genexpr> at 0x7ff7263f6e90>)\n\ntests/core/validation/test_annotation_warnings.py:388: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_annotation_warnings.py::test_javascript_jsdoc_return_annotation_satisfies_declared_return\nFAILED tests/core/validation/test_annotation_warnings.py::test_javascript_jsdoc_return_mismatch_reports_type_mismatch\nFAILED tests/core/validation/test_annotation_warnings.py::test_javascript_arrow_function_jsdoc_satisfies_declared_return\nFAILED tests/core/validation/test_annotation_warnings.py::test_javascript_class_method_jsdoc_satisfies_declared_return\nFAILED tests/core/validation/test_annotation_warnings.py::test_javascript_jsdoc_does_not_bleed_between_same_line_declarators\n5 failed, 73 passed in 0.39s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/support-javascript-jsdoc-return-types.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_arrow_function_jsdoc_satisfies_declared_return:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_class_method_jsdoc_satisfies_declared_return:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return:arg=jsdoc:type=str:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_does_not_bleed_between_same_line_declarators:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_annotation_satisfies_declared_return",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_annotation_satisfies_declared_return:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_annotation_satisfies_declared_return:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_annotation_satisfies_declared_return:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_mismatch_reports_type_mismatch",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_mismatch_reports_type_mismatch:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_mismatch_reports_type_mismatch:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_javascript_jsdoc_return_mismatch_reports_type_mismatch:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_jsdoc_without_native_annotation_remains_missing:returns=None",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_native_return_annotation_takes_precedence_over_jsdoc",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_native_return_annotation_takes_precedence_over_jsdoc:arg=project:type=Path:default=None",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_native_return_annotation_takes_precedence_over_jsdoc:kind=test_function",
+      "tests/core/validation/test_annotation_warnings.py:test_typescript_native_return_annotation_takes_precedence_over_jsdoc:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/validation/test_annotation_warnings.py"
+      ],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "tests/validators/test_typescript.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_annotation_warnings.py",
+      "tests/validators/test_typescript.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_annotation_warnings.py tests/validators/test_typescript.py",
+      "uv run maid validate manifests/support-javascript-jsdoc-return-types.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
     "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
-    "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3"
+    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
   },
   "created_at": "2026-06-16T23:12:19.331337+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:79d552f5a220850dcf71e86903756333c5a2a1506a52df9eda65b2c0ace60e83",
@@ -17,7 +17,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
       },
       "revised_at": "2026-06-16T23:12:24.738715+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/069-01-add-task-active-manifest-commands.manifest.yaml -> manifests/069-01-add-task-active-manifest-commands.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/069-01-add-task-active-manifest-commands.manifest.yaml -> manifests/069-01-add-task-active-manifest-commands.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:bc224cbde6c7e0c9ab997f14f1ae8ef4c43ae1fb8b8643cfe42edd8dabb4f92e",
@@ -27,7 +29,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
       },
       "revised_at": "2026-06-16T23:22:32.501800+00:00",
-      "reason": "Record completed outcome after ready implementation review"
+      "reason": "Record completed outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
@@ -37,7 +41,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:d4bcfc642dce9b0701c545930ff30bf021181c2bc86e56d5c54544247cdc4abe"
       },
       "revised_at": "2026-06-22T02:44:44.770129+00:00",
-      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved."
+      "reason": "Behavioral tests test_agent_payload_distribution.py and test_init_cmd.py updated by fix-codex-init-honor-distributable (codex distributable corrected to the 4 generic skills; init now honors skills.distributable). Re-seal lock with current test hashes; original red-phase evidence preserved.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
@@ -47,7 +53,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:bc0077eb45997ccb4a876e540562e68a863d72a9f78c4ee4696ea1aa0ccbf668"
       },
       "revised_at": "2026-06-25T12:10:51.428392+00:00",
-      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions"
+      "reason": "Refresh shared init payload test hashes after 075-01 strengthened workflow assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
@@ -57,7 +65,9 @@
         "tests/test_agent_payload_distribution.py": "sha256:510bab198566deebcbc955658227764328902c179596a13e678692b1346abd95"
       },
       "revised_at": "2026-06-26T15:24:29.071037+00:00",
-      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution."
+      "reason": "Refresh lock after shared payload distribution test expectation update for 077-01 auditor distribution.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
@@ -67,7 +77,38 @@
         "tests/test_agent_payload_distribution.py": "sha256:30a3dbed80fa523b395ca4a79b50462ebf953a1405160b318a4f70243b861813"
       },
       "revised_at": "2026-06-28T11:41:19.771419+00:00",
-      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update"
+      "reason": "Refresh shared distribution test lock after maid-outcome-enrich distribution update",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:9deb2a4f96b5a1df43eae9c218df5a560fa906308b7553da6198de1af39bdd32",
+      "prior_test_hashes": {
+        "tests/core/test_active_task.py": "sha256:b8e6b35eacd8606172a8cb16765d3a60dc1754e00684460570e5024340191cbf",
+        "tests/cli/test_task_cmd.py": "sha256:87fb452fb352a87b2ca5ac003f2a2b5f613c07481fdcb513a26a31db6c3e32f8",
+        "tests/test_agent_payload_distribution.py": "sha256:49cf255cef9dee820c6651a331e3528f80831b326908f26965f0c3838bb911d3"
+      },
+      "revised_at": "2026-07-06T10:18:23.084456+00:00",
+      "reason": "Refresh shared Codex payload behavioral test hashes after adding maid-run-review to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/cli/commands/task.py",
+          "create:maid_runner/core/active_task.py",
+          "edit:README.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/files.py",
+          "read:maid_runner/core/manifest.py",
+          "read:tests/cli/test_task_cmd.py",
+          "read:tests/core/test_active_task.py",
+          "read:tests/test_agent_payload_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -94,6 +135,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "README.md:attribute:documentation._maid_task_cli_reference",
@@ -141,6 +183,23 @@
       "maid_runner/core/active_task.py:function:stop_active_task:kind=function",
       "maid_runner/core/active_task.py:function:stop_active_task:returns=bool"
     ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/task.py",
+        "maid_runner/core/active_task.py"
+      ],
+      "edit": [
+        "README.md",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/files.py",
+        "maid_runner/core/manifest.py",
+        "tests/cli/test_task_cmd.py",
+        "tests/core/test_active_task.py",
+        "tests/test_agent_payload_distribution.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_task_cmd.py",
       "tests/core/test_active_task.py",

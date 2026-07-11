@@ -20,8 +20,8 @@ Execute code implementation against an approved MAID manifest. The manifest is t
   move intentional no-artifact wiring to `files.scope`.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
-- NEVER modify files not listed in the manifest `files.create`, `files.edit`, or
-  `files.read`.
+- NEVER modify files not listed in the manifest `files.create`, `files.edit`,
+  `files.scope`, or `files.delete`.
 - NEVER modify the manifest during implementation.
 - NEVER modify behavioral tests unless the user explicitly approves changing the contract.
 - If implementation validation exposes a bad manifest, write `plan-revision.md` explaining the issue and stop. Do not force tests green by working around a bad plan.

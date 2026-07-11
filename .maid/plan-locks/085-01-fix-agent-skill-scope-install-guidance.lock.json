@@ -1,0 +1,267 @@
+{
+  "manifest_path": "manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml",
+  "manifest_hash": "sha256:97e207ce552cbc41108017990c1da378257caf70d56735a9dc7ad2cd6661df93",
+  "test_hashes": {
+    "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+    "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+    "tests/test_agent_skill_scope_install_guidance.py": "sha256:0e57aa82d48d24053d541fb0b9fd09949b93aa24c9fc508abef46cb02042f27d"
+  },
+  "created_at": "2026-07-06T22:26:38.229381+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:1ce3483558245b0c173a0f5cd50e18236835d1d018acdc6608ec70914a73cd1e",
+      "prior_test_hashes": {
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256:dfbfc7bc37ea10e8bb08561741d934ca67f12d044c0173b84cb60425577ff827"
+      },
+      "revised_at": "2026-07-06T22:26:45.639938+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml -> manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:497dfd88bf0b634f8ff8f85a06ca795f57b4f2099dbee6f2d61d4064888f316d",
+      "prior_test_hashes": {
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256:dfbfc7bc37ea10e8bb08561741d934ca67f12d044c0173b84cb60425577ff827"
+      },
+      "revised_at": "2026-07-06T22:28:18.989556+00:00",
+      "reason": "Align module-level INSTRUCTION_PAYLOAD_VERSION artifact with MAID validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "artifacts_removed": [
+          "maid_runner/instruction_payload.py:attribute:maid_runner.instruction_payload.INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:maid_runner.instruction_payload.INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:maid_runner.instruction_payload.INSTRUCTION_PAYLOAD_VERSION:of=maid_runner.instruction_payload",
+          "maid_runner/instruction_payload.py:attribute:maid_runner.instruction_payload.INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:e1a1a53b31eec5d64d145f9a8d8e3e82d3f05a4b241e3828215ffa608fb65cd4",
+      "prior_test_hashes": {
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256:dfbfc7bc37ea10e8bb08561741d934ca67f12d044c0173b84cb60425577ff827"
+      },
+      "revised_at": "2026-07-06T22:31:06.775441+00:00",
+      "reason": "Format behavioral test after lock",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:e1a1a53b31eec5d64d145f9a8d8e3e82d3f05a4b241e3828215ffa608fb65cd4",
+      "prior_test_hashes": {
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256:b3eb70a90b165489f7b8d162fef179d467291e2ca1b5a22c5b3d7a918fc2a56c"
+      },
+      "revised_at": "2026-07-06T22:35:08.047329+00:00",
+      "reason": "Keep planner install guidance PyPI-oriented for distributable payloads",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:kind=attribute",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:of=skill",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:type=markdown guidance",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:kind=attribute",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:of=skill",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:type=markdown guidance",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:kind=attribute",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:of=skill",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:type=markdown guidance",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:kind=attribute",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:of=skill",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:type=markdown guidance",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow:kind=test_function",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow:returns=None"
+        ],
+        "artifacts_removed": [
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_uv_prerequisite_guidance",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_uv_prerequisite_guidance:kind=attribute",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_uv_prerequisite_guidance:of=skill",
+          ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_uv_prerequisite_guidance:type=markdown guidance",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_uv_prerequisite_guidance",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_uv_prerequisite_guidance:kind=attribute",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_uv_prerequisite_guidance:of=skill",
+          ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_uv_prerequisite_guidance:type=markdown guidance",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_uv_prerequisite_guidance",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_uv_prerequisite_guidance:kind=attribute",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_uv_prerequisite_guidance:of=skill",
+          "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_uv_prerequisite_guidance:type=markdown guidance",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_uv_prerequisite_guidance",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_uv_prerequisite_guidance:kind=attribute",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_uv_prerequisite_guidance:of=skill",
+          "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_uv_prerequisite_guidance:type=markdown guidance",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_project_uv_flow_not_raw_pip",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_project_uv_flow_not_raw_pip:kind=test_function",
+          "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_project_uv_flow_not_raw_pip:returns=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T22:35:11.664226+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_agent_skill_scope_install_guidance.py tests/test_claude_skill_distribution.py tests/test_run_review_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "E             \nE             ...Full output truncated (233 lines hidden), use '-vv' to show\n\ntests/test_agent_skill_scope_install_guidance.py:102: AssertionError\n________ test_instruction_payload_version_bumped_for_skill_guidance_fix ________\n\n    def test_instruction_payload_version_bumped_for_skill_guidance_fix() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\"2026.07.06.1\")\nE       AssertionError: assert (2026, 7, 6, 1) > (2026, 7, 6, 1)\nE        +  where (2026, 7, 6, 1) = _version_tuple('2026.07.06.1')\nE        +  and   (2026, 7, 6, 1) = _version_tuple('2026.07.06.1')\n\ntests/test_agent_skill_scope_install_guidance.py:106: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_agent_skill_scope_install_guidance.py::test_implementer_skills_treat_scope_and_delete_as_writable_not_read\nFAILED tests/test_agent_skill_scope_install_guidance.py::test_planner_prerequisites_use_pypi_install_not_local_dev_flow\nFAILED tests/test_agent_skill_scope_install_guidance.py::test_gitignore_covers_generated_advisory_payloads\nFAILED tests/test_agent_skill_scope_install_guidance.py::test_skill_guidance_source_and_package_payloads_match\nFAILED tests/test_agent_skill_scope_install_guidance.py::test_instruction_payload_version_bumped_for_skill_guidance_fix\n5 failed, 24 passed in 0.53s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._claude_implementer_scope_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._claude_implementer_scope_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._claude_implementer_scope_guidance:of=skill",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._claude_implementer_scope_guidance:type=markdown guidance",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:of=skill",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill._claude_planner_pypi_prerequisite_guidance:type=markdown guidance",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_scope_guidance",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_scope_guidance:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_scope_guidance:of=skill",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill._codex_implementer_scope_guidance:type=markdown guidance",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:of=skill",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill._codex_planner_pypi_prerequisite_guidance:type=markdown guidance",
+      ".gitignore:attribute:gitignore._maid_advisory_artifact_ignore_patterns",
+      ".gitignore:attribute:gitignore._maid_advisory_artifact_ignore_patterns:kind=attribute",
+      ".gitignore:attribute:gitignore._maid_advisory_artifact_ignore_patterns:of=gitignore",
+      ".gitignore:attribute:gitignore._maid_advisory_artifact_ignore_patterns:type=ignore pattern list",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._packaged_claude_implementer_scope_guidance",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._packaged_claude_implementer_scope_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._packaged_claude_implementer_scope_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._packaged_claude_implementer_scope_guidance:type=markdown guidance",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:of=skill",
+      "maid_runner/claude/skills/maid-planner/SKILL.md:attribute:skill._packaged_claude_planner_pypi_prerequisite_guidance:type=markdown guidance",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill._packaged_codex_implementer_scope_guidance",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill._packaged_codex_implementer_scope_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill._packaged_codex_implementer_scope_guidance:of=skill",
+      "maid_runner/codex/skills/maid-implementer/SKILL.md:attribute:skill._packaged_codex_implementer_scope_guidance:type=markdown guidance",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:of=skill",
+      "maid_runner/codex/skills/maid-planner/SKILL.md:attribute:skill._packaged_codex_planner_pypi_prerequisite_guidance:type=markdown guidance",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_agent_skill_scope_install_guidance.py:test_gitignore_covers_generated_advisory_payloads",
+      "tests/test_agent_skill_scope_install_guidance.py:test_gitignore_covers_generated_advisory_payloads:kind=test_function",
+      "tests/test_agent_skill_scope_install_guidance.py:test_gitignore_covers_generated_advisory_payloads:returns=None",
+      "tests/test_agent_skill_scope_install_guidance.py:test_implementer_skills_treat_scope_and_delete_as_writable_not_read",
+      "tests/test_agent_skill_scope_install_guidance.py:test_implementer_skills_treat_scope_and_delete_as_writable_not_read:kind=test_function",
+      "tests/test_agent_skill_scope_install_guidance.py:test_implementer_skills_treat_scope_and_delete_as_writable_not_read:returns=None",
+      "tests/test_agent_skill_scope_install_guidance.py:test_instruction_payload_version_bumped_for_skill_guidance_fix",
+      "tests/test_agent_skill_scope_install_guidance.py:test_instruction_payload_version_bumped_for_skill_guidance_fix:kind=test_function",
+      "tests/test_agent_skill_scope_install_guidance.py:test_instruction_payload_version_bumped_for_skill_guidance_fix:returns=None",
+      "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow",
+      "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow:kind=test_function",
+      "tests/test_agent_skill_scope_install_guidance.py:test_planner_prerequisites_use_pypi_install_not_local_dev_flow:returns=None",
+      "tests/test_agent_skill_scope_install_guidance.py:test_skill_guidance_source_and_package_payloads_match",
+      "tests/test_agent_skill_scope_install_guidance.py:test_skill_guidance_source_and_package_payloads_match:kind=test_function",
+      "tests/test_agent_skill_scope_install_guidance.py:test_skill_guidance_source_and_package_payloads_match:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_agent_skill_scope_install_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-planner/SKILL.md",
+        ".gitignore",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "manifests/083-02-point-planner-at-digest-narrative.manifest.yaml",
+        "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+        "manifests/add-scope-only-file-section.manifest.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "tests/test_claude_skill_distribution.py",
+        "tests/test_outcome_enrich_skill_guidance.py",
+        "tests/test_run_review_skill_guidance.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_agent_skill_scope_install_guidance.py",
+      "tests/test_claude_skill_distribution.py",
+      "tests/test_outcome_enrich_skill_guidance.py",
+      "tests/test_run_review_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_agent_skill_scope_install_guidance.py tests/test_claude_skill_distribution.py tests/test_run_review_skill_guidance.py tests/test_outcome_enrich_skill_guidance.py tests/cli/test_init_instruction_payload_version.py",
+      "uv run maid validate manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

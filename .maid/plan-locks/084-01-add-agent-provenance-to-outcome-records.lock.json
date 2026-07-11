@@ -1,0 +1,169 @@
+{
+  "manifest_path": "manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+  "manifest_hash": "sha256:595a5e13d23e696e3c1e2015197c5905a9998ebbaea38040eb733fdd48514f36",
+  "test_hashes": {
+    "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+    "tests/core/test_outcome_agent_provenance.py": "sha256:b39bc5c3c48ba8194e354336e9b5170a77438586c0aead82749be94320969dd4"
+  },
+  "created_at": "2026-07-06T03:20:50.677518+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:9bc44509b2e60b530cdb211d03262e9d46cdd31b480c173ca9bd161e1d6a8ab6",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_agent_provenance.py": "sha256:1fe1c6ba544c1bced1359bbd17c8d34fb60ec60fccb19070c6abe09a2ccadec9",
+        "tests/test_manifest_outcome_docs.py": "sha256:aa0d2d5309e646104027e42ad660ca4d27c6dca74e8e1172d56b674aa9570f1a"
+      },
+      "revised_at": "2026-07-06T03:20:51.186897+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-01-add-agent-provenance-to-outcome-records.manifest.yaml -> manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml"
+    },
+    {
+      "prior_manifest_hash": "sha256:601c7c597c2dfc315b34c27f80e64cf8fe5618b7e8033c36a26075280ff68114",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_agent_provenance.py": "sha256:1fe1c6ba544c1bced1359bbd17c8d34fb60ec60fccb19070c6abe09a2ccadec9",
+        "tests/test_manifest_outcome_docs.py": "sha256:aa0d2d5309e646104027e42ad660ca4d27c6dca74e8e1172d56b674aa9570f1a"
+      },
+      "revised_at": "2026-07-06T03:27:33.035697+00:00",
+      "reason": "Declare packaged Outcome docs copy and recapture executable red evidence"
+    },
+    {
+      "prior_manifest_hash": "sha256:38a1f1eafb9a57e0e653986b6be3a97c7ed9ce18a961db95575d98682c7815d2",
+      "prior_test_hashes": {
+        "tests/core/test_outcome_agent_provenance.py": "sha256:98c965cbccf34d8632e9a6bef4bce73be11ca10f1e2d3184b0e175677f80157f",
+        "tests/test_manifest_outcome_docs.py": "sha256:aa0d2d5309e646104027e42ad660ca4d27c6dca74e8e1172d56b674aa9570f1a"
+      },
+      "revised_at": "2026-07-06T03:29:52.464786+00:00",
+      "reason": "Move provenance docs assertion into manifest-specific test to avoid shared lock drift"
+    },
+    {
+      "prior_manifest_hash": "sha256:d498f6259d2e5eea4804184131ffefaba9ccdad005e23b7b97af57a8c345ecd4",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/core/test_outcome_agent_provenance.py": "sha256:b39bc5c3c48ba8194e354336e9b5170a77438586c0aead82749be94320969dd4"
+      },
+      "revised_at": "2026-07-06T03:32:11.783189+00:00",
+      "reason": "Address implementation review manifest wording findings"
+    },
+    {
+      "prior_manifest_hash": "sha256:08a7084ff36b48c4709115a85612a14e188ee58fa91d0fe221dbeafd3d0ed1c8",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/core/test_outcome_agent_provenance.py": "sha256:b39bc5c3c48ba8194e354336e9b5170a77438586c0aead82749be94320969dd4"
+      },
+      "revised_at": "2026-07-06T03:35:03.275457+00:00",
+      "reason": "Refresh promoted manifest wording after implementation review"
+    },
+    {
+      "prior_manifest_hash": "sha256:31bbbc84e0fbf2253d3e9d60536c8801b8900e9868857d92f23a982e1597eb8f",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/core/test_outcome_agent_provenance.py": "sha256:b39bc5c3c48ba8194e354336e9b5170a77438586c0aead82749be94320969dd4"
+      },
+      "revised_at": "2026-07-06T03:37:23.056064+00:00",
+      "reason": "Capture completed Outcome record after ready review"
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-06T03:29:52.824971+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_outcome_agent_provenance.py tests/test_manifest_outcome_docs.py",
+        "exit_code": 1,
+        "output_tail": "            + \"\\n\"\n        )\n    \n        index = read_outcome_index(index_path)\n    \n        assert len(index.records) == 1\n>       assert index.records[0].agent is None\n               ^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'OutcomeIndexRecord' object has no attribute 'agent'\n\ntests/core/test_outcome_agent_provenance.py:224: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_outcome_agent_provenance.py::test_load_manifest_parses_full_agent_provenance_block\nFAILED tests/core/test_outcome_agent_provenance.py::test_load_manifest_parses_minimal_agent_block_with_defaults\nFAILED tests/core/test_outcome_agent_provenance.py::test_save_manifest_round_trips_agent_block_omission_preserving\nFAILED tests/core/test_outcome_agent_provenance.py::test_schema_rejects_invalid_agent_blocks_and_accepts_absent\nFAILED tests/core/test_outcome_agent_provenance.py::test_manifest_outcome_docs_define_agent_provenance_block\nFAILED tests/core/test_outcome_agent_provenance.py::test_outcome_index_carries_agent_provenance_round_trip\nFAILED tests/core/test_outcome_agent_provenance.py::test_read_outcome_index_accepts_pre_provenance_index\n7 failed, 3 passed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_agent_provenance_section",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_agent_provenance_section:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_agent_provenance_section:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._outcome_agent_provenance_section:type=markdown section",
+      "maid_runner/core/manifest.py:function:load_manifest",
+      "maid_runner/core/manifest.py:function:load_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:load_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:load_manifest:returns=Manifest",
+      "maid_runner/core/manifest.py:function:save_manifest",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:save_manifest:returns=None",
+      "maid_runner/core/outcomes.py:attribute:OutcomeIndexRecord.agent",
+      "maid_runner/core/outcomes.py:attribute:OutcomeIndexRecord.agent:kind=attribute",
+      "maid_runner/core/outcomes.py:attribute:OutcomeIndexRecord.agent:of=OutcomeIndexRecord",
+      "maid_runner/core/outcomes.py:attribute:OutcomeIndexRecord.agent:type=AgentProvenance | None",
+      "maid_runner/core/types.py:attribute:AgentProvenance.client",
+      "maid_runner/core/types.py:attribute:AgentProvenance.client:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.client:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.client:type=Optional[str]",
+      "maid_runner/core/types.py:attribute:AgentProvenance.instructions_fingerprint",
+      "maid_runner/core/types.py:attribute:AgentProvenance.instructions_fingerprint:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.instructions_fingerprint:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.instructions_fingerprint:type=Optional[str]",
+      "maid_runner/core/types.py:attribute:AgentProvenance.model",
+      "maid_runner/core/types.py:attribute:AgentProvenance.model:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.model:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.model:type=str",
+      "maid_runner/core/types.py:attribute:AgentProvenance.provider",
+      "maid_runner/core/types.py:attribute:AgentProvenance.provider:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.provider:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.provider:type=Optional[str]",
+      "maid_runner/core/types.py:attribute:AgentProvenance.skills",
+      "maid_runner/core/types.py:attribute:AgentProvenance.skills:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.skills:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.skills:type=tuple[str, ...]",
+      "maid_runner/core/types.py:attribute:AgentProvenance.source",
+      "maid_runner/core/types.py:attribute:AgentProvenance.source:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.source:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.source:type=Optional[str]",
+      "maid_runner/core/types.py:attribute:OutcomeRecord.agent",
+      "maid_runner/core/types.py:attribute:OutcomeRecord.agent:kind=attribute",
+      "maid_runner/core/types.py:attribute:OutcomeRecord.agent:of=OutcomeRecord",
+      "maid_runner/core/types.py:attribute:OutcomeRecord.agent:type=Optional[AgentProvenance]",
+      "maid_runner/core/types.py:class:AgentProvenance",
+      "maid_runner/core/types.py:class:AgentProvenance:kind=class",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_agent_provenance_section",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_agent_provenance_section:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_agent_provenance_section:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_outcome_agent_provenance_section:type=markdown section",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._AgentProvenance_schema_definition",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._AgentProvenance_schema_definition:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._AgentProvenance_schema_definition:of=MAID Manifest v2 schema",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._AgentProvenance_schema_definition:type=closed object definition requiring model",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:OutcomeRecord schema definition.agent",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:OutcomeRecord schema definition.agent:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:OutcomeRecord schema definition.agent:of=OutcomeRecord schema definition",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:OutcomeRecord schema definition.agent:type=optional AgentProvenance object",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_full_agent_provenance_block",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_full_agent_provenance_block:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_full_agent_provenance_block:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_minimal_agent_block_with_defaults",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_minimal_agent_block_with_defaults:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_load_manifest_parses_minimal_agent_block_with_defaults:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_manifest_outcome_docs_define_agent_provenance_block",
+      "tests/core/test_outcome_agent_provenance.py:test_manifest_outcome_docs_define_agent_provenance_block:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_manifest_outcome_docs_define_agent_provenance_block:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_outcome_index_carries_agent_provenance_round_trip",
+      "tests/core/test_outcome_agent_provenance.py:test_outcome_index_carries_agent_provenance_round_trip:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_outcome_index_carries_agent_provenance_round_trip:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_read_outcome_index_accepts_pre_provenance_index",
+      "tests/core/test_outcome_agent_provenance.py:test_read_outcome_index_accepts_pre_provenance_index:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_read_outcome_index_accepts_pre_provenance_index:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_save_manifest_round_trips_agent_block_omission_preserving",
+      "tests/core/test_outcome_agent_provenance.py:test_save_manifest_round_trips_agent_block_omission_preserving:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_save_manifest_round_trips_agent_block_omission_preserving:returns=None",
+      "tests/core/test_outcome_agent_provenance.py:test_schema_rejects_invalid_agent_blocks_and_accepts_absent",
+      "tests/core/test_outcome_agent_provenance.py:test_schema_rejects_invalid_agent_blocks_and_accepts_absent:kind=test_function",
+      "tests/core/test_outcome_agent_provenance.py:test_schema_rejects_invalid_agent_blocks_and_accepts_absent:returns=None"
+    ],
+    "test_files": [
+      "tests/core/test_outcome_agent_provenance.py",
+      "tests/test_manifest_outcome_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_outcome_agent_provenance.py tests/test_manifest_outcome_docs.py"
+    ]
+  }
+}

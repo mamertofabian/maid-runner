@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from pathlib import Path
 
 from maid_runner.core._file_discovery import discover_source_files, is_test_file
@@ -12,6 +13,21 @@ from maid_runner.core.result import (
     FileTrackingStatus,
 )
 from maid_runner.core.types import FileMode
+
+
+def filter_file_tracking_report(
+    report: FileTrackingReport,
+    paths: Collection[str],
+) -> FileTrackingReport:
+    """Return file-tracking entries limited to normalized task paths."""
+    normalized_paths = {str(path).replace("\\", "/") for path in paths}
+    return FileTrackingReport(
+        entries=tuple(
+            entry
+            for entry in report.entries
+            if entry.path.replace("\\", "/") in normalized_paths
+        )
+    )
 
 
 def _run_file_tracking(project_root: Path, chain: ManifestChain) -> FileTrackingReport:

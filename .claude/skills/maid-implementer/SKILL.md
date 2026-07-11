@@ -11,12 +11,21 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 
 - Load the manifest first.
 - Implement only what the manifest declares.
-- `files.create` is Strict Mode. `files.edit` is Permissive Mode.
+- `files.create` and `files.edit` declare contracted public artifacts.
+- `files.scope` declares writable implementation files that have no stable
+  public artifact contract, such as route/page wiring covered by behavioral
+  tests.
+- `files.read` is dependency context, not writable production scope. Do not
+  edit production files listed only in `files.read`; stop for plan revision and
+  move intentional no-artifact wiring to `files.scope`.
 - Implementer sessions run validation gates with `--packet`; for example,
   `maid validate --packet` and `maid verify --packet`.
+- strict gates are the default. Use `--legacy-gates` only as a bounded
+  migration aid when comparing behavior against pre-flip defaults.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
-- NEVER modify code not listed in the manifest `files.create` or `files.edit`.
+- NEVER modify files not listed in the manifest `files.create`, `files.edit`,
+  `files.scope`, or `files.delete`.
 - NEVER modify the manifest during implementation.
 - NEVER modify behavioral tests unless the user explicitly approves changing the contract.
 - If implementation validation exposes a bad manifest, write `plan-revision.md` explaining the issue and stop. Do not force tests green by working around a bad plan.
@@ -57,6 +66,7 @@ Read the approved manifest and extract:
 
 - files to create
 - files to edit
+- scope-only files
 - read-only dependencies
 - exact artifacts
 - temptations and their `instead` procedures

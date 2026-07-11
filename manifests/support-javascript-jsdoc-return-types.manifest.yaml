@@ -1,0 +1,191 @@
+schema: '2'
+goal: Accept standard JavaScript JSDoc return declarations during implementation validation
+type: fix
+created: '2026-07-11T04:11:45Z'
+metadata:
+  tags:
+  - javascript
+  - jsdoc
+  - validation
+  - annotations
+  priority: high
+description: |
+  Teach the TypeScript/JavaScript implementation collector to use a standard
+  leading JSDoc `@returns {Type}` declaration as return-type evidence for a
+  `.js` or `.jsx` function when native TypeScript return syntax is unavailable.
+  Native TypeScript/TSX annotations remain authoritative when present.
+
+  The closure is deliberately narrow: a focused JSDoc annotation-extraction
+  step associates only the nearest leading documentation comment with its
+  function and returns no evidence for malformed, detached, or ordinary
+  comments. It feeds the existing artifact collection phase; it does not add
+  semantic type inference, execute code, or broaden control-flow analysis.
+  End-to-end implementation validation must stop emitting E304 when the JSDoc
+  type matches the manifest and must retain existing mismatch checking through
+  the ordinary type comparison path.
+
+  This is an additive chain merge over the existing TypeScript collector and
+  annotation-warning contracts. No public validator signature changes.
+temptations:
+- risk: Do not suppress E304 for every .js function or infer a type from return expressions.
+  instead: Accept only explicit, attached JSDoc return declarations and leave missing declarations as warnings.
+- risk: Do not parse comments inside implementation validation policy code.
+  instead: Keep bounded JSDoc syntax extraction in a focused validator helper and pass its result into the existing FoundArtifact return field.
+- risk: Do not let JSDoc override native TypeScript or TSX return annotations.
+  instead: Consult JSDoc only when the syntax tree provides no native return type.
+- risk: Do not build a general JSDoc type checker.
+  instead: Extract the braced return type text and reuse MAID's existing type normalization and comparison.
+files:
+  edit:
+  - path: tests/core/validation/test_annotation_warnings.py
+    artifacts:
+    - kind: test_function
+      name: test_javascript_jsdoc_return_annotation_satisfies_declared_return
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: A manifested JavaScript function declares returns string[] and has a standard attached `@returns {string[]}` JSDoc block but cannot use native TypeScript syntax.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation accepts the explicit JSDoc type without E304 or a type mismatch.
+    - kind: test_function
+      name: test_javascript_detached_or_malformed_jsdoc_does_not_satisfy_declared_return
+      args:
+      - name: project
+        type: Path
+      - name: jsdoc
+        type: str
+      returns: None
+      source_scenario: A manifested JavaScript function has either a detached JSDoc block or a malformed unbraced @returns tag.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation retains E304 because the comment is not valid attached return-type evidence.
+    - kind: test_function
+      name: test_typescript_native_return_annotation_takes_precedence_over_jsdoc
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: A TypeScript function has a stale JSDoc return type but a valid native return annotation matching the manifest.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation uses the native annotation, producing neither E304 nor a type mismatch from the stale JSDoc text.
+    - kind: test_function
+      name: test_javascript_jsdoc_return_mismatch_reports_type_mismatch
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: A JavaScript function explicitly declares a JSDoc return type that conflicts with its manifested return contract.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation treats JSDoc as real type evidence and reports E302 rather than downgrading the conflict to missing-type E304.
+    - kind: test_function
+      name: test_javascript_arrow_function_jsdoc_satisfies_declared_return
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: An exported JavaScript const arrow function has an attached standard JSDoc return declaration matching its manifest.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation recognizes the declaration-level JSDoc for the arrow function and emits neither E304 nor a type mismatch.
+    - kind: test_function
+      name: test_typescript_jsdoc_without_native_annotation_remains_missing
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: A TypeScript function has JSDoc but omits the native return annotation required by the typed source contract.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation retains E304 because JSDoc fallback is limited to JavaScript and JSX files.
+    - kind: test_function
+      name: test_javascript_class_method_jsdoc_satisfies_declared_return
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: An exported JavaScript class method has an attached standard JSDoc return declaration matching its manifest.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: Implementation validation recognizes method-level JSDoc and emits neither E304 nor a type mismatch.
+    - kind: test_function
+      name: test_javascript_jsdoc_does_not_bleed_between_same_line_declarators
+      args:
+      - name: project
+        type: Path
+      returns: None
+      source_scenario: One exported JavaScript declaration places two arrow-function declarators on the same line, with JSDoc intended only for the first.
+      actions:
+      - type: api_call
+        subject:
+          function: ValidationEngine.validate
+      expected:
+        behavior: The first function receives its attached JSDoc type, while the undocumented second function retains E304 and does not receive a false type mismatch from the first declaration.
+  scope:
+  - path: maid_runner/validators/_typescript_implementation.py
+    reason: Feed bounded JSDoc return evidence into function artifact collection only when native syntax provides no return annotation.
+  - path: maid_runner/validators/typescript.py
+    reason: Enable JSDoc fallback only for JavaScript and JSX file extensions while retaining native annotation requirements for TypeScript and TSX.
+  - path: maid_runner/validators/_jsdoc.py
+    reason: Isolate leading-comment association and narrow braced @returns extraction from tree traversal and validation policy.
+  read:
+  - maid_runner/validators/_typescript_parse.py
+  - maid_runner/core/_implementation_validation.py
+  - tests/validators/test_typescript.py
+validate:
+- uv run python -m pytest -q tests/core/validation/test_annotation_warnings.py tests/validators/test_typescript.py
+- uv run maid validate manifests/support-javascript-jsdoc-return-types.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-11T12:39:54+08:00'
+  summary: JavaScript and JSX functions and class methods now use attached braced JSDoc return declarations as explicit implementation type evidence.
+  rationale: Node-precise comment association closes the impossible E304 contract for valid JavaScript while preserving native TypeScript requirements, existing type mismatch checks, and isolation between detached comments or multiple declarators.
+  lessons:
+  - lesson_type: validation
+    summary: Source annotations must be associated through declaration nodes rather than line proximity; line-based enrichment cannot safely distinguish methods, multiple declarators, or intervening comments.
+    tags:
+    - javascript
+    - jsdoc
+    - parser
+    paths:
+    - maid_runner/validators/_jsdoc.py
+    - maid_runner/validators/_typescript_implementation.py
+    - maid_runner/validators/typescript.py
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: info
+    summary: Final review found no actionable issues after node-precise association covered declarations, arrows, methods, comment boundaries, and multi-declarator isolation while remaining JavaScript-only.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_annotation_warnings.py, tests/validators/test_typescript.py]
+    status: passed
+    summary: All 78 focused annotation and TypeScript validator tests passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: All 332 active manifests passed; 93 superseded manifests were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 179 declared MAID test commands passed.
