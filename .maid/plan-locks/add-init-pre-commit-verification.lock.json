@@ -1,0 +1,318 @@
+{
+  "manifest_path": "manifests/add-init-pre-commit-verification.manifest.yaml",
+  "manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+  "test_hashes": {
+    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+    "tests/cli/test_init_pre_commit.py": "sha256:7e4f4ff92c6e69e58579cd64c7483852cae2dc270a98fcf3f28fb7cdd6256a54"
+  },
+  "created_at": "2026-07-11T01:23:49.347116+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:798e13b0b7afbe4fd716044068d141602736ebaa7c179c733d28cb384c449727",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:856772d8898633edf71ae7e0b8e93d3d713e4a46a34a94bb3e1779703ae512f1"
+      },
+      "revised_at": "2026-07-11T01:23:50.406565+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-init-pre-commit-verification.manifest.yaml -> manifests/add-init-pre-commit-verification.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:06958e19ccfcd62b7b2663d480d365c0b693b7c1407fc1fed1ae185b077801c6",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:856772d8898633edf71ae7e0b8e93d3d713e4a46a34a94bb3e1779703ae512f1"
+      },
+      "revised_at": "2026-07-11T01:32:03.000499+00:00",
+      "reason": "Independent review found marker-ownership, ambiguous repos-source, CRLF-preservation, and atomic-write gaps; strengthen the behavioral contract before fixing implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository",
+          "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:returns=None",
+          "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook",
+          "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:returns=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=config_text:type=str:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:returns=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=config_text:type=str:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:42dfa6ff2774f329588dcb5e731032bebe8cccddd37c8d06731e26a657db1595",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:a52bafd66d881417235a173569e1db63344dbfcbf77155a6ab63612b0f89e1da"
+      },
+      "revised_at": "2026-07-11T01:39:16.398839+00:00",
+      "reason": "Independent re-review found alias-backed repos and explicit YAML document terminator insertion gaps; extend the contract and recapture red evidence before the second fix.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator",
+          "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:133e9c680fd949083e1ac93a0fd5bce0c1edae8447f9738efbfd8e59f930423a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:4005c48c3ab8f145c4107a39aa6db2bdffc8eba8b3b1e47ba1c254ce70ca2003"
+      },
+      "revised_at": "2026-07-11T01:45:40.702594+00:00",
+      "reason": "Final review confirmed flow-style YAML cannot accept a comment-marked block without rewriting user formatting; record it as an explicit safe conflict with coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=config_text:type=str:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:d2156db1c60e1b632b06a2590d78589aae720c9e01a3c1bf43d42c4efe480b69",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:a3c5e19658efceebf98fb193148099faf02fafc6fb00cf21251109ce763d323e"
+      },
+      "revised_at": "2026-07-11T01:49:11.948492+00:00",
+      "reason": "Align the final flow-style conflict contract: reject empty repos flow sequences too and move dry-run/atomic fixtures to supported block syntax.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:d2156db1c60e1b632b06a2590d78589aae720c9e01a3c1bf43d42c4efe480b69",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:bec70433787fcb0007f5c1922a5837803e942df0124d1af4a0883ae6fbbfb35a"
+      },
+      "revised_at": "2026-07-11T01:53:00.950467+00:00",
+      "reason": "Reject existing and broken .pre-commit-config.yaml symlinks before any init writes to prevent repository-boundary traversal identified during implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=target_exists:type=bool:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:34e55f7db3d3bd3a26001151125845051d41f3571ca6303d6974d6ece2860e96",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:7e4f4ff92c6e69e58579cd64c7483852cae2dc270a98fcf3f28fb7cdd6256a54"
+      },
+      "revised_at": "2026-07-11T02:00:14.936125+00:00",
+      "reason": "Record final independent review and completed validation evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-11T01:53:04.708787+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_pre_commit.py tests/cli/test_init_cmd.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/cli/test_init_pre_commit.py::test_init_rejects_malformed_managed_markers_before_writes[# BEGIN MAID RUNNER PRE-COMMIT\\nrepos: []\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_malformed_managed_markers_before_writes[# END MAID RUNNER PRE-COMMIT\\nrepos: []\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_malformed_managed_markers_before_writes[# BEGIN MAID RUNNER PRE-COMMIT\\n# BEGIN MAID RUNNER PRE-COMMIT\\nrepos: []\\n# END MAID RUNNER PRE-COMMIT\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_markers_that_do_not_own_the_reserved_hook[repos:\\n# BEGIN MAID RUNNER PRE-COMMIT\\n  - repo: local\\n    hooks:\\n      - id: unrelated\\n        entry: true\\n        language: system\\n# END MAID RUNNER PRE-COMMIT\\n  - repo: local\\n    hooks:\\n      - id: maid-verify\\n        entry: scripts/maid verify\\n        language: system\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_markers_that_do_not_own_the_reserved_hook[description: \"# BEGIN MAID RUNNER PRE-COMMIT\"\\nother: \"# END MAID RUNNER PRE-COMMIT\"\\nrepos:\\n  - repo: local\\n    hooks:\\n      - id: maid-verify\\n        entry: scripts/maid verify\\n        language: system\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_ambiguous_repos_sources_before_writes[repos: []\\nrepos:\\n  - repo: local\\n    hooks: []\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_ambiguous_repos_sources_before_writes[shared: &shared []\\nrepos: *shared\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_ambiguous_repos_sources_before_writes[defaults: &defaults\\n  repos:\\n    - repo: local\\n      hooks: []\\n<<: *defaults\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_preserves_crlf_bytes_when_appending_managed_hook\nFAILED tests/cli/test_init_pre_commit.py::test_init_inserts_before_explicit_yaml_document_terminator\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_flow_style_config_before_writes[repos: []\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_flow_style_config_before_writes[repos: [{repo: local, hooks: []}]\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_flow_style_config_before_writes[{repos: []}\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_flow_style_config_before_writes[{default_stages: [pre-commit]}\\n]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_pre_commit_config_symlinks_before_writes[True]\nFAILED tests/cli/test_init_pre_commit.py::test_init_rejects_pre_commit_config_symlinks_before_writes[False]\nFAILED tests/cli/test_init_pre_commit.py::test_init_pre_commit_atomic_write_failure_preserves_repository\nFAILED tests/cli/test_init_pre_commit.py::test_init_pre_commit_dry_run_reports_action_without_writes\nFAILED tests/cli/test_init_pre_commit.py::test_readme_documents_init_managed_pre_commit_behavior\n26 failed, 13 passed in 0.62s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-init-pre-commit-verification.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_is_byte_idempotent",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_is_byte_idempotent:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_is_byte_idempotent:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_is_byte_idempotent:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_is_byte_idempotent:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator",
+      "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_inserts_before_explicit_yaml_document_terminator:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_atomic_write_failure_preserves_repository:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_pre_commit_dry_run_reports_action_without_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook",
+      "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_preserves_crlf_bytes_when_appending_managed_hook:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=config_text:type=str:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_ambiguous_repos_sources_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=config_text:type=str:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_flow_style_config_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:arg=invalid:type=str:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_invalid_pre_commit_config_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes:arg=markers:type=str:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_malformed_managed_markers_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=config_text:type=str:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_markers_that_do_not_own_the_reserved_hook:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=target_exists:type=bool:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_pre_commit_config_symlinks_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_rejects_unmanaged_maid_verify_conflict_before_writes:returns=None",
+      "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior",
+      "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_pre_commit.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/init.py"
+      ],
+      "read": [
+        ".pre-commit-config.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "manifests/snapshot-cli-commands-init.manifest.yaml",
+        "tests/cli/test_init_cmd.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_pre_commit.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_pre_commit.py tests/cli/test_init_cmd.py",
+      "uv run maid validate manifests/add-init-pre-commit-verification.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

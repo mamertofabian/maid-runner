@@ -1,0 +1,399 @@
+schema: '2'
+goal: Provision the MAID verify pre-commit hook safely through maid init
+type: feature
+created: '2026-07-11T01:23:50Z'
+metadata:
+  tags:
+  - init
+  - pre-commit
+  - verification
+  - downstream
+  priority: high
+description: |
+  Extend `maid init` so every newly initialized or force-refreshed MAID
+  repository has a project-local pre-commit configuration entry for the
+  commit-time verification gate:
+
+  `maid verify --summary --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope`
+
+  This is an additive evolution of the existing `cmd_init` contract. The
+  command owns one explicitly marked block inside `.pre-commit-config.yaml`.
+  On a fresh repository it creates a valid config. When a supported block-style
+  config already exists, it inserts the managed local-repository block into the top-level
+  `repos` sequence without reserializing or otherwise changing user-owned
+  hooks, comments, formatting, or other top-level keys. Repeated force init is
+  byte-idempotent, while a future MAID refresh may replace only the marked
+  block.
+
+  An unmarked hook using the reserved `maid-verify` id, malformed managed
+  markers, invalid YAML, or a non-sequence `repos` value is a visible conflict:
+  init exits nonzero before creating or rewriting MAID project files and tells
+  the operator to reconcile the config. Dry-run reports whether the config
+  would be created, updated, or left current without writing it.
+
+  `maid init` provisions configuration only. It does not run `pre-commit
+  install`, change Git `core.hooksPath`, or overwrite native/global hooks.
+  Successful output and README guidance explain that the repository's existing
+  hook runner must invoke `.pre-commit-config.yaml`, with `pre-commit install`
+  named only as the standard activation path.
+
+  Outcome evidence considered during planning: init/payload Outcomes repeatedly
+  favor downstream throwaway-repository tests, preservation of user-owned
+  configuration, and visible failure over silent partial setup. Those lessons
+  shape the byte-preservation, conflict, dry-run, and idempotence scenarios
+  below. No recalled record directly governed `.pre-commit-config.yaml` init
+  behavior, so no broader payload or hook backend changes are inferred.
+  Flow-style top-level mappings or `repos` sequences are intentionally rejected
+  with conversion guidance because adding a comment-marked managed block would
+  require rewriting their compact syntax.
+  Existing or broken symbolic links at `.pre-commit-config.yaml` are rejected
+  before any init writes so MAID never crosses the repository boundary through
+  a user-controlled config path.
+temptations:
+- risk: Do not parse and dump the entire existing YAML file, which would rewrite user comments and formatting.
+  instead: Use parsed YAML structure only to validate and locate the repos sequence, then insert or replace only the marked MAID-owned text block.
+- risk: Do not overwrite an unmarked hook that already reserves the maid-verify id.
+  instead: Fail before any init writes with a clear conflict message and leave the existing file byte-for-byte unchanged.
+- risk: Do not call pre-commit install or change core.hooksPath from maid init.
+  instead: Provision the project configuration and print activation guidance that works with standard or global dispatchers.
+- risk: Do not make repeated maid init --force append duplicate MAID hooks.
+  instead: Recognize and refresh exactly one managed marker block idempotently.
+- risk: Do not follow a symbolic link at .pre-commit-config.yaml while reading or atomically replacing the managed configuration.
+  instead: Reject existing and broken symbolic-link destinations before any init writes and leave the link and its target untouched.
+files:
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Initialize MAID project files and safely create, append, refresh, or report conflicts for the managed MAID verify entry in .pre-commit-config.yaml without activating or replacing Git hooks.
+  create:
+  - path: tests/cli/test_init_pre_commit.py
+    artifacts:
+    - kind: test_function
+      name: test_init_creates_managed_maid_verify_pre_commit_config
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A repository without pre-commit configuration runs maid init.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init creates valid YAML containing one marked local maid-verify hook with the canonical verify command and prints non-destructive activation guidance.
+    - kind: test_function
+      name: test_init_appends_managed_hook_without_rewriting_existing_config
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A repository has formatted pre-commit YAML with comments, existing hooks, and a top-level key after repos.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init inserts the managed block inside repos while preserving every original byte in order and retaining all existing semantic configuration.
+    - kind: test_function
+      name: test_init_force_refresh_is_byte_idempotent
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A freshly initialized repository runs maid init --force repeatedly.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The managed hook occurs once and the complete pre-commit config bytes remain unchanged after each refresh.
+    - kind: test_function
+      name: test_init_force_refresh_replaces_only_stale_managed_block
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A prior MAID-managed marker block contains an older hook command surrounded by user-owned configuration.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Force init replaces only the marked block with the current hook and preserves every byte before and after it.
+    - kind: test_function
+      name: test_init_rejects_unmanaged_maid_verify_conflict_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: An existing unmarked pre-commit hook already uses the maid-verify id with user-owned settings.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init exits nonzero, reports the reserved-id conflict, preserves the config bytes, and creates no MAID project files.
+    - kind: test_function
+      name: test_init_rejects_invalid_pre_commit_config_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      - name: invalid
+        type: str
+      returns: None
+      source_scenario: The existing pre-commit file is invalid YAML or has a non-sequence repos value.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init fails visibly without changing the config or creating manifests and .maidrc.yaml.
+    - kind: test_function
+      name: test_init_rejects_malformed_managed_markers_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: markers
+        type: str
+      returns: None
+      source_scenario: The pre-commit file has unmatched or duplicated MAID-owned marker comments.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init exits nonzero before other writes and preserves the malformed user file for explicit reconciliation.
+    - kind: test_function
+      name: test_init_rejects_markers_that_do_not_own_the_reserved_hook
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: config_text
+        type: str
+      returns: None
+      source_scenario: Marker text appears in quoted YAML or standalone markers surround unrelated content while an unmanaged maid-verify hook exists elsewhere.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init rejects the ownership ambiguity without replacing text or creating duplicate reserved hooks.
+    - kind: test_function
+      name: test_init_rejects_ambiguous_repos_sources_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: config_text
+        type: str
+      returns: None
+      source_scenario: The top-level repos value is duplicated or supplied through a YAML merge key.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init rejects the ambiguous source mapping instead of inserting into an ignored or shadowing repos sequence.
+    - kind: test_function
+      name: test_init_preserves_crlf_bytes_when_appending_managed_hook
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: An existing valid pre-commit configuration uses CRLF line endings.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init preserves every original byte and renders the inserted managed block with the existing CRLF convention.
+    - kind: test_function
+      name: test_init_inserts_before_explicit_yaml_document_terminator
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A valid pre-commit YAML mapping has no repos key and ends with an explicit document terminator.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init inserts the managed repos sequence before the terminator and the completed output remains valid YAML with exactly one reserved hook.
+    - kind: test_function
+      name: test_init_rejects_flow_style_config_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: config_text
+        type: str
+      returns: None
+      source_scenario: The valid YAML uses a flow-style top-level mapping or repos sequence that cannot contain the comment-marked managed block without reformatting user syntax.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init fails visibly with block-style conversion guidance, preserves the original bytes, and creates no MAID project files.
+    - kind: test_function
+      name: test_init_rejects_pre_commit_config_symlinks_before_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: target_exists
+        type: bool
+      returns: None
+      source_scenario: The project pre-commit config is a symbolic link to either an existing file or a missing target outside the repository.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init exits nonzero before other writes, preserves the symbolic link and any existing target bytes, and does not create a broken-link target.
+    - kind: test_function
+      name: test_init_pre_commit_atomic_write_failure_preserves_repository
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: The atomic replacement of an existing pre-commit configuration fails.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Init exits nonzero, preserves the original config bytes, removes its temporary file, and creates no other MAID project files.
+    - kind: test_function
+      name: test_init_pre_commit_dry_run_reports_action_without_writes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      source_scenario: A repository previews initialization with an existing valid pre-commit config.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Dry-run reports the managed config update while leaving all repository files unchanged.
+    - kind: test_function
+      name: test_readme_documents_init_managed_pre_commit_behavior
+      args: []
+      returns: None
+      source_scenario: A user reads the initialization documentation before adopting MAID.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: README documents the canonical verify command, safe merge ownership, standard activation command, and core.hooksPath/global-dispatcher boundary.
+  scope:
+  - path: README.md
+    reason: Document the user-visible init behavior and explicit Git hook activation boundary without introducing analyzer-visible code artifacts.
+  read:
+  - .pre-commit-config.yaml
+  - manifests/snapshot-cli-commands-init.manifest.yaml
+  - manifests/079-01-version-init-instruction-payload.manifest.yaml
+  - tests/cli/test_init_cmd.py
+validate:
+- uv run python -m pytest -q tests/cli/test_init_pre_commit.py tests/cli/test_init_cmd.py
+- uv run maid validate manifests/add-init-pre-commit-verification.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-11T09:59:56+08:00"
+  summary: "Extended maid init with a byte-preserving, MAID-managed pre-commit verify block for newly initialized and existing supported block-style configurations."
+  rationale: "The implementation provisions the canonical fast-failing verify command without activating or replacing Git hooks. It preserves user-owned YAML bytes, refreshes only its marked block, rejects ambiguous or unsafe inputs before other init writes, and atomically replaces the repository-local file without following symbolic links. Independent implementation review reached ready after each identified ownership, YAML-shape, line-ending, atomicity, and symlink-boundary issue was covered and resolved."
+  lessons:
+  - lesson_type: validation
+    summary: "Text-preserving YAML augmentation needs explicit rejection tests for ambiguous syntax and filesystem indirection; parsing alone does not establish safe ownership or a repository-local write boundary."
+    tags:
+    - init
+    - pre-commit
+    - yaml
+    - symlink
+    paths:
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_init_pre_commit.py
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: info
+    summary: "Final review found no actionable issues and confirmed the symlink rejection, lexical atomic replacement, managed-marker ownership, YAML ambiguity handling, byte preservation, idempotence, and non-activation behavior."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_init_pre_commit.py
+    - tests/cli/test_init_cmd.py
+    status: passed
+    summary: "All 39 focused init and managed pre-commit tests passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/add-init-pre-commit-verification.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Focused implementation validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "All 330 active manifests passed; 93 superseded manifests were skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 177 declared MAID test commands passed."

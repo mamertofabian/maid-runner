@@ -85,6 +85,22 @@ maid init --tool windsurf        # Windsurf IDE
 maid init --tool generic         # Generic MAID.md
 ```
 
+### Commit-Time MAID Verification
+
+`maid init` creates or safely updates a MAID-managed block in
+`.pre-commit-config.yaml` while it preserves existing hooks, comments,
+formatting, and other project configuration. The managed hook runs:
+
+```bash
+maid verify --summary --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope
+```
+
+MAID provisions the project configuration but does not replace or activate Git
+hooks. For a standard pre-commit setup, run `pre-commit install`. If Git
+`core.hooksPath` points to a global hook directory, keep that dispatcher and
+have it invoke the repository's pre-commit configuration instead of replacing
+the global hook.
+
 ### Repo-Level Claude Install
 
 Use `maid init --tool claude` inside shared repositories as a repo-level Claude install
