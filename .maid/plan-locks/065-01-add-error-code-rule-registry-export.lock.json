@@ -3,10 +3,10 @@
   "manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
-    "tests/integration/test_library_api.py": "sha256:86c15a22b9bd9f6aba757e912fcfc549e1506db9089e2b0e5714688db4f51ff7"
+    "tests/integration/test_library_api.py": "sha256:ddb7864db0ca8458de164e4b99850381846295669d74fd016cfe97516e5c8910"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 14,
+  "revision": 15,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -15,7 +15,9 @@
         "tests/integration/test_library_api.py": "sha256:72fdc8361baae89130e36e6e7f5bc5e82930e5f56f29264e9dce909f6c6b5650"
       },
       "revised_at": "2026-06-17T07:31:32.240535+00:00",
-      "reason": "Add missing public diagnostics export assertions before implementation"
+      "reason": "Add missing public diagnostics export assertions before implementation",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -24,7 +26,9 @@
         "tests/integration/test_library_api.py": "sha256:5c175046c17058bb34d53bf36ad36043948a88eb1ebcceee8a440d8490a89bca"
       },
       "revised_at": "2026-06-17T07:31:53.173341+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/065-01-add-error-code-rule-registry-export.manifest.yaml -> manifests/065-01-add-error-code-rule-registry-export.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-01-add-error-code-rule-registry-export.manifest.yaml -> manifests/065-01-add-error-code-rule-registry-export.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:34a9242afdb1e66bf703bf28eb9cdc7519112b8c940a9f10db2bcfd77ded27aa",
@@ -33,7 +37,9 @@
         "tests/integration/test_library_api.py": "sha256:5c175046c17058bb34d53bf36ad36043948a88eb1ebcceee8a440d8490a89bca"
       },
       "revised_at": "2026-06-17T07:34:04.583245+00:00",
-      "reason": "Declare diagnostics registry re-export artifacts and direct behavioral references"
+      "reason": "Declare diagnostics registry re-export artifacts and direct behavioral references",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:927c5147f61d47503d9a5f22854e69cea80d41328f99ffaaf01067487e6de3b2",
@@ -42,7 +48,9 @@
         "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
       },
       "revised_at": "2026-06-17T07:38:09.111937+00:00",
-      "reason": "Include API reference autosummary update required by new public exports"
+      "reason": "Include API reference autosummary update required by new public exports",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:ee8fed42937667943873a165f6a5ff5fd48e94837913b97a88d36a7aa2283811",
@@ -52,7 +60,9 @@
         "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
       },
       "revised_at": "2026-06-17T07:44:27.362199+00:00",
-      "reason": "Keep red-backed validate commands while retaining docs autosummary scope"
+      "reason": "Keep red-backed validate commands while retaining docs autosummary scope",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:46eb7134cfa8733444bef8e339cdf64a567610b6a6811aa795a39e466a9bc979",
@@ -62,7 +72,9 @@
         "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
       },
       "revised_at": "2026-06-17T07:45:22.017116+00:00",
-      "reason": "Keep API reference docs coverage in owning manifest while preserving export red evidence"
+      "reason": "Keep API reference docs coverage in owning manifest while preserving export red evidence",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e02daa6edf039a366b41335e9527603862743a22f29a1b2373a0fc4f01d4156b",
@@ -71,7 +83,9 @@
         "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
       },
       "revised_at": "2026-06-17T07:57:45.210802+00:00",
-      "reason": "Capture completed outcome after ready implementation review"
+      "reason": "Capture completed outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -80,7 +94,9 @@
         "tests/integration/test_library_api.py": "sha256:a9219b11fecbf230de127eb72ad0a883c60275e990b1a8b30a14d2507a79fec0"
       },
       "revised_at": "2026-06-25T04:50:19.811488+00:00",
-      "reason": "Add release metadata consistency coverage to shared integration API tests"
+      "reason": "Add release metadata consistency coverage to shared integration API tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -89,7 +105,9 @@
         "tests/integration/test_library_api.py": "sha256:6f49a2e180d07e8ace71fd22012e59a7e4e14ad4becba93585b15f00880800f0"
       },
       "revised_at": "2026-06-27T11:57:34.165595+00:00",
-      "reason": "Refresh shared release metadata assertions for the 2.18.0 release bump"
+      "reason": "Refresh shared release metadata assertions for the 2.18.0 release bump",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -98,7 +116,9 @@
         "tests/integration/test_library_api.py": "sha256:cf54a136cbd6796414e385238d89128501b303b8f12ee2154678b3db46915571"
       },
       "revised_at": "2026-06-30T12:04:43.216588+00:00",
-      "reason": "Refresh shared release metadata assertions for the 2.19.0 release bump"
+      "reason": "Refresh shared release metadata assertions for the 2.19.0 release bump",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -107,7 +127,9 @@
         "tests/integration/test_library_api.py": "sha256:6ff09b133124440732e3abdacdb468b45965881887aef3609df317ccc32b9a63"
       },
       "revised_at": "2026-07-01T03:30:10.603605+00:00",
-      "reason": "Refresh shared library API test hash after 2.19.1 release metadata bump."
+      "reason": "Refresh shared library API test hash after 2.19.1 release metadata bump.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -116,7 +138,9 @@
         "tests/integration/test_library_api.py": "sha256:5968aa33a401a3021384af17c91f884e0557a2231cfcf7b9342a257288419b91"
       },
       "revised_at": "2026-07-03T01:10:09.685191+00:00",
-      "reason": "Shared diagnostics registry test updated to pin the new E310 repair recipe."
+      "reason": "Shared diagnostics registry test updated to pin the new E310 repair recipe.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
@@ -125,7 +149,37 @@
         "tests/integration/test_library_api.py": "sha256:5968aa33a401a3021384af17c91f884e0557a2231cfcf7b9342a257288419b91"
       },
       "revised_at": "2026-07-05T03:42:57.943569+00:00",
-      "reason": "Refresh shared release metadata test hash after 2.20.0 version bump."
+      "reason": "Refresh shared release metadata test hash after 2.20.0 version bump.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
+        "tests/integration/test_library_api.py": "sha256:86c15a22b9bd9f6aba757e912fcfc549e1506db9089e2b0e5714688db4f51ff7"
+      },
+      "revised_at": "2026-07-11T13:06:04.540413+00:00",
+      "reason": "Refresh the shared release-metadata integration test hash for the 2.21.0 version bump without changing the 065-01 behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:docs/reference/api.rst",
+          "edit:maid_runner/__init__.py",
+          "edit:maid_runner/core/__init__.py",
+          "read:docs/troubleshooting.md",
+          "read:maid_runner/core/diagnostics_registry.py",
+          "read:maid_runner/core/result.py",
+          "read:manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
+          "read:tests/core/test_diagnostics_registry.py",
+          "read:tests/integration/test_library_api.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -152,6 +206,7 @@
       }
     ]
   },
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/reference/api.rst:attribute:documentation._public_api_autosummary_diagnostics_registry_exports",
@@ -185,6 +240,22 @@
       "maid_runner/core/__init__.py:function:render_next_action",
       "maid_runner/core/__init__.py:function:render_next_action:kind=function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "docs/reference/api.rst",
+        "maid_runner/__init__.py",
+        "maid_runner/core/__init__.py"
+      ],
+      "read": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/diagnostics_registry.py",
+        "maid_runner/core/result.py",
+        "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
+        "tests/core/test_diagnostics_registry.py",
+        "tests/integration/test_library_api.py"
+      ]
+    },
     "test_files": [
       "tests/core/test_diagnostics_registry.py",
       "tests/integration/test_library_api.py"

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.21.0] - 2026-07-11
+
+### Added
+- **After-action run evaluation** — Added `maid evaluate run` and `maid evaluate compare` for deterministic evidence reports and cross-run aggregation by agent provenance, with explicit handling for missing or malformed evidence.
+- **Advisory run review workflow** — Added deterministic `maid evaluate prompt`, `validate`, and `render` stages plus the distributed `maid-run-review` skill, keeping model access outside the runner and requiring evidence-backed citations.
+- **Agent provenance records** — Added optional agent provenance to Outcomes, plan locks, lock revisions, status output, and learned Outcome indexes while preserving compatibility with legacy records.
+- **Plan revision contract deltas** — Plan-lock revisions now record runner-computed artifact, file-scope, and validation-command deltas from locked snapshots instead of relying only on author-written reasons.
+- **Managed MAID pre-commit provisioning** — `maid init` can install and refresh a byte-preserving MAID verification block while retaining user-owned hooks and respecting existing repository hook dispatchers.
+
+### Changed
+- **Task-scoped pre-commit verification** — Consolidated generated MAID hooks into one fail-fast `maid verify` gate scoped to changes since `HEAD`, so brownfield repositories enforce the current task without inheriting unrelated historical debt.
+- **Strict coverage migration inventory** — Promoted the current strict-delta evidence into an explicit migration inventory and synchronized implementer guidance for strict validation gates.
+- **Agent skill scope guidance** — Clarified across distributed Claude and Codex payloads that `files.scope` and `files.delete` are writable task scope while `files.read` remains read-only context.
+- **Release version metadata** — Bumped the package version to `2.21.0`.
+
+### Fixed
+- **Plan-lock test classification** — Reused semantic test discovery when creating and enforcing plan locks so production modules with test-like names are not sealed as behavioral evidence, while malformed tests still fail closed.
+- **Historical verification safety** — Hardened task-scoped file tracking and historical lock compatibility, including deleted or changed locked tests, stale snapshots, and validate-command preservation.
+- **Portable initialized payloads** — Removed maid-runner-specific assumptions from installed workflow guidance, preserved user-owned Claude hook entries, routed generated hooks through project launchers, and made generated advisory ignores conflict-safe.
+- **Draft promotion references** — Rewrote exact argv-form draft self-references during manifest promotion without changing unrelated embedded paths or list semantics.
+- **JavaScript JSDoc returns** — Recognized JSDoc return annotations for JavaScript and JSX while retaining native TypeScript annotation enforcement.
+
 ## [2.20.0] - 2026-07-05
 
 ### Added
@@ -1131,6 +1153,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.21.0]: https://github.com/mamertofabian/maid-runner/compare/v2.20.0...v2.21.0
 [2.20.0]: https://github.com/mamertofabian/maid-runner/compare/v2.19.1...v2.20.0
 [2.19.1]: https://github.com/mamertofabian/maid-runner/compare/v2.19.0...v2.19.1
 [2.19.0]: https://github.com/mamertofabian/maid-runner/compare/v2.18.0...v2.19.0
