@@ -1,0 +1,147 @@
+{
+  "manifest_path": "manifests/fix-init-payload-portability.manifest.yaml",
+  "manifest_hash": "sha256:315f7872b747182483a8d2c745e9e54c09bac28c218a5bfe001aff30d367f0d6",
+  "test_hashes": {
+    "tests/cli/test_init_payload_portability.py": "sha256:05be7ffda63fb121f4614f7532085952baddf10ca0ed85fcb929295d808500a2"
+  },
+  "created_at": "2026-07-11T05:49:15.846094+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:228657674e108525d9ce171f4a408117b7945d277f1c31b50d8d00682aff3ea2",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:195a86e19eb47d294d8fef8d3b98c1beb80d54ce0a859d8095923d8b77442ad0"
+      },
+      "revised_at": "2026-07-11T05:49:16.350071+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-init-payload-portability.manifest.yaml -> manifests/fix-init-payload-portability.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:12658a18147b7bab8b5b37a40219c2e76c0857b8069888cd803df69350727382",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:195a86e19eb47d294d8fef8d3b98c1beb80d54ce0a859d8095923d8b77442ad0"
+      },
+      "revised_at": "2026-07-11T05:52:47.801587+00:00",
+      "reason": "Independent review requires wrapper-transition deduplication coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_payload_portability.py:test_force_reinit_migrates_bare_scope_hook_to_project_wrapper",
+          "tests/cli/test_init_payload_portability.py:test_force_reinit_migrates_bare_scope_hook_to_project_wrapper:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:10de5074fe9034cb2b490525792717d534a524b2e8f51fe4aa58c1c89a3eabd4",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:83171d079c798a54c74c960520933864357d4eeeb0d195e1cb00ba767f0bdc7e"
+      },
+      "revised_at": "2026-07-11T05:54:33.229195+00:00",
+      "reason": "Independent re-review requires accurate gitignore conflict coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_payload_portability.py:test_init_reports_malformed_gitignore_markers_as_gitignore_conflict",
+          "tests/cli/test_init_payload_portability.py:test_init_reports_malformed_gitignore_markers_as_gitignore_conflict:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:5f5ed6fa546c4ab1b836187623e91c966e571b996c257e9ac1914d53d235e068",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:0c4dd87e009c3008832888bcc9992a94988370f97dc435b2dde2564d86c3f2ce"
+      },
+      "revised_at": "2026-07-11T05:56:27.306197+00:00",
+      "reason": "Independent final review requires preserving sibling user hooks during launcher migration",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:41ea6d3f6cb015fe3a86b3f2092f168b0cda0fd4e03befca490820eba7397967",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:5daede9fb73c92b8b6b1d1e01e6d710439ce8cb0daa64fbfd86b1172de9578cb"
+      },
+      "revised_at": "2026-07-11T05:58:21.225029+00:00",
+      "reason": "Independent review requires preserving unrelated empty user hook containers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-11T05:58:21.685708+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_payload_portability.py",
+        "exit_code": 1,
+        "output_tail": "\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_init_payload_portability.py:121: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInitialized MAID in /tmp/pytest-of-atomrem/pytest-236/test_init_reports_malformed_gi0\n  Created: manifests/\n  Created: manifests/drafts/\n  Created: .maidrc.yaml\n  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Created: .pre-commit-config.yaml\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_payload_portability.py::test_init_installs_generic_draft_guidance_without_runner_only_references\nFAILED tests/cli/test_init_payload_portability.py::test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering\nFAILED tests/cli/test_init_payload_portability.py::test_init_uses_existing_project_maid_wrapper_for_generated_hooks\nFAILED tests/cli/test_init_payload_portability.py::test_force_reinit_migrates_bare_scope_hook_to_project_wrapper\nFAILED tests/cli/test_init_payload_portability.py::test_init_reports_malformed_gitignore_markers_as_gitignore_conflict\n5 failed in 0.26s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_init_payload_portability.py:test_force_reinit_migrates_bare_scope_hook_to_project_wrapper",
+      "tests/cli/test_init_payload_portability.py:test_force_reinit_migrates_bare_scope_hook_to_project_wrapper:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_installs_generic_draft_guidance_without_runner_only_references",
+      "tests/cli/test_init_payload_portability.py:test_init_installs_generic_draft_guidance_without_runner_only_references:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_reports_malformed_gitignore_markers_as_gitignore_conflict",
+      "tests/cli/test_init_payload_portability.py:test_init_reports_malformed_gitignore_markers_as_gitignore_conflict:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_uses_existing_project_maid_wrapper_for_generated_hooks",
+      "tests/cli/test_init_payload_portability.py:test_init_uses_existing_project_maid_wrapper_for_generated_hooks:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_payload_portability.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/claude/settings.json",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_payload_portability.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_payload_portability.py"
+    ]
+  }
+}

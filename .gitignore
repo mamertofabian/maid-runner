@@ -33,6 +33,7 @@ maid_agents/.claude/tdd-guard/data/test.json
 
 .maid/serve.sock
 .maid/serve.pid
+# BEGIN MAID RUNNER GENERATED FILES
 .maid/outcomes.json
 .maid/outcomes-digest.json
 .maid/outcomes-digest.md
@@ -40,3 +41,4 @@ maid_agents/.claude/tdd-guard/data/test.json
 .maid/run-review-request.json
 .maid/run-review.json
 .maid/run-reviews/
+# END MAID RUNNER GENERATED FILES

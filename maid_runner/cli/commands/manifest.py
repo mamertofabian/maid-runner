@@ -315,7 +315,15 @@ def _rewrite_self_validate_paths(data: dict, old_rel: str, new_rel: str) -> None
     if not isinstance(commands, list):
         return
     data["validate"] = [
-        command.replace(old_rel, new_rel) if isinstance(command, str) else command
+        (
+            command.replace(old_rel, new_rel)
+            if isinstance(command, str)
+            else (
+                [new_rel if part == old_rel else part for part in command]
+                if isinstance(command, list)
+                else command
+            )
+        )
         for command in commands
     ]
 
