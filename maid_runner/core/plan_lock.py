@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import json
 import shlex
+import subprocess
+import tempfile
 from collections import Counter
 from collections.abc import Collection
 from dataclasses import dataclass
@@ -33,7 +35,7 @@ from maid_runner.core._command_integrity_test_discovery import (
 )
 from maid_runner.core._test_command_execution import _run_test_command
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.manifest import load_manifest, slug_from_path
+from maid_runner.core.manifest import _manifest_to_dict, load_manifest, slug_from_path
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
@@ -122,6 +124,39 @@ class RedPhaseEvidence:
 
 
 @dataclass(frozen=True)
+class LegacyBaselineEvidence:
+    """Audited green baseline for a manifest that predates plan locks."""
+
+    reason: str
+    baseline_commit: str
+    baseline_manifest_hash: str
+    contract_delta: ContractDelta
+    commands: tuple[RedPhaseCommandEvidence, ...]
+    captured_at: str
+
+    def to_payload(self) -> dict:
+        """Serialize legacy provenance without claiming historical red evidence."""
+        return {
+            "kind": "legacy_baseline",
+            "green": True,
+            "reason": self.reason,
+            "baseline_commit": self.baseline_commit,
+            "baseline_manifest_hash": self.baseline_manifest_hash,
+            "contract_delta": _contract_delta_to_payload(self.contract_delta),
+            "captured_at": self.captured_at,
+            "commands": [
+                {
+                    "command": command.command,
+                    "exit_code": command.exit_code,
+                    "output_tail": command.output_tail,
+                    "classification": command.classification,
+                }
+                for command in self.commands
+            ],
+        }
+
+
+@dataclass(frozen=True)
 class PlanLock:
     """Tamper-evident per-manifest plan lock record."""
 
@@ -133,6 +168,7 @@ class PlanLock:
     revisions: tuple[PlanLockRevision, ...] = ()
     red_evidence: Optional[dict] = None
     agent: Optional[AgentProvenance] = None
+    legacy_baseline: Optional[dict] = None
 
     @classmethod
     def load(cls, path: Path) -> "PlanLock":
@@ -175,6 +211,7 @@ class PlanLock:
                 revision=int(data["revision"]),
                 revisions=revisions,
                 red_evidence=data.get("red_evidence"),
+                legacy_baseline=data.get("legacy_baseline"),
                 agent=_agent_from_payload(data.get("agent")),
             )
         except (KeyError, TypeError, ValueError) as exc:
@@ -201,6 +238,7 @@ class PlanLock:
                 for r in self.revisions
             ],
             "red_evidence": self.red_evidence,
+            "legacy_baseline": self.legacy_baseline,
             "agent": _agent_to_payload(self.agent),
         }
         contract = _load_manifest_contract_for_lock(self, p)
@@ -411,6 +449,113 @@ def capture_red_phase_evidence(
     )
 
 
+def capture_legacy_baseline_evidence(
+    manifest_path: Path, project_root: Path, reason: str
+) -> LegacyBaselineEvidence:
+    """Capture a green, contract-stable baseline for a tracked legacy manifest."""
+    if not reason or not reason.strip():
+        raise ValueError("Legacy-baseline migration requires a non-empty reason")
+
+    root = Path(project_root).resolve()
+    current_path = Path(manifest_path).resolve()
+    manifest_rel = _project_relative_path(current_path, root)
+    baseline_commit = _git_text(root, "rev-parse", "HEAD").strip()
+    baseline_bytes = _git_bytes(root, "show", f"HEAD:{manifest_rel}")
+    dirty_paths = _git_changed_paths(root)
+    if dirty_paths - {manifest_rel}:
+        raise ValueError(
+            "Legacy-baseline migration refuses dirty path(s) other than the "
+            f"manifest: {', '.join(sorted(dirty_paths - {manifest_rel}))}"
+        )
+
+    current_manifest = load_manifest(current_path)
+    current_contract = _manifest_contract(current_manifest, root)
+    with tempfile.TemporaryDirectory(prefix="maid-legacy-baseline-") as temp_dir:
+        baseline_path = Path(temp_dir) / current_path.name
+        baseline_path.write_bytes(baseline_bytes)
+        baseline_manifest = load_manifest(baseline_path)
+        baseline_contract = _manifest_contract(baseline_manifest, root)
+        baseline_hash = compute_manifest_hash(baseline_path).removeprefix("sha256:")
+
+    delta = compute_contract_delta(baseline_contract, current_contract)
+    file_contract_changed = baseline_contract.get(
+        "file_contract"
+    ) != current_contract.get("file_contract")
+    if file_contract_changed or any(
+        (
+            delta.artifacts_added,
+            delta.artifacts_removed,
+            delta.files_added,
+            delta.files_removed,
+        )
+    ):
+        raise ValueError(
+            "Legacy-baseline migration permits validation metadata changes only; "
+            "declared artifacts and file sections must match HEAD"
+        )
+
+    baseline_tests = set(baseline_contract.get("test_files", ()))
+    current_tests = set(current_contract.get("test_files", ()))
+    if baseline_tests - current_tests:
+        raise ValueError(
+            "Legacy-baseline migration cannot remove behavioral-test coverage"
+        )
+    if not _validate_commands_are_strengthened(
+        baseline_contract.get("validate_commands"),
+        current_contract.get("validate_commands"),
+        current_tests,
+    ):
+        raise ValueError(
+            "Legacy-baseline migration may only retain validate commands, append "
+            "discovered behavioral-test targets to them, or add new commands"
+        )
+
+    before_hashes = _contract_file_hashes(current_path, current_manifest, root)
+    commands: list[RedPhaseCommandEvidence] = []
+    for command in current_manifest.validate_commands:
+        result = _run_test_command(
+            command, cwd=root, manifest_slug=current_manifest.slug
+        )
+        evidence = RedPhaseCommandEvidence(
+            command=shlex.join(command),
+            exit_code=result.exit_code,
+            output_tail=_combined_output_tail(result.stdout, result.stderr),
+            classification=classify_red_exit_code(result.exit_code),
+        )
+        commands.append(evidence)
+        if result.exit_code != 0:
+            raise ValueError(
+                "Legacy-baseline migration requires every validate command to "
+                f"pass; {evidence.command!r} exited {result.exit_code}"
+            )
+
+    after_hashes = _contract_file_hashes(current_path, current_manifest, root)
+    if after_hashes != before_hashes:
+        changed = sorted(
+            path
+            for path in set(before_hashes) | set(after_hashes)
+            if before_hashes.get(path) != after_hashes.get(path)
+        )
+        raise ValueError(
+            "Legacy-baseline validation mutated contract file(s): " + ", ".join(changed)
+        )
+    post_run_dirty = _git_changed_paths(root)
+    if post_run_dirty - {manifest_rel}:
+        raise ValueError(
+            "Legacy-baseline validation created or changed unrelated path(s): "
+            + ", ".join(sorted(post_run_dirty - {manifest_rel}))
+        )
+
+    return LegacyBaselineEvidence(
+        reason=reason.strip(),
+        baseline_commit=baseline_commit,
+        baseline_manifest_hash=baseline_hash,
+        contract_delta=delta,
+        commands=tuple(commands),
+        captured_at=_utc_now(),
+    )
+
+
 def enforce_plan_locks(
     chain: ManifestChain,
     project_root: Path,
@@ -516,13 +661,28 @@ def enforce_plan_locks(
             )
 
         if requirement_in_scope and require_red_evidence:
-            if lock.red_evidence is None:
+            if lock.red_evidence is None and lock.legacy_baseline is None:
                 errors.append(
                     _lock_error(ErrorCode.RED_PHASE_EVIDENCE_MISSING, manifest, root)
                 )
-            elif not _red_evidence_is_valid(lock.red_evidence):
+            elif (
+                lock.red_evidence is not None
+                and _red_evidence_is_valid(lock.red_evidence)
+                and lock.legacy_baseline is None
+            ):
+                pass
+            elif lock.red_evidence is None and _legacy_baseline_is_valid(
+                lock.legacy_baseline, lock_path
+            ):
+                pass
+            else:
                 errors.append(
-                    _lock_error(ErrorCode.RED_PHASE_EVIDENCE_INVALID, manifest, root)
+                    _lock_error(
+                        ErrorCode.RED_PHASE_EVIDENCE_INVALID,
+                        manifest,
+                        root,
+                        detail="legacy baseline or red-phase evidence is invalid",
+                    )
                 )
 
     if plan_lock_scope == "task" and changed_path_set is not None:
@@ -649,13 +809,18 @@ def _project_root_from_lock_path(lock_path: Path) -> Path:
 
 
 def _manifest_contract(manifest: Manifest, project_root: Path) -> dict:
+    serialized_manifest = _manifest_to_dict(manifest)
     return {
         "artifacts": sorted(_artifact_declarations(manifest)),
         "files": {
             "create": sorted(file_spec.path for file_spec in manifest.files_create),
             "edit": sorted(file_spec.path for file_spec in manifest.files_edit),
             "read": sorted(manifest.files_read),
+            "scope": sorted(file_spec.path for file_spec in manifest.files_scope),
+            "delete": sorted(file_spec.path for file_spec in manifest.files_delete),
+            "snapshot": sorted(file_spec.path for file_spec in manifest.files_snapshot),
         },
+        "file_contract": serialized_manifest.get("files", {}),
         "test_files": sorted(_behavioral_test_paths(manifest, project_root)),
         "validate_commands": [
             shlex.join(command) for command in manifest.validate_commands
@@ -675,7 +840,7 @@ def _contract_file_entries(contract: dict) -> set[str]:
     if not isinstance(raw_files, dict):
         return set()
     entries: set[str] = set()
-    for section in ("create", "edit", "read"):
+    for section in ("create", "edit", "read", "scope", "delete", "snapshot"):
         values = raw_files.get(section, ())
         if not isinstance(values, (list, tuple, set)):
             continue
@@ -683,6 +848,123 @@ def _contract_file_entries(contract: dict) -> set[str]:
             f"{section}:{value}" for value in values if isinstance(value, str)
         )
     return entries
+
+
+def _validate_commands_are_strengthened(
+    baseline_value: object,
+    current_value: object,
+    behavioral_test_paths: Collection[str],
+) -> bool:
+    """Match every baseline argv to an exact or test-target-only extension."""
+    if not isinstance(baseline_value, list) or not all(
+        isinstance(command, str) for command in baseline_value
+    ):
+        return False
+    if not isinstance(current_value, list) or not all(
+        isinstance(command, str) for command in current_value
+    ):
+        return False
+    try:
+        baseline_commands = [tuple(shlex.split(command)) for command in baseline_value]
+        current_commands = [tuple(shlex.split(command)) for command in current_value]
+    except ValueError:
+        return False
+
+    allowed_suffixes = {
+        path.replace("\\", "/").removeprefix("./") for path in behavioral_test_paths
+    }
+
+    def is_compatible(baseline: tuple[str, ...], current: tuple[str, ...]) -> bool:
+        if current[: len(baseline)] != baseline:
+            return False
+        suffix = current[len(baseline) :]
+        if suffix and baseline and baseline[-1].startswith("-"):
+            return False
+        return all(
+            token.replace("\\", "/").removeprefix("./") in allowed_suffixes
+            for token in suffix
+        )
+
+    candidates = [
+        [
+            current_index
+            for current_index, current in enumerate(current_commands)
+            if is_compatible(baseline, current)
+        ]
+        for baseline in baseline_commands
+    ]
+    assigned: dict[int, int] = {}
+
+    def assign(baseline_index: int, seen: set[int]) -> bool:
+        for current_index in candidates[baseline_index]:
+            if current_index in seen:
+                continue
+            seen.add(current_index)
+            previous = assigned.get(current_index)
+            if previous is None or assign(previous, seen):
+                assigned[current_index] = baseline_index
+                return True
+        return False
+
+    baseline_order = sorted(
+        range(len(baseline_commands)),
+        key=lambda index: (len(candidates[index]), -len(baseline_commands[index])),
+    )
+    return all(assign(index, set()) for index in baseline_order)
+
+
+def _contract_file_hashes(
+    manifest_path: Path, manifest: Manifest, project_root: Path
+) -> dict[str, str | None]:
+    paths = {_project_relative_path(manifest_path, project_root)}
+    paths.update(_behavioral_test_paths(manifest, project_root))
+    return {
+        path: (
+            compute_manifest_hash(project_root / path)
+            if (project_root / path).is_file()
+            else None
+        )
+        for path in sorted(paths)
+    }
+
+
+def _git_text(project_root: Path, *args: str) -> str:
+    return _git_result(project_root, *args, text=True).stdout
+
+
+def _git_bytes(project_root: Path, *args: str) -> bytes:
+    return _git_result(project_root, *args, text=False).stdout
+
+
+def _git_result(
+    project_root: Path, *args: str, text: bool
+) -> subprocess.CompletedProcess:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=project_root,
+        capture_output=True,
+        text=text,
+        check=False,
+    )
+    if result.returncode != 0:
+        stderr = result.stderr if text else result.stderr.decode(errors="replace")
+        raise ValueError(
+            f"Git command failed for legacy-baseline migration: git {' '.join(args)}"
+            + (f" ({stderr.strip()})" if stderr.strip() else "")
+        )
+    return result
+
+
+def _git_changed_paths(project_root: Path) -> set[str]:
+    tracked = _git_bytes(project_root, "diff", "--name-only", "-z", "HEAD", "--")
+    untracked = _git_bytes(
+        project_root, "ls-files", "--others", "--exclude-standard", "-z"
+    )
+    return {
+        path.decode(errors="surrogateescape").replace("\\", "/")
+        for path in tracked.split(b"\0") + untracked.split(b"\0")
+        if path
+    }
 
 
 def _historical_production_test_paths(
@@ -887,6 +1169,71 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _legacy_baseline_is_valid(evidence: object, lock_path: Path) -> bool:
+    if not isinstance(evidence, dict):
+        return False
+    if evidence.get("kind") != "legacy_baseline" or evidence.get("green") is not True:
+        return False
+    reason = evidence.get("reason")
+    commit = evidence.get("baseline_commit")
+    manifest_hash = evidence.get("baseline_manifest_hash")
+    captured_at = evidence.get("captured_at")
+    if not isinstance(reason, str) or not reason.strip():
+        return False
+    if not _is_hex_digest(commit, lengths={40, 64}):
+        return False
+    if not _is_hex_digest(manifest_hash, lengths={64}):
+        return False
+    if not isinstance(captured_at, str) or not captured_at.strip():
+        return False
+
+    try:
+        delta = _contract_delta_from_payload(evidence.get("contract_delta"))
+    except TypeError:
+        return False
+    if delta is None or any(
+        (
+            delta.artifacts_added,
+            delta.artifacts_removed,
+            delta.files_added,
+            delta.files_removed,
+        )
+    ):
+        return False
+
+    commands = evidence.get("commands")
+    if not isinstance(commands, list) or not commands:
+        return False
+    command_strings: list[str] = []
+    for command in commands:
+        if not isinstance(command, dict):
+            return False
+        command_string = command.get("command")
+        if not isinstance(command_string, str) or not command_string:
+            return False
+        if command.get("exit_code") != 0:
+            return False
+        if command.get("classification") != "not_red":
+            return False
+        if not isinstance(command.get("output_tail"), str):
+            return False
+        command_strings.append(command_string)
+
+    contract = _load_locked_contract(lock_path)
+    if not isinstance(contract, dict):
+        return False
+    snapshot = contract.get("validate_commands")
+    return isinstance(snapshot, list) and Counter(command_strings) == Counter(snapshot)
+
+
+def _is_hex_digest(value: object, *, lengths: set[int]) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) in lengths
+        and all(character in "0123456789abcdef" for character in value.lower())
+    )
 
 
 def _plan_lock_files(project_root: Path) -> tuple[Path, ...]:

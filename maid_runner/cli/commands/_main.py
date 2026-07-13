@@ -481,6 +481,17 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         help="Create the lock without capturing red-phase evidence",
     )
     lp.add_argument(
+        "--legacy-baseline",
+        action="store_true",
+        dest="legacy_baseline",
+        help="Adopt a tracked pre-plan-lock manifest with audited green evidence",
+    )
+    lp.add_argument(
+        "--reason",
+        default=None,
+        help="Human-readable reason for a legacy-baseline migration",
+    )
+    lp.add_argument(
         "--project-root",
         default=".",
         dest="project_root",

@@ -1,0 +1,801 @@
+{
+  "manifest_path": "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+  "manifest_hash": "sha256:40b2f4be623b9b1b192c763f0715d4c6bbf352819af200a5a9fbd31bf2205dc1",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+    "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:a05e3ec4d6f47e86a92715a8eb27d6e2041506860afc700c13562f47369a0f23"
+  },
+  "created_at": "2026-07-13T03:14:50.003354+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:5ac9eeea0c1ae5eb38eb4418ee38f286cb14dd58d10e2667750f801fa35d9bd9",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:8d676206217d10acd2cacf341925393b4fe8055b0ae913ed78ec46276678b0a2"
+      },
+      "revised_at": "2026-07-13T03:14:57.795233+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-legacy-plan-lock-baseline-migration.manifest.yaml -> manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f7e3d7771cfd470875583b480bdf78f9985a2938bf717d4f42d7955620601757",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:8d676206217d10acd2cacf341925393b4fe8055b0ae913ed78ec46276678b0a2"
+      },
+      "revised_at": "2026-07-13T04:03:34.368828+00:00",
+      "reason": "Run every behavioral test module declared by the legacy-baseline migration contract",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_red_evidence.py tests/core/test_plan_lock_enforcement.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:362b78751924ebb289836f47e584037b4f573e467ddeb496f2cd0607f6532c21",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:8d676206217d10acd2cacf341925393b4fe8055b0ae913ed78ec46276678b0a2"
+      },
+      "revised_at": "2026-07-13T04:21:55.702083+00:00",
+      "reason": "Close implementation-review gaps in legacy contract and atomic lock creation",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:returns=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:returns=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:294643f82aa9aa17494f37b1f4091c4e241ed0c6dc1f880e1c6e303804834078",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:4c84ee1f656f7dddce4dd5472bdbbe3714727421ad6f123071f9e05fff3f27b2"
+      },
+      "revised_at": "2026-07-13T04:34:53.629069+00:00",
+      "reason": "Cover nested contract semantics, positional compatibility, and fail-closed evidence combinations",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:81695c3bc0f6b9a0a6ea05f13820e01c769a9caca3fa4619a6b556697d7b4631",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:e5bf7f340aa957ce2764fc89b05a3a5950c59e8714d2c85f7a12fded465a1812"
+      },
+      "revised_at": "2026-07-13T04:51:38.356062+00:00",
+      "reason": "Reject option-consumed test suffixes and preserve replacement locks during cleanup",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:arg=monkeypatch:type=pytest.MonkeyPatch:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:67d256bb7a86bf009ee00dd605f770064f8677bfd256c82efe60d7bc0c04e934",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:8a0a2c369bd31986a9998edab21cdf3ca0dec7f41ae5b8f294fb34b79141d907"
+      },
+      "revised_at": "2026-07-13T05:05:01.470959+00:00",
+      "reason": "Preserve all unexpected lock destinations instead of racing to clean them",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:kind=test_function",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_cleans_invalid_race:returns=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:db1a5dca573f9eca58353fada4175cd54924bf20b677b4f82ec7c9cb09ecec64",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:a05e3ec4d6f47e86a92715a8eb27d6e2041506860afc700c13562f47369a0f23"
+      },
+      "revised_at": "2026-07-13T05:17:31.923885+00:00",
+      "reason": "Capture ready implementation outcome and validation evidence",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-13T05:05:13.704528+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_red_evidence.py tests/core/test_plan_lock_enforcement.py",
+        "exit_code": 1,
+        "output_tail": "\ntests/cli/test_plan_legacy_baseline_cmd.py:749: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_lock_parser_exposes_legacy_baseline_with_reason\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_untracked_manifest\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_requires_reason_and_rejects_no_run\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_dirty_implementation_or_test_paths\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_contract_change_or_validate_weakening\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_filtering_suffix_arguments\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_accepts_overlapping_command_strengthening\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_non_green_validation[1]\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_non_green_validation[2]\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_legacy_baseline_rejects_validation_that_mutates_contract\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_plan_lock_preserves_positional_agent_compatibility\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_tampered_legacy_baseline_fails_e705\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_plan_status_distinguishes_legacy_baseline_from_red_evidence\nFAILED tests/cli/test_plan_legacy_baseline_cmd.py::test_plan_lock_docs_describe_legacy_baseline_boundaries\n16 failed, 26 passed in 8.78s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "gpt-5",
+    "provider": "openai",
+    "client": "codex",
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._legacy_baseline_plan_lock_quick_reference",
+      "README.md:attribute:documentation._legacy_baseline_plan_lock_quick_reference:kind=attribute",
+      "README.md:attribute:documentation._legacy_baseline_plan_lock_quick_reference:of=documentation",
+      "README.md:attribute:documentation._legacy_baseline_plan_lock_quick_reference:type=markdown paragraph",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_plan_lock_specification",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_plan_lock_specification:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_plan_lock_specification:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_plan_lock_specification:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_status:returns=int",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_commit",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_commit:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_commit:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_commit:type=str",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_manifest_hash",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_manifest_hash:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_manifest_hash:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.baseline_manifest_hash:type=str",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.captured_at",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.captured_at:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.captured_at:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.captured_at:type=str",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.commands",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.commands:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.commands:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.commands:type=tuple[RedPhaseCommandEvidence, ...]",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.contract_delta",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.contract_delta:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.contract_delta:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.contract_delta:type=ContractDelta",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.reason",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.reason:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.reason:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:attribute:LegacyBaselineEvidence.reason:type=str",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.legacy_baseline",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.legacy_baseline:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.legacy_baseline:of=PlanLock",
+      "maid_runner/core/plan_lock.py:attribute:PlanLock.legacy_baseline:type=Optional[dict]",
+      "maid_runner/core/plan_lock.py:class:LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:class:LegacyBaselineEvidence:kind=class",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:returns=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=plan_lock_scope:type=str:default=repository",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "maid_runner/core/plan_lock.py:method:LegacyBaselineEvidence.to_payload",
+      "maid_runner/core/plan_lock.py:method:LegacyBaselineEvidence.to_payload:kind=method",
+      "maid_runner/core/plan_lock.py:method:LegacyBaselineEvidence.to_payload:of=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:method:LegacyBaselineEvidence.to_payload:returns=dict",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_accepts_overlapping_command_strengthening:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_contract_change_or_validate_weakening",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_contract_change_or_validate_weakening:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_contract_change_or_validate_weakening:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_contract_change_or_validate_weakening:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_dirty_implementation_or_test_paths",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_dirty_implementation_or_test_paths:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_dirty_implementation_or_test_paths:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_dirty_implementation_or_test_paths:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_filtering_suffix_arguments:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_non_green_validation",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_non_green_validation:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_non_green_validation:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_non_green_validation:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_untracked_manifest",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_untracked_manifest:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_untracked_manifest:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_untracked_manifest:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_validation_that_mutates_contract",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_validation_that_mutates_contract:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_validation_that_mutates_contract:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_rejects_validation_that_mutates_contract:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_requires_reason_and_rejects_no_run",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_requires_reason_and_rejects_no_run:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_requires_reason_and_rejects_no_run:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_legacy_baseline_requires_reason_and_rejects_no_run:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_lock_parser_exposes_legacy_baseline_with_reason",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_lock_parser_exposes_legacy_baseline_with_reason:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_lock_parser_exposes_legacy_baseline_with_reason:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_ordinary_no_run_lock_still_fails_e704",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_ordinary_no_run_lock_still_fails_e704:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_ordinary_no_run_lock_still_fails_e704:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_ordinary_no_run_lock_still_fails_e704:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_docs_describe_legacy_baseline_boundaries",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_docs_describe_legacy_baseline_boundaries:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_docs_describe_legacy_baseline_boundaries:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_lock_preserves_positional_agent_compatibility:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_status_distinguishes_legacy_baseline_from_red_evidence",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_status_distinguishes_legacy_baseline_from_red_evidence:arg=capsys:type=CaptureFixture[str]:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_status_distinguishes_legacy_baseline_from_red_evidence:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_status_distinguishes_legacy_baseline_from_red_evidence:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_plan_status_distinguishes_legacy_baseline_from_red_evidence:returns=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_tampered_legacy_baseline_fails_e705",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_tampered_legacy_baseline_fails_e705:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_tampered_legacy_baseline_fails_e705:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:test_tampered_legacy_baseline_fails_e705:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_legacy_baseline_cmd.py"
+      ],
+      "edit": [
+        "README.md",
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+        "tests/cli/test_plan_cmd_red_evidence.py",
+        "tests/core/test_plan_lock_enforcement.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_legacy_baseline_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_lock_parser_exposes_legacy_baseline_with_reason",
+              "description": "The real CLI parser accepts --legacy-baseline plus its audit reason.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate",
+              "description": "A committed legacy manifest whose validate argv is strengthened can record a non-red baseline and pass task-scoped plan-lock/red-evidence enforcement.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_untracked_manifest",
+              "description": "A new manifest absent from HEAD cannot use the legacy migration path and no lock is written.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_requires_reason_and_rejects_no_run",
+              "description": "Legacy migration requires a non-empty audit reason and cannot skip its green validation capture with --no-run.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_dirty_implementation_or_test_paths",
+              "description": "Any dirty path other than the legacy manifest blocks migration and leaves no lock.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_contract_change_or_validate_weakening",
+              "description": "Artifact changes, changes to every writable file section or nested semantic field, and removal or rewriting of committed validate argv cannot be grandfathered.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_filtering_suffix_arguments",
+              "description": "Appended filters and a committed command ending in a value-taking option cannot consume a discovered test path and masquerade as additive coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_accepts_overlapping_command_strengthening",
+              "description": "Overlapping committed command prefixes are matched one-to-one to compatible strengthened commands instead of failing because of greedy assignment.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts",
+              "description": "A validation-created malformed destination and a structurally valid competing lock are both preserved and never overwritten or deleted by MAID.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_non_green_validation",
+              "description": "A failing, invalid, or interrupted current command cannot become a legacy baseline and no lock is written.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_validation_that_mutates_contract",
+              "description": "A command that exits zero after modifying the manifest or behavioral test bytes is rejected and no lock is written.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ordinary_no_run_lock_still_fails_e704",
+              "description": "The new exception does not make ordinary red_evidence-null locks satisfy --require-red-evidence.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_preserves_positional_agent_compatibility",
+              "description": "The new optional legacy_baseline field is appended after the existing agent field so positional PlanLock callers retain their prior binding.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_tampered_legacy_baseline_fails_e705",
+              "description": "Missing required fields, non-green or misclassified commands, nonempty artifact/file deltas, command mismatch, and simultaneous red/legacy channels fail closed rather than waiving the gate.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_status_distinguishes_legacy_baseline_from_red_evidence",
+              "description": "Status JSON/text identifies the legacy baseline and continues to report red evidence as absent.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "capsys",
+                  "type": "CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_docs_describe_legacy_baseline_boundaries",
+              "description": "README and the MAID specification document eligibility, green evidence, separate provenance, and strict-gate behavior.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "LegacyBaselineEvidence",
+              "description": "Audited green-baseline evidence for a tracked manifest that predates plan-lock adoption."
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "description": "Required human explanation for using the legacy migration path.",
+              "of": "LegacyBaselineEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "baseline_commit",
+              "description": "Resolved Git HEAD commit containing the pre-existing manifest.",
+              "of": "LegacyBaselineEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "baseline_manifest_hash",
+              "description": "Hash of the committed pre-migration manifest bytes.",
+              "of": "LegacyBaselineEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "contract_delta",
+              "description": "Structured committed-to-current contract delta retained for audit.",
+              "of": "LegacyBaselineEvidence",
+              "type": "ContractDelta"
+            },
+            {
+              "kind": "attribute",
+              "name": "commands",
+              "description": "Current validate-command results, all classified not_red with exit code zero.",
+              "of": "LegacyBaselineEvidence",
+              "type": "tuple[RedPhaseCommandEvidence, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "captured_at",
+              "description": "UTC timestamp of the migration evidence capture.",
+              "of": "LegacyBaselineEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "method",
+              "name": "to_payload",
+              "description": "Serialize an explicitly typed legacy_baseline payload without claiming red evidence.",
+              "of": "LegacyBaselineEvidence",
+              "returns": "dict"
+            },
+            {
+              "kind": "attribute",
+              "name": "legacy_baseline",
+              "description": "Separate audited legacy-baseline payload; None for ordinary and pre-feature locks.",
+              "of": "PlanLock",
+              "type": "Optional[dict]"
+            },
+            {
+              "kind": "function",
+              "name": "capture_legacy_baseline_evidence",
+              "description": "Fail closed unless the manifest existed at HEAD, only that manifest is dirty, every file section and artifact contract is unchanged, validate strengthening adds only discovered behavioral-test targets with one-to-one command matching, and all current commands are green.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                }
+              ],
+              "returns": "LegacyBaselineEvidence"
+            },
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "description": "Treat a valid command-bound legacy_baseline as the explicit brownfield substitute for unavailable historical red evidence while retaining E704/E705 for absent or invalid evidence.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "repository"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_lock",
+              "description": "Support --legacy-baseline with required --reason, reject --no-run conflicts, capture green baseline evidence, publish the lock exclusively, remove only the private temporary file, and preserve unexpected destination artifacts.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "cmd_plan_status",
+              "description": "Expose legacy_baseline independently from red_evidence in JSON and text status output.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Expose --legacy-baseline and --reason on maid plan lock without changing ordinary lock defaults.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_legacy_baseline_plan_lock_quick_reference",
+              "description": "List the explicit legacy-baseline migration option and distinguish it from normal red evidence.",
+              "of": "documentation",
+              "type": "markdown paragraph"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_legacy_baseline_plan_lock_specification",
+              "description": "Specify eligibility, captured provenance, green validation, enforcement semantics, and anti-gaming boundaries for legacy migration.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/result.py",
+        "tests/cli/test_plan_cmd_red_evidence.py",
+        "tests/core/test_plan_lock_enforcement.py",
+        "manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_red_evidence.py",
+      "tests/cli/test_plan_legacy_baseline_cmd.py",
+      "tests/core/test_plan_lock_enforcement.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_red_evidence.py tests/core/test_plan_lock_enforcement.py",
+      "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
