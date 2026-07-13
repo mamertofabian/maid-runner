@@ -1,0 +1,240 @@
+{
+  "manifest_path": "manifests/086-01-fix-path-backed-e200-identities.manifest.yaml",
+  "manifest_hash": "sha256:c7225f742578a593a76ce52569bc871915d6cb5b13e344fb4b69e60aaa4f9ce3",
+  "test_hashes": {
+    "tests/core/validation/test_path_backed_e200_identities.py": "sha256:67927a21cf53e2f4b55e5d747d6625189fa5457cb018423f876d0caad14910ee"
+  },
+  "created_at": "2026-07-13T01:13:56.518743+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:74957a1a9ea10314cf7ff2b62b833385c83e021f34cb4a739ff960c70d6091a8",
+      "prior_test_hashes": {
+        "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+        "tests/core/test_ts_module_paths.py": "sha256:52dc124043c80da4a6e8fc06d62082dbede7922936f15b7052490d07631e109d",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256:c8763fb0bdc12711484e3628061292cfb0af687b8166e652fae880af46cfec5c",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256:aea003ea71593dd20080b5b864bdae95c3ae372290fc847ad0625c035984a906"
+      },
+      "revised_at": "2026-07-13T01:14:02.741310+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/086-01-fix-path-backed-e200-identities.manifest.yaml -> manifests/086-01-fix-path-backed-e200-identities.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:fcfd9d9a114633c6aea899546092da7311bc81b52f845aaf55a8699aa06b4d05",
+      "prior_test_hashes": {
+        "tests/core/test_identity_matching.py": "sha256:80b5d6d882395aed7b2e3dcf80ed50c331c36fe967b8d7c1ae93a63a462ee3fb",
+        "tests/core/test_ts_module_paths.py": "sha256:52dc124043c80da4a6e8fc06d62082dbede7922936f15b7052490d07631e109d",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256:c8763fb0bdc12711484e3628061292cfb0af687b8166e652fae880af46cfec5c",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256:aea003ea71593dd20080b5b864bdae95c3ae372290fc847ad0625c035984a906"
+      },
+      "revised_at": "2026-07-13T01:17:27.146447+00:00",
+      "reason": "Remove contextual historical test paths that made the focused validate command incomplete",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_identity_matching.py",
+          "read:tests/core/test_ts_module_paths.py",
+          "read:tests/core/validation/test_behavioral_coverage.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ec7bc85c73f46d42b063127c5b20000ffe6c10e77cc8e3d46711f40513b6c526",
+      "prior_test_hashes": {
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256:aea003ea71593dd20080b5b864bdae95c3ae372290fc847ad0625c035984a906"
+      },
+      "revised_at": "2026-07-13T01:32:20.565646+00:00",
+      "reason": "Cover review-found Svelte alias/barrel precedence and assignment-only Python loader constraints",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=importer_module:type=str:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=project_root:type=Path:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=specifier:type=str:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:kind=function",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:returns=str",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=module:type=str:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=name:type=str:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=project_root:type=Path:default=None",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:kind=function",
+          "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:returns=Optional[tuple[str, str]]",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes:kind=test_function",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes:returns=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:kind=test_function",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:returns=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:kind=test_function",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:returns=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:kind=test_function",
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/028-05-extract-tsconfig-jsonc-and-path-alias-loader.manifest.yaml",
+          "read:manifests/029-05-extract-typescript-export-scanner.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:3337ceae2d5ff7dc028516e066b4c939f1103d69493be11f766f2415157b3b05",
+      "prior_test_hashes": {
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256:0c7861927785920b028647b49df3f3c149b568bae2f4018632d6771e1984fa88"
+      },
+      "revised_at": "2026-07-13T01:34:54.002365+00:00",
+      "reason": "Correct the alias integration test to execute from its temporary project root",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:arg=monkeypatch:type=pytest.MonkeyPatch:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f08ce94b902152c3183aeaace34ae0cc7c963925bfc54cd0d0ce4faf984eee50",
+      "prior_test_hashes": {
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256:67927a21cf53e2f4b55e5d747d6625189fa5457cb018423f876d0caad14910ee"
+      },
+      "revised_at": "2026-07-13T01:49:36.839004+00:00",
+      "reason": "Capture reviewed Outcome evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-13T01:34:55.425273+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_path_backed_e200_identities.py",
+        "exit_code": 1,
+        "output_tail": "            resolve_ts_import(\"$lib/state.svelte\", \"tests/state.test\", tmp_path)\n            == \"src/lib/state\"\n        )\n>       assert resolve_ts_reexport(\"src/lib\", \"barrelOnly\", tmp_path) == (\n            \"src/lib/state\",\n            \"barrelOnly\",\n        )\nE       AssertionError: assert ('src/lib/sta... 'barrelOnly') == ('src/lib/sta... 'barrelOnly')\nE         \nE         At index 0 diff: 'src/lib/state.svelte' != 'src/lib/state'\nE         Use -v to get more diff\n\ntests/core/validation/test_path_backed_e200_identities.py:198: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_path_backed_e200_identities.py::test_svelte_state_module_file_and_runtime_import_share_identity\nFAILED tests/core/validation/test_path_backed_e200_identities.py::test_svelte_state_module_runtime_import_satisfies_e200\nFAILED tests/core/validation/test_path_backed_e200_identities.py::test_hyphenated_python_loader_records_literal_script_identity\nFAILED tests/core/validation/test_path_backed_e200_identities.py::test_hyphenated_python_loader_call_satisfies_e200\nFAILED tests/core/validation/test_path_backed_e200_identities.py::test_svelte_state_module_alias_and_barrel_resolve_canonical_identity\n5 failed, 4 passed in 1.25s",
+        "classification": "red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=importer_module:type=str:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=project_root:type=Path:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:arg=specifier:type=str:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:kind=function",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_import:returns=str",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=module:type=str:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=name:type=str:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:arg=project_root:type=Path:default=None",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:kind=function",
+      "maid_runner/core/ts_module_paths.py:function:resolve_ts_reexport:returns=Optional[tuple[str, str]]",
+      "maid_runner/core/ts_module_paths.py:function:ts_file_to_module_path",
+      "maid_runner/core/ts_module_paths.py:function:ts_file_to_module_path:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/ts_module_paths.py:function:ts_file_to_module_path:arg=project_root:type=Path:default=None",
+      "maid_runner/core/ts_module_paths.py:function:ts_file_to_module_path:kind=function",
+      "maid_runner/core/ts_module_paths.py:function:ts_file_to_module_path:returns=str",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=source:type=str:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:returns=CollectionResult",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_call_satisfies_e200",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_call_satisfies_e200:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_call_satisfies_e200:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_call_satisfies_e200:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_records_literal_script_identity",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_records_literal_script_identity:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_records_literal_script_identity:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_mismatched_runtime_name",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_mismatched_runtime_name:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_mismatched_runtime_name:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_hyphenated_python_loader_rejects_non_assignment_shapes:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_imports_satisfy_e200:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_alias_and_barrel_resolve_canonical_identity:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_does_not_override_plain_typescript_entry:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_file_and_runtime_import_share_identity",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_file_and_runtime_import_share_identity:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_file_and_runtime_import_share_identity:returns=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_runtime_import_satisfies_e200",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_runtime_import_satisfies_e200:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_runtime_import_satisfies_e200:kind=test_function",
+      "tests/core/validation/test_path_backed_e200_identities.py:test_svelte_state_module_runtime_import_satisfies_e200:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_path_backed_e200_identities.py"
+      ],
+      "edit": [
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/validators/python.py"
+      ],
+      "read": [
+        "maid_runner/core/identity.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/validators/_python_behavioral_scope.py",
+        "manifests/028-05-extract-tsconfig-jsonc-and-path-alias-loader.manifest.yaml",
+        "manifests/029-05-extract-typescript-export-scanner.manifest.yaml",
+        "manifests/add-semantic-reference-index-svelte.manifest.yaml",
+        "manifests/add-semantic-reference-index-typescript.manifest.yaml",
+        "manifests/add-semantic-reference-index.manifest.yaml",
+        "manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_path_backed_e200_identities.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_path_backed_e200_identities.py"
+    ]
+  }
+}

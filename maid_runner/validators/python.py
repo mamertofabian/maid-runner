@@ -6,6 +6,7 @@ Collects artifact definitions and references from Python source code using AST.
 from __future__ import annotations
 
 import ast
+import keyword as keyword_module
 from pathlib import Path
 from typing import Optional, Union
 
@@ -466,7 +467,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         names: set[str] = set()
         for target in targets:
             _collect_target_bindings(target, names)
-        dynamic_module = self._literal_importlib_import_module_path(value)
+        dynamic_module = self._literal_assignment_module_path(value)
         if dynamic_module is None:
             self._unbind_module_level_bindings(
                 names, position=_binding_position(value, targets)
@@ -774,7 +775,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         direct_names: set[str],
     ) -> None:
         if self._local_module_import_scopes:
-            dynamic_module = self._literal_importlib_import_module_path(value)
+            dynamic_module = self._literal_assignment_module_path(value)
             if dynamic_module is None:
                 self._unbind_module_aliases(names)
             else:
@@ -1427,6 +1428,55 @@ class _BehavioralCollector(ast.NodeVisitor):
             if identity == ("importlib", "import_module"):
                 return module_arg.value
         return None
+
+    def _literal_assignment_module_path(
+        self,
+        node: Optional[ast.AST],
+    ) -> Optional[str]:
+        importlib_module = self._literal_importlib_import_module_path(node)
+        if importlib_module is not None:
+            return importlib_module
+        return self._literal_hyphenated_load_module_path(node)
+
+    def _literal_hyphenated_load_module_path(
+        self,
+        node: Optional[ast.AST],
+    ) -> Optional[str]:
+        if (
+            not isinstance(node, ast.Call)
+            or not isinstance(node.func, ast.Name)
+            or node.func.id != "load_module"
+            or len(node.args) != 2
+            or node.keywords
+        ):
+            return None
+        module_arg, path_arg = node.args
+        if not (
+            isinstance(module_arg, ast.Constant) and isinstance(module_arg.value, str)
+        ):
+            return None
+        module_name = module_arg.value
+        if not module_name.isidentifier() or keyword_module.iskeyword(module_name):
+            return None
+        if not (isinstance(path_arg, ast.Constant) and isinstance(path_arg.value, str)):
+            return None
+
+        relative_path = Path(path_arg.value.replace("\\", "/"))
+        if (
+            relative_path.is_absolute()
+            or relative_path.suffix != ".py"
+            or ".." in relative_path.parts
+            or relative_path.stem.replace("-", "_") != module_name
+        ):
+            return None
+
+        module_parts = relative_path.with_suffix("").parts
+        if all(
+            part.isidentifier() and not keyword_module.iskeyword(part)
+            for part in module_parts
+        ):
+            return None
+        return file_to_module_path(relative_path, Path("."))
 
     def _record_assignment_owner_bindings(
         self,

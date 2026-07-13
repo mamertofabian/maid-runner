@@ -19,6 +19,14 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".svelte",
 )
 
+_SVELTE_STATE_EXTENSIONS: tuple[str, ...] = (
+    ".svelte.ts",
+    ".svelte.js",
+)
+
+_TS_PATH_SUFFIXES = _SVELTE_STATE_EXTENSIONS + _TS_EXTENSIONS
+_TS_MODULE_ENTRY_EXTENSIONS = _TS_EXTENSIONS + _SVELTE_STATE_EXTENSIONS
+
 _INDEX_CANDIDATES: tuple[str, ...] = (
     "index.ts",
     "index.tsx",
@@ -390,7 +398,7 @@ def _project_module_from_path(path: Path, project_root: Path) -> str:
 
 def _existing_module_file(project_root: Path, module: str) -> Optional[Path]:
     base = project_root / module
-    for extension in _TS_EXTENSIONS:
+    for extension in _TS_MODULE_ENTRY_EXTENSIONS:
         candidate = Path(f"{base}{extension}")
         if candidate.exists():
             return candidate
@@ -421,7 +429,7 @@ def _ts_file_to_module_path(
         rel = p
 
     posix = str(rel).replace("\\", "/")
-    for ext in _TS_EXTENSIONS:
+    for ext in _TS_PATH_SUFFIXES:
         if posix.endswith(ext):
             posix = posix[: -len(ext)]
             break
