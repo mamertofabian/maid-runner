@@ -1,0 +1,229 @@
+schema: '2'
+goal: Provide a safe pgTAP command adapter for MAID red-phase evidence
+type: fix
+created: '2026-07-13T11:18:12Z'
+metadata:
+  tags:
+  - plan-lock
+  - red-evidence
+  - postgresql
+  - pgtap
+  - anti-gaming
+  priority: high
+description: |
+  Add a dedicated `maid pgtap -- <psql arguments>` command so PostgreSQL
+  behavioral tests can produce trustworthy red-phase evidence without copying
+  shell wrappers into every manifest. The adapter invokes `psql` with a clean
+  startup and forced `ON_ERROR_STOP=1`, passes through the original stdout and
+  stderr, and normalizes its exit status for MAID's existing exit-code-only
+  red classifier.
+
+  A green psql run remains exit 0. Only psql exit 3 accompanied by an explicit
+  pgTAP failure marker line (`not ok N -` or `pgTAP failures:`) becomes exit 1.
+  Missing files, connection failures, permission errors, unrelated SQL setup
+  errors, spawn failures, and any non-marker psql failure become exit 2 so they
+  remain invalid red evidence. The adapter requires a `-f`/`--file` script
+  target, rejects psql help/version/list options that exit without executing
+  that file, and rejects every caller argument containing `ON_ERROR_STOP` so
+  clustered or abbreviated variable options cannot override the forced value.
+  Standard `not ok N -` markers are recognized only on stdout; the explicit
+  final-guard marker is recognized only as an exact stderr line with psql file
+  context (`psql:<file>:<line>: ERROR: pgTAP failures:`), preventing quoted
+  multiline error payloads from masquerading as TAP output. Standard psql
+  short-option clusters containing `-f`, such as `-qftests/example.test.sql`,
+  remain valid file-backed invocations.
+
+  The repository's command-catalog contract requires every registered
+  top-level command to appear in README.md. Keep that catalog synchronized as
+  part of this command addition; the full suite exposed this dependency before
+  handoff.
+
+  This is additive chain evolution. It leaves `classify_red_exit_code` and
+  `capture_red_phase_evidence` unchanged, preserving the approved 067-02
+  contract that generic validation output is not machine-interpreted. It also
+  leaves task-scoped E701 behavior unchanged: shared behavioral tests continue
+  to implicate every active lock that owns them, with `maid plan revise` or
+  manifest supersession as the sanctioned evolution paths.
+temptations:
+- risk: Do not classify every psql exit 3, or marker-like text quoted inside an unrelated SQL error, as valid red evidence.
+  instead: 'Require both psql exit 3 and an anchored pgTAP marker line (`not ok N -` on stdout or an exact `psql:<file>:<line>: ERROR: pgTAP failures:` stderr line); map every other nonzero result to invalid exit 2.'
+- risk: Do not loosen the generic plan-lock classifier to accept exit 3 globally.
+  instead: Keep generic red evidence exit-code-only and isolate PostgreSQL output interpretation in the explicit pgTAP adapter.
+- risk: Do not let callers disable ON_ERROR_STOP or run a non-file psql command that can report false green.
+  instead: Force the psql variable, reject any argument containing ON_ERROR_STOP, reject help/version/list early-exit options including long abbreviations, and require a `-f` or `--file` test script target before spawning psql.
+- risk: Do not swallow or replace the database test output while normalizing its exit status.
+  instead: Preserve stdout and stderr verbatim, then append a concise adapter diagnostic explaining a normalized nonzero result.
+files:
+  create:
+  - path: maid_runner/cli/commands/pgtap.py
+    artifacts:
+    - kind: function
+      name: cmd_pgtap
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Run a file-backed pgTAP script through psql and normalize only explicit pgTAP assertion failures to MAID's red exit code.
+  - path: tests/cli/test_pgtap_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_pgtap_command_runs_psql_with_forced_failure_semantics_and_passes_output
+      source_scenario: A manifest invokes the adapter with either a long-form `--file` target or a standard short-option cluster containing `-f`, and the pgTAP SQL script passes.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_pgtap
+      expected:
+        behavior: The public CLI dispatches to psql with a clean startup and forced ON_ERROR_STOP, preserves the caller arguments and output, and returns exit 0.
+    - kind: test_function
+      name: test_pgtap_command_maps_explicit_assertion_failure_to_red_exit_one
+      source_scenario: A file-backed psql run exits 3 after emitting either a standard `not ok N -` line or the final-guard `pgTAP failures:` marker.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_pgtap
+      expected:
+        behavior: The adapter preserves output, emits an auditable classification diagnostic, and returns exit 1 for MAID's generic red classifier.
+    - kind: test_function
+      name: test_pgtap_command_keeps_psql_infrastructure_and_setup_failures_invalid
+      source_scenario: psql reports a missing file, connection failure, unrelated SQL setup error, or same-line/multiline quoted marker-like stderr text that is not pgTAP output.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_pgtap
+      expected:
+        behavior: Each failure preserves its original diagnostic but returns exit 2 with an invalid-red-evidence explanation rather than masquerading as a behavioral red phase.
+    - kind: test_function
+      name: test_pgtap_command_rejects_missing_file_or_failure_semantics_override
+      source_scenario: A caller omits a SQL file target, selects a psql help/version/list early exit, or tries canonical, abbreviated, or clustered options that override the adapter's required ON_ERROR_STOP setting.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_pgtap
+      expected:
+        behavior: The adapter returns exit 2 with a visible error before spawning psql.
+    - kind: test_function
+      name: test_pgtap_command_reports_psql_spawn_failure_as_invalid
+      source_scenario: The configured psql executable cannot be started.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_pgtap
+      expected:
+        behavior: The adapter reports the spawn error and returns invalid exit 2 instead of red exit 1.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register and dispatch the additive public pgtap command without changing existing command signatures.
+  - path: docs/maid_specs.md
+    reason: Document the direct manifest command and the exact safe exit semantics so downstream projects can remove bespoke shell wrappers.
+  - path: README.md
+    reason: Keep the tested top-level command catalog synchronized with the newly registered pgtap command.
+  read:
+  - maid_runner/cli/commands/_format.py
+  - maid_runner/core/plan_lock.py
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml
+  - tests/test_agent_payload_distribution.py
+validate:
+- uv run python -m pytest -q tests/cli/test_pgtap_cmd.py tests/test_agent_payload_distribution.py
+outcome:
+  status: completed
+  completed_at: '2026-07-13T11:55:13Z'
+  summary: |
+    Added `maid pgtap -- <psql arguments>` as a fail-closed adapter for
+    file-backed pgTAP behavioral tests. It forces clean psql startup and
+    `ON_ERROR_STOP=1`, preserves database output, maps only explicit pgTAP
+    assertion failures from psql exit 3 to MAID red exit 1, and maps setup,
+    infrastructure, spawn, and ambiguous marker failures to invalid exit 2.
+  rationale: |
+    Generic MAID red evidence intentionally classifies exit codes without
+    interpreting test output. A dedicated PostgreSQL adapter preserves that
+    contract while giving pgTAP manifests a reusable, auditable command. The
+    implementation requires a real file target (including valid short-option
+    clusters), rejects caller overrides and psql early exits, accepts standard
+    TAP failure lines only from stdout, and accepts the SQL final guard only as
+    an exact psql file-context stderr line. The task-scoped E701 half of the
+    source report was not changed because shared behavioral tests correctly
+    implicate every active lock that owns them; revision or supersession is the
+    existing intentional evolution path.
+  lessons:
+  - lesson_type: validation
+    summary: Database test adapters must distinguish assertion failures from runner and setup failures before translating them into MAID's generic exit-code contract.
+    tags:
+    - pgtap
+    - red-evidence
+    - fail-closed
+    paths:
+    - maid_runner/cli/commands/pgtap.py
+    - tests/cli/test_pgtap_cmd.py
+  - lesson_type: anti-gaming
+    summary: Marker recognition needs channel and line-shape boundaries; quoted marker-like stderr, early-exit options, and variable overrides otherwise create false red or false green evidence.
+    tags:
+    - plan-lock
+    - anti-gaming
+    - postgres
+    paths:
+    - maid_runner/cli/commands/pgtap.py
+    - manifests/fix-pgtap-red-evidence-adapter.manifest.yaml
+  - lesson_type: compatibility
+    summary: A passthrough adapter that inspects psql arguments must honor standard short-option clustering consistently, including file targets after no-value flags.
+    tags:
+    - cli
+    - psql
+    - compatibility
+    paths:
+    - maid_runner/cli/commands/pgtap.py
+    - tests/cli/test_pgtap_cmd.py
+  review_notes:
+  - source: independent-reviewer-pgtap-implementation-review
+    severity: P1-fixed
+    summary: The initial reviews found psql help/version/list false greens, clustered or abbreviated ON_ERROR_STOP bypasses, quoted multiline marker spoofing, and rejected clustered file targets; each finding was added to the locked behavioral contract and fixed through sanctioned plan revisions.
+  - source: independent-reviewer-pgtap-implementation-review
+    severity: ready
+    summary: Revision 6 closed every prior finding; the reviewer confirmed current lock hashes and red evidence, reran focused checks, found no P0, P1, or P2 issues, and returned a ready verdict.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_pgtap_cmd.py
+    - tests/test_agent_payload_distribution.py
+    status: passed
+    summary: The focused adapter and command-catalog contract passed all 36 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-pgtap-red-evidence-adapter.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: The promoted revision-6 contract passed implementation validation.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full pytest suite passed with 3,374 tests and 5 expected skips.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository validation passed with 434 manifests, 340 active passes, 0 failures, and 94 superseded skips.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: The complete active MAID test sweep passed all 182 commands.

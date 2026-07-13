@@ -156,6 +156,24 @@ the existing lock already has valid red evidence, and it cannot be combined with
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
 
+PostgreSQL manifests can run file-backed pgTAP tests without duplicating shell
+exit-code adapters:
+
+```bash
+maid pgtap -- -f supabase/tests/example.test.sql
+```
+
+The adapter runs `psql` with a clean startup and forced `ON_ERROR_STOP=1`.
+Successful SQL exits 0. A psql script exit 3 becomes MAID's behavioral-red exit
+1 only when stdout contains an anchored pgTAP `not ok N -` line or stderr
+contains an exact `psql:<file>:<line>: ERROR: pgTAP failures:` final-guard
+line. Missing files, connection or permission failures, unrelated SQL errors,
+spawn failures, and marker-like text quoted inside another error return exit 2
+and remain invalid red evidence. A `-f`/`--file` target is required; standard
+short-option clusters such as `-qftests/example.test.sql` are accepted, and
+callers cannot override `ON_ERROR_STOP`. Original stdout and stderr are
+preserved for the plan lock's bounded evidence tail.
+
 Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
 --require-red-evidence` scopes requirement errors to the task window: E700
 PLAN_LOCK_MISSING, E704 RED_PHASE_EVIDENCE_MISSING, and E705

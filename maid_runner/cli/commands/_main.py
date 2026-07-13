@@ -48,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_validate_parser(sub)
     _register_validators_parser(sub)
     _register_test_parser(sub)
+    _register_pgtap_parser(sub)
     _register_verify_parser(sub)
     _register_plan_parser(sub)
     _register_task_parser(sub)
@@ -539,6 +540,19 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+
+
+def _register_pgtap_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "pgtap",
+        help="Run pgTAP through psql with MAID-safe red-phase exits",
+    )
+    p.set_defaults(psql="psql")
+    p.add_argument(
+        "psql_args",
+        nargs=argparse.REMAINDER,
+        help="psql arguments after --; a -f/--file SQL target is required",
     )
 
 
@@ -1451,6 +1465,7 @@ def main(argv: list[str] | None = None) -> int:
         "validate": "_cmd_validate",
         "validators": "_cmd_validators",
         "test": "_cmd_test",
+        "pgtap": "_cmd_pgtap",
         "verify": "_cmd_verify",
         "plan": "_cmd_plan",
         "task": "_cmd_task",
@@ -1490,6 +1505,7 @@ def main(argv: list[str] | None = None) -> int:
         validate as validate_mod,
         validators as validators_mod,
         test as test_mod,
+        pgtap as pgtap_mod,
         verify as verify_mod,
         plan as plan_mod,
         task as task_mod,
@@ -1521,6 +1537,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_validate": validate_mod.cmd_validate,
         "_cmd_validators": validators_mod.cmd_validators,
         "_cmd_test": test_mod.cmd_test,
+        "_cmd_pgtap": pgtap_mod.cmd_pgtap,
         "_cmd_verify": verify_mod.cmd_verify,
         "_cmd_plan": plan_mod.cmd_plan,
         "_cmd_task": task_mod.cmd_task,

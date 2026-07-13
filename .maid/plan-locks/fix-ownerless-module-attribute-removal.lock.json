@@ -1,0 +1,250 @@
+{
+  "manifest_path": "manifests/fix-ownerless-module-attribute-removal.manifest.yaml",
+  "manifest_hash": "sha256:a9c39a3dc138b62e201bf0b4a81924421140cc9a1ec112e03beabc97242c383f",
+  "test_hashes": {
+    "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
+    "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
+    "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+  },
+  "created_at": "2026-07-13T10:43:24.255949+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:0bc9164e837be74b55996ac208a6d5095a2dd70d60cf483cbd220b43c5822692",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
+        "tests/core/test_validate_engine_characterization.py": "sha256:772398d9343ba9f854a6ba7b5a8e75df814e11dcb1800068f11457fd7999eafa",
+        "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
+        "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+      },
+      "revised_at": "2026-07-13T10:43:38.501204+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-ownerless-module-attribute-removal.manifest.yaml -> manifests/fix-ownerless-module-attribute-removal.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:e5abb66b16b26866361a520ad50318dfd2721304256e71b39cf6b2b7f80fddb7",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
+        "tests/core/test_validate_engine_characterization.py": "sha256:772398d9343ba9f854a6ba7b5a8e75df814e11dcb1800068f11457fd7999eafa",
+        "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
+        "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+      },
+      "revised_at": "2026-07-13T10:49:24.262390+00:00",
+      "reason": "Remove an unnecessary read-only characterization dependency already owned by its original active manifest",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_validate_engine_characterization.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:347cfa29bff712afb3ccaa86eb6d42353c1e53aa4076bd5866c3d931c254fcaa",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
+        "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
+        "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+      },
+      "revised_at": "2026-07-13T11:00:33.697517+00:00",
+      "reason": "Record the reviewed completed Outcome while preserving revision-3 red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-13T10:43:39.002378+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_removed_module_attributes.py tests/core/test_removed_artifacts.py tests/core/test_supersession_audit.py",
+        "exit_code": 1,
+        "output_tail": "    validate:\n      - pytest\n    \"\"\"\n            )\n            manifest = load_manifest(manifest_path)\n            engine = ValidationEngine(project_root=tmp_path)\n            errors = engine.validate_removed_artifacts(manifest)\n>           assert errors == []\nE           assert [ValidationEr...ember name.')] == []\nE             \nE             Left contains one more item: ValidationError(code=<ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT: 'E311'>, message=\"Cannot verify removal of 'name' (att...uggestion='Add `of: <OwnerClass>` to the removed_artifacts entry so the verifier can match the qualified member name.')\nE             Use -v to get more diff\n\ntests/core/test_removed_artifacts.py:385: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_removed_module_attributes.py::test_absent_typescript_module_attribute_is_verified_removed\nFAILED tests/core/test_removed_module_attributes.py::test_present_typescript_module_attribute_reports_e311\nFAILED tests/core/test_removed_module_attributes.py::test_supersession_accepts_verified_module_attribute_removal\nFAILED tests/core/test_removed_artifacts.py::TestValidateRemovedArtifactsOwnership::test_ownerless_attribute_removal_targets_module_scope\n4 failed, 61 passed in 0.33s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_removed_artifacts.py:test_ownerless_attribute_removal_targets_module_scope",
+      "tests/core/test_removed_artifacts.py:test_ownerless_attribute_removal_targets_module_scope:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_absent_typescript_module_attribute_is_verified_removed",
+      "tests/core/test_removed_module_attributes.py:test_absent_typescript_module_attribute_is_verified_removed:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_ownerless_removal_does_not_exempt_owned_attribute",
+      "tests/core/test_removed_module_attributes.py:test_ownerless_removal_does_not_exempt_owned_attribute:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_present_typescript_module_attribute_reports_e311",
+      "tests/core/test_removed_module_attributes.py:test_present_typescript_module_attribute_reports_e311:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_supersession_accepts_verified_module_attribute_removal",
+      "tests/core/test_removed_module_attributes.py:test_supersession_accepts_verified_module_attribute_removal:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_removed_module_attributes.py"
+      ],
+      "edit": [
+        "tests/core/test_removed_artifacts.py"
+      ],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/registry.py",
+        "manifests/035-01-characterize-validation-engine.manifest.yaml",
+        "manifests/038-11-extract-removed-artifacts-helper.manifest.yaml",
+        "manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml",
+        "manifests/add-supersession-artifact-preservation.manifest.yaml",
+        "tests/core/test_supersession_audit.py"
+      ],
+      "scope": [
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/supersession_audit.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_removed_module_attributes.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_absent_typescript_module_attribute_is_verified_removed",
+              "source_scenario": "A TypeScript file no longer defines a module-level constant named by an ownerless attribute removal declaration.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidationEngine"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Removed-artifact validation returns no E311 error."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_present_typescript_module_attribute_reports_e311",
+              "source_scenario": "A TypeScript file still exports a module-level constant named by an ownerless attribute removal declaration.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidationEngine"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Removed-artifact validation returns E311 identifying that the symbol is still defined, rather than claiming an owner is required."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_supersession_accepts_verified_module_attribute_removal",
+              "source_scenario": "A replacement manifest supersedes an ownerless module attribute and the exact module-level binding is absent from the collected source.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Supersession auditing accepts the verified removed_artifacts entry and reports no dropped-artifact violation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ownerless_removal_does_not_exempt_owned_attribute",
+              "source_scenario": "A replacement declares an ownerless attribute removed while the superseded contract and source contain a same-named attribute owned by a class.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Supersession auditing still reports the owned attribute as dropped because its qualified merge key differs from the module-level removal key."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/core/test_removed_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_ownerless_attribute_removal_targets_module_scope",
+              "source_scenario": "A Python file retains a class attribute whose name matches an ownerless removed_artifacts attribute declaration, but has no module-level binding with that name.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidationEngine"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Removed-artifact validation succeeds because the ownerless declaration targets module scope and does not match the owned class member."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/registry.py",
+        "tests/core/test_supersession_audit.py",
+        "manifests/add-supersession-artifact-preservation.manifest.yaml",
+        "manifests/035-01-characterize-validation-engine.manifest.yaml",
+        "manifests/038-11-extract-removed-artifacts-helper.manifest.yaml",
+        "manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_removed_artifacts.py",
+          "reason": "Allow ownerless attributes, but not methods, to reach exact merge-key verification without changing the private helper API."
+        },
+        {
+          "path": "maid_runner/core/supersession_audit.py",
+          "reason": "Apply the same ownerless module-attribute semantics when verifying supersession removal exemptions."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_removed_artifacts.py",
+      "tests/core/test_removed_module_attributes.py",
+      "tests/core/test_supersession_audit.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_removed_module_attributes.py tests/core/test_removed_artifacts.py tests/core/test_supersession_audit.py"
+    ]
+  }
+}

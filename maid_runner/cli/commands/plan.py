@@ -448,7 +448,7 @@ def _cmd_plan_revise_with_stashed_implementation(
     agent,
 ) -> int:
     """Revise a lock after temporarily stashing declared implementation files."""
-    from maid_runner.core.manifest import _is_test_file, load_manifest
+    from maid_runner.core.manifest import load_manifest
     from maid_runner.core.plan_lock import (
         capture_red_phase_evidence,
         revise_plan_lock,
@@ -459,6 +459,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         manifest = load_manifest(ctx.manifest_path)
         manifest_rel = _project_relative(ctx.manifest_path, ctx.project_root)
         lock_rel = _project_relative(ctx.lock_path, ctx.project_root)
+        behavioral_test_paths = _behavioral_test_paths_for_revise(manifest)
         contracted_writable_paths = {
             normalized_path
             for path in (
@@ -468,14 +469,14 @@ def _cmd_plan_revise_with_stashed_implementation(
                 + [fs.path for fs in manifest.files_snapshot]
             )
             for normalized_path in [path.replace("\\", "/")]
-            if not _is_test_file(normalized_path)
+            if normalized_path not in behavioral_test_paths
         }
         read_stash_paths = (
             {
                 normalized_path
                 for path in manifest.files_read
                 for normalized_path in [path.replace("\\", "/")]
-                if not _is_test_file(normalized_path)
+                if normalized_path not in behavioral_test_paths
             }
             if contracted_writable_paths
             else set()
@@ -487,7 +488,7 @@ def _cmd_plan_revise_with_stashed_implementation(
                 normalized_path
                 for path in manifest.all_writable_paths | read_stash_paths
                 for normalized_path in [path.replace("\\", "/")]
-                if not _is_test_file(normalized_path)
+                if normalized_path not in behavioral_test_paths
             )
         )
         if not target_paths:
@@ -502,7 +503,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         allowed_dirty_paths = set(target_paths)
         allowed_dirty_paths.add(manifest_rel)
         allowed_dirty_paths.add(lock_rel)
-        allowed_dirty_paths.update(_behavioral_test_paths_for_revise(manifest))
+        allowed_dirty_paths.update(behavioral_test_paths)
         allowed_dirty_paths.update(
             _same_task_lifecycle_dirty_paths(
                 ctx.project_root, ctx.manifest_path, dirty_entries
@@ -770,10 +771,11 @@ def _project_relative(path: Path, project_root: Path) -> str:
 
 def _behavioral_test_paths_for_revise(manifest) -> set[str]:
     from maid_runner.core.manifest import _is_test_file
+    from maid_runner.core.types import ArtifactKind
 
     paths = {
         normalized_path
-        for path in manifest.files_read
+        for path in set(manifest.files_read) | manifest.all_writable_paths
         for normalized_path in [path.replace("\\", "/")]
         if _is_test_file(normalized_path)
     }
@@ -781,7 +783,7 @@ def _behavioral_test_paths_for_revise(manifest) -> set[str]:
         normalized_path
         for fs in manifest.all_file_specs
         for normalized_path in [fs.path.replace("\\", "/")]
-        if _is_test_file(normalized_path)
+        if any(artifact.kind == ArtifactKind.TEST_FUNCTION for artifact in fs.artifacts)
     )
     return paths
 
