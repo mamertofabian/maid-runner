@@ -1,0 +1,140 @@
+{
+  "manifest_path": "manifests/bump-version-2.21.1.manifest.yaml",
+  "manifest_hash": "sha256:0ee2363bfb83bf67ccadc6c4714f08ce6d28f4543d612be31f43f113d73e4817",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
+  },
+  "created_at": "2026-07-14T03:25:05.649464+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:27de9277fef199b6c3cd29912c4a8e687d72c8e81ff8ef0a26e2815eed8848ef",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
+      },
+      "revised_at": "2026-07-14T03:25:09.820659+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.21.1.manifest.yaml -> manifests/bump-version-2.21.1.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:02474fc86909f1e6eb287408f721cc8ee983ea2d4a4d6b2154e883a2036f3cd0",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
+      },
+      "revised_at": "2026-07-14T03:37:25.425206+00:00",
+      "reason": "Capture the required post-review Outcome evidence after the independent ready verdict; preserve the approved behavioral contract and its genuine red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-14T03:25:10.209862+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.21.1\"\nE       AssertionError: assert '2.21.0' == '2.21.1'\nE         \nE         - 2.21.1\nE         ?      ^\nE         + 2.21.0\nE         ?      ^\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 27 passed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.21.0.manifest.yaml",
+        "manifests/snapshot-maid-runner-version.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "of": "TestPublicAPIImports",
+              "source_scenario": "The project has been bumped for the 2.21.1 patch release.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "__version__"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Runtime version, pyproject metadata, uv.lock metadata, changelog heading and compare link, and roadmap all report 2.21.1."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.21.0.manifest.yaml",
+        "manifests/snapshot-maid-runner-version.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact contract."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject version."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the patch version, release date, and compare link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the released CLI version."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}
