@@ -1,0 +1,140 @@
+{
+  "manifest_path": "manifests/fix-stash-revise-declared-sql-tests.manifest.yaml",
+  "manifest_hash": "sha256:07d0058db979dd9ee00c562d59dec4d8358ad903b1f746a40d4c5e01907d2652",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_declared_sql_tests.py": "sha256:e95d8577274035124cced906daea6f93497786a617a6ab914d255f119a3582c2"
+  },
+  "created_at": "2026-07-13T10:00:16.300640+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:d6ac6b2f0b5a158294395dec3032898228afd305f288ebe5d277fa57bc465ed1",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_declared_sql_tests.py": "sha256:44c6d118fd622a46d6105c7c94e166f98b73141afe2716f1e44b61a802376fb0"
+      },
+      "revised_at": "2026-07-13T10:00:16.977995+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-stash-revise-declared-sql-tests.manifest.yaml -> manifests/fix-stash-revise-declared-sql-tests.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:54f9b41a91df6654a560d99edf893649f4000b66ba7ea00689ec902cb53251d6",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_declared_sql_tests.py": "sha256:44c6d118fd622a46d6105c7c94e166f98b73141afe2716f1e44b61a802376fb0"
+      },
+      "revised_at": "2026-07-13T10:16:18.506237+00:00",
+      "reason": "Independent implementation review found filename-classified files.scope and files.delete behavioral paths were omitted from the protected set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:f8f7fab9df6e19a1df98a9007940decf2d47660b3c61344103f6bac4ea0f1fcd",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_declared_sql_tests.py": "sha256:e95d8577274035124cced906daea6f93497786a617a6ab914d255f119a3582c2"
+      },
+      "revised_at": "2026-07-13T10:29:54.302484+00:00",
+      "reason": "Record the reviewed completed Outcome while preserving revision-3 red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-13T10:16:19.054848+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_declared_sql_tests.py",
+        "exit_code": 1,
+        "output_tail": "        )\n    \n        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0\n        implementation_path.parent.mkdir()\n        implementation_path.write_text(\"VALUE = 1\\n\")\n    \n        exit_code = cmd_plan_revise(_revise_args(manifest_path, tmp_path))\n    \n        lock = json.loads(default_plan_lock_path(tmp_path, \"sql-stash-task\").read_text())\n>       assert exit_code == 0\nE       assert 2 == 0\n\ntests/cli/test_plan_cmd_stash_declared_sql_tests.py:123: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'sql-stash-task' at revision 1 (0 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-376/test_stash_implementation_keep0/.maid/plan-locks/sql-stash-task.lock.json)\n----------------------------- Captured stderr call -----------------------------\nError: --stash-implementation refuses unrelated dirty path(s): tests/obsolete.test.js, tests/review-contract.test.js. Declare narrow wiring files under files.read to include them in the targeted stash.\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_declared_sql_tests.py::test_stash_implementation_keeps_declared_sql_test_visible\n1 failed in 0.36s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_plan_cmd_stash_declared_sql_tests.py:test_stash_implementation_keeps_declared_sql_test_visible",
+      "tests/cli/test_plan_cmd_stash_declared_sql_tests.py:test_stash_implementation_keeps_declared_sql_test_visible:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_cmd_stash_declared_sql_tests.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+        "manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml",
+        "manifests/fix-stash-revise-scope-targets.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_cmd_stash_declared_sql_tests.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_keeps_declared_sql_test_visible",
+              "source_scenario": "A locked manifest has an untracked files.create implementation module, untracked .test.sql and nonstandard .pgtap.sql fixtures explicitly declared as test_function, and dirty filename-classified tests under files.scope and files.delete.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Stash-backed revision hides only the implementation file, preserves explicit and filename-classified behavioral paths across create, scope, and delete sections so validation returns genuine red, restores the implementation exactly, records valid red evidence, and leaves no temporary stash."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+        "manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml",
+        "manifests/fix-stash-revise-scope-targets.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Derive stash-backed revision's protected behavioral paths from explicit test_function artifacts as well as the existing filename classifier, without changing public CLI signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_declared_sql_tests.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_declared_sql_tests.py"
+    ]
+  }
+}

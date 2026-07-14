@@ -34,12 +34,28 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
     """Create a plan lock; refuse to overwrite an existing lock."""
     from maid_runner.core.plan_lock import (
         PlanLock,
+        capture_legacy_baseline_evidence,
         capture_red_phase_evidence,
         create_plan_lock,
         _PlanLockLoadError,
     )
 
     ctx = _PlanContext.from_args(args)
+    legacy_baseline = bool(getattr(args, "legacy_baseline", False))
+    reason = getattr(args, "reason", None)
+
+    if legacy_baseline and getattr(args, "no_run", False):
+        print_error(
+            "--legacy-baseline cannot be combined with --no-run.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+    if legacy_baseline and (reason is None or not reason.strip()):
+        print_error(
+            "--legacy-baseline requires a non-empty --reason.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
 
     if ctx.lock_path.exists():
         try:
@@ -65,17 +81,37 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
         lock = create_plan_lock(
             ctx.manifest_path, ctx.project_root, agent=provenance.provenance
         )
-        if not getattr(args, "no_run", False):
+        if legacy_baseline:
+            lock = replace(
+                lock,
+                legacy_baseline=capture_legacy_baseline_evidence(
+                    ctx.manifest_path, ctx.project_root, reason
+                ).to_payload(),
+            )
+        elif not getattr(args, "no_run", False):
             lock = replace(
                 lock,
                 red_evidence=capture_red_phase_evidence(
                     ctx.manifest_path, ctx.project_root
                 ).to_payload(),
             )
+        temporary_lock_path = ctx.lock_path.with_name(
+            f".{ctx.lock_path.name}.{uuid.uuid4().hex}.tmp"
+        )
+        try:
+            lock.save(temporary_lock_path)
+            try:
+                os.link(temporary_lock_path, ctx.lock_path)
+            except FileExistsError as exc:
+                raise ValueError(
+                    f"Plan lock appeared while evidence was being captured at "
+                    f"{ctx.lock_path}; refusing to overwrite it"
+                ) from exc
+        finally:
+            temporary_lock_path.unlink(missing_ok=True)
     except _plan_input_errors() as exc:
         print_error(str(exc), json_mode=ctx.json_mode)
         return 2
-    lock.save(ctx.lock_path)
     print(
         f"Locked plan '{ctx.slug}' at revision {lock.revision} "
         f"({len(lock.test_hashes)} behavioral test file(s), {ctx.lock_path})"
@@ -244,6 +280,7 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
             "manifest_match": manifest_match,
             "test_files": test_files,
             "red_evidence": lock.red_evidence,
+            "legacy_baseline": lock.legacy_baseline,
             "agent": _agent_to_payload(lock.agent),
             "revisions": [
                 {
@@ -263,6 +300,7 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         for rel, entry in test_files.items():
             print(f"  {rel}: {'match' if entry['match'] else 'MISMATCH'}")
         print(f"  Red evidence: {'recorded' if lock.red_evidence else 'none'}")
+        print("  Legacy baseline: " f"{'recorded' if lock.legacy_baseline else 'none'}")
         if lock.agent is not None:
             print(f"  Agent: {_format_agent(lock.agent)}")
         for r in lock.revisions:
@@ -410,7 +448,7 @@ def _cmd_plan_revise_with_stashed_implementation(
     agent,
 ) -> int:
     """Revise a lock after temporarily stashing declared implementation files."""
-    from maid_runner.core.manifest import _is_test_file, load_manifest
+    from maid_runner.core.manifest import load_manifest
     from maid_runner.core.plan_lock import (
         capture_red_phase_evidence,
         revise_plan_lock,
@@ -421,6 +459,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         manifest = load_manifest(ctx.manifest_path)
         manifest_rel = _project_relative(ctx.manifest_path, ctx.project_root)
         lock_rel = _project_relative(ctx.lock_path, ctx.project_root)
+        behavioral_test_paths = _behavioral_test_paths_for_revise(manifest)
         contracted_writable_paths = {
             normalized_path
             for path in (
@@ -430,14 +469,14 @@ def _cmd_plan_revise_with_stashed_implementation(
                 + [fs.path for fs in manifest.files_snapshot]
             )
             for normalized_path in [path.replace("\\", "/")]
-            if not _is_test_file(normalized_path)
+            if normalized_path not in behavioral_test_paths
         }
         read_stash_paths = (
             {
                 normalized_path
                 for path in manifest.files_read
                 for normalized_path in [path.replace("\\", "/")]
-                if not _is_test_file(normalized_path)
+                if normalized_path not in behavioral_test_paths
             }
             if contracted_writable_paths
             else set()
@@ -449,7 +488,7 @@ def _cmd_plan_revise_with_stashed_implementation(
                 normalized_path
                 for path in manifest.all_writable_paths | read_stash_paths
                 for normalized_path in [path.replace("\\", "/")]
-                if not _is_test_file(normalized_path)
+                if normalized_path not in behavioral_test_paths
             )
         )
         if not target_paths:
@@ -464,7 +503,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         allowed_dirty_paths = set(target_paths)
         allowed_dirty_paths.add(manifest_rel)
         allowed_dirty_paths.add(lock_rel)
-        allowed_dirty_paths.update(_behavioral_test_paths_for_revise(manifest))
+        allowed_dirty_paths.update(behavioral_test_paths)
         allowed_dirty_paths.update(
             _same_task_lifecycle_dirty_paths(
                 ctx.project_root, ctx.manifest_path, dirty_entries
@@ -732,10 +771,11 @@ def _project_relative(path: Path, project_root: Path) -> str:
 
 def _behavioral_test_paths_for_revise(manifest) -> set[str]:
     from maid_runner.core.manifest import _is_test_file
+    from maid_runner.core.types import ArtifactKind
 
     paths = {
         normalized_path
-        for path in manifest.files_read
+        for path in set(manifest.files_read) | manifest.all_writable_paths
         for normalized_path in [path.replace("\\", "/")]
         if _is_test_file(normalized_path)
     }
@@ -743,7 +783,7 @@ def _behavioral_test_paths_for_revise(manifest) -> set[str]:
         normalized_path
         for fs in manifest.all_file_specs
         for normalized_path in [fs.path.replace("\\", "/")]
-        if _is_test_file(normalized_path)
+        if any(artifact.kind == ArtifactKind.TEST_FUNCTION for artifact in fs.artifacts)
     )
     return paths
 

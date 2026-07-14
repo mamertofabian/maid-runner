@@ -1,0 +1,206 @@
+schema: '2'
+goal: Allow removed_artifacts to verify ownerless module-level attributes
+type: fix
+created: '2026-07-13T10:43:38Z'
+metadata:
+  tags:
+  - removed-artifacts
+  - typescript
+  - supersession
+  - validator
+  priority: high
+description: |
+  Fix the representation gap that prevents `removed_artifacts` from expressing
+  removal of module-level constants and variables. Language collectors represent
+  declarations such as TypeScript `export const CREATE_TOKEN_URL = ...` as an
+  `attribute` with no `of` owner, but removed-artifact verification currently
+  rejects every ownerless attribute before comparing its merge key.
+
+  Treat an ownerless `attribute` removal as the exact module-scope identity
+  `attribute:<name>` in both direct E311 validation and supersession auditing.
+  Owned members remain qualified as `attribute:<Owner>.<name>`, so an ownerless
+  declaration cannot exempt removal of a class or interface member. Methods
+  remain owner-qualified and continue to fail closed when `of` is omitted.
+
+  This is an additive bug fix with no public API or schema change. The existing
+  optional `RemovedArtifactSpec.of` field and language-agnostic merge-key model
+  already represent module scope; the validator and auditor must honor that
+  representation consistently instead of adding a TypeScript-only special case.
+temptations:
+- risk: Do not invent a synthetic owner or add a TypeScript-only file-extension exception for module constants.
+  instead: Use the existing ownerless attribute merge key across every supported collector that emits module-level attributes.
+- risk: Do not allow ownerless method removals or let an ownerless attribute match a class/interface member with the same name.
+  instead: Keep the method owner guard and compare attributes by their exact qualified or ownerless merge keys.
+- risk: Do not weaken fail-closed handling for missing, unreadable, unsupported, unparsable, or collector-error files.
+  instead: Change only owner validation and retain the existing file and collector error paths.
+- risk: Do not treat a removed_artifacts declaration as a self-attested supersession exemption.
+  instead: Grant the exemption only after the auditor collects the source and proves the exact module-level merge key is absent.
+files:
+  scope:
+  - path: maid_runner/core/_removed_artifacts.py
+    reason: Allow ownerless attributes, but not methods, to reach exact merge-key verification without changing the private helper API.
+  - path: maid_runner/core/supersession_audit.py
+    reason: Apply the same ownerless module-attribute semantics when verifying supersession removal exemptions.
+  edit:
+  - path: tests/core/test_removed_artifacts.py
+    artifacts:
+    - kind: test_function
+      name: test_ownerless_attribute_removal_targets_module_scope
+      source_scenario: A Python file retains a class attribute whose name matches an ownerless removed_artifacts attribute declaration, but has no module-level binding with that name.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: Removed-artifact validation succeeds because the ownerless declaration targets module scope and does not match the owned class member.
+  create:
+  - path: tests/core/test_removed_module_attributes.py
+    artifacts:
+    - kind: test_function
+      name: test_absent_typescript_module_attribute_is_verified_removed
+      source_scenario: A TypeScript file no longer defines a module-level constant named by an ownerless attribute removal declaration.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: Removed-artifact validation returns no E311 error.
+    - kind: test_function
+      name: test_present_typescript_module_attribute_reports_e311
+      source_scenario: A TypeScript file still exports a module-level constant named by an ownerless attribute removal declaration.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidationEngine
+      expected:
+        behavior: Removed-artifact validation returns E311 identifying that the symbol is still defined, rather than claiming an owner is required.
+    - kind: test_function
+      name: test_supersession_accepts_verified_module_attribute_removal
+      source_scenario: A replacement manifest supersedes an ownerless module attribute and the exact module-level binding is absent from the collected source.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: Supersession auditing accepts the verified removed_artifacts entry and reports no dropped-artifact violation.
+    - kind: test_function
+      name: test_ownerless_removal_does_not_exempt_owned_attribute
+      source_scenario: A replacement declares an ownerless attribute removed while the superseded contract and source contain a same-named attribute owned by a class.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: Supersession auditing still reports the owned attribute as dropped because its qualified merge key differs from the module-level removal key.
+  read:
+  - maid_runner/core/types.py
+  - maid_runner/core/validate.py
+  - maid_runner/validators/registry.py
+  - tests/core/test_supersession_audit.py
+  - manifests/add-supersession-artifact-preservation.manifest.yaml
+  - manifests/035-01-characterize-validation-engine.manifest.yaml
+  - manifests/038-11-extract-removed-artifacts-helper.manifest.yaml
+  - manifests/039-01-speed-up-pnpm-vitest-and-typescript-validation.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_removed_module_attributes.py tests/core/test_removed_artifacts.py tests/core/test_supersession_audit.py
+outcome:
+  status: completed
+  completed_at: '2026-07-13T10:59:53Z'
+  summary: |
+    Removed the blanket owner requirement for attribute removals so MAID can
+    verify module-level constants and variables through their existing
+    unqualified merge keys. Direct E311 validation and supersession auditing
+    now accept a genuinely absent ownerless attribute, still report a present
+    module binding, keep methods owner-qualified, and cannot confuse a
+    same-named class or interface member with the module-level identity.
+  rationale: |
+    TypeScript and Python collectors already distinguish module bindings as
+    `attribute:<name>` from owned members as `attribute:<Owner>.<name>`.
+    Narrowing only the two pre-verification owner guards lets the existing
+    exact-key and fail-closed source checks handle module attributes without a
+    schema change, synthetic owners, or language-specific exceptions. The
+    original Bolt2GitHub reproduction verified all three removed constants
+    with zero E311 errors against the completed implementation.
+  lessons:
+  - lesson_type: validation
+    summary: Artifact ownership must follow the collector's merge-key identity; an omitted owner is meaningful module scope for attributes but remains invalid for methods.
+    tags:
+    - removed-artifacts
+    - merge-key
+    - supersession
+    paths:
+    - maid_runner/core/_removed_artifacts.py
+    - maid_runner/core/supersession_audit.py
+  - lesson_type: test-design
+    summary: Removal regressions need both absent and still-present module bindings plus a same-named owned member, otherwise a broad owner relaxation can pass while weakening supersession safety.
+    tags:
+    - anti-gaming
+    - typescript
+    - behavioral-tests
+    paths:
+    - tests/core/test_removed_module_attributes.py
+    - tests/core/test_removed_artifacts.py
+  - lesson_type: workflow
+    summary: A test file listed under files.read becomes behavioral context and must be run by the manifest; omit unrelated characterization suites and rely on their owning active manifests instead.
+    tags:
+    - manifest-scope
+    - test-command-integrity
+    - plan-lock
+    paths:
+    - manifests/fix-ownerless-module-attribute-removal.manifest.yaml
+  review_notes:
+  - source: independent-reviewer-ownerless-attribute-review
+    severity: ready
+    summary: The independent reviewer found no P0, P1, or P2 issues; exact merge-key comparison preserves owned-member safety and unchanged failure branches retain existing fail-closed coverage.
+  - source: independent-reviewer-ownerless-attribute-review
+    severity: residual-risk
+    summary: Dedicated supersession coverage does not repeat ownerless-method rejection or every path and collector failure, but the explicit method guard and existing compatibility suites keep the residual risk low.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_removed_module_attributes.py
+    - tests/core/test_removed_artifacts.py
+    - tests/core/test_supersession_audit.py
+    status: passed
+    summary: All 65 focused direct-validation, module-attribute, and supersession tests passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full pytest suite passed with 3,343 tests and 5 expected skips.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository validation passed with 433 manifests, 339 passed, 0 failed, and 94 superseded.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: The active MAID test sweep passed all 182 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: Strict task-scoped verification passed all nine stages with only existing non-blocking E307 warnings.

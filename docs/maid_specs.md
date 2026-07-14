@@ -94,6 +94,37 @@ output tail for human inspection, but it does not parse text output to decide
 whether evidence is red. `maid plan lock --no-run` records
 `red_evidence: null`.
 
+Completed manifests that predate plan-lock adoption have a separate migration
+path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
+The manifest must be tracked and already present at Git HEAD. The command
+rejects every dirty path except the manifest, requires identical declared
+artifacts and file sections relative to HEAD, permits behavioral-test discovery
+only to grow, and requires every prior validate argv to remain exact or gain
+only appended behavioral-test paths discovered from the current command set.
+Suffix extension is refused when the committed argv ends in an option token,
+because the path could be consumed as that option's value. Overlapping command
+prefixes are matched one-to-one, and additional validate commands are allowed.
+It then runs every current command and requires a green exit code of zero.
+Manifest and behavioral-test hashes are compared before and after execution,
+and unrelated generated or modified paths also fail the migration.
+
+After evidence capture, the new lock is published with exclusive filesystem
+semantics. A destination that appears during validation or publication is never
+overwritten or deleted. MAID removes only its own private temporary file; a
+malformed destination remains visible and blocks retry, while a structurally
+valid competing lock is likewise preserved for explicit operator review.
+
+The resulting lock keeps `red_evidence: null` and stores an independent
+`legacy_baseline` record containing the required reason, baseline commit and
+manifest hash, contract delta, bounded green command results, and capture time.
+A structurally valid, command-snapshot-bound legacy baseline satisfies
+`--require-red-evidence` as an explicit brownfield exception. New or untracked
+manifests, ordinary `--no-run` locks, non-green commands, contract changes,
+mutated contract files, and malformed or command-mismatched legacy records
+continue to fail E704 or E705. A later plan revision does not carry the legacy
+baseline forward; new behavioral work requires a new manifest and genuine red
+evidence.
+
 Intentional plan changes use
 `maid plan revise <manifest-path> --reason "<text>"`. The reason is required
 and the revision re-baselines the manifest and behavioral test hashes. Use
@@ -124,6 +155,24 @@ the existing lock already has valid red evidence, and it cannot be combined with
 `--no-run`. It does not bypass E707: changing validate command strings while
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
+
+PostgreSQL manifests can run file-backed pgTAP tests without duplicating shell
+exit-code adapters:
+
+```bash
+maid pgtap -- -f supabase/tests/example.test.sql
+```
+
+The adapter runs `psql` with a clean startup and forced `ON_ERROR_STOP=1`.
+Successful SQL exits 0. A psql script exit 3 becomes MAID's behavioral-red exit
+1 only when stdout contains an anchored pgTAP `not ok N -` line or stderr
+contains an exact `psql:<file>:<line>: ERROR: pgTAP failures:` final-guard
+line. Missing files, connection or permission failures, unrelated SQL errors,
+spawn failures, and marker-like text quoted inside another error return exit 2
+and remain invalid red evidence. A `-f`/`--file` target is required; standard
+short-option clusters such as `-qftests/example.test.sql` are accepted, and
+callers cannot override `ON_ERROR_STOP`. Original stdout and stderr are
+preserved for the plan lock's bounded evidence tail.
 
 Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
 --require-red-evidence` scopes requirement errors to the task window: E700

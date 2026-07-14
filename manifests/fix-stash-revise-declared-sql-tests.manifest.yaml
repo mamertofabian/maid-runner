@@ -1,0 +1,161 @@
+schema: '2'
+goal: Keep manifest-declared SQL behavioral tests visible during stash-backed plan revision
+type: fix
+created: '2026-07-13T10:00:16Z'
+metadata:
+  tags:
+  - plan-lock
+  - stash-implementation
+  - behavioral-tests
+  - sql
+  priority: high
+description: |
+  Fix `maid plan revise --stash-implementation` so a writable file explicitly
+  declared with a `test_function` artifact is treated as a behavioral test even
+  when its filename is outside MAID's Python and JavaScript/TypeScript naming
+  conventions. This keeps pgTAP fixtures such as `*.test.sql` present while
+  untracked or modified implementation paths are temporarily hidden to capture
+  fresh red evidence.
+
+  The change is an additive evolution of the completed stash-backed revision
+  contracts. It does not alter the public `cmd_plan_revise(args) -> int`
+  signature, expand general SQL validation, or globally classify every SQL file
+  as a test. The explicit `test_function` declaration is the semantic boundary:
+  files without that declaration continue to use the existing conservative
+  filename classifier across every writable and read-only manifest section.
+
+  Rationale: three downstream reports show the filename-only classifier can
+  stash a declared pgTAP fixture, causing the validation command to observe a
+  missing path and reject otherwise honest red evidence. Deriving the protected
+  test set from the manifest's explicit artifact contract fixes the reported
+  workflow without widening unrelated test discovery or introducing SQL parsing.
+temptations:
+- risk: Do not solve the incident by treating every .sql file or every path under a tests directory as a behavioral test.
+  instead: Protect writable paths that explicitly declare at least one test_function artifact, then retain the existing filename classifier as a compatibility fallback.
+- risk: Do not broaden the Git stash to all untracked files or bypass the existing unrelated-dirt and staged-path refusal checks.
+  instead: Change only the protected behavioral-path set used to derive exact stash targets and allowed contract dirt.
+- risk: Do not weaken invalid red-evidence handling so a missing fixture or runner usage error is accepted as behavioral red.
+  instead: Keep exit-code classification unchanged and prove the fixture remains visible while only the implementation path is absent.
+files:
+  scope:
+  - path: maid_runner/cli/commands/plan.py
+    reason: Derive stash-backed revision's protected behavioral paths from explicit test_function artifacts as well as the existing filename classifier, without changing public CLI signatures.
+  create:
+  - path: tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_implementation_keeps_declared_sql_test_visible
+      source_scenario: A locked manifest has an untracked files.create implementation module, untracked .test.sql and nonstandard .pgtap.sql fixtures explicitly declared as test_function, and dirty filename-classified tests under files.scope and files.delete.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Stash-backed revision hides only the implementation file, preserves explicit and filename-classified behavioral paths across create, scope, and delete sections so validation returns genuine red, restores the implementation exactly, records valid red evidence, and leaves no temporary stash.
+  read:
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+  - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+  - manifests/fix-stash-revise-scope-targets.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+outcome:
+  status: completed
+  completed_at: '2026-07-13T10:25:28Z'
+  summary: |
+    Updated stash-backed plan revision to protect behavioral paths declared
+    with `test_function` artifacts regardless of filename, while preserving
+    the existing filename classifier across every writable and read-only
+    manifest section. Untracked pgTAP fixtures now remain visible while only
+    implementation files are hidden for fresh red-evidence capture.
+  rationale: |
+    Three downstream reports traced failed plan revisions and unsafe fixture
+    removal to a filename-only stash classifier that did not recognize SQL
+    tests. The fix derives one normalized protected path set from explicit
+    test-function declarations plus the compatibility filename rules, then
+    reuses that set for stash targets, dirty-path allowance, restoration scope,
+    and contract hashes without broadening SQL parsing or weakening Git safety
+    and red-evidence checks.
+  lessons:
+  - lesson_type: validation
+    summary: Explicit test_function declarations provide a bounded semantic test boundary for nonstandard fixtures, but the legacy filename fallback must still be applied across every manifest section before deriving stash targets.
+    tags:
+    - plan-lock
+    - stash-implementation
+    - behavioral-tests
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+  - lesson_type: test-design
+    summary: Red-evidence regressions must return an invalid exit for missing fixtures or runner errors; an uncaught missing-file exception can exit 1 and falsely resemble genuine behavioral red.
+    tags:
+    - red-evidence
+    - anti-gaming
+    - regression-testing
+    paths:
+    - tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+  review_notes:
+  - source: independent-reviewer-sql-stash-review
+    severity: P1-fixed
+    summary: The first review found filename-classified files.scope and files.delete paths were omitted from the computed protected set; the manifest and behavioral test were revised through sanctioned stash-backed plan revision, and the implementation now covers all writable sections.
+  - source: independent-reviewer-sql-stash-rereview
+    severity: ready
+    summary: The fresh rereviewer confirmed the prior gap was closed, the protected set is used consistently, revision-3 hashes are current, and no actionable findings remained.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+    status: passed
+    summary: The integrated SQL, files.scope, and files.delete regression passed and distinguished genuine red from invalid missing-fixture state.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_cmd_stash_implementation.py
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    - tests/cli/test_stash_revise_files_read_targets.py
+    status: passed
+    summary: All 28 existing stash-backed revision compatibility tests passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full pytest suite passed with 3,339 tests and 5 expected skips.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository validation passed with 432 manifests, 338 passed, 0 failed, and 94 superseded.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: The active MAID test sweep passed all 182 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: Strict task-scoped verification passed all nine stages with only existing non-blocking E307 warnings.

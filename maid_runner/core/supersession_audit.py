@@ -222,11 +222,12 @@ class SupersessionAuditor:
 
         Fails closed: missing file, unsupported file, unreadable file, parse
         errors, a still-present symbol, a path that escapes the project root,
-        or a method/attribute spec missing its `of` owner all return False. A
-        False result revokes the exemption that `removed_artifacts` would
-        otherwise grant the supersession audit.
+        or a method spec missing its `of` owner all return False. Ownerless
+        attributes identify module-level bindings by their unqualified merge
+        key. A False result revokes the exemption that `removed_artifacts`
+        would otherwise grant the supersession audit.
         """
-        if spec.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and not spec.of:
+        if spec.kind == ArtifactKind.METHOD and not spec.of:
             return False
         if not _path_is_within_project(self._project_root, spec.file):
             return False

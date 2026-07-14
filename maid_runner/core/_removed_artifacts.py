@@ -19,7 +19,7 @@ def _validate_removed_artifacts(
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     for spec in manifest.removed_artifacts:
-        if spec.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and not spec.of:
+        if spec.kind == ArtifactKind.METHOD and not spec.of:
             errors.append(
                 ValidationError(
                     code=ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT,

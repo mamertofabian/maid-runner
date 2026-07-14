@@ -353,7 +353,9 @@ validate:
         assert errors[0].code == ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT
         assert errors[0].severity == Severity.ERROR
 
-    def test_error_when_attribute_removal_lacks_owner(self, tmp_path: Path) -> None:
+    def test_ownerless_attribute_removal_targets_module_scope(
+        self, tmp_path: Path
+    ) -> None:
         src = tmp_path / "src"
         src.mkdir()
         (src / "greet.py").write_text("class Greeter:\n    name: str = 'hi'\n")
@@ -366,7 +368,7 @@ removed_artifacts:
   - kind: attribute
     name: name
     file: src/greet.py
-    reason: "ownerless attribute claim"
+    reason: "the removed module binding shared a name with this class member"
 files:
   edit:
     - path: src/greet.py
@@ -380,8 +382,7 @@ validate:
         manifest = load_manifest(manifest_path)
         engine = ValidationEngine(project_root=tmp_path)
         errors = engine.validate_removed_artifacts(manifest)
-        assert len(errors) == 1
-        assert errors[0].code == ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT
+        assert errors == []
 
 
 class TestValidateRemovedArtifactsPathContainment:

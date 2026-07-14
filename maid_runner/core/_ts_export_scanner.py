@@ -20,6 +20,14 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".svelte",
 )
 
+_SVELTE_STATE_EXTENSIONS: tuple[str, ...] = (
+    ".svelte.ts",
+    ".svelte.js",
+)
+
+_TS_PATH_SUFFIXES = _SVELTE_STATE_EXTENSIONS + _TS_EXTENSIONS
+_TS_MODULE_ENTRY_EXTENSIONS = _TS_EXTENSIONS + _SVELTE_STATE_EXTENSIONS
+
 _INDEX_CANDIDATES: tuple[str, ...] = (
     "index.ts",
     "index.tsx",
@@ -372,7 +380,7 @@ def _module_entry_file(
 
 def _existing_module_file(project_root: Path, module: str) -> Optional[Path]:
     base = project_root / module
-    for extension in _TS_EXTENSIONS:
+    for extension in _TS_MODULE_ENTRY_EXTENSIONS:
         candidate = Path(f"{base}{extension}")
         if candidate.exists():
             return candidate
@@ -392,7 +400,7 @@ def _module_path(module_file: Path, project_root: Path) -> str:
     except ValueError:
         relative = module_file
     posix = str(relative).replace("\\", "/")
-    for ext in _TS_EXTENSIONS:
+    for ext in _TS_PATH_SUFFIXES:
         if posix.endswith(ext):
             return posix[: -len(ext)]
     return posix
@@ -416,7 +424,7 @@ def _resolve_relative_ts_import(
         base_parts.append(part)
 
     result = "/".join(base_parts)
-    for ext in _TS_EXTENSIONS:
+    for ext in _TS_PATH_SUFFIXES:
         if result.endswith(ext):
             result = result[: -len(ext)]
             break

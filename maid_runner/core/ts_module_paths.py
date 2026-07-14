@@ -29,6 +29,11 @@ from maid_runner.core.ts_compiler_resolver import (
 )
 
 
+_SVELTE_STATE_EXTENSIONS: tuple[str, ...] = (
+    ".svelte.ts",
+    ".svelte.js",
+)
+
 _TS_EXTENSIONS: tuple[str, ...] = (
     ".tsx",
     ".ts",
@@ -40,6 +45,9 @@ _TS_EXTENSIONS: tuple[str, ...] = (
     ".cts",
     ".svelte",
 )
+
+_TS_PATH_SUFFIXES = _SVELTE_STATE_EXTENSIONS + _TS_EXTENSIONS
+_TS_MODULE_ENTRY_EXTENSIONS = _TS_EXTENSIONS + _SVELTE_STATE_EXTENSIONS
 
 _INDEX_CANDIDATES: tuple[str, ...] = (
     "index.ts",
@@ -101,9 +109,9 @@ def ts_file_to_module_path(
 ) -> str:
     """Convert a TypeScript source path to its project-relative module id.
 
-    Strips the file extension (``.ts``, ``.tsx``, ``.cts``, ``.mts``,
-    ``.js``, ``.jsx``, ``.mjs``, ``.cjs``) and normalizes backslashes to
-    forward slashes.
+    Strips the file extension (including compound Svelte state-module
+    extensions such as ``.svelte.ts`` and ``.svelte.js``) and normalizes
+    backslashes to forward slashes.
     Unlike Python's ``__init__.py`` collapse, ``index.ts`` keeps its
     ``index`` segment so the file itself can be addressed; barrel
     semantics live in :func:`resolve_ts_reexport`.
@@ -120,7 +128,7 @@ def ts_file_to_module_path(
         rel = p
 
     posix = str(rel).replace("\\", "/")
-    for ext in _TS_EXTENSIONS:
+    for ext in _TS_PATH_SUFFIXES:
         if posix.endswith(ext):
             posix = posix[: -len(ext)]
             break
@@ -155,7 +163,7 @@ def resolve_relative_ts_import(
         base_parts.append(part)
 
     result = "/".join(base_parts)
-    for ext in _TS_EXTENSIONS:
+    for ext in _TS_PATH_SUFFIXES:
         if result.endswith(ext):
             result = result[: -len(ext)]
             break
@@ -389,7 +397,7 @@ def _module_entry_selection_signature(
 def _module_entry_candidate_paths(project_root: Path, module: str) -> tuple[Path, ...]:
     base = project_root / module
     source_candidates = tuple(
-        Path(f"{base}{extension}") for extension in _TS_EXTENSIONS
+        Path(f"{base}{extension}") for extension in _TS_MODULE_ENTRY_EXTENSIONS
     )
     index_candidates = tuple(
         project_root / module / candidate for candidate in _INDEX_CANDIDATES
@@ -407,7 +415,7 @@ def _path_signature(path: Path) -> tuple[str, int, int]:
 
 def _existing_module_file(project_root: Path, module: str) -> Optional[Path]:
     base = project_root / module
-    for extension in _TS_EXTENSIONS:
+    for extension in _TS_MODULE_ENTRY_EXTENSIONS:
         candidate = Path(f"{base}{extension}")
         if candidate.exists():
             return candidate

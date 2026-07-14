@@ -117,11 +117,33 @@ def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]
     return errors
 
 
+_REMOVED_TEST_ARTIFACT_HINT = (
+    "Hint: test artifacts never need removed_artifacts entries. The "
+    "supersession preservation audit exempts test_function artifacts, and "
+    "test removals cannot be verified structurally. Delete the obsolete "
+    "tests and declare the surviving contract (including its tests) in the "
+    "superseding manifest."
+)
+
+
 def _format_schema_error(error: jsonschema.ValidationError) -> str:
     if not error.absolute_path:
         return error.message
     path = ".".join(str(part) for part in error.absolute_path)
-    return f"{path}: {error.message}"
+    return f"{path}: {error.message}{_removed_test_artifact_hint(error)}"
+
+
+def _removed_test_artifact_hint(error: jsonschema.ValidationError) -> str:
+    path = list(error.absolute_path)
+    if (
+        error.validator == "enum"
+        and error.instance == "test_function"
+        and len(path) >= 2
+        and path[0] == "removed_artifacts"
+        and path[-1] == "kind"
+    ):
+        return f" {_REMOVED_TEST_ARTIFACT_HINT}"
+    return ""
 
 
 def _validate_outcome_completed_at(data: dict) -> list[str]:
@@ -161,7 +183,7 @@ def validate_manifest_paths(
             ValidationError(
                 code=ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT,
                 message=(
-                    f"Manifest path in {section} escapes the project root: " f"'{path}'"
+                    f"Manifest path in {section} escapes the project root: '{path}'"
                 ),
                 location=Location(file=path),
                 suggestion=(

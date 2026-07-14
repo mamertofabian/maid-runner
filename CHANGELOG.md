@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.21.1] - 2026-07-14
+
+### Fixed
+- **Path-backed artifact identities** — Canonicalized Svelte state-module identities across direct, tsconfig-alias, and barrel imports, and recognized narrowly validated assignment-based Python `load_module` calls so path-backed modules and hyphenated hook scripts avoid false E200 failures.
+- **Legacy plan-lock migration** — Added a fail-closed `--legacy-baseline` workflow for completed manifests that predate plan locks, recording separate green provenance without fabricating red-phase evidence or accepting weakened contracts.
+- **Plan revision and removal audits** — Preserved declared SQL behavioral files during stash-backed plan revisions and supported verified ownerless module-attribute removals without weakening supersession checks.
+- **pgTAP red evidence** — Added a fail-closed pgTAP adapter with early-exit, override, marker-spoofing, and clustered-file-option hardening so legitimate PostgreSQL red phases can be captured safely.
+- **Removed test artifact guidance** — Added a targeted remediation hint when `removed_artifacts` incorrectly contains `test_function`, explaining that test artifacts do not need removal entries while preserving existing schema diagnostics.
+
 ## [2.21.0] - 2026-07-11
 
 ### Added
@@ -1153,6 +1162,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1
 [2.21.0]: https://github.com/mamertofabian/maid-runner/compare/v2.20.0...v2.21.0
 [2.20.0]: https://github.com/mamertofabian/maid-runner/compare/v2.19.1...v2.20.0
 [2.19.1]: https://github.com/mamertofabian/maid-runner/compare/v2.19.0...v2.19.1

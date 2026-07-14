@@ -1,0 +1,259 @@
+{
+  "manifest_path": "manifests/add-removed-test-artifact-schema-hint.manifest.yaml",
+  "manifest_hash": "sha256:67a2a1860d1b1bd658cd587f0fbd020ee0058257bfa656249557d53d9aec9603",
+  "test_hashes": {
+    "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+    "tests/core/test_removed_artifact_schema_hint.py": "sha256:5e3b6f81a0c73726611329a34ac333cf848eae8c29e7f8aacb8371f2577bc2be"
+  },
+  "created_at": "2026-07-13T13:50:00.521857+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:3e5f9b731576cee0f0d5494e85734ab14cb8712a11cc21d4e484d3929cde377d",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_removed_artifact_schema_hint.py": "sha256:ba9484732fef809f27d938f52f4e0020915bc79b698fa5983c52025921c4ae82"
+      },
+      "revised_at": "2026-07-13T13:50:06.750680+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-removed-test-artifact-schema-hint.manifest.yaml -> manifests/add-removed-test-artifact-schema-hint.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/add-removed-test-artifact-schema-hint.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/add-removed-test-artifact-schema-hint.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:220994b53777b92db2024f4a2fb9073d5efbdfba94fa94659070a829bd30258a",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_removed_artifact_schema_hint.py": "sha256:ba9484732fef809f27d938f52f4e0020915bc79b698fa5983c52025921c4ae82"
+      },
+      "revised_at": "2026-07-13T13:53:01.026677+00:00",
+      "reason": "Include chain-discovered tests/core/test_manifest.py in the pytest validate command to satisfy E230",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_removed_artifact_schema_hint.py tests/core/test_manifest.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_removed_artifact_schema_hint.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:99a0bbbde581ea6312934911ece045564dae8fe8a2bf1325c5521fee2da8f9cf",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_removed_artifact_schema_hint.py": "sha256:ba9484732fef809f27d938f52f4e0020915bc79b698fa5983c52025921c4ae82"
+      },
+      "revised_at": "2026-07-13T14:11:52.063870+00:00",
+      "reason": "Re-lock after cosmetic IDE reformatting of the behavioral test (implicit string concat joined); behavior unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-13T13:53:01.558106+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_removed_artifact_schema_hint.py tests/core/test_manifest.py",
+        "exit_code": 1,
+        "output_tail": "                    \"file\": \"tests/test_pat.py\",\n                },\n            ]\n        )\n        manifest_path = tmp_path / \"retire-pat-tests.manifest.yaml\"\n        manifest_path.write_text(yaml.dump(data, sort_keys=False))\n    \n        with pytest.raises(ManifestSchemaError) as exc_info:\n            load_manifest(manifest_path)\n    \n>       assert HINT_PHRASE in str(exc_info.value)\nE       assert 'test artifacts never need removed_artifacts entries' in \"Schema validation failed for /tmp/pytest-of-atomrem/pytest-479/test_load_manifest_schema_erro0/retire-pat-tests.manif...: 'test_function' is not one of ['class', 'function', 'method', 'attribute', 'interface', 'type', 'enum', 'namespace']\"\nE        +  where \"Schema validation failed for /tmp/pytest-of-atomrem/pytest-479/test_load_manifest_schema_erro0/retire-pat-tests.manif...: 'test_function' is not one of ['class', 'function', 'method', 'attribute', 'interface', 'type', 'enum', 'namespace']\" = str(ManifestSchemaError(\"Schema validation failed for /tmp/pytest-of-atomrem/pytest-479/test_load_manifest_schema_erro0/re... 'test_function' is not one of ['class', 'function', 'method', 'attribute', 'interface', 'type', 'enum', 'namespace']\"))\nE        +    where ManifestSchemaError(\"Schema validation failed for /tmp/pytest-of-atomrem/pytest-479/test_load_manifest_schema_erro0/re... 'test_function' is not one of ['class', 'function', 'method', 'attribute', 'interface', 'type', 'enum', 'namespace']\") = <ExceptionInfo ManifestSchemaError(\"Schema validation failed for /tmp/pytest-of-atomrem/pytest-479/test_load_manifest_...nction' is not one of ['class', 'function', 'method', 'attribute', 'interface', 'type', 'enum', 'namespace']\") tblen=2>.value\n\ntests/core/test_removed_artifact_schema_hint.py:138: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_removed_artifact_schema_hint.py::TestRemovedTestArtifactSchemaHint::test_removed_test_function_kind_error_includes_targeted_hint\nFAILED tests/core/test_removed_artifact_schema_hint.py::TestRemovedTestArtifactSchemaHint::test_load_manifest_schema_error_carries_hint\n2 failed, 57 passed in 0.19s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-removed-test-artifact-schema-hint.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/manifest.py:function:validate_manifest_schema",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=schema_version:type=str:default='2'",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:returns=list[str]",
+      "tests/core/test_removed_artifact_schema_hint.py:test_load_manifest_schema_error_carries_hint",
+      "tests/core/test_removed_artifact_schema_hint.py:test_load_manifest_schema_error_carries_hint:kind=test_function",
+      "tests/core/test_removed_artifact_schema_hint.py:test_removed_test_function_kind_error_includes_targeted_hint",
+      "tests/core/test_removed_artifact_schema_hint.py:test_removed_test_function_kind_error_includes_targeted_hint:kind=test_function",
+      "tests/core/test_removed_artifact_schema_hint.py:test_removed_unknown_kind_error_has_no_test_hint",
+      "tests/core/test_removed_artifact_schema_hint.py:test_removed_unknown_kind_error_has_no_test_hint:kind=test_function",
+      "tests/core/test_removed_artifact_schema_hint.py:test_test_function_kind_elsewhere_gets_no_removed_hint",
+      "tests/core/test_removed_artifact_schema_hint.py:test_test_function_kind_elsewhere_gets_no_removed_hint:kind=test_function",
+      "tests/core/test_removed_artifact_schema_hint.py:test_valid_removed_artifact_kind_produces_no_error",
+      "tests/core/test_removed_artifact_schema_hint.py:test_valid_removed_artifact_kind_produces_no_error:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_removed_artifact_schema_hint.py"
+      ],
+      "edit": [
+        "maid_runner/core/manifest.py"
+      ],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/schemas/manifest.v2.schema.json",
+        "tests/core/test_manifest.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_removed_artifact_schema_hint.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_removed_test_function_kind_error_includes_targeted_hint",
+              "source_scenario": "A structurally valid manifest dict declares three removed_artifacts entries: kind test_function at index 0, a valid kind function at index 1, and kind test_function again at index 2.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_schema"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both test_function entries produce errors that start with their unchanged 'removed_artifacts.<i>.kind:' enum message and contain the phrases 'test artifacts never need removed_artifacts entries' and 'superseding manifest'; the valid index-1 entry produces no error, proving the hint keys on the offending instance rather than a hardcoded index."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_removed_unknown_kind_error_has_no_test_hint",
+              "source_scenario": "The same manifest dict uses an unknown removed_artifacts kind such as 'component'.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_schema"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The enum error is returned unchanged with no appended hint text."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_valid_removed_artifact_kind_produces_no_error",
+              "source_scenario": "The manifest dict uses a valid removed_artifacts entry with kind: function.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_schema"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "validate_manifest_schema returns no removed_artifacts errors, proving the hint path does not affect valid manifests."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_function_kind_elsewhere_gets_no_removed_hint",
+              "source_scenario": "A manifest dict declares kind: test_function legitimately inside files.create artifacts while removed_artifacts is absent.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_schema"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No error and no hint is produced; the hint is scoped to the removed_artifacts path only."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_load_manifest_schema_error_carries_hint",
+              "source_scenario": "A manifest file on disk contains a removed_artifacts entry with kind: test_function and is loaded through the public loader.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "load_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "load_manifest raises ManifestSchemaError whose message includes the appended hint, proving consumers inherit the enrichment without their own formatting."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_schema",
+              "description": "Existing public schema validator; behavior extends so removed_artifacts kind enum failures with instance 'test_function' return the original 'path: message' string with an appended remediation hint.",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "schema_version",
+                  "type": "str",
+                  "default": "'2'"
+                }
+              ],
+              "returns": "list[str]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/schemas/manifest.v2.schema.json",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_removed_artifacts.py",
+        "tests/core/test_manifest.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_manifest.py",
+      "tests/core/test_removed_artifact_schema_hint.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_removed_artifact_schema_hint.py tests/core/test_manifest.py",
+      "uv run maid validate manifests/add-removed-test-artifact-schema-hint.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

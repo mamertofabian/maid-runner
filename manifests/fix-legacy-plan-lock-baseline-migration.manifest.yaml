@@ -1,0 +1,365 @@
+schema: '2'
+goal: Provide an auditable legacy-baseline plan-lock migration for completed pre-plan-lock manifests
+type: fix
+created: '2026-07-13T03:14:57Z'
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  maid_task_base: a2e0c3d4d677b69fd40237d38aad81037e9dbc4c
+  source_bug_report: /home/atomrem/.maid/bug-report/20260711-211020-tower-recall-legacy-plan-lock-migration.md
+  tags:
+  - plan-lock
+  - legacy-migration
+  - red-evidence
+  - brownfield
+  - anti-gaming
+  priority: high
+description: |
+  A completed manifest created before plan locks existed cannot acquire genuine
+  historical red-phase evidence after a validation-command metadata repair.
+  `maid plan lock --no-run` leaves E704 unavoidable, while normal lock captures
+  an already-green tree and `plan revise --stash-implementation` cannot help
+  when there is no dirty implementation delta. The Tower Recall report proves
+  this is a runner workflow gap rather than a failed implementation or weak
+  behavioral contract.
+
+  Add an explicit `maid plan lock --legacy-baseline --reason <text>` migration
+  mode. It records a separate `legacy_baseline` payload and keeps
+  `red_evidence: null`, so the lock never claims that historical TDD evidence
+  exists. A structurally valid legacy baseline satisfies the opt-in
+  `--require-red-evidence` gate as an audited brownfield exception, while
+  ordinary new manifests still require genuine red evidence.
+
+  The exception is deliberately narrow and fail-closed. The manifest must be a
+  tracked file that already exists at Git HEAD; no path except that manifest may
+  be dirty; the committed and current manifests must declare identical
+  artifacts and full file-section semantics (including imports, status, test
+  details, and default-hook metadata); current behavioral-test discovery may only grow;
+  every prior validate command must remain present or be strengthened only by
+  appending discovered behavioral-test targets to a complete command that does
+  not end in an option token; overlapping commands must be matched one-to-one;
+  and every current validate command must exit zero.
+  Evidence records the required reason, baseline commit and manifest hash,
+  bounded per-command green results, contract delta, and capture time. The lock
+  snapshots the current command contract as usual. Manifest and behavioral-test
+  hashes are checked before and after command execution so validation cannot
+  rewrite the contract being captured. Lock creation is exclusive so a
+  validation command or concurrent process cannot inject or overwrite the
+  destination. Unexpected destination artifacts are never deleted by MAID:
+  malformed files remain visible and block retry for operator inspection, while
+  structurally valid competing locks are preserved. Enforcement rejects a
+  malformed or command-mismatched legacy payload instead of silently waiving
+  E704/E705.
+
+  This is an additive chain evolution: existing PlanLock fields, positional
+  constructor binding, and public function signatures remain compatible. Legacy-baseline state is not carried
+  into later plan revisions; new behavioral work must use a new manifest and
+  genuine red evidence.
+temptations:
+- risk: 'Do not encode a legacy migration as red_evidence.red: true or relabel green command exits as red.'
+  instead: Store a separate legacy_baseline payload, leave red_evidence null, and display both provenance channels independently.
+- risk: Do not let --legacy-baseline become a generic escape hatch for newly added implementation or behavioral tests.
+  instead: Require a tracked manifest present at HEAD, reject every dirty path except the manifest, and reject artifact or file-contract deltas.
+- risk: Do not accept arbitrary validation-command rewrites during migration.
+  instead: Require each committed command to map one-to-one to an exact command or one extended only by discovered behavioral-test paths after a non-option token, bind green results to the saved snapshot, and reject manifest/test hash mutations during capture.
+- risk: Do not let validation or a concurrent process replace the plan lock between the initial existence check and save.
+  instead: Publish a new lock with exclusive filesystem semantics, remove only MAID's private temporary file, and preserve every unexpected destination artifact for explicit operator inspection.
+- risk: Do not weaken normal --require-red-evidence behavior for unlocked, new, malformed, or ordinary no-run locks.
+  instead: Accept only a fully valid legacy_baseline payload; retain E704 for missing evidence and E705 for invalid evidence.
+files:
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: class
+      name: LegacyBaselineEvidence
+      description: Audited green-baseline evidence for a tracked manifest that predates plan-lock adoption.
+    - kind: attribute
+      name: reason
+      of: LegacyBaselineEvidence
+      type: str
+      description: Required human explanation for using the legacy migration path.
+    - kind: attribute
+      name: baseline_commit
+      of: LegacyBaselineEvidence
+      type: str
+      description: Resolved Git HEAD commit containing the pre-existing manifest.
+    - kind: attribute
+      name: baseline_manifest_hash
+      of: LegacyBaselineEvidence
+      type: str
+      description: Hash of the committed pre-migration manifest bytes.
+    - kind: attribute
+      name: contract_delta
+      of: LegacyBaselineEvidence
+      type: ContractDelta
+      description: Structured committed-to-current contract delta retained for audit.
+    - kind: attribute
+      name: commands
+      of: LegacyBaselineEvidence
+      type: tuple[RedPhaseCommandEvidence, ...]
+      description: Current validate-command results, all classified not_red with exit code zero.
+    - kind: attribute
+      name: captured_at
+      of: LegacyBaselineEvidence
+      type: str
+      description: UTC timestamp of the migration evidence capture.
+    - kind: method
+      name: to_payload
+      of: LegacyBaselineEvidence
+      args: []
+      returns: dict
+      description: Serialize an explicitly typed legacy_baseline payload without claiming red evidence.
+    - kind: attribute
+      name: legacy_baseline
+      of: PlanLock
+      type: Optional[dict]
+      description: Separate audited legacy-baseline payload; None for ordinary and pre-feature locks.
+    - kind: function
+      name: capture_legacy_baseline_evidence
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: reason
+        type: str
+      returns: LegacyBaselineEvidence
+      description: Fail closed unless the manifest existed at HEAD, only that manifest is dirty, every file section and artifact contract is unchanged, validate strengthening adds only discovered behavioral-test targets with one-to-one command matching, and all current commands are green.
+    - kind: function
+      name: enforce_plan_locks
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: require_plan_lock
+        type: bool
+      - name: require_red_evidence
+        type: bool
+      - name: changed_paths
+        type: Collection[str] | None
+        default: None
+      - name: plan_lock_scope
+        type: str
+        default: repository
+      returns: tuple[ValidationError, ...]
+      description: Treat a valid command-bound legacy_baseline as the explicit brownfield substitute for unavailable historical red evidence while retaining E704/E705 for absent or invalid evidence.
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_lock
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Support --legacy-baseline with required --reason, reject --no-run conflicts, capture green baseline evidence, publish the lock exclusively, remove only the private temporary file, and preserve unexpected destination artifacts.
+    - kind: function
+      name: cmd_plan_status
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Expose legacy_baseline independently from red_evidence in JSON and text status output.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Expose --legacy-baseline and --reason on maid plan lock without changing ordinary lock defaults.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _legacy_baseline_plan_lock_quick_reference
+      of: documentation
+      type: markdown paragraph
+      description: List the explicit legacy-baseline migration option and distinguish it from normal red evidence.
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _legacy_baseline_plan_lock_specification
+      of: documentation
+      type: markdown section
+      description: Specify eligibility, captured provenance, green validation, enforcement semantics, and anti-gaming boundaries for legacy migration.
+  create:
+  - path: tests/cli/test_plan_legacy_baseline_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_lock_parser_exposes_legacy_baseline_with_reason
+      args: []
+      returns: None
+      description: The real CLI parser accepts --legacy-baseline plus its audit reason.
+    - kind: test_function
+      name: test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A committed legacy manifest whose validate argv is strengthened can record a non-red baseline and pass task-scoped plan-lock/red-evidence enforcement.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_untracked_manifest
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A new manifest absent from HEAD cannot use the legacy migration path and no lock is written.
+    - kind: test_function
+      name: test_legacy_baseline_requires_reason_and_rejects_no_run
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Legacy migration requires a non-empty audit reason and cannot skip its green validation capture with --no-run.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_dirty_implementation_or_test_paths
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Any dirty path other than the legacy manifest blocks migration and leaves no lock.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_contract_change_or_validate_weakening
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Artifact changes, changes to every writable file section or nested semantic field, and removal or rewriting of committed validate argv cannot be grandfathered.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_filtering_suffix_arguments
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Appended filters and a committed command ending in a value-taking option cannot consume a discovered test path and masquerade as additive coverage.
+    - kind: test_function
+      name: test_legacy_baseline_accepts_overlapping_command_strengthening
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Overlapping committed command prefixes are matched one-to-one to compatible strengthened commands instead of failing because of greedy assignment.
+    - kind: test_function
+      name: test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A validation-created malformed destination and a structurally valid competing lock are both preserved and never overwritten or deleted by MAID.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_non_green_validation
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A failing, invalid, or interrupted current command cannot become a legacy baseline and no lock is written.
+    - kind: test_function
+      name: test_legacy_baseline_rejects_validation_that_mutates_contract
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A command that exits zero after modifying the manifest or behavioral test bytes is rejected and no lock is written.
+    - kind: test_function
+      name: test_ordinary_no_run_lock_still_fails_e704
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: The new exception does not make ordinary red_evidence-null locks satisfy --require-red-evidence.
+    - kind: test_function
+      name: test_plan_lock_preserves_positional_agent_compatibility
+      args: []
+      returns: None
+      description: The new optional legacy_baseline field is appended after the existing agent field so positional PlanLock callers retain their prior binding.
+    - kind: test_function
+      name: test_tampered_legacy_baseline_fails_e705
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Missing required fields, non-green or misclassified commands, nonempty artifact/file deltas, command mismatch, and simultaneous red/legacy channels fail closed rather than waiving the gate.
+    - kind: test_function
+      name: test_plan_status_distinguishes_legacy_baseline_from_red_evidence
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+      description: Status JSON/text identifies the legacy baseline and continues to report red evidence as absent.
+    - kind: test_function
+      name: test_plan_lock_docs_describe_legacy_baseline_boundaries
+      args: []
+      returns: None
+      description: README and the MAID specification document eligibility, green evidence, separate provenance, and strict-gate behavior.
+  read:
+  - maid_runner/core/_test_command_execution.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/types.py
+  - maid_runner/core/result.py
+  - tests/cli/test_plan_cmd_red_evidence.py
+  - tests/core/test_plan_lock_enforcement.py
+  - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+  - manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_red_evidence.py tests/core/test_plan_lock_enforcement.py
+- uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-13T13:17:01+08:00'
+  summary: Completed pre-plan-lock manifests now have an explicit, auditable legacy-baseline migration that preserves strict red-evidence enforcement without fabricating historical TDD evidence.
+  rationale: The new plan-lock mode proves that the manifest existed at Git HEAD, rejects dirty implementation or tests and every full file/artifact contract change, permits only conservative one-to-one validate-command strengthening, requires stable green execution, and stores separate command-bound legacy provenance with red_evidence left null. New locks are published exclusively, and MAID never overwrites or deletes unexpected destination artifacts. Ordinary new, no-run, malformed, non-green, weakened, or dual-channel evidence continues to fail closed.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Brownfield evidence exceptions must use a separate provenance channel and compare the fully serialized contract; path-only or partial artifact snapshots leave anti-gaming gaps.
+    tags:
+    - legacy-migration
+    - plan-lock
+    - anti-gaming
+    paths:
+    - maid_runner/core/plan_lock.py
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+  - lesson_type: concurrency-hardening
+    summary: Publish a fully written lock by exclusive same-directory hard link, remove only the private temporary file, and preserve unexpected destination artifacts because pathname cleanup cannot be race-free.
+    tags:
+    - plan-lock
+    - atomic-publication
+    - fail-closed
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+  - lesson_type: review-fix-loop
+    summary: Repeated independent review exposed nested contract fields, positional compatibility, option-consumed suffixes, and destination cleanup races that the initial green suite missed; each fix entered the locked behavioral contract through stash-backed red evidence.
+    tags:
+    - implementation-review
+    - red-evidence
+    - contract-honesty
+    paths:
+    - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+  review_notes:
+  - source: independent-implementation-reviewers
+    severity: high
+    summary: Successive reviews found and drove fixes for omitted file sections and nested semantics, arbitrary and option-consumed suffixes, greedy command matching, positional PlanLock incompatibility, incomplete tamper cases, and destructive destination cleanup races.
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: Final revision-7 review found no blocking issues; the intentional non-blocking limitation is that unexpected destination artifacts require manual inspection and removal before retry.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_plan_legacy_baseline_cmd.py, tests/cli/test_plan_cmd_red_evidence.py, tests/core/test_plan_lock_enforcement.py]
+    status: passed
+    summary: The approved focused contract passed all 42 plan-lock migration and enforcement tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: The full Python suite passed 3338 tests with 5 skips.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: All 337 active manifests passed; 94 superseded manifests were skipped and none failed.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 182 manifest-declared validation commands passed.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence]
+    status: passed
+    summary: Strict handoff verification passed all 9 stages with zero blockers; only existing E307 non-code warnings remained.

@@ -1,0 +1,285 @@
+schema: '2'
+goal: Stop E200 false positives for Svelte state modules and dynamically loaded hyphenated Python scripts
+type: fix
+created: '2026-07-13T01:14:02Z'
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  tags:
+  - behavioral-coverage
+  - e200
+  - identity
+  - python
+  - svelte
+  - typescript
+  priority: high
+description: |
+  Two downstream reports expose path-backed module identities that MAID cannot
+  currently associate with the test references accepted by their native
+  runtimes.
+
+  Svelte state modules use compound `.svelte.ts` or `.svelte.js` filenames but
+  are imported through a `.svelte` runtime specifier. MAID currently strips
+  only the final TypeScript/JavaScript suffix from the declared file while
+  stripping `.svelte` from the import, producing different identities. The
+  canonical identity must strip the full compound state-module suffix so both
+  forms resolve to the same project-relative module.
+
+  Python hook scripts may have hyphenated, non-importable filenames and be
+  loaded through the established `load_module(module_name, relative_path)`
+  test helper. MAID sees later `module.function()` calls but loses the file
+  identity at the helper assignment, making module-level functions impossible
+  to cover without weakening E200. Add one deliberately narrow syntactic
+  binding for this helper shape: both arguments must be string literals, the
+  path must name a non-importable `.py` module, and the normalized path stem
+  must match the supplied legal runtime module name. This avoids broader
+  control-flow interpretation while retaining a file-bound identity.
+
+  This is an additive chain evolution over the existing TypeScript/Svelte
+  module-path and Python identity contracts. Public signatures remain
+  unchanged. Existing name-only, unrelated-module, import-only, and importable
+  Python identity guards remain authoritative.
+temptations:
+- risk: Do not make `.svelte` imports match every `.svelte.*` path by prefix or basename alone.
+  instead: Canonicalize only the supported `.svelte.ts` and `.svelte.js` compound suffixes before the existing project-relative identity comparison.
+- risk: Do not restore unrestricted name-only fallback for functions in non-importable Python files.
+  instead: Bind the module alias to the literal declared script path and keep the existing identity matcher unchanged.
+- risk: Do not implement general helper-function dataflow or Python control-flow interpretation.
+  instead: Recognize only the literal `load_module(module_name, relative_path)` assignment shape with matching normalized stem and non-importable `.py` path.
+- risk: Do not accept an unrelated or misspelled dynamic-loader module name merely because the path ends in `.py`.
+  instead: Require the legal runtime module name to equal the hyphen-to-underscore normalized script stem and cover mismatches with a negative test.
+- risk: Do not prove only parser internals while leaving E200 integration broken.
+  instead: Pair direct public resolver/collector tests with end-to-end behavioral validation reproductions for both downstream reports.
+files:
+  edit:
+  - path: maid_runner/core/ts_module_paths.py
+    artifacts:
+    - kind: function
+      name: ts_file_to_module_path
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      - name: project_root
+        type: Path
+      returns: str
+      description: Canonicalize `.svelte.ts` and `.svelte.js` state-module files to the same extensionless identity produced by their `.svelte` runtime imports.
+    - kind: function
+      name: resolve_ts_import
+      args:
+      - name: specifier
+        type: str
+      - name: importer_module
+        type: str
+      - name: project_root
+        type: Path
+      returns: str
+      description: Resolve Svelte state-module tsconfig aliases to the same canonical identity as direct `.svelte` imports.
+    - kind: function
+      name: resolve_ts_reexport
+      args:
+      - name: module
+        type: str
+      - name: name
+        type: str
+      - name: project_root
+        type: Path
+      returns: Optional[tuple[str, str]]
+      description: Resolve Svelte state-module barrel exports without changing ordinary TypeScript module-entry precedence.
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+      description: Retain literal file identity for module aliases assigned by the narrow load_module(name, hyphenated_path.py) test-helper convention.
+  scope:
+  - path: maid_runner/core/_tsconfig_paths.py
+    reason: Align private tsconfig alias path canonicalization with the public Svelte state-module identity without adding or changing public artifacts.
+  - path: maid_runner/core/_ts_export_scanner.py
+    reason: Align private barrel path canonicalization and module-entry lookup with the public Svelte state-module identity while preserving ordinary TypeScript precedence.
+  create:
+  - path: tests/core/validation/test_path_backed_e200_identities.py
+    artifacts:
+    - kind: test_function
+      name: test_svelte_state_module_file_and_runtime_import_share_identity
+      args: []
+      returns: None
+      description: Compound `.svelte.ts` and `.svelte.js` file paths canonicalize to the same identity as a normal `.svelte` import specifier.
+    - kind: test_function
+      name: test_svelte_state_module_runtime_import_satisfies_e200
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A TypeScript behavioral test importing `.svelte` covers the exact function declared in the corresponding `.svelte.ts` state module without an explicit-extension suppression.
+    - kind: test_function
+      name: test_hyphenated_python_loader_records_literal_script_identity
+      args: []
+      returns: None
+      description: A load_module assignment records the path-derived identity on later exact function calls when runtime name and normalized hyphenated stem agree.
+    - kind: test_function
+      name: test_hyphenated_python_loader_rejects_mismatched_runtime_name
+      args: []
+      returns: None
+      description: A mismatched runtime module name does not acquire the literal script identity, preventing an unrelated helper call from satisfying E200.
+    - kind: test_function
+      name: test_hyphenated_python_loader_call_satisfies_e200
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A dynamically loaded hyphenated hook script function called by exact identifier passes end-to-end behavioral coverage.
+    - kind: test_function
+      name: test_svelte_state_module_alias_and_barrel_resolve_canonical_identity
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Tsconfig aliases and barrel re-exports targeting `.svelte` resolve to the canonical `.svelte.ts` state-module identity.
+    - kind: test_function
+      name: test_svelte_state_module_alias_and_barrel_imports_satisfy_e200
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      description: Alias and barrel imports exercise exact functions declared in a `.svelte.ts` state module without E200.
+    - kind: test_function
+      name: test_svelte_state_module_does_not_override_plain_typescript_entry
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: When `state.ts` and `state.svelte.ts` coexist, the extensionless `state` module continues to select the ordinary TypeScript entry.
+    - kind: test_function
+      name: test_hyphenated_python_loader_rejects_non_assignment_shapes
+      args: []
+      returns: None
+      description: Inline calls, walrus expressions, and extra-argument loader calls do not acquire a path-backed module identity.
+  read:
+  - maid_runner/core/identity.py
+  - maid_runner/core/module_paths.py
+  - maid_runner/core/validate.py
+  - maid_runner/validators/_python_behavioral_references.py
+  - maid_runner/validators/_python_behavioral_scope.py
+  - manifests/add-semantic-reference-index.manifest.yaml
+  - manifests/add-semantic-reference-index-typescript.manifest.yaml
+  - manifests/add-semantic-reference-index-svelte.manifest.yaml
+  - manifests/fix-python-hyphenated-skill-script-e200.manifest.yaml
+  - manifests/028-05-extract-tsconfig-jsonc-and-path-alias-loader.manifest.yaml
+  - manifests/029-05-extract-typescript-export-scanner.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_path_backed_e200_identities.py
+outcome:
+  status: completed
+  completed_at: "2026-07-13T01:46:03Z"
+  summary: "Fixed path-backed E200 false positives for Svelte state modules and dynamically loaded hyphenated Python hook scripts. Svelte direct, tsconfig-alias, and barrel identities now converge while ordinary TypeScript precedence is preserved; Python loader identity is assignment-only and path-bound."
+  rationale: "Compound source-suffix canonicalization is kept separate from module-entry precedence so `.svelte.ts` and `.svelte.js` share their runtime `.svelte` identity without overriding an existing `.ts` or `.js` entry. Python support is deliberately narrow: only exact two-argument `load_module(name, path)` assignment forms whose runtime name matches the normalized path stem acquire a literal module identity."
+  lessons:
+  - lesson_type: design
+    summary: "Compound source-suffix canonicalization and module-entry precedence are separate policies; sharing one ordered extension tuple caused valid identity matching to alter runtime-style resolution precedence."
+    tags:
+    - typescript
+    - svelte
+    - identity
+    - module-resolution
+    paths:
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/_tsconfig_paths.py
+    - maid_runner/core/_ts_export_scanner.py
+  - lesson_type: validation
+    summary: "Identity compatibility rules need positive downstream reproductions plus negative guards for alias mismatch, inline and walrus calls, extra arguments, and coexisting module candidates."
+    tags:
+    - e200
+    - anti-gaming
+    - behavioral-tests
+    paths:
+    - tests/core/validation/test_path_backed_e200_identities.py
+    - maid_runner/validators/python.py
+  review_notes:
+  - source: maid-implementation-review-round-1
+    severity: needs-changes
+    summary: "Independent review found Svelte alias and barrel gaps, a module-entry precedence regression, and Python recognition broader than assignment-only; all findings were fixed through locked contract revisions and added behavioral coverage."
+  - source: maid-implementation-review-round-2
+    severity: ready
+    summary: "Independent rereview found no actionable issues and confirmed the prior findings resolved after rerunning the focused suite and target MAID validation."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_path_backed_e200_identities.py
+    status: passed
+    summary: "All 9 focused identity and E200 scenarios passed."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: "Full suite passed with 3321 tests passed and 5 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "All 430 manifests validated with 336 passed, 0 failed, and 94 superseded."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 180 declared manifest commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "All 9 handoff stages passed with no blocking findings; only existing E307 warnings remained."
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - .
+    status: passed
+    summary: "Formatting check passed with 413 files unchanged."
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: "Lint passed."
+  - command:
+    - downstream-reproduction
+    - claude-tools-dynamic-module-load
+    status: passed
+    summary: "The current runner validated the original claude-tools manifest without either reported E200 finding."
+  - command:
+    - downstream-reproduction
+    - tower-recall-normal-svelte-import
+    status: passed
+    summary: "A clean Tower Recall clone passed behavioral validation after replacing its explicit `.svelte.ts` suppression with the normal `.svelte` import."

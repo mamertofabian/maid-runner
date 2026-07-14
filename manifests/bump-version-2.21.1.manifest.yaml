@@ -1,0 +1,157 @@
+schema: '2'
+goal: Bump maid-runner patch version to 2.21.1
+type: feature
+created: '2026-07-14T03:25:09Z'
+supersedes:
+- bump-version-2.21.0
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package version from 2.21.0 to 2.21.1 for the next patch release.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized. The patch version is
+  intentional because the post-2.21.0 branch contains backward-compatible
+  validator, plan-lock migration, red-evidence, and diagnostic fixes.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release metadata test alongside the package version.
+- risk: Do not derive release notes only from commit subjects.
+  instead: Summarize the observable behavior and safety properties of every user-facing change since v2.21.0.
+- risk: Do not omit the changelog compare link from automated coverage.
+  instead: Assert the 2.21.1 heading and v2.21.0...v2.21.1 compare link in the release metadata test.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package or source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the patch version, release date, and compare link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_current_version
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.21.1 patch release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog heading and compare link, and roadmap all report 2.21.1.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.21.0.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: '2026-07-14T03:36:30Z'
+  summary: Bumped maid-runner from 2.21.0 to 2.21.1 and synchronized package metadata, editable lock metadata, patch release notes and compare link, roadmap version text, release metadata coverage, and MAID plan-lock evidence.
+  rationale: The 2.21.1 patch release packages the backward-compatible fixes landed after v2.21.0, including path-backed artifact identity resolution, audited legacy plan-lock migration, SQL and ownerless-removal handling, pgTAP red-evidence capture, and clearer removed-test-artifact diagnostics.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: A stable version-neutral release metadata test lets future release manifests update expectations without renaming the contracted test, while a compatibility wrapper preserves the active predecessor during draft validation and promotion.
+    tags:
+    - release
+    - version
+    - behavioral-test
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: plan-lock
+    summary: Release bumps that change a shared integration test require a sanctioned dependent lock revision with preserved red evidence, and strict changed-scope verification needs an explicit task baseline when metadata.maid_task_base is absent.
+    tags:
+    - release
+    - plan-lock
+    - red-evidence
+    - changed-scope
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+  review_notes:
+  - source: maid-implementation-review-subagent/release_221_review
+    severity: info
+    summary: Ready with no P0, P1, or P2 findings; the reviewer confirmed metadata consistency and accurate changelog coverage for all four commits in v2.21.0..HEAD, with only the residual risk that changelog completeness is review-backed rather than test-backed.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: failed
+    summary: Red phase failed before implementation because runtime version still reported 2.21.0 while the approved behavioral contract expected 2.21.1.
+  - command:
+    - uv
+    - run
+    - maid
+    - --version
+    status: passed
+    summary: Local CLI reported maid 2.21.1.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: Focused public API and release metadata suite passed with 29 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.21.1.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: The promoted release contract passed implementation validation.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository-wide MAID validation passed with 341 active contracts, 0 failed, and 95 superseded.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Repository-wide manifest testing passed all 183 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: Strict nine-stage handoff verification passed after the sanctioned shared-test lock revision and explicit task baseline.
+  - command:
+    - git
+    - diff
+    - --check
+    status: passed
+    summary: Whitespace validation passed.

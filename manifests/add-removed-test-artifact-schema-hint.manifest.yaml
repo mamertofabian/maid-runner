@@ -1,0 +1,254 @@
+schema: '2'
+goal: Append a targeted remediation hint to the schema error when a removed_artifacts entry uses kind test_function, teaching agents that test artifacts never need removal entries
+type: feature
+created: '2026-07-13T13:50:06Z'
+metadata:
+  tags:
+  - developer-experience
+  - schema-errors
+  - supersession
+  - agent-guidance
+  priority: medium
+description: |
+  DX fix motivated by a real agent failure (bolt-to-github repo, 2026-07-13):
+  an agent superseding a manifest listed obsolete test_function artifacts
+  under removed_artifacts and hit the bare schema error
+  "removed_artifacts.N.kind: 'test_function' is not one of ['class',
+  'function', ...]". The error is correct but teaches nothing; the agent had
+  to rediscover the design rationale from source.
+
+  The exclusion of test_function from the removed_artifacts kind enum is
+  deliberate and must not be relaxed:
+
+  - The supersession preservation audit exempts TEST_FUNCTION artifacts
+    entirely (maid_runner/core/supersession_audit.py, find_violations),
+    so removing a test never requires a verified removal entry.
+  - The E311 removal verifier checks absence via the implementation
+    artifact collector, which excludes test_function kinds
+    (maid_runner/core/_implementation_validation.py); a test_function
+    removal entry would "verify absent" vacuously and check nothing.
+  - Original design: commit 1d05810 (supersession artifact-preservation
+    defense) — tests are contract evidence, not the protected public
+    surface; the superseding manifest's own validation section defines
+    the new test surface.
+
+  Contract: when validate_manifest_schema formats a jsonschema enum
+  failure whose absolute path is removed_artifacts.<index>.kind and whose
+  offending instance is exactly "test_function", the returned error string
+  keeps the existing "path: message" prefix unchanged and appends a hint
+  stating that test artifacts never need removed_artifacts entries, that
+  the supersession audit exempts test functions, and that the correct move
+  is to delete the obsolete tests and declare the surviving contract
+  (including its tests) in the superseding manifest.
+
+  Pinned decisions (do not redesign):
+
+  - Enrich at the validate_manifest_schema seam so every consumer inherits
+    the hint: maid validate --mode schema, load_manifest /
+    ManifestSchemaError, maid manifest promote, and manifest-from-diff.
+    Do not add the hint in the CLI layer.
+  - The original jsonschema message and its "path: message" prefix stay
+    byte-identical; the hint is appended after it. Existing consumers that
+    parse the prefix must not break.
+  - Only the exact instance value "test_function" gets the hint. Other
+    invalid kinds (typos, unknown strings) keep the bare enum error so the
+    hint never misleads.
+  - The hint fires per matching error entry; no cross-entry deduplication
+    in this change (dedup is a verify --summary concern).
+  - The removed_artifacts kind enum in manifest.v2.schema.json is not
+    modified.
+  - Implementation shape: a private formatting helper inside
+    maid_runner/core/manifest.py (extending _format_schema_error); no new
+    public API beyond the existing validate_manifest_schema behavior.
+
+  Outcome-evidence digest (advisory, from maid recall on
+  maid_runner/core/manifest.py): 047-01 established that schema-boundary
+  behavior is contracted and tested through the public
+  validate_manifest_schema seam rather than private helpers — this draft
+  follows that pattern and declares only validate_manifest_schema.
+  047-01's lesson that malformed manifests must become schema errors
+  rather than crashes is preserved: this change only appends text to
+  already-produced error strings and cannot introduce a new failure path.
+  Lessons about Outcome timestamp validation and index staleness from the
+  other recalled records are not applicable to this change and were set
+  aside.
+temptations:
+- risk: Do not add test_function to the removed_artifacts kind enum in manifest.v2.schema.json to make the incoming manifests validate.
+  instead: 'Keep the enum unchanged. The exclusion is load-bearing: the supersession audit exempts test functions and the E311 verifier cannot check their absence. Append guidance to the error instead.'
+- risk: Do not implement the hint in the CLI validate command or output rendering layer.
+  instead: Extend the private schema-error formatting inside maid_runner/core/manifest.py so validate_manifest_schema returns the enriched string and every consumer (load_manifest, promote, from-diff, CLI) inherits it.
+- risk: Do not pin the full hint sentence word-for-word in tests, and do not assert so loosely that an empty suffix passes.
+  instead: Assert the error string starts with the unchanged 'removed_artifacts.<i>.kind:' jsonschema prefix and contains the stable key phrases 'test artifacts never need removed_artifacts entries' and 'superseding manifest'.
+- risk: Do not trigger the hint for every removed_artifacts kind enum failure.
+  instead: Match only when the offending instance equals 'test_function'; add a negative test with an unknown kind value that must receive the bare enum error without the hint.
+- risk: Do not add the new tests to the shared tests/core/test_manifest.py file.
+  instead: Create the dedicated tests/core/test_removed_artifact_schema_hint.py so existing plan locks on shared test files are not invalidated.
+files:
+  read:
+  - maid_runner/schemas/manifest.v2.schema.json
+  - maid_runner/core/supersession_audit.py
+  - maid_runner/core/_implementation_validation.py
+  - maid_runner/core/_removed_artifacts.py
+  - tests/core/test_manifest.py
+  edit:
+  - path: maid_runner/core/manifest.py
+    artifacts:
+    - kind: function
+      name: validate_manifest_schema
+      args:
+      - name: data
+        type: dict
+      - name: schema_version
+        type: str
+        default: '''2'''
+      returns: list[str]
+      description: 'Existing public schema validator; behavior extends so removed_artifacts kind enum failures with instance ''test_function'' return the original ''path: message'' string with an appended remediation hint.'
+      source_scenario: A manifest dict declares a removed_artifacts entry with kind test_function, kind function, or an unknown kind.
+      actions:
+      - type: api_call
+        subject:
+          function: validate_manifest_schema
+      expected:
+        behavior: test_function entries yield the unchanged enum error plus the targeted hint; unknown kinds yield the bare enum error; valid kinds yield no removed_artifacts error; the enum error prefix stays byte-identical in all cases.
+  create:
+  - path: tests/core/test_removed_artifact_schema_hint.py
+    artifacts:
+    - kind: test_function
+      name: test_removed_test_function_kind_error_includes_targeted_hint
+      source_scenario: 'A structurally valid manifest dict declares three removed_artifacts entries: kind test_function at index 0, a valid kind function at index 1, and kind test_function again at index 2.'
+      actions:
+      - type: api_call
+        subject:
+          function: validate_manifest_schema
+      expected:
+        behavior: Both test_function entries produce errors that start with their unchanged 'removed_artifacts.<i>.kind:' enum message and contain the phrases 'test artifacts never need removed_artifacts entries' and 'superseding manifest'; the valid index-1 entry produces no error, proving the hint keys on the offending instance rather than a hardcoded index.
+    - kind: test_function
+      name: test_removed_unknown_kind_error_has_no_test_hint
+      source_scenario: The same manifest dict uses an unknown removed_artifacts kind such as 'component'.
+      actions:
+      - type: api_call
+        subject:
+          function: validate_manifest_schema
+      expected:
+        behavior: The enum error is returned unchanged with no appended hint text.
+    - kind: test_function
+      name: test_valid_removed_artifact_kind_produces_no_error
+      source_scenario: 'The manifest dict uses a valid removed_artifacts entry with kind: function.'
+      actions:
+      - type: api_call
+        subject:
+          function: validate_manifest_schema
+      expected:
+        behavior: validate_manifest_schema returns no removed_artifacts errors, proving the hint path does not affect valid manifests.
+    - kind: test_function
+      name: test_test_function_kind_elsewhere_gets_no_removed_hint
+      source_scenario: 'A manifest dict declares kind: test_function legitimately inside files.create artifacts while removed_artifacts is absent.'
+      actions:
+      - type: api_call
+        subject:
+          function: validate_manifest_schema
+      expected:
+        behavior: No error and no hint is produced; the hint is scoped to the removed_artifacts path only.
+    - kind: test_function
+      name: test_load_manifest_schema_error_carries_hint
+      source_scenario: 'A manifest file on disk contains a removed_artifacts entry with kind: test_function and is loaded through the public loader.'
+      actions:
+      - type: api_call
+        subject:
+          function: load_manifest
+      expected:
+        behavior: load_manifest raises ManifestSchemaError whose message includes the appended hint, proving consumers inherit the enrichment without their own formatting.
+validate:
+- uv run python -m pytest -q tests/core/test_removed_artifact_schema_hint.py tests/core/test_manifest.py
+- uv run maid validate manifests/add-removed-test-artifact-schema-hint.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-13T14:03:38Z'
+  summary: |
+    Schema errors for removed_artifacts entries with kind test_function now
+    append a targeted remediation hint while keeping the original jsonschema
+    "path: message" prefix byte-identical. The hint states that test
+    artifacts never need removed_artifacts entries, that the supersession
+    audit exempts test functions, and that the correct move is deleting the
+    obsolete tests and declaring the surviving contract in the superseding
+    manifest. Unknown kinds keep the bare enum error, valid manifests are
+    unaffected, and every consumer of validate_manifest_schema (CLI schema
+    mode, load_manifest, promote, from-diff) inherits the enrichment.
+  rationale: |
+    Motivated by a real bolt-to-github agent failure (2026-07-13) where the
+    bare enum error forced rediscovery of the design rationale from source.
+    The enum exclusion is load-bearing: the supersession preservation audit
+    exempts TEST_FUNCTION artifacts and the E311 verifier collects only
+    implementation artifacts, so a test_function removal entry would verify
+    vacuously. Teaching the constraint at the point of failure was chosen
+    over relaxing the schema, and enrichment happens at the
+    validate_manifest_schema seam so no consumer needs its own formatting.
+  lessons:
+  - lesson_type: workflow
+    summary: Deliberate schema exclusions need remediation guidance at the point of failure; a bare enum error on a load-bearing constraint forces every agent to rediscover the design rationale from source.
+    tags:
+    - developer-experience
+    - schema-errors
+    - agent-guidance
+    paths:
+    - maid_runner/core/manifest.py
+    - maid_runner/schemas/manifest.v2.schema.json
+  - lesson_type: test-design
+    summary: Error-message contracts should pin the unchanged machine-parsed prefix plus stable key phrases across multiple entry indices, defeating hint-everywhere, hardcoded-index, and empty-suffix implementations without freezing full sentences.
+    tags:
+    - anti-gaming
+    - behavioral-tests
+    - error-messages
+    paths:
+    - tests/core/test_removed_artifact_schema_hint.py
+  - lesson_type: validation
+    summary: Declaring an existing widely-tested public function makes chain discovery pull its other behavioral test files into E230 scope; include them in the validate command and recapture red evidence with plan revise --stash-implementation.
+    tags:
+    - e230
+    - plan-lock
+    - chain-discovery
+    paths:
+    - manifests/add-removed-test-artifact-schema-hint.manifest.yaml
+    - tests/core/test_manifest.py
+  review_notes:
+  - source: maid-plan-reviewer-subagent
+    severity: ready
+    summary: Plan review approved the contract, independently verified the enum exclusion is deliberate, and confirmed the red phase failed for the intended missing-hint reason.
+  - source: maid-implementation-reviewer-subagent
+    severity: ready
+    summary: Implementation review reproduced all validations and returned ready to merge with no correctness, scope, or test-weakening findings.
+  - source: maid-implementation-reviewer-subagent
+    severity: residual-risk
+    summary: The hint predicate matches path[0] and path[-1] rather than an exact three-segment shape; no other path can reach it under the current v2 schema, so it only matters if a nested kind field is ever added under removed_artifacts.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_removed_artifact_schema_hint.py
+    - tests/core/test_manifest.py
+    status: passed
+    summary: The manifest's focused behavioral scope passed with 59 tests.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full pytest suite passed with 3,379 tests and 5 expected skips.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    status: passed
+    summary: All verify gates passed including plan_lock and red evidence, with only known non-blocking E307 warnings for non-code files.

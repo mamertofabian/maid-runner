@@ -3,10 +3,10 @@
   "manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
-    "tests/integration/test_library_api.py": "sha256:ddb7864db0ca8458de164e4b99850381846295669d74fd016cfe97516e5c8910"
+    "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 15,
+  "revision": 16,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -180,6 +180,24 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
+        "tests/integration/test_library_api.py": "sha256:ddb7864db0ca8458de164e4b99850381846295669d74fd016cfe97516e5c8910"
+      },
+      "revised_at": "2026-07-14T03:28:39.634932+00:00",
+      "reason": "Refresh the shared release metadata integration-test hash for the 2.21.1 patch bump; the test still exercises __version__ and release metadata consistency, while the release expectations and stable test name change under the new locked release contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -206,6 +224,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -254,6 +273,105 @@
         "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
         "tests/core/test_diagnostics_registry.py",
         "tests/integration/test_library_api.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/__init__.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "__all__",
+              "description": "Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through the top-level library API.",
+              "type": "list[str]"
+            },
+            {
+              "kind": "class",
+              "name": "DiagnosticRule",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.DiagnosticRule through the top-level library API."
+            },
+            {
+              "kind": "class",
+              "name": "RepairRecipe",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.RepairRecipe through the top-level library API."
+            },
+            {
+              "kind": "function",
+              "name": "get_rule",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.get_rule through the top-level library API."
+            },
+            {
+              "kind": "function",
+              "name": "all_rules",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.all_rules through the top-level library API."
+            },
+            {
+              "kind": "function",
+              "name": "render_next_action",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.render_next_action through the top-level library API."
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/__init__.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "__all__",
+              "description": "Extended with DiagnosticRule, RepairRecipe, get_rule, all_rules, and render_next_action so the existing diagnostics registry is exported through maid_runner.core.",
+              "type": "list[str]"
+            },
+            {
+              "kind": "class",
+              "name": "DiagnosticRule",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.DiagnosticRule through maid_runner.core."
+            },
+            {
+              "kind": "class",
+              "name": "RepairRecipe",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.RepairRecipe through maid_runner.core."
+            },
+            {
+              "kind": "function",
+              "name": "get_rule",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.get_rule through maid_runner.core."
+            },
+            {
+              "kind": "function",
+              "name": "all_rules",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.all_rules through maid_runner.core."
+            },
+            {
+              "kind": "function",
+              "name": "render_next_action",
+              "description": "Re-export of maid_runner.core.diagnostics_registry.render_next_action through maid_runner.core."
+            }
+          ]
+        },
+        {
+          "path": "docs/reference/api.rst",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_public_api_autosummary_diagnostics_registry_exports",
+              "description": "Adds the diagnostics registry re-export symbols to the public API autosummary so docs continue to mirror maid_runner.__all__.",
+              "of": "documentation",
+              "type": "reStructuredText autosummary entries"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/diagnostics_registry.py",
+        "maid_runner/core/result.py",
+        "docs/troubleshooting.md",
+        "tests/core/test_diagnostics_registry.py",
+        "tests/integration/test_library_api.py",
+        "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml"
       ]
     },
     "test_files": [
