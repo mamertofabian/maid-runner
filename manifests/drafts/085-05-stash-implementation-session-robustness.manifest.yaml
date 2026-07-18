@@ -1,0 +1,211 @@
+# draft-kind: implementation
+schema: "2"
+goal: Make plan revise --stash-implementation usable in real multi-manifest sessions by adding audited sibling-dirty tolerance, reliable untracked files.create stashing, staged-path recovery guidance, and a specific dependency-lockfile limitation error
+type: fix
+created: "2026-07-18T00:00:00Z"
+metadata:
+  status: draft
+  epic: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
+  bug_reports: |
+    ~/.maid/bug-report/20260715-035754-manatal-coop-site-stash-implementation-bookkeeping.md
+    ~/.maid/bug-report/20260714-083456-life-dashboard-stash-untracked-create.md
+    ~/.maid/bug-report/20260715-175500-erindelle-dependency-stash-red-evidence.md
+  tags:
+    - plan-lock
+    - red-phase
+    - stash-implementation
+    - workflow-hardening
+    - cli
+  priority: medium
+description: |
+  `_cmd_plan_revise_with_stashed_implementation`
+  (maid_runner/cli/commands/plan.py) is the sanctioned recovery tool for
+  recapturing red evidence after review-driven changes, but three failure
+  modes from the July bug-report cluster make it unusable exactly when it
+  is needed most:
+
+  1. SIBLING-DIRTY REFUSAL (20260715-035754): the unrelated-dirty-path
+     guard refuses when ANY dirty path exists repo-wide. In a legitimate
+     multi-manifest session, dozens of dirty paths belong to sibling
+     manifests' own contracted scope; declaring them under this manifest's
+     files.read would misrepresent scope, and committing sibling work
+     first splits one reviewed change into artificial commits. The
+     targeted `git stash push -- <pathspec>` never touches those paths.
+  2. UNTRACKED files.create FAILURE (20260714-083456): for a promoted
+     manifest whose files.create implementation exists but is not yet
+     committed (the normal pre-first-commit state), the flow fails to
+     produce red evidence; intent-to-add breaks `git stash` outright, and
+     the staged-path refusal gives no recovery instruction.
+  3. DEPENDENCY LOCKFILE LIMITATION (20260715-175500): when the declared
+     implementation is a dependency upgrade (package.json + lockfile), the
+     stash restores the file contents but node_modules stays at the new
+     version, capture stays green, and the generic "did not capture valid
+     red evidence" error hides the real cause.
+
+  Pinned decisions (do not redesign):
+
+  1. Sibling-dirty tolerance is opt-in behind a new flag,
+     `--allow-sibling-dirty`. Without it, today's repo-wide refusal is
+     byte-for-byte unchanged except the error text additionally names the
+     flag. With it:
+     a. dirty paths that intersect the revised manifest's OWN surface
+        (declared writable paths, files.read, behavioral test files, the
+        manifest, the lock) keep exactly today's handling — target,
+        tolerate, or refuse per the existing 076-01/082-03 rules;
+     b. dirty paths outside that surface are tolerated WITHOUT being
+        stashed, and their full sorted list is recorded inside the
+        captured evidence payload under `sibling_dirty_paths` plus echoed
+        on stdout, so implementation review and `maid evaluate` can audit
+        what else was in the tree during capture. Silent tolerance is
+        forbidden.
+     c. No "plausible impact" analysis of any kind: the boundary is the
+        exact declared-path set. Per the epic and AGENTS.md validator
+        constraints, we accept the documented limit that a sibling dirty
+        path COULD influence capture through undeclared coupling — which
+        is precisely why the audit trail, not a heuristic, is the control.
+  2. Untracked declared files.create paths are first-class stash targets:
+     pin with characterization tests that an untracked declared create is
+     hidden during capture and restored byte-identical afterwards (the
+     stash push already passes --include-untracked with pathspecs; the
+     tests must reproduce the reported failure and drive whatever fix the
+     red phase reveals — including the intent-to-add state, which must
+     either work or be refused with a clear instruction to
+     `git reset -- <path>` first, never a raw git "Cannot merge" error).
+  3. The staged-path refusal keeps refusing (staged state is a deliberate
+     user action) but the error must name the exact recovery command
+     (`git restore --staged <paths>`) and the paths to run it on.
+  4. Dependency-lockfile limitation gets a specific error: when capture
+     completes without valid red evidence AND the stashed target set
+     includes a recognized dependency lockfile (exact basenames:
+     package.json, package-lock.json, bun.lock, yarn.lock, pnpm-lock.yaml,
+     uv.lock, poetry.lock, Cargo.lock, go.sum), the failure message must
+     explain that materialized dependency state (node_modules, .venv,
+     vendor) is not stashed, and point to the documented alternatives
+     (temporarily install the prior dependency state and use plain revise,
+     or record a reasoned legacy baseline). No attempt to stash or rebuild
+     dependency trees — that is out of scope by design.
+  5. All existing refusals and integrity checks stay: stash identity
+     restore/drop, contract-file hash guard around capture, test files
+     never stashed, scope-only manifest rules, --no-run/--preserve
+     exclusions. 085-04 owns the test-only refusal text change; this
+     manifest must not conflict with it (coordinate the shared function
+     edit at implementation time — 085-04 lands first).
+
+  Sequencing: fifth child of epic 085, after 085-04.
+
+  Planning notes (Planning Handoff Mode): behavioral tests are declared
+  below but not yet written; all new coverage goes in the dedicated
+  tests/cli/test_stash_revise_session_robustness.py module because the
+  existing stash-revise test files are hashed by the 076-01,
+  fix-stash-revise-scope-targets, and 082-03 plan locks. The implementing
+  agent confirms the red phase, runs behavioral validation, plan-locks,
+  and promotes before implementation.
+
+  Open question for plan review: whether `sibling_dirty_paths` should also
+  appear in `maid plan status` output for locks whose evidence carries it
+  (recommended: yes, one summary line — cheap visibility, no schema
+  change beyond the evidence payload key added here).
+temptations:
+  - risk: "Do not make sibling-dirty tolerance the default or drop the repo-wide refusal without the flag."
+    instead: "Keep the fail-closed default; gate tolerance behind --allow-sibling-dirty and record every tolerated path in the evidence payload and stdout."
+  - risk: "Do not try to decide which sibling dirty paths could affect validation via imports, globs, or other static analysis."
+    instead: "Use the exact declared-path boundary and the audit trail; the documented limit is stated in the manifest and docs."
+  - risk: "Do not widen the stash to tolerated sibling paths 'just in case' — stashing undeclared paths is the 082-03 anti-pattern in reverse."
+    instead: "Stash only the manifest's own declared targets exactly as today; siblings are tolerated and recorded, never touched."
+  - risk: "Do not paper over the untracked-create failure by skipping red validation when the file is untracked."
+    instead: "Reproduce the reported failure in a characterization test first, then fix the stash/restore path so capture genuinely runs without the created file present."
+  - risk: "Do not detect dependency lockfiles by fuzzy matching or by parsing package manager state."
+    instead: "Match the exact basename list pinned in this manifest and only to select the error message; capture logic is unchanged."
+files:
+  create:
+    - path: tests/cli/test_stash_revise_session_robustness.py
+      artifacts:
+        - kind: test_function
+          name: test_allow_sibling_dirty_tolerates_and_records_unrelated_paths
+          source_scenario: Reproduction of the 20260715-035754 session — a locked manifest needing stash-backed revise while sibling manifests' contracted files are dirty elsewhere in the tree, run with --allow-sibling-dirty.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: The revise succeeds, sibling paths are never stashed or modified, and the saved evidence payload lists every tolerated path under sibling_dirty_paths with the same list echoed on stdout.
+        - kind: test_function
+          name: test_default_refusal_unchanged_and_names_flag
+          source_scenario: The same dirty session without the flag.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: The command refuses exactly as today and the error text names --allow-sibling-dirty and the files.read declaration alternative.
+        - kind: test_function
+          name: test_allow_sibling_dirty_still_refuses_own_surface_conflicts
+          source_scenario: --allow-sibling-dirty with a dirty path that belongs to the revised manifest's own declared surface in a refusing state (e.g. staged).
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: The existing own-surface refusal fires; the flag never loosens handling of the manifest's own paths.
+        - kind: test_function
+          name: test_untracked_files_create_is_stashed_and_restored
+          source_scenario: Reproduction of 20260714-083456 — a promoted locked manifest whose files.create implementation exists untracked, with a tightened behavioral test needing fresh red evidence.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: Capture runs with the untracked create absent (yielding genuine red), the file is restored byte-identical, and the lock records valid red evidence.
+        - kind: test_function
+          name: test_intent_to_add_state_is_handled_or_cleanly_refused
+          source_scenario: The same scenario after git add -N on the created file.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: Either the flow succeeds as with plain untracked state, or it refuses with an instruction naming git reset -- <path>; a raw git 'Cannot merge' error is a failure of this contract.
+        - kind: test_function
+          name: test_staged_refusal_names_recovery_command
+          source_scenario: A declared implementation path staged in the index.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: The refusal error names git restore --staged and lists the exact paths.
+        - kind: test_function
+          name: test_lockfile_only_green_capture_reports_dependency_limitation
+          source_scenario: Reproduction of 20260715-175500 — declared writable paths are package.json and a lockfile, the dependency is installed at the new version, and capture stays green after stashing.
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: The failure message explains that materialized dependency state is not stashed and names the documented alternatives, instead of the generic no-valid-red-evidence error.
+  edit:
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: Stash-backed revise gains --allow-sibling-dirty with audited tolerance outside the manifest's own declared surface, reliable untracked files.create stashing with intent-to-add handling, a staged-path refusal that names git restore --staged, and the dependency-lockfile limitation error; every existing integrity check, refusal, and restore guarantee is preserved.
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: Register the --allow-sibling-dirty flag on the plan revise subparser.
+    - path: docs/maid_specs.md
+      reason: Document sibling-dirty tolerance semantics, the audit-trail control, the untracked-create behavior, and the dependency-lockfile limitation with its alternatives.
+    - path: maid_runner/docs/maid_specs.md
+      reason: Keep the packaged spec copy in sync.
+  read:
+    - maid_runner/core/plan_lock.py
+    - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+    - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+    - manifests/drafts/085-04-test-only-green-red-evidence-mode.manifest.yaml
+validate:
+  - uv run python -m pytest tests/cli/test_stash_revise_session_robustness.py -v
+  - uv run maid validate manifests/drafts/085-05-stash-implementation-session-robustness.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/085-05-stash-implementation-session-robustness.manifest.yaml --mode schema --quiet

@@ -1,0 +1,190 @@
+# draft-kind: implementation
+schema: "2"
+goal: Teach the packaged MAID skills and workflow docs a convergent review protocol and a task-scoped iteration loop so autonomous runs stop paying four-to-seven review rounds and full-tree verify per fix
+type: feature
+created: "2026-07-18T00:00:00Z"
+metadata:
+  status: draft
+  epic: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
+  tags:
+    - agent-skills
+    - maid-workflow
+    - review-loop
+    - documentation
+  priority: medium
+description: |
+  The 2026-07-16 goal-run analysis showed the review loop, not command
+  runtime, dominating cost: 46 reviewer sub-agent sessions for ~14
+  delivered slices, with per-manifest cascades of 4-7 rounds
+  (review_media_gallery: 6 rounds; layout_variants: 7). Each round
+  surfaced ONE new finding — geometry, then chain, then accessibility —
+  and each finding triggered a full test-edit -> plan revise -> recapture
+  -> re-verify -> re-review cycle. Nothing in the packaged skills tells
+  reviewers to report exhaustively in one pass, distinguishes blocking
+  from advisory findings, bounds re-review rounds, or teaches the
+  task-scoped verify flags that already exist (`--plan-lock-scope task`,
+  `--since`, `--summary`).
+
+  This is a guidance-only manifest: markdown skill payloads and docs, no
+  runner code. It lands last in epic 085 so it can document the mechanics
+  the earlier children add (auto-preserved evidence, contract-scoped
+  hashes, --test-only-green, --allow-sibling-dirty).
+
+  CONTENT CONTRACT — the implementing agent must land ALL of the
+  following, phrased to fit each document's existing voice:
+
+  1. maid-implementation-review skill (.claude/skills/
+     maid-implementation-review/SKILL.md):
+     a. Single-pass exhaustiveness: the reviewer reports every finding it
+        can identify in one pass, never one finding per round. A finding
+        first raised in round N>1 must state why it was not visible in
+        round 1 (e.g. unmasked by a fix), discouraging drip-feeding.
+     b. Blocking-vs-advisory classification on every finding: blocking =
+        contract violations, behavioral bugs, scope drift, validation
+        failures; advisory = style, optional hardening, future-work notes.
+        Advisory findings MUST NOT trigger manifest or locked-test
+        revision in the current session; they are recorded in the review
+        packet and may seed future draft manifests.
+     c. Convergence bound: after two full review rounds, the reviewer
+        issues a final verdict listing residual advisories instead of
+        requesting another round, unless a blocking finding remains.
+  2. maid-implementer skill (.claude/skills/maid-implementer/SKILL.md)
+     and maid-runner-draft-implement skill (.claude/skills/
+     maid-runner-draft-implement/SKILL.md):
+     a. Inner-loop verify recipe: during fix iteration use
+        `maid verify --summary --plan-lock-scope task --since <baseline>`;
+        run the full strict handoff verify once at the end, not per fix.
+     b. Batch review findings: apply ALL blocking fixes from a review
+        round, then run one revise (if the contract or tests changed) and
+        one re-validation — never one revise per finding.
+     c. Evidence-flag cheat sheet: when a revise is contract-preserving,
+        plain revise now preserves evidence automatically (085-02); use
+        --test-only-green for test-only contracts (085-04),
+        --stash-implementation (optionally --allow-sibling-dirty, 085-05)
+        when tests were tightened after implementation.
+  3. maid-planner skill (.claude/skills/maid-planner/SKILL.md): in
+     multi-manifest sessions, prefer a dedicated behavioral test file per
+     manifest over extending shared test files locked by sibling
+     manifests (the recurring Outcome lesson from 076-02/082-03); state
+     that shared-file edits cascade E701 to every lock hashing them.
+  4. docs/draft-manifest-workflow.md (+ packaged copy): a "review-fix
+     iteration cost" subsection carrying the same protocol so non-skill
+     consumers (Codex AGENTS.md readers) get identical rules.
+  5. docs/agent-skills.md: note the guidance additions in the skill
+     distribution table/changelog so `maid init` payload sync is expected
+     to re-render downstream.
+
+  Pinned decisions:
+
+  - Guidance only: no new CLI flags, no verify behavior changes, no
+    review-round enforcement in the runner. Convergence is a protocol the
+    skills instruct, not a gate the runner enforces — enforcing it would
+    incentivize hiding findings (see 084 epic's advisory-never-gate
+    constraint).
+  - The packaged copies under maid_runner/ are synced by
+    scripts/sync_claude_files.py via make build, not hand-edited; the
+    source of truth is .claude/skills/ (docs/agent-skills.md documents
+    this flow).
+  - Numbers cited in guidance (review rounds, revision counts) come from
+    the epic's evidence base; keep them as motivating context, not as
+    thresholds the text turns into rules beyond the two-round bound.
+
+  Sequencing: sixth and last child of epic 085; textually depends on
+  085-02/04/05 flag names, so it must not be promoted before those land.
+
+  Planning notes (Planning Handoff Mode): this is a docs/skills contract;
+  behavioral coverage is a single payload-sync test that the rendered
+  skill text contains the protocol's load-bearing phrases, kept
+  deliberately narrow (presence, not prose) so wording can evolve without
+  lock churn — the same trade 082-03's Outcome lessons recommend. The
+  implementing agent confirms the red phase (phrases absent today), runs
+  behavioral validation, plan-locks, and promotes before implementation.
+temptations:
+  - risk: "Do not add a runner-enforced review-round counter or make verdicts a verify gate."
+    instead: "Keep convergence a skill protocol; the runner stays advisory-neutral per the 084 constraints."
+  - risk: "Do not assert full sentences or formatting of the guidance in the payload test, coupling locks to prose."
+    instead: "Assert only the load-bearing tokens (e.g. 'blocking', 'advisory', '--plan-lock-scope task', the two-round bound) exist in each named skill file."
+  - risk: "Do not edit the generated maid_runner/claude payload copies directly."
+    instead: "Edit .claude/skills sources and let scripts/sync_claude_files.py produce the packaged copies, as docs/agent-skills.md specifies."
+  - risk: "Do not rewrite whole skill files while adding sections."
+    instead: "Add scoped sections/bullets in each file's existing structure; unrelated skill content stays untouched."
+files:
+  create:
+    - path: tests/test_review_convergence_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_implementation_review_skill_carries_convergence_protocol
+          source_scenario: Read the maid-implementation-review skill source file.
+          actions:
+            - type: api_call
+              subject:
+                function: read_text
+          expected:
+            behavior: The file contains the single-pass exhaustiveness rule, blocking and advisory classification, the advisory-never-revises rule, and the two-round convergence bound.
+        - kind: test_function
+          name: test_implementer_skills_carry_iteration_recipe
+          source_scenario: Read the maid-implementer and maid-runner-draft-implement skill sources.
+          actions:
+            - type: api_call
+              subject:
+                function: read_text
+          expected:
+            behavior: Both files contain the task-scoped inner-loop verify recipe (--summary with --plan-lock-scope task and --since) and the batch-fixes-then-single-revise rule.
+        - kind: test_function
+          name: test_planner_skill_carries_dedicated_test_file_rule
+          source_scenario: Read the maid-planner skill source.
+          actions:
+            - type: api_call
+              subject:
+                function: read_text
+          expected:
+            behavior: The file states the dedicated-test-file-per-manifest preference and the shared-file E701 cascade warning.
+        - kind: test_function
+          name: test_workflow_doc_and_packaged_copies_stay_in_sync
+          source_scenario: Render the packaged payload with scripts/sync_claude_files.py into a temp workspace (per the 076-02 Outcome lesson) and compare against the .claude sources; check docs/draft-manifest-workflow.md carries the iteration-cost subsection.
+          actions:
+            - type: api_call
+              subject:
+                function: read_text
+          expected:
+            behavior: The workflow doc contains the review-fix iteration protocol and the freshly rendered packaged copies match the skill sources.
+  edit:
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _review_convergence_protocol_section
+          of: skill document
+          type: markdown section
+          description: Single-pass exhaustiveness, blocking-vs-advisory classification, advisory-never-revises rule, and the two-round convergence bound, per the content contract.
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_iteration_recipe_section
+          of: skill document
+          type: markdown section
+          description: Task-scoped inner-loop verify recipe, batched review-fix application, and the evidence-flag cheat sheet, per the content contract.
+    - path: .claude/skills/maid-planner/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _planner_dedicated_test_file_rule
+          of: skill document
+          type: markdown section
+          description: Dedicated behavioral test file per manifest in multi-manifest sessions and the shared-file E701 cascade warning.
+  scope:
+    - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+      reason: Carry the same iteration recipe as maid-implementer for this repo's draft-implement loop.
+    - path: docs/draft-manifest-workflow.md
+      reason: Add the review-fix iteration cost subsection for non-skill consumers.
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      reason: Keep the packaged workflow doc in sync.
+    - path: docs/agent-skills.md
+      reason: Record the guidance additions in the skill distribution notes.
+  read:
+    - scripts/sync_claude_files.py
+    - manifests/drafts/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+    - manifests/drafts/085-04-test-only-green-red-evidence-mode.manifest.yaml
+    - manifests/drafts/085-05-stash-implementation-session-robustness.manifest.yaml
+validate:
+  - uv run python -m pytest tests/test_review_convergence_guidance.py -v
+  - uv run maid validate manifests/drafts/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/drafts/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode schema --quiet
