@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 import uuid
@@ -147,6 +148,13 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
     stash_implementation = bool(getattr(args, "stash_implementation", False))
+    allow_sibling_dirty = bool(getattr(args, "allow_sibling_dirty", False))
+    if allow_sibling_dirty and not stash_implementation:
+        print_error(
+            "--allow-sibling-dirty requires --stash-implementation.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
     if stash_implementation and getattr(args, "no_run", False):
         print_error(
             "--stash-implementation cannot be combined with --no-run.",
@@ -196,11 +204,11 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
 
-    if preserve_red_evidence and not _red_evidence_payload_is_valid(
-        existing.red_evidence
-    ):
+    preserved_evidence_class = _preservable_evidence_class(existing.red_evidence)
+    if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
-            "--preserve-red-evidence requires existing valid red evidence.",
+            "--preserve-red-evidence requires existing valid red or "
+            "test-only-green evidence.",
             json_mode=ctx.json_mode,
         )
         return 2
@@ -214,6 +222,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             existing=existing,
             reason=reason,
             agent=provenance.provenance,
+            allow_sibling_dirty=allow_sibling_dirty,
         )
     if test_only_green:
         return _cmd_plan_revise_test_only_green(
@@ -259,8 +268,14 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         f"Revised plan lock for '{ctx.slug}' to revision {revised.revision} "
         f"({ctx.lock_path})"
     )
-    if auto_preserve:
-        print("Red evidence preserved because the revision is contract-preserving.")
+    if preserve_red_evidence or auto_preserve:
+        evidence_class = preserved_evidence_class or "red"
+        reason_text = (
+            " because the revision is contract-preserving"
+            if auto_preserve
+            else " by explicit request"
+        )
+        print(f"{evidence_class} evidence preserved{reason_text}.")
     return 0
 
 
@@ -296,7 +311,16 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         )
         return 2
 
-    manifest_match = manifest_hash_matches(lock.manifest_hash, ctx.manifest_path)
+    manifest_error: str | None = None
+    try:
+        manifest_match = manifest_hash_matches(lock.manifest_hash, ctx.manifest_path)
+    except _manifest_status_errors() as exc:
+        from yaml import YAMLError
+
+        manifest_match = False
+        manifest_error = (
+            f"YAML parse error: {exc}" if isinstance(exc, YAMLError) else str(exc)
+        )
     test_files: dict[str, dict] = {}
     for rel, locked_hash in lock.test_hashes.items():
         full = ctx.project_root / rel
@@ -318,6 +342,9 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
             "revision": lock.revision,
             "created_at": lock.created_at,
             "manifest_match": manifest_match,
+            **(
+                {"manifest_error": manifest_error} if manifest_error is not None else {}
+            ),
             "test_files": test_files,
             "red_evidence": lock.red_evidence,
             "legacy_baseline": lock.legacy_baseline,
@@ -337,6 +364,8 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         state = "TAMPERED" if has_mismatch else "OK"
         print(f"Plan '{ctx.slug}' locked at revision {lock.revision}: {state}")
         print(f"  Manifest: {'match' if manifest_match else 'MISMATCH'}")
+        if manifest_error is not None:
+            print(f"  Manifest error: {manifest_error}")
         for rel, entry in test_files.items():
             print(f"  {rel}: {'match' if entry['match'] else 'MISMATCH'}")
         print(f"  Red evidence: {'recorded' if lock.red_evidence else 'none'}")
@@ -360,6 +389,13 @@ def _plan_input_errors() -> tuple[type[Exception], ...]:
     return (ManifestLoadError, ManifestSchemaError, OSError, ValueError)
 
 
+def _manifest_status_errors() -> tuple[type[Exception], ...]:
+    """Failures that make only the current manifest hash unreadable."""
+    from yaml import YAMLError
+
+    return (YAMLError, OSError, ValueError)
+
+
 def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
     """Return whether an existing lock payload is valid red evidence."""
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
@@ -373,6 +409,32 @@ def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _test_only_green_payload_is_valid(evidence: object) -> bool:
+    if not isinstance(evidence, dict):
+        return False
+    if evidence.get("red") is not False or evidence.get("mode") != "test_only_green":
+        return False
+    commands = evidence.get("commands")
+    return (
+        bool(commands)
+        and isinstance(commands, list)
+        and all(
+            isinstance(command, dict)
+            and command.get("classification") == "not_red"
+            and command.get("exit_code") == 0
+            for command in commands
+        )
+    )
+
+
+def _preservable_evidence_class(evidence: object) -> str | None:
+    if _red_evidence_payload_is_valid(evidence if isinstance(evidence, dict) else None):
+        return "red"
+    if _test_only_green_payload_is_valid(evidence):
+        return "test-only-green"
+    return None
 
 
 def _resolve_agent_provenance_from_args(args: argparse.Namespace):
@@ -561,6 +623,7 @@ def _cmd_plan_revise_with_stashed_implementation(
     existing,
     reason: str,
     agent,
+    allow_sibling_dirty: bool,
 ) -> int:
     """Revise a lock after temporarily stashing declared implementation files."""
     from maid_runner.core.manifest import load_manifest
@@ -624,17 +687,41 @@ def _cmd_plan_revise_with_stashed_implementation(
                 ctx.project_root, ctx.manifest_path, dirty_entries
             )
         )
-        unrelated = sorted(
+        declared_surface_paths = {
+            path.replace("\\", "/")
+            for path in manifest.all_writable_paths | set(manifest.files_read)
+        }
+        declared_surface_paths.add(manifest_rel)
+        declared_surface_paths.add(lock_rel)
+        declared_surface_paths.update(behavioral_test_paths)
+        own_surface_conflicts = sorted(
             entry.path
             for entry in dirty_entries
             if entry.path not in allowed_dirty_paths
+            and entry.path in declared_surface_paths
         )
-        if unrelated:
+        sibling_dirty_paths = sorted(
+            entry.path
+            for entry in dirty_entries
+            if entry.path not in allowed_dirty_paths
+            and entry.path not in declared_surface_paths
+        )
+        refused_dirty_paths = own_surface_conflicts + (
+            sibling_dirty_paths if not allow_sibling_dirty else []
+        )
+        if refused_dirty_paths:
+            own_surface_detail = (
+                " --allow-sibling-dirty applies only outside the manifest's own "
+                "declared surface."
+                if own_surface_conflicts
+                else ""
+            )
             print_error(
                 "--stash-implementation refuses unrelated dirty path(s): "
-                + ", ".join(unrelated)
-                + ". Declare narrow wiring files under files.read to include them "
-                "in the targeted stash.",
+                + ", ".join(sorted(refused_dirty_paths))
+                + ". Declare narrow wiring files under files.read to include "
+                "them in the targeted stash, or use --allow-sibling-dirty to "
+                "tolerate and audit sibling-manifest work." + own_surface_detail,
                 json_mode=ctx.json_mode,
             )
             return 2
@@ -654,10 +741,32 @@ def _cmd_plan_revise_with_stashed_implementation(
             for entry in dirty_target_entries
             if entry.index_status not in (" ", "?")
         ]
+        intent_to_add_targets = [
+            entry.path
+            for entry in dirty_target_entries
+            if entry.index_status == " " and entry.worktree_status == "A"
+        ]
+        if intent_to_add_targets:
+            reset_command = shlex.join(
+                ["git", "reset", "--", *sorted(intent_to_add_targets)]
+            )
+            print_error(
+                "--stash-implementation refuses intent-to-add implementation "
+                "path(s): "
+                + ", ".join(sorted(intent_to_add_targets))
+                + f". Return them to plain untracked state with `{reset_command}` "
+                "and retry.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
         if staged_targets:
+            restore_command = shlex.join(
+                ["git", "restore", "--staged", *sorted(staged_targets)]
+            )
             print_error(
                 "--stash-implementation refuses staged implementation path(s): "
-                + ", ".join(sorted(staged_targets)),
+                + ", ".join(sorted(staged_targets))
+                + f". Unstage them with `{restore_command}` and retry.",
                 json_mode=ctx.json_mode,
             )
             return 2
@@ -721,11 +830,23 @@ def _cmd_plan_revise_with_stashed_implementation(
                 )
                 return 2
             if not _red_evidence_payload_is_valid(evidence):
-                print_error(
-                    "--stash-implementation did not capture valid red evidence.",
-                    json_mode=ctx.json_mode,
-                )
+                if _includes_dependency_lockfile(dirty_target_paths):
+                    print_error(
+                        "--stash-implementation did not capture valid red evidence "
+                        "because materialized dependency state (node_modules, .venv, "
+                        "or vendor) is not stashed with dependency lockfiles. "
+                        "Temporarily install the prior dependency state and use plain "
+                        "plan revise, or record a reasoned legacy baseline.",
+                        json_mode=ctx.json_mode,
+                    )
+                else:
+                    print_error(
+                        "--stash-implementation did not capture valid red evidence.",
+                        json_mode=ctx.json_mode,
+                    )
                 return 1
+            if allow_sibling_dirty:
+                evidence["sibling_dirty_paths"] = list(sibling_dirty_paths)
             _restore_stash_entry(ctx.project_root, stash_hash, target_paths)
             restored = True
             revised = replace(revised, red_evidence=evidence)
@@ -734,6 +855,15 @@ def _cmd_plan_revise_with_stashed_implementation(
                 f"Revised plan lock for '{ctx.slug}' to revision {revised.revision} "
                 f"({ctx.lock_path})"
             )
+            if allow_sibling_dirty:
+                print(
+                    "Tolerated sibling dirty paths: "
+                    + (
+                        ", ".join(sibling_dirty_paths)
+                        if sibling_dirty_paths
+                        else "none"
+                    )
+                )
             return 0
         finally:
             if not restored:
@@ -748,6 +878,23 @@ def _cmd_plan_revise_with_stashed_implementation(
 
 class _GitCommandError(Exception):
     """Expected git command failure for stash-backed plan revise."""
+
+
+_DEPENDENCY_LOCKFILE_BASENAMES = {
+    "package.json",
+    "package-lock.json",
+    "bun.lock",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "uv.lock",
+    "poetry.lock",
+    "Cargo.lock",
+    "go.sum",
+}
+
+
+def _includes_dependency_lockfile(paths: tuple[str, ...]) -> bool:
+    return any(Path(path).name in _DEPENDENCY_LOCKFILE_BASENAMES for path in paths)
 
 
 class _DirtyEntry:

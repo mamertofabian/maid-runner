@@ -358,7 +358,11 @@ Modern plan locks pin the manifest with a `sha256-contract:` digest over the
 parsed YAML minus only the top-level `outcome` key (canonical JSON). Legacy
 `sha256:` locks still compare raw file bytes. Prefix dispatch keeps existing
 locks valid without migration; YAML comment/formatting-only edits are
-intentionally hash-neutral under the contract format.
+intentionally hash-neutral under the contract format. YAML dates and datetimes
+normalize to ISO strings, and non-string mapping keys normalize to their JSON
+string form; unsupported values fail with the manifest path and location.
+Lock/revise remain fail-loud for unreadable manifests, while `maid plan status`
+reports them as exit 1 with `manifest_match: false` plus `manifest_error`.
 
 #### **Test-only green evidence (runner extension)**
 
@@ -373,3 +377,22 @@ implementation files fail E705. E707 command cross-checks still apply. The
 flag is mutually exclusive with `--stash-implementation`,
 `--preserve-red-evidence`, and `--no-run`, and is not available on
 `maid plan lock`.
+
+Plain contract-preserving revise preserves valid `test_only_green` evidence
+only while the contract delta is empty, locked test bytes and discovery are
+unchanged, and every current writable path still classifies as a test file.
+`--preserve-red-evidence` accepts the same bounded payload class.
+
+#### **Busy-session stash revise (runner extension)**
+
+`maid plan revise <manifest> --reason "<text>" --stash-implementation
+--allow-sibling-dirty` tolerates only dirty paths outside the manifest's exact
+declared surface. It leaves them visible and untouched while recording their
+sorted paths in `red_evidence.sibling_dirty_paths` and stdout. Without the flag,
+the existing unrelated-dirt refusal remains. Untracked declared create paths
+are stashed and restored; intent-to-add and staged paths fail with exact
+`git reset -- <paths>` and `git restore --staged <paths>` recovery commands.
+When lockfile-only capture stays green because materialized dependency state is
+still installed, the error names the `node_modules`/`.venv`/`vendor` limitation
+and directs operators to restore the prior dependency state for plain revise or
+use a reasoned legacy baseline. MAID never stashes or rebuilds dependency trees.

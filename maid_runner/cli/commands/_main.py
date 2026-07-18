@@ -525,6 +525,15 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         help="Temporarily stash declared implementation changes while recapturing red evidence",
     )
     rp.add_argument(
+        "--allow-sibling-dirty",
+        action="store_true",
+        dest="allow_sibling_dirty",
+        help=(
+            "Allow and audit dirty paths outside the revised manifest's exact "
+            "declared surface during --stash-implementation"
+        ),
+    )
+    rp.add_argument(
         "--test-only-green",
         action="store_true",
         dest="test_only_green",

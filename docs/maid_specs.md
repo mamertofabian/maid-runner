@@ -90,14 +90,21 @@ New locks store the manifest pin as a contract-scoped hash with the
 `sha256-contract:` prefix: the runner parses the manifest YAML, removes only
 the top-level `outcome` key, and hashes the canonical JSON serialization of
 the remainder (`json.dumps` with `sort_keys=True` and stable separators).
+YAML-native dates and datetimes normalize to ISO-format strings before
+canonicalization, and non-string mapping keys normalize to the same string
+form JSON uses. Quoted and unquoted ISO dates therefore hash identically. Any
+other non-JSON-native value fails loud with the manifest path and offending
+location; there is still no byte-hash fallback.
 Behavioral test files remain byte-hashed with the legacy `sha256:` prefix.
 `maid plan status` and legacy-lock contract checks dispatch on the stored
 prefix — `sha256:` still compares raw file bytes — so existing locks stay
 valid without migration. Because the contract hash pins parsed data, YAML
 comment or formatting-only edits no longer flip status under the new format;
 every parsed key except `outcome` still participates, so real contract edits
-remain tamper-evident. Unparseable manifests fail loud rather than falling
-back to byte hashing.
+remain tamper-evident. Lock and revise fail loud on unreadable manifests rather
+than falling back to byte hashing. Status is reporting-oriented: an unreadable
+manifest returns exit 1 with `manifest_match: false` and `manifest_error` in
+JSON, with an equivalent `Manifest error` line in text.
 
 Red-phase evidence uses exit-code-only classification. For pytest commands,
 exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid
@@ -160,12 +167,33 @@ paths. It refuses missing Git metadata, unrelated dirty paths, staged target
 changes, missing target implementation changes, and conflicting `--no-run` or
 `--preserve-red-evidence` modes.
 
+In a legitimate multi-manifest session,
+`--stash-implementation --allow-sibling-dirty` may tolerate dirty paths outside
+the revised manifest's exact declared surface. Those paths are not stashed or
+modified: their full sorted list is echoed and stored in the evidence payload
+as `sibling_dirty_paths` for audit. Without the flag, the fail-closed refusal
+remains and points to either `files.read` for narrow wiring context or the
+opt-in flag for sibling work. The boundary is exact declared paths; MAID does
+not infer whether undeclared coupling could influence validation.
+
+Untracked declared `files.create` paths are targeted and restored
+byte-identically. Intent-to-add paths fail with a `git reset -- <paths>`
+recovery command, while staged targets remain refused with an exact
+`git restore --staged <paths>` command. If a green capture targets
+`package.json`, `package-lock.json`, `bun.lock`, `yarn.lock`, `pnpm-lock.yaml`,
+`uv.lock`, `poetry.lock`, `Cargo.lock`, or `go.sum`, MAID reports the bounded
+dependency limitation: materialized state such as `node_modules`, `.venv`, or
+`vendor` is not stashed. Temporarily install the prior dependency state and use
+plain revise, or record a reasoned legacy baseline; MAID does not rebuild or
+stash dependency trees.
+
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
 --preserve-red-evidence`. This preserves the existing valid red evidence while
 updating the manifest and behavioral test hashes. The option is rejected unless
-the existing lock already has valid red evidence, and it cannot be combined with
-`--no-run`. It does not bypass E707: changing validate command strings while
+the existing lock already has valid red evidence or internally valid
+`test_only_green` evidence, and it cannot be combined with `--no-run`. It does
+not bypass E707: changing validate command strings while
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
 
@@ -183,6 +211,13 @@ command cross-checks still apply. The flag is mutually exclusive with
 `--stash-implementation`, `--preserve-red-evidence`, and `--no-run`.
 `maid plan lock` does not accept `--test-only-green`; initial lock still
 requires a genuine red phase.
+
+Plain contract-preserving revise also carries valid `test_only_green` evidence
+forward when the contract delta is empty, locked behavioral test bytes still
+match with no newly discovered test files, and every current writable path
+still classifies as a test file. The classifier bound is rechecked on each
+revision so a later classifier change fails closed and requires recapture. The
+preservation notice names whether red or test-only-green evidence was carried.
 
 PostgreSQL manifests can run file-backed pgTAP tests without duplicating shell
 exit-code adapters:
