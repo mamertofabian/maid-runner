@@ -1,0 +1,238 @@
+{
+  "manifest_path": "manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+  "manifest_hash": "sha256:ec13005cb2d1737169fe4cb653a0b13491c451ec9d772a06a00f772bf717093a",
+  "test_hashes": {
+    "tests/core/test_django_tests_py_discovery.py": "sha256:7d202b0838e7b7184fcca9aa466d7ed211787a3d76f5dbcb7634f51d3cafc3d3"
+  },
+  "created_at": "2026-07-18T00:20:32.563606+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:2ac968075c51791fbbb58cce0d7cf1c1972a995af31f0990faee222c91fa8080",
+      "prior_test_hashes": {
+        "tests/core/test_django_tests_py_discovery.py": "sha256:7d202b0838e7b7184fcca9aa466d7ed211787a3d76f5dbcb7634f51d3cafc3d3"
+      },
+      "revised_at": "2026-07-18T00:20:39.153582+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml -> manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:ce4ce53729c648c764a855fa01cdc48b0c963d393fde5a7b4b8bfc849fd232cb",
+      "prior_test_hashes": {
+        "tests/core/test_django_tests_py_discovery.py": "sha256:7d202b0838e7b7184fcca9aa466d7ed211787a3d76f5dbcb7634f51d3cafc3d3"
+      },
+      "revised_at": "2026-07-18T00:27:47.524683+00:00",
+      "reason": "Capture Outcome after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-18T00:20:42.560497+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_django_tests_py_discovery.py -v",
+        "exit_code": 1,
+        "output_tail": "        )\n    \n        errors = validate_manifest_paths(load_manifest(manifest_path), project)\n    \n>       assert any(\n            error.code == ErrorCode.MANIFEST_PATH_OUTSIDE_PROJECT\n            and error.location is not None\n            and error.location.file == escaped\n            for error in errors\n        )\nE       assert False\nE        +  where False = any(<generator object test_manifest_path_validation_classifies_django_tests_py.<locals>.<genexpr> at 0x749bc2317100>)\n\ntests/core/test_django_tests_py_discovery.py:196: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_django_tests_py_discovery.py::test_is_test_file_recognizes_django_tests_py\nFAILED tests/core/test_django_tests_py_discovery.py::test_behavioral_validation_sees_artifacts_used_in_django_tests_py\nFAILED tests/core/test_django_tests_py_discovery.py::test_plan_lock_hashes_django_tests_py_as_behavioral_test\nFAILED tests/core/test_django_tests_py_discovery.py::test_manifest_path_validation_classifies_django_tests_py\n========================= 4 failed, 1 passed in 0.13s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_file_discovery.py:function:is_test_file",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:kind=function",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:returns=bool",
+      "tests/core/test_django_tests_py_discovery.py:test_behavioral_validation_sees_artifacts_used_in_django_tests_py",
+      "tests/core/test_django_tests_py_discovery.py:test_behavioral_validation_sees_artifacts_used_in_django_tests_py:kind=test_function",
+      "tests/core/test_django_tests_py_discovery.py:test_is_test_file_recognizes_django_tests_py",
+      "tests/core/test_django_tests_py_discovery.py:test_is_test_file_recognizes_django_tests_py:kind=test_function",
+      "tests/core/test_django_tests_py_discovery.py:test_is_test_file_rejects_similar_non_test_names",
+      "tests/core/test_django_tests_py_discovery.py:test_is_test_file_rejects_similar_non_test_names:kind=test_function",
+      "tests/core/test_django_tests_py_discovery.py:test_manifest_path_validation_classifies_django_tests_py",
+      "tests/core/test_django_tests_py_discovery.py:test_manifest_path_validation_classifies_django_tests_py:kind=test_function",
+      "tests/core/test_django_tests_py_discovery.py:test_plan_lock_hashes_django_tests_py_as_behavioral_test",
+      "tests/core/test_django_tests_py_discovery.py:test_plan_lock_hashes_django_tests_py_as_behavioral_test:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_django_tests_py_discovery.py"
+      ],
+      "edit": [
+        "maid_runner/core/_file_discovery.py"
+      ],
+      "read": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "scope": [
+        "maid_runner/core/manifest.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_django_tests_py_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_is_test_file_recognizes_django_tests_py",
+              "source_scenario": "A path whose basename is exactly tests.py, at repo root and nested under an app package (importer/tests.py).",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "is_test_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "is_test_file returns True for both paths."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_is_test_file_rejects_similar_non_test_names",
+              "source_scenario": "Paths named mytests.py, tests_util.py, test.py, and tests.txt.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "is_test_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "is_test_file returns False for every one of them, pinning the exact-basename limit documented in the manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_behavioral_validation_sees_artifacts_used_in_django_tests_py",
+              "source_scenario": "Reproduction of bug report 20260714-110500 in a temp project \u2014 a manifest declares a public artifact, lists app/tests.py under files.read, and app/tests.py imports and exercises the artifact.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Behavioral validation (maid_runner.core.validate.validate) reports no E200 for the artifact; removing the usage from app/tests.py brings E200 back."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_hashes_django_tests_py_as_behavioral_test",
+              "source_scenario": "A lockable temp-project manifest whose only behavioral test module is app/tests.py.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "create_plan_lock"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The created lock's test_hashes include app/tests.py, so E701 tamper detection covers Django test modules."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_path_validation_classifies_django_tests_py",
+              "source_scenario": "A temp-project manifest whose validate command is a non-pytest harness targeting parent-relative ../escape/tests.py. Non-pytest commands disable directory heuristics, so recognition depends on the private classifier (same helper stash-revise uses), without importing private symbols.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "validate_manifest_paths reports MANIFEST_PATH_OUTSIDE_PROJECT for ../escape/tests.py. Without private-classifier delegation, the path is not recognized as a test path and the escape is silently skipped \u2014 pairing temptation #2.\n"
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "is_test_file",
+              "description": "Classifies the exact basename tests.py as a Python test file, in addition to the existing conftest.py, test_*.py, *_test.py, and JS/TS test/spec suffix rules. No other classification change.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "reason": "Delegate the private test-file classifier to _file_discovery.is_test_file so the tests.py rule has a single source of truth; no public surface change in this file."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_django_tests_py_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_django_tests_py_discovery.py -v",
+      "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

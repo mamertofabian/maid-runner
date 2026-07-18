@@ -370,26 +370,9 @@ def _looks_like_test_path(
 
 
 def _is_test_file(path: str) -> bool:
-    name = Path(path).name
-    lower = name.lower()
-    if lower == "conftest.py":
-        return True
-    if lower.startswith("test_") and lower.endswith(".py"):
-        return True
-    if lower.endswith("_test.py"):
-        return True
-    return lower.endswith(
-        (
-            ".test.ts",
-            ".test.tsx",
-            ".test.js",
-            ".test.jsx",
-            ".spec.ts",
-            ".spec.tsx",
-            ".spec.js",
-            ".spec.jsx",
-        )
-    )
+    from maid_runner.core._file_discovery import is_test_file
+
+    return is_test_file(path)
 
 
 def _display_path(path: Path) -> str:
