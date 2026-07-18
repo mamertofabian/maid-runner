@@ -229,6 +229,9 @@ Requirements:
 - Tests must define WHAT the code does, not HOW it is implemented.
 - Tests must be deterministic and independent.
 - Type artifacts must be referenced through type annotations, variables, callbacks, object shapes, or field access.
+- In multi-manifest sessions, prefer a dedicated behavioral test file per manifest.
+  Editing shared test files already hashed by sibling plan locks cascades E701
+  tamper failures to every lock that includes those files.
 
 ## Phase 5 — Confirm Red Phase
 

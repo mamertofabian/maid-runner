@@ -47,7 +47,7 @@ general MAID skills:
 ## Packet-Driven Retry Gates
 
 For implementer retries, run validation gates with `--packet`; for example,
-`maid validate --packet` and `maid verify --packet`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+`maid validate --packet` and `maid verify --packet --since <baseline>`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
 
 Respect `next_action` exactly. Valid kinds include `edit-implementation`,
 `edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
@@ -141,14 +141,14 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
    implementation:
 
 ```bash
-uv run maid verify --summary --require-plan-lock --require-red-evidence
+uv run maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
 ```
 
 Prefer `--summary` for agent and human handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun without `--summary`,
 or with `--json`, `--packet`, or SARIF, only when exhaustive machine-readable
 detail is needed. Treat older handoff examples such as
-`uv run maid verify --require-plan-lock --require-red-evidence` as superseded
+`uv run maid verify --require-plan-lock --require-red-evidence --since <baseline>` as superseded
 unless raw text is intentionally required.
 
 ## Implementation Rules
@@ -163,6 +163,24 @@ unless raw text is intentionally required.
   fallback data.
 - If a manifest-contract problem appears, stop for a plan revision instead of
   editing around it.
+
+## Review-Fix Iteration Recipe
+
+During fix iteration, use the task-scoped inner-loop gate:
+
+```bash
+maid verify --summary --plan-lock-scope task --since <baseline>
+```
+
+Apply ALL blocking fixes from one review round as a batch. If the contract or
+locked tests changed, run one revise after the batch and one re-validation;
+never revise once per finding. Reserve the full strict handoff verify for the
+end of the implementation pass.
+
+For evidence handling, a contract-preserving plain revise now preserves valid
+evidence automatically. Use `--test-only-green` for a test-only contract. Use
+`--stash-implementation` when tests were tightened after implementation, with
+`--allow-sibling-dirty` only for an intentional multi-manifest session.
 
 ## Review Loop
 

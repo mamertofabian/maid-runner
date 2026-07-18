@@ -149,6 +149,15 @@ the runner emits bounded run evidence, validates a candidate review, and renders
 labeled advisory markdown, while the skill owns model generation, cloud privacy
 disclosure, and the advisory-never-gate workflow.
 
+The planner, implementer, implementation-review, and repo-internal
+draft-implement skills now carry shared review-convergence guidance: dedicated
+test files for multi-manifest sessions, single-pass exhaustive findings,
+blocking-versus-advisory classification, a two-round convergence bound, batched
+fixes, and task-scoped inner-loop verification. Changes to init-distributed
+skills require `scripts/sync_claude_files.py` (or `make sync-agent-payloads`)
+to re-render both tool payloads and an `INSTRUCTION_PAYLOAD_VERSION` bump so
+downstream `maid init --check` reports stale guidance.
+
 ---
 
 ## Skills

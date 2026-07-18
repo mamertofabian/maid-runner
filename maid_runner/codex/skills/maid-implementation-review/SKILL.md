@@ -27,6 +27,20 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - Audit fidelity to the approved plan, including rationale and `temptations`; passing tests are not sufficient if the implementation took a path the manifest warned against.
 - If `plan-revision.md` exists, review it as a stop signal rather than an implementation failure.
 
+## Review Convergence Protocol
+
+- Report every finding you can identify in a single pass. Never drip-feed one
+  finding per round. A finding first raised after round 1 must explain why it was not visible in round 1, such as being unmasked by an earlier fix.
+- Classify every finding as **blocking** or **advisory**. Blocking findings are
+  contract violations, behavioral bugs, scope drift, or validation failures.
+  Advisory findings are style preferences, optional hardening, or future-work
+  notes. Advisory findings MUST NOT trigger manifest or locked-test revision
+  in the current session; record them in the review packet for possible future
+  draft manifests.
+- After two full review rounds, issue a final verdict that lists residual
+  advisories instead of requesting another round, unless a blocking finding
+  remains.
+
 ## Phase 1 — Identify the Active Manifest
 
 Use the manifest path provided by the user. If none is provided, inspect recent manifests and current changed files to infer the most likely approved contract.
@@ -233,17 +247,18 @@ gate.
 Where practical, run:
 
 ```bash
-maid verify --summary --require-plan-lock --require-red-evidence
+maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
 
-For high-risk changes where runtime evidence matters, also run
-`maid verify --artifact-coverage --knockout`. Treat it as an opt-in
-Python-only review gate that checks declared artifacts are executed by tests
+For high-risk changes where runtime evidence matters, the opt-in gate is
+`maid verify --artifact-coverage --knockout`; run it as
+`maid verify --artifact-coverage --knockout --since <baseline>`. This
+Python-only review gate checks that declared artifacts are executed by tests
 and that breaking each declared function or method makes validation fail.
 
-The `maid verify --summary --require-plan-lock --require-red-evidence` command is the
+The `maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>` command is the
 implementation handoff gate for the approved plan lock and captured red-phase
 evidence. Treat E700-E706 plan-lock failures as blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.
@@ -254,7 +269,7 @@ Prefer `--summary` for agent and human review handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun with raw text,
 `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is
 needed. Treat older handoff examples such as
-`maid verify --require-plan-lock --require-red-evidence` as superseded unless
+`maid verify --require-plan-lock --require-red-evidence --since <baseline>` as superseded unless
 raw text is intentionally required.
 
 If the environment or project shape makes a command impractical, say so explicitly.
