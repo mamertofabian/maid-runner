@@ -125,6 +125,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         PlanLock,
         capture_red_phase_evidence,
         revise_plan_lock,
+        revision_preserves_red_evidence,
         _load_locked_contract,
         _PlanLockLoadError,
     )
@@ -196,6 +197,16 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             agent=provenance.provenance,
         )
 
+    prior_contract = _load_locked_contract(ctx.lock_path)
+    auto_preserve = False
+    if not preserve_red_evidence and not getattr(args, "no_run", False):
+        auto_preserve = revision_preserves_red_evidence(
+            existing,
+            ctx.manifest_path,
+            ctx.project_root,
+            prior_contract,
+        )
+
     try:
         revised = revise_plan_lock(
             existing,
@@ -203,9 +214,9 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             ctx.project_root,
             reason,
             agent=provenance.provenance,
-            prior_contract=_load_locked_contract(ctx.lock_path),
+            prior_contract=prior_contract,
         )
-        if preserve_red_evidence:
+        if preserve_red_evidence or auto_preserve:
             revised = replace(revised, red_evidence=existing.red_evidence)
         elif not getattr(args, "no_run", False):
             revised = replace(
@@ -222,6 +233,8 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         f"Revised plan lock for '{ctx.slug}' to revision {revised.revision} "
         f"({ctx.lock_path})"
     )
+    if auto_preserve:
+        print("Red evidence preserved because the revision is contract-preserving.")
     return 0
 
 
@@ -300,7 +313,7 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         for rel, entry in test_files.items():
             print(f"  {rel}: {'match' if entry['match'] else 'MISMATCH'}")
         print(f"  Red evidence: {'recorded' if lock.red_evidence else 'none'}")
-        print("  Legacy baseline: " f"{'recorded' if lock.legacy_baseline else 'none'}")
+        print(f"  Legacy baseline: {'recorded' if lock.legacy_baseline else 'none'}")
         if lock.agent is not None:
             print(f"  Agent: {_format_agent(lock.agent)}")
         for r in lock.revisions:

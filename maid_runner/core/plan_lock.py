@@ -306,6 +306,42 @@ def revise_plan_lock(
     )
 
 
+def revision_preserves_red_evidence(
+    existing: PlanLock,
+    manifest_path: Path,
+    project_root: Path,
+    prior_contract: dict | None,
+) -> bool:
+    """Return whether plain revise may carry existing red evidence forward.
+
+    All three parts of the contract-preserving rule must hold: empty contract
+    delta, locked behavioral test bytes still match with no newly discovered
+    test files, and the existing evidence payload remains valid. Pre-084 locks
+    without a persisted contract snapshot fail closed.
+    """
+    if prior_contract is None:
+        return False
+    if not _red_evidence_dict_is_valid(existing.red_evidence):
+        return False
+
+    root = Path(project_root)
+    manifest = load_manifest(manifest_path)
+    new_contract = _manifest_contract(manifest, root)
+    if compute_contract_delta(prior_contract, new_contract) != ContractDelta():
+        return False
+
+    current_tests = set(_behavioral_test_paths(manifest, root))
+    locked_tests = set(existing.test_hashes)
+    if current_tests - locked_tests:
+        return False
+
+    for rel, locked_hash in existing.test_hashes.items():
+        full = root / rel
+        if not full.is_file() or compute_manifest_hash(full) != locked_hash:
+            return False
+    return True
+
+
 def compute_contract_delta(prior_contract: dict, new_contract: dict) -> ContractDelta:
     """Return sorted set differences between two persisted contract payloads."""
     prior_artifacts = _contract_string_set(prior_contract, "artifacts")
@@ -758,6 +794,11 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
             raise FileNotFoundError(f"Behavioral test file not found: {full}")
         hashes[rel] = compute_manifest_hash(full)
     return hashes
+
+
+def _red_evidence_dict_is_valid(evidence: dict | None) -> bool:
+    """Return whether a lock's red_evidence dict is valid red-phase evidence."""
+    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
 
 
 def _file_hash_or_none(path: Path) -> str | None:
