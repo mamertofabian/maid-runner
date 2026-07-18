@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.22.0] - 2026-07-18
+
+### Added
+- **Pull request and release publishing automation** — Added fail-closed developer tooling for LLM-assisted pull request and commit-message generation, exact dry-run previews, PR-gated release promotion, immutable release-head checks, and idempotent annotated tag publishing.
+- **Test-only-green plan evidence** — Added a bounded evidence mode for test-only contracts whose honest pre-implementation state is already green, with writable-path enforcement and explicit provenance instead of fabricated red failures.
+
+### Changed
+- **Lower-ceremony plan revisions** — Preserved valid red or test-only-green evidence automatically for contract-preserving revisions, excluded Outcome bookkeeping from contract hashes, and hardened stash-backed sessions for sibling changes, untracked creates, staged state, dependency drift, and YAML-native scalar normalization.
+- **Review convergence guidance** — Updated distributed Claude and Codex workflows with exhaustive single-pass review, blocking-versus-advisory classification, bounded fix iteration, and baseline-aware verification recipes.
+
+### Fixed
+- **Django behavioral test discovery** — Recognized app-level `tests.py` modules consistently during artifact validation and plan-lock hashing, preventing false E200 and missing-test-hash failures.
+- **Unreadable manifest and revision diagnostics** — Reported structured plan status for unreadable manifests and made stash-backed revision failures actionable without weakening declared-surface protections.
+
 ## [2.21.1] - 2026-07-14
 
 ### Fixed
@@ -1162,6 +1176,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0
 [2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1
 [2.21.0]: https://github.com/mamertofabian/maid-runner/compare/v2.20.0...v2.21.0
 [2.20.0]: https://github.com/mamertofabian/maid-runner/compare/v2.19.1...v2.20.0

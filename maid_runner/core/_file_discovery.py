@@ -128,7 +128,7 @@ def _is_marker_init_file(path: Path) -> bool:
 def is_test_file(path: str) -> bool:
     """Check if a file path looks like a test file."""
     name = Path(path).name
-    if name == "conftest.py":
+    if name in {"conftest.py", "tests.py"}:
         return True
     return any(p.match(name) for p in _TEST_PATTERNS)
 

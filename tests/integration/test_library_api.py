@@ -40,20 +40,20 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.21.1"
-        assert re.search(r'^version = "2\.21\.1"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.22.0"
+        assert re.search(r'^version = "2\.22\.0"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.21\.1"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.22\.0"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.21.1] - 2026-07-14" in changelog_text
+        assert "## [2.22.0] - 2026-07-18" in changelog_text
         assert (
-            "[2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1"
+            "[2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0"
             in changelog_text
         )
-        assert "**Current Version:** 2.21.1" in roadmap.read_text()
-        assert "The local CLI reports `maid 2.21.1`." in roadmap.read_text()
+        assert "**Current Version:** 2.22.0" in roadmap.read_text()
+        assert "The local CLI reports `maid 2.22.0`." in roadmap.read_text()
 
     def test_release_metadata_is_2_21_0(self):
         """Preserve the active v2.21.0 contract until this draft is promoted."""

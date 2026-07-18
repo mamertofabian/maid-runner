@@ -1,0 +1,407 @@
+{
+  "manifest_path": "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+  "manifest_hash": "sha256-contract:cd477b33bcfdd2fa3c545a901f5cec361148345880d4be29c9e61833f69c246b",
+  "test_hashes": {
+    "tests/cli/test_plan_revise_test_only_green.py": "sha256:4d8a1c1017d74fbff79bb1c69ce8a24c9ac208e5455ee9e9b328252437d162a2"
+  },
+  "created_at": "2026-07-18T02:27:26.410418+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:baf42444a2f1fda77f1a0789a76fbb8ae460fef5b21f4340602601715e891dca",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_test_only_green.py": "sha256:c39e696bb160933bdbea878186a20585410f614b4ff466fd36c5baa711610c5f"
+      },
+      "revised_at": "2026-07-18T02:27:30.295970+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-04-test-only-green-red-evidence-mode.manifest.yaml -> manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cd477b33bcfdd2fa3c545a901f5cec361148345880d4be29c9e61833f69c246b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_test_only_green.py": "sha256:c39e696bb160933bdbea878186a20585410f614b4ff466fd36c5baa711610c5f"
+      },
+      "revised_at": "2026-07-18T02:32:59.773793+00:00",
+      "reason": "black-format behavioral tests after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-18T02:33:03.530236+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_plan_revise_test_only_green.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        assert exit_code == 2\n        err = capsys.readouterr().err\n>       assert \"--test-only-green\" in err\nE       AssertionError: assert '--test-only-green' in 'Error: --stash-implementation requires at least one declared non-test implementation file.\\n'\n\ntests/cli/test_plan_revise_test_only_green.py:410: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_records_evidence_for_test_only_contract\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_refuses_manifest_with_implementation_file\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_refuses_non_test_create_path\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_refuses_non_test_scope_path\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_refuses_when_a_validate_command_fails\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_enforcement_accepts_test_only_green_within_bound\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_enforcement_rejects_test_only_green_after_contract_gains_implementation\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_enforcement_rejects_test_only_green_without_persisted_contract\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_command_swap_still_fails_e707\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_test_only_green_flag_combinations_are_refused\nFAILED tests/cli/test_plan_revise_test_only_green.py::test_stash_refusal_names_test_only_green_path\n============================== 11 failed in 0.46s ==============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=plan_lock_scope:type=str:default=repository",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_accepts_test_only_green_within_bound",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_accepts_test_only_green_within_bound:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_rejects_test_only_green_after_contract_gains_implementation",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_rejects_test_only_green_after_contract_gains_implementation:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_rejects_test_only_green_without_persisted_contract",
+      "tests/cli/test_plan_revise_test_only_green.py:test_enforcement_rejects_test_only_green_without_persisted_contract:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_stash_refusal_names_test_only_green_path",
+      "tests/cli/test_plan_revise_test_only_green.py:test_stash_refusal_names_test_only_green_path:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_command_swap_still_fails_e707",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_command_swap_still_fails_e707:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_flag_combinations_are_refused",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_flag_combinations_are_refused:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_records_evidence_for_test_only_contract",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_records_evidence_for_test_only_contract:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_manifest_with_implementation_file",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_manifest_with_implementation_file:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_non_test_create_path",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_non_test_create_path:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_non_test_scope_path",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_non_test_scope_path:kind=test_function",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_when_a_validate_command_fails",
+      "tests/cli/test_plan_revise_test_only_green.py:test_test_only_green_refuses_when_a_validate_command_fails:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_revise_test_only_green.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/manifest.py",
+        "manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml"
+      ],
+      "scope": [
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_revise_test_only_green.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_records_evidence_for_test_only_contract",
+              "source_scenario": "A locked temp-project manifest whose only writable paths are behavioral test files, with all validate commands passing, revised with --test-only-green and a reason.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The revise succeeds and the saved lock carries a red-false payload with mode test_only_green and per-command evidence entries."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_refuses_manifest_with_implementation_file",
+              "source_scenario": "The same flow but the manifest also declares a non-test path under files.edit.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command refuses with an error naming the normal red-evidence paths, and the lock is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_refuses_non_test_create_path",
+              "source_scenario": "A locked test-only contract revised so files.create also declares a non-test implementation path, then --test-only-green is requested.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Capture refuses because the create bucket includes a non-test writable path; the lock is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_refuses_non_test_scope_path",
+              "source_scenario": "A locked test-only contract revised so files.scope declares a non-test wiring path, then --test-only-green is requested.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Capture refuses because the scope bucket includes a non-test writable path; the lock is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_refuses_when_a_validate_command_fails",
+              "source_scenario": "A test-only contract whose validate command currently fails.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command refuses, reports the failure tail, and records no evidence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforcement_accepts_test_only_green_within_bound",
+              "source_scenario": "enforce_plan_locks with require_red_evidence over a lock carrying valid test_only_green evidence for a test-only contract.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No E704/E705 error is reported for that lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforcement_rejects_test_only_green_after_contract_gains_implementation",
+              "source_scenario": "A lock with test_only_green evidence whose persisted contract snapshot is then superseded by a revision adding a non-test writable file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "E705 is reported with a detail naming the test-only-green/contract mismatch, proving the bound is enforced continuously rather than only at capture."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforcement_rejects_test_only_green_without_persisted_contract",
+              "source_scenario": "A lock carrying mode test_only_green evidence whose _manifest_contract snapshot is removed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "E705 is reported; missing contract snapshots never qualify."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_command_swap_still_fails_e707",
+              "source_scenario": "A lock with valid test_only_green evidence whose command strings are then spliced to differ from the locked validate_commands snapshot.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "E707 is reported, proving the mode does not bypass command cross-checks."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_only_green_flag_combinations_are_refused",
+              "source_scenario": "--test-only-green combined with --stash-implementation, with --preserve-red-evidence, and with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each combination is refused with a clear mutual-exclusion error before any git or validation work runs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_refusal_names_test_only_green_path",
+              "source_scenario": "--stash-implementation on a test-only contract (the bug report's exact dead end).",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The refusal error text points to --test-only-green as the sanctioned path for test-only contracts."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Adds the --test-only-green capture path with the capture-time all-writable-paths-are-tests bound, all-commands-green requirement, mode-tagged evidence payload, mutual-exclusion refusals, and the updated stash-implementation test-only refusal text.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "description": "Accepts mode test_only_green payloads as satisfying require_red_evidence only under the persisted-contract test-only bound re-derived on every call; all other payload and error semantics unchanged. Signature unchanged.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "repository"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/manifest.py",
+        "manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the --test-only-green flag on the plan revise subparser."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Specify the test-only evidence mode, its bounds, and when to use it instead of stash-backed revise."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep the packaged spec copy in sync."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_revise_test_only_green.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_plan_revise_test_only_green.py -v",
+      "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

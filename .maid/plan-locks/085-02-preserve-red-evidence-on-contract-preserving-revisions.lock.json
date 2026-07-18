@@ -1,0 +1,322 @@
+{
+  "manifest_path": "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+  "manifest_hash": "sha256:70e6c8372569776b14bd2258a8d78274154680d429af1fb9bbc1073b0bc0e30a",
+  "test_hashes": {
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256:88250c1d896da8a239b30a739c4c2b4103da7a9f11c7d39568d49ad5f7beffaf"
+  },
+  "created_at": "2026-07-18T00:46:15.886717+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:915708de36abf8d19749bc8bbd990eefbeb656f027489ca9fdb2ac062163a91c",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256:38ccf5b2cc2dec9117bd4003bb0180c7d7dfbee2193a057a7d87cee3c295df22"
+      },
+      "revised_at": "2026-07-18T00:46:19.817973+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml -> manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:5c230f89266f5ace5bf93c9c687353cc99638817c7cc09a0f8f2e81c6225b39c",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256:38ccf5b2cc2dec9117bd4003bb0180c7d7dfbee2193a057a7d87cee3c295df22"
+      },
+      "revised_at": "2026-07-18T00:51:51.112232+00:00",
+      "reason": "Capture Outcome after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:70e6c8372569776b14bd2258a8d78274154680d429af1fb9bbc1073b0bc0e30a",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256:38ccf5b2cc2dec9117bd4003bb0180c7d7dfbee2193a057a7d87cee3c295df22"
+      },
+      "revised_at": "2026-07-18T01:04:14.403443+00:00",
+      "reason": "Re-lock after post-outcome test file byte drift",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-18T00:46:23.446858+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_plan_revise_auto_preserve.py -v",
+        "exit_code": 1,
+        "output_tail": "            ManifestChain(tmp_path / \"manifests\", tmp_path),\n            tmp_path,\n            require_plan_lock=True,\n            require_red_evidence=True,\n        )\n    \n        assert ErrorCode.RED_PHASE_EVIDENCE_MISSING not in {error.code for error in errors}\n>       assert ErrorCode.RED_PHASE_EVIDENCE_INVALID not in {error.code for error in errors}\nE       AssertionError: assert <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> not in {<ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'>}\nE        +  where <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> = ErrorCode.RED_PHASE_EVIDENCE_INVALID\n\ntests/cli/test_plan_revise_auto_preserve.py:360: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-36/test_preserved_evidence_passes0/.maid/plan-locks/demo-task.lock.json)\nRevised plan lock for 'demo-task' to revision 2 (/tmp/pytest-of-atomrem/pytest-36/test_preserved_evidence_passes0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_revise_manifest_only_edit_preserves_red_evidence\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_revision_preserves_red_evidence_predicate\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_preserved_evidence_passes_verify_red_evidence_gate\n========================= 3 failed, 4 passed in 0.39s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=prior_contract:type=dict | None:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:returns=bool",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_preserved_evidence_passes_verify_red_evidence_gate",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_preserved_evidence_passes_verify_red_evidence_gate:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_manifest_only_edit_preserves_red_evidence",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_manifest_only_edit_preserves_red_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_changed_test_file_recaptures_evidence",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_changed_test_file_recaptures_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_contract_delta_recaptures_evidence",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_contract_delta_recaptures_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_new_discovered_test_file_recaptures_evidence",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_new_discovered_test_file_recaptures_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revision_preserves_red_evidence_predicate",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revision_preserves_red_evidence_predicate:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_revise_auto_preserve.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+        "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_revise_auto_preserve.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_revise_manifest_only_edit_preserves_red_evidence",
+              "source_scenario": "A locked temp-project manifest with valid red evidence gets an outcome-style manifest-only edit (contract sets unchanged, test files untouched), then plain maid plan revise with a reason.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The revision succeeds, the saved lock still carries the original valid red evidence payload, the revision entry records an empty contract delta, and stdout states that red evidence was preserved."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_changed_test_file_recaptures_evidence",
+              "source_scenario": "The same locked setup, but a locked behavioral test file's bytes changed before the revise.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The automatic preservation does not apply; the command follows the existing recapture path and the saved lock's evidence is the fresh capture result, not the prior payload."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_new_discovered_test_file_recaptures_evidence",
+              "source_scenario": "A locked temp-project whose files.read points at the tests/ directory (discovery can grow), then a new tests/test_extra.py appears before plain revise while contract sets and locked file bytes stay unchanged.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Preservation does not apply because the revised manifest introduces a new behavioral test file; the fresh-capture path runs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_contract_delta_recaptures_evidence",
+              "source_scenario": "The revised manifest adds a validate command, producing a non-empty contract delta, while test files stay byte-identical.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Preservation does not apply and the fresh-capture path runs, keeping E707's capture-time command snapshot honest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_invalid_existing_evidence_recaptures",
+              "source_scenario": "The existing lock's red_evidence payload is present but invalid (red false or an invalid command classification).",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Preservation does not apply; behavior matches today's plain revise exactly."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revision_preserves_red_evidence_predicate",
+              "source_scenario": "Direct calls to the public core predicate across the five quadrants \u2014 all conditions met, contract delta non-empty, test bytes changed, new discovered behavioral test file, evidence invalid.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "revision_preserves_red_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Returns True only when the contract delta is empty, every locked test hash matches current bytes, and the existing evidence is valid; False in each other quadrant."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserved_evidence_passes_verify_red_evidence_gate",
+              "source_scenario": "After an automatic-preservation revise, enforce_plan_locks runs with require_red_evidence on the temp project.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No E704/E705 errors are reported for the revised lock, closing the unsatisfiable-bookkeeping loop from bug report 20260715-035754 for the contract-preserving case."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "revision_preserves_red_evidence",
+              "description": "Deterministic predicate for the three-part preservation rule pinned in this manifest's description. Returns False whenever prior_contract is None (fail-closed for pre-084 locks without a persisted contract snapshot).",
+              "args": [
+                {
+                  "name": "existing",
+                  "type": "PlanLock"
+                },
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "prior_contract",
+                  "type": "dict | None"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Plain revise (no evidence flag, no --no-run) consults revision_preserves_red_evidence and, when it returns True, carries the existing red evidence into the revised lock and prints the mandatory preservation notice; every other path, flag combination, and refusal is byte-for-byte today's behavior.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_revise_auto_preserve.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_plan_revise_auto_preserve.py -v",
+      "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

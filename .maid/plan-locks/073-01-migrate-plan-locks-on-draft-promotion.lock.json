@@ -1,22 +1,96 @@
 {
   "manifest_path": "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
-  "manifest_hash": "sha256:22be0c84f81c65f5419339f4e7d74383ad7492ffe1b290fc885b23696da01b42",
+  "manifest_hash": "sha256-contract:29bdf88caadf30d25f726000cb58bcafa368b408d5dfbf8ddb7715ed620c3205",
   "test_hashes": {
     "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
-    "tests/cli/test_plan_cmd.py": "sha256:8cf4d791ed37ec3a7a01f21211c8d8881ade7a9fbaf4da8076de5c1a07822d3a",
-    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:c3ed96de91f46d1c70434960775b489f28b2808db6ce8d10ac9a953e3e0be966"
+    "tests/cli/test_plan_cmd.py": "sha256:5959b38b09688a48c5a3b35f4cf48ed382d33868e0e776a1a1dcc24baac2de53",
+    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:72c898bebca53b7793e53f19e5315f7176d05a21124519ddd23554273382f38d"
   },
   "created_at": "2026-06-11T21:47:18.911730+00:00",
-  "revision": 1,
-  "revisions": [],
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:22be0c84f81c65f5419339f4e7d74383ad7492ffe1b290fc885b23696da01b42",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
+        "tests/cli/test_plan_cmd.py": "sha256:8cf4d791ed37ec3a7a01f21211c8d8881ade7a9fbaf4da8076de5c1a07822d3a",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:c3ed96de91f46d1c70434960775b489f28b2808db6ce8d10ac9a953e3e0be966"
+      },
+      "revised_at": "2026-07-18T01:19:31.406932+00:00",
+      "reason": "Recapture red evidence matching current validate commands after sha256-contract characterization adaptations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/cli/test_manifest_promote_lock_cmd.py",
+          "edit:CLAUDE.md",
+          "edit:docs/draft-manifest-workflow.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/manifest.py",
+          "read:maid_runner/cli/commands/plan.py",
+          "read:maid_runner/core/plan_lock.py",
+          "read:manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+          "read:manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
+          "read:tests/cli/test_manifest_cmd.py",
+          "read:tests/cli/test_plan_cmd.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode schema --quiet",
+          "uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:3729225ecacf3a573066ae53d2a80984a5bae7cf1f75da444c0a95777f331509",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
+        "tests/cli/test_plan_cmd.py": "sha256:1859781daa61b7d108eb92ff9944555716794adebd0f0db9de39ac26aa9b2470",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:b9da5a1910b4b7e7c73a4c531b7dcdd94692185f38d55c4f96760a58834f4da3"
+      },
+      "revised_at": "2026-07-18T01:22:02.593484+00:00",
+      "reason": "Re-baseline test hashes after black formatting of adapted plan status characterization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:29bdf88caadf30d25f726000cb58bcafa368b408d5dfbf8ddb7715ed620c3205",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
+        "tests/cli/test_plan_cmd.py": "sha256:5959b38b09688a48c5a3b35f4cf48ed382d33868e0e776a1a1dcc24baac2de53",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:b9da5a1910b4b7e7c73a4c531b7dcdd94692185f38d55c4f96760a58834f4da3"
+      },
+      "revised_at": "2026-07-18T01:45:13.747535+00:00",
+      "reason": "Re-baseline test hashes after removing unused promoted local in sha256-contract characterization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-06-11T21:47:21.297620+00:00",
+    "captured_at": "2026-07-18T01:19:35.541006+00:00",
     "commands": [
       {
-        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py",
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py",
         "exit_code": 1,
-        "output_tail": "            encoding=\"utf-8\"\n        )\n        claude_md = (root / \"CLAUDE.md\").read_text(encoding=\"utf-8\")\n    \n>       assert \"Plan Locks at Promotion\" in workflow_doc\nE       AssertionError: assert 'Plan Locks at Promotion' in '# Draft Manifest Workflow\\n\\nDraft manifests are MAID planning inventory. Promoted manifests are active\\ncontracts.\\n...ake the known plan enumerable, reviewable, and machine-checkable before each\\npiece becomes an active MAID contract.\\n'\n\ntests/cli/test_manifest_promote_lock_cmd.py:257: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_migrates_lock_to_promoted_path\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_rewrites_self_referencing_validate_paths\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_recaptures_red_evidence_by_default\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_no_run_records_null_red_evidence\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_refuses_mismatched_lock\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_refuses_unreadable_lock\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_rolls_back_when_lock_migration_fails\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_warns_about_other_manifests_referencing_draft_path\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteParserOptions::test_promote_parser_accepts_no_run_and_project_root\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromotionLockMigrationDocs::test_promotion_lock_migration_docs_are_discoverable\n10 failed, 25 passed in 0.24s",
+        "output_tail": "        manifest_path = _write_project(tmp_path)\n    \n        exit_code = cmd_plan_lock(_lock_args(manifest_path, tmp_path))\n    \n        assert exit_code == 0\n        lock_path = default_plan_lock_path(tmp_path, \"demo-task\")\n        record = json.loads(lock_path.read_text())\n        assert record[\"revision\"] == 1\n>       assert record[\"manifest_hash\"].startswith(\"sha256-contract:\")\nE       AssertionError: assert False\nE        +  where False = <built-in method startswith of str object at 0x73d6184029c0>('sha256-contract:')\nE        +    where <built-in method startswith of str object at 0x73d6184029c0> = 'sha256:aa9eb77fd5880447893257d78583c7d644296334f05f5c403eda3c4cb73273ad'.startswith\n\ntests/cli/test_plan_cmd.py:146: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-76/test_lock_creates_revision_one0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_lock_cmd.py::TestPromoteLockMigration::test_promote_migrates_lock_to_promoted_path\nFAILED tests/cli/test_plan_cmd.py::TestCmdPlanLock::test_lock_creates_revision_one_record\n2 failed, 52 passed in 0.52s",
         "classification": "red"
       },
       {
@@ -33,6 +107,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note",
@@ -73,10 +149,283 @@
       "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable",
       "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_promote_lock_cmd.py"
+      ],
+      "edit": [
+        "CLAUDE.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/manifest.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
+        "tests/cli/test_manifest_cmd.py",
+        "tests/cli/test_plan_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_promote_lock_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_migrates_lock_to_promoted_path",
+              "source_scenario": "A draft with a revision-1 lock is promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lock's manifest_path is the promoted project-relative path, manifest_hash matches the promoted file, revision is 2, and the appended revision entry preserves the prior manifest hash and records a promotion reason."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_rewrites_self_referencing_validate_paths",
+              "source_scenario": "A draft's validate commands reference its own manifests/drafts/ path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The promoted manifest's validate commands reference the promoted manifests/ path and no drafts/ path remains, with or without a lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_recaptures_red_evidence_by_default",
+              "source_scenario": "A locked draft whose validate command exits 1 is promoted without --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The migrated lock records red_evidence with red true and exit-code-1 command evidence captured against the promoted manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_no_run_records_null_red_evidence",
+              "source_scenario": "A locked draft is promoted with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The migrated lock records red_evidence null while path, hash, and revision history are still migrated."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_refuses_mismatched_lock",
+              "source_scenario": "A lock exists for the slug but records a different manifest_path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promote exits 2; the draft still exists, no promoted file is created, and the lock is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_refuses_unreadable_lock",
+              "source_scenario": "The slug's lock file exists but contains invalid JSON.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promote exits 2 and neither the draft, the output location, nor the lock file is modified."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_rolls_back_when_lock_migration_fails",
+              "source_scenario": "Lock migration fails mid-promotion because a locked behavioral test file no longer exists when the lock is re-hashed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promote exits 2, the promoted file is removed, the draft is kept, and the lock file is byte-for-byte unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_without_lock_keeps_existing_behavior",
+              "source_scenario": "An unlocked draft is promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion succeeds with exit 0 and no lock file is created."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_warns_about_other_manifests_referencing_draft_path",
+              "source_scenario": "Another active manifest in the output directory references the draft path being promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion succeeds and the output names the referencing manifest with guidance to update the reference and run maid plan revise."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_parser_accepts_no_run_and_project_root",
+              "source_scenario": "The promote subparser is invoked with the new options.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`manifest promote <path> --no-run --project-root <dir>` parses with no_run True and project_root set; defaults are no_run False and project_root '.'."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promotion_lock_migration_docs_are_discoverable",
+              "source_scenario": "A reader checks the draft workflow doc and CLAUDE.md for promotion lock behavior.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "Path"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "docs/draft-manifest-workflow.md contains a 'Plan Locks at Promotion' section and CLAUDE.md states that maid manifest promote migrates the promoted manifest's plan lock."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "The manifest promote subparser accepts --no-run and --project-root (default '.') alongside its existing options.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_promotion_lock_migration_doc_section",
+              "description": "'Plan Locks at Promotion' section stating that promote migrates the promoted manifest's lock via the sanctioned revision path, recaptures red evidence by default, and warns about other manifests referencing the draft path.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "CLAUDE.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_promotion_lock_migration_workflow_note",
+              "description": "Plan-lock workflow paragraph states that `maid manifest promote` migrates the promoted manifest's plan lock.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/cli/commands/plan.py",
+        "tests/cli/test_manifest_cmd.py",
+        "tests/cli/test_plan_cmd.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/cli/test_manifest_cmd.py",
       "tests/cli/test_manifest_promote_lock_cmd.py",
       "tests/cli/test_plan_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py",
+      "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml --mode schema --quiet"
     ]
   }
 }

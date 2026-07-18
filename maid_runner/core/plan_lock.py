@@ -18,6 +18,7 @@ validate commands when a plan is locked or revised.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shlex
 import subprocess
@@ -25,9 +26,11 @@ import tempfile
 from collections import Counter
 from collections.abc import Collection
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
+
+import yaml
 
 from maid_runner.core._command_integrity_test_discovery import (
     find_command_integrity_test_files,
@@ -39,6 +42,9 @@ from maid_runner.core.manifest import _manifest_to_dict, load_manifest, slug_fro
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
+
+_CONTRACT_HASH_PREFIX = "sha256-contract:"
+_BYTE_HASH_PREFIX = "sha256:"
 
 
 class _PlanLockLoadError(Exception):
@@ -252,6 +258,121 @@ def default_plan_lock_path(project_root: Path, manifest_slug: str) -> Path:
     return Path(project_root) / ".maid" / "plan-locks" / f"{manifest_slug}.lock.json"
 
 
+def compute_manifest_contract_hash(manifest_path: Path) -> str:
+    """Return a sha256-contract digest over the parsed manifest minus outcome.
+
+    Parses the manifest YAML, drops only the top-level ``outcome`` key, and
+    hashes the canonical JSON serialization of the remainder. Unparseable YAML
+    raises (fail loud); there is no byte-hash fallback.
+    """
+    data = yaml.safe_load(Path(manifest_path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"manifest must parse to a mapping for contract hashing: {manifest_path}"
+        )
+    contract = dict(data)
+    contract.pop("outcome", None)
+    normalized = _normalize_manifest_contract_value(
+        contract,
+        manifest_path=Path(manifest_path),
+        location="<root>",
+    )
+    canonical = json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return f"{_CONTRACT_HASH_PREFIX}{digest}"
+
+
+def _normalize_manifest_contract_value(
+    value: object,
+    *,
+    manifest_path: Path,
+    location: str,
+) -> object:
+    """Normalize the bounded YAML-native values accepted by contract hashing."""
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if value is None or isinstance(value, (str, bool, int, float)):
+        return value
+    if isinstance(value, list):
+        return [
+            _normalize_manifest_contract_value(
+                item,
+                manifest_path=manifest_path,
+                location=f"{location}[{index}]",
+            )
+            for index, item in enumerate(value)
+        ]
+    if isinstance(value, dict):
+        normalized: dict[str, object] = {}
+        for raw_key, raw_value in value.items():
+            key = _normalize_manifest_contract_key(
+                raw_key,
+                manifest_path=manifest_path,
+                location=location,
+            )
+            child_location = key if location == "<root>" else f"{location}.{key}"
+            if key in normalized:
+                raise ValueError(
+                    f"Cannot hash manifest {manifest_path}: mapping keys collide "
+                    f"after normalization at {child_location}"
+                )
+            normalized[key] = _normalize_manifest_contract_value(
+                raw_value,
+                manifest_path=manifest_path,
+                location=child_location,
+            )
+        return normalized
+    raise ValueError(
+        f"Cannot hash manifest {manifest_path}: unsupported value at {location} "
+        f"({type(value).__name__})"
+    )
+
+
+def _normalize_manifest_contract_key(
+    key: object,
+    *,
+    manifest_path: Path,
+    location: str,
+) -> str:
+    if isinstance(key, str):
+        return key
+    if isinstance(key, datetime):
+        return key.isoformat()
+    if isinstance(key, date):
+        return key.isoformat()
+    if key is None:
+        return "null"
+    if key is True:
+        return "true"
+    if key is False:
+        return "false"
+    if isinstance(key, (int, float)):
+        return str(key)
+    raise ValueError(
+        f"Cannot hash manifest {manifest_path}: unsupported mapping key at "
+        f"{location} ({type(key).__name__})"
+    )
+
+
+def manifest_hash_matches(lock_hash: str, manifest_path: Path) -> bool:
+    """Compare a stored lock hash to the current manifest by prefix dispatch.
+
+    ``sha256-contract:`` values use the contract-scoped hash; legacy ``sha256:``
+    values use the raw byte hash. Unknown prefixes and missing files return
+    False (fail closed).
+    """
+    path = Path(manifest_path)
+    if not path.is_file():
+        return False
+    if lock_hash.startswith(_CONTRACT_HASH_PREFIX):
+        return lock_hash == compute_manifest_contract_hash(path)
+    if lock_hash.startswith(_BYTE_HASH_PREFIX):
+        return lock_hash == compute_manifest_hash(path)
+    return False
+
+
 def create_plan_lock(
     manifest_path: Path,
     project_root: Path,
@@ -262,7 +383,7 @@ def create_plan_lock(
     root = Path(project_root)
     return PlanLock(
         manifest_path=_project_relative_path(manifest_path, root),
-        manifest_hash=compute_manifest_hash(Path(manifest_path)),
+        manifest_hash=compute_manifest_contract_hash(Path(manifest_path)),
         test_hashes=_hash_test_files(root, _behavioral_test_paths(manifest, root)),
         created_at=_utc_now(),
         agent=agent,
@@ -304,6 +425,52 @@ def revise_plan_lock(
         red_evidence=None,
         agent=existing.agent,
     )
+
+
+def revision_preserves_red_evidence(
+    existing: PlanLock,
+    manifest_path: Path,
+    project_root: Path,
+    prior_contract: dict | None,
+) -> bool:
+    """Return whether plain revise may carry existing red evidence forward.
+
+    All three parts of the contract-preserving rule must hold: empty contract
+    delta, locked behavioral test bytes still match with no newly discovered
+    test files, and the existing evidence payload remains valid. Pre-084 locks
+    without a persisted contract snapshot fail closed.
+    """
+    if prior_contract is None:
+        return False
+    preserves_red = _red_evidence_dict_is_valid(existing.red_evidence)
+    preserves_test_only_green = _test_only_green_payload_is_valid(existing.red_evidence)
+    if not preserves_red and not preserves_test_only_green:
+        return False
+
+    root = Path(project_root)
+    manifest = load_manifest(manifest_path)
+    if preserves_test_only_green:
+        from maid_runner.core._file_discovery import is_test_file
+
+        if any(
+            not is_test_file(path.replace("\\", "/"))
+            for path in manifest.all_writable_paths
+        ):
+            return False
+    new_contract = _manifest_contract(manifest, root)
+    if compute_contract_delta(prior_contract, new_contract) != ContractDelta():
+        return False
+
+    current_tests = set(_behavioral_test_paths(manifest, root))
+    locked_tests = set(existing.test_hashes)
+    if current_tests - locked_tests:
+        return False
+
+    for rel, locked_hash in existing.test_hashes.items():
+        full = root / rel
+        if not full.is_file() or compute_manifest_hash(full) != locked_hash:
+            return False
+    return True
 
 
 def compute_contract_delta(prior_contract: dict, new_contract: dict) -> ContractDelta:
@@ -671,17 +838,27 @@ def enforce_plan_locks(
                 and lock.legacy_baseline is None
             ):
                 pass
+            elif (
+                lock.red_evidence is not None
+                and _test_only_green_evidence_satisfies(lock.red_evidence, lock_path)
+                and lock.legacy_baseline is None
+            ):
+                pass
             elif lock.red_evidence is None and _legacy_baseline_is_valid(
                 lock.legacy_baseline, lock_path
             ):
                 pass
             else:
+                detail = (
+                    _test_only_green_rejection_detail(lock.red_evidence, lock_path)
+                    or "legacy baseline or red-phase evidence is invalid"
+                )
                 errors.append(
                     _lock_error(
                         ErrorCode.RED_PHASE_EVIDENCE_INVALID,
                         manifest,
                         root,
-                        detail="legacy baseline or red-phase evidence is invalid",
+                        detail=detail,
                     )
                 )
 
@@ -758,6 +935,11 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
             raise FileNotFoundError(f"Behavioral test file not found: {full}")
         hashes[rel] = compute_manifest_hash(full)
     return hashes
+
+
+def _red_evidence_dict_is_valid(evidence: dict | None) -> bool:
+    """Return whether a lock's red_evidence dict is valid red-phase evidence."""
+    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
 
 
 def _file_hash_or_none(path: Path) -> str | None:
@@ -1104,8 +1286,7 @@ def _contract_weakening_detail(
 
     locked_contract = _load_locked_contract(lock_path)
     if not locked_contract:
-        current_hash = compute_manifest_hash(Path(manifest.source_path))
-        if current_hash == lock.manifest_hash:
+        if manifest_hash_matches(lock.manifest_hash, Path(manifest.source_path)):
             return None
         return (
             "legacy plan lock lacks a manifest contract snapshot; "
@@ -1169,6 +1350,76 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _contract_writable_paths(contract: dict) -> set[str]:
+    raw_files = contract.get("files", {})
+    if not isinstance(raw_files, dict):
+        return set()
+    entries: set[str] = set()
+    for section in ("create", "edit", "scope", "delete", "snapshot"):
+        values = raw_files.get(section, ())
+        if not isinstance(values, (list, tuple, set)):
+            continue
+        entries.update(
+            value.replace("\\", "/") for value in values if isinstance(value, str)
+        )
+    return entries
+
+
+def _contract_writable_paths_are_all_tests(contract: dict) -> bool:
+    from maid_runner.core._file_discovery import is_test_file
+
+    return all(is_test_file(path) for path in _contract_writable_paths(contract))
+
+
+def _test_only_green_commands_are_green(evidence: dict) -> bool:
+    commands = evidence.get("commands")
+    if not isinstance(commands, list) or not commands:
+        return False
+    for command in commands:
+        if not isinstance(command, dict):
+            return False
+        if command.get("classification") != "not_red":
+            return False
+        if command.get("exit_code") != 0:
+            return False
+    return True
+
+
+def _test_only_green_payload_is_valid(evidence: object) -> bool:
+    return (
+        isinstance(evidence, dict)
+        and evidence.get("red") is False
+        and evidence.get("mode") == "test_only_green"
+        and _test_only_green_commands_are_green(evidence)
+    )
+
+
+def _test_only_green_evidence_satisfies(evidence: dict, lock_path: Path) -> bool:
+    if not _test_only_green_payload_is_valid(evidence):
+        return False
+    contract = _load_locked_contract(lock_path)
+    if contract is None:
+        return False
+    return _contract_writable_paths_are_all_tests(contract)
+
+
+def _test_only_green_rejection_detail(evidence: object, lock_path: Path) -> str | None:
+    if not isinstance(evidence, dict) or evidence.get("mode") != "test_only_green":
+        return None
+    contract = _load_locked_contract(lock_path)
+    if contract is None:
+        return (
+            "test_only_green evidence cannot satisfy --require-red-evidence "
+            "without a persisted manifest contract snapshot"
+        )
+    if not _contract_writable_paths_are_all_tests(contract):
+        return (
+            "test_only_green/contract mismatch: persisted contract includes "
+            "non-test writable path(s)"
+        )
+    return "test_only_green evidence is invalid"
 
 
 def _legacy_baseline_is_valid(evidence: object, lock_path: Path) -> bool:

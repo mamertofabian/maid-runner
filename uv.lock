@@ -756,7 +756,7 @@ wheels = [
 
 [[package]]
 name = "maid-runner"
-version = "2.21.1"
+version = "2.22.0"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },

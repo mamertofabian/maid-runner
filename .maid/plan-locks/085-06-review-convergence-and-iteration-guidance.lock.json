@@ -1,0 +1,411 @@
+{
+  "manifest_path": "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+  "manifest_hash": "sha256-contract:9b5cce34067d8c7cbb234b7d500f3f0b9a284e8ac43742755c93213aa0994750",
+  "test_hashes": {
+    "tests/test_review_convergence_guidance.py": "sha256:ce9f12c56bc43f0ef3b5e09c0b2dc90f79c71ef094f095ddee604112efa3c1fb"
+  },
+  "created_at": "2026-07-18T08:33:13.246017+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:398914cdf9aef9044f34d066674a1cc093e69c263c5f9de6eee2618f7b16e3f3",
+      "prior_test_hashes": {
+        "tests/test_review_convergence_guidance.py": "sha256:b0a9214e48af313a6332ec68f8670199562141eb6877ec53cfcbe0fbcb3433c4"
+      },
+      "revised_at": "2026-07-18T08:33:34.938774+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-06-review-convergence-and-iteration-guidance.manifest.yaml -> manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a7b1065ab7820cfbe2cdd6db445dff51441c7da2e4d897e2b0dd396a98cf3110",
+      "prior_test_hashes": {
+        "tests/test_review_convergence_guidance.py": "sha256:b0a9214e48af313a6332ec68f8670199562141eb6877ec53cfcbe0fbcb3433c4"
+      },
+      "revised_at": "2026-07-18T08:38:03.901381+00:00",
+      "reason": "Correct packaged payload expectation: Claude repo-internal draft skill is source-only",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "scope:maid_runner/claude/skills/maid-runner-draft-implement/SKILL.md"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b39ded97d21c6ceb138797ebf41dfb330f299558fab06c89810c111ddb9611b6",
+      "prior_test_hashes": {
+        "tests/test_review_convergence_guidance.py": "sha256:b3bdc14936119f7ba9c489531702e3499a6aeb76e4de553df7facbb8425ff9c4"
+      },
+      "revised_at": "2026-07-18T08:58:16.235508+00:00",
+      "reason": "Batch review blockers: require verify baselines and persist advisory findings",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-18T08:58:19.971738+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/test_review_convergence_guidance.py -v",
+        "exit_code": 1,
+        "output_tail": ">           assert phrase in workflow\nE           AssertionError: assert 'Review-fix iteration cost' in '# Draft Manifest Workflow\\n\\nDraft manifests are MAID planning inventory. Promoted manifests are active\\ncontracts.\\n\\nThis workflow is useful when a larger goal can be split into known,\\nimplementation-sized pieces before the first code change starts. Instead of\\ntracking those pieces in free-form markdown, put each known child task in\\n`manifests/drafts/` as a draft manifest. The draft queue gives automation a\\nconcrete list to work through while keeping unapproved plans out of the active\\nmanifest chain.\\n\\n## Directories\\n\\n- `manifests/drafts/*.manifest.yaml`: mutable child drafts that are not active\\n  MAID contracts yet.\\n- `manifests/drafts/*.epic.yaml`: larger planning records that must be split\\n  before promotion. Treat these as split-before-promote inventory, not\\n  directly implementable contracts.\\n- Archived draft records: archived historical inventory outside the top-level child\\n  queue. Keep explicit archive metadata when a draft or epic is retained only\\n  for context.\\n- `manifests/*.manifest.yaml`: promoted, active MAID contracts.\\n\\nNormal validation and test execution should target promoted manifests in\\n`manifests/`. Draft validation is focused on plan qu...`, `dev`, `development`, or a remote branch. Git does not retain\\na reliable branch-origin fact after rebases and merges, and a default commit\\ncount can miss task changes. Use `--include-tests` when changed tests should be\\nscope-checked too. Use `--no-changed-scope` only for intentionally non-handoff\\nverification runs.\\n\\n## Evolution During Implementation\\n\\nImplementation will expose gaps sometimes. Handle them based on whether the\\naffected contract is still a draft or already promoted:\\n\\n- Before promotion: edit the draft and rerun behavioral validation.\\n- After promotion, additive change: create a new manifest that adds the new\\n  artifact or file and let chain merging combine the active contracts.\\n- After promotion, breaking change: create a superseding manifest that declares\\n  the complete replacement contract.\\n- If a selected draft depends on unimplemented work, stop the pass as blocked\\n  or add/refine the prerequisite draft rather than implementing outside scope.\\n\\nThe goal is not to predict every implementation detail upfront. The goal is to\\nmake the known plan enumerable, reviewable, and machine-checkable before each\\npiece becomes an active MAID contract.\\n'\n\ntests/test_review_convergence_guidance.py:118: AssertionError\n____________ test_instruction_payload_version_marks_guidance_update ____________\n\n    def test_instruction_payload_version_marks_guidance_update() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\"2026.07.11.1\")\nE       AssertionError: assert (2026, 7, 11, 1) > (2026, 7, 11, 1)\nE        +  where (2026, 7, 11, 1) = _version_tuple('2026.07.11.1')\nE        +  and   (2026, 7, 11, 1) = _version_tuple('2026.07.11.1')\n\ntests/test_review_convergence_guidance.py:133: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_review_convergence_guidance.py::test_implementation_review_skill_carries_convergence_protocol\nFAILED tests/test_review_convergence_guidance.py::test_implementer_skills_carry_iteration_recipe\nFAILED tests/test_review_convergence_guidance.py::test_planner_skill_carries_dedicated_test_file_rule\nFAILED tests/test_review_convergence_guidance.py::test_workflow_doc_and_packaged_copies_stay_in_sync\nFAILED tests/test_review_convergence_guidance.py::test_instruction_payload_version_marks_guidance_update\n============================== 5 failed in 0.12s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:of=skill document",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:type=markdown section",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:of=skill document",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:type=markdown section",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:of=skill document",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:of=skill document",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:type=markdown section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:of=skill document",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:type=markdown section",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:of=skill document",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:type=markdown section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_instruction_payload_version_marks_guidance_update",
+      "tests/test_review_convergence_guidance.py:test_instruction_payload_version_marks_guidance_update:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_planner_skill_carries_dedicated_test_file_rule",
+      "tests/test_review_convergence_guidance.py:test_planner_skill_carries_dedicated_test_file_rule:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_workflow_doc_and_packaged_copies_stay_in_sync",
+      "tests/test_review_convergence_guidance.py:test_workflow_doc_and_packaged_copies_stay_in_sync:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_review_convergence_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-planner/SKILL.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "docs/agent-skills.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_review_convergence_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_implementation_review_skill_carries_convergence_protocol",
+              "source_scenario": "Read the maid-implementation-review skill source file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file contains the single-pass exhaustiveness rule, blocking and advisory classification, the advisory-never-revises rule, the two-round convergence bound, and baseline-aware handoff/opt-in verify recipes."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_implementer_skills_carry_iteration_recipe",
+              "source_scenario": "Read the maid-implementer and maid-runner-draft-implement skill sources.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both files contain the task-scoped inner-loop verify recipe (--summary with --plan-lock-scope task and --since), a baseline-aware strict handoff recipe, and the batch-fixes-then-single-revise rule."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_skill_carries_dedicated_test_file_rule",
+              "source_scenario": "Read the maid-planner skill source.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file states the dedicated-test-file-per-manifest preference and the shared-file E701 cascade warning."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_doc_and_packaged_copies_stay_in_sync",
+              "source_scenario": "Render the packaged payload with scripts/sync_claude_files.py into a temp workspace (per the 076-02 Outcome lesson) and compare against the .claude sources; check docs/draft-manifest-workflow.md carries the iteration-cost subsection.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow doc contains the review-fix iteration protocol, records advisories for possible future drafts, uses a baseline-aware handoff recipe, and the freshly rendered packaged copies match the skill sources."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_marks_guidance_update",
+              "source_scenario": "Read the current instruction payload version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The instruction payload version is newer than the pre-guidance 2026.07.11.1 payload."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_review_convergence_protocol_section",
+              "description": "Single-pass exhaustiveness, blocking-vs-advisory classification, advisory-never-revises rule, and the two-round convergence bound, per the content contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementer_iteration_recipe_section",
+              "description": "Task-scoped inner-loop verify recipe, batched review-fix application, and the evidence-flag cheat sheet, per the content contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_planner_dedicated_test_file_rule",
+              "description": "Dedicated behavioral test file per manifest in multi-manifest sessions and the shared-file E701 cascade warning.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_review_convergence_protocol_section",
+              "description": "Codex source guidance carries the same convergence protocol in its existing voice.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_implementer_iteration_recipe_section",
+              "description": "Codex source guidance carries the same task-scoped iteration recipe and evidence-flag cheat sheet.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_planner_dedicated_test_file_rule",
+              "description": "Codex planner guidance carries the dedicated-test-file preference and E701 warning.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version newer than 2026.07.11.1 for the init-distributed guidance update.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": ".claude/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Carry the same iteration recipe as maid-implementer for this repo's draft-implement loop."
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Keep the Codex repo-internal draft implementation loop aligned with the Claude source guidance."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Add the review-fix iteration cost subsection for non-skill consumers."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Keep the packaged workflow doc in sync."
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "reason": "Record the guidance additions in the skill distribution notes."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Claude package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "reason": "Generated Claude package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "reason": "Generated Claude package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Codex package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "reason": "Generated Codex package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "reason": "Generated Codex package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Generated Codex package copy produced by scripts/sync_claude_files.py."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_review_convergence_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/test_review_convergence_guidance.py -v",
+      "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

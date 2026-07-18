@@ -2,10 +2,10 @@
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
   "manifest_hash": "sha256:a0cbba4a67e1e2000881117d07c7dafdbe6255abf032d2d52bd323096b0b7207",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256:639ca5a68f758fb18c81393ec953f62670b2c7ea80b6469bfb5dbfcca8840fb4"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256:30370312daaa28ea056229f109fed11590eddf246e2cc46f9b0658a238da2bde"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -168,6 +168,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:a0cbba4a67e1e2000881117d07c7dafdbe6255abf032d2d52bd323096b0b7207",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:639ca5a68f758fb18c81393ec953f62670b2c7ea80b6469bfb5dbfcca8840fb4"
+      },
+      "revised_at": "2026-07-18T00:08:07.337329+00:00",
+      "reason": "Register new live planning epic 085-00 in the drafts inventory allowlist; no contract or behavior change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:docs/plans/maid-runner-self-improvement-backlog.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -212,6 +231,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -276,6 +296,120 @@
         "manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
         "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
         "manifests/drafts/README.md"
+      ],
+      "scope": [
+        "docs/plans/maid-runner-self-improvement-backlog.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
+              "description": "Draft epics 067-00, 077-00, 081-00, and 084-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_only_unconsumed_epics_remain_live_planning_inventory",
+              "description": "The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00 and 064-00."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale",
+              "description": "The self-improvement backlog no longer describes 067, 077, or 081 as stale/planning takeover work after Theme 8 archives them."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_plan_lock_red_phase_epic",
+              "description": "Archived pointer for promoted child manifests 067-01 through 067-08.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_skills_outcome_learning_loop_epic",
+              "description": "Archived pointer for promoted child manifests 077-01 through 077-04.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_outcome_llm_enrichment_epic",
+              "description": "Archived pointer for promoted child manifests 081-01 through 081-06.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_after_action_run_evaluation_epic",
+              "description": "Archived pointer for promoted child manifests 084-01 through 084-07.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/043-03-archive-consumed-draft-epics.manifest.yaml",
+        "manifests/drafts/README.md",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
+        "manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml",
+        "manifests/067-04-document-plan-lock-workflow.manifest.yaml",
+        "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+        "manifests/067-07-fix-handoff-gate-baseline-resolution.manifest.yaml",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+        "manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml",
+        "manifests/077-03-add-related-match-recall-scoring.manifest.yaml",
+        "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
+        "manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
+        "manifests/081-02-add-maid-enrich-command.manifest.yaml",
+        "manifests/081-03-wire-theme-map-into-insights.manifest.yaml",
+        "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
+        "manifests/081-05-harden-enrichment-prompt-and-quality.manifest.yaml",
+        "manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml",
+        "manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+        "manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+        "manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml",
+        "manifests/084-04-add-maid-evaluate-run-command.manifest.yaml",
+        "manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
+        "manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
+        "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/maid-runner-self-improvement-backlog.md",
+          "reason": "Mark Theme 8 as completed and update the draft inventory notes so takeover agents no longer reopen consumed epics."
+        }
       ]
     },
     "test_files": [

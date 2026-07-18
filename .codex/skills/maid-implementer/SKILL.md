@@ -205,6 +205,33 @@ maid test
 
 This ensures the implementation does not break other MAID contracts.
 
+## Review-Fix Iteration Recipe
+
+During fix iteration, run the task-scoped inner-loop gate instead of paying for
+the full-tree handoff gate after every edit:
+
+```bash
+maid verify --summary --plan-lock-scope task --since <baseline>
+```
+
+Run the final strict handoff gate once with the same explicit task baseline:
+
+```bash
+maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
+```
+
+Apply ALL blocking fixes from one review round as a batch. If the contract or
+locked tests changed, run one revise after the batch and one re-validation;
+never revise once per finding. Run the full strict handoff verify once at the
+end.
+
+Choose evidence flags by revision shape:
+
+- A contract-preserving plain revise automatically preserves valid evidence.
+- Use `--test-only-green` for a test-only contract.
+- Use `--stash-implementation` when tests were tightened after implementation;
+  add `--allow-sibling-dirty` only for an intentional multi-manifest session.
+
 ## Phase 7 — Review the Implementation
 
 Before reporting completion, run a read-only MAID implementation review using the `maid-implementation-review` skill when available. The reviewer should confirm:

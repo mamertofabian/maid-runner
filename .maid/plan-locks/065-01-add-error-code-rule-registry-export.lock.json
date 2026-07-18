@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/065-01-add-error-code-rule-registry-export.manifest.yaml",
-  "manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+  "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
-    "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
+    "tests/integration/test_library_api.py": "sha256:d21ca5bf0e305693a32978bf968d54b21a24e4ececb6e39eb677619e094915d0"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 16,
+  "revision": 18,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -189,6 +189,42 @@
       },
       "revised_at": "2026-07-14T03:28:39.634932+00:00",
       "reason": "Refresh the shared release metadata integration-test hash for the 2.21.1 patch bump; the test still exercises __version__ and release metadata consistency, while the release expectations and stable test name change under the new locked release contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:13cf5b86419110862d4036e7392c4b16b4082d27cb4580ec2614fd2e47af71b9",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
+        "tests/integration/test_library_api.py": "sha256:1a8ca9bd04cbdb00aa327796c1d9c8763c89c68842eacddc18c0be419c096bcd"
+      },
+      "revised_at": "2026-07-18T09:36:17.543772+00:00",
+      "reason": "Refresh the shared integration-test hash for the approved v2.21.2 release metadata contract; preserve the predecessor contract and its genuine red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4",
+        "tests/integration/test_library_api.py": "sha256:373e7a64139a3bd339d514d48674676d5c6d1fc34804ba55f76eefedc9c288bb"
+      },
+      "revised_at": "2026-07-18T09:47:28.879402+00:00",
+      "reason": "Refresh the shared integration-test hash for the approved v2.22.0 release metadata contract after the user accepted the SemVer review finding; preserve the predecessor contract and its genuine red evidence.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

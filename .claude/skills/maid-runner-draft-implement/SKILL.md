@@ -109,14 +109,14 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
    implementation:
 
 ```bash
-uv run maid verify --summary --require-plan-lock --require-red-evidence
+uv run maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
 ```
 
 Prefer `--summary` for agent and human handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun without `--summary`,
 or with `--json`, `--packet`, or SARIF, only when exhaustive machine-readable
 detail is needed. Treat older handoff examples such as
-`uv run maid verify --require-plan-lock --require-red-evidence` as superseded
+`uv run maid verify --require-plan-lock --require-red-evidence --since <baseline>` as superseded
 unless raw text is intentionally required.
 
 ## Implementation Rules
@@ -131,6 +131,24 @@ unless raw text is intentionally required.
   fallback data.
 - If a manifest-contract problem appears, stop for a plan revision instead of
   editing around it.
+
+## Review-Fix Iteration Recipe
+
+During fix iteration, use the task-scoped inner-loop gate:
+
+```bash
+maid verify --summary --plan-lock-scope task --since <baseline>
+```
+
+Apply ALL blocking fixes from one review round as a batch. If the contract or
+locked tests changed, run one revise after the batch and one re-validation;
+never revise once per finding. Reserve the full strict handoff verify for the
+end of the implementation pass.
+
+For evidence handling, a contract-preserving plain revise now preserves valid
+evidence automatically. Use `--test-only-green` for a test-only contract. Use
+`--stash-implementation` when tests were tightened after implementation, with
+`--allow-sibling-dirty` only for an intentional multi-manifest session.
 
 ## Review Loop
 

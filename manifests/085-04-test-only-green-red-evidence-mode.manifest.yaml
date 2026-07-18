@@ -1,0 +1,311 @@
+schema: '2'
+goal: Give test-only manifest contracts a sanctioned, bounded evidence mode so their plan locks can satisfy --require-red-evidence honestly instead of dead-ending in E705
+type: feature
+created: '2026-07-18T02:27:30Z'
+metadata:
+  epic: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
+  bug_report: ~/.maid/bug-report/20260715-035010-manatal-coop-site-test-only-plan-revision.md
+  tags:
+  - plan-lock
+  - red-phase
+  - test-only-contracts
+  - cli
+  priority: medium
+description: |
+  A manifest whose entire writable surface is test files (a test-only fix
+  or characterization contract) has no non-test implementation to hide:
+  `--stash-implementation` refuses it outright ("requires at least one
+  declared non-test implementation file"), a plain revise recapture is
+  necessarily green, and E705 becomes unsatisfiable (bug report
+  20260715-035010 issue 2; the reporter's workaround was contorting the
+  contract around a fabricated missing fixture — exactly the incentive a
+  sanctioned path removes).
+
+  Pinned decisions (do not redesign):
+
+  1. New flag on `maid plan revise`: `--test-only-green`, mutually
+     exclusive with `--stash-implementation`, `--preserve-red-evidence`,
+     and `--no-run`, and requiring `--reason` like every revise.
+  2. Capture-time bound: the command refuses unless EVERY writable path in
+     the revised manifest (files create/edit/delete/snapshot/scope)
+     classifies as a test file via the public
+     `_file_discovery.is_test_file` (as aligned by 085-01). Any non-test
+     writable path -> error directing to the normal red-evidence paths.
+  3. Evidence shape: the command runs the manifest validate commands
+     exactly like red capture and requires ALL of them to pass. It records
+     `{"red": false, "mode": "test_only_green", "commands": [...],
+     "captured_at": ...}` reusing the existing per-command evidence
+     structure. Any failing command -> refusal with the failure tail; a
+     failing suite means the test-only change is simply not done, and
+     recording it would fake completion.
+  4. Enforcement-time bound (the anti-gaming core): `enforce_plan_locks`
+     accepts a `mode: test_only_green` payload as satisfying
+     `--require-red-evidence` ONLY when the lock's persisted
+     `_manifest_contract` file entries contain no non-test writable path,
+     re-checked at every enforcement — not just at capture. If the
+     contract later gains an implementation file (via revise), the stored
+     test-only-green evidence immediately stops satisfying the gate
+     (E705 with a detail naming the mode/contract mismatch). Fail-closed:
+     locks without a persisted contract snapshot never qualify.
+  5. E707 command cross-checks apply to this mode unchanged: the recorded
+     commands must match the manifest validate commands, so swapping
+     validate commands after capture is still caught.
+  6. `_red_evidence_is_valid` keeps rejecting `red: false` payloads that
+     do NOT carry this exact mode under the contract bound; nothing about
+     ordinary red evidence loosens.
+  7. The `--stash-implementation` test-only refusal message is updated to
+     name `--test-only-green` as the sanctioned path (coordinated with
+     085-05, which edits neighboring messages in the same function).
+
+  Why honest-green is acceptable here and only here: for a test-only
+  contract, the tests ARE the deliverable; the lock still pins their
+  bytes (E701) and the contract (E702), so weakening them is tamper,
+  not evidence gaming. What the gate loses is only the pretense that a
+  red state exists for a change with no implementation to remove.
+
+  Sequencing: fourth child of epic 085. Depends on 085-01 only for the
+  classifier alignment (the bound must not diverge between capture and
+  enforcement); coordinate the shared error-message edit with 085-05.
+
+  Pinned decision: `maid plan lock` does NOT accept --test-only-green.
+  Initial lock must still capture a genuine red phase for the test-only
+  change itself; revisit only with a concrete counterexample.
+
+  Behavioral coverage lives in
+  tests/cli/test_plan_revise_test_only_green.py.
+temptations:
+- risk: Do not accept green evidence for any manifest that declares even one non-test writable path, no matter how trivial.
+  instead: Enforce the all-writable-paths-are-tests bound at capture AND at every enforce_plan_locks pass from the persisted contract snapshot; cover edit, create, and scope writable buckets plus the later-added-implementation-file case with behavioral tests.
+- risk: Do not let the new mode bypass E707 command cross-checks or E701 test-hash pinning.
+  instead: Record commands through the same evidence structure red capture uses and leave the mismatch and hash checks untouched; test that a validate-command swap after test_only_green capture still fails E707.
+- risk: Do not record test_only_green evidence when any validate command fails.
+  instead: Refuse with the failure output tail; an incomplete test-only change has no evidence to record.
+- risk: Do not implement the mode by widening _red_evidence_is_valid for generic red:false payloads.
+  instead: Match the exact mode string plus the contract bound; every other red:false payload stays invalid.
+- risk: Do not accept test_only_green evidence on locks that lack a persisted _manifest_contract snapshot.
+  instead: Fail closed with E705 when the snapshot is missing, even if mode and green commands look intact.
+files:
+  create:
+  - path: tests/cli/test_plan_revise_test_only_green.py
+    artifacts:
+    - kind: test_function
+      name: test_test_only_green_records_evidence_for_test_only_contract
+      source_scenario: A locked temp-project manifest whose only writable paths are behavioral test files, with all validate commands passing, revised with --test-only-green and a reason.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds and the saved lock carries a red-false payload with mode test_only_green and per-command evidence entries.
+    - kind: test_function
+      name: test_test_only_green_refuses_manifest_with_implementation_file
+      source_scenario: The same flow but the manifest also declares a non-test path under files.edit.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses with an error naming the normal red-evidence paths, and the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_non_test_create_path
+      source_scenario: A locked test-only contract revised so files.create also declares a non-test implementation path, then --test-only-green is requested.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Capture refuses because the create bucket includes a non-test writable path; the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_non_test_scope_path
+      source_scenario: A locked test-only contract revised so files.scope declares a non-test wiring path, then --test-only-green is requested.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Capture refuses because the scope bucket includes a non-test writable path; the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_when_a_validate_command_fails
+      source_scenario: A test-only contract whose validate command currently fails.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses, reports the failure tail, and records no evidence.
+    - kind: test_function
+      name: test_enforcement_accepts_test_only_green_within_bound
+      source_scenario: enforce_plan_locks with require_red_evidence over a lock carrying valid test_only_green evidence for a test-only contract.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E704/E705 error is reported for that lock.
+    - kind: test_function
+      name: test_enforcement_rejects_test_only_green_after_contract_gains_implementation
+      source_scenario: A lock with test_only_green evidence whose persisted contract snapshot is then superseded by a revision adding a non-test writable file.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E705 is reported with a detail naming the test-only-green/contract mismatch, proving the bound is enforced continuously rather than only at capture.
+    - kind: test_function
+      name: test_enforcement_rejects_test_only_green_without_persisted_contract
+      source_scenario: A lock carrying mode test_only_green evidence whose _manifest_contract snapshot is removed.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E705 is reported; missing contract snapshots never qualify.
+    - kind: test_function
+      name: test_test_only_green_command_swap_still_fails_e707
+      source_scenario: A lock with valid test_only_green evidence whose command strings are then spliced to differ from the locked validate_commands snapshot.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E707 is reported, proving the mode does not bypass command cross-checks.
+    - kind: test_function
+      name: test_test_only_green_flag_combinations_are_refused
+      source_scenario: --test-only-green combined with --stash-implementation, with --preserve-red-evidence, and with --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Each combination is refused with a clear mutual-exclusion error before any git or validation work runs.
+    - kind: test_function
+      name: test_stash_refusal_names_test_only_green_path
+      source_scenario: --stash-implementation on a test-only contract (the bug report's exact dead end).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The refusal error text points to --test-only-green as the sanctioned path for test-only contracts.
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Adds the --test-only-green capture path with the capture-time all-writable-paths-are-tests bound, all-commands-green requirement, mode-tagged evidence payload, mutual-exclusion refusals, and the updated stash-implementation test-only refusal text.
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: enforce_plan_locks
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: require_plan_lock
+        type: bool
+      - name: require_red_evidence
+        type: bool
+      - name: changed_paths
+        type: Collection[str] | None
+        default: None
+      - name: plan_lock_scope
+        type: str
+        default: repository
+      returns: tuple[ValidationError, ...]
+      description: Accepts mode test_only_green payloads as satisfying require_red_evidence only under the persisted-contract test-only bound re-derived on every call; all other payload and error semantics unchanged. Signature unchanged.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the --test-only-green flag on the plan revise subparser.
+  - path: docs/maid_specs.md
+    reason: Specify the test-only evidence mode, its bounds, and when to use it instead of stash-backed revise.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep the packaged spec copy in sync.
+  read:
+  - maid_runner/core/_file_discovery.py
+  - maid_runner/core/manifest.py
+  - manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml
+validate:
+- uv run python -m pytest tests/cli/test_plan_revise_test_only_green.py -v
+- uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-18T02:35:00Z"
+  summary: "Test-only contracts can satisfy --require-red-evidence via maid plan revise --test-only-green, which records honest green evidence under a capture-and-enforce all-writable-paths-are-tests bound."
+  rationale: "Stash-backed red recapture is impossible without an implementation file, and plain revise on a green test-only suite dead-ends in E705. A mode-tagged green payload is acceptable only when the tests are the entire deliverable and the persisted contract bound still holds at every enforce pass."
+  agent:
+    model: Composer
+    provider: cursor
+    client: cursor-auto
+    skills:
+    - maid-implement-draft
+    - maid-implementer
+    - maid-plan-review
+    - maid-implementation-review
+  lessons:
+  - lesson_type: design
+    summary: "Accept test_only_green in enforce_plan_locks via a dedicated helper that requires mode, all-green commands, and a persisted _manifest_contract whose writable buckets are all is_test_file; leave _red_evidence_is_valid rejecting generic red:false."
+    tags:
+    - plan-lock
+    - red-phase
+    - anti-gaming
+    - test-only-contracts
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/plan.py
+  - lesson_type: testing
+    summary: "Cover create and scope capture refusals plus missing-contract and E707 splice cases in the dedicated test_plan_revise_test_only_green module so the writable-bucket bound cannot be implemented for files.edit alone."
+    tags:
+    - plan-lock
+    - testing
+    - anti-gaming
+    paths:
+    - tests/cli/test_plan_revise_test_only_green.py
+  review_notes:
+  - source: maid-plan-review-round-1
+    severity: needs-changes
+    summary: "Required E707 after test_only_green, create/scope capture refusals, missing-contract E705, and pinned no plan-lock flag."
+  - source: maid-plan-review-round-2
+    severity: ready
+    summary: "Approved after blockers closed; red phase still failing for intended missing-feature reasons."
+  - source: maid-implementation-review-round-1
+    severity: ready
+    summary: "Ready to merge; scope, temptations, artifacts, and plan_lock gates held."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_plan_revise_test_only_green.py
+    - -v
+    status: passed
+    summary: "All 11 test-only-green scenarios passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "Handoff verify plan_lock and require-red-evidence passed with task baseline since HEAD after black formatting."

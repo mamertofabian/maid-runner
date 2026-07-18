@@ -55,6 +55,7 @@ CONSUMED_EPICS = {
 LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
+    "085-00-plan-lock-ceremony-reduction.epic.yaml",
 }
 
 

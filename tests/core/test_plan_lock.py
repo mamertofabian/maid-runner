@@ -68,7 +68,7 @@ class TestCreatePlanLock:
         lock = create_plan_lock(manifest_path, tmp_path)
 
         assert lock.manifest_path == "manifests/demo-task.manifest.yaml"
-        assert lock.manifest_hash.startswith("sha256:")
+        assert lock.manifest_hash.startswith("sha256-contract:")
         assert set(lock.test_hashes) == {
             "tests/test_demo.py",
             "tests/test_demo_extra.py",

@@ -1,0 +1,165 @@
+schema: '2'
+goal: Bump maid-runner minor version to 2.22.0
+type: feature
+created: '2026-07-18T09:47:07Z'
+supersedes:
+- bump-version-2.21.1
+metadata:
+  tags:
+  - release
+  - version
+  priority: high
+description: |
+  Bump the package version from 2.21.1 to 2.22.0 for the next minor release.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized. The minor version follows
+  SemVer because the post-2.21.1 branch adds backward-compatible PR publishing,
+  plan-lock lifecycle, test discovery, and workflow guidance functionality.
+temptations:
+- risk: Do not update only pyproject.toml and leave release mirrors stale.
+  instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release metadata test alongside the package version.
+- risk: Do not derive release notes only from commit subjects.
+  instead: Summarize the observable behavior and safety properties of every user-facing change since v2.21.1.
+- risk: Do not omit the changelog compare link from automated coverage.
+  instead: Assert the 2.22.0 heading and v2.21.1...v2.22.0 compare link in the release metadata test.
+- risk: Do not add runtime version constants that duplicate pyproject.toml.
+  instead: Keep maid_runner.__version__ reading package or source metadata dynamically.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact contract.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject version.
+  - path: CHANGELOG.md
+    reason: Release notes document the minor version, release date, and compare link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the released CLI version.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_current_version
+      of: TestPublicAPIImports
+      source_scenario: The project has been bumped for the 2.22.0 minor release.
+      actions:
+      - type: api_call
+        subject:
+          export: __version__
+      expected:
+        behavior: Runtime version, pyproject metadata, uv.lock metadata, changelog heading and compare link, and roadmap all report 2.22.0.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.21.1.manifest.yaml
+  - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: '2026-07-18T09:56:46Z'
+  summary: Bumped maid-runner from 2.21.1 to 2.22.0 and synchronized package metadata, editable lock metadata, release notes and compare link, roadmap version and update date, release metadata coverage, and MAID plan-lock evidence.
+  rationale: The nine backward-compatible commits after v2.21.1 add public release automation and plan-lifecycle functionality alongside compatibility fixes and workflow guidance, so independent review and the user selected a SemVer minor release instead of the initially planned patch.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: Release metadata coverage kept the package, lockfile, changelog, roadmap, and runtime CLI version synchronized, while independent review caught both the stale roadmap update date and the need for a SemVer minor bump.
+    tags:
+    - release
+    - version
+    - semver
+    - behavioral-test
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: plan-lock
+    summary: Replacing the uncommitted patch contract with the user-approved minor contract required fresh red evidence and a sanctioned dependent lock revision; contract-scoped hashing then kept Outcome capture from invalidating the approved plan.
+    tags:
+    - release
+    - plan-lock
+    - red-evidence
+    - contract-hash
+    paths:
+    - tests/integration/test_library_api.py
+    - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+    - .maid/plan-locks/bump-version-2.22.0.lock.json
+  review_notes:
+  - source: maid-implementation-review-subagent/release_2212_review
+    severity: P1
+    summary: The reviewer identified that public functionality made the initially requested 2.21.2 patch inconsistent with the documented SemVer policy; the user accepted the finding and changed the release to 2.22.0.
+  - source: maid-implementation-review-subagent/release_2212_review
+    severity: P2
+    summary: The reviewer found a stale roadmap update date; it was corrected from 2026-06-19 to the 2026-07-18 release date.
+  - source: maid-implementation-review-subagent/release_2220_review
+    severity: info
+    summary: Ready with no actionable findings; the reviewer confirmed SemVer alignment, complete coverage of all nine commits, healthy plan locks, intentional remaining 2.21.2 audit evidence, and removal of obsolete patch-release artifacts.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: failed
+    summary: The revised contract red phase failed because the interim worktree reported 2.21.2 while the approved behavioral contract expected 2.22.0.
+  - command:
+    - uv
+    - run
+    - maid
+    - --version
+    status: passed
+    summary: Local CLI reported maid 2.22.0.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/integration/test_library_api.py
+    status: passed
+    summary: Focused public API and release metadata suite passed with 29 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/bump-version-2.22.0.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: The promoted minor-release contract passed implementation validation.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: Repository-wide MAID validation passed with 347 active contracts, 0 failed, and 96 superseded.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: Repository-wide manifest testing passed all 195 commands.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: Strict nine-stage handoff verification passed for the v2.22.0 contract and its sanctioned shared-test lock revision.
+  - command:
+    - git
+    - diff
+    - --check
+    status: passed
+    summary: Whitespace validation passed.

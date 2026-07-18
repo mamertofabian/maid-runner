@@ -267,6 +267,32 @@ count can miss task changes. Use `--include-tests` when changed tests should be
 scope-checked too. Use `--no-changed-scope` only for intentionally non-handoff
 verification runs.
 
+### Review-fix iteration cost
+
+Keep review rounds convergent and task-scoped:
+
+- Reviewers report every finding they can identify in a single pass and
+  classify each as **blocking** or **advisory**. Blocking findings are contract
+  violations, behavioral bugs, scope drift, or validation failures. Advisory
+  findings are style, optional hardening, or future-work notes and MUST NOT
+  trigger manifest or locked-test revision in the current session; record them in the review packet for possible future draft manifests.
+- A finding first raised after round 1 explains why it was not visible in round
+  1, such as being unmasked by an earlier fix. After two full review rounds,
+  the reviewer issues a final verdict with residual advisories instead of
+  requesting another round, unless a blocking finding remains.
+- Apply all blocking fixes from one round as a batch. If the contract or locked
+  tests changed, run one revise after the batch and one re-validation rather
+  than revising once per finding.
+- During fix iteration, run
+  `maid verify --summary --plan-lock-scope task --since <baseline>`. Run the
+  full strict handoff verify once at the end with
+  `maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>`.
+
+For revision evidence, a contract-preserving plain revise automatically
+preserves valid evidence. Use `--test-only-green` for test-only contracts. Use
+`--stash-implementation` when tests were tightened after implementation, with
+`--allow-sibling-dirty` only for an intentional multi-manifest session.
+
 ## Evolution During Implementation
 
 Implementation will expose gaps sometimes. Handle them based on whether the
