@@ -102,7 +102,12 @@ description: |
      session recovery: sibling-dirty tolerance behind an explicit flag with
      audit trail, untracked files.create stashing, staged-path recovery
      hint, dependency-lockfile limitation error. Depends on 085-04 for the
-     test-only error pointer.
+     test-only error pointer. Extended 2026-07-18 with the three follow-ups
+     from the post-implementation review of 085-01..04: test-only-green
+     evidence preservation on contract-preserving plain revise, contract
+     hashing normalization for YAML-typed scalars (unquoted metadata dates
+     currently cannot lock), and structured plan-status reporting for
+     unreadable manifests.
   6. 085-06-review-convergence-and-iteration-guidance — packaged skill and
      docs guidance: single-pass exhaustive reviews, blocking-vs-advisory
      classification, bounded re-review rounds, task-scoped inner-loop
