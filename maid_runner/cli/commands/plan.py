@@ -159,6 +159,25 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             json_mode=ctx.json_mode,
         )
         return 2
+    test_only_green = bool(getattr(args, "test_only_green", False))
+    if test_only_green and stash_implementation:
+        print_error(
+            "--test-only-green cannot be combined with --stash-implementation.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+    if test_only_green and preserve_red_evidence:
+        print_error(
+            "--test-only-green cannot be combined with --preserve-red-evidence.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
+    if test_only_green and getattr(args, "no_run", False):
+        print_error(
+            "--test-only-green cannot be combined with --no-run.",
+            json_mode=ctx.json_mode,
+        )
+        return 2
 
     if not ctx.lock_path.exists():
         print_error(
@@ -191,6 +210,13 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
 
     if stash_implementation:
         return _cmd_plan_revise_with_stashed_implementation(
+            ctx=ctx,
+            existing=existing,
+            reason=reason,
+            agent=provenance.provenance,
+        )
+    if test_only_green:
+        return _cmd_plan_revise_test_only_green(
             ctx=ctx,
             existing=existing,
             reason=reason,
@@ -454,6 +480,81 @@ def _format_agent(agent) -> str:
     return f"{agent.model}{suffix}"
 
 
+def _cmd_plan_revise_test_only_green(
+    *,
+    ctx,
+    existing,
+    reason: str,
+    agent,
+) -> int:
+    """Revise with honest green evidence for test-only writable contracts."""
+    from maid_runner.core._file_discovery import is_test_file
+    from maid_runner.core.manifest import load_manifest
+    from maid_runner.core.plan_lock import (
+        capture_red_phase_evidence,
+        revise_plan_lock,
+        _load_locked_contract,
+    )
+
+    try:
+        manifest = load_manifest(ctx.manifest_path)
+        non_test_writable = sorted(
+            normalized_path
+            for path in manifest.all_writable_paths
+            for normalized_path in [path.replace("\\", "/")]
+            if not is_test_file(normalized_path)
+        )
+        if non_test_writable:
+            print_error(
+                "--test-only-green requires every writable path to be a test file. "
+                "Use --stash-implementation or --preserve-red-evidence for contracts "
+                "with implementation files. Non-test writable path(s): "
+                + ", ".join(non_test_writable),
+                json_mode=ctx.json_mode,
+            )
+            return 2
+
+        revised = revise_plan_lock(
+            existing,
+            ctx.manifest_path,
+            ctx.project_root,
+            reason,
+            agent=agent,
+            prior_contract=_load_locked_contract(ctx.lock_path),
+        )
+        captured = capture_red_phase_evidence(ctx.manifest_path, ctx.project_root)
+        failing = [
+            command
+            for command in captured.commands
+            if command.classification != "not_red"
+        ]
+        if failing:
+            tails = "\n".join(
+                f"{command.command}: exit {command.exit_code}\n{command.output_tail}"
+                for command in failing
+            )
+            print_error(
+                "--test-only-green requires all validate commands to pass.\n" + tails,
+                json_mode=ctx.json_mode,
+            )
+            return 1
+
+        evidence = captured.to_payload()
+        evidence["red"] = False
+        evidence["mode"] = "test_only_green"
+        revised = replace(revised, red_evidence=evidence)
+        revised.save(ctx.lock_path)
+        print(
+            f"Revised plan lock for '{ctx.slug}' to revision {revised.revision} "
+            f"({ctx.lock_path})"
+        )
+        print("Recorded test-only-green evidence for a test-only contract.")
+        return 0
+    except _plan_input_errors() as exc:
+        print_error(str(exc), json_mode=ctx.json_mode)
+        return 2
+
+
 def _cmd_plan_revise_with_stashed_implementation(
     *,
     ctx: "_PlanContext",
@@ -508,7 +609,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         if not target_paths:
             print_error(
                 "--stash-implementation requires at least one declared non-test "
-                "implementation file.",
+                "implementation file. For test-only contracts, use --test-only-green.",
                 json_mode=ctx.json_mode,
             )
             return 2

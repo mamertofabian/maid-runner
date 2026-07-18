@@ -749,17 +749,27 @@ def enforce_plan_locks(
                 and lock.legacy_baseline is None
             ):
                 pass
+            elif (
+                lock.red_evidence is not None
+                and _test_only_green_evidence_satisfies(lock.red_evidence, lock_path)
+                and lock.legacy_baseline is None
+            ):
+                pass
             elif lock.red_evidence is None and _legacy_baseline_is_valid(
                 lock.legacy_baseline, lock_path
             ):
                 pass
             else:
+                detail = (
+                    _test_only_green_rejection_detail(lock.red_evidence, lock_path)
+                    or "legacy baseline or red-phase evidence is invalid"
+                )
                 errors.append(
                     _lock_error(
                         ErrorCode.RED_PHASE_EVIDENCE_INVALID,
                         manifest,
                         root,
-                        detail="legacy baseline or red-phase evidence is invalid",
+                        detail=detail,
                     )
                 )
 
@@ -1251,6 +1261,73 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _contract_writable_paths(contract: dict) -> set[str]:
+    raw_files = contract.get("files", {})
+    if not isinstance(raw_files, dict):
+        return set()
+    entries: set[str] = set()
+    for section in ("create", "edit", "scope", "delete", "snapshot"):
+        values = raw_files.get(section, ())
+        if not isinstance(values, (list, tuple, set)):
+            continue
+        entries.update(
+            value.replace("\\", "/") for value in values if isinstance(value, str)
+        )
+    return entries
+
+
+def _contract_writable_paths_are_all_tests(contract: dict) -> bool:
+    from maid_runner.core._file_discovery import is_test_file
+
+    return all(is_test_file(path) for path in _contract_writable_paths(contract))
+
+
+def _test_only_green_commands_are_green(evidence: dict) -> bool:
+    commands = evidence.get("commands")
+    if not isinstance(commands, list) or not commands:
+        return False
+    for command in commands:
+        if not isinstance(command, dict):
+            return False
+        if command.get("classification") != "not_red":
+            return False
+        if command.get("exit_code") != 0:
+            return False
+    return True
+
+
+def _test_only_green_evidence_satisfies(evidence: dict, lock_path: Path) -> bool:
+    if not isinstance(evidence, dict):
+        return False
+    if evidence.get("red") is not False:
+        return False
+    if evidence.get("mode") != "test_only_green":
+        return False
+    if not _test_only_green_commands_are_green(evidence):
+        return False
+    contract = _load_locked_contract(lock_path)
+    if contract is None:
+        return False
+    return _contract_writable_paths_are_all_tests(contract)
+
+
+def _test_only_green_rejection_detail(evidence: object, lock_path: Path) -> str | None:
+    if not isinstance(evidence, dict) or evidence.get("mode") != "test_only_green":
+        return None
+    contract = _load_locked_contract(lock_path)
+    if contract is None:
+        return (
+            "test_only_green evidence cannot satisfy --require-red-evidence "
+            "without a persisted manifest contract snapshot"
+        )
+    if not _contract_writable_paths_are_all_tests(contract):
+        return (
+            "test_only_green/contract mismatch: persisted contract includes "
+            "non-test writable path(s)"
+        )
+    return "test_only_green evidence is invalid"
 
 
 def _legacy_baseline_is_valid(evidence: object, lock_path: Path) -> bool:

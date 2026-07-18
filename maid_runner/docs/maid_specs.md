@@ -359,4 +359,17 @@ parsed YAML minus only the top-level `outcome` key (canonical JSON). Legacy
 `sha256:` locks still compare raw file bytes. Prefix dispatch keeps existing
 locks valid without migration; YAML comment/formatting-only edits are
 intentionally hash-neutral under the contract format.
-    
+
+#### **Test-only green evidence (runner extension)**
+
+For manifests whose entire writable surface is test files, use
+`maid plan revise <manifest> --reason "<text>" --test-only-green` to record
+honest green evidence tagged `mode: test_only_green`. Capture refuses unless
+every writable path (create/edit/delete/snapshot/scope) is a test file and
+every validate command passes. Enforcement accepts that payload for
+`--require-red-evidence` only while the persisted `_manifest_contract`
+writable set remains entirely test files; missing snapshots or later-added
+implementation files fail E705. E707 command cross-checks still apply. The
+flag is mutually exclusive with `--stash-implementation`,
+`--preserve-red-evidence`, and `--no-run`, and is not available on
+`maid plan lock`.

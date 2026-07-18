@@ -169,6 +169,21 @@ the existing lock already has valid red evidence, and it cannot be combined with
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
 
+For test-only contracts whose entire writable surface is test files (no
+implementation to stash), use `maid plan revise <manifest-path> --reason "<text>"
+--test-only-green`. Capture refuses unless every writable path
+(create/edit/delete/snapshot/scope) classifies as a test file via
+`is_test_file`, and unless every validate command currently passes. The lock
+records honest green evidence tagged `mode: test_only_green`. Enforcement
+accepts that payload for `--require-red-evidence` only while the persisted
+`_manifest_contract` writable set remains entirely test files; if a later
+revision adds an implementation file, or the contract snapshot is missing, the
+evidence immediately fails E705 with a mode/contract mismatch detail. E707
+command cross-checks still apply. The flag is mutually exclusive with
+`--stash-implementation`, `--preserve-red-evidence`, and `--no-run`.
+`maid plan lock` does not accept `--test-only-green`; initial lock still
+requires a genuine red phase.
+
 PostgreSQL manifests can run file-backed pgTAP tests without duplicating shell
 exit-code adapters:
 

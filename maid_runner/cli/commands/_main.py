@@ -525,6 +525,15 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         help="Temporarily stash declared implementation changes while recapturing red evidence",
     )
     rp.add_argument(
+        "--test-only-green",
+        action="store_true",
+        dest="test_only_green",
+        help=(
+            "Record honest green evidence for test-only contracts "
+            "(all writable paths are test files)"
+        ),
+    )
+    rp.add_argument(
         "--project-root",
         default=".",
         dest="project_root",
