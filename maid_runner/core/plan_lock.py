@@ -18,6 +18,7 @@ validate commands when a plan is locked or revised.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shlex
 import subprocess
@@ -29,6 +30,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import yaml
+
 from maid_runner.core._command_integrity_test_discovery import (
     find_command_integrity_test_files,
     is_command_integrity_test_file,
@@ -39,6 +42,9 @@ from maid_runner.core.manifest import _manifest_to_dict, load_manifest, slug_fro
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
+
+_CONTRACT_HASH_PREFIX = "sha256-contract:"
+_BYTE_HASH_PREFIX = "sha256:"
 
 
 class _PlanLockLoadError(Exception):
@@ -252,6 +258,42 @@ def default_plan_lock_path(project_root: Path, manifest_slug: str) -> Path:
     return Path(project_root) / ".maid" / "plan-locks" / f"{manifest_slug}.lock.json"
 
 
+def compute_manifest_contract_hash(manifest_path: Path) -> str:
+    """Return a sha256-contract digest over the parsed manifest minus outcome.
+
+    Parses the manifest YAML, drops only the top-level ``outcome`` key, and
+    hashes the canonical JSON serialization of the remainder. Unparseable YAML
+    raises (fail loud); there is no byte-hash fallback.
+    """
+    data = yaml.safe_load(Path(manifest_path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"manifest must parse to a mapping for contract hashing: {manifest_path}"
+        )
+    contract = dict(data)
+    contract.pop("outcome", None)
+    canonical = json.dumps(contract, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return f"{_CONTRACT_HASH_PREFIX}{digest}"
+
+
+def manifest_hash_matches(lock_hash: str, manifest_path: Path) -> bool:
+    """Compare a stored lock hash to the current manifest by prefix dispatch.
+
+    ``sha256-contract:`` values use the contract-scoped hash; legacy ``sha256:``
+    values use the raw byte hash. Unknown prefixes and missing files return
+    False (fail closed).
+    """
+    path = Path(manifest_path)
+    if not path.is_file():
+        return False
+    if lock_hash.startswith(_CONTRACT_HASH_PREFIX):
+        return lock_hash == compute_manifest_contract_hash(path)
+    if lock_hash.startswith(_BYTE_HASH_PREFIX):
+        return lock_hash == compute_manifest_hash(path)
+    return False
+
+
 def create_plan_lock(
     manifest_path: Path,
     project_root: Path,
@@ -262,7 +304,7 @@ def create_plan_lock(
     root = Path(project_root)
     return PlanLock(
         manifest_path=_project_relative_path(manifest_path, root),
-        manifest_hash=compute_manifest_hash(Path(manifest_path)),
+        manifest_hash=compute_manifest_contract_hash(Path(manifest_path)),
         test_hashes=_hash_test_files(root, _behavioral_test_paths(manifest, root)),
         created_at=_utc_now(),
         agent=agent,
@@ -1145,8 +1187,7 @@ def _contract_weakening_detail(
 
     locked_contract = _load_locked_contract(lock_path)
     if not locked_contract:
-        current_hash = compute_manifest_hash(Path(manifest.source_path))
-        if current_hash == lock.manifest_hash:
+        if manifest_hash_matches(lock.manifest_hash, Path(manifest.source_path)):
             return None
         return (
             "legacy plan lock lacks a manifest contract snapshot; "

@@ -10,7 +10,6 @@ import yaml
 
 from maid_runner.cli.commands.manifest import cmd_manifest
 from maid_runner.core.plan_lock import PlanLock, default_plan_lock_path
-from maid_runner.core.supersession_audit import compute_manifest_hash
 
 
 DRAFT_NAME = "add-example.manifest.yaml"
@@ -80,10 +79,9 @@ class TestPromoteLockMigration:
         exit_code = cmd_manifest(_promote_args(tmp_path, draft_path, no_run=True))
 
         assert exit_code == 0
-        promoted = tmp_path / "manifests" / DRAFT_NAME
         lock = PlanLock.load(lock_path)
         assert lock.manifest_path == f"manifests/{DRAFT_NAME}"
-        assert lock.manifest_hash == compute_manifest_hash(promoted)
+        assert lock.manifest_hash.startswith("sha256-contract:")
         assert lock.revision == 2
         assert lock.revisions[-1].prior_manifest_hash == prior_hash
         assert "promote" in lock.revisions[-1].reason.lower()

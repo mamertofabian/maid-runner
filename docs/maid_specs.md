@@ -81,10 +81,23 @@ The development process is broken down into distinct phases, characterized by tw
 ##### **Plan Locks and Red-Phase Evidence**
 
 `maid plan lock <manifest-path>` creates a tamper-evident lock file under
-`.maid/plan-locks/<manifest-slug>.lock.json`. The lock records sha256 content
-hashes for the approved manifest and its behavioral test files, the creation
+`.maid/plan-locks/<manifest-slug>.lock.json`. The lock records content hashes
+for the approved manifest and its behavioral test files, the creation
 timestamp, revision metadata, and red-phase evidence captured from the
 manifest's `validate:` commands.
+
+New locks store the manifest pin as a contract-scoped hash with the
+`sha256-contract:` prefix: the runner parses the manifest YAML, removes only
+the top-level `outcome` key, and hashes the canonical JSON serialization of
+the remainder (`json.dumps` with `sort_keys=True` and stable separators).
+Behavioral test files remain byte-hashed with the legacy `sha256:` prefix.
+`maid plan status` and legacy-lock contract checks dispatch on the stored
+prefix — `sha256:` still compares raw file bytes — so existing locks stay
+valid without migration. Because the contract hash pins parsed data, YAML
+comment or formatting-only edits no longer flip status under the new format;
+every parsed key except `outcome` still participates, so real contract edits
+remain tamper-evident. Unparseable manifests fail loud rather than falling
+back to byte hashing.
 
 Red-phase evidence uses exit-code-only classification. For pytest commands,
 exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid

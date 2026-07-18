@@ -351,4 +351,12 @@ The development process is broken down into distinct phases, characterized by tw
 
   * **Codebase as a Dependency Graph**
     By analyzing `import` statements, the entire codebase can be mapped as a Directed Acyclic Graph (DAG). This allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.
+
+#### **Plan-lock manifest hashing (runner extension)**
+
+Modern plan locks pin the manifest with a `sha256-contract:` digest over the
+parsed YAML minus only the top-level `outcome` key (canonical JSON). Legacy
+`sha256:` locks still compare raw file bytes. Prefix dispatch keeps existing
+locks valid without migration; YAML comment/formatting-only edits are
+intentionally hash-neutral under the contract format.
     

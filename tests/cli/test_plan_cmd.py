@@ -143,7 +143,7 @@ class TestCmdPlanLock:
         lock_path = default_plan_lock_path(tmp_path, "demo-task")
         record = json.loads(lock_path.read_text())
         assert record["revision"] == 1
-        assert record["manifest_hash"].startswith("sha256:")
+        assert record["manifest_hash"].startswith("sha256-contract:")
         assert record["red_evidence"] is None
         assert "tests/test_demo.py" in record["test_hashes"]
 
@@ -308,7 +308,10 @@ class TestCmdPlanStatus:
         manifest_path = _write_project(tmp_path)
         assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
         capsys.readouterr()
-        manifest_path.write_text(manifest_path.read_text() + "# edited\n")
+        text = manifest_path.read_text()
+        manifest_path.write_text(
+            text.replace('goal: "Demo task"', 'goal: "Tampered goal"')
+        )
 
         exit_code, payload = _status_payload(manifest_path, tmp_path, capsys)
 

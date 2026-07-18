@@ -240,7 +240,11 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
 
 def cmd_plan_status(args: argparse.Namespace) -> int:
     """Report lock state, hash matches and mismatches, and red evidence."""
-    from maid_runner.core.plan_lock import PlanLock, _PlanLockLoadError
+    from maid_runner.core.plan_lock import (
+        PlanLock,
+        _PlanLockLoadError,
+        manifest_hash_matches,
+    )
     from maid_runner.core.supersession_audit import compute_manifest_hash
 
     ctx = _PlanContext.from_args(args)
@@ -266,10 +270,7 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
         )
         return 2
 
-    manifest_match = (
-        ctx.manifest_path.exists()
-        and compute_manifest_hash(ctx.manifest_path) == lock.manifest_hash
-    )
+    manifest_match = manifest_hash_matches(lock.manifest_hash, ctx.manifest_path)
     test_files: dict[str, dict] = {}
     for rel, locked_hash in lock.test_hashes.items():
         full = ctx.project_root / rel
