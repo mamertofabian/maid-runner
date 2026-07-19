@@ -1,0 +1,666 @@
+{
+  "manifest_path": "manifests/084-08-exact-model-and-reasoning-effort-provenance.manifest.yaml",
+  "manifest_hash": "sha256-contract:dea6fd62d01ee56efce8eadd03f6496413ca288ec9e81946a15e22c080522355",
+  "test_hashes": {
+    "tests/core/test_reasoning_effort_provenance.py": "sha256:a6f775a42a8e8bb865a5fa501b734b84763650785a3623e3dfd25b84acbffe4f",
+    "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:3b6a8e4bed84fc094d49a9d4e0fdeab9ec476434ce377739e416f164b3f150dc",
+    "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:bdb7b54fa9765666ae5ba79fcd2565a4f93c403346bf2eb87b419b8cf0a543e2",
+    "tests/test_exact_model_provenance_docs.py": "sha256:3d54bafc59e1ffc6c478ba38c6c85ff7cc8d1c10806d2cfada813e88f6fd9912"
+  },
+  "created_at": "2026-07-19T03:36:11.630848+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d9736750d83a141184688c1312fc182d8d652b2d52d17fc8d8a1c283714dbc74",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:b86455ca308065dd7259410e05a81878eec9e36de24525c6619d24b558d68e38",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:cb7b6c50929672cc3b8c2c6fe85eda91febf67883d9982e0ddf9a6d1b7804e03",
+        "tests/test_exact_model_provenance_docs.py": "sha256:b1947dadd0eadfaf126913bbb5a0e95b533015eb39014995ed0f6992199a3ec6"
+      },
+      "revised_at": "2026-07-19T03:36:12.435458+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/084-08-exact-model-and-reasoning-effort-provenance.manifest.yaml -> manifests/084-08-exact-model-and-reasoning-effort-provenance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca2ad99e4ba88a1f6e5e7c15253610919eff3bd5ab4084ea6309360fa9ae6c10",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:b86455ca308065dd7259410e05a81878eec9e36de24525c6619d24b558d68e38",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:cb7b6c50929672cc3b8c2c6fe85eda91febf67883d9982e0ddf9a6d1b7804e03",
+        "tests/test_exact_model_provenance_docs.py": "sha256:b1947dadd0eadfaf126913bbb5a0e95b533015eb39014995ed0f6992199a3ec6"
+      },
+      "revised_at": "2026-07-19T03:37:36.632991+00:00",
+      "reason": "Correct focused test fixtures and wrapping-tolerant documentation assertions without changing the approved behavior contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca2ad99e4ba88a1f6e5e7c15253610919eff3bd5ab4084ea6309360fa9ae6c10",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:74f60a18c4862606775ce3f11ae3ba6177b470cb44c03c93dfe409bf664aae6e",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:cb7b6c50929672cc3b8c2c6fe85eda91febf67883d9982e0ddf9a6d1b7804e03",
+        "tests/test_exact_model_provenance_docs.py": "sha256:3d54bafc59e1ffc6c478ba38c6c85ff7cc8d1c10806d2cfada813e88f6fd9912"
+      },
+      "revised_at": "2026-07-19T03:37:50.784663+00:00",
+      "reason": "Add the Codex source skill to declared packaging scope after focused sync coverage exposed its independent source path.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.codex/skills/maid-implementation-review/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a9c56a1cffb5e940afbbe8cb9256689348d8377f79452635c0cd45e9ad0724c0",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:74f60a18c4862606775ce3f11ae3ba6177b470cb44c03c93dfe409bf664aae6e",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:cb7b6c50929672cc3b8c2c6fe85eda91febf67883d9982e0ddf9a6d1b7804e03",
+        "tests/test_exact_model_provenance_docs.py": "sha256:3d54bafc59e1ffc6c478ba38c6c85ff7cc8d1c10806d2cfada813e88f6fd9912"
+      },
+      "revised_at": "2026-07-19T03:38:20.695971+00:00",
+      "reason": "Remove an unexecuted contextual CI test now covered by this manifest-owned behavioral test, restoring declared validation coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/ci/test_codex_maid_loop.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dea6fd62d01ee56efce8eadd03f6496413ca288ec9e81946a15e22c080522355",
+      "prior_test_hashes": {
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:74f60a18c4862606775ce3f11ae3ba6177b470cb44c03c93dfe409bf664aae6e",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:cb7b6c50929672cc3b8c2c6fe85eda91febf67883d9982e0ddf9a6d1b7804e03",
+        "tests/test_exact_model_provenance_docs.py": "sha256:3d54bafc59e1ffc6c478ba38c6c85ff7cc8d1c10806d2cfada813e88f6fd9912"
+      },
+      "revised_at": "2026-07-19T03:38:30.171606+00:00",
+      "reason": "Remove an unused test import identified by lint without changing behavioral assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dea6fd62d01ee56efce8eadd03f6496413ca288ec9e81946a15e22c080522355",
+      "prior_test_hashes": {
+        "tests/core/test_reasoning_effort_provenance.py": "sha256:74f60a18c4862606775ce3f11ae3ba6177b470cb44c03c93dfe409bf664aae6e",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py": "sha256:e90ffaae8d1dd2bf88f4d5de61cd85e712e255b55a3827b810f20b38ee3a63b5",
+        "tests/ci/test_codex_loop_agent_provenance_env.py": "sha256:e0ae953df56df4473e66e7c6b4f7d77dbefb60cfd87c27155dbd001811d1d391",
+        "tests/test_exact_model_provenance_docs.py": "sha256:3d54bafc59e1ffc6c478ba38c6c85ff7cc8d1c10806d2cfada813e88f6fd9912"
+      },
+      "revised_at": "2026-07-19T03:42:09.726627+00:00",
+      "reason": "Address implementation-review findings with fail-closed blank payload validation and direct legacy/omission coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-19T03:36:12.827376+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_reasoning_effort_provenance.py tests/cli/test_plan_lock_reasoning_effort_cmd.py tests/ci/test_codex_loop_agent_provenance_env.py tests/test_exact_model_provenance_docs.py",
+        "exit_code": 1,
+        "output_tail": "E           AssertionError: assert 'MAID_AGENT_MODEL' in '---\\nname: maid-implementation-review\\ndescription: Review an implementation produced from an approved MAID manifest....it\\nfound blockers.\\n\\nEnd with one explicit verdict:\\n\\n- `Ready to merge`\\n- `Needs changes`\\n- `Needs discussion`\\n'\n\ntests/test_exact_model_provenance_docs.py:31: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_reasoning_effort_provenance.py::test_resolver_reads_reasoning_effort_from_flags\nFAILED tests/core/test_reasoning_effort_provenance.py::test_resolver_reads_reasoning_effort_from_env_fallback\nFAILED tests/core/test_reasoning_effort_provenance.py::test_reasoning_effort_without_model_warns_and_drops\nFAILED tests/core/test_reasoning_effort_provenance.py::test_outcome_agent_round_trips_reasoning_effort\nFAILED tests/core/test_reasoning_effort_provenance.py::test_schema_accepts_reasoning_effort_and_rejects_unknown_fields\nFAILED tests/core/test_reasoning_effort_provenance.py::test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none\nFAILED tests/core/test_reasoning_effort_provenance.py::test_outcome_index_round_trips_reasoning_effort\nFAILED tests/cli/test_plan_lock_reasoning_effort_cmd.py::test_plan_lock_stores_reasoning_effort_from_flag\nFAILED tests/cli/test_plan_lock_reasoning_effort_cmd.py::test_plan_lock_stores_reasoning_effort_from_env\nFAILED tests/cli/test_plan_lock_reasoning_effort_cmd.py::test_plan_status_reports_reasoning_effort\nFAILED tests/ci/test_codex_loop_agent_provenance_env.py::test_agent_provenance_env_returns_ground_truth_mapping\nFAILED tests/ci/test_codex_loop_agent_provenance_env.py::test_run_codex_json_command_injects_extra_env_into_child\nFAILED tests/ci/test_codex_loop_agent_provenance_env.py::test_implementation_prompt_instructs_env_sourced_outcome_agent\nFAILED tests/test_exact_model_provenance_docs.py::test_outcome_docs_document_reasoning_effort_and_exact_model_rule\nFAILED tests/test_exact_model_provenance_docs.py::test_review_skill_instructs_env_sourced_outcome_agent\n15 failed in 0.22s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._outcome_agent_capture_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._outcome_agent_capture_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._outcome_agent_capture_guidance:of=documentation",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._outcome_agent_capture_guidance:type=markdown section",
+      "docs/manifest-outcome-records.md:attribute:documentation._exact_model_provenance_guidance",
+      "docs/manifest-outcome-records.md:attribute:documentation._exact_model_provenance_guidance:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._exact_model_provenance_guidance:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._exact_model_provenance_guidance:type=markdown section",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_claude_outcome_agent_capture_guidance",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_claude_outcome_agent_capture_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_claude_outcome_agent_capture_guidance:of=package_resource",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_claude_outcome_agent_capture_guidance:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_codex_outcome_agent_capture_guidance",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_codex_outcome_agent_capture_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_codex_outcome_agent_capture_guidance:of=package_resource",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:package_resource._packaged_codex_outcome_agent_capture_guidance:type=markdown section",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:arg=env:type=Mapping[str, str]:default=None",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:arg=flag_values:type=Mapping[str, object]:default=None",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:kind=function",
+      "maid_runner/core/agent_provenance.py:function:resolve_agent_provenance:returns=ProvenanceResolution",
+      "maid_runner/core/types.py:attribute:AgentProvenance.reasoning_effort",
+      "maid_runner/core/types.py:attribute:AgentProvenance.reasoning_effort:kind=attribute",
+      "maid_runner/core/types.py:attribute:AgentProvenance.reasoning_effort:of=AgentProvenance",
+      "maid_runner/core/types.py:attribute:AgentProvenance.reasoning_effort:type=Optional[str]",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_exact_model_provenance_guidance",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_exact_model_provenance_guidance:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_exact_model_provenance_guidance:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_exact_model_provenance_guidance:type=markdown section",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._agent_reasoning_effort_schema_property",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._agent_reasoning_effort_schema_property:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._agent_reasoning_effort_schema_property:of=MAID Manifest v2 schema",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema._agent_reasoning_effort_schema_property:type=optional non-empty string property",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_agent_provenance_env_returns_ground_truth_mapping",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_agent_provenance_env_returns_ground_truth_mapping:kind=test_function",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_agent_provenance_env_returns_ground_truth_mapping:returns=None",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_implementation_prompt_instructs_env_sourced_outcome_agent",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_implementation_prompt_instructs_env_sourced_outcome_agent:kind=test_function",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_implementation_prompt_instructs_env_sourced_outcome_agent:returns=None",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_run_codex_json_command_injects_extra_env_into_child",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_run_codex_json_command_injects_extra_env_into_child:kind=test_function",
+      "tests/ci/test_codex_loop_agent_provenance_env.py:test_run_codex_json_command_injects_extra_env_into_child:returns=None",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_env",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_env:kind=test_function",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_env:returns=None",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_flag",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_flag:kind=test_function",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_lock_stores_reasoning_effort_from_flag:returns=None",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_status_reports_reasoning_effort",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_status_reports_reasoning_effort:kind=test_function",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py:test_plan_status_reports_reasoning_effort:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_agent_round_trips_reasoning_effort",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_agent_round_trips_reasoning_effort:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_agent_round_trips_reasoning_effort:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_index_round_trips_reasoning_effort",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_index_round_trips_reasoning_effort:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_outcome_index_round_trips_reasoning_effort:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none",
+      "tests/core/test_reasoning_effort_provenance.py:test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_reasoning_effort_without_model_warns_and_drops",
+      "tests/core/test_reasoning_effort_provenance.py:test_reasoning_effort_without_model_warns_and_drops:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_reasoning_effort_without_model_warns_and_drops:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_env_fallback",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_env_fallback:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_env_fallback:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_flags",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_flags:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_resolver_reads_reasoning_effort_from_flags:returns=None",
+      "tests/core/test_reasoning_effort_provenance.py:test_schema_accepts_reasoning_effort_and_rejects_unknown_fields",
+      "tests/core/test_reasoning_effort_provenance.py:test_schema_accepts_reasoning_effort_and_rejects_unknown_fields:kind=test_function",
+      "tests/core/test_reasoning_effort_provenance.py:test_schema_accepts_reasoning_effort_and_rejects_unknown_fields:returns=None",
+      "tests/test_exact_model_provenance_docs.py:test_outcome_docs_document_reasoning_effort_and_exact_model_rule",
+      "tests/test_exact_model_provenance_docs.py:test_outcome_docs_document_reasoning_effort_and_exact_model_rule:kind=test_function",
+      "tests/test_exact_model_provenance_docs.py:test_outcome_docs_document_reasoning_effort_and_exact_model_rule:returns=None",
+      "tests/test_exact_model_provenance_docs.py:test_review_skill_instructs_env_sourced_outcome_agent",
+      "tests/test_exact_model_provenance_docs.py:test_review_skill_instructs_env_sourced_outcome_agent:kind=test_function",
+      "tests/test_exact_model_provenance_docs.py:test_review_skill_instructs_env_sourced_outcome_agent:returns=None",
+      "tools/codex_maid_loop.py:function:agent_provenance_env",
+      "tools/codex_maid_loop.py:function:agent_provenance_env:arg=model:type=str:default=None",
+      "tools/codex_maid_loop.py:function:agent_provenance_env:arg=reasoning_effort:type=str:default=None",
+      "tools/codex_maid_loop.py:function:agent_provenance_env:kind=function",
+      "tools/codex_maid_loop.py:function:agent_provenance_env:returns=dict[str, str]",
+      "tools/codex_maid_loop.py:function:build_implementation_command",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=codex:type=str:default=None",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=failure_packet:type=dict[str, Any] | None:default=None",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=final_message_path:type=Path:default=None",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=model:type=str:default=gpt-5.5",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=reasoning_effort:type=str:default=medium",
+      "tools/codex_maid_loop.py:function:build_implementation_command:arg=selected_drafts:type=list[Path]:default=None",
+      "tools/codex_maid_loop.py:function:build_implementation_command:kind=function",
+      "tools/codex_maid_loop.py:function:build_implementation_command:returns=list[str]",
+      "tools/codex_maid_loop.py:function:run_codex_json_command",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=args:type=list[str]:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=color_enabled:type=bool:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=extra_env:type=Mapping[str, str] | None:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=final_message_path:type=Path:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=stderr_path:type=Path:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:arg=stdout_jsonl_path:type=Path:default=None",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:kind=function",
+      "tools/codex_maid_loop.py:function:run_codex_json_command:returns=CodexRunResult"
+    ],
+    "files": {
+      "create": [
+        "tests/ci/test_codex_loop_agent_provenance_env.py",
+        "tests/cli/test_plan_lock_reasoning_effort_cmd.py",
+        "tests/core/test_reasoning_effort_provenance.py",
+        "tests/test_exact_model_provenance_docs.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/core/agent_provenance.py",
+        "maid_runner/core/types.py",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/schemas/manifest.v2.schema.json",
+        "tools/codex_maid_loop.py"
+      ],
+      "read": [
+        "docs/agent-skills.md",
+        "manifests/018-01-codex-maid-loop-automation.manifest.yaml",
+        "manifests/070-03-generalize-bounded-retry-loop.manifest.yaml",
+        "manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+        "manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/cli/commands/evaluate.py",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_reasoning_effort_provenance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_resolver_reads_reasoning_effort_from_flags",
+              "description": "resolve_agent_provenance with model and reasoning_effort flags yields provenance carrying the exact reasoning_effort with source 'flags'.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolver_reads_reasoning_effort_from_env_fallback",
+              "description": "A model flag plus MAID_AGENT_REASONING_EFFORT env yields the env value with source 'mixed'; env-only input yields source 'environment'.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reasoning_effort_without_model_warns_and_drops",
+              "description": "reasoning_effort input without model yields provenance None plus the labeled model-required warning, never silent loss.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_agent_round_trips_reasoning_effort",
+              "description": "load_manifest/save_manifest round-trip an outcome.agent reasoning_effort losslessly and omission-preservingly \u2014 absent field emits no key.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_schema_accepts_reasoning_effort_and_rejects_unknown_fields",
+              "description": "validate_manifest_schema accepts a reasoning_effort string, rejects an empty string, and still rejects unknown agent keys.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none",
+              "description": "A lock saved with reasoning_effort loads it back; pre-existing lock payloads without the field load with reasoning_effort None; lock verification results are identical with and without the field.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_index_round_trips_reasoning_effort",
+              "description": "build/write/read of the outcome index carries agent reasoning_effort; pre-provenance index files load with None.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_lock_reasoning_effort_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_stores_reasoning_effort_from_flag",
+              "description": "maid plan lock --agent-model --agent-reasoning-effort stores reasoning_effort on the lock agent payload.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_stores_reasoning_effort_from_env",
+              "description": "With MAID_AGENT_MODEL and MAID_AGENT_REASONING_EFFORT env set, the stored agent carries reasoning_effort with source 'environment'.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_status_reports_reasoning_effort",
+              "description": "plan status --json includes reasoning_effort inside the agent object when set and omits the key when absent; text mode mentions it only when present.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_codex_loop_agent_provenance_env.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_agent_provenance_env_returns_ground_truth_mapping",
+              "description": "agent_provenance_env('gpt-5.5', 'medium') equals exactly the four-key MAID_AGENT_* mapping with provider 'openai' and client 'codex-cli'.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_codex_json_command_injects_extra_env_into_child",
+              "description": "Running a stub executable through run_codex_json_command with extra_env makes the child process observe the injected MAID_AGENT_* values; without extra_env they are absent.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_implementation_prompt_instructs_env_sourced_outcome_agent",
+              "description": "The prompt string returned by build_implementation_command instructs sourcing outcome.agent model and reasoning_effort from MAID_AGENT_* env ground truth rather than self-description.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_exact_model_provenance_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_outcome_docs_document_reasoning_effort_and_exact_model_rule",
+              "description": "docs/manifest-outcome-records.md and the packaged copy document reasoning_effort, MAID_AGENT_REASONING_EFFORT, and the client-ground-truth-over-self-report preference order, and the two copies stay in sync.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_review_skill_instructs_env_sourced_outcome_agent",
+              "description": "The .claude maid-implementation-review source and both packaged copies instruct env-sourced outcome.agent capture with the exact-slug-plus-reasoning_effort rule.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/types.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "reasoning_effort",
+              "description": "Client-configured reasoning effort for the recorded run (e.g. 'minimal', 'low', 'medium', 'high', 'xhigh'); free-form because client vocabularies differ; None when unknown or for pre-existing records.",
+              "of": "AgentProvenance",
+              "type": "Optional[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/schemas/manifest.v2.schema.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_reasoning_effort_schema_property",
+              "description": "AgentProvenance definition gains optional reasoning_effort (string, minLength 1); additionalProperties stays false so unknown agent keys are still rejected.",
+              "of": "MAID Manifest v2 schema",
+              "type": "optional non-empty string property"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/agent_provenance.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "resolve_agent_provenance",
+              "description": "flag_values gains a \"reasoning_effort\" key with MAID_AGENT_REASONING_EFFORT env fallback; per-field flags-win merge, flags/environment/mixed source semantics, and the model-required visible-drop advisory are unchanged.",
+              "args": [
+                {
+                  "name": "flag_values",
+                  "type": "Mapping[str, object]"
+                },
+                {
+                  "name": "env",
+                  "type": "Mapping[str, str]"
+                }
+              ],
+              "returns": "ProvenanceResolution"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "plan lock and plan revise additionally accept --agent-reasoning-effort alongside the existing --agent-* provenance flags.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "tools/codex_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "agent_provenance_env",
+              "description": "Pure ground-truth mapping for spawned codex sessions: exactly MAID_AGENT_MODEL=model, MAID_AGENT_REASONING_EFFORT=reasoning_effort, MAID_AGENT_PROVIDER=\"openai\", MAID_AGENT_CLIENT=\"codex-cli\"; no os.environ access.",
+              "args": [
+                {
+                  "name": "model",
+                  "type": "str"
+                },
+                {
+                  "name": "reasoning_effort",
+                  "type": "str"
+                }
+              ],
+              "returns": "dict[str, str]"
+            },
+            {
+              "kind": "function",
+              "name": "run_codex_json_command",
+              "description": "Runs the codex session as before; extra_env entries are merged over the automation env copy with extra_env winning, so driver-known session ground truth reaches child maid commands.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "stdout_jsonl_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "stderr_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "final_message_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "color_enabled",
+                  "type": "bool"
+                },
+                {
+                  "name": "extra_env",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "CodexRunResult"
+            },
+            {
+              "kind": "function",
+              "name": "build_implementation_command",
+              "description": "Unchanged signature; the returned prompt string now instructs the implementing agent to source outcome.agent model and reasoning_effort from the MAID_AGENT_* env ground truth instead of self-description.",
+              "args": [
+                {
+                  "name": "codex",
+                  "type": "str"
+                },
+                {
+                  "name": "final_message_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "selected_drafts",
+                  "type": "list[Path]"
+                },
+                {
+                  "name": "model",
+                  "type": "str",
+                  "default": "gpt-5.5"
+                },
+                {
+                  "name": "reasoning_effort",
+                  "type": "str",
+                  "default": "medium"
+                },
+                {
+                  "name": "failure_packet",
+                  "type": "dict[str, Any] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[str]"
+            }
+          ]
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_exact_model_provenance_guidance",
+              "description": "Agent Provenance section documents reasoning_effort, the MAID_AGENT_REASONING_EFFORT env var, the client-ground-truth-over-self-report preference order, and a full-slug model example with reasoning_effort.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_exact_model_provenance_guidance",
+              "description": "Packaged copy of the exact-model provenance guidance, kept in sync with docs/manifest-outcome-records.md via the sanctioned sync.",
+              "of": "package_resource",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_outcome_agent_capture_guidance",
+              "description": "Outcome capture guidance instructs sourcing outcome.agent from MAID_AGENT_* env values when present, recording the exact client-invoked model slug (version and variant) plus reasoning_effort, and labeling self-reported names as such only when no ground truth exists.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_outcome_agent_capture_guidance",
+              "description": "Packaged Claude copy of the outcome agent capture guidance, synced from the .claude source.",
+              "of": "package_resource",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_outcome_agent_capture_guidance",
+              "description": "Packaged Codex copy of the outcome agent capture guidance, carrying the same preference-order rule through the repository's codex payload sync path.",
+              "of": "package_resource",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "docs/agent-skills.md",
+        "manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml",
+        "manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml",
+        "manifests/018-01-codex-maid-loop-automation.manifest.yaml",
+        "manifests/070-03-generalize-bounded-retry-loop.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "reason": "Add the new optional AgentProvenance field to private Outcome parsing and omission-preserving serialization without changing the public load/save signatures."
+        },
+        {
+          "path": "maid_runner/core/outcomes.py",
+          "reason": "Carry the optional field through private Outcome-index serialization and legacy parsing without changing the public index API."
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "reason": "Carry the optional field through private advisory lock payload serialization and fail-closed parsing outside hashes and enforcement decisions."
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Extend private provenance composition, status payload formatting, and text display for the new CLI field without changing command signatures."
+        },
+        {
+          "path": "maid_runner/cli/commands/evaluate.py",
+          "reason": "Include the optional field in private evaluate-report serialization while leaving comparison keys unchanged."
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Keep the Codex source payload aligned with the Claude review guidance before sanctioned packaging sync copies it into the Codex distribution payload."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_codex_loop_agent_provenance_env.py",
+      "tests/cli/test_plan_lock_reasoning_effort_cmd.py",
+      "tests/core/test_reasoning_effort_provenance.py",
+      "tests/test_exact_model_provenance_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_reasoning_effort_provenance.py tests/cli/test_plan_lock_reasoning_effort_cmd.py tests/ci/test_codex_loop_agent_provenance_env.py tests/test_exact_model_provenance_docs.py"
+    ]
+  }
+}

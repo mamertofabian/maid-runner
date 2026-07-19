@@ -312,6 +312,8 @@ def _agent_to_dict(agent: AgentProvenance | None) -> dict | None:
     if agent is None:
         return None
     data = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        data["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         data["provider"] = agent.provider
     if agent.client is not None:

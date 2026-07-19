@@ -26,7 +26,8 @@ outcome:
   status: completed
   summary: "Implementation completed after review."
   agent:
-    model: gpt-5-codex
+    model: gpt-5.6-luna
+    reasoning_effort: high
     provider: openai
     client: codex-cli
     skills:
@@ -38,9 +39,15 @@ outcome:
 
 `agent.model` is required when the block is present because it is the primary
 comparison key for future after-action evaluation. The remaining fields are
-optional: `provider`, `client`, `skills`, `instructions_fingerprint`, and
+optional: `reasoning_effort`, `provider`, `client`, `skills`, `instructions_fingerprint`, and
 `source`. Agent-authored Outcome YAML normally omits `source`; CLI-captured
 provenance may use values such as `flags`, `environment`, or `mixed`.
+
+`reasoning_effort` is a non-empty free-form client value (for example `high`),
+because clients use different vocabularies. When available, use client-provided
+ground truth from `MAID_AGENT_MODEL` and `MAID_AGENT_REASONING_EFFORT` before an
+exact self-known model slug. A marketing-name self-report is a labeled last
+resort, never a replacement for the exact client-invoked model identifier.
 
 ## Lifecycle
 

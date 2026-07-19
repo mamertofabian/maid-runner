@@ -156,6 +156,11 @@ For implementation review:
 - After the review verdict is ready, check whether the completed manifest needs an `outcome:` record.
 - Outcome capture happens after implementation review and before final handoff.
 - Confirm new Outcome lessons cite concrete validation, review, or file evidence.
+- When capturing `outcome.agent`, prefer `MAID_AGENT_MODEL` and
+  `MAID_AGENT_REASONING_EFFORT` environment ground truth. Record the exact
+  client-invoked model slug (including version and variant) plus
+  `reasoning_effort`; use a self-reported marketing name only as a labeled
+  last resort when no ground truth or exact self-known slug is available.
 - Do not mark work ready if Outcome claims are not backed by validation and review evidence.
 - To intentionally include instructive failed or abandoned Outcome lessons,
   refresh the index with this opt-in command, then recall from that index:

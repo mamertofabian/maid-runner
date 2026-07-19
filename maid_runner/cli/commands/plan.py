@@ -444,6 +444,7 @@ def _resolve_agent_provenance_from_args(args: argparse.Namespace):
         key: os.environ[key]
         for key in (
             "MAID_AGENT_MODEL",
+            "MAID_AGENT_REASONING_EFFORT",
             "MAID_AGENT_PROVIDER",
             "MAID_AGENT_CLIENT",
             "MAID_AGENT_SKILLS",
@@ -454,6 +455,7 @@ def _resolve_agent_provenance_from_args(args: argparse.Namespace):
     return resolve_agent_provenance(
         {
             "model": getattr(args, "agent_model", None),
+            "reasoning_effort": getattr(args, "agent_reasoning_effort", None),
             "provider": getattr(args, "agent_provider", None),
             "client": getattr(args, "agent_client", None),
             "skills": getattr(args, "agent_skill", None),
@@ -474,6 +476,8 @@ def _agent_to_payload(agent) -> dict | None:
     if agent is None:
         return None
     payload = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        payload["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         payload["provider"] = agent.provider
     if agent.client is not None:
@@ -528,6 +532,8 @@ def _delta_count_parts(sign: str, count: int, singular: str) -> list[str]:
 
 def _format_agent(agent) -> str:
     details = []
+    if agent.reasoning_effort:
+        details.append(f"reasoning_effort={agent.reasoning_effort}")
     if agent.provider:
         details.append(f"provider={agent.provider}")
     if agent.client:

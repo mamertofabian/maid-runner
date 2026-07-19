@@ -532,6 +532,7 @@ def _parse_agent_provenance(data: dict | None) -> AgentProvenance | None:
         return None
     return AgentProvenance(
         model=data["model"],
+        reasoning_effort=data.get("reasoning_effort"),
         provider=data.get("provider"),
         client=data.get("client"),
         skills=tuple(data.get("skills", [])),
@@ -763,6 +764,8 @@ def _outcome_to_dict(outcome: OutcomeRecord) -> dict:
 
 def _agent_provenance_to_dict(agent: AgentProvenance) -> dict:
     data = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        data["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         data["provider"] = agent.provider
     if agent.client is not None:

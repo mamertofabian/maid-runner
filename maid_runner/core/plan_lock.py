@@ -495,6 +495,8 @@ def _agent_to_payload(agent: AgentProvenance | None) -> dict | None:
     if agent is None:
         return None
     payload = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        payload["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         payload["provider"] = agent.provider
     if agent.client is not None:
@@ -517,6 +519,9 @@ def _agent_from_payload(value: object) -> AgentProvenance | None:
     if not isinstance(model, str) or not model.strip():
         raise TypeError("agent.model must be a non-empty string")
     provider = _optional_agent_string(value, "provider")
+    reasoning_effort = _optional_agent_string(value, "reasoning_effort")
+    if reasoning_effort is not None and not reasoning_effort.strip():
+        raise TypeError("agent.reasoning_effort must be a non-empty string")
     client = _optional_agent_string(value, "client")
     instructions_fingerprint = _optional_agent_string(value, "instructions_fingerprint")
     source = _optional_agent_string(value, "source")
@@ -527,6 +532,7 @@ def _agent_from_payload(value: object) -> AgentProvenance | None:
         raise TypeError("agent.skills must be an array of strings")
     return AgentProvenance(
         model=model,
+        reasoning_effort=reasoning_effort,
         provider=provider,
         client=client,
         skills=tuple(raw_skills),

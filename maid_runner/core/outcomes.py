@@ -351,6 +351,8 @@ def _record_to_dict(record: OutcomeIndexRecord) -> dict:
 
 def _agent_to_dict(agent: AgentProvenance) -> dict:
     data = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        data["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         data["provider"] = agent.provider
     if agent.client is not None:
@@ -466,6 +468,7 @@ def _agent_from_dict(value: object) -> AgentProvenance | None:
         raise ValueError("agent must be an object or null")
     return AgentProvenance(
         model=_expect_str(value, "model"),
+        reasoning_effort=_expect_optional_str(value, "reasoning_effort"),
         provider=_expect_optional_str(value, "provider"),
         client=_expect_optional_str(value, "client"),
         skills=_expect_str_tuple(value, "skills") if "skills" in value else (),

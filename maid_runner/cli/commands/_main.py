@@ -582,6 +582,12 @@ def _add_agent_provenance_args(parser: argparse.ArgumentParser) -> None:
         help="Agent model to record as advisory plan-lock provenance",
     )
     parser.add_argument(
+        "--agent-reasoning-effort",
+        default=None,
+        dest="agent_reasoning_effort",
+        help="Agent reasoning effort to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
         "--agent-provider",
         default=None,
         dest="agent_provider",

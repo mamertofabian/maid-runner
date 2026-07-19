@@ -87,6 +87,7 @@ class OutcomeValidationEvidence:
 @dataclass(frozen=True)
 class AgentProvenance:
     model: str
+    reasoning_effort: Optional[str] = None
     provider: Optional[str] = None
     client: Optional[str] = None
     skills: tuple[str, ...] = ()
