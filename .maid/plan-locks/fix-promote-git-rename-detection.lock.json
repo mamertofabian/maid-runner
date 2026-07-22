@@ -1,0 +1,168 @@
+{
+  "manifest_path": "manifests/fix-promote-git-rename-detection.manifest.yaml",
+  "manifest_hash": "sha256-contract:b0addec4224f17fb50fe12097348b33d369dc2672c48c368bda8739aff844790",
+  "test_hashes": {
+    "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:9017abb8303e72b34dd23602251d1758801a7554d30ad9fca8ae7c3bff66dbc9"
+  },
+  "created_at": "2026-07-22T03:23:17.105429+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:aa4502fd06e3aadd7880bd944e20a262e2a9356b86aba0c5bb32a6a32eeb0e04",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:a88130167bca9af19501e9380115b5cc62b188f36f4a4228f95a2a6ff5da1d31"
+      },
+      "revised_at": "2026-07-22T03:23:20.734959+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-promote-git-rename-detection.manifest.yaml -> manifests/fix-promote-git-rename-detection.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b0addec4224f17fb50fe12097348b33d369dc2672c48c368bda8739aff844790",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:a88130167bca9af19501e9380115b5cc62b188f36f4a4228f95a2a6ff5da1d31"
+      },
+      "revised_at": "2026-07-22T03:38:51.085622+00:00",
+      "reason": "Review requires merged-status and folded-scalar regression coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b0addec4224f17fb50fe12097348b33d369dc2672c48c368bda8739aff844790",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:a88130167bca9af19501e9380115b5cc62b188f36f4a4228f95a2a6ff5da1d31"
+      },
+      "revised_at": "2026-07-22T03:47:24.332851+00:00",
+      "reason": "Lock final review-driven merge-key and folded-scalar behavioral coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T03:47:25.146774+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_git_rename_cmd.py",
+        "exit_code": 1,
+        "output_tail": "        exit_code = cmd_manifest(_promote_args(tmp_path, draft_path))\n        _git(tmp_path, \"add\", \"-A\")\n        summary = _git(tmp_path, \"diff\", \"--cached\", \"--summary\").stdout\n    \n        assert exit_code == 0\n>       assert \"rename manifests/{drafts => }/preserve-history.manifest.yaml\" in summary\nE       AssertionError: assert 'rename manifests/{drafts => }/preserve-history.manifest.yaml' in ' delete mode 100644 manifests/drafts/preserve-history.manifest.yaml\\n create mode 100644 manifests/preserve-history.manifest.yaml\\n'\n\ntests/cli/test_manifest_promote_git_rename_cmd.py:110: AssertionError\n----------------------------- Captured stdout call -----------------------------\nPromoted /tmp/pytest-of-atomrem/pytest-126/test_staged_promotion_is_detec0/manifests/drafts/preserve-history.manifest.yaml -> /tmp/pytest-of-atomrem/pytest-126/test_staged_promotion_is_detec0/manifests/preserve-history.manifest.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_git_rename_cmd.py::test_promote_preserves_untouched_yaml_presentation\nFAILED tests/cli/test_manifest_promote_git_rename_cmd.py::test_staged_promotion_is_detected_as_git_rename\n2 failed in 0.23s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.32ms\nInstalled 1 package in 0.73ms",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_manifest_promote_git_rename_cmd.py:test_promote_preserves_untouched_yaml_presentation",
+      "tests/cli/test_manifest_promote_git_rename_cmd.py:test_promote_preserves_untouched_yaml_presentation:kind=test_function",
+      "tests/cli/test_manifest_promote_git_rename_cmd.py:test_staged_promotion_is_detected_as_git_rename",
+      "tests/cli/test_manifest_promote_git_rename_cmd.py:test_staged_promotion_is_detected_as_git_rename:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_promote_git_rename_cmd.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/fix-promote-argv-self-reference.manifest.yaml",
+        "manifests/fix-promote-multiline-yaml-style.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/manifest.py",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_promote_git_rename_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_preserves_untouched_yaml_presentation",
+              "source_scenario": "A stylistically hand-authored draft contains comments, quoted scalars, flow collections, and a self-referencing validate command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion changes the required timestamp, inactive status, and self-reference while preserving comments and untouched YAML presentation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_staged_promotion_is_detected_as_git_rename",
+              "source_scenario": "A tracked, stylistically hand-authored draft is committed, promoted, and the resulting filesystem changes are staged normally.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Git's default cached diff summary reports the draft-to-active transition as a rename rather than separate create and delete entries."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/fix-promote-multiline-yaml-style.manifest.yaml",
+        "manifests/fix-promote-argv-self-reference.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "reason": "Change the private promotion load/render path without altering the public cmd_manifest signature."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Declare the round-trip YAML runtime dependency."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lock the added runtime dependency reproducibly."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_promote_git_rename_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_manifest_promote_git_rename_cmd.py"
+    ]
+  }
+}

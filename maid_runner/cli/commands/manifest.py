@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from io import StringIO
 import json
 from pathlib import Path
 import re
@@ -194,11 +195,15 @@ def _cmd_promote(args: argparse.Namespace) -> int:
         print_error(lock_state)
         return 2
 
-    _rewrite_self_validate_paths(data, old_rel, new_rel)
-    data["created"] = _current_utc_timestamp()
-    _clear_inactive_metadata_status(data)
+    created = _current_utc_timestamp()
+    _apply_promotion_mutations(data, old_rel, new_rel, created)
+    try:
+        promoted_text = _render_promoted_yaml(manifest_path, old_rel, new_rel, created)
+    except (OSError, ValueError) as exc:
+        print_error(f"Manifest YAML round-trip failed: {exc}")
+        return 2
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(_dump_manifest_yaml(data))
+    output_path.write_text(promoted_text)
 
     if lock_state is not None:
         lock, lock_path = lock_state
@@ -314,18 +319,101 @@ def _rewrite_self_validate_paths(data: dict, old_rel: str, new_rel: str) -> None
     commands = data.get("validate")
     if not isinstance(commands, list):
         return
-    data["validate"] = [
-        (
-            command.replace(old_rel, new_rel)
-            if isinstance(command, str)
-            else (
-                [new_rel if part == old_rel else part for part in command]
-                if isinstance(command, list)
-                else command
-            )
+    for command_index, command in enumerate(commands):
+        if isinstance(command, str):
+            commands[command_index] = command.replace(old_rel, new_rel)
+        elif isinstance(command, list):
+            for part_index, part in enumerate(command):
+                if part == old_rel:
+                    command[part_index] = new_rel
+
+
+def _apply_promotion_mutations(
+    data: dict, old_rel: str, new_rel: str, created: str
+) -> None:
+    _rewrite_self_validate_paths(data, old_rel, new_rel)
+    data["created"] = created
+    _clear_inactive_metadata_status(data)
+
+
+def _render_promoted_yaml(
+    manifest_path: Path, old_rel: str, new_rel: str, created: str
+) -> str:
+    """Render bounded promotion changes while preserving draft presentation."""
+    from ruamel.yaml import YAML
+    from ruamel.yaml.error import YAMLError
+    from ruamel.yaml.scalarstring import FoldedScalarString, LiteralScalarString
+    from ruamel.yaml.util import load_yaml_guess_indent
+
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    source_text = manifest_path.read_text()
+    try:
+        data, sequence_indent, sequence_offset = load_yaml_guess_indent(
+            source_text, yaml=yaml
         )
-        for command in commands
-    ]
+    except YAMLError as exc:
+        raise ValueError(str(exc)) from exc
+    if not isinstance(data, dict):
+        raise ValueError("Manifest YAML must be a mapping.")
+
+    _apply_promotion_mutations(data, old_rel, new_rel, created)
+    _render_multiline_strings_as_literal_blocks(
+        data,
+        LiteralScalarString,
+        (LiteralScalarString, FoldedScalarString),
+    )
+    if sequence_indent is not None:
+        yaml.indent(
+            mapping=_guess_mapping_indent(source_text),
+            sequence=sequence_indent,
+            offset=sequence_offset or 0,
+        )
+    output = StringIO()
+    try:
+        yaml.dump(data, output)
+    except YAMLError as exc:
+        raise ValueError(str(exc)) from exc
+    return output.getvalue()
+
+
+def _guess_mapping_indent(source_text: str) -> int:
+    candidates = []
+    for line in source_text.splitlines():
+        stripped = line.lstrip(" ")
+        indent = len(line) - len(stripped)
+        if indent and not stripped.startswith(("-", "#")) and ":" in stripped:
+            candidates.append(indent)
+    return min(candidates, default=2)
+
+
+def _render_multiline_strings_as_literal_blocks(
+    value, literal_type, preserved_block_types
+) -> None:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if (
+                isinstance(item, str)
+                and "\n" in item
+                and not isinstance(item, preserved_block_types)
+            ):
+                value[key] = literal_type(item)
+            else:
+                _render_multiline_strings_as_literal_blocks(
+                    item, literal_type, preserved_block_types
+                )
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            if (
+                isinstance(item, str)
+                and "\n" in item
+                and not isinstance(item, preserved_block_types)
+            ):
+                value[index] = literal_type(item)
+            else:
+                _render_multiline_strings_as_literal_blocks(
+                    item, literal_type, preserved_block_types
+                )
 
 
 def _warn_about_draft_references(
@@ -494,6 +582,23 @@ def _clear_inactive_metadata_status(data: dict) -> None:
     status = str(metadata.get("status", "")).strip().lower()
     if status not in _INACTIVE_METADATA_STATUSES:
         return
+    merge_sources = getattr(metadata, "merge", None)
+    if merge_sources:
+        from ruamel.yaml.comments import CommentedMap
+
+        for index, source in enumerate(merge_sources):
+            source_status = str(source.get("status", "")).strip().lower()
+            if source_status not in _INACTIVE_METADATA_STATUSES:
+                continue
+            replacement = CommentedMap(
+                (key, value) for key, value in source.items() if key != "status"
+            )
+            if source.fa.flow_style():
+                replacement.fa.set_flow_style()
+            merge_sources[index] = replacement
+            serialized_sources = getattr(merge_sources, "sequence", None)
+            if serialized_sources is not None:
+                serialized_sources[index] = replacement
     metadata.pop("status", None)
     if not metadata:
         data.pop("metadata", None)
