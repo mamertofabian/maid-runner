@@ -194,7 +194,7 @@ class ValidatorRegistry:
 
         self._validator_records.append(
             ValidatorRecord(
-                name=entry_point.name,
+                name=validator_class.__name__,
                 extensions=extensions,
                 source=source,
                 status=status,

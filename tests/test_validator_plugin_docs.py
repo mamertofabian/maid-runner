@@ -65,6 +65,18 @@ def test_validator_plugin_authoring_guide_states_support_boundary_and_semver() -
     assert "Everything else under `maid_runner/validators/` is internal" in guide
 
 
+def test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names() -> (
+    None
+):
+    guide = _read(GUIDE)
+
+    assert (
+        "Loaded plugins are listed by their class `__name__`" in guide
+        or "Loaded plugins are listed by their class __name__" in guide
+    )
+    assert "entry-point name when the class was not loaded" in guide
+
+
 def test_language_support_entrypoints_route_requests_to_plugin_path(capsys) -> None:
     readme = _read(README)
     howto = _read(HOWTO)

@@ -1,0 +1,227 @@
+schema: '2'
+goal: Make maid validators show loaded plugin class names consistently with built-ins
+type: fix
+created: '2026-07-22T00:32:39Z'
+metadata:
+  tags:
+  - validators
+  - plugin-architecture
+  - cli
+  priority: medium
+description: |
+  `maid validators` and `ValidatorRegistry.validator_records()` label built-ins
+  with `validator_class.__name__` (`PythonValidator`, …) but label loaded
+  plugins with the packaging entry-point key (`csharp`, `rust`, …). That makes
+  third-party validators look unlike built-ins even when the loaded class is
+  `CSharpValidator`.
+
+  Prefer the loaded class `__name__` for plugin records once the entry point
+  successfully resolves to a `BaseValidator` subclass (statuses `active` and
+  `conflict`). Keep `entry_point.name` when the class is unavailable: status
+  `error` (load failure) and `disabled` (kill switch). Discovery order stays
+  by distribution name then entry-point name; only the displayed `name` field
+  changes for successfully loaded plugins.
+
+  Rationale: the class name is the stable identity users already see for
+  built-ins; the entry-point key remains useful packaging metadata and the
+  only label available before load. Docs should state this naming rule so
+  plugin authors do not treat the left-hand entry-point key as the audit
+  display name.
+
+  Out of scope: changing entry-point packaging conventions, conflict/load
+  diagnostics text, kill-switch behavior, or built-in registration.
+temptations:
+- risk: Do not rename packaging entry-point keys in third-party plugins to fake consistency.
+  instead: Change maid-runner record labeling so loaded plugins use `validator_class.__name__`.
+- risk: Do not invent a second display field or break JSON/text row parity.
+  instead: Keep the existing `ValidatorRecord.name` / `maid validators` `name` column and only change how loaded-plugin values are chosen.
+- risk: Do not use the class name for disabled or failed loads where the class was never imported.
+  instead: Retain `entry_point.name` for `disabled` and `error` records.
+- risk: Do not reorder discovery to sort by class name.
+  instead: Keep deterministic ordering by distribution name then entry-point name; only the displayed name changes.
+files:
+  scope:
+  - path: maid_runner/validators/registry.py
+    reason: When a plugin entry point loads successfully, record ValidatorRecord.name from validator_class.__name__ instead of entry_point.name; leave disabled/error records on entry_point.name.
+  - path: docs/validator-plugin-authoring.md
+    reason: Document that maid validators shows the loaded class name for active/conflict plugins and the entry-point key only when the class was not loaded.
+  edit:
+  - path: tests/validators/test_plugin_discovery.py
+    artifacts:
+    - kind: test_function
+      name: test_well_formed_plugin_claiming_unclaimed_extension_becomes_active
+      source_scenario: A fake entry point named go loads _GoValidator for an unclaimed .go extension.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidatorRegistry
+          member: with_builtin_validators
+      expected:
+        behavior: The plugin ValidatorRecord.name is _GoValidator, not the entry-point key go.
+    - kind: test_function
+      name: test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers
+      source_scenario: A fake entry point named mixed loads a validator that claims both .go and .py.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidatorRegistry
+          member: with_builtin_validators
+      expected:
+        behavior: The conflict record still uses the loaded class __name__ as ValidatorRecord.name.
+    - kind: test_function
+      name: test_discovery_and_record_order_are_deterministic
+      source_scenario: Multiple fake plugins are supplied in shuffled order and load distinct or shared validator classes.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidatorRegistry
+          member: with_builtin_validators
+      expected:
+        behavior: Record order remains distribution-then-entry-point, while each loaded plugin's displayed name is its class __name__.
+    - kind: test_function
+      name: test_disable_environment_records_plugins_without_importing_them
+      source_scenario: MAID_DISABLE_VALIDATOR_PLUGINS=1 is set and a go entry point is present.
+      actions:
+      - type: api_call
+        subject:
+          export: ValidatorRegistry
+          member: with_builtin_validators
+      expected:
+        behavior: The disabled record keeps entry_point.name because the class was not loaded.
+  - path: tests/cli/test_validators_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_validators_json_matches_text_rows_for_plugin_statuses
+      source_scenario: maid validators lists an active go plugin, a conflicting python plugin, and a broken plugin.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: Active and conflict rows show the loaded class names; the error row still shows the entry-point key.
+    - kind: test_function
+      name: test_validators_lists_disabled_plugins_without_loading_them
+      source_scenario: maid validators --json runs with the plugin kill switch enabled.
+      actions:
+      - type: api_call
+        subject:
+          export: main
+      expected:
+        behavior: The disabled plugin row name remains the entry-point key.
+  - path: tests/test_validator_plugin_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names
+      source_scenario: The authoring guide is read after the naming rule is documented.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The guide states that loaded plugins are listed by class __name__ while disabled and error rows keep the entry-point name when the class was not loaded.
+  read:
+  - maid_runner/cli/commands/validators.py
+  - manifests/063-01-add-entry-point-validator-discovery.manifest.yaml
+  - manifests/063-02-add-maid-validators-cli-listing.manifest.yaml
+  - manifests/063-04-document-validator-plugin-authoring.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/validators/test_plugin_discovery.py tests/cli/test_validators_cmd.py tests/test_validator_plugin_docs.py
+outcome:
+  status: completed
+  summary: |
+    Loaded plugin validator records and `maid validators` now display
+    `validator_class.__name__` for active and conflict rows, matching built-ins,
+    while disabled and error rows keep the entry-point name when the class was
+    not loaded. Authoring docs state the naming rule.
+  rationale: |
+    The one-line registry change for successfully loaded plugins is enough to
+    align audit labels without inventing a second display field or renaming
+    packaging entry points. Sibling 063-* plan locks were revised through
+    `maid plan revise --preserve-red-evidence` after shared behavioral tests
+    updated their expected names.
+  lessons:
+  - lesson_type: ux-consistency
+    summary: Plugin audit labels should follow the same class-__name__ convention as built-ins once the validator class is loaded; entry-point keys remain the fallback only when load is skipped or fails.
+    tags:
+    - validators
+    - plugin-architecture
+    - display-names
+    paths:
+    - maid_runner/validators/registry.py
+    - docs/validator-plugin-authoring.md
+  - lesson_type: workflow
+    summary: Changing shared behavioral tests owned by earlier locked manifests requires sanctioned plan-lock revision on those siblings, not manual lock edits.
+    tags:
+    - plan-lock
+    - shared-tests
+    paths:
+    - tests/validators/test_plugin_discovery.py
+    - tests/cli/test_validators_cmd.py
+    - tests/test_validator_plugin_docs.py
+  review_notes:
+  - source: maid-implementation-reviewer
+    severity: ready
+    summary: Independent review found no blocking issues; Ready to merge with Outcome capture required before handoff.
+  - source: maid-implementation-reviewer
+    severity: residual-risk
+    summary: Display-name collisions are possible when multiple entry points load the same class; record order still follows distribution then entry-point name.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_plugin_discovery.py
+    - tests/cli/test_validators_cmd.py
+    - tests/test_validator_plugin_docs.py
+    status: passed
+    summary: All 18 focused discovery, CLI listing, and docs tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/fix-plugin-validator-record-display-names.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed for the promoted display-name fix manifest.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --plan-lock-scope
+    - task
+    - --changed-scope
+    - --since
+    - HEAD
+    status: passed
+    summary: Task-scoped verification passed all stages with only existing non-blocking E307 warnings.
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - maid_runner/validators/registry.py
+    - tests/validators/test_plugin_discovery.py
+    - tests/cli/test_validators_cmd.py
+    - tests/test_validator_plugin_docs.py
+    status: passed
+    summary: Focused ruff check passed.
+  - command:
+    - uv
+    - run
+    - black
+    - --check
+    - maid_runner/validators/registry.py
+    - tests/validators/test_plugin_discovery.py
+    - tests/cli/test_validators_cmd.py
+    - tests/test_validator_plugin_docs.py
+    status: passed
+    summary: Focused black check passed.
