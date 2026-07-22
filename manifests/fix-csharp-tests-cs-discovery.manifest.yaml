@@ -1,0 +1,73 @@
+schema: "2"
+goal: Recognize standard C# *Tests.cs files as behavioral tests so installed C#
+  validators can satisfy E200.
+type: fix
+created: "2026-07-22T10:26:43Z"
+metadata:
+  bug_report:
+    ~/.maid/bug-report/20260722-181459-deckhand-csharp-behavioral-validation.md
+description: |
+  Extend the existing public test-file classifier with the conventional C#
+  `*Tests.cs` suffix. This lets explicitly declared and command-discovered MSTest,
+  NUnit, and xUnit files reach an installed C# validator. Keep the rule exact and
+  case-sensitive; do not infer test status from directories or arbitrary `Test`
+  substrings.
+temptations:
+  - risk: "Do not special-case Deckhand paths or the InductionWorkflowServiceTests
+      basename."
+    instead: "Recognize the ecosystem convention through the generic *Tests.cs suffix."
+  - risk: "Do not classify every .cs file under a Tests directory as behavioral."
+    instead: "Use the filename suffix only and pin near-miss production names as negative
+      cases."
+files:
+  create:
+    - path: tests/core/test_csharp_test_discovery.py
+      artifacts:
+        - kind: test_function
+          name: test_is_test_file_recognizes_csharp_tests_suffix
+        - kind: test_function
+          name: test_is_test_file_rejects_csharp_near_misses
+  read:
+    - maid_runner/core/_file_discovery.py
+    - manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml
+  scope:
+    - path: maid_runner/core/_file_discovery.py
+      reason: Extend the existing contracted is_test_file behavior without
+        changing its signature.
+validate:
+  -   - uv
+      - run
+      - python
+      - -m
+      - pytest
+      - tests/core/test_csharp_test_discovery.py
+      - -q
+outcome:
+  status: completed
+  completed_at: "2026-07-22T11:10:00Z"
+  summary: Recognized the conventional case-sensitive C# *Tests.cs suffix so behavioral validation routes those files through installed C# validator plugins.
+  rationale: Deckhand's explicitly declared InductionWorkflowServiceTests.cs produced an empty behavioral test set because the shared filename classifier only recognized Python and JS/TS conventions. The narrow suffix rule fixes discovery without directory heuristics or project-specific paths.
+  lessons:
+    - lesson_type: validation
+      summary: A language validator cannot satisfy E200 until the shared test-file classifier recognizes that language's test naming convention; direct collector success alone does not prove end-to-end behavioral discovery.
+      tags: [csharp, test-discovery, e200]
+      paths:
+        - maid_runner/core/_file_discovery.py
+        - tests/core/test_csharp_test_discovery.py
+  review_notes:
+    - source: independent-read-only-review
+      severity: ready
+      summary: No blocking findings; exact suffix, negative cases, scope, and downstream Deckhand evidence matched the locked contract.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/core/test_csharp_test_discovery.py, tests/core/test_file_discovery.py, -q]
+      status: passed
+      summary: 31 focused discovery tests passed.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 355 active manifests passed validation.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 197 manifest validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: All nine verification stages passed; only pre-existing unsupported-file warnings remained.

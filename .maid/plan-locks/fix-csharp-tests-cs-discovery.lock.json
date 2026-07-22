@@ -1,0 +1,98 @@
+{
+  "manifest_path": "manifests/fix-csharp-tests-cs-discovery.manifest.yaml",
+  "manifest_hash": "sha256-contract:27a57fc2275df4f034b50a23b6db9ab254f97572eef99256aa224c94110a3e0f",
+  "test_hashes": {
+    "tests/core/test_csharp_test_discovery.py": "sha256-pyast:8d1d7dd0565ff84815d26da213c4ab0f0ea3402726ef7b2619d21bae6ded8b96"
+  },
+  "created_at": "2026-07-22T10:26:43.292630+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ee5d3c56086a310d91725b032e92ae5ac2fc4dccb964a50d5a8eec4063ed5c93",
+      "prior_test_hashes": {
+        "tests/core/test_csharp_test_discovery.py": "sha256-pyast:8d1d7dd0565ff84815d26da213c4ab0f0ea3402726ef7b2619d21bae6ded8b96"
+      },
+      "revised_at": "2026-07-22T10:26:43.722763+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-csharp-tests-cs-discovery.manifest.yaml -> manifests/fix-csharp-tests-cs-discovery.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T10:26:43.972937+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_csharp_test_discovery.py -q",
+        "exit_code": 1,
+        "output_tail": "F.                                                                       [100%]\n=================================== FAILURES ===================================\n_______________ test_is_test_file_recognizes_csharp_tests_suffix _______________\n\n    def test_is_test_file_recognizes_csharp_tests_suffix():\n>       assert is_test_file(\"InductionWorkflowServiceTests.cs\") is True\nE       AssertionError: assert False is True\nE        +  where False = is_test_file('InductionWorkflowServiceTests.cs')\n\ntests/core/test_csharp_test_discovery.py:7: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_csharp_test_discovery.py::test_is_test_file_recognizes_csharp_tests_suffix\n1 failed, 1 passed in 0.11s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_csharp_test_discovery.py:test_is_test_file_recognizes_csharp_tests_suffix",
+      "tests/core/test_csharp_test_discovery.py:test_is_test_file_recognizes_csharp_tests_suffix:kind=test_function",
+      "tests/core/test_csharp_test_discovery.py:test_is_test_file_rejects_csharp_near_misses",
+      "tests/core/test_csharp_test_discovery.py:test_is_test_file_rejects_csharp_near_misses:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_csharp_test_discovery.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_file_discovery.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_csharp_test_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_is_test_file_recognizes_csharp_tests_suffix"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_is_test_file_rejects_csharp_near_misses"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "reason": "Extend the existing contracted is_test_file behavior without changing its signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_csharp_test_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_csharp_test_discovery.py -q"
+    ]
+  }
+}

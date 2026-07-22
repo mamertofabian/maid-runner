@@ -33,6 +33,7 @@ _TEST_PATTERNS = [
     re.compile(r".*_test\.py$"),
     re.compile(r".*\.test\.(ts|tsx|js|jsx)$"),
     re.compile(r".*\.spec\.(ts|tsx|js|jsx)$"),
+    re.compile(r".*Tests\.cs$"),
 ]
 
 
