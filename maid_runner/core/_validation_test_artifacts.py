@@ -352,6 +352,16 @@ def validate_manifest_test_commands(
     covered: set[str] = set()
     missing: list[str] = []
     if requires_coverage and test_files:
+        acceptance_covered: set[str] = set()
+        if manifest.acceptance is not None:
+            for command in manifest.acceptance.tests:
+                acceptance_covered.update(
+                    _test_files_covered_by_validate_command(
+                        command,
+                        test_files,
+                        project_root,
+                    )
+                )
         for command in manifest.validate_commands:
             covered.update(
                 _test_files_covered_by_validate_command(
@@ -360,7 +370,11 @@ def validate_manifest_test_commands(
                     project_root,
                 )
             )
-        missing = [test_file for test_file in test_files if test_file not in covered]
+        missing = [
+            test_file
+            for test_file in test_files
+            if test_file not in covered and test_file not in acceptance_covered
+        ]
 
     e2e_errors = _e2e_validate_command_errors(
         manifest,

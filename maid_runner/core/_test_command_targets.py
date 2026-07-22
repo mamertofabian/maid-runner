@@ -13,10 +13,53 @@ from maid_runner.core._test_runner_invocation import (
     _is_django_test_runner_value_flag,
     _runs_django_test_runner,
     _runs_known_test_runner,
+    _test_runner_invocation,
     _test_runner_target_scan_segment,
 )
 
 _DjangoPathResolver = Callable[[list[str], Path, Path], list[str]]
+
+_PLAYWRIGHT_MULTI_VALUE_FLAGS = frozenset({"--project"})
+_PLAYWRIGHT_STANDALONE_FLAGS = frozenset(
+    {
+        "--debug",
+        "--fail-on-flaky-tests",
+        "--forbid-only",
+        "--fully-parallel",
+        "--headed",
+        "--help",
+        "--last-failed",
+        "--list",
+        "--pass-with-no-tests",
+        "--quiet",
+        "--ui",
+        "-h",
+        "-x",
+    }
+)
+_PLAYWRIGHT_VALUE_FLAGS = frozenset(
+    {
+        "--config",
+        "--global-timeout",
+        "--grep",
+        "--grep-invert",
+        "--max-failures",
+        "--output",
+        "--repeat-each",
+        "--reporter",
+        "--retries",
+        "--shard",
+        "--test-list",
+        "--timeout",
+        "--trace",
+        "--ui-host",
+        "--ui-port",
+        "--workers",
+        "-c",
+        "-g",
+        "-j",
+    }
+)
 
 
 def test_paths_from_validate_command(
@@ -126,6 +169,9 @@ def test_paths_from_executing_validate_command(
 
     django_runner = _runs_django_test_runner(segment)
     scan_segment = _test_runner_target_scan_segment(segment)
+    invocation = _test_runner_invocation(segment)
+    if invocation is not None and invocation[0] == "playwright":
+        scan_segment = _playwright_target_scan_segment(scan_segment)
     index = 0
     while index < len(scan_segment):
         part = scan_segment[index]
@@ -169,6 +215,46 @@ def test_paths_from_executing_validate_command(
         )
 
     return paths
+
+
+def _playwright_target_scan_segment(parts: list[str]) -> list[str]:
+    targets: list[str] = []
+    index = 0
+    while index < len(parts):
+        part = parts[index]
+        if part == "--":
+            targets.extend(parts[index + 1 :])
+            break
+        if part in {"-C", "--cwd", "--dir", "--prefix"}:
+            if index + 1 < len(parts):
+                targets.extend([part, parts[index + 1]])
+            index += 2
+            continue
+        if part in _PLAYWRIGHT_STANDALONE_FLAGS or (
+            part.startswith("-") and "=" in part
+        ):
+            index += 1
+            continue
+        if part in _PLAYWRIGHT_MULTI_VALUE_FLAGS:
+            index += 1
+            while index < len(parts):
+                value = parts[index]
+                if value.startswith("-") or is_test_file(value):
+                    break
+                index += 1
+            continue
+        if part in _PLAYWRIGHT_VALUE_FLAGS:
+            index += 2
+            continue
+        if part.startswith("-"):
+            index += 1
+            if index < len(parts) and not parts[index].startswith("-"):
+                if not is_test_file(parts[index]):
+                    index += 1
+            continue
+        targets.append(part)
+        index += 1
+    return targets
 
 
 def _normalize_test_selector(path: Path) -> str:

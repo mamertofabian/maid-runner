@@ -93,6 +93,58 @@ def test_command_target_coverage_maps_directory_target_to_file(tmp_path):
     assert covered == {"tests/unit/test_gate.py"}
 
 
+def test_playwright_subcommand_is_not_an_executing_directory_target(tmp_path):
+    (tmp_path / "test").mkdir()
+    (tmp_path / "chromium").mkdir()
+    (tmp_path / "firefox").mkdir()
+    (tmp_path / "on").mkdir()
+    (tmp_path / "output").mkdir()
+    browser_test = tmp_path / "e2e" / "covered.spec.ts"
+    browser_test.parent.mkdir()
+    browser_test.write_text("test('covered', () => {})\n")
+
+    paths = targets.test_paths_from_executing_validate_command(
+        (
+            "bunx",
+            "playwright",
+            "test",
+            "--project",
+            "chromium",
+            "firefox",
+            "--output",
+            "output",
+            "--ui-host",
+            "test",
+            "--trace",
+            "on",
+            "e2e/covered.spec.ts",
+        ),
+        tmp_path,
+    )
+
+    assert paths == ["e2e/covered.spec.ts"]
+
+    wrapped_test = tmp_path / "ui" / "e2e" / "covered.spec.ts"
+    wrapped_test.parent.mkdir(parents=True)
+    wrapped_test.write_text("test('covered', () => {})\n")
+    (tmp_path / "ui" / "test").mkdir()
+
+    wrapped_paths = targets.test_paths_from_executing_validate_command(
+        (
+            "pnpm",
+            "--dir",
+            "ui",
+            "exec",
+            "playwright",
+            "test",
+            "e2e/covered.spec.ts",
+        ),
+        tmp_path,
+    )
+
+    assert wrapped_paths == ["ui/e2e/covered.spec.ts"]
+
+
 def test_validate_command_targets_use_django_resolver_callback(tmp_path):
     def django_resolver(segment: list[str], project_root: Path, cwd: Path) -> list[str]:
         assert segment == [
