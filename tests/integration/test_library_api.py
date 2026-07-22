@@ -40,20 +40,20 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.22.0"
-        assert re.search(r'^version = "2\.22\.0"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.23.0"
+        assert re.search(r'^version = "2\.23\.0"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.22\.0"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.23\.0"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.22.0] - 2026-07-18" in changelog_text
+        assert "## [2.23.0] - 2026-07-22" in changelog_text
         assert (
-            "[2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0"
+            "[2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0"
             in changelog_text
         )
-        assert "**Current Version:** 2.22.0" in roadmap.read_text()
-        assert "The local CLI reports `maid 2.22.0`." in roadmap.read_text()
+        assert "**Current Version:** 2.23.0" in roadmap.read_text()
+        assert "The local CLI reports `maid 2.23.0`." in roadmap.read_text()
 
     def test_release_metadata_is_2_21_0(self):
         """Preserve the active v2.21.0 contract until this draft is promoted."""
@@ -685,7 +685,7 @@ class TestValidatorRegistryExtension:
         )
         (project / "src" / "helper.rb").write_text("def helper\n  :ok\nend\n")
         (project / "tests" / "test_helper.py").write_text(
-            "from src.helper import helper\n\n" "def test_helper():\n" "    helper()\n"
+            "from src.helper import helper\n\ndef test_helper():\n    helper()\n"
         )
 
         registry = ValidatorRegistry.with_builtin_validators()

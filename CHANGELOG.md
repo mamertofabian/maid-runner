@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.23.0] - 2026-07-22
+
+### Added
+- **AST-scoped Python plan-lock hashes** — Hashed `.py` behavioral tests as `sha256-pyast` digests so Black and whitespace-only reformats no longer force plan revisions, while legacy byte hashes and non-Python tests stay fail-closed.
+- **Exact agent reasoning provenance** — Carried optional reasoning effort through Outcome records, plan locks, CLI reporting, evaluation output, and Codex-loop child environments so model provenance can record the driver-known exact slug when available.
+
+### Fixed
+- **Manifest promotion rename history** — Round-tripped promoted manifests with ruamel.yaml so comments, quoting, indentation, flow collections, and block scalar styles survive bounded promotion updates, and preserved Git's default staged rename detection without mutating the user's index.
+- **Validator plugin discovery guidance** — Centralized missing-validator guidance through warning-level E307 diagnostics, `UnsupportedLanguageError`, and init-installed Claude and Codex instructions, and advanced the instruction payload version so downstream installations detect the update.
+- **Plugin validator display names** — Aligned `maid validators` / `ValidatorRecord` labels with built-ins by using `validator_class.__name__` for active and conflict plugins, while keeping entry-point names for disabled and load-error rows.
+
 ## [2.22.0] - 2026-07-18
 
 ### Added
@@ -1176,6 +1187,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0
 [2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1
 [2.21.0]: https://github.com/mamertofabian/maid-runner/compare/v2.20.0...v2.21.0
