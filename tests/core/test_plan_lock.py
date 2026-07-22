@@ -73,7 +73,7 @@ class TestCreatePlanLock:
             "tests/test_demo.py",
             "tests/test_demo_extra.py",
         }
-        assert all(h.startswith("sha256:") for h in lock.test_hashes.values())
+        assert all(h.startswith("sha256-pyast:") for h in lock.test_hashes.values())
         assert lock.revision == 1
         assert lock.revisions == ()
         assert lock.red_evidence is None

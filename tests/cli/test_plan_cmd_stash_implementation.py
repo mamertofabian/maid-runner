@@ -196,7 +196,7 @@ def test_stash_implementation_recaptures_red_evidence_and_restores_tracked_chang
     assert record["revision"] == 2
     assert record["red_evidence"]["red"] is True
     assert record["red_evidence"]["commands"][0]["classification"] == "red"
-    assert record["test_hashes"]["tests/test_demo.py"].startswith("sha256:")
+    assert record["test_hashes"]["tests/test_demo.py"].startswith("sha256-pyast:")
 
 
 def test_stash_implementation_restores_untracked_declared_create_file(

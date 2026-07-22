@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 
 from maid_runner.core.chain import ManifestChain
@@ -109,9 +110,8 @@ def test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed(
         )
     )
 
-    lock = create_plan_lock(manifest_path, tmp_path)
-
-    assert lock.test_hashes.keys() == {behavioral_path}
+    with pytest.raises(SyntaxError):
+        create_plan_lock(manifest_path, tmp_path)
 
 
 def test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry(
@@ -133,9 +133,7 @@ def test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry(
     production_file.write_text(production_source)
     ambiguous_production_file = tmp_path / ambiguous_production_path
     ambiguous_production_file.write_text(
-        "def build_test_helper() -> str:\n"
-        "    value = 'helper'\n"
-        "    return value\n"
+        "def build_test_helper() -> str:\n    value = 'helper'\n    return value\n"
     )
     mixed_test_source = (
         "def build_fixture() -> str:\n"
@@ -274,7 +272,7 @@ def test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry(
     production_file.write_text(production_source)
 
     mixed_test_file.write_text(
-        "def build_fixture() -> str:\n" "    value = 'fixture'\n" "    return value\n"
+        "def build_fixture() -> str:\n    value = 'fixture'\n    return value\n"
     )
 
     errors = enforce_plan_locks(
@@ -291,7 +289,7 @@ def test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry(
     mixed_test_file.write_text(mixed_test_source)
 
     (tmp_path / behavioral_path).write_text(
-        "def contract_helper() -> bool:\n" "    result = True\n" "    return result\n"
+        "def contract_helper() -> bool:\n    result = True\n    return result\n"
     )
 
     errors = enforce_plan_locks(
@@ -313,7 +311,7 @@ def test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed(
     (tmp_path / "src").mkdir()
     (tmp_path / "tests").mkdir()
     (tmp_path / "src" / "demo.py").write_text(
-        "def demo() -> str:\n" "    value = 'demo'\n" "    return value\n"
+        "def demo() -> str:\n    value = 'demo'\n    return value\n"
     )
     legacy_path = "tests/test_legacy_unittest.py"
     current_path = "tests/test_current_contract.py"
@@ -460,7 +458,7 @@ def test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd(
     (tmp_path / "tests").mkdir()
     (tmp_path / "quality").mkdir()
     (tmp_path / "src" / "demo.py").write_text(
-        "def demo() -> str:\n" "    value = 'demo'\n" "    return value\n"
+        "def demo() -> str:\n    value = 'demo'\n    return value\n"
     )
     legacy_path = "quality/test_legacy_unittest.py"
     current_path = "tests/test_current_contract.py"

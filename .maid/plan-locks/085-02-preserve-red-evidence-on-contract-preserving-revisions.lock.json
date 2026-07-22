@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
-  "manifest_hash": "sha256:70e6c8372569776b14bd2258a8d78274154680d429af1fb9bbc1073b0bc0e30a",
+  "manifest_hash": "sha256-contract:5c7972905ace0e4598328cc0b24d3484289964f2d8f6321d15c8d277fb4c3213",
   "test_hashes": {
-    "tests/cli/test_plan_revise_auto_preserve.py": "sha256:88250c1d896da8a239b30a739c4c2b4103da7a9f11c7d39568d49ad5f7beffaf"
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:9c49c80123a602f1ab0892e054836e0ea7b92abf06058c8b75d8118882fed7dc"
   },
   "created_at": "2026-07-18T00:46:15.886717+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:915708de36abf8d19749bc8bbd990eefbeb656f027489ca9fdb2ac062163a91c",
@@ -63,16 +63,36 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:70e6c8372569776b14bd2258a8d78274154680d429af1fb9bbc1073b0bc0e30a",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256:88250c1d896da8a239b30a739c4c2b4103da7a9f11c7d39568d49ad5f7beffaf"
+      },
+      "revised_at": "2026-07-22T02:10:02.165161+00:00",
+      "reason": "Align auto-preserve characterizations with AST-scoped test hashing; assertion edits recapture, formatter-only preserves",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_formatter_only_test_edit_preserves_red_evidence",
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_formatter_only_test_edit_preserves_red_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-07-18T00:46:23.446858+00:00",
+    "captured_at": "2026-07-22T02:10:06.165342+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest tests/cli/test_plan_revise_auto_preserve.py -v",
         "exit_code": 1,
-        "output_tail": "            ManifestChain(tmp_path / \"manifests\", tmp_path),\n            tmp_path,\n            require_plan_lock=True,\n            require_red_evidence=True,\n        )\n    \n        assert ErrorCode.RED_PHASE_EVIDENCE_MISSING not in {error.code for error in errors}\n>       assert ErrorCode.RED_PHASE_EVIDENCE_INVALID not in {error.code for error in errors}\nE       AssertionError: assert <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> not in {<ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'>}\nE        +  where <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> = ErrorCode.RED_PHASE_EVIDENCE_INVALID\n\ntests/cli/test_plan_revise_auto_preserve.py:360: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-36/test_preserved_evidence_passes0/.maid/plan-locks/demo-task.lock.json)\nRevised plan lock for 'demo-task' to revision 2 (/tmp/pytest-of-atomrem/pytest-36/test_preserved_evidence_passes0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_revise_manifest_only_edit_preserves_red_evidence\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_revision_preserves_red_evidence_predicate\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_preserved_evidence_passes_verify_red_evidence_gate\n========================= 3 failed, 4 passed in 0.39s ==========================",
+        "output_tail": "        assert record[\"revision\"] == 2\n>       assert record[\"red_evidence\"] == original_evidence\nE       AssertionError: assert {'captured_at..., 'red': True} == {'captured_at..., 'red': True}\nE         \nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'captured_at': '2026-07-22T02:10:02.520528+00:00'} != {'captured_at': '2026-07-22T02:10:02.497167+00:00'}\nE         \nE         Full diff:\nE           {...\nE         \nE         ...Full output truncated (14 lines hidden), use '-vv' to show\n\ntests/cli/test_plan_revise_auto_preserve.py:184: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-79/test_revise_with_formatter_onl0/.maid/plan-locks/demo-task.lock.json)\nRevised plan lock for 'demo-task' to revision 2 (/tmp/pytest-of-atomrem/pytest-79/test_revise_with_formatter_onl0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_auto_preserve.py::test_revise_with_formatter_only_test_edit_preserves_red_evidence\n========================= 1 failed, 7 passed in 0.48s ==========================",
         "classification": "red"
       },
       {
@@ -87,6 +107,21 @@
         "output_tail": "",
         "classification": "not_red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/076-03-allow-lifecycle-dirt-in-stash-revise.lock.json",
+      ".maid/plan-locks/085-03-contract-scoped-plan-lock-manifest-hash.lock.json",
+      ".maid/plan-locks/085-07-ast-scoped-behavioral-test-hash.lock.json",
+      "docs/maid_specs.md",
+      "maid_runner/docs/maid_specs.md",
+      "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+      "tests/cli/test_plan_cmd_stash_implementation.py",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py",
+      "tests/core/test_contract_scoped_manifest_hash.py",
+      "tests/core/test_plan_lock.py",
+      "tests/core/test_plan_lock_semantic_test_discovery.py"
     ]
   },
   "legacy_baseline": null,
@@ -112,6 +147,8 @@
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_changed_test_file_recaptures_evidence:kind=test_function",
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_contract_delta_recaptures_evidence",
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_contract_delta_recaptures_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_formatter_only_test_edit_preserves_red_evidence",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_formatter_only_test_edit_preserves_red_evidence:kind=test_function",
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures",
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:kind=test_function",
       "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_new_discovered_test_file_recaptures_evidence",
@@ -160,7 +197,7 @@
             {
               "kind": "test_function",
               "name": "test_revise_with_changed_test_file_recaptures_evidence",
-              "source_scenario": "The same locked setup, but a locked behavioral test file's bytes changed before the revise.",
+              "source_scenario": "The same locked setup, but a locked behavioral test file's AST changed (assertion edit) before the revise.",
               "actions": [
                 {
                   "type": "api_call",
@@ -171,6 +208,22 @@
               ],
               "expected": {
                 "behavior": "The automatic preservation does not apply; the command follows the existing recapture path and the saved lock's evidence is the fresh capture result, not the prior payload."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_formatter_only_test_edit_preserves_red_evidence",
+              "source_scenario": "The same locked setup, but a locked behavioral test file receives only a comment/whitespace edit that leaves the AST unchanged.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Automatic preservation applies; the saved lock keeps the original red evidence and stdout states that red evidence was preserved."
               }
             },
             {

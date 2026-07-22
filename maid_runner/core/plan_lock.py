@@ -18,6 +18,7 @@ validate commands when a plan is locked or revised.
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import shlex
@@ -44,6 +45,7 @@ from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
 
 _CONTRACT_HASH_PREFIX = "sha256-contract:"
+_PYAST_HASH_PREFIX = "sha256-pyast:"
 _BYTE_HASH_PREFIX = "sha256:"
 
 
@@ -373,6 +375,41 @@ def manifest_hash_matches(lock_hash: str, manifest_path: Path) -> bool:
     return False
 
 
+def compute_behavioral_test_hash(path: Path) -> str:
+    """Return a formatting-aware hash for a behavioral test file.
+
+    Python (``.py``) files are hashed via an AST dump so whitespace- and
+    comment-only edits stay digest-stable. Other suffixes keep the legacy
+    byte hash. Syntax and decode errors raise (fail loud); there is no
+    silent byte-hash fallback for ``.py`` paths.
+    """
+    file_path = Path(path)
+    if file_path.suffix == ".py":
+        source = file_path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(file_path))
+        canonical = ast.dump(tree, annotate_fields=True, include_attributes=False)
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return f"{_PYAST_HASH_PREFIX}{digest}"
+    return compute_manifest_hash(file_path)
+
+
+def test_hash_matches(lock_hash: str, path: Path) -> bool:
+    """Compare a stored behavioral-test hash to the current file by prefix.
+
+    ``sha256-pyast:`` values use the AST-canonical hash; legacy ``sha256:``
+    values use the raw byte hash. Unknown prefixes and missing files return
+    False (fail closed).
+    """
+    file_path = Path(path)
+    if not file_path.is_file():
+        return False
+    if lock_hash.startswith(_PYAST_HASH_PREFIX):
+        return lock_hash == compute_behavioral_test_hash(file_path)
+    if lock_hash.startswith(_BYTE_HASH_PREFIX):
+        return lock_hash == compute_manifest_hash(file_path)
+    return False
+
+
 def create_plan_lock(
     manifest_path: Path,
     project_root: Path,
@@ -468,7 +505,7 @@ def revision_preserves_red_evidence(
 
     for rel, locked_hash in existing.test_hashes.items():
         full = root / rel
-        if not full.is_file() or compute_manifest_hash(full) != locked_hash:
+        if not full.is_file() or not test_hash_matches(locked_hash, full):
             return False
     return True
 
@@ -939,7 +976,7 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
         full = project_root / rel
         if not full.exists():
             raise FileNotFoundError(f"Behavioral test file not found: {full}")
-        hashes[rel] = compute_manifest_hash(full)
+        hashes[rel] = compute_behavioral_test_hash(full)
     return hashes
 
 
@@ -948,14 +985,25 @@ def _red_evidence_dict_is_valid(evidence: dict | None) -> bool:
     return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
 
 
-def _file_hash_or_none(path: Path) -> str | None:
-    """Hash a regular file, returning None for missing or unreadable paths."""
+def _current_test_hash_or_none(
+    path: Path, *, lock_hash: str | None = None
+) -> str | None:
+    """Hash a regular file for status/display, returning None when unreadable."""
     try:
         if not path.is_file():
             return None
-        return compute_manifest_hash(path)
-    except OSError:
+        if lock_hash is None or lock_hash.startswith(_PYAST_HASH_PREFIX):
+            return compute_behavioral_test_hash(path)
+        if lock_hash.startswith(_BYTE_HASH_PREFIX):
+            return compute_manifest_hash(path)
+        return compute_behavioral_test_hash(path)
+    except (OSError, SyntaxError, UnicodeDecodeError):
         return None
+
+
+def _file_hash_or_none(path: Path) -> str | None:
+    """Hash a regular file, returning None for missing or unreadable paths."""
+    return _current_test_hash_or_none(path)
 
 
 def _project_relative_path(manifest_path: Path, project_root: Path) -> str:
@@ -1108,7 +1156,7 @@ def _contract_file_hashes(
     paths.update(_behavioral_test_paths(manifest, project_root))
     return {
         path: (
-            compute_manifest_hash(project_root / path)
+            compute_behavioral_test_hash(project_root / path)
             if (project_root / path).is_file()
             else None
         )
@@ -1196,10 +1244,10 @@ def _historical_production_test_paths(
     production_paths: set[str] = set()
     for path in set(lock.test_hashes) & declared_paths & set(test_files):
         full_path = project_root / path
-        current_hash = _file_hash_or_none(full_path)
-        if current_hash == lock.test_hashes[
-            path
-        ] and not is_command_integrity_test_file(path, project_root):
+        locked_hash = lock.test_hashes[path]
+        if test_hash_matches(
+            locked_hash, full_path
+        ) and not is_command_integrity_test_file(path, project_root):
             production_paths.add(path)
     return production_paths
 
@@ -1263,8 +1311,7 @@ def _test_hash_errors(
 
     for rel, locked_hash in locked_test_hashes.items():
         full = project_root / rel
-        current_hash = _file_hash_or_none(full)
-        if current_hash != locked_hash:
+        if not test_hash_matches(locked_hash, full):
             errors.append(
                 _lock_error(
                     ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,

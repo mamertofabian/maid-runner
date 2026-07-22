@@ -174,10 +174,7 @@ def test_new_locks_store_contract_prefixed_hash(tmp_path: Path) -> None:
 
     assert lock.manifest_hash.startswith("sha256-contract:")
     assert lock.manifest_hash == _compute_manifest_contract_hash(manifest_path)
-    assert all(
-        h.startswith("sha256:") and not h.startswith("sha256-contract:")
-        for h in lock.test_hashes.values()
-    )
+    assert all(h.startswith("sha256-pyast:") for h in lock.test_hashes.values())
 
 
 def test_plan_status_reports_match_after_outcome_capture(

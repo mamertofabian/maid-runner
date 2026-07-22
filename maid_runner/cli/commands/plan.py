@@ -284,9 +284,10 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
     from maid_runner.core.plan_lock import (
         PlanLock,
         _PlanLockLoadError,
+        _current_test_hash_or_none,
         manifest_hash_matches,
+        test_hash_matches,
     )
-    from maid_runner.core.supersession_audit import compute_manifest_hash
 
     ctx = _PlanContext.from_args(args)
 
@@ -324,11 +325,11 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
     test_files: dict[str, dict] = {}
     for rel, locked_hash in lock.test_hashes.items():
         full = ctx.project_root / rel
-        current_hash = compute_manifest_hash(full) if full.exists() else None
+        current_hash = _current_test_hash_or_none(full, lock_hash=locked_hash)
         test_files[rel] = {
             "locked_hash": locked_hash,
             "current_hash": current_hash,
-            "match": current_hash == locked_hash,
+            "match": test_hash_matches(locked_hash, full),
         }
     has_mismatch = not manifest_match or any(
         not entry["match"] for entry in test_files.values()
@@ -1105,7 +1106,7 @@ def _is_matching_promoted_draft_deletion(
 def _contract_hashes_for_stash_revise(
     project_root: Path, manifest_path: Path, manifest
 ) -> dict[str, str | None]:
-    from maid_runner.core.supersession_audit import compute_manifest_hash
+    from maid_runner.core.plan_lock import compute_behavioral_test_hash
 
     paths = {_project_relative(manifest_path, project_root)}
     paths.update(_behavioral_test_paths_for_revise(manifest))
@@ -1113,7 +1114,7 @@ def _contract_hashes_for_stash_revise(
     for rel_path in sorted(paths):
         full_path = project_root / rel_path
         hashes[rel_path] = (
-            compute_manifest_hash(full_path) if full_path.exists() else None
+            compute_behavioral_test_hash(full_path) if full_path.exists() else None
         )
     return hashes
 

@@ -1,0 +1,381 @@
+{
+  "manifest_path": "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+  "manifest_hash": "sha256-contract:ff02f380431dc15b86adedc783ef943018dc5c599a5e4ed573abe685fddfd9b4",
+  "test_hashes": {
+    "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:8986340243d2bfc99f952f54b83687ab878c1e849c911acd104d98a972fc3d0f"
+  },
+  "created_at": "2026-07-22T02:00:35.790725+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:4b7653bb3478726d2995f6028431217c3f0c28e7cd2fd2478ce0b0ae3bc62413",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256:9a69785c9ceb50637508fa6b3227e8513b83224fe204dc336b87ae0b46731698"
+      },
+      "revised_at": "2026-07-22T02:00:42.621104+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/085-07-ast-scoped-behavioral-test-hash.manifest.yaml -> manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d170994c9087e941e6ac932badbb40cb46315bce983f62d836f12d88dfdae2ac",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256:9a69785c9ceb50637508fa6b3227e8513b83224fe204dc336b87ae0b46731698"
+      },
+      "revised_at": "2026-07-22T02:03:46.025179+00:00",
+      "reason": "Refresh lock after AST-scoped hashing implementation and characterization adaptations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d170994c9087e941e6ac932badbb40cb46315bce983f62d836f12d88dfdae2ac",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:8986340243d2bfc99f952f54b83687ab878c1e849c911acd104d98a972fc3d0f"
+      },
+      "revised_at": "2026-07-22T02:09:58.089103+00:00",
+      "reason": "Add characterization adaptation scope for auto-preserve and unparseable-py fail-loud updates",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/cli/test_plan_revise_auto_preserve.py",
+          "scope:tests/core/test_plan_lock_semantic_test_discovery.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T02:10:01.835185+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_ast_scoped_behavioral_test_hash.py -v",
+        "exit_code": 1,
+        "output_tail": "tmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-78/test_pyast_hash_raises_on_unpa0')\n\n    def test_pyast_hash_raises_on_unparseable_python(tmp_path: Path) -> None:\n>       assert hasattr(\n            plan_lock_mod, \"compute_behavioral_test_hash\"\n        ), \"compute_behavioral_test_hash must be public on plan_lock\"\nE       AssertionError: compute_behavioral_test_hash must be public on plan_lock\nE       assert False\nE        +  where False = hasattr(plan_lock_mod, 'compute_behavioral_test_hash')\n\ntests/core/test_ast_scoped_behavioral_test_hash.py:232: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_hash_ignores_whitespace_and_comment_only_edits\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_hash_tracks_assertion_and_import_changes\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_non_python_behavioral_test_remains_byte_hashed\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_test_hash_matches_dispatches_on_prefix\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_new_locks_store_pyast_prefixed_python_test_hashes\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_plan_status_and_enforce_tolerate_formatter_only_python_edits\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_hash_raises_on_unparseable_python\n============================== 7 failed in 0.14s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/076-03-allow-lifecycle-dirt-in-stash-revise.lock.json",
+      ".maid/plan-locks/085-03-contract-scoped-plan-lock-manifest-hash.lock.json",
+      "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:arg=path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:kind=function",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:returns=str",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:returns=PlanLock",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:arg=lock_hash:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:arg=path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:kind=function",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:returns=bool",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_new_locks_store_pyast_prefixed_python_test_hashes",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_new_locks_store_pyast_prefixed_python_test_hashes:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_non_python_behavioral_test_remains_byte_hashed",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_non_python_behavioral_test_remains_byte_hashed:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_plan_status_and_enforce_tolerate_formatter_only_python_edits",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_plan_status_and_enforce_tolerate_formatter_only_python_edits:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_ignores_whitespace_and_comment_only_edits",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_ignores_whitespace_and_comment_only_edits:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_raises_on_unparseable_python",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_raises_on_unparseable_python:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_tracks_assertion_and_import_changes",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_tracks_assertion_and_import_changes:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_dispatches_on_prefix",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_dispatches_on_prefix:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_ast_scoped_behavioral_test_hash.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/supersession_audit.py"
+      ],
+      "scope": [
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/docs/maid_specs.md",
+        "tests/cli/test_plan_cmd_stash_implementation.py",
+        "tests/cli/test_plan_revise_auto_preserve.py",
+        "tests/core/test_contract_scoped_manifest_hash.py",
+        "tests/core/test_plan_lock.py",
+        "tests/core/test_plan_lock_semantic_test_discovery.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_ast_scoped_behavioral_test_hash.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_ignores_whitespace_and_comment_only_edits",
+              "source_scenario": "Two Python behavioral test files that differ only by whitespace, blank lines, and comments but share the same AST.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compute_behavioral_test_hash"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both files produce the same sha256-pyast-prefixed digest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_tracks_assertion_and_import_changes",
+              "source_scenario": "Variants that change an assertion literal, a string literal, or an import while keeping formatting similar.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compute_behavioral_test_hash"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each variant produces a digest different from the baseline."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_python_behavioral_test_remains_byte_hashed",
+              "source_scenario": "A non-.py behavioral test file hashed through compute_behavioral_test_hash.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compute_behavioral_test_hash"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The digest uses the sha256: byte-hash prefix, not sha256-pyast."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_hash_matches_dispatches_on_prefix",
+              "source_scenario": "Legacy sha256 byte hash and new sha256-pyast hash for the same Python file, checked before and after a whitespace-only edit and after an assertion edit.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "test_hash_matches"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Legacy hash matches only identical bytes; pyast hash survives whitespace-only edits and fails on assertion edits; unknown prefixes return False."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_new_locks_store_pyast_prefixed_python_test_hashes",
+              "source_scenario": "create_plan_lock on a temp-project manifest whose behavioral tests are .py files.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "create_plan_lock"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every locked .py test_hashes value uses the sha256-pyast prefix."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_status_and_enforce_tolerate_formatter_only_python_edits",
+              "source_scenario": "Lock a temp project, apply a whitespace/comment-only edit to a locked .py behavioral test, then run plan status and enforce_plan_locks; separately apply an assertion edit.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_status"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Formatter-only edit keeps status test match and produces no BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK; assertion edit mismatches status and yields E701."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_raises_on_unparseable_python",
+              "source_scenario": "A .py file with invalid syntax.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compute_behavioral_test_hash"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The function raises SyntaxError instead of returning any digest."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compute_behavioral_test_hash",
+              "description": "sha256-pyast digest for .py paths via ast.dump canonicalize; sha256 byte digest for other suffixes; raises on .py parse/decode failure.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "test_hash_matches",
+              "description": "Prefix-dispatched comparison for sha256-pyast and legacy sha256 test hashes; unknown prefixes and missing files return False.",
+              "args": [
+                {
+                  "name": "lock_hash",
+                  "type": "str"
+                },
+                {
+                  "name": "path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "create_plan_lock",
+              "description": "Stores compute_behavioral_test_hash results in test_hashes; signature unchanged.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "agent",
+                  "type": "Optional[AgentProvenance]"
+                }
+              ],
+              "returns": "PlanLock"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/supersession_audit.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Route cmd_plan_status test-file match and current_hash through test_hash_matches / prefix-aware current hash."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document sha256-pyast for Python behavioral tests, legacy sha256 compatibility, and the AST formatting-neutral limit."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep the packaged spec copy in sync."
+        },
+        {
+          "path": "tests/core/test_plan_lock.py",
+          "reason": "Adapt create_plan_lock characterization that asserts test_hashes startswith sha256: so new locks expect sha256-pyast for .py tests."
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_stash_implementation.py",
+          "reason": "Adapt stash-revise characterization that asserts locked test hash prefix sha256:."
+        },
+        {
+          "path": "tests/core/test_contract_scoped_manifest_hash.py",
+          "reason": "Adapt create_plan_lock characterization that required byte-only sha256 test hashes after 085-03."
+        },
+        {
+          "path": "tests/cli/test_plan_revise_auto_preserve.py",
+          "reason": "Adapt 085-02 characterizations that treated comment-only test edits as hash-changing; assertion edits still force recapture while formatter-only edits preserve."
+        },
+        {
+          "path": "tests/core/test_plan_lock_semantic_test_discovery.py",
+          "reason": "Adapt unparseable .py lock characterization to expect fail-loud SyntaxError under sha256-pyast hashing."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_ast_scoped_behavioral_test_hash.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_ast_scoped_behavioral_test_hash.py -v",
+      "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

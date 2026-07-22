@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
-  "manifest_hash": "sha256:38e9621381e4230d273113ecfde52e4019bb41a2744d15f5f46ad5f4043ff44d",
+  "manifest_hash": "sha256-contract:48018615a786158ba24bc92c862e8282c52acaeb8b477a462d55e83b0accd7c2",
   "test_hashes": {
-    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:996890b76f2d747918c0545238969de148dc7df6263d09084e16f95e58a881ee"
+    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:8eee3af127234416cb94ae99e05a629587857d531a854dff9d659a7a9d80912a"
   },
   "created_at": "2026-07-09T22:37:14.519757+00:00",
-  "revision": 22,
+  "revision": 23,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c6568d755952099237a3edc113c07478650d430a0d6ec80f6e7ef3fdf6b356e8",
@@ -378,20 +378,56 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:38e9621381e4230d273113ecfde52e4019bb41a2744d15f5f46ad5f4043ff44d",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256:996890b76f2d747918c0545238969de148dc7df6263d09084e16f95e58a881ee"
+      },
+      "revised_at": "2026-07-22T02:10:06.466079+00:00",
+      "reason": "Unparseable .py behavioral tests fail loud with SyntaxError under sha256-pyast hashing",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-07-10T00:21:38.451156+00:00",
+    "captured_at": "2026-07-22T02:10:06.841003+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py",
         "exit_code": 1,
-        "output_tail": "        )\n        lock_path.write_text(json.dumps(payload, indent=2))\n    \n        errors = enforce_plan_locks(\n            ManifestChain(tmp_path / \"manifests\", tmp_path),\n            tmp_path,\n            require_plan_lock=True,\n            require_red_evidence=False,\n        )\n    \n>       assert errors == ()\nE       AssertionError: assert (ValidationEr...estion=None),) == ()\nE         \nE         Left contains one more item: ValidationError(code=<ErrorCode.MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK: 'E702'>, message='MANIFEST_CONTRACT_WEAKENED_AF...n(file='manifests/runner-task.manifest.yaml', line=None, column=None, end_line=None, end_column=None), suggestion=None)\nE         Use -v to get more diff\n\ntests/core/test_plan_lock_semantic_test_discovery.py:219: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_semantic_test_discovery.py::test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry\n1 failed, 4 passed in 0.15s",
+        "output_tail": "                                    }\n                                ],\n                            }\n                        ],\n                        \"read\": [behavioral_path],\n                    },\n                    \"validate\": [f\"python -m pytest -q {behavioral_path}\"],\n                },\n                sort_keys=False,\n            )\n        )\n    \n>       with pytest.raises(SyntaxError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'SyntaxError'>\n\ntests/core/test_plan_lock_semantic_test_discovery.py:113: Failed\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_semantic_test_discovery.py::test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed\n1 failed, 4 passed in 0.19s",
         "classification": "red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/076-03-allow-lifecycle-dirt-in-stash-revise.lock.json",
+      ".maid/plan-locks/085-02-preserve-red-evidence-on-contract-preserving-revisions.lock.json",
+      ".maid/plan-locks/085-03-contract-scoped-plan-lock-manifest-hash.lock.json",
+      ".maid/plan-locks/085-07-ast-scoped-behavioral-test-hash.lock.json",
+      "docs/maid_specs.md",
+      "maid_runner/cli/commands/plan.py",
+      "maid_runner/docs/maid_specs.md",
+      "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+      "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+      "tests/cli/test_plan_cmd_stash_implementation.py",
+      "tests/cli/test_plan_revise_auto_preserve.py",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py",
+      "tests/core/test_contract_scoped_manifest_hash.py",
+      "tests/core/test_plan_lock.py"
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -425,6 +461,133 @@
         "maid_runner/core/chain.py",
         "manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml",
         "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_plan_lock_semantic_test_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_create_plan_lock_excludes_test_prefixed_production_module_without_pytest_tests",
+              "source_scenario": "A manifest edits a generic production Python module whose basename starts with test_ but whose AST contains no pytest test functions; a real pytest file outside a conventional tests directory is discoverable only from the validate command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "create_plan_lock"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The new lock hashes the validate-only real behavioral test file and excludes the test-prefixed production module, proving discovery is semantic rather than a path special case."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_create_plan_lock_keeps_unparseable_test_like_file_fail_closed",
+              "source_scenario": "A manifest reads a test-like Python file that cannot be parsed and targets it from the validate command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "create_plan_lock"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lock still hashes the unparseable test-like file so malformed tests cannot evade tamper evidence before normal validation reports the parse error."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforce_plan_lock_ignores_legacy_false_positive_test_hash_entry",
+              "source_scenario": "A lock created by the former filename-only discovery stores byte-identical production runner/helper modules alongside genuine behavioral tests, including a mixed-purpose module with a normal helper artifact plus a pytest node-selector target.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement ignores only byte-identical historical production false positives that remain declared, including a path moved from files.read to files.scope, but still reports E701 when a legacy production entry changes or becomes a directory, the selector-covered test is stripped from the mixed-purpose module, or every test function is stripped from the separate genuine behavioral test, without rewriting the historical lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed",
+              "source_scenario": "A historical filename-only lock contains a pytest-collected unittest.TestCase file under a compound `cd tests && pytest` implicit-root command, then the current manifest drops that file and narrows validation to an unrelated explicit target.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Narrowing the locked validate command reports E702 even while the historical test stays declared; removing it also reports E702, and empty, malformed, or mixed-type saved command/test containers fail closed."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enforce_plan_lock_preserves_parent_relative_selector_coverage_after_cd",
+              "source_scenario": "A historical lock targets a pytest-collected unittest.TestCase through `cd tests && pytest ../quality/test_file.py::ContractCase::test_contract`, then the current manifest removes that file and narrows validation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Removing the locked quality test from the current manifest reports E702 regardless of parent-relative command parsing."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "create_plan_lock",
+              "description": "Hash semantically discovered behavioral tests while excluding production Python modules whose basenames merely resemble pytest files.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "agent",
+                  "type": "Optional[AgentProvenance]",
+                  "default": "None"
+                }
+              ],
+              "returns": "PlanLock"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/chain.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/038-16-extract-command-integrity-test-discovery.manifest.yaml"
       ]
     },
     "test_files": [

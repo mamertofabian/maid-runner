@@ -65,6 +65,7 @@ The development process is broken down into distinct phases, characterized by tw
         * It validates the draft manifest against the behavioral test code (using AST analysis) to ensure the plan is internally consistent.
         * If the task involves editing an existing file, it also validates the current implementation code against its entire manifest history (using the Merging Validator) to ensure the starting point is valid.
     * The architect refines both the manifest and the tests together until this validation passes and the plan is deemed complete.
+    * After the user approves the plan, the architect ends the planning loop by running `maid plan lock <manifest-path>`. The lock seals the approved manifest and its behavioral test files before implementation handoff.
 
 3.  **Phase 3: Implementation (Developer Agent)**
     Once the plan is finalized and committed, an automated system invokes a "Developer Agent" with the manifest. The agent's **Implementation Loop** is as follows:
@@ -72,9 +73,250 @@ The development process is broken down into distinct phases, characterized by tw
     * Write or modify the code based on the `goal` and its understanding of the tests.
     * The controlling script executes the `validationCommand` from the manifest.
     * If this **Behavioral Validation** fails, the error output is fed back into the agent's context for the next iteration. This loop continues until all tests pass.
+    * The implementation handoff gate runs `maid verify --require-plan-lock --require-red-evidence` to require the sealed plan and valid red-phase evidence for the manifest under review.
 
 4.  **Phase 4: Integration**
     Once the task is complete, the newly implemented code and its corresponding manifest are committed. Because the work was performed against a strict, test-verified manifest contract, it can be integrated with high confidence.
+
+##### **Plan Locks and Red-Phase Evidence**
+
+`maid plan lock <manifest-path>` creates a tamper-evident lock file under
+`.maid/plan-locks/<manifest-slug>.lock.json`. The lock records content hashes
+for the approved manifest and its behavioral test files, the creation
+timestamp, revision metadata, and red-phase evidence captured from the
+manifest's `validate:` commands.
+
+New locks store the manifest pin as a contract-scoped hash with the
+`sha256-contract:` prefix: the runner parses the manifest YAML, removes only
+the top-level `outcome` key, and hashes the canonical JSON serialization of
+the remainder (`json.dumps` with `sort_keys=True` and stable separators).
+YAML-native dates and datetimes normalize to ISO-format strings before
+canonicalization, and non-string mapping keys normalize to the same string
+form JSON uses. Quoted and unquoted ISO dates therefore hash identically. Any
+other non-JSON-native value fails loud with the manifest path and offending
+location; there is still no byte-hash fallback.
+`maid plan status` and legacy-lock contract checks dispatch on the stored
+prefix — `sha256:` still compares raw file bytes for legacy manifest pins —
+so existing locks stay valid without migration. Because the contract hash pins
+parsed data, YAML comment or formatting-only edits no longer flip status under
+the new format; every parsed key except `outcome` still participates, so real
+contract edits remain tamper-evident. Lock and revise fail loud on unreadable
+manifests rather than falling back to byte hashing. Status is reporting-oriented:
+an unreadable manifest returns exit 1 with `manifest_match: false` and
+`manifest_error` in JSON, with an equivalent `Manifest error` line in text.
+
+Behavioral test files use a dual-format pin. New locks hash `.py`
+behavioral tests with a `sha256-pyast:` digest over
+`ast.dump(..., annotate_fields=True, include_attributes=False)` so
+whitespace- and comment-only edits (including Black reformats) do not flip
+status or force E701. Non-Python behavioral tests and legacy lock entries
+keep the byte `sha256:` prefix. Comparison dispatches on the stored
+prefix — existing test hashes stay valid without migration. The documented
+limit is intentional: under `sha256-pyast:`, comment-only and formatter-only
+Python edits are hash-neutral, while assertion, import, string-literal, and
+other AST-visible edits remain tamper-evident.
+
+Red-phase evidence uses exit-code-only classification. For pytest commands,
+exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid
+because they represent usage, internal, interruption, or collection failures,
+and exit 0 means the tests already pass and are not red. MAID stores the final
+output tail for human inspection, but it does not parse text output to decide
+whether evidence is red. `maid plan lock --no-run` records
+`red_evidence: null`.
+
+Completed manifests that predate plan-lock adoption have a separate migration
+path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
+The manifest must be tracked and already present at Git HEAD. The command
+rejects every dirty path except the manifest, requires identical declared
+artifacts and file sections relative to HEAD, permits behavioral-test discovery
+only to grow, and requires every prior validate argv to remain exact or gain
+only appended behavioral-test paths discovered from the current command set.
+Suffix extension is refused when the committed argv ends in an option token,
+because the path could be consumed as that option's value. Overlapping command
+prefixes are matched one-to-one, and additional validate commands are allowed.
+It then runs every current command and requires a green exit code of zero.
+Manifest and behavioral-test hashes are compared before and after execution,
+and unrelated generated or modified paths also fail the migration.
+
+After evidence capture, the new lock is published with exclusive filesystem
+semantics. A destination that appears during validation or publication is never
+overwritten or deleted. MAID removes only its own private temporary file; a
+malformed destination remains visible and blocks retry, while a structurally
+valid competing lock is likewise preserved for explicit operator review.
+
+The resulting lock keeps `red_evidence: null` and stores an independent
+`legacy_baseline` record containing the required reason, baseline commit and
+manifest hash, contract delta, bounded green command results, and capture time.
+A structurally valid, command-snapshot-bound legacy baseline satisfies
+`--require-red-evidence` as an explicit brownfield exception. New or untracked
+manifests, ordinary `--no-run` locks, non-green commands, contract changes,
+mutated contract files, and malformed or command-mismatched legacy records
+continue to fail E704 or E705. A later plan revision does not carry the legacy
+baseline forward; new behavioral work requires a new manifest and genuine red
+evidence.
+
+Intentional plan changes use
+`maid plan revise <manifest-path> --reason "<text>"`. The reason is required
+and the revision re-baselines the manifest and behavioral test hashes. Use
+`maid plan status <manifest-path>` to inspect lock state, hash matches and
+mismatches, and red evidence in text or JSON form.
+
+When implementation review changes the behavioral contract after implementation
+is already present, use `maid plan revise <manifest-path> --reason "<text>"
+--stash-implementation`. This is a targeted recovery workflow: MAID stashes
+only declared non-test implementation paths, including narrow wiring paths
+declared under `files.read` when the manifest also declares a contracted
+writable implementation path, leaves the revised manifest and behavioral tests
+in the worktree, captures fresh red evidence, restores the implementation
+changes, and saves the revised lock only when the evidence is valid red.
+`files.read` behavioral test paths are never stashed, and undeclared dirty paths
+are still refused; declaring a touched wiring file under `files.read` is the
+bounded way to include it in the targeted stash for contracted implementation
+plans. Scope-only manifests still reject separate dirty `files.read` context
+paths. It refuses missing Git metadata, unrelated dirty paths, staged target
+changes, missing target implementation changes, and conflicting `--no-run` or
+`--preserve-red-evidence` modes.
+
+In a legitimate multi-manifest session,
+`--stash-implementation --allow-sibling-dirty` may tolerate dirty paths outside
+the revised manifest's exact declared surface. Those paths are not stashed or
+modified: their full sorted list is echoed and stored in the evidence payload
+as `sibling_dirty_paths` for audit. Without the flag, the fail-closed refusal
+remains and points to either `files.read` for narrow wiring context or the
+opt-in flag for sibling work. The boundary is exact declared paths; MAID does
+not infer whether undeclared coupling could influence validation.
+
+Untracked declared `files.create` paths are targeted and restored
+byte-identically. Intent-to-add paths fail with a `git reset -- <paths>`
+recovery command, while staged targets remain refused with an exact
+`git restore --staged <paths>` command. If a green capture targets
+`package.json`, `package-lock.json`, `bun.lock`, `yarn.lock`, `pnpm-lock.yaml`,
+`uv.lock`, `poetry.lock`, `Cargo.lock`, or `go.sum`, MAID reports the bounded
+dependency limitation: materialized state such as `node_modules`, `.venv`, or
+`vendor` is not stashed. Temporarily install the prior dependency state and use
+plain revise, or record a reasoned legacy baseline; MAID does not rebuild or
+stash dependency trees.
+
+For metadata-only corrections after implementation has already made the
+behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
+--preserve-red-evidence`. This preserves the existing valid red evidence while
+updating the manifest and behavioral test hashes. The option is rejected unless
+the existing lock already has valid red evidence or internally valid
+`test_only_green` evidence, and it cannot be combined with `--no-run`. It does
+not bypass E707: changing validate command strings while
+preserving old evidence remains detectable by the locked `validate_commands`
+snapshot.
+
+For test-only contracts whose entire writable surface is test files (no
+implementation to stash), use `maid plan revise <manifest-path> --reason "<text>"
+--test-only-green`. Capture refuses unless every writable path
+(create/edit/delete/snapshot/scope) classifies as a test file via
+`is_test_file`, and unless every validate command currently passes. The lock
+records honest green evidence tagged `mode: test_only_green`. Enforcement
+accepts that payload for `--require-red-evidence` only while the persisted
+`_manifest_contract` writable set remains entirely test files; if a later
+revision adds an implementation file, or the contract snapshot is missing, the
+evidence immediately fails E705 with a mode/contract mismatch detail. E707
+command cross-checks still apply. The flag is mutually exclusive with
+`--stash-implementation`, `--preserve-red-evidence`, and `--no-run`.
+`maid plan lock` does not accept `--test-only-green`; initial lock still
+requires a genuine red phase.
+
+Plain contract-preserving revise also carries valid `test_only_green` evidence
+forward when the contract delta is empty, locked behavioral test bytes still
+match with no newly discovered test files, and every current writable path
+still classifies as a test file. The classifier bound is rechecked on each
+revision so a later classifier change fails closed and requires recapture. The
+preservation notice names whether red or test-only-green evidence was carried.
+
+PostgreSQL manifests can run file-backed pgTAP tests without duplicating shell
+exit-code adapters:
+
+```bash
+maid pgtap -- -f supabase/tests/example.test.sql
+```
+
+The adapter runs `psql` with a clean startup and forced `ON_ERROR_STOP=1`.
+Successful SQL exits 0. A psql script exit 3 becomes MAID's behavioral-red exit
+1 only when stdout contains an anchored pgTAP `not ok N -` line or stderr
+contains an exact `psql:<file>:<line>: ERROR: pgTAP failures:` final-guard
+line. Missing files, connection or permission failures, unrelated SQL errors,
+spawn failures, and marker-like text quoted inside another error return exit 2
+and remain invalid red evidence. A `-f`/`--file` target is required; standard
+short-option clusters such as `-qftests/example.test.sql` are accepted, and
+callers cannot override `ON_ERROR_STOP`. Original stdout and stderr are
+preserved for the plan lock's bounded evidence tail.
+
+Plan-lock enforcement is opt-in. `maid verify --require-plan-lock
+--require-red-evidence` scopes requirement errors to the task window: E700
+PLAN_LOCK_MISSING, E704 RED_PHASE_EVIDENCE_MISSING, and E705
+RED_PHASE_EVIDENCE_INVALID apply to active manifests whose manifest file
+changed in the verify run. E704 also applies when an in-scope manifest has no plan lock
+under `--require-red-evidence`. Integrity errors apply regardless of task window
+scope: E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702 MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK apply to every locked active manifest,
+E703 PLAN_LOCK_STALE applies when a lock references a missing manifest,
+E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
+unreadable, or malformed, and E707 RED_EVIDENCE_COMMAND_MISMATCH applies when
+a lock's red-phase evidence command strings do not match the `validate_commands`
+snapshot recorded in the lock's manifest contract. E702 applies when declared
+artifacts or behavioral test entries shrink relative to the locked manifest;
+additive manifest changes are legal.
+
+E707 binds red-phase evidence to the validate commands that produced it.
+Sanctioned flows (`maid plan lock`, `maid plan revise`, and the promote
+migration) snapshot the manifest's validate command strings into the lock's
+`_manifest_contract.validate_commands` at save time, so honest locks are
+self-consistent. A lock whose `red_evidence` command multiset differs from
+that snapshot is spliced or hand-edited evidence and fails closed. The
+comparison targets the snapshot, not the current manifest: post-lock additive
+validate edits remain legal, and contract shrinkage stays E702's job. Locks
+created before the snapshot field existed skip the check until their next
+sanctioned re-save, and locks with `red_evidence: null` are owned by E704
+instead.
+
+##### **Constraint Evidence Gates**
+
+`maid verify --artifact-coverage` and `maid validate --artifact-coverage` are
+opt-in Python-only runtime evidence gates. They run the manifest's pytest-based
+`validate:` commands under coverage.py, load the JSON coverage report, map each
+declared public Python function or method artifact to its body line range, and
+fail with `E710 ARTIFACT_NOT_EXECUTED_BY_TESTS` when no body line of that
+artifact executes. Class artifacts pass when any declared method on the class
+executes. Attribute artifacts are excluded from this gate. The coverage support
+lives in the optional quality extra; install `maid-runner[quality]`. Requesting
+artifact coverage without the extra fails closed with `E307` semantics naming
+the missing validator dependency.
+
+`maid verify --knockout` is an opt-in Python-only gate that rewrites one
+declared public function or method artifact at a time to
+`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
+commands, and restores the original source content from an in-memory copy with
+hash verification. If all validate commands still exit 0 while the artifact is
+knocked out, MAID reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Harness
+failures such as parse errors, command spawn failures, or restore anomalies
+report `E712 KNOCKOUT_HARNESS_FAILURE` and include the named file so callers
+can recover the worktree state. Knockouts run sequentially in manifest
+declaration order; `--knockout-limit` bounds the artifact count, and
+`--knockout-allow-dirty` permits dirty target files for workflows that
+explicitly accept that risk. Knockout is not full mutation testing; it proves
+this single failure mode and does not promise broader mutmut-style mutation
+coverage.
+
+The changed-scope baseline that defines the task window resolves from
+`--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
+`metadata.maid_task_base`. Because `maid_task_base` is a current-task
+declaration, metadata baselines are sourced only from active manifests whose
+own manifest file has uncommitted worktree changes — the manifests of the
+task in flight. Committed historical declarations are ignored, so completed
+tasks that declared different bases cannot poison bare resolution.
+Conflicting values among the considered worktree-changed manifests still
+fail closed with E116 CHANGED_SCOPE_BASELINE_INVALID, and when git state
+cannot be read every active manifest is considered: degraded environments
+only make resolution stricter. With no flags and no considered declaration,
+resolution raises E115 CHANGED_SCOPE_BASELINE_REQUIRED, which the plan-lock
+gate maps to the worktree changed-files fallback: on a clean tree the
+plan-lock stage passes with an empty task window while integrity errors
+still apply.
 
 -----
 
@@ -170,8 +412,32 @@ The development process is broken down into distinct phases, characterized by tw
         - File extensions: `.ts`, `.tsx`, `.js`, `.jsx`
         - Artifact types: `class`, `function`, `interface`, `type`, `enum`, `namespace`, `attribute`
         - Features: Generics, decorators, JSX/TSX, async functions, arrow functions
-        - Framework support: Angular, React, NestJS, Vue
-        - Coverage: 99.9% of TypeScript language constructs
+        - React support is TypeScript-backed: function components, typed const
+          components, custom hooks, provider functions, props interfaces/types,
+          common `memo`/`forwardRef` wrapper exports, Testing Library component
+          references, lazy `import()` calls, path aliases, and local CSS module
+          imports are validated through the TypeScript parser, import scanner,
+          and identity matcher
+        - React snapshot support tracks existing relative style and static asset
+          imports as read boundaries; CSS, SVG, images, fonts, and media are not
+          parsed as MAID artifacts
+        - Angular support is TypeScript-backed: decorated classes, fields,
+          methods, standalone imports, and lazy route `import()` calls are
+          validated through the TypeScript parser and import scanner
+        - Angular snapshot support tracks literal `templateUrl`, `styleUrl`,
+          and `styleUrls` companion files as read boundaries when the files
+          exist
+
+    Angular support does not use Angular compiler analysis. Decorator names
+    such as `Component`, `Injectable`, `Directive`, `Pipe`, `Input`, and
+    `Output` are metadata, not public MAID artifacts. External templates and
+    styles are tracked as files for review scope, but their contents are not
+    parsed as Angular template or stylesheet artifacts.
+
+    React support does not use React runtime, DOM, React Native, Next.js,
+    Remix, Vite, webpack, or other bundler semantic analysis. JSX intrinsic
+    tags, JSX attribute names, React imports, Testing Library helpers, CSS, and
+    static assets are not public MAID implementation artifacts.
 
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
@@ -207,6 +473,28 @@ The development process is broken down into distinct phases, characterized by tw
       - The validator (`maid validate`) ignores superseded manifests when merging manifest chains
       - The test runner (`maid test`) does NOT execute `validationCommand` from superseded manifests
       - Superseded manifests serve as historical documentation only—they are archived, not active
+
+    * **Refactoring Private Implementation (No Manifest Required):** MAID provides flexibility for refactoring private implementation details without requiring new manifests. If a change only modifies private code (functions, classes, or variables with `_` prefix) and doesn't introduce new public APIs or change existing public interfaces:
+
+      **When No New Manifest Is Needed:**
+      - The change only affects private implementation (no new public methods/classes)
+      - The public API remains unchanged (no changes to public function signatures, class interfaces, or module exports)
+      - Internal logic improvements, bug fixes, or code quality enhancements
+
+      **Process:**
+      1. **Do NOT create a new manifest**
+      2. **Update the tests** of the existing latest manifest for the file being edited
+      3. Add test cases to cover the new behavior, bug fix, or enhancement
+      4. Ensure all existing tests continue to pass
+      5. Run validation to confirm the existing manifest still validates correctly
+
+      **Example:**
+      - File `utils.py` has manifest `task-014-validation-command-utils.manifest.json`
+      - You need to fix a bug in private function `_extract_from_list_command()` to support vitest test runners
+      - **Action**: Update `tests/test_task_014_validation_command_utils.py` with vitest test cases
+      - **Do NOT**: Create a new manifest like `task-151-support-vitest.manifest.json`
+
+      This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements. The existing manifest's tests serve as the documentation of the change.
 
     * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
 
@@ -351,48 +639,3 @@ The development process is broken down into distinct phases, characterized by tw
 
   * **Codebase as a Dependency Graph**
     By analyzing `import` statements, the entire codebase can be mapped as a Directed Acyclic Graph (DAG). This allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.
-
-#### **Plan-lock manifest hashing (runner extension)**
-
-Modern plan locks pin the manifest with a `sha256-contract:` digest over the
-parsed YAML minus only the top-level `outcome` key (canonical JSON). Legacy
-`sha256:` locks still compare raw file bytes. Prefix dispatch keeps existing
-locks valid without migration; YAML comment/formatting-only edits are
-intentionally hash-neutral under the contract format. YAML dates and datetimes
-normalize to ISO strings, and non-string mapping keys normalize to their JSON
-string form; unsupported values fail with the manifest path and location.
-Lock/revise remain fail-loud for unreadable manifests, while `maid plan status`
-reports them as exit 1 with `manifest_match: false` plus `manifest_error`.
-
-#### **Test-only green evidence (runner extension)**
-
-For manifests whose entire writable surface is test files, use
-`maid plan revise <manifest> --reason "<text>" --test-only-green` to record
-honest green evidence tagged `mode: test_only_green`. Capture refuses unless
-every writable path (create/edit/delete/snapshot/scope) is a test file and
-every validate command passes. Enforcement accepts that payload for
-`--require-red-evidence` only while the persisted `_manifest_contract`
-writable set remains entirely test files; missing snapshots or later-added
-implementation files fail E705. E707 command cross-checks still apply. The
-flag is mutually exclusive with `--stash-implementation`,
-`--preserve-red-evidence`, and `--no-run`, and is not available on
-`maid plan lock`.
-
-Plain contract-preserving revise preserves valid `test_only_green` evidence
-only while the contract delta is empty, locked test bytes and discovery are
-unchanged, and every current writable path still classifies as a test file.
-`--preserve-red-evidence` accepts the same bounded payload class.
-
-#### **Busy-session stash revise (runner extension)**
-
-`maid plan revise <manifest> --reason "<text>" --stash-implementation
---allow-sibling-dirty` tolerates only dirty paths outside the manifest's exact
-declared surface. It leaves them visible and untouched while recording their
-sorted paths in `red_evidence.sibling_dirty_paths` and stdout. Without the flag,
-the existing unrelated-dirt refusal remains. Untracked declared create paths
-are stashed and restored; intent-to-add and staged paths fail with exact
-`git reset -- <paths>` and `git restore --staged <paths>` recovery commands.
-When lockfile-only capture stays green because materialized dependency state is
-still installed, the error names the `node_modules`/`.venv`/`vendor` limitation
-and directs operators to restore the prior dependency state for plain revise or
-use a reasoned legacy baseline. MAID never stashes or rebuilds dependency trees.

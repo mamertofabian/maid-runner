@@ -1,0 +1,250 @@
+schema: '2'
+goal: Pin new plan-lock behavioral `.py` test hashes to an AST-canonical digest so Black and whitespace-only reformats stop forcing plan revisions, while assertion and logic edits remain fail-closed
+type: feature
+created: '2026-07-22T02:00:42Z'
+metadata:
+  epic: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
+  tags:
+  - plan-lock
+  - ceremony-reduction
+  - hashing
+  - anti-gaming
+  priority: high
+description: |
+  Epic 085 made manifest pins formatting-neutral (`sha256-contract:`) and
+  auto-preserved red evidence for contract-preserving revises, but 085-02
+  explicitly left behavioral test pins as byte hashes. Formatter-only edits
+  to locked `.py` tests still change `test_hashes`, force E701, and manufacture
+  `maid plan revise` ceremony (still observed after 085 landed).
+
+  Pinned decisions (do not redesign):
+
+  1. New public `compute_behavioral_test_hash(path)` in
+     maid_runner/core/plan_lock.py. For paths ending in `.py`, read UTF-8,
+     `ast.parse`, canonicalize with
+     `ast.dump(..., annotate_fields=True, include_attributes=False)`, SHA-256
+     the UTF-8 dump, and return `sha256-pyast:<hexdigest>`. For all other
+     suffixes, keep the existing byte hash via `compute_manifest_hash`
+     (`sha256:`). SyntaxError / UnicodeDecodeError raise (fail loud); no
+     silent byte fallback for `.py`.
+  2. New public `test_hash_matches(lock_hash, path)` with prefix dispatch:
+     `sha256-pyast:` compares via the AST hash; `sha256:` via the byte hash;
+     missing files and unknown prefixes return False (fail-closed).
+  3. Writers (`_hash_test_files` / `create_plan_lock` / revise) store
+     `compute_behavioral_test_hash`. Readers/comparers use
+     `test_hash_matches`: `_test_hash_errors`,
+     `revision_preserves_red_evidence`, `_historical_production_test_paths`,
+     and `cmd_plan_status`. Do not bulk-migrate existing lock files.
+  4. Documented limit: comment-only, whitespace-only, and Black-only Python
+     edits are intentionally hash-neutral under `sha256-pyast:`. Assertion,
+     string-literal, import, and other AST-visible edits still change the
+     digest. Non-Python behavioral tests remain byte-hashed.
+  5. Docs in docs/maid_specs.md and the packaged copy state the dual-format
+     rule, legacy compatibility, and the AST limit.
+
+  Behavioral coverage lives in the dedicated unlocked module
+  tests/core/test_ast_scoped_behavioral_test_hash.py. Scoped characterization
+  adaptations update older asserts that expected byte-only `sha256:` test
+  hashes after create_plan_lock.
+temptations:
+- risk: Do not invoke Black or any formatter inside the hash path.
+  instead: Canonicalize with the stdlib ast module only; cover formatter-neutral equality with whitespace/comment fixtures, not by calling black.
+- risk: Do not rewrite existing .maid/plan-locks entries to migrate prefixes.
+  instead: Prefix-dispatch on read; new prefixes appear only through create_plan_lock/revise writes.
+- risk: Do not expand formatting neutrality to non-Python behavioral tests.
+  instead: Route only `.py` paths through sha256-pyast; leave other suffixes on sha256 byte hashes.
+- risk: Do not fall back to byte hashing when a `.py` file fails to parse.
+  instead: Raise on SyntaxError/UnicodeDecodeError during compute_behavioral_test_hash so lock/revise fail loud.
+- risk: Do not weaken red-evidence command cross-checks or E707 while changing test hashing.
+  instead: Change only hash compute/compare call sites listed in the contract; leave evidence classification untouched.
+files:
+  create:
+  - path: tests/core/test_ast_scoped_behavioral_test_hash.py
+    artifacts:
+    - kind: test_function
+      name: test_pyast_hash_ignores_whitespace_and_comment_only_edits
+      source_scenario: Two Python behavioral test files that differ only by whitespace, blank lines, and comments but share the same AST.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_behavioral_test_hash
+      expected:
+        behavior: Both files produce the same sha256-pyast-prefixed digest.
+    - kind: test_function
+      name: test_pyast_hash_tracks_assertion_and_import_changes
+      source_scenario: Variants that change an assertion literal, a string literal, or an import while keeping formatting similar.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_behavioral_test_hash
+      expected:
+        behavior: Each variant produces a digest different from the baseline.
+    - kind: test_function
+      name: test_non_python_behavioral_test_remains_byte_hashed
+      source_scenario: A non-.py behavioral test file hashed through compute_behavioral_test_hash.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_behavioral_test_hash
+      expected:
+        behavior: 'The digest uses the sha256: byte-hash prefix, not sha256-pyast.'
+    - kind: test_function
+      name: test_test_hash_matches_dispatches_on_prefix
+      source_scenario: Legacy sha256 byte hash and new sha256-pyast hash for the same Python file, checked before and after a whitespace-only edit and after an assertion edit.
+      actions:
+      - type: api_call
+        subject:
+          function: test_hash_matches
+      expected:
+        behavior: Legacy hash matches only identical bytes; pyast hash survives whitespace-only edits and fails on assertion edits; unknown prefixes return False.
+    - kind: test_function
+      name: test_new_locks_store_pyast_prefixed_python_test_hashes
+      source_scenario: create_plan_lock on a temp-project manifest whose behavioral tests are .py files.
+      actions:
+      - type: api_call
+        subject:
+          function: create_plan_lock
+      expected:
+        behavior: Every locked .py test_hashes value uses the sha256-pyast prefix.
+    - kind: test_function
+      name: test_plan_status_and_enforce_tolerate_formatter_only_python_edits
+      source_scenario: Lock a temp project, apply a whitespace/comment-only edit to a locked .py behavioral test, then run plan status and enforce_plan_locks; separately apply an assertion edit.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_status
+      expected:
+        behavior: Formatter-only edit keeps status test match and produces no BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK; assertion edit mismatches status and yields E701.
+    - kind: test_function
+      name: test_pyast_hash_raises_on_unparseable_python
+      source_scenario: A .py file with invalid syntax.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_behavioral_test_hash
+      expected:
+        behavior: The function raises SyntaxError instead of returning any digest.
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: compute_behavioral_test_hash
+      args:
+      - name: path
+        type: Path
+      returns: str
+      description: sha256-pyast digest for .py paths via ast.dump canonicalize; sha256 byte digest for other suffixes; raises on .py parse/decode failure.
+    - kind: function
+      name: test_hash_matches
+      args:
+      - name: lock_hash
+        type: str
+      - name: path
+        type: Path
+      returns: bool
+      description: Prefix-dispatched comparison for sha256-pyast and legacy sha256 test hashes; unknown prefixes and missing files return False.
+    - kind: function
+      name: create_plan_lock
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: agent
+        type: Optional[AgentProvenance]
+      returns: PlanLock
+      description: Stores compute_behavioral_test_hash results in test_hashes; signature unchanged.
+  scope:
+  - path: maid_runner/cli/commands/plan.py
+    reason: Route cmd_plan_status test-file match and current_hash through test_hash_matches / prefix-aware current hash.
+  - path: docs/maid_specs.md
+    reason: Document sha256-pyast for Python behavioral tests, legacy sha256 compatibility, and the AST formatting-neutral limit.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep the packaged spec copy in sync.
+  - path: tests/core/test_plan_lock.py
+    reason: 'Adapt create_plan_lock characterization that asserts test_hashes startswith sha256: so new locks expect sha256-pyast for .py tests.'
+  - path: tests/cli/test_plan_cmd_stash_implementation.py
+    reason: Adapt stash-revise characterization that asserts locked test hash prefix sha256:.
+  - path: tests/core/test_contract_scoped_manifest_hash.py
+    reason: Adapt create_plan_lock characterization that required byte-only sha256 test hashes after 085-03.
+  - path: tests/cli/test_plan_revise_auto_preserve.py
+    reason: "Adapt 085-02 characterizations that treated comment-only test edits as hash-changing; assertion edits still force recapture while formatter-only edits preserve."
+  - path: tests/core/test_plan_lock_semantic_test_discovery.py
+    reason: "Adapt unparseable .py lock characterization to expect fail-loud SyntaxError under sha256-pyast hashing."
+  read:
+  - maid_runner/core/supersession_audit.py
+validate:
+- uv run python -m pytest tests/core/test_ast_scoped_behavioral_test_hash.py -v
+- uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-22T10:15:00+08:00"
+  summary: "New plan locks pin Python behavioral tests with sha256-pyast AST-canonical digests so Black and whitespace-only reformats no longer force plan revisions, while assertion and logic edits remain fail-closed."
+  rationale: "Byte-hashing locked .py tests treated formatter churn as tampering. Prefix-dispatched AST hashing mirrors sha256-contract for manifests, keeps legacy sha256 test hashes valid, and leaves non-Python tests on byte semantics."
+  agent:
+    model: Composer
+    provider: cursor
+    client: cursor-auto
+    skills:
+    - maid-implement-draft
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: design
+    summary: "Dispatch sha256-pyast before sha256 when comparing test hashes; the prefixes do not nest, and comment-only Python edits are intentionally hash-neutral under the new format."
+    tags:
+    - plan-lock
+    - hashing
+    - ceremony-reduction
+    paths:
+    - maid_runner/core/plan_lock.py
+    - tests/core/test_ast_scoped_behavioral_test_hash.py
+  - lesson_type: testing
+    summary: "085-02 characterizations that used comment-only test edits to force recapture must switch to assertion edits; formatter-only edits now correctly preserve red evidence under AST hashing."
+    tags:
+    - plan-lock
+    - testing
+    - anti-gaming
+    paths:
+    - tests/cli/test_plan_revise_auto_preserve.py
+  review_notes:
+  - source: maid-implementation-review-round-1
+    severity: ready
+    summary: "Approved; temptations held, declared helpers and call sites correct, sibling lock revises track adapted characterizations only."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_ast_scoped_behavioral_test_hash.py
+    - -v
+    status: passed
+    summary: "All 7 AST-scoped behavioral hash scenarios passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --plan-lock-scope
+    - task
+    - --since
+    - HEAD
+    - --no-changed-scope
+    status: passed
+    summary: "All 8 handoff stages passed after characterization adaptations; only existing E307 warnings remained."
