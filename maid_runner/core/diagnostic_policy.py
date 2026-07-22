@@ -34,6 +34,9 @@ _RECOGNIZED_NON_CODE_FILENAMES = frozenset(
     }
 )
 
+_VALIDATOR_AUDIT_COMMAND = "maid validators"
+_VALIDATOR_PLUGIN_GUIDE = "docs/validator-plugin-authoring.md"
+
 
 def no_validator_severity(path: str) -> Severity:
     """Return the E307 severity for a declared path with no validator."""
@@ -45,3 +48,12 @@ def no_validator_severity(path: str) -> Severity:
     if suffix in _RECOGNIZED_NON_CODE_EXTENSIONS:
         return Severity.INFO
     return Severity.WARNING
+
+
+def no_validator_guidance() -> str:
+    """Return guidance for discovering externally provided validators."""
+    return (
+        f"Run `{_VALIDATOR_AUDIT_COMMAND}` to inspect registered validators; "
+        "an external validator plugin may provide this language. See "
+        f"`{_VALIDATOR_PLUGIN_GUIDE}`."
+    )

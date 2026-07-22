@@ -18,7 +18,10 @@ from maid_runner.core._validation_test_artifacts import (
     collection_errors_to_validation_errors,
 )
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.diagnostic_policy import no_validator_severity
+from maid_runner.core.diagnostic_policy import (
+    no_validator_guidance,
+    no_validator_severity,
+)
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.ts_module_paths import resolve_ts_import, resolve_ts_reexport
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, FileSpec, Manifest
@@ -69,12 +72,18 @@ class ImplementationFileValidator:
         try:
             validator = self._registry.get(fs.path)
         except UnsupportedLanguageError:
+            severity = no_validator_severity(fs.path)
             return [
                 ValidationError(
                     code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
                     message=f"No validator available for '{fs.path}'",
-                    severity=no_validator_severity(fs.path),
+                    severity=severity,
                     location=Location(file=fs.path),
+                    suggestion=(
+                        no_validator_guidance()
+                        if severity == Severity.WARNING
+                        else None
+                    ),
                 )
             ]
 

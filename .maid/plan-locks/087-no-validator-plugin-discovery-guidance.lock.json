@@ -1,0 +1,355 @@
+{
+  "manifest_path": "manifests/087-no-validator-plugin-discovery-guidance.manifest.yaml",
+  "manifest_hash": "sha256-contract:64fa47ae9b55370712e3967b002ec37d2d10b8ee74a1dac4aa4714aab4afa054",
+  "test_hashes": {
+    "tests/core/test_no_validator_guidance.py": "sha256:6a607aae1e6c7cf3d81e32ee0be3cea627104bd10431d6bac6cb3cc8bf1a15b9",
+    "tests/cli/test_init_validator_plugin_guidance.py": "sha256:34cbc8517926ed03e62daba60ce350a08bb82aaaed99e5bc8157322465694554"
+  },
+  "created_at": "2026-07-22T01:26:11.169255+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5923d7f95d4fe43b90913486e9dbe4f869ff168c092f568f1c0faa12021848db",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68",
+        "tests/core/test_no_validator_guidance.py": "sha256:f0702768920bace94a50b8e55f054ae06725607f6149f1b302835b2dbc475427",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:26:16.132838+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/087-no-validator-plugin-discovery-guidance.manifest.yaml -> manifests/087-no-validator-plugin-discovery-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ad1ead7467ef0e98fae3fa9fa466c00dc71b5ca3cef8de50e3e4ad4695e8c504",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68",
+        "tests/core/test_no_validator_guidance.py": "sha256:f0702768920bace94a50b8e55f054ae06725607f6149f1b302835b2dbc475427",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:27:36.150169+00:00",
+      "reason": "Declare required private call-site edits as writable scope after the active-task hook correctly rejected files.read paths; behavioral contract and tests are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/cli/commands/init.py",
+          "scope:maid_runner/core/_implementation_validation.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/cli/commands/init.py",
+          "read:maid_runner/core/_implementation_validation.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b0e49b66e41495299886e114a6f1b0871f55402e05f928fb8c469f5b6bf0c34e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68",
+        "tests/core/test_no_validator_guidance.py": "sha256:f0702768920bace94a50b8e55f054ae06725607f6149f1b302835b2dbc475427",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:29:41.974979+00:00",
+      "reason": "Repair the behavioral fixture and defer production imports so the red phase is a behavior failure rather than pytest collection error.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b0e49b66e41495299886e114a6f1b0871f55402e05f928fb8c469f5b6bf0c34e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68",
+        "tests/core/test_no_validator_guidance.py": "sha256:18023a7356ebf79993054ffeceb0750a9b5b93f8a267f92c5868dfd06978dde5",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:30:06.130513+00:00",
+      "reason": "Model instruction payload version metadata as writable scope because the Python collector does not expose module constants as attribute artifacts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:of=module",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "files_added": [
+          "scope:maid_runner/instruction_payload.py"
+        ],
+        "files_removed": [
+          "edit:maid_runner/instruction_payload.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6cb10ea9a060a9b1997726debab43fa9a8de37b66300781cf936d6fde3697b0f",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/core/test_e307_proportionate_policy.py": "sha256:88d05fdb453978e88ff328419927651a4afd9af5a9c624a8a851641173540a68",
+        "tests/core/test_no_validator_guidance.py": "sha256:18023a7356ebf79993054ffeceb0750a9b5b93f8a267f92c5868dfd06978dde5",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:30:54.712094+00:00",
+      "reason": "Remove contextual existing regression tests from files.read so the locked behavioral contract contains only the two declared suites; adjacent tests remain explicit validation evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_init_instruction_payload_version.py",
+          "read:tests/core/test_e307_proportionate_policy.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:64fa47ae9b55370712e3967b002ec37d2d10b8ee74a1dac4aa4714aab4afa054",
+      "prior_test_hashes": {
+        "tests/core/test_no_validator_guidance.py": "sha256:18023a7356ebf79993054ffeceb0750a9b5b93f8a267f92c5868dfd06978dde5",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:31:28.221169+00:00",
+      "reason": "Add exact behavioral references for the redeclared no_validator_severity public artifact while preserving the warning/info branch contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:64fa47ae9b55370712e3967b002ec37d2d10b8ee74a1dac4aa4714aab4afa054",
+      "prior_test_hashes": {
+        "tests/core/test_no_validator_guidance.py": "sha256:3fa6ca59499f25bbfdff83dac01f643f7e416d6a8c00540e3be9a41a2e32c493",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256:af13e97f179b14894b44fe0e1863ecf9d406f6bb106e01e9ee5abc4964bf8375"
+      },
+      "revised_at": "2026-07-22T01:34:13.031958+00:00",
+      "reason": "Apply repository Black formatting to the locked behavioral tests without changing their scenarios or assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T01:34:13.709915+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_no_validator_guidance.py -q",
+        "exit_code": 1,
+        "output_tail": "E       assert 'maid validators' in ((None or ''))\nE        +  where None = ValidationError(code=<ErrorCode.VALIDATOR_NOT_AVAILABLE: 'E307'>, message=\"No validator available for 'src/Program.cs'...g'>, location=Location(file='src/Program.cs', line=None, column=None, end_line=None, end_column=None), suggestion=None).suggestion\n\ntests/core/test_no_validator_guidance.py:62: AssertionError\n_____ test_unsupported_language_error_suggests_validator_plugin_discovery ______\n\n    def test_unsupported_language_error_suggests_validator_plugin_discovery() -> None:\n        from maid_runner.validators.registry import UnsupportedLanguageError\n    \n        message = str(UnsupportedLanguageError(\".cs\"))\n    \n>       assert \"maid validators\" in message\nE       assert 'maid validators' in \"No validator for '.cs' files. Install optional dependencies? (e.g., maid-runner[typescript])\"\n\ntests/core/test_no_validator_guidance.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_no_validator_guidance.py::test_no_validator_guidance_names_runtime_audit_and_plugin_docs\nFAILED tests/core/test_no_validator_guidance.py::test_source_like_e307_suggests_validator_plugin_discovery\nFAILED tests/core/test_no_validator_guidance.py::test_unsupported_language_error_suggests_validator_plugin_discovery\n3 failed, 1 passed in 0.15s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_init_validator_plugin_guidance.py -q",
+        "exit_code": 1,
+        "output_tail": "  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Created: .pre-commit-config.yaml\n  Created: .gitignore\n  Updated: .codex/\n  Updated: AGENTS.md\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n_______ test_validator_plugin_guidance_bumps_instruction_payload_version _______\n\n    def test_validator_plugin_guidance_bumps_instruction_payload_version() -> None:\n>       assert INSTRUCTION_PAYLOAD_VERSION > \"2026.07.18.1\"\nE       AssertionError: assert '2026.07.18.1' > '2026.07.18.1'\n\ntests/cli/test_init_validator_plugin_guidance.py:36: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_validator_plugin_guidance.py::test_init_injects_validator_plugin_guidance_for_claude\nFAILED tests/cli/test_init_validator_plugin_guidance.py::test_init_injects_validator_plugin_guidance_for_codex\nFAILED tests/cli/test_init_validator_plugin_guidance.py::test_validator_plugin_guidance_bumps_instruction_payload_version\n3 failed in 0.17s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_guidance",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_guidance:kind=function",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_guidance:returns=str",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:arg=path:type=str:default=None",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:kind=function",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:returns=Severity",
+      "maid_runner/validators/registry.py:class:UnsupportedLanguageError",
+      "maid_runner/validators/registry.py:class:UnsupportedLanguageError:kind=class",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_claude",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_claude:kind=test_function",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_claude:returns=None",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_codex",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_codex:kind=test_function",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_init_injects_validator_plugin_guidance_for_codex:returns=None",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_validator_plugin_guidance_bumps_instruction_payload_version",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_validator_plugin_guidance_bumps_instruction_payload_version:kind=test_function",
+      "tests/cli/test_init_validator_plugin_guidance.py:test_validator_plugin_guidance_bumps_instruction_payload_version:returns=None",
+      "tests/core/test_no_validator_guidance.py:test_no_validator_guidance_names_runtime_audit_and_plugin_docs",
+      "tests/core/test_no_validator_guidance.py:test_no_validator_guidance_names_runtime_audit_and_plugin_docs:kind=test_function",
+      "tests/core/test_no_validator_guidance.py:test_no_validator_guidance_names_runtime_audit_and_plugin_docs:returns=None",
+      "tests/core/test_no_validator_guidance.py:test_recognized_non_code_e307_has_no_plugin_suggestion",
+      "tests/core/test_no_validator_guidance.py:test_recognized_non_code_e307_has_no_plugin_suggestion:kind=test_function",
+      "tests/core/test_no_validator_guidance.py:test_recognized_non_code_e307_has_no_plugin_suggestion:returns=None",
+      "tests/core/test_no_validator_guidance.py:test_source_like_e307_suggests_validator_plugin_discovery",
+      "tests/core/test_no_validator_guidance.py:test_source_like_e307_suggests_validator_plugin_discovery:kind=test_function",
+      "tests/core/test_no_validator_guidance.py:test_source_like_e307_suggests_validator_plugin_discovery:returns=None",
+      "tests/core/test_no_validator_guidance.py:test_unsupported_language_error_suggests_validator_plugin_discovery",
+      "tests/core/test_no_validator_guidance.py:test_unsupported_language_error_suggests_validator_plugin_discovery:kind=test_function",
+      "tests/core/test_no_validator_guidance.py:test_unsupported_language_error_suggests_validator_plugin_discovery:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_validator_plugin_guidance.py",
+        "tests/core/test_no_validator_guidance.py"
+      ],
+      "edit": [
+        "maid_runner/core/diagnostic_policy.py",
+        "maid_runner/validators/registry.py"
+      ],
+      "read": [
+        "docs/validator-plugin-authoring.md"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/instruction_payload.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_no_validator_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_no_validator_guidance_names_runtime_audit_and_plugin_docs",
+              "description": "The centralized guidance names maid validators and the validator plugin authoring guide.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_source_like_e307_suggests_validator_plugin_discovery",
+              "description": "A declared unsupported source file keeps E307 warning severity and carries the centralized plugin-discovery suggestion.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsupported_language_error_suggests_validator_plugin_discovery",
+              "description": "UnsupportedLanguageError directs callers to the runtime validator audit and plugin authoring guide.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recognized_non_code_e307_has_no_plugin_suggestion",
+              "description": "A declared recognized non-code file remains an informational E307 without the plugin-discovery suggestion.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_validator_plugin_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_injects_validator_plugin_guidance_for_claude",
+              "description": "Public maid init generation adds the validator audit and plugin-installation rule to CLAUDE.md.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_injects_validator_plugin_guidance_for_codex",
+              "description": "Public maid init generation adds the validator audit and plugin-installation rule to AGENTS.md.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validator_plugin_guidance_bumps_instruction_payload_version",
+              "description": "The init instruction payload version advances beyond the previously shipped version when guidance changes.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/diagnostic_policy.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "no_validator_severity",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "Severity"
+            },
+            {
+              "kind": "function",
+              "name": "no_validator_guidance",
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/registry.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "UnsupportedLanguageError",
+              "description": "Public missing-validator exception whose message reuses the centralized plugin-discovery guidance."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/validator-plugin-authoring.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Add the centralized guidance only to warning-severity E307 suggestions; private validation plumbing with no public artifact change."
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Add the validator-plugin workflow rule to the private CLAUDE.md and AGENTS.md payload renderers without changing cmd_init's public signature."
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "reason": "Bump the init-installed instruction payload version so downstream check mode detects the changed guidance; version metadata has no analyzer-visible artifact contract."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_validator_plugin_guidance.py",
+      "tests/core/test_no_validator_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_no_validator_guidance.py -q",
+      "uv run python -m pytest tests/cli/test_init_validator_plugin_guidance.py -q"
+    ]
+  }
+}

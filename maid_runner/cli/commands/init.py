@@ -744,6 +744,7 @@ def _render_claude_md_section(manifest: dict) -> str:
         "`maid-planner`, review with `maid-plan-review`, implement with "
         "`maid-implementer`, and review the result with "
         "`maid-implementation-review` before handoff.\n\n"
+        f"{_render_validator_plugin_guidance()}"
         f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
@@ -772,9 +773,18 @@ def _render_agents_md_section(manifest: dict) -> str:
         "`maid hook scope-check --path <file>` and treat exit code 2 as "
         "out-of-scope. This pre-edit hook check is advisory and does not "
         "replace `maid verify` changed-scope validation.\n\n"
+        f"{_render_validator_plugin_guidance()}"
         f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
         f"{_MAID_SECTION_END}\n"
+    )
+
+
+def _render_validator_plugin_guidance() -> str:
+    return (
+        "Before treating a file's language as unsupported, run "
+        "`maid validators` and install a matching validator plugin when "
+        "available instead of skipping MAID for that file.\n\n"
     )
 
 
@@ -899,8 +909,7 @@ def _read_installed_payload_version(path: Path) -> str | None:
 def _print_instruction_payload_status(status: dict) -> None:
     print(f"MAID instruction payload status: {status['status']}")
     print(
-        "Current instruction payload version: "
-        f"{status['instruction_payload_version']}"
+        f"Current instruction payload version: {status['instruction_payload_version']}"
     )
     for tool, info in status["installed"].items():
         version = info["instruction_payload_version"]
