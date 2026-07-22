@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/fix-ownerless-module-attribute-removal.manifest.yaml",
-  "manifest_hash": "sha256:a9c39a3dc138b62e201bf0b4a81924421140cc9a1ec112e03beabc97242c383f",
+  "manifest_hash": "sha256-contract:c4ddacf1c7c9d66c56a58b78194c9fc203d620eb4e086d918bfd98b3760ab739",
   "test_hashes": {
-    "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
-    "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
-    "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+    "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+    "tests/core/test_removed_module_attributes.py": "sha256-pyast:72745944dcd905dd951c90ae61baafb75ecdf85129dc112a6f7ec36013349421",
+    "tests/core/test_removed_artifacts.py": "sha256-pyast:f13c5add497c5f07e24351b9f4d7d4ea2bbd0d9f4327bdb7b5c37fbc267131a6"
   },
   "created_at": "2026-07-13T10:43:24.255949+00:00",
-  "revision": 4,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:0bc9164e837be74b55996ac208a6d5095a2dd70d60cf483cbd220b43c5822692",
@@ -60,6 +60,82 @@
       },
       "revised_at": "2026-07-13T11:00:33.697517+00:00",
       "reason": "Record the reviewed completed Outcome while preserving revision-3 red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:a9c39a3dc138b62e201bf0b4a81924421140cc9a1ec112e03beabc97242c383f",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256:b105dd62c838d4ff552f556d8085356eb314163a55c3b13c3afa8b4639720a54",
+        "tests/core/test_removed_module_attributes.py": "sha256:1646a2be878b10a3f5d56879824a72627529f0dcb0061b8ae7b5c19cf702bc62",
+        "tests/core/test_removed_artifacts.py": "sha256:4a5f1341cfda7517690723a9bd49e8f2b661d9776a50c1ac437d7bc3abdf4dcd"
+      },
+      "revised_at": "2026-07-22T05:06:47.221001+00:00",
+      "reason": "Shared behavioral test file extended by fix-removed-attribute-owner-identity; ownerless contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c4ddacf1c7c9d66c56a58b78194c9fc203d620eb4e086d918bfd98b3760ab739",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9",
+        "tests/core/test_removed_artifacts.py": "sha256-pyast:f13c5add497c5f07e24351b9f4d7d4ea2bbd0d9f4327bdb7b5c37fbc267131a6"
+      },
+      "revised_at": "2026-07-22T05:11:29.281129+00:00",
+      "reason": "Black-format shared behavioral tests after verify format gate",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c4ddacf1c7c9d66c56a58b78194c9fc203d620eb4e086d918bfd98b3760ab739",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9",
+        "tests/core/test_removed_artifacts.py": "sha256-pyast:f13c5add497c5f07e24351b9f4d7d4ea2bbd0d9f4327bdb7b5c37fbc267131a6"
+      },
+      "revised_at": "2026-07-22T05:56:20.464500+00:00",
+      "reason": "Shared behavioral test file extended with cross-kind owner-cascade regression; ownerless module-removal contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c4ddacf1c7c9d66c56a58b78194c9fc203d620eb4e086d918bfd98b3760ab739",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:9b081201f9d0a8b460ede0227b3d23247b7c18e1a0ec680e6ece3d8381ad55ea",
+        "tests/core/test_removed_artifacts.py": "sha256-pyast:f13c5add497c5f07e24351b9f4d7d4ea2bbd0d9f4327bdb7b5c37fbc267131a6"
+      },
+      "revised_at": "2026-07-22T06:01:15.429186+00:00",
+      "reason": "Shared behavioral fixture strengthened to isolate exact owner-qualified removal; ownerless contract unchanged",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
