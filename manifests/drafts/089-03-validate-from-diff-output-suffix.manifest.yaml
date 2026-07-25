@@ -1,0 +1,157 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reject a maid manifest from-diff --output path whose suffix MAID cannot load, so the drafts-directory guard stops being the only thing checked"
+type: fix
+created: "2026-07-25"
+metadata:
+  planning_state: draft-inventory
+  promotion_ready: false
+  tests_status: planned-not-created
+  sibling_drafts:
+    - manifests/drafts/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+  tags:
+    - manifest-io
+    - fail-loud
+    - cli
+  priority: medium
+description: |
+  Not promotion-ready: behavioral tests are planned but not written, and the red
+  phase is unconfirmed.
+
+  `maid manifest from-diff --output <path>` validates only that the path is
+  inside `manifests/drafts/`. `_is_manifest_draft_path`
+  (`maid_runner/cli/commands/manifest.py:526-534`) resolves the candidate and
+  checks `relative_to(draft_root)`; it performs no suffix check whatsoever. So
+  `--output manifests/drafts/x.json` passes the guard at line 466 and then
+  receives YAML through `write_from_diff_manifest`, producing a draft that
+  `load_manifest_raw` rejects with a JSONDecodeError.
+
+  The failure is worse here than in the sibling writers, because a draft is
+  meant to be promoted. An unloadable draft blocks `maid validate`,
+  `maid plan lock`, and `maid manifest promote` at the next step, after the
+  agent or human has already moved on believing the command succeeded.
+
+  Also verify during implementation, and pin whichever way it resolves: the
+  slug-derived default is `manifests/drafts/{slug}.manifest.yaml`, and
+  `_set_validate_path(data, output_path)` writes the output path into the
+  generated manifest's own `validate` command. A rejected suffix must therefore
+  fail before any file is written, so no draft is left carrying a self-validate
+  path that points at a file MAID cannot load.
+
+  Where the fix belongs, verified against the tree. The containment check is
+  currently duplicated: `_is_manifest_draft_path`
+  (`maid_runner/cli/commands/manifest.py:526-534`) and `_is_draft_output_path`
+  (`maid_runner/core/manifest_from_diff.py:241-249`) are byte-for-byte identical
+  logic, and `write_from_diff_manifest` (line 108-120) re-checks containment and
+  the `force` overwrite condition before writing. `write_from_diff_manifest` is
+  public and is the actual writer, so the suffix condition belongs there: it
+  then covers both the CLI path and any library caller, rather than only the
+  CLI.
+
+  Note the CLI dispatch shape. `_cmd_from_diff`
+  (`maid_runner/cli/commands/manifest.py:442`) is private and cannot be a
+  declared artifact; the public entry point is `cmd_manifest` (line 21), which
+  dispatches on `args.manifest_command`. Behavioral tests must drive
+  `cmd_manifest` or the real parser, not the private helper.
+
+  Why this is separate from 089-01 and 089-02: this writer has its own
+  drafts-only contract, its own `force` semantics, and a CLI-level error and
+  exit code as observable behavior. It is not a general-purpose manifest writer.
+
+  Scope boundary: do not relax or restructure the existing drafts-directory
+  containment guard, and do not deduplicate the two identical containment
+  helpers in this contract. This contract only adds a suffix condition alongside
+  the existing check, which must keep its current message and exit code.
+  Consolidating the duplicated helpers is a separate refactor.
+temptations:
+  - risk: "Do not accept .json here and leave the writer emitting YAML; the guard and the writer must agree on the same suffix set."
+    instead: "Decide whether from-diff supports JSON at all. If not, reject every non-YAML suffix; if so, route the write through the 089-01 format-aware writer."
+  - risk: "Do not fold the suffix rejection into the existing containment error message; the two failures have different causes and different remedies."
+    instead: "Raise a distinct FromDiffRenderError naming the unsupported suffix, and pin both rejection messages separately."
+  - risk: "Do not assert only on the CLI exit code; an exit 2 that still wrote a partial draft would satisfy that."
+    instead: "Assert the exit code and that no file exists at the requested path afterward."
+files:
+  edit:
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: write_from_diff_manifest
+          args:
+            - name: data
+              type: dict
+            - name: output_path
+              type: Union[str, Path]
+            - name: force
+              type: bool
+              default: "False"
+          returns: Path
+          description: >-
+            PLANNED. Reject an output path whose suffix MAID cannot load, with a
+            FromDiffRenderError distinct from the drafts-directory containment
+            failure, before any filesystem effect. Placed on the public writer so
+            library callers are covered, not only the CLI.
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: >-
+            PLANNED. Surface the new suffix rejection as exit code 2 with the
+            writer's message, leaving the existing drafts-directory rejection
+            message and exit code unchanged. Dispatches to the private
+            _cmd_from_diff helper, which is not part of the contract.
+  create:
+    - path: tests/cli/test_manifest_from_diff_output_suffix.py
+      artifacts:
+        - kind: test_function
+          name: test_from_diff_rejects_unsupported_output_suffix_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. A caller passes --output manifests/drafts/x.json or x.txt."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 with an error naming the unsupported suffix, distinct from the drafts-directory message, and no file exists at the requested path."
+        - kind: test_function
+          name: test_from_diff_still_rejects_output_outside_drafts_directory
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. A caller passes an --output path outside manifests/drafts/."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The existing containment rejection is unchanged in message and exit code, proving the new suffix condition was added alongside it rather than replacing it."
+        - kind: test_function
+          name: test_from_diff_accepts_default_yaml_draft_path
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. The slug-derived default output path is used as a regression guard."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The generated draft is written, round-trips through load_manifest_raw, and its self-validate path points at the file that was actually written."
+  read:
+    - maid_runner/core/manifest.py
+    - tests/cli/test_manifest_from_diff_cmd.py
+    - manifests/drafts/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/089-03-validate-from-diff-output-suffix.manifest.yaml --mode schema --quiet

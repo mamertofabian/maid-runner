@@ -1,0 +1,148 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Give maid snapshot --force and --with-tests real behavior or remove them, so the CLI stops advertising two flags that silently do nothing"
+type: fix
+created: "2026-07-25"
+metadata:
+  planning_state: draft-inventory
+  promotion_ready: false
+  tests_status: planned-not-created
+  source_review: manifests/fix-snapshot-output-format-from-suffix.manifest.yaml
+  tags:
+    - snapshot
+    - cli
+    - fail-loud
+    - dead-flags
+  priority: medium
+description: |
+  Not promotion-ready: behavioral tests are planned but not written, the red
+  phase is unconfirmed, and the central design question below must be answered
+  first.
+
+  `maid snapshot` declares two flags that no code reads. Verified against the
+  current tree: `cmd_snapshot` (`maid_runner/cli/commands/snapshot.py:11-36`)
+  reads only `args.file_path`, `args.dry_run`, `args.json`, `args.output_dir`,
+  and `args.output`. Neither `args.with_tests` nor `args.force` is referenced
+  anywhere in `maid_runner/`.
+
+  - `--force` ("Overwrite an existing output manifest",
+    `maid_runner/cli/commands/_main.py:670-672`) silently no-ops. Worse, the
+    default is already destructive: `save_snapshot` overwrites unconditionally,
+    so a user who omits `--force` still loses an existing manifest, and a user
+    who passes it gets no additional guarantee. The flag's existence implies a
+    safety default that does not exist.
+  - `--with-tests` ("Include discovered test files in the snapshot",
+    `_main.py:665-669`) silently no-ops. `generate_test_stub`
+    (`maid_runner/core/snapshot.py:202`) already exists and is the obvious
+    intended implementation, but nothing wires it to the flag.
+
+  This is the same failure class as the bug that produced the parent contract:
+  the command reports success while the user's stated intent is silently
+  discarded. It is arguably worse, because the user explicitly asked for the
+  behavior on the command line.
+
+  Precedent for the `--force` semantics exists in the same codebase.
+  `write_from_diff_manifest` (`maid_runner/core/manifest_from_diff.py:108-120`)
+  refuses to overwrite unless `force=True`:
+
+  ```python
+  if path.exists() and not force:
+      raise FromDiffRenderError(f"Manifest already exists: {path}")
+  ```
+
+  Adopting that for snapshot makes the two commands consistent and turns an
+  advertised-but-absent safety guarantee into a real one.
+
+  Blocking design question to resolve before promotion: making `--force`
+  meaningful changes the default to refuse overwriting, which is a **breaking
+  change** for anyone scripting `maid snapshot` over an existing manifest. The
+  alternatives are (1) implement the refusal and treat it as a deliberate
+  breaking change with a changelog entry, (2) implement the refusal only when a
+  new opt-in is set, or (3) delete both flags. Option 1 is the drafter's
+  preference because it matches `from-diff` and makes the advertised behavior
+  true, but this must be an explicit decision rather than an implementation
+  detail. `maid bootstrap` (`maid_runner/core/bootstrap.py:169`) calls
+  `save_snapshot` in a loop and must be checked against whichever option is
+  chosen.
+
+  Scope boundary: do not change snapshot artifact collection or output-format
+  selection. Format selection is settled by the parent contract and must not be
+  reopened here.
+temptations:
+  - risk: "Do not make --force satisfy its test by merely reading args.force without changing behavior; a consumed-but-inert flag is the same defect with better optics."
+    instead: "Pin the observable behavior: without --force an existing target is refused and left byte-identical, with --force it is replaced."
+  - risk: "Do not implement --with-tests by writing test stubs the snapshot never references; that produces orphan files and a still-misleading flag."
+    instead: "Decide whether the flag adds discovered test files to the manifest's declared surface or generates stubs, state the choice in the manifest, and assert the resulting manifest content."
+  - risk: "Do not quietly keep the destructive overwrite default while adding a --force flag that only gates a warning."
+    instead: "If option 1 is chosen, make the no-force path refuse and exit non-zero, and pin that an existing manifest is unchanged on disk afterward."
+  - risk: "Do not delete the flags as the path of least resistance without confirming no packaged skill, doc, or CI workflow passes them."
+    instead: "If option 3 is chosen, grep the shipped skill payloads, docs/, and .github/ for the flags first and record the result in the manifest."
+files:
+  edit:
+    - path: maid_runner/cli/commands/snapshot.py
+      artifacts:
+        - kind: function
+          name: cmd_snapshot
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: >-
+            PLANNED. Consume --force and --with-tests so both flags have
+            observable effects, or return a clear error if the resolved design
+            removes them. Exact behavior depends on the option chosen for the
+            blocking design question.
+  create:
+    - path: tests/cli/test_snapshot_flag_behavior.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_without_force_refuses_to_overwrite_existing_manifest
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. A snapshot target already exists and --force is not passed."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_snapshot
+          expected:
+            behavior: "The command exits non-zero and the existing manifest is byte-identical afterward, matching the from-diff refusal precedent."
+        - kind: test_function
+          name: test_snapshot_with_force_overwrites_existing_manifest
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. The same target exists and --force is passed."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_snapshot
+          expected:
+            behavior: "The command exits 0 and the manifest content is replaced with the newly generated snapshot."
+        - kind: test_function
+          name: test_snapshot_with_tests_includes_discovered_test_files
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "PLANNED, NOT YET WRITTEN. A source file with a discoverable companion test is snapshotted with --with-tests."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_snapshot
+          expected:
+            behavior: "The written manifest differs observably from the same run without the flag, in whichever way the resolved design specifies."
+  read:
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/manifest_from_diff.py
+    - maid_runner/core/bootstrap.py
+    - maid_runner/cli/commands/_main.py
+    - tests/cli/test_snapshot_cmd.py
+validate:
+  - uv run maid validate manifests/drafts/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode schema --quiet
