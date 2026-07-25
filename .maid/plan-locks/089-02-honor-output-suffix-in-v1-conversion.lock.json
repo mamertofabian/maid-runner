@@ -1,0 +1,338 @@
+{
+  "manifest_path": "manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml",
+  "manifest_hash": "sha256-contract:d274f1980f82884b0f69df2aec81738f66579cd262949257df2900ca1cef5e7f",
+  "test_hashes": {
+    "tests/compat/test_v1_loader.py": "sha256-pyast:a12e17b57cd1067dd47ea96af6c60f7053753ccea7cb3caa2af854140ad2d48d",
+    "tests/integration/test_backward_compat.py": "sha256-pyast:2c53df7d7ad31f174b3ed9aa42caac26761117a58998231d23a2d86a2f46511f",
+    "tests/compat/test_v1_conversion_output_format.py": "sha256-pyast:f900733213c23543ecc8424cf528143a566cdb052988bbaa5607899fb0dd57c4"
+  },
+  "created_at": "2026-07-25T21:33:34.082117+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:8abb6d7646501d6a40f8917770586b66187cf544879a8fdae9d2e8fe23a28158",
+      "prior_test_hashes": {
+        "tests/compat/test_v1_loader.py": "sha256-pyast:a12e17b57cd1067dd47ea96af6c60f7053753ccea7cb3caa2af854140ad2d48d",
+        "tests/integration/test_backward_compat.py": "sha256-pyast:2c53df7d7ad31f174b3ed9aa42caac26761117a58998231d23a2d86a2f46511f",
+        "tests/compat/test_v1_conversion_output_format.py": "sha256-pyast:f900733213c23543ecc8424cf528143a566cdb052988bbaa5607899fb0dd57c4"
+      },
+      "revised_at": "2026-07-25T21:33:40.214309+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml -> manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6761897fcdc9dbb07769479c9c4ca6328b994b41d3cbcb0d757db17d89c25728",
+      "prior_test_hashes": {
+        "tests/compat/test_v1_loader.py": "sha256-pyast:a12e17b57cd1067dd47ea96af6c60f7053753ccea7cb3caa2af854140ad2d48d",
+        "tests/integration/test_backward_compat.py": "sha256-pyast:2c53df7d7ad31f174b3ed9aa42caac26761117a58998231d23a2d86a2f46511f",
+        "tests/compat/test_v1_conversion_output_format.py": "sha256-pyast:f900733213c23543ecc8424cf528143a566cdb052988bbaa5607899fb0dd57c4"
+      },
+      "revised_at": "2026-07-25T22:06:46.638615+00:00",
+      "reason": "Correct the rationale precision per review finding A3 and capture Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T21:33:43.751977+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/compat/test_v1_conversion_output_format.py tests/compat/test_v1_loader.py tests/integration/test_backward_compat.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner.compat.v1_loader import convert_v1_file\n    \n        # An empty suffix must not fall back to YAML; load_manifest_raw rejects a\n        # suffixless path with \"Unknown extension\".\n        out_path = tmp_path / \"migrated\"\n    \n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\ntests/compat/test_v1_conversion_output_format.py:156: Failed\n=========================== short test summary info ============================\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_json_suffix_round_trips_through_loader\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_yaml_output_carries_self_describing_header\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_yml_body_is_the_unheadered_conversion\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_unsupported_suffix_is_rejected_without_writing\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_checks_suffix_before_reading_input\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_uppercase_suffix_is_rejected_without_writing\nFAILED tests/compat/test_v1_conversion_output_format.py::test_convert_v1_file_suffixless_output_path_is_rejected\n7 failed, 54 passed in 0.18s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/compat/v1_loader.py:function:convert_v1_file",
+      "maid_runner/compat/v1_loader.py:function:convert_v1_file:arg=input_path:type=Union[str, Path]:default=None",
+      "maid_runner/compat/v1_loader.py:function:convert_v1_file:arg=output_path:type=Union[str, Path, None]:default=None",
+      "maid_runner/compat/v1_loader.py:function:convert_v1_file:kind=function",
+      "maid_runner/compat/v1_loader.py:function:convert_v1_file:returns=Path",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_checks_suffix_before_reading_input",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_checks_suffix_before_reading_input:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_checks_suffix_before_reading_input:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_checks_suffix_before_reading_input:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_json_suffix_round_trips_through_loader",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_json_suffix_round_trips_through_loader:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_json_suffix_round_trips_through_loader:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_json_suffix_round_trips_through_loader:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_suffixless_output_path_is_rejected",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_suffixless_output_path_is_rejected:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_suffixless_output_path_is_rejected:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_suffixless_output_path_is_rejected:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_unsupported_suffix_is_rejected_without_writing",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_unsupported_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_unsupported_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_unsupported_suffix_is_rejected_without_writing:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_uppercase_suffix_is_rejected_without_writing",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_uppercase_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_uppercase_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_uppercase_suffix_is_rejected_without_writing:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yaml_output_carries_self_describing_header",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yaml_output_carries_self_describing_header:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yaml_output_carries_self_describing_header:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yaml_output_carries_self_describing_header:returns=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yml_body_is_the_unheadered_conversion",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yml_body_is_the_unheadered_conversion:arg=tmp_path:type=Path:default=None",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yml_body_is_the_unheadered_conversion:kind=test_function",
+      "tests/compat/test_v1_conversion_output_format.py:test_convert_v1_file_yml_body_is_the_unheadered_conversion:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/compat/test_v1_conversion_output_format.py"
+      ],
+      "edit": [
+        "maid_runner/compat/v1_loader.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml",
+        "tests/compat/test_v1_loader.py",
+        "tests/integration/test_backward_compat.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/compat/test_v1_conversion_output_format.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_json_suffix_round_trips_through_loader",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller migrates a v1 manifest to an explicit .json output path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "load_manifest_raw parses the migrated file with strict json.loads and the parsed body equals the full convert_v1_to_v2 dict, with no YAML banner present."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_yaml_output_carries_self_describing_header",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller migrates a v1 manifest using the derived default output path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The migrated manifest starts with the 086-01 banner, names the project URL, and still round-trips through load_manifest_raw."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_yml_body_is_the_unheadered_conversion",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller migrates a v1 manifest to a .yml output path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The text below the banner is byte-identical to the pre-change yaml.dump output, proving .yml is a supported YAML target and that adding the banner did not reshape the converted body."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_unsupported_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes an output path MAID cannot load, and a sentinel file already occupies that path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "convert_v1_file raises ValueError naming the unsupported suffix and the sentinel bytes are untouched, so a rejected migration does not clobber an existing file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_checks_suffix_before_reading_input",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes an unsupported output suffix together with an input path that does not exist.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The unsupported suffix raises ValueError rather than FileNotFoundError, which holds only if the suffix is validated before any filesystem access."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_uppercase_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller migrates a v1 manifest to an uppercase .YAML output path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "convert_v1_file raises ValueError and writes nothing, because load_manifest_raw and chain discovery match the lowercase suffix exactly, so an uppercase suffix is not a loadable manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_convert_v1_file_suffixless_output_path_is_rejected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes an output path with no suffix at all.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "convert_v1_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "convert_v1_file raises ValueError and writes nothing, closing the empty-suffix YAML fallback that 089-01's review found unpinned."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/compat/v1_loader.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "convert_v1_file",
+              "description": "Write the format the resolved output suffix implies, matching the suffix case-sensitively because load_manifest_raw does, and reject an unsupported suffix before the input file is read so a rejected call has no filesystem effect at all. YAML output carries the 086-01 self-describing banner; JSON output does not, because JSON has no comment syntax. The converted body itself is unchanged.",
+              "args": [
+                {
+                  "name": "input_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path, None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml",
+        "tests/compat/test_v1_loader.py",
+        "tests/integration/test_backward_compat.py"
+      ]
+    },
+    "test_files": [
+      "tests/compat/test_v1_conversion_output_format.py",
+      "tests/compat/test_v1_loader.py",
+      "tests/integration/test_backward_compat.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/compat/test_v1_conversion_output_format.py tests/compat/test_v1_loader.py tests/integration/test_backward_compat.py",
+      "uv run maid validate manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

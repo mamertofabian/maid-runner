@@ -1,0 +1,410 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make convert_v1_file honor its output suffix and emit the self-describing header,
+  so v1 migration cannot produce an unloadable or unlabeled v2 manifest"
+type: fix
+created: "2026-07-25T21:33:40Z"
+metadata:
+  maid_task_base: b87ebdcbe02adac27a765ea5b39fae94d2e8c345
+  sibling_drafts:
+    - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+    - manifests/drafts/089-03-validate-from-diff-output-suffix.manifest.yaml
+  tags:
+    - manifest-io
+    - fail-loud
+    - v1-compat
+  priority: low
+description: |
+  Second of the three sibling writers found by the
+  `fix-snapshot-output-format-from-suffix` review. 089-01 landed first (commit
+  b87ebdc) and moved the shared `_SUFFIX_FORMATS` map next to the
+  `load_manifest_raw` dispatch it encodes, precisely so this contract and 089-03
+  import it instead of adding a third and fourth copy.
+
+  Naming correction carried from the source review: the finding was reported
+  against `migrate_v1_to_v2`, but no such symbol exists. The real entry point is
+  `convert_v1_file` (`maid_runner/compat/v1_loader.py:136-153`), which writes
+  `yaml.dump` output directly to a caller-supplied `output_path`:
+
+  ```python
+  def convert_v1_file(input_path, output_path=None):
+      ...
+      if output_path is None:
+          output_path = input_path.parent / f"{slug}.manifest.yaml"
+      output_path = Path(output_path)
+      output_path.write_text(
+          yaml.dump(v2_data, default_flow_style=False, sort_keys=False)
+      )
+      return output_path
+  ```
+
+  Two defects, both verified against the current tree:
+
+  1. No suffix check. The derived default is `.manifest.yaml` and is safe, but an
+     explicit `output_path` of `x.json` receives YAML that `load_manifest_raw`
+     then rejects with a JSONDecodeError.
+  2. No self-describing header. Unlike `save_manifest`
+     (`maid_runner/core/manifest.py:471-495`), this writer never calls
+     `prepend_manifest_header`, so every migrated v1 manifest lands without the
+     086-01 banner. That is a second, independent gap: migrated manifests are
+     precisely the ones most likely to be read by a teammate who has never seen
+     MAID, which is the audience 086-01 exists for.
+
+  Resolution of the blocking design question. The draft deferred the choice
+  between delegating the write to `save_manifest` and adding a local suffix
+  check, pending 089-01's resolved signature. **The local suffix check is
+  chosen; delegation to `save_manifest` is rejected.**
+
+  Rationale, measured against the current tree rather than reasoned about.
+  `save_manifest` takes a parsed `Manifest`, while `convert_v1_file` holds the
+  raw dict `convert_v1_to_v2` produced. Routing the dict through
+  `_parse_manifest` and back out through `_manifest_to_dict` is not
+  content-preserving: a v1 `validationCommand` of `"pytest tests/ -v"` converts
+  to `validate: ["pytest tests/ -v"]`, and the round-trip rewrites it as
+  `validate: [["pytest", "tests/", "-v"]]`. Migration would silently reshape the
+  field it was asked to carry across, which the scope boundary below forbids.
+  That reason is decisive on its own. A weaker second observation is recorded
+  here for accuracy rather than as an independent ground: `convert_v1_to_v2` can
+  legitimately emit a schema-invalid v2 dict — a v1 manifest with
+  `editableFiles` but no `expectedArtifacts` converts to a body that fails
+  schema validation with `'files' is a required property`, and `convert_v1_file`
+  writes it today. That only rules out a `load_manifest`-style route;
+  `_parse_manifest` accepts such a body and `save_manifest` performs no schema
+  validation, so it does not by itself rule out delegating to `save_manifest`.
+  On that same body the first reason still applies, since it round-trips to
+  `validate: [['pytest']]`.
+
+  So this writer keeps rendering its own body and gains only the two things it
+  is missing: a suffix check that agrees with the reader, and the banner on YAML
+  output. `.json` output must not receive the banner, since JSON has no comment
+  syntax. Suffixes are matched case-sensitively because `load_manifest_raw` and
+  manifest chain discovery both match the exact lowercase suffix.
+
+  Ordering note. The suffix is validated against the resolved output path before
+  the input file is read, so an unsupported suffix costs no I/O at all and can
+  leave no partial artifact. Resolving the default output path is pure `Path`
+  arithmetic and needs no I/O, so this ordering is available for both the
+  derived and the explicit path.
+
+  Scope boundary: this contract must not change the v1-to-v2 field conversion
+  performed by `convert_v1_to_v2`. Only the write step is in scope. It must not
+  widen `load_manifest_raw` to accept new suffixes, and must not make the reader
+  case-insensitive; both are out of scope for the whole 089 family.
+
+  Anti-gaming hardening carried from 089-01's implementation review, which found
+  four wrong implementations that still passed that contract's locked tests. The
+  tests below close the same four holes for this writer: an empty-suffix
+  fallback is pinned by its own rejection test; the JSON body is compared
+  against the whole converted dict rather than two sampled fields; the reject
+  path is proven by ordering (a missing input file still raises on the suffix)
+  rather than only by a sentinel that a byte-restoring rollback would survive;
+  and the YAML body is compared byte-for-byte against the unheadered conversion,
+  which a JSON body emitted under the banner could not satisfy.
+temptations:
+  - risk: "Do not fix only the suffix and leave the missing 086-01 banner; both defects
+      are in this writer and a partial fix leaves migrated manifests unlabeled."
+    instead: "Pin both: assert the migrated file round-trips through load_manifest_raw
+      for its suffix, and assert the YAML output starts with the banner."
+  - risk: "Do not alter convert_v1_to_v2 field mapping while touching this file; conversion
+      correctness is out of scope and has its own coverage."
+    instead: "Change only the write step, and assert the YAML body below the banner
+      is byte-identical to the pre-change yaml.dump output."
+  - risk: "Do not delegate the write to save_manifest to save a few lines; the Manifest
+      round-trip rewrites validate commands from strings to token lists and would
+      silently reshape migrated content."
+    instead: "Keep rendering the converted dict directly, and import the shared _SUFFIX_FORMATS
+      map from maid_runner.core.manifest rather than copying it."
+  - risk: "Do not prove either branch with a weak assertion: a bare load_manifest_raw
+      round-trip or a goal/type spot check passes for a lossy JSON body and, because
+      PyYAML parses JSON, for a JSON body emitted under the YAML banner; and a sentinel-only
+      reject test passes for a write-then-restore rollback, as 089-01's review demonstrated."
+    instead: "Assert the parsed JSON equals the full convert_v1_to_v2 dict, compare
+      the YAML body byte-for-byte against the unheadered conversion, and prove reject
+      ordering by pointing the input at a nonexistent file so only a pre-read suffix
+      check can raise ValueError."
+  - risk: "Do not relax the case-sensitive match to accept .YAML as a convenience,
+      and do not let a suffixless path fall back to YAML; the reader and chain discovery
+      match lowercase exactly."
+    instead: "Reject both with their own tests, matching the posture 089-01 and save_snapshot
+      already ship."
+files:
+  edit:
+    - path: maid_runner/compat/v1_loader.py
+      artifacts:
+        - kind: function
+          name: convert_v1_file
+          args:
+            - name: input_path
+              type: Union[str, Path]
+            - name: output_path
+              type: Union[str, Path, None]
+              default: None
+          returns: Path
+          description: >-
+            Write the format the resolved output suffix implies, matching the
+            suffix case-sensitively because load_manifest_raw does, and reject an
+            unsupported suffix before the input file is read so a rejected call
+            has no filesystem effect at all. YAML output carries the 086-01
+            self-describing banner; JSON output does not, because JSON has no
+            comment syntax. The converted body itself is unchanged.
+  create:
+    - path: tests/compat/test_v1_conversion_output_format.py
+      artifacts:
+        - kind: test_function
+          name: test_convert_v1_file_json_suffix_round_trips_through_loader
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller migrates a v1 manifest to an explicit .json output
+            path."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "load_manifest_raw parses the migrated file with strict json.loads
+              and the parsed body equals the full convert_v1_to_v2 dict, with no YAML
+              banner present."
+        - kind: test_function
+          name: test_convert_v1_file_yaml_output_carries_self_describing_header
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller migrates a v1 manifest using the derived default
+            output path."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "The migrated manifest starts with the 086-01 banner, names
+              the project URL, and still round-trips through load_manifest_raw."
+        - kind: test_function
+          name: test_convert_v1_file_yml_body_is_the_unheadered_conversion
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller migrates a v1 manifest to a .yml output path."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "The text below the banner is byte-identical to the pre-change
+              yaml.dump output, proving .yml is a supported YAML target and that adding
+              the banner did not reshape the converted body."
+        - kind: test_function
+          name: 
+            test_convert_v1_file_unsupported_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes an output path MAID cannot load, and a
+            sentinel file already occupies that path."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "convert_v1_file raises ValueError naming the unsupported suffix
+              and the sentinel bytes are untouched, so a rejected migration does not
+              clobber an existing file."
+        - kind: test_function
+          name: test_convert_v1_file_checks_suffix_before_reading_input
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes an unsupported output suffix together
+            with an input path that does not exist."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "The unsupported suffix raises ValueError rather than FileNotFoundError,
+              which holds only if the suffix is validated before any filesystem access."
+        - kind: test_function
+          name: 
+            test_convert_v1_file_uppercase_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller migrates a v1 manifest to an uppercase .YAML
+            output path."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "convert_v1_file raises ValueError and writes nothing, because
+              load_manifest_raw and chain discovery match the lowercase suffix exactly,
+              so an uppercase suffix is not a loadable manifest."
+        - kind: test_function
+          name: test_convert_v1_file_suffixless_output_path_is_rejected
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes an output path with no suffix at all."
+          actions:
+            - type: api_call
+              subject:
+                export: convert_v1_file
+          expected:
+            behavior: "convert_v1_file raises ValueError and writes nothing, closing
+              the empty-suffix YAML fallback that 089-01's review found unpinned."
+  read:
+    - maid_runner/core/manifest.py
+    - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+    - tests/compat/test_v1_loader.py
+    - tests/integration/test_backward_compat.py
+validate:
+  - uv run python -m pytest -q tests/compat/test_v1_conversion_output_format.py 
+    tests/compat/test_v1_loader.py tests/integration/test_backward_compat.py
+  - uv run maid validate 
+    manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml --mode 
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-26T06:05:21+08:00'
+  summary: >-
+    convert_v1_file now writes the format its resolved output suffix implies,
+    rejects an unsupported suffix before the input file is read, and emits the
+    086-01 self-describing banner on YAML output. v1 migration can no longer
+    hand back a manifest MAID refuses to load, and migrated manifests now
+    introduce themselves to readers who have never seen MAID. The converted body
+    itself is byte-identical to what the writer produced before this contract.
+  rationale: >-
+    Second of the three sibling writers found by the
+    fix-snapshot-output-format-from-suffix review. The blocking design question
+    the draft deferred — delegate the write to save_manifest, or keep a local
+    suffix check — was resolved as a local suffix check on measured evidence
+    rather than on preference. Routing the converted dict through _parse_manifest
+    and back out through _manifest_to_dict is not content-preserving: a v1
+    validationCommand of "pytest tests/ -v" converts to validate:
+    ["pytest tests/ -v"] today but round-trips to
+    validate: [["pytest", "tests/", "-v"]], so delegation would silently reshape
+    the exact field migration was asked to carry across. That reason is decisive
+    on its own; the manifest also records the weaker schema-invalid-output
+    observation, corrected during review so it is no longer presented as an
+    independent ground. The writer therefore keeps rendering its own body and
+    gains only the two things it was missing, importing the shared
+    _SUFFIX_FORMATS map that 089-01 moved next to load_manifest_raw rather than
+    adding a third copy of it.
+  lessons:
+    - lesson_type: promotion-side-effects
+      summary: >-
+        maid manifest promote strands path-based sibling pointers. Promoting
+        089-02 left 089-01's metadata.sibling_drafts pointing at the deleted
+        draft path, and the promote command warned about it. Cleaning it up cost
+        a plan revise on an already-completed contract. 089-03 will hit this
+        twice, so either reference siblings by slug instead of path, or declare
+        sibling manifests under files.scope at plan time; files.read does not
+        authorize the edit, and chain-level verify cannot catch a read-listed
+        edit.
+      tags:
+        - workflow
+        - manifest-authoring
+      paths:
+        - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+    - lesson_type: test-discrimination
+      summary: >-
+        Proving a reject path by ordering beats proving it with a sentinel.
+        089-01's review showed a sentinel file cannot distinguish
+        validate-before-write from a rollback that restores the original bytes.
+        Pointing the input at a nonexistent file and asserting ValueError rather
+        than FileNotFoundError does distinguish them, because only a pre-read
+        suffix check can raise first. Review confirmed this test catches the
+        write-then-restore implementation the sentinel misses. It pins the
+        property up to observable mutation, not up to the read syscall; an
+        implementation that reads first and swallows OSError still passes.
+      tags:
+        - anti-gaming
+        - implementation-review
+      paths:
+        - tests/compat/test_v1_conversion_output_format.py
+    - lesson_type: duplication-pressure
+      summary: >-
+        Sharing the suffix map was necessary but not sufficient. The guard, its
+        error-message string, and the JSON/YAML render block in convert_v1_file
+        are now a near-verbatim copy of save_manifest, and 089-03 would make a
+        third. The recorded follow-up to promote _SUFFIX_FORMATS to a public
+        constant should widen to extracting one shared write_manifest_document
+        writer that all three call, which also retires the cross-module
+        underscore import instead of merely renaming it.
+      tags:
+        - manifest-io
+        - shared-contract
+      paths:
+        - maid_runner/compat/v1_loader.py
+        - maid_runner/core/manifest.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Ready to merge with zero blocking findings on the first pass. Review
+        independently reproduced both grounds of the design decision, verified
+        the converted body is dict-for-dict identical to the pre-change
+        implementation extracted from b87ebdc across three v1 shapes, confirmed
+        the YAML output is exactly the banner plus the pre-change bytes, and
+        swept 26 path shapes finding zero disagreements between convert_v1_file
+        and load_manifest_raw, including dotfiles, trailing dot and space,
+        multi-suffix, four case variants, and symlinks in both directions.
+        Confirmed no import cycle and no undeclared public drift.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        The four hollow implementations that passed 089-01's locked tests are
+        genuinely closed here. Review ran the 7 locked tests against 9
+        deliberately wrong implementations; the empty-suffix fallback, lossy JSON
+        body, write-then-restore rollback, and JSON-body-under-the-banner were
+        each caught, as was a banner-on-yaml-but-not-yml variant. Four survivors
+        were identified as non-defects: a read-then-swallow-OSError ordering
+        variant, an endswith-based suffix match that disagrees with the reader
+        only on bare dotfiles, a None-returning variant already caught by the
+        pre-existing assertions in this manifest's own validate command, and
+        case variants beyond .YAML that rely on the shared map.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Editing 089-01's manifest under a files.read declaration is a judgement
+        call rather than clean scope. Accepted as non-blocking because the edit
+        was a single metadata pointer stranded by promote itself, the new lock
+        revision records an empty contract_delta, and plan revise
+        --preserve-red-evidence kept 089-01's red evidence and all four test
+        hashes byte-for-byte. Also flagged that
+        specs/v2-rewrite/13-backward-compatibility.md:91 still documents
+        convert_v1_file as writing v2 YAML format, which is now inaccurate; left
+        alone as historical design-spec drift, the same class 089-01 left alone.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/compat/test_v1_conversion_output_format.py, tests/compat/test_v1_loader.py, tests/integration/test_backward_compat.py]
+      status: passed
+      summary: The focused contract scope passed 61 tests, covering the 7 new suffix and header cases plus the existing v1 loader and backward-compatibility callers.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full Python suite passed 3542 tests with 5 skips, up from the 3535-test baseline by the seven new cases.
+    - command: [uv, run, maid, validate, manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed for the promoted contract.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 360 active manifests passed with 0 failures; 97 superseded were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 202 manifest-declared validation commands passed with 0 failures.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, b87ebdcbe02adac27a765ea5b39fae94d2e8c345]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking
+        findings; only pre-existing E307 non-code warnings for
+        ts_compiler_resolver.cjs and Makefile remained.
