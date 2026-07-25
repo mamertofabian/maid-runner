@@ -448,6 +448,7 @@ def _cmd_from_diff(args: argparse.Namespace) -> int:
         FromDiffRenderError,
         build_from_diff_manifest,
         default_from_diff_slug,
+        validate_from_diff_output_suffix,
         write_from_diff_manifest,
     )
 
@@ -467,6 +468,10 @@ def _cmd_from_diff(args: argparse.Namespace) -> int:
             raise FromDiffRenderError(
                 f"Manifest from-diff output must be under manifests/drafts/: {output_path}"
             )
+        # Checked here as well as in write_from_diff_manifest because --dry-run
+        # returns below without ever reaching the writer, and must not hand back
+        # a manifest whose own validate command names a file MAID cannot load.
+        validate_from_diff_output_suffix(output_path)
         data = build_from_diff_manifest(diff, Path.cwd(), slug)
         _set_validate_path(data, output_path)
 

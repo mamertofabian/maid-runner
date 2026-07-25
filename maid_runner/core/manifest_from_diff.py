@@ -16,7 +16,11 @@ from maid_runner.core.diff_scope import (
     FileArtifactDelta,
     _resolve_baseline_commitish,
 )
-from maid_runner.core.manifest import prepend_manifest_header, validate_manifest_schema
+from maid_runner.core.manifest import (
+    _SUFFIX_FORMATS,
+    prepend_manifest_header,
+    validate_manifest_schema,
+)
 from maid_runner.core.types import ArtifactKind, ArtifactSpec
 from maid_runner.core.validate_suggestions import suggest_validate_commands
 
@@ -105,6 +109,36 @@ def build_from_diff_manifest(
     }
 
 
+def validate_from_diff_output_suffix(output_path: Union[str, Path]) -> None:
+    """Reject an output suffix this writer cannot correctly emit.
+
+    ``write_from_diff_manifest`` always emits YAML, and ``load_manifest_raw``
+    dispatches on the output suffix when reading the file back, so a suffix the
+    reader maps to any other format would produce a draft MAID cannot load. The
+    accepted set is derived from ``_SUFFIX_FORMATS`` rather than restated, so
+    this guard cannot drift away from the reader it has to agree with.
+
+    from-diff is YAML-only by design: a draft exists to be promoted, and
+    ``maid manifest promote`` accepts only ``*.manifest.yaml`` and
+    ``*.manifest.yml``, so a JSON draft would be a dead end even if it were
+    written as well-formed JSON.
+    """
+    # Matched case-sensitively on purpose: load_manifest_raw and manifest chain
+    # discovery both dispatch on the exact lowercase suffix, so accepting
+    # ".YAML" here would write a draft MAID cannot load back.
+    suffix = Path(output_path).suffix
+    supported = sorted(
+        candidate
+        for candidate, output_format in _SUFFIX_FORMATS.items()
+        if output_format == "yaml"
+    )
+    if suffix not in supported:
+        raise FromDiffRenderError(
+            f"Manifest from-diff writes YAML; unsupported output suffix "
+            f"{suffix!r}: use one of {', '.join(supported)}"
+        )
+
+
 def write_from_diff_manifest(
     data: dict,
     output_path: Union[str, Path],
@@ -116,6 +150,9 @@ def write_from_diff_manifest(
         raise FromDiffRenderError(
             f"Manifest from-diff output must be under manifests/drafts/: {path}"
         )
+    # Ahead of the force/exists branch, the schema check, and the parent mkdir,
+    # so a rejected suffix leaves no filesystem effect behind.
+    validate_from_diff_output_suffix(path)
     if path.exists() and not force:
         raise FromDiffRenderError(f"Manifest already exists: {path}")
 

@@ -12,7 +12,7 @@ metadata:
   maid_task_base: 965107ede0ebbd5514fd5ca086a0cfb7b3bfbe8d
   sibling_drafts:
     - manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml
-    - manifests/drafts/089-03-validate-from-diff-output-suffix.manifest.yaml
+    - manifests/089-03-validate-from-diff-output-suffix.manifest.yaml
   tags:
     - manifest-io
     - fail-loud

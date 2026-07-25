@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml",
-  "manifest_hash": "sha256-contract:d274f1980f82884b0f69df2aec81738f66579cd262949257df2900ca1cef5e7f",
+  "manifest_hash": "sha256-contract:c475a5549f1387397d1a91ee5572d1c34a7a9aba31157ae97251f83f39315572",
   "test_hashes": {
     "tests/compat/test_v1_loader.py": "sha256-pyast:a12e17b57cd1067dd47ea96af6c60f7053753ccea7cb3caa2af854140ad2d48d",
     "tests/integration/test_backward_compat.py": "sha256-pyast:2c53df7d7ad31f174b3ed9aa42caac26761117a58998231d23a2d86a2f46511f",
     "tests/compat/test_v1_conversion_output_format.py": "sha256-pyast:f900733213c23543ecc8424cf528143a566cdb052988bbaa5607899fb0dd57c4"
   },
   "created_at": "2026-07-25T21:33:34.082117+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:8abb6d7646501d6a40f8917770586b66187cf544879a8fdae9d2e8fe23a28158",
@@ -41,6 +41,25 @@
       },
       "revised_at": "2026-07-25T22:06:46.638615+00:00",
       "reason": "Correct the rationale precision per review finding A3 and capture Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d274f1980f82884b0f69df2aec81738f66579cd262949257df2900ca1cef5e7f",
+      "prior_test_hashes": {
+        "tests/compat/test_v1_loader.py": "sha256-pyast:a12e17b57cd1067dd47ea96af6c60f7053753ccea7cb3caa2af854140ad2d48d",
+        "tests/integration/test_backward_compat.py": "sha256-pyast:2c53df7d7ad31f174b3ed9aa42caac26761117a58998231d23a2d86a2f46511f",
+        "tests/compat/test_v1_conversion_output_format.py": "sha256-pyast:f900733213c23543ecc8424cf528143a566cdb052988bbaa5607899fb0dd57c4"
+      },
+      "revised_at": "2026-07-25T22:32:44.862041+00:00",
+      "reason": "089-03 promoted; update sibling pointer to the active manifest path",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
