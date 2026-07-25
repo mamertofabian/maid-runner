@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/add-scope-only-file-section.manifest.yaml",
-  "manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
+  "manifest_hash": "sha256-contract:ebfae460f9ac779b8f7590612cf15e7109f8d800c9f1e43a080ee55e2a4f9624",
   "test_hashes": {
-    "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
-    "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
-    "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
-    "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836"
+    "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+    "tests/core/test_types.py": "sha256-pyast:c5300b2faa114016ac54a0f01ef6ca4d498316198568297220b3436ded9ad4d8",
+    "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:9568876598dfbb89b3cd0e63ab1455773e0ee5ec9bf797492ba558a90772e9db",
+    "tests/cli/test_validate_cmd.py": "sha256-pyast:37fece6eecd8c6e49997ceb512f69e21b4bb33ca7d1740b48120c8ef4be16e0e"
   },
   "created_at": "2026-06-19T10:08:55.108489+00:00",
-  "revision": 20,
+  "revision": 21,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:cfa1a62865c2d3412f9e972c10089d7f8ddfdc49eadf160a1988273f74d13a3f",
@@ -19,7 +19,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:4b80d70e1c97f37439a4a6c9b75cd389200334c9a3cb647c51dadd4dfd229095"
       },
       "revised_at": "2026-06-19T10:09:02.491351+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/add-scope-only-file-section.manifest.yaml -> manifests/add-scope-only-file-section.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-scope-only-file-section.manifest.yaml -> manifests/add-scope-only-file-section.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
@@ -30,7 +32,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:4b80d70e1c97f37439a4a6c9b75cd389200334c9a3cb647c51dadd4dfd229095"
       },
       "revised_at": "2026-06-19T10:10:54.055236+00:00",
-      "reason": "Correct CLI worktree-scope fixture to dirty only the scope-only Svelte route after baseline commit"
+      "reason": "Correct CLI worktree-scope fixture to dirty only the scope-only Svelte route after baseline commit",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
@@ -41,7 +45,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:ae72084c4215fd7c7e9abe75e266c0269d5f55c55d86e1c28287115d5c114af0"
       },
       "revised_at": "2026-06-19T10:11:33.203361+00:00",
-      "reason": "Preserve red evidence after formatting behavioral test files"
+      "reason": "Preserve red evidence after formatting behavioral test files",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
@@ -52,7 +58,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:ae72084c4215fd7c7e9abe75e266c0269d5f55c55d86e1c28287115d5c114af0"
       },
       "revised_at": "2026-06-19T10:12:16.932119+00:00",
-      "reason": "Preserve red evidence after lint-only cleanup in CLI behavioral test"
+      "reason": "Preserve red evidence after lint-only cleanup in CLI behavioral test",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6b34d7e454821f16b4f50a1185efe947f0ef62748ac875f8dc2922ec0f9ce935",
@@ -63,7 +71,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
       },
       "revised_at": "2026-06-19T10:31:44.557265+00:00",
-      "reason": "Preserve red evidence after asserting E114 suggestion mentions files.scope"
+      "reason": "Preserve red evidence after asserting E114 suggestion mentions files.scope",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:a2c609595afe4d738f0c88bb09af7268d266ce1a6571e6f957539f1013d96930",
@@ -74,7 +84,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
       },
       "revised_at": "2026-06-25T04:07:13.023947+00:00",
-      "reason": "Add scope-only file-tracking regression coverage to shared file-scope tests"
+      "reason": "Add scope-only file-tracking regression coverage to shared file-scope tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -85,7 +97,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:5fb18239e0b2b5a613aeabfba6c5dc19a724f439de133548c0f31811b4823949"
       },
       "revised_at": "2026-06-25T13:14:08.501337+00:00",
-      "reason": "Refresh lock after Black formatting of shared validate command tests."
+      "reason": "Refresh lock after Black formatting of shared validate command tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -96,7 +110,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:c13481b51de75889d850aed5452667e8ee04063514ea5c9415de85451cbb6b4e"
       },
       "revised_at": "2026-06-25T22:40:22.359102+00:00",
-      "reason": "Refresh lock after fast-only E2E validate command coverage updated shared validate tests."
+      "reason": "Refresh lock after fast-only E2E validate command coverage updated shared validate tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -107,7 +123,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:8f125f984aab51e4de05577927c6d0123c2e0fbc7b4b3bcd5d72c2dc57349096"
       },
       "revised_at": "2026-06-25T22:51:14.955840+00:00",
-      "reason": "Refresh lock after selector-bearing browser E2E coverage updated shared validate tests."
+      "reason": "Refresh lock after selector-bearing browser E2E coverage updated shared validate tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -118,7 +136,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:ab6d1100ec6bf07a9d05228569e7fea0eef1ba7f09dfd83d43534017bb4887bf"
       },
       "revised_at": "2026-06-25T23:05:54.517952+00:00",
-      "reason": "Refresh lock after Black formatting of shared validate command tests."
+      "reason": "Refresh lock after Black formatting of shared validate command tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -129,7 +149,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:088ad96a51154432fbfff9583e3b78b0dbcda8e70b49beabf3c69591980a8311"
       },
       "revised_at": "2026-06-25T23:25:00.815792+00:00",
-      "reason": "Refresh lock after shared validate command tests gained E2E fast-gate follow-up coverage."
+      "reason": "Refresh lock after shared validate command tests gained E2E fast-gate follow-up coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -140,7 +162,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:6611d655b656d0a9e0c47f3259ff503464d1907b685c034c9138552e8c09e8ca"
       },
       "revised_at": "2026-06-25T23:42:32.406563+00:00",
-      "reason": "Refresh lock after shared validate command tests gained final E2E wrapper coverage."
+      "reason": "Refresh lock after shared validate command tests gained final E2E wrapper coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -151,7 +175,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:a28d166041a431be6efa9d142b97488438f9d2e5f5f9b87e68c4f3adfad2371f"
       },
       "revised_at": "2026-06-25T23:59:30.144777+00:00",
-      "reason": "Refresh lock after shared validate command tests gained mixed-command E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained mixed-command E2E coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -162,7 +188,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:70008ee4f0b7e80e20d67ff72ccbf36c03674bc8d4c060abb0f6ce1f4de511c1"
       },
       "revised_at": "2026-06-26T00:14:07.808291+00:00",
-      "reason": "Refresh lock after shared validate command tests gained pytest html report-path coverage."
+      "reason": "Refresh lock after shared validate command tests gained pytest html report-path coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -173,7 +201,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:39d1bb33db65afa013cdfdaeabeab51f0809bae5835894a135532cad29852b77"
       },
       "revised_at": "2026-06-26T00:31:36.343833+00:00",
-      "reason": "Refresh lock after shared validate command tests gained package call and e2e cwd coverage."
+      "reason": "Refresh lock after shared validate command tests gained package call and e2e cwd coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -184,7 +214,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:c8028786825958ee56fa4da1074bbe3c5d2c7b4d49b53de5c387a5f62f7c1154"
       },
       "revised_at": "2026-06-26T00:53:00.358332+00:00",
-      "reason": "Refresh lock after shared validate command tests gained scoped Playwright and output-file E2E path coverage."
+      "reason": "Refresh lock after shared validate command tests gained scoped Playwright and output-file E2E path coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -195,7 +227,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:5437ecea1b74e4afec0bf0f4c65a8f5ccb3a79f0f3c4c8f6e562c9e820deee07"
       },
       "revised_at": "2026-06-26T01:08:01.869648+00:00",
-      "reason": "Refresh lock after shared validate command tests gained package-call E2E wrapper coverage."
+      "reason": "Refresh lock after shared validate command tests gained package-call E2E wrapper coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -206,7 +240,9 @@
         "tests/cli/test_validate_cmd.py": "sha256:4aca1ddb52a00483b6dcd32d42a169455d8276b78828f48eccf4e6c92d453e86"
       },
       "revised_at": "2026-06-26T01:26:04.371956+00:00",
-      "reason": "Refresh lock after shared validate command tests gained bounded launcher wrapper and JS output directory E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained bounded launcher wrapper and JS output directory E2E coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
@@ -217,7 +253,46 @@
         "tests/cli/test_validate_cmd.py": "sha256:11214cf18f9abf2db7389599e732894b1b1b0ab21869627d77b80dd8a7c03536"
       },
       "revised_at": "2026-06-26T01:40:18.427520+00:00",
-      "reason": "Refresh lock after shared validate command tests gained wrapper inner separator E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained wrapper inner separator E2E coverage.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:25141511907b8656a8d4cac7603f3657b43e9d10ac35f541f56ef7e271622b32",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256:45294c020e5be7def165ae1ab240d82840adf2a7bb389b13afaa1ddf21c89cc5",
+        "tests/core/test_types.py": "sha256:99e9aa91a39e8d026da3421af21bed6edd31e010a4eeb844bb2089758757a703",
+        "tests/core/validation/test_file_scope_gates.py": "sha256:96083e6054cbd9acbabcb354ed8d557367d95fdffd32d0da0a4bc58f7d9eedcc",
+        "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836"
+      },
+      "revised_at": "2026-07-25T09:25:10.630470+00:00",
+      "reason": "Shared behavioral test file tests/core/test_manifest.py gained an unrelated save_manifest header test from 086-01; this contract is unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:README.md",
+          "edit:docs/troubleshooting.md",
+          "edit:maid_runner/core/chain.py",
+          "edit:maid_runner/core/manifest.py",
+          "edit:maid_runner/core/types.py",
+          "edit:maid_runner/core/worktree.py",
+          "edit:maid_runner/schemas/manifest.v2.schema.json",
+          "edit:tests/cli/test_validate_cmd.py",
+          "edit:tests/core/test_manifest.py",
+          "edit:tests/core/test_types.py",
+          "edit:tests/core/validation/test_file_scope_gates.py",
+          "read:docs/maid-serve.md",
+          "read:maid_runner/core/_file_tracking.py",
+          "read:maid_runner/core/scope_check.py",
+          "read:manifests/030-09-add-worktree-scope-gate.manifest.yaml",
+          "read:manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -232,6 +307,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "README.md:attribute:documentation._files_scope_readme_documentation",
@@ -350,6 +427,356 @@
       "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope",
       "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "README.md",
+        "docs/troubleshooting.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/worktree.py",
+        "maid_runner/schemas/manifest.v2.schema.json",
+        "tests/cli/test_validate_cmd.py",
+        "tests/core/test_manifest.py",
+        "tests/core/test_types.py",
+        "tests/core/validation/test_file_scope_gates.py"
+      ],
+      "read": [
+        "docs/maid-serve.md",
+        "maid_runner/core/_file_tracking.py",
+        "maid_runner/core/scope_check.py",
+        "manifests/030-09-add-worktree-scope-gate.manifest.yaml",
+        "manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/schemas/manifest.v2.schema.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "scope",
+              "description": "Optional writable scope-only manifest file declarations with path and reason.",
+              "of": "files",
+              "type": "array of ScopeSpec"
+            },
+            {
+              "kind": "attribute",
+              "name": "ScopeSpec",
+              "description": "Schema definition requiring path and reason for scope-only writable files.",
+              "of": "MAID Manifest v2 schema",
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/types.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ScopeSpec",
+              "description": "Scope-only writable file declaration with a path and rationale."
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "ScopeSpec",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "of": "ScopeSpec",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "SCOPE",
+              "of": "FileMode",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "files_scope",
+              "of": "Manifest",
+              "type": "tuple[ScopeSpec, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "all_writable_paths",
+              "description": "Includes create, edit, delete, snapshot, and scope-only paths.",
+              "of": "Manifest",
+              "type": "set[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "all_referenced_paths",
+              "description": "Includes writable and read-only paths, including scope-only paths.",
+              "of": "Manifest",
+              "type": "set[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_schema",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "schema_version",
+                  "type": "str",
+                  "default": "2"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "validate_manifest_paths",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "load_manifest",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "Manifest"
+            },
+            {
+              "kind": "function",
+              "name": "save_manifest",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "manifests_for_file",
+              "of": "ManifestChain",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[Manifest]"
+            },
+            {
+              "kind": "method",
+              "name": "file_mode_for",
+              "of": "ManifestChain",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "Optional[FileMode]"
+            },
+            {
+              "kind": "method",
+              "name": "all_tracked_paths",
+              "of": "ManifestChain",
+              "returns": "set[str]"
+            },
+            {
+              "kind": "method",
+              "name": "all_read_only_paths",
+              "of": "ManifestChain",
+              "returns": "set[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/worktree.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_worktree_scope",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "validate_changed_scope",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "since",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_files_scope_readme_documentation",
+              "description": "README guidance for files.scope as writable scope without public artifact contracts.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_files_scope_troubleshooting_documentation",
+              "description": "Troubleshooting guidance for using files.scope to resolve E114 on route wiring without private artifacts.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_manifest.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_schema_accepts_scope_only_files_without_artifacts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_load_manifest_parses_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_preserves_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_manifest_paths_checks_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_files_are_documented"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_types.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_paths_are_writable_referenced_but_not_file_specs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_file_mode_includes_scope_value"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_file_scope_gates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_worktree_scope_allows_changed_svelte_file_in_files_scope"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_chain_treats_scope_only_file_as_writable_not_read_only"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_scope_allows_changed_svelte_file_in_files_scope"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_validate_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/maid-serve.md",
+        "maid_runner/core/_file_tracking.py",
+        "maid_runner/core/scope_check.py",
+        "manifests/030-09-add-worktree-scope-gate.manifest.yaml",
+        "manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/cli/test_validate_cmd.py",
       "tests/core/test_manifest.py",

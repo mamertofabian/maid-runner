@@ -11,6 +11,7 @@ import re
 import shlex
 
 from maid_runner.cli.commands._format import print_error
+from maid_runner.core.manifest import prepend_manifest_header
 
 _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
@@ -52,7 +53,7 @@ def _dump_manifest_yaml(data: dict) -> str:
         return dumper.represent_scalar("tag:yaml.org,2002:str", value)
 
     _ManifestYamlDumper.add_representer(str, _represent_str)
-    return yaml.dump(
+    rendered = yaml.dump(
         data,
         Dumper=_ManifestYamlDumper,
         default_flow_style=False,
@@ -60,6 +61,7 @@ def _dump_manifest_yaml(data: dict) -> str:
         allow_unicode=True,
         width=4096,
     )
+    return prepend_manifest_header(rendered)
 
 
 def _cmd_create(args: argparse.Namespace) -> int:

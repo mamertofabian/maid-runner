@@ -242,6 +242,26 @@ def test_write_from_diff_manifest_force_overwrites_with_stable_yaml(
     assert yaml.safe_load(first)["metadata"]["needs_review"] is True
 
 
+def test_write_from_diff_manifest_writes_self_describing_header(tmp_path, monkeypatch):
+    """Generated drafts must identify themselves to a MAID-unaware reader."""
+    monkeypatch.chdir(tmp_path)
+    output = tmp_path / "manifests" / "drafts" / "demo.manifest.yaml"
+    output.parent.mkdir(parents=True)
+    data = build_from_diff_manifest(
+        DiffScopeResult(created=("src/new.py",), edited=(), deleted=(), deltas=()),
+        tmp_path,
+        "demo",
+    )
+
+    write_from_diff_manifest(data, output)
+
+    source = output.read_text()
+    assert source.startswith("#")
+    assert "github.com/mamertofabian/maid-runner" in source
+    # The banner is a comment, so the draft still parses to the same contract.
+    assert yaml.safe_load(source)["metadata"]["needs_review"] is True
+
+
 def test_write_from_diff_manifest_writes_nothing_when_schema_invalid(
     tmp_path, monkeypatch
 ):

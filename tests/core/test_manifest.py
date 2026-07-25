@@ -816,6 +816,20 @@ class TestValidateManifestSchemaTemptations:
 
 
 class TestSaveManifest:
+    def test_writes_self_describing_header(self, tmp_path):
+        """save_manifest backs the default maid snapshot output, so what it
+        writes is often the first manifest a MAID-unaware reader opens."""
+        original = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
+        output = tmp_path / "headed.manifest.yaml"
+
+        save_manifest(original, output)
+
+        source = output.read_text()
+        assert source.startswith("#")
+        assert "github.com/mamertofabian/maid-runner" in source
+        # A comment must not disturb the round trip.
+        assert load_manifest(output).goal == original.goal
+
     def test_round_trip(self, tmp_path):
         original = load_manifest(V2_FIXTURES / "simple-feature.manifest.yaml")
         output = tmp_path / "output.manifest.yaml"

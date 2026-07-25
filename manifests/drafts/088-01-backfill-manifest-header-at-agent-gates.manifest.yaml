@@ -1,0 +1,157 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Backfill the self-describing manifest header at the agent-run plan-lock and promote gates so hand-authored and skill-authored manifests introduce themselves without adding skill instructions"
+type: feature
+created: "2026-07-25"
+metadata:
+  tags:
+    - adoption
+    - manifest-authoring
+    - developer-experience
+    - agent-workflow
+  priority: medium
+description: |
+  086-01 added `MANIFEST_HEADER_COMMENT` and `prepend_manifest_header` and wired
+  them into `maid manifest create` and `maid manifest from-diff`. That only
+  covers manifests the CLI writes. In practice most manifests in this repo are
+  authored directly by an agent or by hand, so they never pass through a
+  generation command and never receive the banner — 086-01's own manifest had to
+  be headed manually after promotion.
+
+  Closing that gap by teaching every skill to emit four comment lines is the
+  wrong shape: the skills are already large, the instruction would be easy to
+  skip, and shipped Claude and Codex payloads would have to be kept converged.
+  Instead, backfill the header at the gates agents already run.
+
+  Chosen chokepoints, in the order a contract passes through them:
+
+  - `cmd_plan_lock` — every implementation-ready contract is locked here.
+  - `cmd_plan_revise` — catches contracts locked before this change.
+  - `_cmd_promote` — catches the draft-to-active transition.
+
+  Backfill must be strictly advisory. A missing banner is a cosmetic adoption
+  concern, never a reason to fail a lock, a revision, or a promotion, so write
+  failures (read-only checkout, permission error, unparseable path) report a
+  one-line advisory notice to stderr and leave the exit code untouched. This
+  follows the existing `maid learn` precedent, where refresh failure is
+  advisory rather than blocking.
+
+  Two properties from 086-01 make this safe and must be preserved:
+
+  1. `compute_manifest_contract_hash` parses the YAML and hashes canonical JSON,
+     so inserting the banner cannot change `manifest_hash`. This was confirmed
+     live during 086-01: the banner was added to an already-locked manifest and
+     `maid plan status` still reported `Manifest: match`. Backfilling at lock
+     time therefore cannot invalidate the lock it is creating, in either order.
+  2. `prepend_manifest_header` is idempotent and only prepends, so repeated
+     locks and revisions cannot stack banners or reflow surrounding content.
+
+  Scope rule that settles a question left open by 086-01: the banner exists for
+  humans who open a committed file, so it belongs on bytes written to disk and
+  nowhere else. `maid manifest create`'s dry-run preview prints through a raw
+  `yaml.dump` and therefore shows no banner. That is correct, not an
+  inconsistency to repair — the preview goes to the terminal of an author who
+  already knows what MAID is. Process output stays banner-free.
+
+  Documentation, deliberately short rather than a skill change: add a brief note
+  to `AGENTS.md` and `CLAUDE.md` stating that manifests carry a self-describing
+  header, that MAID backfills it at the plan-lock, revise, and promote gates,
+  and that agents authoring a manifest directly may include it but do not need
+  to. No skill payload changes, which also avoids re-opening Claude/Codex
+  payload convergence.
+
+  Acceptance criteria for the hardening agent to turn into behavioral tests:
+
+  - `maid plan lock` on a manifest with no banner leaves the file headed and the
+    resulting lock's `manifest_hash` equal to the hash computed before backfill.
+  - `maid plan lock` on an already-headed manifest leaves the bytes unchanged.
+  - `maid plan revise` and `maid manifest promote` backfill the same way.
+  - A manifest path that cannot be written (simulate by patching the write to
+    raise `OSError`) still returns the command's normal exit code and prints an
+    advisory notice naming the manifest.
+  - A backfilled draft keeps its `# draft-kind:` marker on line 1.
+  - Backfilling a manifest whose banner first line carries trailing whitespace
+    does not stack a second banner. 086-01 already hardened
+    `prepend_manifest_header` for this after implementation review, scoping the
+    scan to the leading comment block and comparing with trailing whitespace
+    stripped, so this is a regression check through the backfill path rather than
+    new behavior to build.
+  - `AGENTS.md` and `CLAUDE.md` each describe the header and the backfill gates.
+temptations:
+  - risk: "Do not let header backfill fail, block, or change the exit code of a lock, revise, or promote."
+    instead: "Catch write failures, print a one-line advisory notice to stderr, and return the command's normal exit code, following the advisory maid learn precedent."
+  - risk: "Do not push the banner instruction into the Claude and Codex skill payloads."
+    instead: "Backfill in the commands agents already run and record the behavior in AGENTS.md and CLAUDE.md, so no skill grows and payload convergence is not reopened."
+  - risk: "Do not re-render, reformat, or round-trip the manifest YAML while backfilling."
+    instead: "Read the text, call prepend_manifest_header, and write it back, so only the banner is added and no author formatting is disturbed."
+  - risk: "Do not assume backfill order relative to hashing matters and add defensive re-hashing."
+    instead: "Rely on the verified comment-blind contract hash; assert hash equality in a test instead of adding runtime guards."
+  - risk: "Do not extend the banner to manifest-reading commands or to transient output such as dry-run previews, --json payloads, or stderr; and do not 'harmonize' the existing banner-less stdout preview in _cmd_create."
+    instead: "Treat the banner as a property of files a stranger may open, not of process output: write it only in the three authoring and gating commands, and leave read-only commands and all stdout and JSON emission untouched."
+files:
+  create:
+    - path: tests/cli/test_manifest_header_backfill.py
+      artifacts:
+        - kind: test_function
+          name: test_plan_lock_backfills_missing_manifest_header
+          description: "Locking an unheaded manifest leaves it headed while the recorded manifest_hash matches the pre-backfill contract hash."
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: backfill_manifest_header
+          args:
+            - name: manifest_path
+              type: Union[str, Path]
+          returns: bool
+          description: "Read the manifest text, apply prepend_manifest_header, and write it back only when the banner was missing. Returns True when the file was updated, False when it already had the banner. Raises OSError to the caller so the CLI layer can decide advisory handling; performs no YAML round-trip so author formatting is untouched."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_lock
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Create a plan lock and advisory-backfill the manifest header; a backfill write failure prints a one-line stderr notice and does not change the exit code."
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Re-lock a manifest with a revision reason and advisory-backfill the manifest header under the same non-blocking rules as cmd_plan_lock."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: _cmd_promote
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Promote a draft manifest and advisory-backfill the header on the promoted path under the same non-blocking rules as cmd_plan_lock."
+    - path: AGENTS.md
+      artifacts:
+        - kind: attribute
+          name: _manifest_header_backfill_guidance
+          of: documentation
+          type: markdown section
+          description: "Short note that manifests carry a self-describing header, MAID backfills it at the plan-lock, revise, and promote gates, and authoring agents may include it but need not."
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: _manifest_header_backfill_guidance
+          of: documentation
+          type: markdown section
+          description: "Claude-facing pointer to the same manifest header backfill behavior, kept brief so startup instructions stay concise."
+  read:
+    - manifests/086-01-self-describing-manifest-header.manifest.yaml
+    - maid_runner/core/plan_lock.py
+validate:
+  - uv run maid validate manifests/drafts/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest tests/cli/test_manifest_header_backfill.py -v
+  - uv run python -m pytest tests/core/test_manifest_header.py -v

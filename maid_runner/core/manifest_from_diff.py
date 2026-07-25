@@ -16,7 +16,7 @@ from maid_runner.core.diff_scope import (
     FileArtifactDelta,
     _resolve_baseline_commitish,
 )
-from maid_runner.core.manifest import validate_manifest_schema
+from maid_runner.core.manifest import prepend_manifest_header, validate_manifest_schema
 from maid_runner.core.types import ArtifactKind, ArtifactSpec
 from maid_runner.core.validate_suggestions import suggest_validate_commands
 
@@ -125,7 +125,9 @@ def write_from_diff_manifest(
             f"Generated manifest schema validation failed: {errors[0]}"
         )
 
-    rendered = yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
+    rendered = prepend_manifest_header(
+        yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered)
     return path

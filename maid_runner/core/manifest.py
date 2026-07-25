@@ -43,6 +43,19 @@ _RFC3339_DATE_TIME_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}" r"(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
 
+# ASCII-only and flush-left on purpose: writers call Path.write_text without an
+# explicit encoding, and chain._has_leading_inactive_marker_comment tests
+# startswith("#") on the raw line, so an indented banner line would hide a
+# following draft-kind marker.
+MANIFEST_HEADER_COMMENT = (
+    "# MAID manifest - a machine-checked contract for one change.\n"
+    "# Declares the intent, the files it may touch, and the commands that verify it.\n"
+    "# Nothing here is needed to build or run this project; safe to ignore.\n"
+    "# What it is: https://github.com/mamertofabian/maid-runner\n"
+)
+_HEADER_SENTINEL = MANIFEST_HEADER_COMMENT.splitlines()[0]
+_LEADING_MARKER_PREFIXES = ("# draft-kind:", "# archive-kind:")
+
 
 class ManifestLoadError(Exception):
     def __init__(self, path: str, reason: str):
@@ -101,6 +114,31 @@ def slug_from_path(path: Union[str, Path]) -> str:
         if name.endswith(suffix):
             return name[: -len(suffix)]
     return name
+
+
+def prepend_manifest_header(rendered: str) -> str:
+    """Return rendered manifest YAML with the self-describing banner on top.
+
+    A committed manifest often lands in a repository where nobody else uses
+    MAID, so it has to introduce itself. Insertion is idempotent, and a leading
+    ``# draft-kind:`` or ``# archive-kind:`` marker keeps line 1 so draft
+    classification is unaffected. Nothing else in ``rendered`` is modified.
+    """
+    # Scoped to the leading comment block, not the whole document: a manifest
+    # that quotes the banner in its description must still receive one. Compared
+    # with trailing whitespace stripped, because backfill reads manifests an
+    # editor or formatter may have touched and must not stack a second banner.
+    for line in rendered.splitlines():
+        if line.strip() == "":
+            continue
+        if not line.startswith("#"):
+            break
+        if line.rstrip() == _HEADER_SENTINEL:
+            return rendered
+    marker, newline, remainder = rendered.partition("\n")
+    if newline and marker.startswith(_LEADING_MARKER_PREFIXES):
+        return f"{marker}{newline}{MANIFEST_HEADER_COMMENT}{remainder}"
+    return f"{MANIFEST_HEADER_COMMENT}{rendered}"
 
 
 def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]:
@@ -427,7 +465,8 @@ def load_manifest(path: Union[str, Path]) -> Manifest:
 def save_manifest(manifest: Manifest, path: Union[str, Path]) -> None:
     path = Path(path)
     data = _manifest_to_dict(manifest)
-    path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+    rendered = yaml.dump(data, default_flow_style=False, sort_keys=False)
+    path.write_text(prepend_manifest_header(rendered))
 
 
 def _parse_manifest(data: dict, path: Path) -> Manifest:
