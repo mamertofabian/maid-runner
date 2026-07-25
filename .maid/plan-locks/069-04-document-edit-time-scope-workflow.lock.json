@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/069-04-document-edit-time-scope-workflow.manifest.yaml",
-  "manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
+  "manifest_hash": "sha256-contract:4b8bad67eca20f0128fddb674a16ac886aee36338acc79023761da39374230eb",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
-    "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/test_claude_skill_distribution.py": "sha256-pyast:d909d20a1af0e92728d6f63903a58c87ab840d55d5049cdf46a29f8a09a7d010",
+    "tests/test_edit_time_scope_docs.py": "sha256-pyast:daa67c4a622fe0b2ce20cc0af0938495bf9bc8d8fcc71a5c5952e0351b0378f9"
   },
   "created_at": "2026-06-17T03:58:49.712423+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4229cbd6fbbde6ba8783f11e9659b0f8932be6cf3b9080317e2d200475ce59ae",
@@ -151,6 +151,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:69c04e572ebe8eea462420cf95d05f36e30a6ea24c987c1f3692a749f398056d",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_edit_time_scope_docs.py": "sha256:9b86b44fd60d539ed13239831d2aa2626da12d9e841a11c945d7f739597eaebc"
+      },
+      "revised_at": "2026-07-25T01:08:48.218510+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -177,6 +196,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -226,6 +246,147 @@
       "read": [
         "docs/draft-manifest-workflow.md",
         "manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_claude_skill_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_edit_time_scope_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_readme_documents_task_and_scope_check_workflow",
+              "source_scenario": "The README gains an edit-time scope enforcement section.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The README documents maid task start/stop around promotion and handoff, the maid hook scope-check command, and the allow/deny JSON decision contract."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_agent_skills_docs_place_task_lifecycle_in_workflow",
+              "source_scenario": "docs/agent-skills.md describes the MAID session lifecycle.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The agent-skills docs instruct sessions to run maid task start after promotion, maid task stop at handoff, and document strict mode for autonomous loops with verify remaining authoritative."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_skill_guidance_anchors_are_synced_to_distribution_copies",
+              "source_scenario": "Source skill files and packaged distribution copies are updated together.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The edited Claude and Codex skill sources and their packaged copies under maid_runner/ contain the same task-start and handoff guidance anchors."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_edit_time_scope_enforcement_section",
+              "description": "README section documenting maid task start/stop, the scope-check hook decision contract, strict mode, and verify remaining authoritative.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_edit_time_scope_workflow_guidance",
+              "description": "Agent-skills lifecycle guidance: maid task start after promotion, maid task stop at handoff, strict mode for autonomous loops.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementer_active_task_guidance",
+              "description": "Implementer skill guidance to start the active task after promotion and clear it at handoff.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_implementer_active_task_guidance",
+              "description": "Packaged copy of the implementer active-task guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_draft_implement_active_task_guidance",
+              "description": "Codex draft-implement skill guidance to start the active task after promotion and clear it at handoff.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_draft_implement_active_task_guidance",
+              "description": "Packaged copy of the Codex draft-implement active-task guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/069-00-edit-time-scope-enforcement-hooks.epic.yaml",
+        "docs/draft-manifest-workflow.md",
         "scripts/sync_claude_files.py",
         "tests/test_agent_payload_distribution.py",
         "tests/test_claude_skill_distribution.py"

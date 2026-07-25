@@ -176,8 +176,23 @@ For `files.create`:
 
 For `files.edit`:
 
-- add the declared artifacts conservatively
+- add or change the declared artifacts conservatively
 - preserve existing behavior unless the tests require change
+
+For `files.scope`:
+
+- make only the narrow writable change described by the scope reason
+- rely on behavioral tests for route/page wiring or other no-artifact surfaces
+- do not add public artifacts to a scope-only file; stop for plan revision if
+  the change becomes artifact-bearing
+
+For `files.read`:
+
+- treat the file as contextual and read-only for production code
+- behavioral test files listed in `files.read` may be changed only when the user
+  explicitly approves a contract revision
+- if implementation requires changing a production `files.read` file, stop for
+  plan revision and declare it in `files.edit` or `files.scope` as appropriate
 
 ### Active Task Scope Guidance
 
@@ -258,9 +273,12 @@ Before reporting completion, run a read-only MAID implementation review using th
 - no implementation-phase drift or process violations were introduced
 
 Use a fresh read-only reviewer with an explicit review packet containing the
-manifest path, changed files, diff summary, and validation output. Do not rely
-on the full implementation transcript, and do not require separate per-turn
-reviewer-agent approval when repo guidance grants standing authorization.
+manifest path, changed files, diff summary, and validation output. Do not fork
+the full session context into the reviewer and do not rely on the implementation
+transcript; this preserves the same independent-review pattern used by
+loop-style reviewer agents. Do not require a separate per-turn reviewer approval
+when the target repo, active skill, or user prompt grants standing
+authorization for MAID reviewer subagents.
 
 Treat the review verdict as a gate. Fix concrete implementation defects, rerun
 focused validation, and run another implementation review. Repeat until the

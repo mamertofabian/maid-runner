@@ -18,6 +18,10 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - `files.read` is dependency context, not writable production scope. Do not
   edit production files listed only in `files.read`; stop for plan revision and
   move intentional no-artifact wiring to `files.scope`.
+- Implementer sessions run validation gates with `--packet`; for example,
+  `maid validate --packet` and `maid verify --packet --since <baseline>`.
+- strict gates are the default. Use `--legacy-gates` only as a bounded
+  migration aid when comparing behavior against pre-flip defaults.
 - Run `maid validate --mode implementation` after implementation.
 - Run all manifest `validate` commands.
 - NEVER modify files not listed in the manifest `files.create`, `files.edit`,
@@ -26,6 +30,35 @@ Execute code implementation against an approved MAID manifest. The manifest is t
 - NEVER modify behavioral tests unless the user explicitly approves changing the contract.
 - If implementation validation exposes a bad manifest, write `plan-revision.md` explaining the issue and stop. Do not force tests green by working around a bad plan.
 - If the manifest has `temptations`, restate the relevant risk/procedure pairs before editing and treat each `instead` as the working procedure.
+
+## Packet-Driven Retry Gates
+
+When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+
+Respect `next_action` exactly. Valid kinds include `edit-implementation`,
+`edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
+`escalate-human`; kinds that change tests or manifests route through explicit
+plan revision when the contract must change. Recipes never authorize weakening tests or manifests to silence errors, and they never authorize weakening tests or manifests as the first remedy for an implementation failure.
+
+Stop at the default 5 attempt bound. If the gate still fails, or the packet
+requests `escalate-human`, stop and escalate to a human with the final packet
+instead of looping, hiding the failure, or broadening scope.
+
+## Plan Revision Recovery
+
+If implementation review requires review-driven behavioral contract changes
+after implementation already exists, do not invent a manual stash or worktree
+procedure. Use the sanctioned recovery command:
+
+```bash
+maid plan revise <manifest> --reason "<text>" --stash-implementation
+```
+
+Use `--stash-implementation` only for review-driven behavioral contract changes
+that need fresh red evidence while declared implementation changes are
+temporarily hidden. For metadata-only cleanup on a locked manifest, use
+`maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
+instead.
 
 ## Phase 1 — Load the Manifest
 
@@ -126,22 +159,6 @@ effect on focused tests, implementation approach, or risk controls inside the
 approved scope. The learning evidence digestion step is advisory evidence
 handling, not a separate gate.
 
-## Plan Revision Recovery
-
-If implementation review requires review-driven behavioral contract changes
-after implementation already exists, do not invent a manual stash or worktree
-procedure. Use the sanctioned recovery command:
-
-```bash
-maid plan revise <manifest> --reason "<text>" --stash-implementation
-```
-
-Use `--stash-implementation` only for review-driven behavioral contract changes
-that need fresh red evidence while declared implementation changes are
-temporarily hidden. For metadata-only cleanup on a locked manifest, use
-`maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
-instead.
-
 ## Phase 3 — Implement
 
 If the plan appears wrong, incomplete, or impossible, stop and write `plan-revision.md` instead of editing around it. Include:
@@ -176,6 +193,20 @@ For `files.read`:
   explicitly approves a contract revision
 - if implementation requires changing a production `files.read` file, stop for
   plan revision and declare it in `files.edit` or `files.scope` as appropriate
+
+### Active Task Scope Guidance
+
+When implementing a promoted draft, run
+`maid task start manifests/<slug>.manifest.yaml` after promotion and before
+implementation edits so hook integrations can evaluate writes against the
+active manifest. At handoff, after implementation review and Outcome capture,
+run `maid task stop` to clear the pointer.
+
+Interactive editor sessions use the default fail-open policy: no active task
+and internal hook errors allow the edit. Locked-down autonomous loops should
+pass `--strict` to deny those outcomes. The hook is advisory edit-time
+infrastructure only. maid verify changed-scope checks remain the authoritative handoff evidence.
+Hook decisions do not replace validation or add `ErrorCode` entries.
 
 ## Phase 4 — Validate Implementation
 
@@ -241,12 +272,13 @@ Before reporting completion, run a read-only MAID implementation review using th
 - validation passed
 - no implementation-phase drift or process violations were introduced
 
-When that review uses a subagent, spawn a fresh reviewer with an explicit review
-packet. Do not fork the full session context into the reviewer; this preserves
-the same independent-review pattern used by loop-style reviewer agents.
-Do not require a separate per-turn subagent approval when the target repo,
-active skill, or user prompt grants standing authorization for MAID reviewer
-subagents.
+Use a fresh read-only reviewer with an explicit review packet containing the
+manifest path, changed files, diff summary, and validation output. Do not fork
+the full session context into the reviewer and do not rely on the implementation
+transcript; this preserves the same independent-review pattern used by
+loop-style reviewer agents. Do not require a separate per-turn reviewer approval
+when the target repo, active skill, or user prompt grants standing
+authorization for MAID reviewer subagents.
 
 Treat the review verdict as a gate. Fix concrete implementation defects, rerun
 focused validation, and run another implementation review. Repeat until the

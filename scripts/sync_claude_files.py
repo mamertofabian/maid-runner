@@ -28,7 +28,9 @@ CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-plan-review",
     "maid-implementer",
     "maid-implementation-review",
+    "maid-evolver",
     "maid-auditor",
+    "maid-incident-logger",
     "maid-outcome-enrich",
     "maid-run-review",
 ]
@@ -280,8 +282,14 @@ def _codex_manifest(source_skills: Path, skill_names: list[str]) -> dict:
                 "maid-implementation-review": (
                     "Review MAID implementations and Outcome record needs"
                 ),
+                "maid-evolver": (
+                    "Intentionally evolve existing MAID manifest contracts"
+                ),
                 "maid-auditor": (
                     "Audit MAID contracts with advisory Outcome insights cadence"
+                ),
+                "maid-incident-logger": (
+                    "Record curated MAID workflow drift or gaming incidents"
                 ),
                 "maid-outcome-enrich": (
                     "Generate advisory Outcome enrichment outside maid-runner"

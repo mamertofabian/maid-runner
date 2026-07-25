@@ -12,16 +12,16 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - NEVER edit files.
 - NEVER modify tests or manifests during review.
 - When you are the coordinating reviewer, run an independent read-only reviewer
-  subagent before the final verdict whenever subagents are available and not
-  explicitly disabled for the turn.
+  subagent before the final verdict whenever reviewer subagents are available
+  and have not been explicitly disabled for the turn.
 - Reviewer subagents must be fresh, context-minimal review agents. Never use a
   full-history fork or pass prior implementation reasoning, conclusions, or chat
   transcript unless the review explicitly depends on a user quote.
 - If your prompt identifies you as the reviewer subagent, do not spawn another
   subagent. Perform the review locally and return the verdict.
-- Confirm changed files stay within the manifest scope: `files.create` and
-  `files.edit` for contracted public artifacts, plus `files.read` for declared
-  dependency/context files whose public surface is not being contracted.
+- Confirm changed implementation stays within the manifest `files.create`,
+  `files.edit`, and `files.scope` scope. `files.read` is dependency context and
+  does not authorize production edits.
 - Flag any implementation-phase manifest or behavioral-test edit as a process violation unless explicitly approved by the user.
 - Treat concrete behavior regressions, undeclared public API drift, and missing validation as primary findings.
 - Audit fidelity to the approved plan, including rationale and `temptations`; passing tests are not sufficient if the implementation took a path the manifest warned against.

@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/081-02-add-maid-enrich-command.manifest.yaml",
-  "manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
+  "manifest_hash": "sha256-contract:905d5e4f0c97c880f2301ac51f0abb2e07050cd7b5504c3e6d2e263f768c18dc",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_enrich_cmd.py": "sha256-pyast:e01bd02101355dcb5d0a3323575fe0630777e5a245637431f6e902f0f2cc55de"
   },
   "created_at": "2026-06-28T08:18:22.993393+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee666fa3e19316551a73b46cfcae6d882b696cd2e93984ab0cb843c3606e58d0",
@@ -106,6 +106,24 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:f70822eac682c5a2a6452b118a4e71bc13def42c7f933d7d34c235511d72c72a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_enrich_cmd.py": "sha256:017628eee32c983259229c1df6246983f8bd21162cfdb66befe9ee3d2b71ae82"
+      },
+      "revised_at": "2026-07-25T01:08:49.681725+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -120,6 +138,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -182,6 +201,137 @@
         "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
         "manifests/081-01-add-outcome-enrichment-core.manifest.yaml",
         "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/cli/commands/enrich.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_enrich",
+              "description": "Dispatch the enrich prompt/validate/render subcommands deterministically over local files; never call a model. Return non-zero on validation failure, staleness without opt-in, or missing inputs.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_enrich_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_enrich_prompt_emits_bounded_corpus_from_index",
+              "description": "maid enrich prompt emits the system/user prompt and validation universe derived from the index.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enrich_validate_accepts_grounded_digest",
+              "description": "maid enrich validate returns 0 for a digest whose references all co-occur in the index and whose fingerprint matches.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enrich_validate_rejects_fabricated_digest",
+              "description": "maid enrich validate returns non-zero for a digest citing a non-co-occurring (manifest, lesson_type) pair, with no network involved.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enrich_validate_rejects_stale_digest_without_allow_flag",
+              "description": "maid enrich validate returns non-zero for a stale digest unless --allow-stale-index is supplied.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enrich_render_writes_markdown_atomically",
+              "description": "maid enrich render writes the advisory markdown for a validated digest and leaves no partial file when rendering is interrupted.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Expose the enrich subcommand group (prompt/validate/render) with index/digest/md-output/output path options and the stale-index opt-in.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Dispatch the enrich command to cmd_enrich alongside the existing commands.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": ".gitignore",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_ignore_outcome_digest_artifacts",
+              "description": "Ignore the generated advisory enrichment artifacts .maid/outcomes-digest.json and .maid/outcomes-digest.md.",
+              "of": "gitignore",
+              "type": "ignore-pattern"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_readme_enrich_command_documentation",
+              "description": "Concise user-facing command reference for `maid enrich` as the deterministic prompt/validate/render support command for Outcome enrichment.",
+              "of": "documentation",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_roadmap_enrich_command_documentation",
+              "description": "Roadmap/command surface note for `maid enrich` so parser command documentation remains complete.",
+              "of": "documentation",
+              "type": "doc-section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/outcome_enrichment.py",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/cli/commands/learn.py",
+        "maid_runner/cli/commands/insights.py",
+        "tests/test_agent_payload_distribution.py",
+        "manifests/047-04-add-maid-recall-outcome-search.manifest.yaml",
+        "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+        "manifests/081-01-add-outcome-enrichment-core.manifest.yaml"
       ]
     },
     "test_files": [

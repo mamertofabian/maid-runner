@@ -12,14 +12,16 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - NEVER edit files.
 - NEVER modify tests or manifests during review.
 - When you are the coordinating reviewer, run an independent read-only reviewer
-  subagent before the final verdict whenever the Agent tool is available and
-  reviewer agents have not been explicitly disabled for the turn.
-- Reviewer subagents must be fresh, context-minimal review agents. Never pass
-  prior implementation reasoning, conclusions, or chat transcript unless the
-  review explicitly depends on a user quote.
+  subagent before the final verdict whenever reviewer subagents are available
+  and have not been explicitly disabled for the turn.
+- Reviewer subagents must be fresh, context-minimal review agents. Never use a
+  full-history fork or pass prior implementation reasoning, conclusions, or chat
+  transcript unless the review explicitly depends on a user quote.
 - If your prompt identifies you as the reviewer subagent, do not spawn another
   subagent. Perform the review locally and return the verdict.
-- Confirm changed implementation stays within the manifest `files.create` and `files.edit` scope.
+- Confirm changed implementation stays within the manifest `files.create`,
+  `files.edit`, and `files.scope` scope. `files.read` is dependency context and
+  does not authorize production edits.
 - Flag any implementation-phase manifest or behavioral-test edit as a process violation unless explicitly approved by the user.
 - Treat concrete behavior regressions, undeclared public API drift, and missing validation as primary findings.
 - Audit fidelity to the approved plan, including rationale and `temptations`; passing tests are not sufficient if the implementation took a path the manifest warned against.
@@ -60,18 +62,24 @@ independent by passing only the explicit packet above.
 ## Phase 3 — Run the Reviewer Subagent
 
 Before reporting the final verdict, spawn one read-only reviewer subagent when
-the Agent tool is available and reviewer agents have not been explicitly
-disabled for the turn:
+the environment supports subagents and they have not been explicitly disabled
+for the turn:
 
 - use `subagent_type: "maid-implementation-reviewer"`
+- use a fresh agent; never fork the full session context into an independent
+  reviewer
+- leave the model unset unless the user or local project instructions require a
+  specific model
 - pass the review packet explicitly
 - instruct the subagent not to edit files and not to spawn further subagents
 - wait for the subagent verdict before final handoff
+- close the subagent thread after consuming the verdict
 
 Do not skip the subagent because the current turn did not separately mention
-reviewer-agent authorization when repo guidance grants standing authorization.
-Fall back to local-only review only when the Agent tool is technically
-unavailable or the user explicitly disables reviewer agents for that turn.
+subagent authorization when the target repo, active skill, or user prompt grants
+standing authorization for MAID reviewer subagents. Fall back to local-only
+review only when the subagent tool is technically unavailable or the user
+explicitly disables subagents for that turn.
 
 Use this prompt shape:
 
@@ -114,9 +122,18 @@ risk. End with one verdict: ready, needs changes, or needs discussion.
 
 Compare the working tree or branch state against the manifest:
 
-- only allowed implementation files were changed
-- read-only dependency files were not edited without approval
+- only files declared in `files.create`, `files.edit`, or `files.scope` were
+  changed as production implementation files
+- `files.read` production files are dependency context, not writable scope;
+  flag dirty production files listed only in `files.read` and require plan
+  revision to `files.scope` for no-artifact wiring or `files.edit` for public
+  artifact changes
+- behavioral test files listed in `files.read` may change only as part of an
+  approved contract revision
 - no undeclared public symbols leaked into strict files
+- do not treat `maid validate --mode implementation` alone as proof that a
+  dirty `files.read` production file is writable; use the manifest scope model
+  and worktree/changed-scope evidence when available
 
 ## Phase 5 — Review Declared Artifacts
 
@@ -275,8 +292,8 @@ Prioritize:
 2. should-fix items
 3. nitpicks
 
-Include the reviewer subagent result when one was run: verdict and whether it
-found blockers.
+Include the reviewer subagent result when one was run: subagent id or nickname,
+verdict, and whether it found blockers.
 
 End with one explicit verdict:
 

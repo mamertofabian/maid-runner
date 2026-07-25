@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
-  "manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+  "manifest_hash": "sha256-contract:13a3b462a047d03af15f39e7e0ebf16c1f966a79cc002465c104b379f16efe25",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_init_hook_payloads.py": "sha256-pyast:fb48963c57f630c6e8ebb374c0035c4f240b731f2d1c998ceb4d60f0dd34b871"
   },
   "created_at": "2026-06-17T01:56:53.748596+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d0584dbd7d9ca6e15ca940fd9bf8c31bce1a7af70d53da3a78f8859ec8d222fe",
@@ -152,6 +152,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:11c133cd24d4966e121bae315989210fc8634fe2c563056a5009269db05f82db",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_hook_payloads.py": "sha256:07009755416a430ee06ddcb1a330fa9a0779bda438dc0f30ba6ff78d4834ca5f"
+      },
+      "revised_at": "2026-07-25T01:08:47.993933+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -178,6 +197,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -266,6 +286,230 @@
       "read": [
         "maid_runner/cli/commands/_main.py",
         "maid_runner/codex/manifest.json",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": ".claude/settings.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_source_pretooluse_scope_check_hook",
+              "description": "Source Claude Code settings entry registering a PreToolUse hook on Write/Edit tool events that pipes event JSON to maid hook scope-check --stdin.",
+              "of": "configuration",
+              "type": "json hooks configuration"
+            }
+          ]
+        },
+        {
+          "path": ".cursor/hooks.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_cursor_source_scope_check_hooks",
+              "description": "Source Cursor hooks.json entry piping pre-edit event JSON to maid hook scope-check --stdin.",
+              "of": "configuration",
+              "type": "json hooks configuration"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/settings.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_pretooluse_scope_check_hook",
+              "description": "Packaged Claude Code settings entry registering a PreToolUse hook on Write/Edit tool events that pipes event JSON to maid hook scope-check --stdin.",
+              "of": "configuration",
+              "type": "json hooks configuration"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cursor/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_cursor_payload_manifest",
+              "description": "Packaged Cursor payload manifest listing distributable files for the existing _install_agent_payload flow.",
+              "of": "configuration",
+              "type": "json payload manifest"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cursor/hooks.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_cursor_scope_check_hooks",
+              "description": "Packaged Cursor hooks.json entry piping pre-edit event JSON to maid hook scope-check --stdin.",
+              "of": "configuration",
+              "type": "json hooks configuration"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_hook_payloads.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_claude_installs_scope_check_hook_settings",
+              "description": "Fresh Claude init installs .claude/settings.json with a PreToolUse Write/Edit hook that invokes maid hook scope-check --stdin.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_claude_merges_existing_settings_without_clobbering",
+              "description": "Force Claude init preserves unrelated existing .claude/settings.json keys while ensuring the MAID PreToolUse scope-check hook is present.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_cursor_installs_scope_check_hook_payload",
+              "description": "Cursor init installs .cursor/manifest.json and .cursor/hooks.json through the package payload flow without creating Claude or Codex assets.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_hook_payload_dry_run_and_distribution_parity",
+              "description": "Dry-run output names hook payload files and isolated sync/package-data parity checks cover Claude settings and Cursor hook resources.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "description": "maid init installs the Claude hook settings with merge-preservation, the Cursor hooks payload for --tool cursor, and the Codex pre-edit scope-check guidance in the managed AGENTS.md section, all through _install_agent_payload; dry-run names the hook payload files.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "The sync command copies Claude settings and Cursor hook payload sources into package resources alongside existing Claude and Codex payload resources.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "pyproject.toml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_runner_package_data_hook_payloads",
+              "description": "Package data includes Claude settings and Cursor manifest/hooks resources required by hook-enabled init installs.",
+              "of": "tool.setuptools.package-data.maid_runner",
+              "type": "TOML package-data entry"
+            }
+          ]
+        },
+        {
+          "path": "Makefile",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_payload_sync_targets_include_cursor_hooks",
+              "description": "Payload sync and clean targets cover the Cursor package payload directory alongside Claude and Codex.",
+              "of": "makefile",
+              "type": "make targets"
+            }
+          ]
+        },
+        {
+          "path": ".claude/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_root_settings_payload_manifest",
+              "description": "Claude source payload manifest declares settings.json as a MAID-owned root payload file for install and pruning.",
+              "of": "claude_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_claude_root_settings_payload_manifest",
+              "description": "Generated Claude package manifest declares settings.json as a MAID-owned root payload file for install and pruning.",
+              "of": "claude_payload",
+              "type": "json object"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/codex/manifest.json",
+        "maid_runner/cli/commands/_main.py",
         "tests/cli/test_init_cmd.py",
         "tests/test_agent_payload_distribution.py"
       ]

@@ -1,18 +1,18 @@
 {
   "manifest_path": "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml",
-  "manifest_hash": "sha256:78a499f4eb70f3c6993f828c8f585a6cad3540ac1d8ab41fb35aa9b526d85fc7",
+  "manifest_hash": "sha256-contract:3161f0037cd646a91f4e5b07d41ff9d654e5b7ce1ab8d6491378afc5c4095ffc",
   "test_hashes": {
-    "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
-    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
-    "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
-    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+    "tests/test_learning_loop_workflow_guidance.py": "sha256-pyast:d9ab117426dc0269b2908b871617f7096affe324707402ded6eff3204764e44d",
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:ac43ea2058cba218f8111d62069a8f1176b742a53529e67194bd16ab3c09ab60",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf",
+    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256-pyast:4411f1225bccd8e0ec7b936e6bf00834e6a4e986c6da7863f161cb883d5188f9",
+    "tests/cli/test_skills_install.py": "sha256-pyast:c3c2e1b16b3f4bd548cd2c4c6def29b9f00041b3248f436d3cbb701071df5e62",
+    "tests/test_learning_loop_init_payload.py": "sha256-pyast:7fbabbdda2197e1f1571b2925dab9b23ba107b471584d82aaaabb36b79369a6d"
   },
   "created_at": "2026-06-26T22:43:02.370223+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:a8a79f2bafbebb0d897cc9dd5f58fe723aacb758ce61e2f60213a4c40aac7f40",
@@ -187,6 +187,30 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:78a499f4eb70f3c6993f828c8f585a6cad3540ac1d8ab41fb35aa9b526d85fc7",
+      "prior_test_hashes": {
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8",
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/cli/test_skills_install.py": "sha256:e4020cbdde8d6ac7829dd763e9f373e4d347b878c3545e04699ff3c165c9dd88",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+      },
+      "revised_at": "2026-07-25T01:08:49.197244+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -201,6 +225,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -314,6 +339,257 @@
         "tests/test_init_draft_workflow_payload.py",
         "tests/test_learning_loop_workflow_guidance.py",
         "tests/test_recall_payload_sync.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_learning_loop_init_payload.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_installs_learning_digest_workflow_skills",
+              "description": "Behavioral coverage that `maid init --tool claude` and `maid init --tool codex` install workflow skill payloads carrying active insights, recall, failure-lesson learning, and phase-specific evidence-digestion anchors.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_generated_guidance_requires_learning_digest",
+              "description": "Behavioral coverage that generated CLAUDE.md and AGENTS.md sections require agents to name applicable lessons, reject stale or irrelevant lessons with a reason, and state what changed because of the evidence.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_installed_docs_close_the_outcome_learning_loop",
+              "description": "Behavioral coverage that initialized repositories receive draft workflow docs, Outcome docs, and drafts README text that close the loop from completed Outcomes to current agent decisions while preserving advisory boundaries.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_agent_skill_docs_describe_current_init_distribution",
+              "description": "Behavioral coverage that docs/agent-skills.md describes the current Claude and Codex init distributions and the learning-evidence digestion lifecycle instead of stale runner-specific Codex payloads.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_learning_digest_payload_sources_and_packages_match",
+              "description": "Behavioral coverage that packaged workflow docs, drafts README, and user-level maid-onboard skill payloads match their source copies after sync.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_learning_digest_guidance_stays_advisory",
+              "description": "Negative behavioral coverage that installed learning-loop guidance keeps recall, insights, and digested Outcomes advisory, preserves the Codex maid-auditor distribution, and does not install repo-internal Codex skills.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_render_draft_outcome_guidance",
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_draft_workflow_learning_digest_step",
+              "description": "Canonical draft workflow explains how selected-draft recall and insights should be digested into manifest scope, tests, temptations, open questions, implementation risks, review focus, or follow-up work.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_outcome_learning_digest_guidance",
+              "description": "Outcome docs state that agents must reason over recalled or aggregated records by applying relevant lessons, rejecting stale lessons, and naming the influence on decisions.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_drafts_readme_learning_digest_guidance",
+              "description": "Draft inventory README repeats the selected-child learning-digestion step and advisory scope boundary for downstream repos.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_skills_learning_digest_lifecycle",
+              "description": "Agent skill docs describe current init-distributed Claude/Codex workflow skills and the phase-specific learning-evidence digestion lifecycle.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_onboard_learning_digest_refresh_guidance",
+              "description": "User-level onboard skill reminds refreshes to verify init-installed guidance includes the Outcome learning-digestion workflow.",
+              "of": "user_skill_payload",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_onboard_learning_digest_refresh_guidance",
+              "description": "Codex user-level onboard skill mirrors the learning-digestion refresh guidance.",
+              "of": "user_skill_payload",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_draft_workflow_learning_digest_step",
+              "description": "Packaged copy of the draft workflow learning-digestion guidance installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_outcome_learning_digest_guidance",
+              "description": "Packaged copy of the Outcome learning-digestion guidance installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/manifests/drafts/README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_drafts_readme_learning_digest_guidance",
+              "description": "Packaged copy of the drafts README learning-digestion guidance installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_onboard_learning_digest_refresh_guidance",
+              "description": "Packaged Claude maid-onboard copy matches the source learning-digestion refresh guidance.",
+              "of": "user_skill_payload",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_onboard_learning_digest_refresh_guidance",
+              "description": "Packaged Codex maid-onboard copy matches the source learning-digestion refresh guidance.",
+              "of": "user_skill_payload",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+        "manifests/drafts/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+        "manifests/drafts/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "manifests/075-02-require-draft-recall-before-promotion-payload.manifest.yaml",
+        "manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+        "scripts/sync_claude_files.py",
+        "maid_runner/cli/commands/init.py",
+        ".claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "tests/test_learning_loop_workflow_guidance.py",
+        "tests/test_init_draft_workflow_payload.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_recall_payload_sync.py",
+        "tests/cli/test_init_cmd.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "tests/cli/test_skills_install.py"
       ]
     },
     "test_files": [

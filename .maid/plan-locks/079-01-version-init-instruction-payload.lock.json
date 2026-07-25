@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/079-01-version-init-instruction-payload.manifest.yaml",
-  "manifest_hash": "sha256:8cfa03f563393ca6d26bcd691ded690773634c097dd657da672825d849a16181",
+  "manifest_hash": "sha256-contract:51eeddcf735e2bc1fcd2b390dd4332ee96a319a3f4e4959f3c44d204bd539731",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939",
-    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
+    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/test_learning_loop_init_payload.py": "sha256-pyast:7fbabbdda2197e1f1571b2925dab9b23ba107b471584d82aaaabb36b79369a6d",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5"
   },
   "created_at": "2026-06-27T06:02:17.382198+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:eace2b13a3da7c66b745a7abd61764fa9ffb89f94d1b9e40539737a0b4c0d4ff",
@@ -97,6 +97,26 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:8cfa03f563393ca6d26bcd691ded690773634c097dd657da672825d849a16181",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2"
+      },
+      "revised_at": "2026-07-25T01:08:49.451007+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -123,6 +143,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -201,6 +222,287 @@
         "tests/cli/test_init_cmd.py",
         "tests/test_agent_payload_distribution.py",
         "tests/test_learning_loop_init_payload.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Human-readable version for the init-installed MAID instruction payload, maintained separately from the maid-runner package version.",
+              "type": "str"
+            },
+            {
+              "kind": "function",
+              "name": "instruction_payload_metadata",
+              "description": "Return metadata fields that `maid init` stamps into installed agent payload manifests.",
+              "returns": "dict[str, str]"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_instruction_payload_version.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_stamps_instruction_payload_version_into_codex_payload",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository initializes Codex MAID payloads from the current package.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installed `.codex/manifest.json` and generated `AGENTS.md` MAID section include the current instruction payload version."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_stamps_instruction_payload_version_into_claude_payload",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository initializes Claude MAID payloads from the current package.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installed `.claude/manifest.json` and generated `CLAUDE.md` MAID section include the current instruction payload version."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_reports_current_installed_payload",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository has just refreshed its MAID init payload from the current package.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid init --check --json` exits 0 and reports current package and installed instruction payload versions with status `current`."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_reports_missing_payload",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository has no installed payload metadata or an older instruction payload version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid init --check --json` exits non-zero and reports `missing` without rewriting files."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_reports_stale_payload",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository has an older instruction payload version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid init --check --json` exits non-zero and reports `stale` for the installed old payload without rewriting files."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_reports_stale_when_any_installed_payload_is_stale",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository has both Claude and Codex metadata but only one payload is current.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid init --check --json` exits non-zero and reports overall `stale` with the current and stale tool statuses preserved."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_prints_human_readable_status",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A downstream repository checks its refreshed MAID init payload for a human operator.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid init --check` exits 0 and prints the overall current status plus per-tool installed payload status."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Register `maid init --check` and `maid init --check --json` without changing normal init behavior.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "description": "Handle init status checks before normal init writes, and stamp instruction payload metadata during installs.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "pyproject.toml",
+        "maid_runner/__version__.py",
+        "scripts/sync_claude_files.py",
+        ".claude/manifest.json",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_learning_loop_init_payload.py",
+        "manifests/076-02-sync-stash-revise-init-guidance.manifest.yaml",
+        "manifests/077-04-sync-init-payloads-with-learning-digestion.manifest.yaml"
       ]
     },
     "test_files": [
