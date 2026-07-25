@@ -670,7 +670,10 @@ def capture_legacy_baseline_evidence(
     current_path = Path(manifest_path).resolve()
     manifest_rel = _project_relative_path(current_path, root)
     baseline_commit = _git_text(root, "rev-parse", "HEAD").strip()
-    baseline_bytes = _git_bytes(root, "show", f"HEAD:{manifest_rel}")
+    # git show resolves paths from the repository root regardless of cwd, so the
+    # blob must be addressed by its repo-root path even though every comparison
+    # below is project-relative.
+    baseline_bytes = _git_bytes(root, "show", f"HEAD:{_git_prefix(root)}{manifest_rel}")
     dirty_paths = _git_changed_paths(root)
     if dirty_paths - {manifest_rel}:
         raise ValueError(
@@ -1191,8 +1194,27 @@ def _git_result(
     return result
 
 
+def _git_prefix(project_root: Path) -> str:
+    """Return the project root's path within the repository, '' at the root.
+
+    Mirrors the prefix resolution in core/worktree.py, but routed through this
+    module's own git helper so failures keep the legacy-baseline error wording.
+    """
+    # splitlines() strips only the trailing newline. .strip() would also eat
+    # leading or trailing whitespace that belongs to a directory name.
+    lines = _git_text(project_root, "rev-parse", "--show-prefix").splitlines()
+    return (lines[0] if lines else "").replace("\\", "/")
+
+
 def _git_changed_paths(project_root: Path) -> set[str]:
-    tracked = _git_bytes(project_root, "diff", "--name-only", "-z", "HEAD", "--")
+    # --relative makes git emit paths relative to project_root and drops paths
+    # outside it. Without it, git diff reports repository-root-relative paths
+    # while git ls-files --others reports project-relative ones, so the union
+    # would mix two namespaces. ls-files is already project-relative and must
+    # not be stripped.
+    tracked = _git_bytes(
+        project_root, "diff", "--name-only", "--relative", "-z", "HEAD", "--"
+    )
     untracked = _git_bytes(
         project_root, "ls-files", "--others", "--exclude-standard", "-z"
     )
