@@ -1,0 +1,341 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Derive snapshot output format from the --output suffix so maid snapshot stops
+  writing YAML into a .json path that MAID itself cannot load"
+type: fix
+created: "2026-07-25T10:44:11Z"
+metadata:
+  maid_task_base: 86e02b691133c71233334a9c186b69b62ef1b7d4
+  source_bug_report: 
+    /home/atomrem/.maid/bug-report/20260725-174415-maid-runner-snapshot-json-extension-writes-yaml.md
+  tags:
+    - snapshot
+    - fail-loud
+    - manifest-io
+  priority: medium
+description: |
+  `maid snapshot --output <path>.manifest.json` writes YAML into the `.json`
+  path, prints a success message, and exits 0. `load_manifest_raw` dispatches on
+  the `.json` suffix and parses with strict `json.loads`, so MAID cannot read the
+  file back: it cannot be validated, locked, or promoted. This is the exact
+  silent-bad-artifact shape the repository's fail-loud guidance forbids — the
+  command claims success while producing an unusable file.
+
+  `save_snapshot` skips the extension-deriving branch entirely when `output` is
+  passed, using the caller's path verbatim, but then dispatches the write on
+  `format`, which `cmd_snapshot` never sets. So the CLI always writes YAML, and
+  the `format == "json"` write branch is unreachable from the CLI.
+
+  Rationale for the chosen fix. `.manifest.json` is a genuinely supported input
+  format — `load_manifest_raw` reads it and manifest discovery loads it — so the
+  right resolution is to make `--output` honor the suffix rather than to
+  document that the suffix is the caller's problem. Deriving format from the
+  suffix also makes the previously unreachable JSON branch reachable, closing the
+  dead-code half of the report without adding a new CLI flag.
+
+  Rationale for the signature change. `format` becomes `Optional[str]` defaulting
+  to `None` so the function can distinguish "caller said nothing" from "caller
+  explicitly asked for YAML". With `None`, an explicit `output` suffix decides.
+  When a caller passes both an `output` suffix and a conflicting explicit
+  `format`, that is a contradiction MAID cannot silently resolve, so it raises
+  instead of picking a winner. Existing callers are unaffected: `cmd_snapshot`
+  and `cmd_snapshot_system` pass no format, and `bootstrap` uses `output_dir`.
+
+  An unsupported suffix raises rather than silently falling back to YAML, and
+  nothing is written in that case, so a failed call cannot leave a partial or
+  misleading artifact behind.
+
+  Interaction with 086-01: the self-describing banner is a YAML comment and JSON
+  has no comment syntax, so the JSON write path must not call
+  `prepend_manifest_header`. The YAML path keeps the banner.
+temptations:
+  - risk: "Do not resolve an output/format contradiction by silently letting one win;
+      that reproduces the silent-bad-artifact defect in a new shape."
+    instead: "Raise on conflict, and pin the conflicting combination with a test that
+      asserts no file was written."
+  - risk: "Do not add the 086-01 YAML banner to the JSON writer to make the two paths
+      look symmetric; JSON has no comment syntax and the result would not parse."
+    instead: "Keep prepend_manifest_header on the YAML path only, and assert the JSON
+      output parses with strict json.loads."
+  - risk: "Do not assert only that a .json path now contains JSON; a writer that emitted
+      valid-but-empty JSON would also satisfy that."
+    instead: "Round-trip through load_manifest_raw and assert the manifest's declared
+      goal and type survive."
+  - risk: "Do not delete the format parameter or the output_dir branch as newly redundant;
+      bootstrap and the existing API tests depend on them."
+    instead: "Leave output_dir behavior unchanged and pin it with a regression test
+      that explicit format='json' still controls the generated extension."
+files:
+  edit:
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: function
+          name: save_snapshot
+          args:
+            - name: manifest
+              type: Manifest
+            - name: output_dir
+              type: Union[str, Path]
+              default: "manifests/"
+            - name: output
+              type: Union[str, Path, None]
+              default: None
+            - name: format
+              type: Optional[str]
+              default: None
+          returns: Path
+          description: >-
+            Derive the write format from the output path suffix when output is
+            given, reject an unsupported suffix or a suffix that contradicts an
+            explicit format without writing anything, and keep the YAML-only
+            self-describing banner off the JSON path.
+  create:
+    - path: tests/core/test_snapshot_output_format.py
+      artifacts:
+        - kind: test_function
+          name: test_output_with_json_suffix_writes_loadable_json
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes --output pointing at a .manifest.json
+            path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "The file parses with strict json.loads via load_manifest_raw,
+              preserves goal and type, and carries no YAML comment banner."
+        - kind: test_function
+          name: test_output_with_yaml_suffix_writes_loadable_yaml_with_header
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes --output pointing at a .manifest.yaml
+            path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "The file round-trips through load_manifest_raw and still starts
+              with the 086-01 self-describing banner."
+        - kind: test_function
+          name: test_output_with_unsupported_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes --output with a suffix MAID cannot load,
+            such as .txt."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "save_snapshot raises ValueError naming the unsupported suffix
+              and leaves no file on disk."
+        - kind: test_function
+          name: test_output_suffix_conflicting_with_explicit_format_is_rejected
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes output='x.manifest.json' together with
+            an explicit format='yaml'."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "save_snapshot raises ValueError describing the contradiction
+              and writes nothing, instead of silently honoring one of the two."
+        - kind: test_function
+          name: test_output_with_uppercase_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes --output with an uppercase suffix such
+            as .manifest.JSON."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "save_snapshot raises ValueError and writes nothing, because
+              load_manifest_raw and manifest discovery match the lowercase suffix
+              exactly, so an uppercase suffix is not a loadable manifest."
+        - kind: test_function
+          name: test_output_suffix_matching_explicit_format_is_accepted
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes output='x.manifest.json' together with
+            a matching explicit format='json'."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "save_snapshot writes loadable JSON, proving only a contradicting
+              format is rejected rather than every explicit format."
+        - kind: test_function
+          name: test_output_with_yml_suffix_writes_loadable_yaml
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller passes --output pointing at a .manifest.yml path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "save_snapshot writes YAML that round-trips through load_manifest_raw,
+              proving .yml is supported alongside .yaml."
+        - kind: test_function
+          name: test_output_dir_still_honors_explicit_format
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "The unchanged output_dir path is used with an explicit
+            format."
+          actions:
+            - type: api_call
+              subject:
+                export: save_snapshot
+          expected:
+            behavior: "format='json' still derives a .json extension and format=None
+              still derives .yaml, proving the output_dir branch was not altered."
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: >-
+        Wiring-only edit to the maid snapshot --output help string so it states
+        the newly required .yaml/.yml/.json suffix. No public artifact in this
+        file is contracted or changed; declared under scope rather than read
+        because the file is edited and files.read does not authorize edits.
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/cli/commands/snapshot.py
+    - tests/core/test_snapshot.py
+validate:
+  - uv run python -m pytest -q tests/core/test_snapshot_output_format.py 
+    tests/core/test_snapshot.py
+  - uv run maid validate 
+    manifests/fix-snapshot-output-format-from-suffix.manifest.yaml --mode 
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-25T19:47:00+08:00'
+  summary: >-
+    maid snapshot --output now derives the write format from the path suffix, so
+    a .json path receives real JSON instead of YAML that MAID's own loader
+    rejects, and an unsupported or contradictory combination fails loudly
+    without writing anything.
+  rationale: >-
+    The command previously reported success and exited 0 while producing a file
+    load_manifest_raw could not parse, which is the silent-bad-artifact shape the
+    repository's fail-loud guidance forbids. Because .manifest.json is a
+    genuinely supported input format, the fix makes --output honor the suffix
+    rather than documenting the mismatch away; this also makes the previously
+    CLI-unreachable JSON write branch reachable without adding a flag. The
+    format parameter became Optional[str] defaulting to None so an explicit
+    format can be distinguished from the default, letting a contradiction
+    between suffix and format raise instead of silently picking a winner.
+    Suffixes are matched case-sensitively on purpose, because load_manifest_raw
+    and manifest discovery both dispatch on the exact lowercase suffix.
+    Validation happens before any filesystem effect, so a rejected call leaves no
+    partial artifact or orphan directory.
+  lessons:
+    - lesson_type: fail-loud
+      summary: >-
+        A writer that normalizes more liberally than its matching reader
+        reintroduces the very silent-bad-artifact defect it was written to fix.
+        Case-insensitive suffix matching in save_snapshot accepted .JSON while
+        load_manifest_raw and chain discovery rejected it, so the fix shipped a
+        second copy of the original bug until review caught it.
+      tags:
+        - snapshot
+        - manifest-io
+        - reader-writer-symmetry
+      paths:
+        - maid_runner/core/snapshot.py
+        - maid_runner/core/manifest.py
+    - lesson_type: scope-declaration
+      summary: >-
+        files.read does not authorize edits. A wiring-only help-string change to
+        an edited file must be declared under files.scope, which is included in
+        all_writable_paths; repository-wide verify cannot catch this because
+        other active manifests already declare the same file writable, so the
+        chain-level gate passes while the per-manifest scope check denies it.
+      tags:
+        - manifest-scope
+        - review-finding
+      paths:
+        - manifests/fix-snapshot-output-format-from-suffix.manifest.yaml
+        - maid_runner/cli/commands/_main.py
+    - lesson_type: test-discrimination
+      summary: >-
+        Asserting only that a rejected path does not exist afterwards cannot
+        distinguish validate-before-write from write-then-rollback, and asserting
+        only that a .yml file loads cannot distinguish YAML from JSON, because
+        PyYAML parses JSON. Both hollow implementations were constructed by
+        review and pass the locked suite; the shipped code is correct on both.
+      tags:
+        - anti-gaming
+        - implementation-review
+      paths:
+        - tests/core/test_snapshot_output_format.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: high
+      summary: >-
+        First review returned needs changes on a blocking finding: suffix
+        matching used .lower(), so --output out.manifest.JSON still reported
+        success, exited 0, and produced a manifest maid validate rejects with
+        E003. Two advisory coverage gaps were also identified, where a hollow
+        implementation rejecting every explicit format or dropping .yml support
+        passed all five original tests.
+    - source: maid-implementation-reviewer
+      severity: medium
+      summary: >-
+        Second review confirmed the uppercase hole closed via live CLI probes, a
+        22-case suffix sweep with no remaining unloadable paths, and
+        independently reproduced the red phase against HEAD rather than trusting
+        the dirty plan_lock module. It returned needs changes on a
+        declaration-only defect: maid_runner/cli/commands/_main.py was edited
+        while declared under files.read, which the per-manifest scope model
+        denies.
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Code-level review approved as correct with no further code changes
+        requested; the scope declaration was moved to files.scope and the lock
+        revised with preserved red evidence. Residual advisories were explicitly
+        recorded as future drafts and must not trigger another lock revision.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_snapshot_output_format.py, tests/core/test_snapshot.py]
+      status: passed
+      summary: The focused contract passed all 41 snapshot output-format and snapshot tests.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full Python suite passed 3530 tests with 5 skips.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 358 active manifests passed with 0 failures; 97 superseded were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 200 manifest-declared validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking findings;
+        only pre-existing E307 non-code warnings remained.

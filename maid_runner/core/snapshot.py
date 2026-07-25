@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Union
+from typing import Iterable, Optional, Union
 
 from maid_runner.core.manifest import save_manifest as _save_manifest_core
 from maid_runner.core.types import (
@@ -145,16 +145,42 @@ def generate_system_snapshot(
     )
 
 
+_SUFFIX_FORMATS = {".json": "json", ".yaml": "yaml", ".yml": "yaml"}
+
+
 def save_snapshot(
     manifest: Manifest,
     *,
     output_dir: Union[str, Path] = "manifests/",
     output: Union[str, Path, None] = None,
-    format: str = "yaml",
+    format: Optional[str] = None,
 ) -> Path:
-    """Save a snapshot manifest to disk."""
+    """Save a snapshot manifest to disk.
+
+    When ``output`` is given, the write format follows its suffix, because
+    ``load_manifest_raw`` dispatches on that suffix when reading the file back.
+    An unsupported suffix, or one that contradicts an explicit ``format``, is
+    rejected before anything is written rather than silently falling back to
+    YAML and producing a file MAID cannot load.
+    """
     if output is not None:
         out_path = Path(output)
+        # Matched case-sensitively on purpose: load_manifest_raw and manifest
+        # discovery both dispatch on the exact lowercase suffix, so accepting
+        # ".JSON" here would write a file MAID cannot load back.
+        suffix_format = _SUFFIX_FORMATS.get(out_path.suffix)
+        if suffix_format is None:
+            raise ValueError(
+                f"Unsupported snapshot output suffix {out_path.suffix!r}: "
+                f"use one of {', '.join(sorted(_SUFFIX_FORMATS))}"
+            )
+        if format is not None and format != suffix_format:
+            raise ValueError(
+                f"Snapshot output path {out_path.name!r} implies format "
+                f"{suffix_format!r}, which contradicts the requested format "
+                f"{format!r}"
+            )
+        format = suffix_format
     else:
         ext = ".json" if format == "json" else ".yaml"
         out_path = Path(output_dir) / f"{manifest.slug}.manifest{ext}"
