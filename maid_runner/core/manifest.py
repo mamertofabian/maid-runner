@@ -420,6 +420,12 @@ def _display_path(path: Path) -> str:
     return text
 
 
+# The suffixes load_manifest_raw dispatches on, mapped to the format a writer
+# must emit for that suffix. Manifest writers share this so they cannot drift
+# away from the reader and emit a file MAID rejects on read.
+_SUFFIX_FORMATS = {".json": "json", ".yaml": "yaml", ".yml": "yaml"}
+
+
 def load_manifest_raw(path: Union[str, Path]) -> dict:
     path = Path(path)
     if not path.exists():
@@ -463,8 +469,28 @@ def load_manifest(path: Union[str, Path]) -> Manifest:
 
 
 def save_manifest(manifest: Manifest, path: Union[str, Path]) -> None:
+    """Write a manifest in the format its output suffix implies.
+
+    ``load_manifest_raw`` dispatches on the output suffix when reading the file
+    back, so an unsupported suffix is rejected before anything is written rather
+    than silently receiving YAML and producing a file MAID cannot load.
+    """
     path = Path(path)
+    # Matched case-sensitively on purpose: load_manifest_raw and manifest chain
+    # discovery both dispatch on the exact lowercase suffix, so accepting
+    # ".YAML" here would write a file MAID cannot load back.
+    output_format = _SUFFIX_FORMATS.get(path.suffix)
+    if output_format is None:
+        raise ValueError(
+            f"Unsupported manifest output suffix {path.suffix!r}: "
+            f"use one of {', '.join(sorted(_SUFFIX_FORMATS))}"
+        )
+
     data = _manifest_to_dict(manifest)
+    if output_format == "json":
+        # JSON has no comment syntax, so the self-describing banner is omitted.
+        path.write_text(json.dumps(data, indent=2))
+        return
     rendered = yaml.dump(data, default_flow_style=False, sort_keys=False)
     path.write_text(prepend_manifest_header(rendered))
 

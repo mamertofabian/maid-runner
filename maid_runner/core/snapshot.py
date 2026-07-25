@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
+from maid_runner.core.manifest import _SUFFIX_FORMATS
 from maid_runner.core.manifest import save_manifest as _save_manifest_core
 from maid_runner.core.types import (
     ArtifactSpec,
@@ -143,9 +144,6 @@ def generate_system_snapshot(
         task_type=TaskType.SYSTEM_SNAPSHOT,
         created=datetime.now(timezone.utc).isoformat(),
     )
-
-
-_SUFFIX_FORMATS = {".json": "json", ".yaml": "yaml", ".yml": "yaml"}
 
 
 def save_snapshot(
