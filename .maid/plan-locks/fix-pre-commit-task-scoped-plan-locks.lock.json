@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml",
-  "manifest_hash": "sha256:956e41997c8ac66c639a9d7bf350aadfb57587492e877e62dd365abfc8b90500",
+  "manifest_hash": "sha256-contract:72c531dbbe15c9a9c18a13f532492a9ffe014921abd76c15b1ecd7ee7511e5e4",
   "test_hashes": {
-    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
-    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
-    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
-    "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:58be7dbcb78b6e1319153f5536518bce4a011439d38fcd7b1d9b0c8fca63c5b9",
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:fbb3ffbfffda0607d83a0574325a7ab92b03e2627e66dbbc106ec8d2f532c80d"
   },
   "created_at": "2026-07-11T04:55:11.709662+00:00",
-  "revision": 6,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c05ccf664b38a705ff07b174bca59856d1520ba1e3d487e652ea6bf0166f47a5",
@@ -127,6 +127,51 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:956e41997c8ac66c639a9d7bf350aadfb57587492e877e62dd365abfc8b90500",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-07-26T05:32:37.515885+00:00",
+      "reason": "090-01 disclosure warning: relaxed positional/exact-equality assertions on plan_lock stage findings to presence checks; contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:README.md",
+          "scope:maid_runner/cli/commands/_main.py",
+          "scope:maid_runner/cli/commands/init.py",
+          "scope:maid_runner/cli/commands/verify.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72c531dbbe15c9a9c18a13f532492a9ffe014921abd76c15b1ecd7ee7511e5e4",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:cda1926e1c2e37e1c3356207535cd457c24135682b74250b5df8a269570e4087",
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:fbb3ffbfffda0607d83a0574325a7ab92b03e2627e66dbbc106ec8d2f532c80d"
+      },
+      "revised_at": "2026-07-26T05:59:46.902072+00:00",
+      "reason": "090-01 review fixes: severity-filtered exclusivity assertion; contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -147,6 +192,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -201,6 +247,257 @@
         "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
         "manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml",
         "tests/cli/test_verify_plan_lock_scope_cmd.py"
+      ],
+      "scope": [
+        "README.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "repository"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_plan_lock_scope_enforcement.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_task_integrity_scope_ignores_untouched_historical_test_drift",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A historical manifest's locked test drifted before the current task changed another manifest's production file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Task-scoped enforcement ignores the unrelated historical integrity failure."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_integrity_scope_still_rejects_tampering_in_changed_task",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The current task changes a behavioral test covered by its own plan lock.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Task-scoped enforcement reports E701 for the implicated manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_scope_does_not_require_retroactive_lock_for_changed_legacy_test",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A changed test is listed by an untouched historical manifest that predates plan-lock adoption.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Task scope does not report E700 or E704 solely because the historical manifest has no lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_scope_rejects_deleted_locked_test_from_directory_target",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A directory-targeted validate command previously locked a behavioral test that is deleted in the current task.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Task scope uses the trustworthy locked test path to select the manifest and reports E701 for the deletion."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_plan_lock_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_parser_exposes_task_scoped_plan_lock_policy",
+              "returns": "None",
+              "source_scenario": "A caller selects task-scoped plan-lock verification.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The verify parser accepts task as the plan-lock scope."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cmd_verify_passes_plan_lock_scope_to_run_verify",
+              "args": [
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The verify command dispatches a parsed task-scoped plan-lock policy.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_verify"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The selected plan-lock scope reaches the verification pipeline."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_pre_commit.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_managed_hook_tracks_only_head_commit_candidates",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "maid init provisions a commit-time hook in a brownfield repository.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The generated hook selects advisory task-scoped file tracking and plan-lock enforcement from HEAD while retaining blocking errors and required evidence."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
+        "manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Add the public CLI choice without changing build_parser's signature."
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Thread the selected policy through private verification stages."
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Append task plan-lock scope to the private generated-hook constant."
+        },
+        {
+          "path": "README.md",
+          "reason": "Keep commit-time policy and CLI option documentation synchronized."
+        }
       ]
     },
     "test_files": [

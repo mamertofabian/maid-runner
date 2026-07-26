@@ -61,6 +61,7 @@ _WARNING_CODES = frozenset(
         ErrorCode.VALIDATOR_NOT_AVAILABLE.value,
         ErrorCode.STUB_FUNCTION_DETECTED.value,
         ErrorCode.TEST_FUNCTION_BEHAVIOR_MISMATCH.value,
+        ErrorCode.PLAN_LOCK_SCOPE_WIDENED.value,
     }
 )
 
@@ -84,6 +85,9 @@ _HELP_ANCHORS = {
     ),
     ErrorCode.CHANGED_SCOPE_BASELINE_INVALID.value: (
         "10-changed-scope-baseline-is-invalid-e116"
+    ),
+    ErrorCode.PLAN_LOCK_SCOPE_WIDENED.value: (
+        "34-plan-lock-enforcement-widened-to-every-manifest-e708"
     ),
     ErrorCode.ACTIVE_MANIFEST_INACTIVE_STATUS.value: (
         "11-active-manifest-is-marked-inactive-e117"
@@ -136,6 +140,12 @@ _DESCRIPTION_OVERRIDES = {
         "Changed-scope validation needs a baseline from metadata or an explicit "
         "--since or --base-ref value before comparing the current task.",
     ),
+    ErrorCode.PLAN_LOCK_SCOPE_WIDENED.value: (
+        "Plan-lock enforcement widened to every manifest",
+        "The changed-scope baseline could not be resolved, so plan-lock "
+        "enforcement fell back from the current task window to every active "
+        "manifest. Findings may name manifests this task never touched.",
+    ),
     ErrorCode.ARTIFACT_NOT_USED_IN_TESTS.value: (
         "Artifact is not used by behavioral tests",
         "The manifest declares a public artifact, but the declared behavioral "
@@ -143,8 +153,7 @@ _DESCRIPTION_OVERRIDES = {
     ),
     ErrorCode.TEST_FILE_NOT_FOUND.value: (
         "Declared test file is missing",
-        "A test file referenced by the manifest does not exist at the declared "
-        "path.",
+        "A test file referenced by the manifest does not exist at the declared path.",
     ),
     ErrorCode.MISSING_ASSERTIONS.value: (
         "Tests have no assertions",
@@ -216,8 +225,7 @@ _RECIPE_TEMPLATES = {
         kind="edit-tests",
         target="{test}",
         instruction=(
-            "Add assertions in {test} that prove the observable behavior of "
-            "{artifact}."
+            "Add assertions in {test} that prove the observable behavior of {artifact}."
         ),
     ),
     ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS.value: RepairRecipe(

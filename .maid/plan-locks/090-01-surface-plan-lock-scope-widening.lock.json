@@ -1,0 +1,695 @@
+{
+  "manifest_path": "manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml",
+  "manifest_hash": "sha256-contract:6a06dd9a608bea3864bf188b634125f771d81cbd273a8e448cfc8a0ff82aaff7",
+  "test_hashes": {
+    "tests/core/test_changed_scope.py": "sha256-pyast:8a8319eef415298d77fa9784668f4d696b0c12cd4c478d9fabd228b301d3ca55",
+    "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:0b0b6723414792485a3b1537d9bddc984cf52f6a7cd62e2fb10bc7c31587efc3",
+    "tests/core/test_changed_scope_declarations.py": "sha256-pyast:1afe25cadc7b912ae3f91a359af833dbdd34c4bb7107800ad2d7b2a9c62cc607",
+    "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78",
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2"
+  },
+  "created_at": "2026-07-26T05:24:25.550354+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:449addc8538289237cf04d6682fb50b18faf2b25a0cc97462ef70fc0fa2ea5fb",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope.py": "sha256-pyast:8a8319eef415298d77fa9784668f4d696b0c12cd4c478d9fabd228b301d3ca55",
+        "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:0b0b6723414792485a3b1537d9bddc984cf52f6a7cd62e2fb10bc7c31587efc3",
+        "tests/core/test_changed_scope_declarations.py": "sha256-pyast:1afe25cadc7b912ae3f91a359af833dbdd34c4bb7107800ad2d7b2a9c62cc607",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:c09bbbcbf734138f4577bb5e8e0d9c1e2a772ad250991b6e32c1cd64cb453198",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2"
+      },
+      "revised_at": "2026-07-26T05:24:34.931875+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/090-01-surface-plan-lock-scope-widening.manifest.yaml -> manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/090-01-surface-plan-lock-scope-widening.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cf2a8ec1300ffbc5c7a19d6c368e3cd1263a70ae26cfb52fddf37cf7efc01232",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope.py": "sha256-pyast:8a8319eef415298d77fa9784668f4d696b0c12cd4c478d9fabd228b301d3ca55",
+        "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:0b0b6723414792485a3b1537d9bddc984cf52f6a7cd62e2fb10bc7c31587efc3",
+        "tests/core/test_changed_scope_declarations.py": "sha256-pyast:1afe25cadc7b912ae3f91a359af833dbdd34c4bb7107800ad2d7b2a9c62cc607",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:c09bbbcbf734138f4577bb5e8e0d9c1e2a772ad250991b6e32c1cd64cb453198",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2"
+      },
+      "revised_at": "2026-07-26T06:00:03.510754+00:00",
+      "reason": "Review round 1: added gitless and contradictory-flag branch coverage, pinned rendered summary content, disclosed accessor failure",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:kind=test_function",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:returns=None",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:kind=test_function",
+          "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/cli/test_verify_plan_lock_cmd.py",
+          "scope:tests/cli/test_verify_plan_lock_scope_cmd.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-26T06:00:11.445526+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_changed_scope_declarations.py tests/cli/test_verify_scope_widening_diagnostic.py tests/core/test_changed_scope.py tests/core/test_diagnostics_registry.py tests/cli/test_verify_handoff_baseline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "E       AttributeError: type object 'ErrorCode' has no attribute 'PLAN_LOCK_SCOPE_WIDENED'\n\ntests/cli/test_verify_scope_widening_diagnostic.py:411: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_changed_scope_declarations.py::test_describe_returns_declaration_per_worktree_changed_manifest\nFAILED tests/core/test_changed_scope_declarations.py::test_describe_ignores_committed_historical_declarations\nFAILED tests/core/test_changed_scope_declarations.py::test_describe_returns_empty_when_no_considered_manifest_declares\nFAILED tests/core/test_changed_scope_declarations.py::test_describe_agrees_with_resolution_on_the_conflicting_set\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_conflicting_baselines_emit_scope_widened_warning_naming_manifests\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_scope_widened_warning_does_not_block_the_plan_lock_stage\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_scope_widening_still_enforces_every_active_manifest\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_scope_widened_warning_is_rendered_in_summary_output\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_missing_baseline_does_not_emit_scope_widened_warning\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_unresolvable_explicit_baseline_emits_scope_widened_warning\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_resolved_baseline_emits_no_scope_widened_warning\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_unreadable_working_tree_emits_scope_widened_warning\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_contradictory_explicit_baselines_emit_scope_widened_warning\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_summary_collects_warning_and_info_findings_from_stage_errors\nFAILED tests/cli/test_verify_scope_widening_diagnostic.py::test_scope_widened_code_is_registered_as_a_warning_diagnostic\n15 failed, 22 passed in 3.55s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/067-05-scope-plan-lock-enforcement-to-changed-manifests.lock.json",
+      ".maid/plan-locks/fix-pre-commit-task-scoped-plan-locks.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_SCOPE_WIDENED",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_SCOPE_WIDENED:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_SCOPE_WIDENED:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.PLAN_LOCK_SCOPE_WIDENED:type=str",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.commitish",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.commitish:kind=attribute",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.commitish:of=BaselineDeclaration",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.commitish:type=str",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.manifest_path",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.manifest_path:kind=attribute",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.manifest_path:of=BaselineDeclaration",
+      "maid_runner/core/worktree.py:attribute:BaselineDeclaration.manifest_path:type=str",
+      "maid_runner/core/worktree.py:class:BaselineDeclaration",
+      "maid_runner/core/worktree.py:class:BaselineDeclaration:kind=class",
+      "maid_runner/core/worktree.py:function:describe_changed_scope_baselines",
+      "maid_runner/core/worktree.py:function:describe_changed_scope_baselines:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:describe_changed_scope_baselines:kind=function",
+      "maid_runner/core/worktree.py:function:describe_changed_scope_baselines:returns=tuple[BaselineDeclaration, ...]",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_conflicting_baselines_emit_scope_widened_warning_naming_manifests",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_conflicting_baselines_emit_scope_widened_warning_naming_manifests:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_conflicting_baselines_emit_scope_widened_warning_naming_manifests:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_conflicting_baselines_emit_scope_widened_warning_naming_manifests:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_contradictory_explicit_baselines_emit_scope_widened_warning:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_missing_baseline_does_not_emit_scope_widened_warning",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_missing_baseline_does_not_emit_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_missing_baseline_does_not_emit_scope_widened_warning:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_missing_baseline_does_not_emit_scope_widened_warning:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_plan_lock_stage_still_blocks_on_a_missing_plan_lock",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_plan_lock_stage_still_blocks_on_a_missing_plan_lock:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_plan_lock_stage_still_blocks_on_a_missing_plan_lock:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_plan_lock_stage_still_blocks_on_a_missing_plan_lock:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_resolved_baseline_emits_no_scope_widened_warning",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_resolved_baseline_emits_no_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_resolved_baseline_emits_no_scope_widened_warning:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_resolved_baseline_emits_no_scope_widened_warning:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_code_is_registered_as_a_warning_diagnostic",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_code_is_registered_as_a_warning_diagnostic:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_code_is_registered_as_a_warning_diagnostic:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_does_not_block_the_plan_lock_stage",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_does_not_block_the_plan_lock_stage:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_does_not_block_the_plan_lock_stage:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_does_not_block_the_plan_lock_stage:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_is_rendered_in_summary_output",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_is_rendered_in_summary_output:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_is_rendered_in_summary_output:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widened_warning_is_rendered_in_summary_output:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widening_still_enforces_every_active_manifest",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widening_still_enforces_every_active_manifest:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widening_still_enforces_every_active_manifest:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_scope_widening_still_enforces_every_active_manifest:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_summary_collects_warning_and_info_findings_from_stage_errors",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_summary_collects_warning_and_info_findings_from_stage_errors:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_summary_collects_warning_and_info_findings_from_stage_errors:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unreadable_working_tree_emits_scope_widened_warning:returns=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unresolvable_explicit_baseline_emits_scope_widened_warning",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unresolvable_explicit_baseline_emits_scope_widened_warning:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unresolvable_explicit_baseline_emits_scope_widened_warning:kind=test_function",
+      "tests/cli/test_verify_scope_widening_diagnostic.py:test_unresolvable_explicit_baseline_emits_scope_widened_warning:returns=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_agrees_with_resolution_on_the_conflicting_set",
+      "tests/core/test_changed_scope_declarations.py:test_describe_agrees_with_resolution_on_the_conflicting_set:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_agrees_with_resolution_on_the_conflicting_set:kind=test_function",
+      "tests/core/test_changed_scope_declarations.py:test_describe_agrees_with_resolution_on_the_conflicting_set:returns=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_ignores_committed_historical_declarations",
+      "tests/core/test_changed_scope_declarations.py:test_describe_ignores_committed_historical_declarations:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_ignores_committed_historical_declarations:kind=test_function",
+      "tests/core/test_changed_scope_declarations.py:test_describe_ignores_committed_historical_declarations:returns=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_declaration_per_worktree_changed_manifest",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_declaration_per_worktree_changed_manifest:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_declaration_per_worktree_changed_manifest:kind=test_function",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_declaration_per_worktree_changed_manifest:returns=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_empty_when_no_considered_manifest_declares",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_empty_when_no_considered_manifest_declares:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_empty_when_no_considered_manifest_declares:kind=test_function",
+      "tests/core/test_changed_scope_declarations.py:test_describe_returns_empty_when_no_considered_manifest_declares:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_verify_scope_widening_diagnostic.py",
+        "tests/core/test_changed_scope_declarations.py"
+      ],
+      "edit": [
+        "maid_runner/core/result.py",
+        "maid_runner/core/verify_summary.py",
+        "maid_runner/core/worktree.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/plan_lock.py",
+        "tests/cli/test_verify_handoff_baseline_cmd.py",
+        "tests/core/test_changed_scope.py"
+      ],
+      "scope": [
+        "docs/troubleshooting.md",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/diagnostics_registry.py",
+        "tests/cli/test_verify_plan_lock_cmd.py",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_changed_scope_declarations.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_describe_returns_declaration_per_worktree_changed_manifest",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Two manifests with uncommitted worktree changes declare different metadata.maid_task_base values.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "describe_changed_scope_baselines"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Returns one BaselineDeclaration per declaring manifest, whose manifest_path and commitish match what each manifest declares, so a caller can name both sides of the conflict."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_describe_ignores_committed_historical_declarations",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A committed manifest declares one baseline and a dirty manifest declares another.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "describe_changed_scope_baselines"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only the dirty manifest's declaration is returned, proving the accessor applies 067-07's worktree-scoping rule rather than reporting a conflict resolution would never see."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_describe_returns_empty_when_no_considered_manifest_declares",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A clean tree where no considered manifest declares a baseline.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "describe_changed_scope_baselines"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Returns an empty tuple rather than raising, so the REQUIRED path can report \"no declaration\" distinctly from a conflict."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_describe_agrees_with_resolution_on_the_conflicting_set",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The same fixture that makes resolve_changed_scope_baseline raise CHANGED_SCOPE_BASELINE_INVALID.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "describe_changed_scope_baselines"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "resolve_changed_scope_baseline"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The distinct commitish values returned by the accessor are exactly the values whose disagreement makes resolution raise, so the reported cause cannot drift from the actual cause."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_scope_widening_diagnostic.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_conflicting_baselines_emit_scope_widened_warning_naming_manifests",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "maid verify --require-plan-lock runs where two dirty manifests declare conflicting metadata.maid_task_base.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The plan_lock stage carries a PLAN_LOCK_SCOPE_WIDENED finding whose message names both manifest paths and both differing commit-ish values, instead of widening with no explanation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_widened_warning_does_not_block_the_plan_lock_stage",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Baseline resolution fails but every enforced manifest satisfies its plan lock.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The plan_lock stage still reports success and verify still exits 0, proving the disclosure is a warning and not a new blocking gate."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_widening_still_enforces_every_active_manifest",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Baseline resolution fails while an untouched active manifest has no plan lock.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "That untouched manifest is still reported E700, proving the diagnostic did not narrow enforcement and 067-07's fail-closed behavior is intact."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_widened_warning_is_rendered_in_summary_output",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "maid verify --summary runs with an unresolvable baseline.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "E708 appears in the summary's warning groups and in the rendered --summary text, proving a stage-level diagnostic is no longer dropped by the aggregator's _validation-only collection."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_baseline_does_not_emit_scope_widened_warning",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "No manifest declares a baseline, so resolution raises CHANGED_SCOPE_BASELINE_REQUIRED and verify falls back to worktree changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No PLAN_LOCK_SCOPE_WIDENED warning is emitted, because that path narrows to the working tree rather than widening; a warning here would make the diagnostic noise on the common clean path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unresolvable_explicit_baseline_emits_scope_widened_warning",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "maid verify --since <nonexistent-ref> runs so changed_files_since fails.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "PLAN_LOCK_SCOPE_WIDENED is emitted naming the unusable ref, proving every silent widening path is disclosed and not only the metadata conflict."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolved_baseline_emits_no_scope_widened_warning",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Every dirty manifest agrees on one metadata.maid_task_base, so the baseline resolves normally.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No PLAN_LOCK_SCOPE_WIDENED warning is emitted, proving the diagnostic fires only on an actual widening rather than unconditionally on the everyday path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_stage_still_blocks_on_a_missing_plan_lock",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A changed manifest has no plan lock and the baseline resolves normally, so no warning is involved.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The plan_lock stage reports failure and verify exits non-zero, proving the new severity filter did not disarm the gate along with the warning."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unreadable_working_tree_emits_scope_widened_warning",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Verify runs in a directory with no git repository, so the working tree cannot be read at all.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "PLAN_LOCK_SCOPE_WIDENED is emitted naming the unreadable working tree, so a gitless checkout discloses why every manifest is enforced instead of widening in silence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_contradictory_explicit_baselines_emit_scope_widened_warning",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Verify runs with both --since and --base-ref supplied.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ErrorCode"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "PLAN_LOCK_SCOPE_WIDENED is emitted reporting that the requested baseline could not be resolved, covering the explicit-flag widening branch rather than leaving it removable unnoticed."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_summary_collects_warning_and_info_findings_from_stage_errors",
+              "returns": "None",
+              "source_scenario": "A synthetic VerificationResult whose stage carries an unrelated warning-severity and info-severity finding in _errors and has no _validation object.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both findings appear in the summary's warning and info groups, proving collection is generic by severity rather than special-cased for E708."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_widened_code_is_registered_as_a_warning_diagnostic",
+              "returns": "None",
+              "source_scenario": "The diagnostics registry is queried for the new code.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "get_rule"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "get_rule(\"E708\") reports warning severity, so SARIF and --json consumers do not treat the disclosure as a blocking error."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/worktree.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "BaselineDeclaration",
+              "description": "One active manifest's declared changed-scope baseline, as considered by resolve_changed_scope_baseline, so callers can report which manifests disagree."
+            },
+            {
+              "kind": "attribute",
+              "name": "manifest_path",
+              "description": "Project-relative path of the manifest that declares the baseline.",
+              "of": "BaselineDeclaration",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "commitish",
+              "description": "The declared metadata.maid_task_base value, stripped.",
+              "of": "BaselineDeclaration",
+              "type": "str"
+            },
+            {
+              "kind": "function",
+              "name": "describe_changed_scope_baselines",
+              "description": "Return the baseline declarations resolution actually considered, ordered by manifest path, and an empty tuple when no considered manifest declares a baseline. Must apply 067-07's worktree-scoping rule by sharing _baseline_metadata_manifests rather than re-deriving it, so the reported cause cannot drift from the resolution that raised.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                }
+              ],
+              "returns": "tuple[BaselineDeclaration, ...]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "PLAN_LOCK_SCOPE_WIDENED",
+              "description": "E708, a WARNING-severity code reporting that plan-lock enforcement widened from the task window to every active manifest because the changed-scope baseline could not be resolved.",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/verify_summary.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_verify_summary",
+              "description": "Collect warning and info groups from stage _errors findings in addition to stage _validation findings, so a stage-level diagnostic such as E708 is rendered in --summary instead of being dropped. Collection must be generic by severity, never special-cased for one code, so future stage-level findings are not silently dropped again.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                }
+              ],
+              "returns": "VerifySummary"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/cli/commands/_format.py",
+        "tests/core/test_changed_scope.py",
+        "tests/cli/test_verify_handoff_baseline_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Emits the PLAN_LOCK_SCOPE_WIDENED warning from _plan_lock_changed_paths and computes _plan_lock_stage success from ERROR-severity findings only. Both are private helpers, so no public artifact in this file is contracted or changed; declared under scope rather than read because the file is edited and files.read does not authorize edits."
+        },
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "reason": "Registers E708 in the private _WARNING_CODES set and adds its description and troubleshooting anchor. all_rules already generates a rule for every ErrorCode, so the public surface is unchanged; only severity and copy are added. Deliberately no repair recipe: tests/core/test_diagnostics_registry.py pins the recipe set exactly and is locked by 065-01 and 070-01."
+        },
+        {
+          "path": "tests/cli/test_verify_plan_lock_cmd.py",
+          "reason": "Two assertions read the plan_lock stage's findings positionally (`[0][\"code\"]`), which now sees the disclosure warning first. Relaxed to assert the expected code is present. No contract change; the locks that hash these files are 067-05 and fix-pre-commit-task-scoped-plan-locks, and both are revised with preserved red evidence."
+        },
+        {
+          "path": "tests/cli/test_verify_plan_lock_scope_cmd.py",
+          "reason": "One assertion pins the stage's findings by exact list equality and now also sees the disclosure warning, which is correct: that fixture has no git repository, so verify genuinely enforces every manifest. Filtered by severity rather than relaxed, so the assertion still pins that a corrupt lock reports no other blocking error."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Section 10 currently explains E116 only as an unresolvable --base-ref and never mentions conflicting metadata.maid_task_base or the plan-lock widening it triggers, which is why the storm reads as a broken hook. Documentation-only edit; this file is not copied by scripts/sync_claude_files.py, so no payload sync is required."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_handoff_baseline_cmd.py",
+      "tests/cli/test_verify_scope_widening_diagnostic.py",
+      "tests/core/test_changed_scope.py",
+      "tests/core/test_changed_scope_declarations.py",
+      "tests/core/test_diagnostics_registry.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_changed_scope_declarations.py tests/cli/test_verify_scope_widening_diagnostic.py tests/core/test_changed_scope.py tests/core/test_diagnostics_registry.py tests/cli/test_verify_handoff_baseline_cmd.py",
+      "uv run maid validate manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

@@ -381,6 +381,25 @@ Fix: Run `maid learn` to refresh the index, then rerun `maid recall --text
 "<topic>"`. Use explicit filters such as `--path`, `--artifact`, or
 `--manifest-slug` when the result set is noisy.
 
+### 34. Plan-lock enforcement widened to every manifest (`E708`)
+
+Symptom: `maid verify --require-plan-lock` reports `E700` or `E704` for many
+manifests your task never touched, alongside one `E708` warning.
+
+Likely cause: The changed-scope baseline could not be resolved, so plan-lock
+enforcement fell back from the current task window to every active manifest.
+The most common trigger is two manifests with uncommitted changes declaring
+different `metadata.maid_task_base` values; the `E708` message names each
+manifest and the value it declares.
+
+This escalation is deliberate. MAID fails closed rather than guessing a
+narrower scope, so the widened findings are real. Do not bypass the gate.
+
+Fix: Reconcile the manifests named in the `E708` message so they declare the
+same `metadata.maid_task_base`, or pass `--since`/`--base-ref` to scope the run
+explicitly. Do not delete `maid_task_base` from manifests belonging to
+completed tasks; prior contracts are immutable.
+
 ## FAQ
 
 ### FAQ: Should I run `maid validate`, `maid test`, or `maid verify`?

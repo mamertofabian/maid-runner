@@ -165,9 +165,9 @@ def test_verify_json_output_reports_same_plan_lock_error(
 
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 1
-    assert _stage_errors(payload, "plan_lock")[0]["code"] == (
-        ErrorCode.PLAN_LOCK_MISSING.value
-    )
+    assert ErrorCode.PLAN_LOCK_MISSING.value in [
+        error["code"] for error in _stage_errors(payload, "plan_lock")
+    ]
 
 
 def test_verify_plan_lock_json_and_text_share_e701_code(
@@ -191,9 +191,9 @@ def test_verify_plan_lock_json_and_text_share_e701_code(
     assert text_exit == 1
     assert json_exit == 1
     assert ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.value in text_output
-    assert _stage_errors(payload, "plan_lock")[0]["code"] == (
-        ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.value
-    )
+    assert ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK.value in [
+        error["code"] for error in _stage_errors(payload, "plan_lock")
+    ]
 
 
 def test_verify_without_plan_lock_flags_remains_opt_in(

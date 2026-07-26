@@ -101,22 +101,14 @@ def build_verify_summary(result: VerificationResult) -> VerifySummary:
 
 def _iter_validation_warnings(result: VerificationResult):
     for stage in result.stages:
-        validation = getattr(stage, "_validation", None)
-        if validation is None:
-            continue
-
-        for finding in _iter_validation_findings(validation):
+        for finding in _iter_stage_findings(stage):
             if _is_warning(finding):
                 yield finding
 
 
 def _iter_validation_infos(result: VerificationResult):
     for stage in result.stages:
-        validation = getattr(stage, "_validation", None)
-        if validation is None:
-            continue
-
-        for finding in _iter_validation_findings(validation):
+        for finding in _iter_stage_findings(stage):
             if _is_info(finding):
                 yield finding
 
