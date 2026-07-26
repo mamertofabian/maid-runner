@@ -131,7 +131,31 @@ def _iter_stage_findings(stage):
         yield from _iter_validation_findings(validation)
 
     for error in getattr(stage, "_errors", ()):
-        yield error
+        if _holds_nested_findings(error):
+            yield from _iter_validation_findings(error)
+        else:
+            yield error
+
+
+def _holds_nested_findings(candidate) -> bool:
+    """Whether a stage error entry is a report wrapping findings, not a finding.
+
+    Stages such as artifact_coverage and knockout store a whole report object in
+    ``_errors``; its ValidationErrors live in the report's own ``errors`` tuple.
+    Such a report is traversed instead of being yielded, so the container is
+    never counted alongside the findings it holds. ValidationError and the plain
+    strings other stages store expose none of these attributes.
+
+    A candidate carrying its own ``severity`` is treated as a finding even if it
+    also exposes nested attributes, so a future finding type that grows one is
+    counted rather than silently dropped.
+    """
+    if hasattr(candidate, "severity"):
+        return False
+    return any(
+        hasattr(candidate, attribute)
+        for attribute in ("errors", "warnings", "chain_errors")
+    )
 
 
 def _iter_validation_findings(validation):
