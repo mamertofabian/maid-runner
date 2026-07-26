@@ -1,0 +1,196 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Teach agent-facing review guidance and the spec that E708 is a non-blocking
+  plan-lock diagnostic, so agents read it instead of triaging it as a blocker"
+type: fix
+created: "2026-07-26T06:56:26Z"
+metadata:
+  planning_state: draft-inventory
+  promotion_ready: false
+  tests_status: planned-not-created
+  maid_task_base: ac38d24e02bf9c95fd78efebe395f17c2aa84aee
+  source_review: manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml
+  tags:
+    - agent-guidance
+    - plan-lock
+    - documentation
+    - payload-sync
+  priority: medium
+description: |
+  090-01 added `E708 PLAN_LOCK_SCOPE_WIDENED`, the first finding the `plan_lock`
+  stage emits that is deliberately non-blocking. No agent-facing guidance
+  mentions it.
+
+  `.claude/skills/maid-implementation-review/SKILL.md` and its two payload
+  copies say: "Treat E700-E706 plan-lock failures as blockers unless the review
+  packet explicitly states that opt-in enforcement is out of scope", then
+  classify E700/E704/E705 as task-window requirement errors and
+  E701/E702/E703/E706 as scope-independent integrity errors. `docs/maid_specs.md`
+  enumerates the same codes at lines 251-261. An agent applying either text to a
+  verify run containing E708 has no rule for it, and the surrounding framing
+  ("plan-lock failures are blockers") pushes toward the wrong answer, which is
+  exactly the reflex 090-01 exists to stop: treating the disclosure as one more
+  reason to bypass.
+
+  Rationale for adding rather than rewriting. The existing "E700-E706" sentence
+  is not false; E708 is outside that range, so nothing currently asserts it is a
+  blocker. Adding a distinct E708 rule closes the gap without touching that
+  string, which matters concretely: `tests/test_plan_lock_docs.py` pins the
+  literal "E700-E706" in
+  `test_review_skill_payloads_treat_e700_to_e706_as_blockers`, and that file is
+  locked by 067-04, 067-05, 067-06, and 073-01. Rewriting the range would
+  cascade E701 to four locks for no behavioral gain. New assertions therefore go
+  in a new test file and the existing one is left untouched.
+
+  Rationale for including the spec. `docs/maid_specs.md` is the authoritative
+  description of plan-lock enforcement scope and is packaged to
+  `maid_runner/docs/maid_specs.md`. Documenting E708 only in a skill payload
+  would leave the spec silently incomplete about which findings the plan_lock
+  stage can produce, and the spec is what a reader consults when the skill text
+  is ambiguous.
+
+  Payload handling. `.claude/` and `docs/maid_specs.md` have generated mirrors
+  under `maid_runner/claude/`, `maid_runner/codex/`, and `maid_runner/docs/`.
+  The implementer must run `make sync-agent-payloads` and commit both the source
+  and the mirrored copies; editing only the source leaves the payload parity
+  tests failing.
+temptations:
+  - risk: "Do not rewrite the 'E700-E706' string to 'E700-E708' to make the range look
+      tidy. tests/test_plan_lock_docs.py pins that literal and is locked by 067-04,
+      067-05, 067-06, and 073-01, so the edit cascades E701 to four locks and would
+      also wrongly imply E708 is a blocker."
+    instead: "Leave that sentence alone and add a separate rule stating E708 is
+      non-blocking and what to do with it."
+  - risk: "Do not describe E708 as something to fix, silence, or bypass. It is a correct
+      report of deliberate fail-closed behavior from 067-07."
+    instead: "State that it is advisory, that enforcement genuinely widened, and that the
+      action is to reconcile the manifests it names or pass an explicit baseline."
+  - risk: "Do not edit only .claude/ and docs/ and leave the packaged mirrors stale; the
+      payload parity tests fail and the shipped package disagrees with the repo."
+    instead: "Run `make sync-agent-payloads` and include maid_runner/claude/,
+      maid_runner/codex/, and maid_runner/docs/ copies in the same change."
+  - risk: "Do not assert only that the string 'E708' appears somewhere in the payloads; a
+      passing mention inside an unrelated sentence would satisfy that."
+    instead: "Assert each payload states E708 is non-blocking or advisory and names the
+      reconcile-or-pass-a-baseline action, in both the Claude and Codex copies."
+files:
+  create:
+    - path: tests/test_plan_lock_scope_widening_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_review_skill_payloads_classify_e708_as_non_blocking
+          args: []
+          returns: None
+          source_scenario: >-
+            The Claude and Codex maid-implementation-review skill payloads are
+            read as repository markdown.
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: >-
+              Both payloads name E708 and state it is non-blocking or advisory,
+              so an agent triaging a verify run does not treat the disclosure as
+              a handoff blocker.
+        - kind: test_function
+          name: test_review_skill_payloads_state_the_e708_reconcile_action
+          args: []
+          returns: None
+          source_scenario: The same two skill payloads are read.
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: >-
+              Both payloads tell the agent to reconcile the manifests E708 names
+              or pass an explicit baseline, rather than leaving the only stated
+              remedy as bypassing the gate.
+        - kind: test_function
+          name: test_specs_document_e708_in_the_plan_lock_stage
+          args: []
+          returns: None
+          source_scenario: docs/maid_specs.md is read as repository markdown.
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: >-
+              The spec's plan-lock enforcement section names E708
+              PLAN_LOCK_SCOPE_WIDENED and describes it as a warning reporting
+              that enforcement widened beyond the task window.
+        - kind: test_function
+          name: test_specs_state_e708_does_not_change_which_manifests_are_enforced
+          args: []
+          returns: None
+          source_scenario: docs/maid_specs.md is read as repository markdown.
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: >-
+              The spec states the widening is deliberate fail-closed behavior and
+              that E708 reports it without altering enforcement, so the spec
+              cannot be read as licensing a narrower scope.
+        - kind: test_function
+          name: test_packaged_guidance_matches_source_guidance_for_e708
+          args: []
+          returns: None
+          source_scenario: >-
+            The .claude source and the maid_runner/claude, maid_runner/codex, and
+            maid_runner/docs mirrors are compared.
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: >-
+              Every mirrored copy carries the same E708 guidance as its source,
+              proving `make sync-agent-payloads` was run and the shipped package
+              does not disagree with the repository.
+  scope:
+    - path: .claude/skills/maid-implementation-review/SKILL.md
+      reason: >-
+        Source of the review-triage guidance that classifies plan-lock findings;
+        gains a rule for the non-blocking E708. Markdown only, no public artifact
+        is contracted.
+    - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+      reason: >-
+        Generated Claude payload mirror; regenerated by `make sync-agent-payloads`
+        and committed alongside the source.
+    - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+      reason: >-
+        Generated Codex payload mirror; regenerated by `make sync-agent-payloads`
+        and committed alongside the source.
+    - path: docs/maid_specs.md
+      reason: >-
+        Authoritative description of plan-lock enforcement scope at lines
+        251-261; gains E708 alongside the existing E700-E707 descriptions.
+    - path: maid_runner/docs/maid_specs.md
+      reason: >-
+        Packaged copy of the spec, kept byte-identical to docs/maid_specs.md.
+    - path: CLAUDE.md
+      reason: >-
+        The "MAID Workflow Anchors" section calls out E707 by name as a
+        release-tested anchor; E708 belongs beside it so Claude's startup
+        instructions describe the current plan-lock finding set. Markdown only.
+  read:
+    - manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml
+    - maid_runner/core/result.py
+    - maid_runner/core/diagnostics_registry.py
+    - docs/troubleshooting.md
+    - tests/test_plan_lock_docs.py
+    - scripts/sync_claude_files.py
+validate:
+  - uv run maid validate
+    manifests/drafts/090-03-teach-agent-guidance-the-e708-code.manifest.yaml
+    --mode schema --quiet
+  - uv run python -m pytest -q tests/test_plan_lock_scope_widening_docs.py
+    tests/test_plan_lock_docs.py
