@@ -13,6 +13,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from maid_runner.cli.commands._format import print_error
+from maid_runner.core.manifest import backfill_manifest_header
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -117,6 +118,7 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
         f"Locked plan '{ctx.slug}' at revision {lock.revision} "
         f"({len(lock.test_hashes)} behavioral test file(s), {ctx.lock_path})"
     )
+    _advisory_backfill_manifest_header(ctx.manifest_path)
     return 0
 
 
@@ -217,20 +219,26 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
     _print_provenance_warning(provenance.warning)
 
     if stash_implementation:
-        return _cmd_plan_revise_with_stashed_implementation(
+        result = _cmd_plan_revise_with_stashed_implementation(
             ctx=ctx,
             existing=existing,
             reason=reason,
             agent=provenance.provenance,
             allow_sibling_dirty=allow_sibling_dirty,
         )
+        if result == 0:
+            _advisory_backfill_manifest_header(ctx.manifest_path)
+        return result
     if test_only_green:
-        return _cmd_plan_revise_test_only_green(
+        result = _cmd_plan_revise_test_only_green(
             ctx=ctx,
             existing=existing,
             reason=reason,
             agent=provenance.provenance,
         )
+        if result == 0:
+            _advisory_backfill_manifest_header(ctx.manifest_path)
+        return result
 
     prior_contract = _load_locked_contract(ctx.lock_path)
     auto_preserve = False
@@ -276,7 +284,18 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             else " by explicit request"
         )
         print(f"{evidence_class} evidence preserved{reason_text}.")
+    _advisory_backfill_manifest_header(ctx.manifest_path)
     return 0
+
+
+def _advisory_backfill_manifest_header(manifest_path: Path) -> None:
+    try:
+        backfill_manifest_header(manifest_path)
+    except OSError as exc:
+        print(
+            f"Advisory: could not backfill manifest header for {manifest_path}: {exc}",
+            file=sys.stderr,
+        )
 
 
 def cmd_plan_status(args: argparse.Namespace) -> int:

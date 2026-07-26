@@ -37,6 +37,12 @@ plan lock before implementation begins:
 7. Run implementation validation, manifest tests, `uv run maid validate`, and `uv run maid test`.
 8. Before handoff, run `uv run maid verify --summary --require-plan-lock --require-red-evidence` and treat plan-lock or red-evidence failures as workflow blockers rather than recreating evidence after implementation. Prefer `--summary` for agent and human handoff because it keeps blocking failures visible while deduplicating warning storms; rerun with raw text, `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is needed. Treat older handoff examples such as `uv run maid verify --require-plan-lock --require-red-evidence` as superseded unless raw text is intentionally required.
 
+MAID manifests carry a short self-describing comment header for readers who
+open a committed contract without MAID context. Agents authoring manifests may
+include it, but do not need to: MAID backfills the header at `maid plan lock`,
+`maid plan revise`, and `maid manifest promote`. Header backfill is advisory and
+must not block those gates.
+
 ## Optional Multi-Agent Division of Labor
 
 MAID is tool-agnostic: a single agent may run the entire lifecycle (plan,

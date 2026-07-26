@@ -9,9 +9,10 @@ import json
 from pathlib import Path
 import re
 import shlex
+import sys
 
 from maid_runner.cli.commands._format import print_error
-from maid_runner.core.manifest import prepend_manifest_header
+from maid_runner.core.manifest import backfill_manifest_header, prepend_manifest_header
 
 _INACTIVE_METADATA_STATUSES = frozenset(
     {"archive", "archived", "draft", "epic", "legacy", "planning"}
@@ -225,6 +226,7 @@ def _cmd_promote(args: argparse.Namespace) -> int:
             )
             return 2
 
+    _advisory_backfill_manifest_header(output_path)
     manifest_path.unlink()
     _warn_about_draft_references(output_dir, output_path, old_rel)
 
@@ -238,6 +240,16 @@ def _cmd_promote(args: argparse.Namespace) -> int:
     else:
         print(f"Promoted {manifest_path} -> {output_path}")
     return 0
+
+
+def _advisory_backfill_manifest_header(manifest_path: Path) -> None:
+    try:
+        backfill_manifest_header(manifest_path)
+    except OSError as exc:
+        print(
+            f"Advisory: could not backfill manifest header for {manifest_path}: {exc}",
+            file=sys.stderr,
+        )
 
 
 def _project_relative(path: Path, project_root: Path) -> str:

@@ -10,6 +10,7 @@ from pathlib import PureWindowsPath
 import re
 import shlex
 from typing import Union
+import uuid
 
 import jsonschema
 import yaml
@@ -139,6 +140,28 @@ def prepend_manifest_header(rendered: str) -> str:
     if newline and marker.startswith(_LEADING_MARKER_PREFIXES):
         return f"{marker}{newline}{MANIFEST_HEADER_COMMENT}{remainder}"
     return f"{MANIFEST_HEADER_COMMENT}{rendered}"
+
+
+def backfill_manifest_header(manifest_path: Union[str, Path]) -> bool:
+    """Add the self-describing banner to a manifest file when it is missing.
+
+    Returns True when the file was updated and False when it already carried the
+    banner. OSError intentionally propagates so CLI callers can keep the
+    backfill advisory without hiding write failures from direct callers.
+    """
+    path = Path(manifest_path)
+    original = path.read_text()
+    updated = prepend_manifest_header(original)
+    if updated == original:
+        return False
+    temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        temporary_path.write_text(updated)
+        temporary_path.replace(path)
+    except OSError:
+        temporary_path.unlink(missing_ok=True)
+        raise
+    return True
 
 
 def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]:
