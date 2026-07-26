@@ -270,6 +270,11 @@ packet explicitly states that opt-in enforcement is out of scope for the task.
 E700/E704/E705 requirement errors apply to manifests changed in the task window;
 E701/E702/E703/E706 integrity errors are blockers regardless of task window
 scope.
+E708 PLAN_LOCK_SCOPE_WIDENED is a non-blocking advisory disclosure. It means
+the plan-lock gate deliberately enforced manifests outside the requested task
+window after changed-scope baseline resolution widened the check. Do not treat
+E708 as a handoff blocker by itself; reconcile the manifests it names or rerun
+with an explicit baseline when the wider scope was not intended.
 Prefer `--summary` for agent and human review handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun with raw text,
 `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is

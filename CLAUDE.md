@@ -68,6 +68,10 @@ Keep these release-tested anchors discoverable here:
   evidence.
 - `E707` / `RED_EVIDENCE_COMMAND_MISMATCH` means red-phase evidence no longer
   matches the manifest validation commands and must be fixed before handoff.
+- `E708` / `PLAN_LOCK_SCOPE_WIDENED` is non-blocking. It reports deliberate
+  fail-closed widening after changed-scope baseline resolution; reconcile the
+  named manifests or pass an explicit baseline if the wider scope was not
+  intended.
 
 ## References
 

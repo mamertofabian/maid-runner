@@ -261,6 +261,11 @@ a lock's red-phase evidence command strings do not match the `validate_commands`
 snapshot recorded in the lock's manifest contract. E702 applies when declared
 artifacts or behavioral test entries shrink relative to the locked manifest;
 additive manifest changes are legal.
+E708 PLAN_LOCK_SCOPE_WIDENED is a warning reporting that enforcement widened beyond the task window.
+This is deliberate fail-closed behavior after changed-scope baseline resolution:
+E708 reports this widening without changing which manifests are enforced, and
+callers should reconcile the named manifests or pass an explicit baseline when
+the wider scope was not intended.
 
 E707 binds red-phase evidence to the validate commands that produced it.
 Sanctioned flows (`maid plan lock`, `maid plan revise`, and the promote
