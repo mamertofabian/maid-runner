@@ -431,6 +431,30 @@ def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
     return "red" in classifications and "invalid" not in classifications
 
 
+def _format_red_evidence_capture_details(evidence: dict) -> str:
+    """Summarize captured command evidence for a refusal message."""
+    commands = evidence.get("commands")
+    if not isinstance(commands, list) or not commands:
+        return "Captured command details: none recorded."
+
+    lines = ["Captured command details:"]
+    for command in commands:
+        if not isinstance(command, dict):
+            continue
+        command_text = command.get("command")
+        exit_code = command.get("exit_code")
+        classification = command.get("classification")
+        lines.append(
+            f"- {command_text}: exit {exit_code}, classification {classification}"
+        )
+        output_tail = command.get("output_tail")
+        if isinstance(output_tail, str) and output_tail.strip():
+            lines.append(output_tail.rstrip())
+    if len(lines) == 1:
+        return "Captured command details: none recorded."
+    return "\n".join(lines)
+
+
 def _test_only_green_payload_is_valid(evidence: object) -> bool:
     if not isinstance(evidence, dict):
         return False
@@ -856,18 +880,21 @@ def _cmd_plan_revise_with_stashed_implementation(
                 )
                 return 2
             if not _red_evidence_payload_is_valid(evidence):
+                details = _format_red_evidence_capture_details(evidence)
                 if _includes_dependency_lockfile(dirty_target_paths):
                     print_error(
                         "--stash-implementation did not capture valid red evidence "
                         "because materialized dependency state (node_modules, .venv, "
                         "or vendor) is not stashed with dependency lockfiles. "
                         "Temporarily install the prior dependency state and use plain "
-                        "plan revise, or record a reasoned legacy baseline.",
+                        "plan revise, or record a reasoned legacy baseline.\n"
+                        + details,
                         json_mode=ctx.json_mode,
                     )
                 else:
                     print_error(
-                        "--stash-implementation did not capture valid red evidence.",
+                        "--stash-implementation did not capture valid red evidence.\n"
+                        + details,
                         json_mode=ctx.json_mode,
                     )
                 return 1

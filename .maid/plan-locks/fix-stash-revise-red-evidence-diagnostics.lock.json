@@ -1,0 +1,171 @@
+{
+  "manifest_path": "manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml",
+  "manifest_hash": "sha256-contract:0b321bc624e8b274e734eeec95db115804c208096ba8e940cb74f1b79466b342",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+  },
+  "created_at": "2026-07-27T13:52:37.177693+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:2d0683e714267be3a663c45884abb16bec0a77789e1938e120b100767cf2b30b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:5ac2e39afda5f1ae446dec1eaa4f69b27881e33762d7434b4bd057ef184a7b69"
+      },
+      "revised_at": "2026-07-27T13:52:42.512059+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-stash-revise-red-evidence-diagnostics.manifest.yaml -> manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:14684c53f4ad4c6774ec6352dff8f804305e3c4dd60df0a3ba423f93e73bc7ae",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:5ac2e39afda5f1ae446dec1eaa4f69b27881e33762d7434b4bd057ef184a7b69"
+      },
+      "revised_at": "2026-07-27T13:54:16.364493+00:00",
+      "reason": "Use file-scoped pytest command so MAID command discovery sees the behavioral test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/cli/test_plan_cmd_stash_implementation.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_invalid_red_evidence_names_command_details -q"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c86bb99ebdc20256bafde2a6cecbd3ea7fc08770afdefbf2f02dc2cfadbd0acd",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:5ac2e39afda5f1ae446dec1eaa4f69b27881e33762d7434b4bd057ef184a7b69"
+      },
+      "revised_at": "2026-07-27T14:02:36.507908+00:00",
+      "reason": "Strengthen not-red diagnostic coverage after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c86bb99ebdc20256bafde2a6cecbd3ea7fc08770afdefbf2f02dc2cfadbd0acd",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+      },
+      "revised_at": "2026-07-27T14:08:39.498559+00:00",
+      "reason": "Declare review-strengthened not-red diagnostic behavioral test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock",
+          "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-27T14:08:51.972171+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_plan_cmd_stash_implementation.py -q",
+        "exit_code": 1,
+        "output_tail": "                manifest_path,\n                tmp_path,\n                \"refresh red evidence for final validate commands\",\n            )\n        )\n    \n        err = capsys.readouterr().err\n        assert exit_code == 1\n        assert lock_path.read_bytes() == original_lock\n        assert implementation_path.read_text() == \"def demo() -> int:\\n    return 1\\n\"\n        assert _git(tmp_path, \"stash\", \"list\") == \"\"\n        assert \"--stash-implementation did not capture valid red evidence\" in err\n>       assert \"python scripts/invalid_red_evidence.py\" in err\nE       AssertionError: assert 'python scripts/invalid_red_evidence.py' in 'Error: --stash-implementation did not capture valid red evidence.\\n'\n\ntests/cli/test_plan_cmd_stash_implementation.py:298: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_green_stashed_state_without_revising_lock\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_invalid_red_evidence_names_command_details\n2 failed, 19 passed in 12.29s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/076-03-allow-lifecycle-dirt-in-stash-revise.lock.json",
+      "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+      "manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_invalid_red_evidence_names_command_details",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_invalid_red_evidence_names_command_details:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock",
+      "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "tests/cli/test_plan_cmd_stash_implementation.py"
+      ],
+      "read": [],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "For stash-backed revisions, refuses invalid or not-red capture with command-level diagnostics while leaving the lock unchanged and restoring the targeted stash.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_stash_implementation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_green_stashed_state_without_revising_lock",
+              "description": "Not-red capture reports the validate command, exit code, classification, and bounded output tail without revising the lock."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_invalid_red_evidence_names_command_details",
+              "description": "Invalid red-evidence capture reports the validate command, exit code, classification, and bounded output tail without revising the lock."
+            }
+          ]
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_implementation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_plan_cmd_stash_implementation.py -q"
+    ]
+  }
+}

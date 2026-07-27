@@ -1,0 +1,175 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Report command-level diagnostics when stash-backed plan revise cannot capture
+  valid red evidence"
+type: fix
+created: "2026-07-27T13:52:42Z"
+metadata:
+  bug_reports: |
+    ~/.maid/bug-report/20260727-214435-tma-studio-red-evidence-command-revise.md
+  tags:
+    - plan-lock
+    - red-evidence
+    - stash-implementation
+    - diagnostics
+    - cli
+description: |
+  `maid plan revise --stash-implementation` currently reports only
+  "--stash-implementation did not capture valid red evidence." for ordinary
+  non-dependency red-evidence capture failures. That leaves agents unable to
+  tell whether the failing validate command was green, invalid, path-broken,
+  or otherwise rejected by red-evidence classification.
+
+  Preserve the existing fail-closed behavior: invalid or not-red evidence must
+  still refuse to save the revised lock and must restore the targeted stash.
+  Improve only the operator-facing diagnostic by listing the captured
+  command-level details: command string, exit code, classification, and bounded
+  output tail. The existing dependency-lockfile limitation message stays
+  specific and may include the same command detail if useful.
+temptations:
+  - risk: "Do not make exit code 2 or other invalid command failures count as valid
+      red evidence to satisfy the revise command."
+    instead: "Keep `_red_evidence_payload_is_valid` unchanged and improve the refusal
+      message around the captured payload."
+  - risk: "Do not dump unbounded command output into stderr."
+    instead: "Reuse the captured `output_tail` already stored by red-evidence capture."
+  - risk: "Do not save a revised plan lock before detecting that the captured evidence
+      is invalid or not red."
+    instead: "Keep the current lock-write order and assert the original lock bytes
+      remain unchanged on failure."
+files:
+  edit:
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "For stash-backed revisions, refuses invalid or not-red capture
+            with command-level diagnostics while leaving the lock unchanged and restoring
+            the targeted stash."
+    - path: tests/cli/test_plan_cmd_stash_implementation.py
+      artifacts:
+        - kind: test_function
+          name: 
+            test_stash_implementation_rejects_green_stashed_state_without_revising_lock
+          description: "Not-red capture reports the validate command, exit code,
+            classification, and bounded output tail without revising the lock."
+        - kind: test_function
+          name: 
+            test_stash_implementation_invalid_red_evidence_names_command_details
+          description: "Invalid red-evidence capture reports the validate command,
+            exit code, classification, and bounded output tail without revising the
+            lock."
+validate:
+  - uv run python -m pytest tests/cli/test_plan_cmd_stash_implementation.py -q
+outcome:
+  status: completed
+  completed_at: "2026-07-27T14:14:00Z"
+  summary: "Improved `maid plan revise --stash-implementation` refusal output so invalid and not-red red-evidence capture failures include command-level diagnostics."
+  rationale: "The fix preserves fail-closed evidence classification and lock write ordering while making the documented recovery path actionable: failed stash-backed revise now reports the captured command string, exit code, classification, and bounded output tail instead of only a generic invalid-red-evidence message."
+  lessons:
+    - lesson_type: diagnostic-completeness
+      summary: "Recovery commands that reject captured runtime evidence should print the captured command classifications and output tail; otherwise the sanctioned workflow can become a dead end even when validation is behaving correctly."
+      tags:
+        - red-evidence
+        - stash-implementation
+        - cli
+        - diagnostics
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+        - ~/.maid/bug-report/20260727-214435-tma-studio-red-evidence-command-revise.md
+    - lesson_type: contract-design
+      summary: "When review-driven fixes strengthen an existing behavioral test, declare that touched test artifact in the active manifest instead of relying only on a file-level validate command."
+      tags:
+        - maid-workflow
+        - behavioral-tests
+        - implementation-review
+      paths:
+        - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+        - tests/cli/test_plan_cmd_stash_implementation.py
+  review_notes:
+    - source: maid-implementation-review-subagent-round-1
+      severity: needs-changes
+      summary: "Found `.maid/active-manifest` lifecycle state still present and missing not-red diagnostic assertions."
+    - source: maid-implementation-review-subagent-round-2
+      severity: needs-changes
+      summary: "Found the review-strengthened not-red behavioral test was not declared as an artifact in the active manifest."
+    - source: maid-implementation-review-subagent-round-3
+      severity: ready
+      summary: "Found no remaining issues; confirmed invalid and not-red stash-backed revise failures report command details while preserving fail-closed behavior."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/cli/test_plan_cmd_stash_implementation.py
+        - -q
+      status: passed
+      summary: "All 21 stash-backed plan-revise CLI tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+        - --mode
+        - behavioral
+        - --packet
+      status: passed
+      summary: "Behavioral validation passed with both diagnostic test artifacts declared."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+        - --mode
+        - implementation
+        - --packet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+      status: passed
+      summary: "Manifest-specific MAID test gate passed its file-scoped pytest command."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed: 466 manifests, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed: 210 commands, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff verify passed with 0 blocking findings; only existing E307 no-validator warnings remained."
