@@ -9,6 +9,7 @@ from typing import Any
 
 from maid_runner.__version__ import __version__
 from maid_runner.core.manifest import load_manifest
+from maid_runner.core.module_paths import clear_reexport_resolution_cache
 from maid_runner.core.types import ValidationMode
 from maid_runner.core.validate import ValidationEngine
 
@@ -51,6 +52,18 @@ class DaemonValidationCacheScope:
         validation_mode = ValidationMode(mode)
         resolved_manifest = self._resolve_manifest_path(manifest_path)
         with self._lock:
+            # This scope is entered once at construction and held for the
+            # daemon's lifetime, so every request runs at depth 1 and the
+            # engine's scope-boundary clear never fires again. The artifact and
+            # TypeScript caches survive that because their keys carry a content
+            # hash or a stat signature; the re-export cache is keyed only by
+            # (module, name, project_root), so without this it would answer from
+            # a resolution taken before the source changed and report a PASS for
+            # a symbol the barrel no longer exports. Clearing per request keeps
+            # the full benefit, because a resolution burst happens within one
+            # request rather than across them.
+            clear_reexport_resolution_cache()
+
             key = self._request_identity(
                 manifest_path=str(resolved_manifest),
                 mode=validation_mode.value,

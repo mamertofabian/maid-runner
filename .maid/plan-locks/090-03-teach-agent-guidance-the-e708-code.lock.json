@@ -1,0 +1,276 @@
+{
+  "manifest_path": "manifests/090-03-teach-agent-guidance-the-e708-code.manifest.yaml",
+  "manifest_hash": "sha256-contract:3355931664d58b298d4ee5905d5e762d8c703d8e4254ae780fa1f182b306dbbf",
+  "test_hashes": {
+    "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0",
+    "tests/test_plan_lock_scope_widening_docs.py": "sha256-pyast:ac648cb9c023ebb81d3601c3c66764070c9bb5a85e54f43d0ee21f8f9eef2ff7"
+  },
+  "created_at": "2026-07-26T08:21:34.033428+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:000fbbe5de1ca78899fac572faa7f64bff223617d73ce8372bc166eae67c8c84",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0",
+        "tests/test_plan_lock_scope_widening_docs.py": "sha256-pyast:63bfe9ba4874479ac9b9626390b42dabf5739c943cf80ef2a86efc6599cca899"
+      },
+      "revised_at": "2026-07-26T08:21:38.830260+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/090-03-teach-agent-guidance-the-e708-code.manifest.yaml -> manifests/090-03-teach-agent-guidance-the-e708-code.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/090-03-teach-agent-guidance-the-e708-code.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/090-03-teach-agent-guidance-the-e708-code.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d88543d973a2e0b55bd1e251ca4486cab198bf8e09a2d6461a742637b5056cb5",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0",
+        "tests/test_plan_lock_scope_widening_docs.py": "sha256-pyast:63bfe9ba4874479ac9b9626390b42dabf5739c943cf80ef2a86efc6599cca899"
+      },
+      "revised_at": "2026-07-26T08:22:22.959818+00:00",
+      "reason": "Add Codex review skill source to E708 guidance scope before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.codex/skills/maid-implementation-review/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3355931664d58b298d4ee5905d5e762d8c703d8e4254ae780fa1f182b306dbbf",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0",
+        "tests/test_plan_lock_scope_widening_docs.py": "sha256-pyast:ac648cb9c023ebb81d3601c3c66764070c9bb5a85e54f43d0ee21f8f9eef2ff7"
+      },
+      "revised_at": "2026-07-26T08:25:59.355791+00:00",
+      "reason": "Format behavioral documentation tests without changing the E708 contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-26T08:22:23.403252+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/090-03-teach-agent-guidance-the-e708-code.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/test_plan_lock_scope_widening_docs.py tests/test_plan_lock_docs.py",
+        "exit_code": 1,
+        "output_tail": "            \"widened beyond the task window.\"\n        )\n    \n        for content in (\n            source_review,\n            source_codex_review,\n            packaged_claude_review,\n            packaged_codex_review,\n        ):\n>           assert expected_review_guidance in content\nE           AssertionError: assert 'E708 PLAN_LOCK_SCOPE_WIDENED is a non-blocking advisory disclosure.' in '---\\nname: maid-implementation-review\\ndescription: Review an implementation produced from an approved MAID manifest.... it found blockers.\\n\\nEnd with one explicit verdict:\\n\\n- `Ready to merge`\\n- `Needs changes`\\n- `Needs discussion`\\n'\n\ntests/test_plan_lock_scope_widening_docs.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_plan_lock_scope_widening_docs.py::test_review_skill_payloads_classify_e708_as_non_blocking\nFAILED tests/test_plan_lock_scope_widening_docs.py::test_review_skill_payloads_state_the_e708_reconcile_action\nFAILED tests/test_plan_lock_scope_widening_docs.py::test_specs_document_e708_in_the_plan_lock_stage\nFAILED tests/test_plan_lock_scope_widening_docs.py::test_specs_state_e708_does_not_change_which_manifests_are_enforced\nFAILED tests/test_plan_lock_scope_widening_docs.py::test_packaged_guidance_matches_source_guidance_for_e708\n5 failed, 7 passed in 0.11s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_plan_lock_scope_widening_docs.py:test_packaged_guidance_matches_source_guidance_for_e708",
+      "tests/test_plan_lock_scope_widening_docs.py:test_packaged_guidance_matches_source_guidance_for_e708:kind=test_function",
+      "tests/test_plan_lock_scope_widening_docs.py:test_packaged_guidance_matches_source_guidance_for_e708:returns=None",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_classify_e708_as_non_blocking",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_classify_e708_as_non_blocking:kind=test_function",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_classify_e708_as_non_blocking:returns=None",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_state_the_e708_reconcile_action",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_state_the_e708_reconcile_action:kind=test_function",
+      "tests/test_plan_lock_scope_widening_docs.py:test_review_skill_payloads_state_the_e708_reconcile_action:returns=None",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_document_e708_in_the_plan_lock_stage",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_document_e708_in_the_plan_lock_stage:kind=test_function",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_document_e708_in_the_plan_lock_stage:returns=None",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_state_e708_does_not_change_which_manifests_are_enforced",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_state_e708_does_not_change_which_manifests_are_enforced:kind=test_function",
+      "tests/test_plan_lock_scope_widening_docs.py:test_specs_state_e708_does_not_change_which_manifests_are_enforced:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_plan_lock_scope_widening_docs.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/diagnostics_registry.py",
+        "maid_runner/core/result.py",
+        "manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/test_plan_lock_docs.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "CLAUDE.md",
+        "docs/maid_specs.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_plan_lock_scope_widening_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_review_skill_payloads_classify_e708_as_non_blocking",
+              "returns": "None",
+              "source_scenario": "The Claude and Codex maid-implementation-review skill payloads are read as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both payloads name E708 and state it is non-blocking or advisory, so an agent triaging a verify run does not treat the disclosure as a handoff blocker."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_review_skill_payloads_state_the_e708_reconcile_action",
+              "returns": "None",
+              "source_scenario": "The same two skill payloads are read.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both payloads tell the agent to reconcile the manifests E708 names or pass an explicit baseline, rather than leaving the only stated remedy as bypassing the gate."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_specs_document_e708_in_the_plan_lock_stage",
+              "returns": "None",
+              "source_scenario": "docs/maid_specs.md is read as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The spec's plan-lock enforcement section names E708 PLAN_LOCK_SCOPE_WIDENED and describes it as a warning reporting that enforcement widened beyond the task window."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_specs_state_e708_does_not_change_which_manifests_are_enforced",
+              "returns": "None",
+              "source_scenario": "docs/maid_specs.md is read as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The spec states the widening is deliberate fail-closed behavior and that E708 reports it without altering enforcement, so the spec cannot be read as licensing a narrower scope."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_packaged_guidance_matches_source_guidance_for_e708",
+              "returns": "None",
+              "source_scenario": "The .claude source and the maid_runner/claude, maid_runner/codex, and maid_runner/docs mirrors are compared.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every mirrored copy carries the same E708 guidance as its source, proving `make sync-agent-payloads` was run and the shipped package does not disagree with the repository."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml",
+        "maid_runner/core/result.py",
+        "maid_runner/core/diagnostics_registry.py",
+        "docs/troubleshooting.md",
+        "tests/test_plan_lock_docs.py",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Source of the review-triage guidance that classifies plan-lock findings; gains a rule for the non-blocking E708. Markdown only, no public artifact is contracted."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Claude payload mirror; regenerated by `make sync-agent-payloads` and committed alongside the source."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Codex payload mirror; regenerated by `make sync-agent-payloads` and committed alongside the source."
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Source of the Codex review-triage guidance copied into maid_runner/codex/ by `make sync-agent-payloads`; gains the same E708 rule as the Claude source so the regenerated mirror remains current."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Authoritative description of plan-lock enforcement scope at lines 251-261; gains E708 alongside the existing E700-E707 descriptions."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Packaged copy of the spec, kept byte-identical to docs/maid_specs.md."
+        },
+        {
+          "path": "CLAUDE.md",
+          "reason": "The \"MAID Workflow Anchors\" section calls out E707 by name as a release-tested anchor; E708 belongs beside it so Claude's startup instructions describe the current plan-lock finding set. Markdown only."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_plan_lock_docs.py",
+      "tests/test_plan_lock_scope_widening_docs.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/090-03-teach-agent-guidance-the-e708-code.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest -q tests/test_plan_lock_scope_widening_docs.py tests/test_plan_lock_docs.py"
+    ]
+  }
+}

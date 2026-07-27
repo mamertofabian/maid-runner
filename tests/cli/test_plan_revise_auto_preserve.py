@@ -151,11 +151,11 @@ def test_revise_with_changed_test_file_recaptures_evidence(tmp_path: Path) -> No
     manifest_path, original = _lock_with_red_evidence(tmp_path)
     original_evidence = original["red_evidence"]
     (tmp_path / "tests" / "test_demo.py").write_text(
-        "def test_demo_contract():\n    assert True  # formatting churn\n"
+        "def test_demo_contract():\n    assert False\n"
     )
 
     exit_code = cmd_plan_revise(
-        _revise_args(manifest_path, tmp_path, "test formatting forced recapture")
+        _revise_args(manifest_path, tmp_path, "assertion change forced recapture")
     )
 
     assert exit_code == 0
@@ -163,6 +163,28 @@ def test_revise_with_changed_test_file_recaptures_evidence(tmp_path: Path) -> No
     assert record["revision"] == 2
     assert record["red_evidence"] != original_evidence
     assert record["red_evidence"]["commands"][0]["classification"] == "red"
+
+
+def test_revise_with_formatter_only_test_edit_preserves_red_evidence(
+    tmp_path: Path, capsys
+) -> None:
+    manifest_path, original = _lock_with_red_evidence(tmp_path)
+    original_evidence = original["red_evidence"]
+    (tmp_path / "tests" / "test_demo.py").write_text(
+        "def test_demo_contract():\n    assert True  # formatting churn\n"
+    )
+
+    exit_code = cmd_plan_revise(
+        _revise_args(manifest_path, tmp_path, "formatter-only test edit")
+    )
+
+    assert exit_code == 0
+    record = _lock_record(tmp_path)
+    assert record["revision"] == 2
+    assert record["red_evidence"] == original_evidence
+    captured = capsys.readouterr().out
+    assert "preserved" in captured.lower()
+    assert "contract-preserving" in captured.lower()
 
 
 def test_revise_with_new_discovered_test_file_recaptures_evidence(
@@ -281,7 +303,7 @@ def test_revision_preserves_red_evidence_predicate(tmp_path: Path) -> None:
     _outcome_style_manifest_edit(manifest_path)
 
     (tmp_path / "tests" / "test_demo.py").write_text(
-        "def test_demo_contract():\n    assert True  # changed\n"
+        "def test_demo_contract():\n    assert False\n"
     )
     assert (
         revision_preserves_red_evidence(

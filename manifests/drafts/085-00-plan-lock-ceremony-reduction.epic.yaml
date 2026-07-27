@@ -112,13 +112,19 @@ description: |
      docs guidance: single-pass exhaustive reviews, blocking-vs-advisory
      classification, bounded re-review rounds, task-scoped inner-loop
      verify recipe. Lands last so it can document the new mechanics.
+  7. 085-07-ast-scoped-behavioral-test-hash — closes the Black/formatter
+     test-hash ceremony class that 085-02 explicitly left out of scope
+     (format-before-lock guidance only). New locks pin `.py` behavioral
+     tests with `sha256-pyast:` AST-canonical digests; non-Python tests and
+     legacy `sha256:` locks stay byte-hashed via prefix dispatch.
 
   Related prior work: 067 (plan locks & red evidence), 076-01/082-03
   (stash-backed revise lineage), 084-03 (contract deltas per revision —
   085-02 builds directly on that data). Outcome recall (2026-07-18)
   surfaced the standing lessons "format declared files before plan locking"
   and "avoid adding assertions to shared behavioral test files already
-  locked by older manifests"; 085-06 folds both into the packaged guidance.
+  locked by older manifests"; 085-06 folds both into the packaged guidance;
+  085-07 removes the formatter half of that tax for new Python locks.
 files:
   edit:
     - path: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
@@ -127,7 +133,7 @@ files:
           name: _plan_lock_ceremony_reduction_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap; children 085-01 through 085-06 carry the implementation-sized contracts."
+          description: "Split-before-promote roadmap; children 085-01 through 085-07 carry the implementation-sized contracts."
   read:
     - maid_runner/core/plan_lock.py
     - maid_runner/core/_file_discovery.py

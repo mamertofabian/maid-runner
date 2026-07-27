@@ -158,7 +158,9 @@ maid validators --json
 The text table and `--json` output have parity. Both expose the same rows with
 name, claimed extensions, source, status, and detail. Built-ins are listed
 first, then plugins by distribution name. Status values are `active`,
-`conflict`, `error`, and `disabled`.
+`conflict`, `error`, and `disabled`. Loaded plugins are listed by their class `__name__`
+(same convention as built-ins). Rows with status `disabled` or `error` keep the
+entry-point name when the class was not loaded.
 
 ## Conformance Kit
 

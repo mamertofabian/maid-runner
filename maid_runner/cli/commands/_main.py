@@ -582,6 +582,12 @@ def _add_agent_provenance_args(parser: argparse.ArgumentParser) -> None:
         help="Agent model to record as advisory plan-lock provenance",
     )
     parser.add_argument(
+        "--agent-reasoning-effort",
+        default=None,
+        dest="agent_reasoning_effort",
+        help="Agent reasoning effort to record as advisory plan-lock provenance",
+    )
+    parser.add_argument(
         "--agent-provider",
         default=None,
         dest="agent_provider",
@@ -647,14 +653,13 @@ def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
         default="manifests/",
         help="Directory where the snapshot manifest will be written",
     )
-    p.add_argument("--output", default=None, help="Explicit manifest output path")
     p.add_argument(
-        "--with-tests",
-        action="store_true",
-        help="Include discovered test files in the snapshot",
-    )
-    p.add_argument(
-        "--force", action="store_true", help="Overwrite an existing output manifest"
+        "--output",
+        default=None,
+        help=(
+            "Explicit manifest output path; the format follows the suffix, "
+            "which must be .yaml, .yml, or .json"
+        ),
     )
     p.add_argument("--json", action="store_true", help="Print snapshot result as JSON")
     p.add_argument(

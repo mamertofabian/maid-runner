@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
-  "manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+  "manifest_hash": "sha256-contract:a9f56ef95b160a0bfd1c2a2394a237ef7494d54bf72ccf5842ca819192487249",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
-    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256-pyast:4411f1225bccd8e0ec7b936e6bf00834e6a4e986c6da7863f161cb883d5188f9",
+    "tests/test_insights_skill_guidance.py": "sha256-pyast:434a663bb10b133d290a6a2eb5c94963dcbb9440ef519d623a6230ad1b093ef4"
   },
   "created_at": "2026-06-26T15:11:22.630016+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c3015811b406cecae78d12db651ff95660add175760e5593d3f6029e5cd3d00f",
@@ -138,6 +138,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:d34988c2e0e2e1a40f7421a0e39c625f478800cdef8a040386ad047eac74ca6e",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40"
+      },
+      "revised_at": "2026-07-25T01:08:48.686176+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -152,6 +171,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -252,6 +272,236 @@
         "scripts/sync_claude_files.py",
         "tests/cli/test_init_codex_distributable_scope.py",
         "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_insights_skill_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_cadence_is_present_and_specific",
+              "description": "Behavioral coverage that Claude and Codex maid-auditor skills contain an advisory `maid insights` cadence anchor tied to release / periodic health cadences.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_guidance_uses_only_registered_options",
+              "description": "Behavioral coverage that Claude and Codex auditor insights guidance uses only registered insights options and contains no unregistered flags such as --tag or --include-status.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_guidance_handles_stale_index_explicitly",
+              "description": "Behavioral coverage that Claude and Codex auditor insights guidance states stale indexes fail by default and names `maid learn` plus `--allow-stale-index` as the only remedies.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_guidance_synced_to_agent_payloads",
+              "description": "Behavioral coverage that generated Claude and Codex package copies equal the source maid-auditor skills after an isolated sync and carry the insights cadence anchor.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_guidance_is_distributed_to_codex",
+              "description": "Behavioral coverage that an isolated payload sync includes maid-auditor in the Codex distributable skill list and includes its skill-local OpenAI agent metadata.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_auditor_insights_skill",
+              "description": "Behavioral coverage that `maid init --tool codex` installs maid-auditor with insights cadence guidance while still excluding repo-internal maid-runner skills.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-auditor/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_auditor_insights_cadence_guidance",
+              "description": "Codex source maid-auditor skill with the advisory `maid insights` cadence step, using only registered insights options and never gating the audit verdict.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-auditor/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_auditor_agent_metadata",
+              "description": "Codex skill-local OpenAI metadata for the maid-auditor skill.",
+              "of": "skill",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-auditor/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_auditor_insights_cadence_guidance",
+              "description": "Generated Codex package copy of the auditor insights cadence guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-auditor/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_auditor_agent_metadata",
+              "description": "Generated Codex package copy of the maid-auditor skill-local OpenAI metadata.",
+              "of": "skill",
+              "type": "yaml document"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-auditor/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_auditor_insights_cadence_guidance",
+              "description": "Advisory `maid insights` cadence step for the auditor's release / periodic health checks, using only registered insights options and never gating the audit verdict.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-auditor/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_auditor_insights_cadence_guidance",
+              "description": "Generated Claude package copy of the auditor insights cadence guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "sync_codex_payload",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_payload_manifest_auditor_distribution",
+              "description": "Regenerated Codex payload manifest listing maid-auditor as distributable and including its skill-local agent metadata.",
+              "of": "codex_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_agent_payload_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_payload_manifest_matches_source_skills",
+              "description": "Existing payload distribution coverage updated so the expected Codex distributable skills include maid-auditor.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_codex_distributable_scope.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_only_distributable_skills",
+              "description": "Existing Codex init coverage updated so maid-auditor is an expected generic installed skill, while repo-internal skills remain excluded.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_skills_codex_auditor_distribution",
+              "description": "Agent skill distribution docs state that maid-auditor ships through both Claude and Codex init payloads, with Codex no longer limited to the four implementation workflow skills.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/init.py",
+        "scripts/sync_claude_files.py",
+        ".claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "tests/test_agent_payload_distribution.py",
+        "tests/cli/test_init_codex_distributable_scope.py",
+        "docs/agent-skills.md"
       ]
     },
     "test_files": [

@@ -1,0 +1,214 @@
+schema: '2'
+type: feature
+goal: Teach agents that a missing-validator signal means "check for a validator plugin", not "skip the file" — centralize a plugin-discovery hint into the no-validator diagnostics and add a `maid validators` rule to the init-injected agent guidance.
+description: |
+  When maid has no validator for a file's extension (e.g. `.cs` without the
+  maid-validator-csharp plugin installed), the messages an agent sees point the
+  wrong way and never mention that languages can be plugin-provided:
+
+    - _implementation_validation.py emits E307 with message
+      "No validator available for '<path>'" and NO suggestion.
+    - registry.py's UnsupportedLanguageError says
+      "Install optional dependencies? (e.g., maid-runner[typescript])" —
+      a built-in extra that does not exist for plugin languages.
+    - The maid init agent-guidance payload (CLAUDE.md/AGENTS.md) never tells the
+      agent to run `maid validators` or that plugins provide languages.
+
+  Result: an agent hitting an unsupported extension dismisses the language and
+  silently skips MAID for those files instead of running `maid validators` and
+  installing the plugin.
+
+  This change centralizes ONE plugin-discovery hint (no_validator_guidance) and
+  threads it through the E307 suggestion and the UnsupportedLanguageError
+  message, and adds a short "run `maid validators` before treating a language as
+  unsupported" rule to the init-injected guidance.
+
+  Rationale: the highest-leverage place to reach an agent is the message shown at
+  the moment of dismissal, so the diagnostic hint is primary; the init guidance
+  is the durable reinforcement that propagates to every repo on the next init.
+  Diagnostic codes (E307) and severities are intentionally unchanged — only
+  human/agent-facing text changes. `maid validators` and the plugin authoring
+  doc already exist (063 epic); this adds no new discovery machinery.
+temptations:
+- risk: Do not hardcode the hint string separately at each call site.
+  instead: Centralize it in a single public no_validator_guidance() and reuse it at the E307 suggestion and in UnsupportedLanguageError.
+- risk: Do not change the E307 code or no_validator_severity's severity mapping to make a test pass.
+  instead: Keep code E307 and severities unchanged; assert only the added suggestion/message text.
+- risk: Do not assert the full message verbatim (brittle to wording churn).
+  instead: 'Assert the message/suggestion contains stable anchors: the substring ''maid validators'' and ''validator-plugin-authoring''.'
+- risk: Do not silently change the injected guidance without versioning it.
+  instead: Bump INSTRUCTION_PAYLOAD_VERSION and update payload-version-sensitive init tests when the CLAUDE.md/AGENTS.md guidance text changes.
+- risk: Do not attach the plugin hint to recognized non-code files (.md/.json/.yaml/.toml), which legitimately have no validator.
+  instead: Gate the hint to the WARNING (unrecognized code-extension) case; keep INFO non-code diagnostics hint-free. Assert a .md declared file gets no plugin hint.
+files:
+  create:
+  - path: tests/core/test_no_validator_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_no_validator_guidance_names_runtime_audit_and_plugin_docs
+      args: []
+      returns: None
+      description: The centralized guidance names maid validators and the validator plugin authoring guide.
+    - kind: test_function
+      name: test_source_like_e307_suggests_validator_plugin_discovery
+      args: []
+      returns: None
+      description: A declared unsupported source file keeps E307 warning severity and carries the centralized plugin-discovery suggestion.
+    - kind: test_function
+      name: test_unsupported_language_error_suggests_validator_plugin_discovery
+      args: []
+      returns: None
+      description: UnsupportedLanguageError directs callers to the runtime validator audit and plugin authoring guide.
+    - kind: test_function
+      name: test_recognized_non_code_e307_has_no_plugin_suggestion
+      args: []
+      returns: None
+      description: A declared recognized non-code file remains an informational E307 without the plugin-discovery suggestion.
+  - path: tests/cli/test_init_validator_plugin_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_init_injects_validator_plugin_guidance_for_claude
+      args: []
+      returns: None
+      description: Public maid init generation adds the validator audit and plugin-installation rule to CLAUDE.md.
+    - kind: test_function
+      name: test_init_injects_validator_plugin_guidance_for_codex
+      args: []
+      returns: None
+      description: Public maid init generation adds the validator audit and plugin-installation rule to AGENTS.md.
+    - kind: test_function
+      name: test_validator_plugin_guidance_bumps_instruction_payload_version
+      args: []
+      returns: None
+      description: The init instruction payload version advances beyond the previously shipped version when guidance changes.
+  edit:
+  - path: maid_runner/core/diagnostic_policy.py
+    artifacts:
+    - kind: function
+      name: no_validator_severity
+      args:
+      - name: path
+        type: str
+      returns: Severity
+    - kind: function
+      name: no_validator_guidance
+      args: []
+      returns: str
+  - path: maid_runner/validators/registry.py
+    artifacts:
+    - kind: class
+      name: UnsupportedLanguageError
+      description: Public missing-validator exception whose message reuses the centralized plugin-discovery guidance.
+  scope:
+  - path: maid_runner/core/_implementation_validation.py
+    reason: Add the centralized guidance only to warning-severity E307 suggestions; private validation plumbing with no public artifact change.
+  - path: maid_runner/cli/commands/init.py
+    reason: Add the validator-plugin workflow rule to the private CLAUDE.md and AGENTS.md payload renderers without changing cmd_init's public signature.
+  - path: maid_runner/instruction_payload.py
+    reason: Bump the init-installed instruction payload version so downstream check mode detects the changed guidance; version metadata has no analyzer-visible artifact contract.
+  read:
+  - docs/validator-plugin-authoring.md
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_no_validator_guidance.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_init_validator_plugin_guidance.py
+  - -q
+created: '2026-07-22T01:26:16Z'
+metadata:
+  tags:
+  - validator-plugins
+  - agent-guidance
+  - diagnostics
+  priority: high
+outcome:
+  status: completed
+  completed_at: "2026-07-22T01:43:21Z"
+  summary: "Centralized validator-plugin discovery guidance, added it to warning-severity E307 suggestions and UnsupportedLanguageError, kept recognized non-code INFO diagnostics hint-free, and injected a matching maid validators workflow rule into generated Claude and Codex guidance with payload version 2026.07.22.1."
+  rationale: "Missing-validator diagnostics are the decision point where agents otherwise skip unsupported-looking files. Reusing one diagnostic hint keeps the runtime audit and plugin-authoring path consistent, while separately worded init guidance reinforces the workflow without changing E307 codes, severities, or plugin discovery machinery."
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-implement-draft
+    - maid-plan-review
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: planning
+    summary: "Private call-site edits that an active-task hook must permit belong under files.scope rather than files.read; contextual existing tests should stay outside files.read unless the manifest validate commands intentionally contract and execute them."
+    tags:
+    - manifest-scope
+    - active-task
+    - behavioral-tests
+    paths:
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/cli/commands/init.py
+    - manifests/087-no-validator-plugin-discovery-guidance.manifest.yaml
+  - lesson_type: testing
+    summary: "Behavioral tests for a not-yet-existing imported symbol should defer production imports until test execution so red evidence records ordinary assertion/import failures instead of invalid pytest collection exits; temporary manifests must also remain schema-valid."
+    tags:
+    - red-evidence
+    - pytest
+    - contract-hardening
+    paths:
+    - tests/core/test_no_validator_guidance.py
+  - lesson_type: validation
+    summary: "A public policy-text helper can compose its result from private command and documentation anchors, preserving centralized maintainability while avoiding a false E310 constant-return stub signal without misusing the default_hook exemption."
+    tags:
+    - E310
+    - diagnostic-policy
+    - anti-gaming
+    paths:
+    - maid_runner/core/diagnostic_policy.py
+  review_notes:
+  - source: independent-read-only-review-review_087
+    severity: ready
+    summary: "Reviewer found no blocking or advisory issues, confirmed scope and temptation fidelity, independently reran 26 tests plus implementation validation, and returned Ready to merge."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: "Full pytest suite passed: 3480 passed and 5 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "All 350 active manifests passed; 96 superseded manifests were skipped and none failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 195 deduplicated manifest test commands passed, including Black and the repository pytest batch."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: "All 9 strict handoff stages passed; remaining E307 warnings for Makefile and ts_compiler_resolver.cjs were pre-existing and non-blocking."

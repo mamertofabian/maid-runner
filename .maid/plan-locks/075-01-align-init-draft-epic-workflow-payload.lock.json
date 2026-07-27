@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml",
-  "manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+  "manifest_hash": "sha256-contract:27241b8a97f6cf56194a48ed830553dba94dfb3ad8297f43cd775d79b0ba636e",
   "test_hashes": {
-    "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:ac43ea2058cba218f8111d62069a8f1176b742a53529e67194bd16ab3c09ab60",
+    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c"
   },
   "created_at": "2026-06-25T12:01:58.480418+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:54d31c119b73f9a317b3b190e1931559960b29bee070857018c29939eaeece8a",
@@ -149,6 +149,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:d233ed38790ee3457404d22778bc3e8a9e1127ec98e626f209260c176e0aa2b0",
+      "prior_test_hashes": {
+        "tests/test_init_draft_workflow_payload.py": "sha256:3b17582eea7d802bf7fc18f49bc8c5d561e81ae006d53fd66e3b2be19052a1f6",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4"
+      },
+      "revised_at": "2026-07-25T01:08:48.449468+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -175,6 +194,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -251,6 +271,273 @@
         "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
         "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
         "manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_init_draft_workflow_payload.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_installs_local_draft_workflow_docs_and_readme",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A new repository runs `maid init --tool codex`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The initialized repository contains `docs/draft-manifest-workflow.md`, `docs/manifest-outcome-records.md`, and `manifests/drafts/README.md`; those files document `.epic.yaml`, split-before-promote, archived drafts, `maid manifest promote`, and `plan revise --preserve-red-evidence` without stale manual-move promotion wording."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_generated_agent_guidance_matches_draft_epic_workflow",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A new repository runs `maid init --tool claude` and `maid init --tool codex` in isolated workspaces.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Generated `CLAUDE.md` and `AGENTS.md` MAID sections name `.epic.yaml` epic planning records, require `uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml`, forbid manual move/copy promotion, explain `plan revise --preserve-red-evidence`, and retain Outcome capture plus `maid learn` guidance."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_packaged_workflow_docs_match_source_docs",
+              "returns": "None",
+              "source_scenario": "The distribution package is built from package-data resources used by `maid init`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "tomllib.loads"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package-data includes the workflow docs/resources that init installs, and packaged copies match the repo source docs so init cannot ship stale draft workflow text."
+              }
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_draft_manifest_workflow_doc",
+              "description": "Packaged copy of docs/draft-manifest-workflow.md installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_manifest_outcome_records_doc",
+              "description": "Packaged copy of docs/manifest-outcome-records.md installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/manifests/drafts/README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_drafts_inventory_readme",
+              "description": "Packaged copy of manifests/drafts/README.md installed by `maid init`.",
+              "of": "package_resource",
+              "type": "markdown document"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_claude_creates_repo_level_maid_assets",
+              "source_scenario": "A repository runs `maid init --tool claude`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The generated `CLAUDE.md` section asserts the sanctioned draft/epic workflow and no stale manual-move promotion guidance."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_codex_creates_repo_level_maid_assets",
+              "source_scenario": "A repository runs `maid init --tool codex`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The generated `AGENTS.md` section asserts the sanctioned draft/epic workflow and no stale manual-move promotion guidance."
+              }
+            }
+          ]
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_sanctioned_draft_manifest_workflow_docs",
+              "description": "Canonical workflow docs describe `.epic.yaml`, archived draft inventory, `maid manifest promote`, and `plan revise --preserve-red-evidence` without manual move/copy promotion wording.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_drafts_inventory_readme_workflow_guidance",
+              "description": "Draft inventory README matches the sanctioned child draft, epic draft, archive, and promotion workflow.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "pyproject.toml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_runner_package_data_init_workflow_payloads",
+              "description": "Package data includes every workflow doc/resource that `maid init` installs into downstream repositories.",
+              "of": "pyproject",
+              "type": "TOML package-data entry"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Synchronizes generated agent and init workflow payload resources deterministically so package resources do not drift from repo source docs.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_agent_payload_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_agent_payload_package_data_includes_claude_and_codex_assets",
+              "source_scenario": "The distribution package is built from pyproject package-data globs.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "tomllib.loads"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package data includes the docs/resources installed by `maid init`, in addition to existing Claude and Codex assets."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
+        "manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml",
+        "docs/manifest-outcome-records.md"
       ]
     },
     "test_files": [

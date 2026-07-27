@@ -1,0 +1,261 @@
+{
+  "manifest_path": "manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml",
+  "manifest_hash": "sha256-contract:c08b45d17188bd3b053ede00596bb6062f7b8805dd08ba66d8a904c8ca482691",
+  "test_hashes": {
+    "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:e28da8dba42769fb5d89cb3c610a8aafebab27093c0e02fceb95ffc3a203671e",
+    "tests/core/test_manifest_header.py": "sha256-pyast:f2f5784499acef5c76e006453f6aa47dc5c795fb0026a0164fa241fd707122bc"
+  },
+  "created_at": "2026-07-26T16:20:11.678787+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:13cb82dc33abfda53b78bb34a68c2df2bb6de27025dafe82c944ddcebd6aebfa",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:a87bf242f9ae2c3dd478d964dd2271a97d5026806f22eab806daecb4afbbd545",
+        "tests/core/test_manifest_header.py": "sha256-pyast:f2f5784499acef5c76e006453f6aa47dc5c795fb0026a0164fa241fd707122bc"
+      },
+      "revised_at": "2026-07-26T16:20:21.210589+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml -> manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c08b45d17188bd3b053ede00596bb6062f7b8805dd08ba66d8a904c8ca482691",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:a87bf242f9ae2c3dd478d964dd2271a97d5026806f22eab806daecb4afbbd545",
+        "tests/core/test_manifest_header.py": "sha256-pyast:f2f5784499acef5c76e006453f6aa47dc5c795fb0026a0164fa241fd707122bc"
+      },
+      "revised_at": "2026-07-26T16:30:23.716034+00:00",
+      "reason": "Add review-driven coverage for revise early-return header backfill",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c08b45d17188bd3b053ede00596bb6062f7b8805dd08ba66d8a904c8ca482691",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:029fc1f0e3c45c83efd74ef2c0acddc0b2d662f447d87181da4fc277caf484bd",
+        "tests/core/test_manifest_header.py": "sha256-pyast:f2f5784499acef5c76e006453f6aa47dc5c795fb0026a0164fa241fd707122bc"
+      },
+      "revised_at": "2026-07-26T16:38:23.525398+00:00",
+      "reason": "Add atomic backfill write failure coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-26T16:38:24.325120+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_manifest_header_backfill.py -v",
+        "exit_code": 1,
+        "output_tail": "    \n        with pytest.raises(OSError):\n            manifest_mod.backfill_manifest_header(manifest_path)\n    \n>       assert manifest_path.read_text() == original\nE       assert 'partial write' == 'schema: \"2\"\\...est_demo.py\\n'\nE         \nE         + partial write\nE         - schema: \"2\"\nE         - goal: \"Demo task\"\nE         - type: feature\nE         - created: \"2026-07-25T00:00:00Z\"\nE         - files:...\nE         \nE         ...Full output truncated (9 lines hidden), use '-vv' to show\n\ntests/cli/test_manifest_header_backfill.py:147: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_header_backfill.py::TestManifestHeaderBackfillHelper::test_backfill_manifest_header_preserves_original_on_write_failure\n========================= 1 failed, 10 passed in 0.17s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_manifest_header.py -v",
+        "exit_code": 0,
+        "output_tail": "rootdir: /home/atomrem/projects/codefrost-dev/maid-runner\nconfigfile: pyproject.toml\nplugins: cov-7.0.0\ncollecting ... collected 13 items\n\ntests/core/test_manifest_header.py::TestManifestHeaderComment::test_every_line_is_a_flush_left_comment PASSED [  7%]\ntests/core/test_manifest_header.py::TestManifestHeaderComment::test_banner_is_ascii_only PASSED [ 15%]\ntests/core/test_manifest_header.py::TestManifestHeaderComment::test_banner_points_readers_at_the_project PASSED [ 23%]\ntests/core/test_manifest_header.py::TestManifestHeaderComment::test_banner_says_it_is_not_required_to_build PASSED [ 30%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_banner_goes_above_the_first_yaml_key PASSED [ 38%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_draft_kind_marker_keeps_line_one PASSED [ 46%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_archive_kind_marker_keeps_line_one PASSED [ 53%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_marker_detection_survives_the_banner PASSED [ 61%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_applying_twice_matches_applying_once PASSED [ 69%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_body_quoting_the_banner_still_gets_a_banner PASSED [ 76%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_trailing_whitespace_on_a_banner_line_does_not_stack_a_banner PASSED [ 84%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_only_prepends_and_leaves_body_bytes_untouched PASSED [ 92%]\ntests/core/test_manifest_header.py::TestPrependManifestHeader::test_banner_does_not_change_the_contract_hash PASSED [100%]\n\n============================== 13 passed in 0.10s ==============================",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "AGENTS.md:attribute:documentation._manifest_header_backfill_guidance",
+      "AGENTS.md:attribute:documentation._manifest_header_backfill_guidance:kind=attribute",
+      "AGENTS.md:attribute:documentation._manifest_header_backfill_guidance:of=documentation",
+      "AGENTS.md:attribute:documentation._manifest_header_backfill_guidance:type=markdown section",
+      "CLAUDE.md:attribute:documentation._manifest_header_backfill_guidance",
+      "CLAUDE.md:attribute:documentation._manifest_header_backfill_guidance:kind=attribute",
+      "CLAUDE.md:attribute:documentation._manifest_header_backfill_guidance:of=documentation",
+      "CLAUDE.md:attribute:documentation._manifest_header_backfill_guidance:type=markdown section",
+      "maid_runner/cli/commands/manifest.py:function:_cmd_promote",
+      "maid_runner/cli/commands/manifest.py:function:_cmd_promote:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:_cmd_promote:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:_cmd_promote:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_lock:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/manifest.py:function:backfill_manifest_header",
+      "maid_runner/core/manifest.py:function:backfill_manifest_header:arg=manifest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:backfill_manifest_header:kind=function",
+      "maid_runner/core/manifest.py:function:backfill_manifest_header:returns=bool",
+      "tests/cli/test_manifest_header_backfill.py:test_plan_lock_backfills_missing_manifest_header",
+      "tests/cli/test_manifest_header_backfill.py:test_plan_lock_backfills_missing_manifest_header:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_header_backfill.py"
+      ],
+      "edit": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/manifest.py"
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "manifests/086-01-self-describing-manifest-header.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_header_backfill.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_backfills_missing_manifest_header",
+              "description": "Locking an unheaded manifest leaves it headed while the recorded manifest_hash matches the pre-backfill contract hash."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "backfill_manifest_header",
+              "description": "Read the manifest text, apply prepend_manifest_header, and write it back only when the banner was missing. Returns True when the file was updated, False when it already had the banner. Raises OSError to the caller so the CLI layer can decide advisory handling; performs no YAML round-trip so author formatting is untouched.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_lock",
+              "description": "Create a plan lock and advisory-backfill the manifest header; a backfill write failure prints a one-line stderr notice and does not change the exit code.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Re-lock a manifest with a revision reason and advisory-backfill the manifest header under the same non-blocking rules as cmd_plan_lock.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_cmd_promote",
+              "description": "Promote a draft manifest and advisory-backfill the header on the promoted path under the same non-blocking rules as cmd_plan_lock.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "AGENTS.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_manifest_header_backfill_guidance",
+              "description": "Short note that manifests carry a self-describing header, MAID backfills it at the plan-lock, revise, and promote gates, and authoring agents may include it but need not.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "CLAUDE.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_manifest_header_backfill_guidance",
+              "description": "Claude-facing pointer to the same manifest header backfill behavior, kept brief so startup instructions stay concise.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/086-01-self-describing-manifest-header.manifest.yaml",
+        "maid_runner/core/plan_lock.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_header_backfill.py",
+      "tests/core/test_manifest_header.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest tests/cli/test_manifest_header_backfill.py -v",
+      "uv run python -m pytest tests/core/test_manifest_header.py -v"
+    ]
+  }
+}

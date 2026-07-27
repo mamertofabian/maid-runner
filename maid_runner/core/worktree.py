@@ -24,6 +24,19 @@ class ChangedScopeBaseline:
 
 
 @dataclass(frozen=True)
+class BaselineDeclaration:
+    """One manifest's declared changed-scope baseline.
+
+    Reports what `resolve_changed_scope_baseline` actually considered, so a
+    caller can name the manifests that disagree instead of leaving the user to
+    search the manifest tree.
+    """
+
+    manifest_path: str
+    commitish: str
+
+
+@dataclass(frozen=True)
 class ChangedScopeDecision:
     """Result of changed-scope evaluation for verify."""
 
@@ -130,6 +143,28 @@ def resolve_changed_scope_baseline(
             "or a remote branch."
         ),
     )
+
+
+def describe_changed_scope_baselines(
+    chain: ManifestChain,
+) -> "tuple[BaselineDeclaration, ...]":
+    """Report the baseline declarations changed-scope resolution considered.
+
+    Shares `_baseline_metadata_manifests` with `resolve_changed_scope_baseline`
+    so the reported cause cannot drift from the resolution that raised.
+    """
+    project_root = getattr(chain, "_project_root", None)
+    root = Path(project_root) if project_root is not None else Path(".")
+    declarations = [
+        BaselineDeclaration(
+            manifest_path=_project_relative_manifest_path(manifest, root),
+            commitish=str(manifest.metadata["maid_task_base"]).strip(),
+        )
+        for manifest in _baseline_metadata_manifests(chain)
+        if isinstance(manifest.metadata, dict)
+        and manifest.metadata.get("maid_task_base")
+    ]
+    return tuple(sorted(declarations, key=lambda entry: entry.manifest_path))
 
 
 def _baseline_metadata_manifests(chain: ManifestChain) -> "list[Manifest]":

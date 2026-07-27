@@ -1,15 +1,15 @@
 {
   "manifest_path": "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
-  "manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+  "manifest_hash": "sha256-contract:d41dc5bbfc29967e034066720f33e513a2f4d04487df6506e47a4b0d921b2e71",
   "test_hashes": {
-    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
-    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
-    "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:2e2b372eabd5a9ba4744be4915bf0ae053ec778c59b4575c29d88aca7d77e36d",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256-pyast:4411f1225bccd8e0ec7b936e6bf00834e6a4e986c6da7863f161cb883d5188f9",
+    "tests/test_insights_skill_guidance.py": "sha256-pyast:434a663bb10b133d290a6a2eb5c94963dcbb9440ef519d623a6230ad1b093ef4",
+    "tests/test_learning_loop_init_payload.py": "sha256-pyast:7fbabbdda2197e1f1571b2925dab9b23ba107b471584d82aaaabb36b79369a6d"
   },
   "created_at": "2026-06-28T11:25:07.010877+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ba8e660b0e744db10714000cba6954ba14c33b2e9b7b9f40573e0e213309f72e",
@@ -161,6 +161,27 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:b596d838ab0192d602becb799ff0d8702aad3ee51e6252414f5728614048276e",
+      "prior_test_hashes": {
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+        "tests/test_learning_loop_init_payload.py": "sha256:571da5c03386b9c7ee4b6ab684391e89ec61cde89a0033cdd2896b13206b9939"
+      },
+      "revised_at": "2026-07-25T01:08:50.141193+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -175,6 +196,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -326,6 +348,388 @@
         "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
         "manifests/081-02-add-maid-enrich-command.manifest.yaml",
         "scripts/sync_claude_files.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": ".claude/skills/maid-outcome-enrich/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_outcome_enrich_workflow_guidance",
+              "description": "Claude source maid-outcome-enrich skill: the prompt\u2192generate\u2192validate\u2192render workflow, validate-as-hard-stop, local-first default, and cloud-privacy disclosure, using only registered options.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-outcome-enrich/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_outcome_enrich_workflow_guidance",
+              "description": "Codex source maid-outcome-enrich skill mirroring the Claude workflow guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-outcome-enrich/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_outcome_enrich_agent_metadata",
+              "description": "Codex skill-local OpenAI metadata for the maid-outcome-enrich skill.",
+              "of": "skill",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-outcome-enrich/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_distributed_outcome_enrich_workflow_guidance",
+              "description": "Generated Claude package copy of the maid-outcome-enrich workflow guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-outcome-enrich/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_outcome_enrich_workflow_guidance",
+              "description": "Generated Codex package copy of the maid-outcome-enrich workflow guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_outcome_enrich_agent_metadata",
+              "description": "Generated Codex package copy of the maid-outcome-enrich skill-local OpenAI metadata.",
+              "of": "skill",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_outcome_enrich_skill_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_outcome_enrich_skill_describes_validate_render_workflow",
+              "description": "Claude and Codex maid-outcome-enrich skills describe the prompt\u2192generate\u2192validate\u2192render workflow anchored on the maid enrich subcommands.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_enrich_skill_marks_validate_as_hard_stop",
+              "description": "Both skills state that a non-zero maid enrich validate is a hard stop requiring regeneration, never hand-editing the digest.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_enrich_skill_states_cloud_privacy_and_local_default",
+              "description": "Both skills default to local llama-server, mark cloud as explicit opt-in, and disclose that cloud generation publishes lessons externally.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_enrich_skill_uses_only_registered_options",
+              "description": "Both skills reference only registered maid enrich / maid insights options and contain no invented flags.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outcome_enrich_skill_synced_to_agent_payloads",
+              "description": "Generated Claude and Codex package copies equal the source skills after an isolated payload sync.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_outcome_enrich_skill",
+              "description": "`maid init --tool codex` installs maid-outcome-enrich while still excluding repo-internal maid-runner skills.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_claude_init_installs_outcome_enrich_skill",
+              "description": "`maid init --tool claude` installs maid-outcome-enrich from the Claude manifest-driven payload.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_manifest_outcome_enrich_distribution",
+              "description": "Claude source payload manifest lists maid-outcome-enrich as a distributable skill with its description so maid init --tool claude installs it.",
+              "of": "claude_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_payload_manifest_outcome_enrich_distribution",
+              "description": "Generated Claude payload manifest listing maid-outcome-enrich as distributable.",
+              "of": "claude_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "sync_codex_payload",
+              "description": "Add maid-outcome-enrich to the Claude and Codex distributable skill lists so the payload sync copies source skills and skill-local OpenAI metadata into the generated package payload.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_payload_manifest_outcome_enrich_distribution",
+              "description": "Regenerated Codex payload manifest listing maid-outcome-enrich as distributable with its skill-local agent metadata.",
+              "of": "codex_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_skills_outcome_enrich_distribution",
+              "description": "Agent-skill distribution docs note that maid-outcome-enrich ships through both Claude and Codex init payloads and is the AI-calling counterpart to the deterministic maid enrich command.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_onboard_outcome_enrich_distribution_guidance",
+              "description": "Claude source maid-onboard guidance describes the current Codex generic skill set including maid-outcome-enrich.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_onboard_outcome_enrich_distribution_guidance",
+              "description": "Codex source maid-onboard guidance describes the current Codex generic skill set including maid-outcome-enrich.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_packaged_onboard_outcome_enrich_distribution_guidance",
+              "description": "Generated Claude user-skill copy of the maid-onboard Codex distribution guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_packaged_onboard_outcome_enrich_distribution_guidance",
+              "description": "Generated Codex user-skill copy of the maid-onboard Codex distribution guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_agent_payload_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_payload_manifest_matches_source_skills",
+              "description": "Existing payload distribution coverage updated so the expected Codex distributable skills include maid-outcome-enrich.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_codex_distributable_scope.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_only_distributable_skills",
+              "description": "Existing Codex init coverage updated so maid-outcome-enrich is an expected generic installed skill, while repo-internal skills remain excluded.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_payload_manifest_distributable_excludes_repo_internal_skills",
+              "description": "Existing Codex payload manifest coverage updated so the distributable list includes maid-outcome-enrich and still excludes repo-internal skills.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_insights_skill_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_auditor_insights_guidance_is_distributed_to_codex",
+              "description": "Existing auditor skill distribution coverage updated so the Codex distributable list includes maid-outcome-enrich.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_auditor_insights_skill",
+              "description": "Existing Codex init coverage for auditor guidance updated to expect maid-outcome-enrich in the generic skill install set.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_learning_loop_init_payload.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_learning_digest_payload_sources_and_packages_match",
+              "description": "Existing user-skill payload parity coverage updated so onboard guidance names the six-skill Codex generic set including maid-outcome-enrich.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_learning_digest_guidance_stays_advisory",
+              "description": "Existing Codex init advisory-boundary coverage updated so the installed generic skill set includes maid-outcome-enrich.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+        "manifests/081-02-add-maid-enrich-command.manifest.yaml",
+        ".claude/skills/maid-auditor/SKILL.md",
+        "scripts/sync_claude_files.py",
+        "docs/manifest-outcome-records.md"
       ]
     },
     "test_files": [

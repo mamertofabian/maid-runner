@@ -1,0 +1,289 @@
+{
+  "manifest_path": "manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
+  "manifest_hash": "sha256-contract:825b8b8488239b21b9acd981b9ede6824d4824a71e21a12f1f65ff67d56bb368",
+  "test_hashes": {
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:ef144a0cae45236390e546698348f55863ed7f9bf61b1ebae62a60c3efcbb3fa",
+    "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d"
+  },
+  "created_at": "2026-07-25T10:07:25.690017+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:668e7dc25db45ef879cd65b8da2dda1480c1c782be9f5a5f61b1005f134dfd26",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:ef144a0cae45236390e546698348f55863ed7f9bf61b1ebae62a60c3efcbb3fa",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:c84c63b54c85aba5860d58037d93dcdbd2a89cacca7b4e11f09049eb8fee3686"
+      },
+      "revised_at": "2026-07-25T10:07:45.545007+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-plan-lock-git-subdirectory-paths.manifest.yaml -> manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-plan-lock-git-subdirectory-paths.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:03af5fadd003036461efd6ca58810beb67adbf575a6fd00b9aa42e9f5a382493",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:ef144a0cae45236390e546698348f55863ed7f9bf61b1ebae62a60c3efcbb3fa",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:c84c63b54c85aba5860d58037d93dcdbd2a89cacca7b4e11f09049eb8fee3686"
+      },
+      "revised_at": "2026-07-25T10:27:27.725312+00:00",
+      "reason": "Add review-driven anti-gaming coverage that an untracked path inside the subdirectory project still blocks migration, and preserve whitespace-bearing prefixes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory",
+          "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:kind=test_function",
+          "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T10:27:44.825617+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_git_subdirectory.py tests/cli/test_plan_legacy_baseline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            capture_output=True,\n            text=text,\n            check=False,\n        )\n        if result.returncode != 0:\n            stderr = result.stderr if text else result.stderr.decode(errors=\"replace\")\n>           raise ValueError(\n                f\"Git command failed for legacy-baseline migration: git {' '.join(args)}\"\n                + (f\" ({stderr.strip()})\" if stderr.strip() else \"\")\n            )\nE           ValueError: Git command failed for legacy-baseline migration: git show HEAD:manifests/legacy-task.manifest.yaml (fatal: path 'apps/frontend/manifests/legacy-task.manifest.yaml' exists, but not 'manifests/legacy-task.manifest.yaml'\nE           hint: Did you mean 'HEAD:apps/frontend/manifests/legacy-task.manifest.yaml' aka 'HEAD:./manifests/legacy-task.manifest.yaml'?)\n\nmaid_runner/core/plan_lock.py:1187: ValueError\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_git_subdirectory.py::test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory\nFAILED tests/core/test_plan_lock_git_subdirectory.py::test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory\nFAILED tests/core/test_plan_lock_git_subdirectory.py::test_legacy_baseline_rejects_untracked_path_in_git_subdirectory\nFAILED tests/core/test_plan_lock_git_subdirectory.py::test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory\n4 failed, 18 passed in 13.80s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:returns=LegacyBaselineEvidence",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory:kind=test_function",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory:returns=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory:kind=test_function",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory:returns=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory:kind=test_function",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory:returns=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:kind=test_function",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:returns=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_still_rejects_unrelated_dirty_path_at_repository_root",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_still_rejects_unrelated_dirty_path_at_repository_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_still_rejects_unrelated_dirty_path_at_repository_root:kind=test_function",
+      "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_still_rejects_unrelated_dirty_path_at_repository_root:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_plan_lock_git_subdirectory.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/worktree.py",
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+        "tests/cli/test_plan_legacy_baseline_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_plan_lock_git_subdirectory.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_accepts_dirty_manifest_in_git_subdirectory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "MAID is scoped to apps/frontend inside a monorepo and the tracked manifest there is dirty because its validate command was strengthened.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence returns LegacyBaselineEvidence whose baseline_commit is repository HEAD, instead of failing on git show or on the dirty-path guard."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_unrelated_dirty_path_in_git_subdirectory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The same subdirectory project also has a dirty source file beside the manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence raises ValueError naming the unrelated project-relative path, proving the prefix fix did not relax the guard."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_untracked_path_in_git_subdirectory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The subdirectory project has an untracked implementation file alongside its dirty manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence raises ValueError naming the untracked project-relative path, proving git ls-files output was not prefix-stripped along with git diff output."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A sibling application elsewhere in the monorepo is dirty while the MAID-scoped subdirectory is clean apart from its manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence succeeds, because the MAID project scope is the subdirectory and out-of-scope dirt is not evidence about this contract."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_still_rejects_unrelated_dirty_path_at_repository_root",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "An ordinary single-root repository where the project root is the repository root has a dirty file beside the manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence still raises ValueError naming the unrelated path, confirming the empty-prefix path is unchanged."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "capture_legacy_baseline_evidence",
+              "description": "Resolve the committed manifest blob by its repository-root path and compare dirty paths in a single project-relative namespace, so the migration succeeds when project_root is a git subdirectory while the in-scope dirty guard stays exactly as strict as at the repository root.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                }
+              ],
+              "returns": "LegacyBaselineEvidence"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "maid_runner/core/manifest.py",
+        "tests/cli/test_plan_legacy_baseline_cmd.py",
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_legacy_baseline_cmd.py",
+      "tests/core/test_plan_lock_git_subdirectory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_git_subdirectory.py tests/cli/test_plan_legacy_baseline_cmd.py",
+      "uv run maid validate manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+# draft-kind: implementation
+schema: "2"
+goal: Exclude acceptance-targeted test files from fast validate-command coverage
+type: fix
+created: "2026-07-22T09:23:51Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  tags:
+    - acceptance
+    - e2e
+    - command-integrity
+    - e230
+    - e231
+  priority: high
+description: |
+  Resolve the E230/E231 conflict reported by Hubb Ops. Browser and E2E commands
+  correctly belong in `acceptance.tests`, but test files declared in the
+  manifest are currently all treated as fast behavioral tests and therefore
+  must also appear in `validate`. That makes the schema-supported repair for
+  E231 fail E230.
+
+  Treat a discovered test file as outside fast validate-command coverage only
+  when an `acceptance.tests` command demonstrably targets that exact file or a
+  containing directory. Continue requiring `validate` to cover every other
+  discovered behavioral test. This is an additive behavioral evolution of the
+  existing command-integrity API: public signatures and E231's fast/acceptance
+  boundary remain unchanged.
+
+  Outcome recall from `ban-e2e-from-maid-test` reinforces keeping execution
+  layers separate and using bounded command-target recognition. The plan
+  therefore reuses the existing target-resolution semantics instead of adding
+  browser-runner-specific path parsing or executing acceptance commands.
+temptations:
+  - risk: Do not exempt every `.spec.ts`, `e2e/`, or browser-looking file from
+      E230 by filename convention.
+    instead: Exempt only discovered test files demonstrably covered by a command
+      explicitly declared in `acceptance.tests`.
+  - risk: Do not count acceptance commands as fast validate commands or execute
+      them from `maid test`.
+    instead: Use acceptance commands only to classify their targeted files
+      outside the fast behavioral coverage set.
+  - risk: Do not suppress E230 when an acceptance command covers only some
+      declared test files.
+    instead: Preserve E230 for every discovered test file not covered by either
+      the fast validate commands or explicit acceptance targeting.
+  - risk: Do not weaken or bypass E231's rejection of browser commands in
+      `validate`.
+    instead: Keep the existing E2E command classifier unchanged and resolve the
+      conflict solely at test-file coverage classification.
+files:
+  edit:
+    - path: maid_runner/core/_validation_test_artifacts.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_test_commands
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+          returns: list[ValidationError]
+          description: Require fast validate commands to cover discovered
+            behavioral tests while excluding only files explicitly targeted by
+            acceptance commands.
+    - path: maid_runner/core/_test_command_targets.py
+      artifacts:
+        - kind: function
+          name: test_paths_from_executing_validate_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+            - name: allow_selectors
+              type: bool
+              default: "False"
+            - name: django_test_paths_from_validate_segment
+              type: Optional[_DjangoPathResolver]
+              default: None
+          returns: list[str]
+          description: Return only explicit executing test targets, excluding runner executable and subcommand tokens such as Playwright's `test`.
+    - path: tests/core/validation/test_test_command_targets.py
+      artifacts:
+        - kind: test_function
+          name: test_playwright_subcommand_is_not_an_executing_directory_target
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A top-level test directory does not make Playwright's `test` subcommand a coverage target; only the explicit browser spec path is returned.
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: Normalize the existing private Playwright invocation shape before shared command-target scanning without introducing a new public artifact.
+  create:
+    - path: tests/core/test_acceptance_command_integrity.py
+      artifacts:
+        - kind: test_function
+          name: test_acceptance_targeted_e2e_file_is_not_required_in_validate
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A Playwright spec declared in files.create and targeted
+            by acceptance.tests does not trigger E230 when validate covers the
+            separate fast behavioral test.
+        - kind: test_function
+          name: test_uncovered_declared_test_still_requires_validate_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: Acceptance targeting of one declared browser spec does
+            not hide another declared test file that neither acceptance.tests
+            nor validate covers.
+  read:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/result.py
+    - manifests/032-02-require-test-runner-validate-commands.manifest.yaml
+    - manifests/ban-e2e-from-maid-test.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_acceptance_command_integrity.py tests/core/validation/test_test_command_targets.py
+outcome:
+  status: completed
+  completed_at: "2026-07-22T18:00:59+08:00"
+  summary: "Resolved the E230/E231 conflict by excluding only explicitly acceptance-targeted tests from fast validate-command coverage while preserving E230 for unrelated declared tests."
+  rationale: "Acceptance commands remain metadata and are never executed by the fast gate. Their targets are resolved through the shared command parser, with bounded Playwright normalization for runner subcommands, option values, variadic projects, and package-runner cwd prefixes so command syntax cannot accidentally exempt unrelated test directories."
+  lessons:
+    - lesson_type: validation-boundary
+      summary: "Separating acceptance files from fast behavioral coverage requires command-target evidence, not filename conventions; otherwise E231's prescribed acceptance metadata conflicts with E230."
+      tags:
+        - acceptance
+        - e230
+        - e231
+        - command-integrity
+      paths:
+        - maid_runner/core/_validation_test_artifacts.py
+        - tests/core/test_acceptance_command_integrity.py
+    - lesson_type: review-hardening
+      summary: "Runner tokens, option values, variadic options, and wrapper cwd prefixes can all resemble real directories. Independent review converted each false-coverage shape into bounded parser regression coverage before readiness."
+      tags:
+        - playwright
+        - parser
+        - implementation-review
+        - anti-gaming
+      paths:
+        - maid_runner/core/_test_command_targets.py
+        - maid_runner/core/_test_runner_invocation.py
+        - tests/core/validation/test_test_command_targets.py
+  review_notes:
+    - source: independent-review-rounds-1-4
+      severity: needs-changes
+      summary: "Review found and drove fixes for Playwright's test subcommand, separated and variadic option values, and package-runner cwd prefixes becoming false directory targets."
+    - source: independent-convergence-review
+      severity: info
+      summary: "Final fresh review found no blocking or advisory findings and returned Ready to merge after confirming scope, E230 preservation, and wrapper-aware target normalization."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_acceptance_command_integrity.py
+        - tests/core/validation/test_test_command_targets.py
+        - tests/core/validation/test_test_runner_invocation.py
+      status: passed
+      summary: "Focused acceptance, target-parser, and invocation suite passed with 17 tests."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_validate_cmd.py
+        - tests/cli/test_test_cmd.py
+        - tests/core/test_test_runner.py
+        - tests/core/validation/test_test_runner_invocation.py
+        - tests/core/validation/test_test_command_targets.py
+        - tests/core/validation/test_pnpm_vitest_batching.py
+        - tests/core/validation/test_test_command_batching.py
+        - tests/core/test_acceptance_command_integrity.py
+      status: passed
+      summary: "Surrounding CLI, runner, wrapper, and command-integrity regression suite passed with 252 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "All nine verification stages passed, including full tests, schema, behavioral and implementation validation, coherence, file/worktree/changed scope, plan lock, and red evidence."

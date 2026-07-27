@@ -66,8 +66,15 @@ Keep these release-tested anchors discoverable here:
 - `maid manifest promote` migrates the promoted manifest's plan lock; use
   `maid plan revise` for intentional contract changes instead of recreating
   evidence.
+- MAID manifests carry a self-describing comment header. Agents may include it
+  when writing manifests directly, but `maid plan lock`, `maid plan revise`,
+  and `maid manifest promote` backfill it automatically as an advisory step.
 - `E707` / `RED_EVIDENCE_COMMAND_MISMATCH` means red-phase evidence no longer
   matches the manifest validation commands and must be fixed before handoff.
+- `E708` / `PLAN_LOCK_SCOPE_WIDENED` is non-blocking. It reports deliberate
+  fail-closed widening after changed-scope baseline resolution; reconcile the
+  named manifests or pass an explicit baseline if the wider scope was not
+  intended.
 
 ## References
 

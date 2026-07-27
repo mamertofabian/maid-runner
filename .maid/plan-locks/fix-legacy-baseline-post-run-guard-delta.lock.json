@@ -1,0 +1,257 @@
+{
+  "manifest_path": "manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml",
+  "manifest_hash": "sha256-contract:5b38e83cbb526f9823a54e88149f19a269fa67c2a6f8d6b9f58ce946cb852376",
+  "test_hashes": {
+    "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d",
+    "tests/core/test_plan_lock_post_run_mutation_guard.py": "sha256-pyast:0ee8265767bd40161602c0cb238706321ee48647452329f2bd47774cbf6f8db7"
+  },
+  "created_at": "2026-07-27T00:28:48.779441+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:afb051d8fb96b0c583b28c7c82c9033aea1b3ccf6e13f890030e9439d0e656ea",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d",
+        "tests/core/test_plan_lock_post_run_mutation_guard.py": "sha256-pyast:7d4a0e0fc8d4a9e1bed8eb10ff6b9ffb6db6c66888cc736cc3227a1980e247c6"
+      },
+      "revised_at": "2026-07-27T00:28:54.255017+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-legacy-baseline-post-run-guard-delta.manifest.yaml -> manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-legacy-baseline-post-run-guard-delta.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f4989a55c0d049f593aefdef796f5731c56f43506356811ecb885c8d0da80edc",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d",
+        "tests/core/test_plan_lock_post_run_mutation_guard.py": "sha256-pyast:7d4a0e0fc8d4a9e1bed8eb10ff6b9ffb6db6c66888cc736cc3227a1980e247c6"
+      },
+      "revised_at": "2026-07-27T00:30:37.302827+00:00",
+      "reason": "Add declared existing behavioral test to the manifest validation command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_plan_lock_post_run_mutation_guard.py tests/core/test_plan_lock_git_subdirectory.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_plan_lock_post_run_mutation_guard.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1af4a9d6e2a0dae686039e571fb987a0046e56460fc0d3834706e0ba807d2e91",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d",
+        "tests/core/test_plan_lock_post_run_mutation_guard.py": "sha256-pyast:7d4a0e0fc8d4a9e1bed8eb10ff6b9ffb6db6c66888cc736cc3227a1980e247c6"
+      },
+      "revised_at": "2026-07-27T00:38:17.678055+00:00",
+      "reason": "Add review-found deletion regression coverage for repository-wide post-run mutation detection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected",
+          "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:kind=test_function",
+          "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-27T00:38:24.407578+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_post_run_mutation_guard.py tests/core/test_plan_lock_git_subdirectory.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_validation_deleting_outside_the_project_root_is_rejected(\n        tmp_path: Path,\n    ) -> None:\n        from maid_runner.core.plan_lock import capture_legacy_baseline_evidence\n    \n        project_root, manifest_path = _subdirectory_project(\n            tmp_path,\n            \"from pathlib import Path\\n\" \"Path('../backend/server.py').unlink()\\n\",\n        )\n    \n>       with pytest.raises(ValueError) as excinfo:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\ntests/core/test_plan_lock_post_run_mutation_guard.py:113: Failed\n=========================== short test summary info ============================\nFAILED tests/core/test_plan_lock_post_run_mutation_guard.py::test_validation_writing_outside_the_project_root_is_rejected\nFAILED tests/core/test_plan_lock_post_run_mutation_guard.py::test_validation_deleting_outside_the_project_root_is_rejected\n2 failed, 6 passed in 3.30s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:returns=LegacyBaselineEvidence",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_pre_existing_out_of_project_dirt_still_permits_migration",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_pre_existing_out_of_project_dirt_still_permits_migration:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_pre_existing_out_of_project_dirt_still_permits_migration:kind=test_function",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_pre_existing_out_of_project_dirt_still_permits_migration:returns=None",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:kind=test_function",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_deleting_outside_the_project_root_is_rejected:returns=None",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_writing_outside_the_project_root_is_rejected",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_writing_outside_the_project_root_is_rejected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_writing_outside_the_project_root_is_rejected:kind=test_function",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py:test_validation_writing_outside_the_project_root_is_rejected:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_plan_lock_post_run_mutation_guard.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+        "manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
+        "tests/core/test_plan_lock_git_subdirectory.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_plan_lock_post_run_mutation_guard.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validation_writing_outside_the_project_root_is_rejected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A validate command writes to a tracked sibling application file outside the MAID project root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence raises ValueError naming the out-of-project path that the command mutated."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_existing_out_of_project_dirt_still_permits_migration",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A sibling application is already dirty before capture begins and no command touches it.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence succeeds, because the delta comparison distinguishes pre-existing dirt from command-induced mutation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_deleting_outside_the_project_root_is_rejected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A validate command deletes a tracked sibling application file outside the MAID project root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "capture_legacy_baseline_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "capture_legacy_baseline_evidence raises ValueError naming the out-of-project path that the command deleted."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "capture_legacy_baseline_evidence",
+              "description": "Detect validation-induced mutations repository-wide by rejecting only paths that appear or change between a pre-run and post-run dirty snapshot, while the pre-run eligibility guard stays project-scoped.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                }
+              ],
+              "returns": "LegacyBaselineEvidence"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+        "tests/core/test_plan_lock_git_subdirectory.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_plan_lock_git_subdirectory.py",
+      "tests/core/test_plan_lock_post_run_mutation_guard.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_plan_lock_post_run_mutation_guard.py tests/core/test_plan_lock_git_subdirectory.py",
+      "uv run maid validate manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

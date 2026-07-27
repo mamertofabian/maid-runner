@@ -197,8 +197,8 @@ def test_validators_json_matches_text_rows_for_plugin_statuses(monkeypatch, caps
     plugin_rows = _plugin_rows(text_rows)
     assert [(row["name"], row["status"]) for row in plugin_rows] == [
         ("broken", "error"),
-        ("go", "active"),
-        ("python", "conflict"),
+        ("_GoValidator", "active"),
+        ("_PythonPluginValidator", "conflict"),
     ]
     assert plugin_rows[0]["source"] == "maid-validator-broken 1.0.0"
     assert plugin_rows[0]["detail"] == "broken import"

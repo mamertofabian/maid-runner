@@ -185,7 +185,12 @@ The command writes deterministic, schema-valid drafts under
 `manifests/drafts/<slug>.manifest.yaml`. The default slug is
 `from-diff-<UTC-date>-<short-commit-hash>`, and callers can use `--slug`,
 `--output`, `--force`, `--dry-run`, and `--json`. `--force` is required to
-overwrite an existing draft. A generated draft starts with the goal placeholder
+overwrite an existing draft. `--output` must name a path under
+`manifests/drafts/` ending in `.yaml` or `.yml`; the command writes YAML only,
+so any other suffix — including `.json` — exits 2 without writing anything,
+rather than producing a draft MAID cannot load back.
+
+A generated draft starts with the goal placeholder
 `"TODO: describe this change"` plus these markers:
 
 ```yaml

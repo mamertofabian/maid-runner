@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Union
 
+from maid_runner.core.diagnostic_policy import no_validator_guidance
 from maid_runner.core.result import ErrorCode, Severity, ValidationError
 from maid_runner.validators.base import BaseValidator
 
@@ -32,8 +33,7 @@ class UnsupportedLanguageError(Exception):
     def __init__(self, extension: str):
         self.extension = extension
         super().__init__(
-            f"No validator for '{extension}' files. "
-            f"Install optional dependencies? (e.g., maid-runner[typescript])"
+            f"No validator for '{extension}' files. {no_validator_guidance()}"
         )
 
 
@@ -194,7 +194,7 @@ class ValidatorRegistry:
 
         self._validator_records.append(
             ValidatorRecord(
-                name=entry_point.name,
+                name=validator_class.__name__,
                 extensions=extensions,
                 source=source,
                 status=status,

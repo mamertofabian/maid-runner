@@ -1,0 +1,130 @@
+schema: '2'
+goal: Preserve enough draft YAML text during promotion for Git to detect a rename
+type: fix
+created: '2026-07-22T03:23:20Z'
+metadata:
+  tags:
+  - manifest-promotion
+  - git-history
+  - yaml-round-trip
+description: |
+  Chain-merge a promotion fidelity fix over
+  `073-01-migrate-plan-locks-on-draft-promotion` and
+  `fix-promote-multiline-yaml-style`. Git does not store a distinct move
+  operation: both a filesystem move and `git mv` are represented as a delete
+  plus an add, and Git reports a rename only when the final blobs satisfy its
+  similarity threshold. Promotion currently loads the draft through PyYAML and
+  emits the entire document again. On a representative tracked manifest this
+  preserves semantics but produces only 27% textual similarity, below Git's
+  default 50% rename threshold, so staged history appears as a deletion and a
+  new file.
+
+  Promotion must use round-trip-capable YAML editing so comments, scalar
+  quoting, collection indentation, key order, block style, and other untouched
+  authoring choices survive. It may change only fields required by the existing
+  promotion contract: the `created` timestamp, inactive metadata status,
+  exact self-referencing validate paths, and any YAML syntax locally required
+  to render those changed values. The resulting active manifest must remain
+  schema-valid and preserve all current lock migration and rollback behavior.
+
+  Rationale: invoking `git mv` from the CLI would unexpectedly stage user work
+  and still would not guarantee rename display after the promoted content is
+  staged. Preserving source similarity fixes Git history without coupling MAID
+  to a repository, a Git binary, or index mutation. A dedicated round-trip YAML
+  library is preferable to hand-written scalar-span editing because comments,
+  anchors, block scalars, quoted values, and YAML edge cases already have a
+  mature parser/emitter model.
+
+  Out of scope: changing Git configuration or rename thresholds; staging the
+  promoted files; changing `maid manifest create` or `manifest from-diff`
+  rendering; preserving a byte-identical file when promotion legitimately
+  changes values.
+temptations:
+- risk: Do not shell out to git mv or alter the caller's Git index during promotion.
+  instead: Move at the filesystem level and preserve source text closely enough that Git's normal similarity detection recognizes the staged result.
+- risk: Do not lower or configure Git's rename threshold as the product fix.
+  instead: Round-trip untouched YAML presentation so the final blobs clear Git's default threshold without repository-specific configuration.
+- risk: Do not implement YAML preservation with regex-only document rewriting.
+  instead: Use a round-trip YAML parser/emitter that retains comments and presentation details while changing the bounded promotion fields.
+- risk: Do not regress timestamp stamping, inactive-status clearing, self-reference rewriting, plan-lock migration, or rollback.
+  instead: Keep the existing promotion data mutations and lock sequence, changing only how the promoted YAML is loaded and rendered.
+files:
+  scope:
+  - path: maid_runner/cli/commands/manifest.py
+    reason: Change the private promotion load/render path without altering the public cmd_manifest signature.
+  - path: pyproject.toml
+    reason: Declare the round-trip YAML runtime dependency.
+  - path: uv.lock
+    reason: Lock the added runtime dependency reproducibly.
+  create:
+  - path: tests/cli/test_manifest_promote_git_rename_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_preserves_untouched_yaml_presentation
+      source_scenario: A stylistically hand-authored draft contains comments, quoted scalars, flow collections, and a self-referencing validate command.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Promotion changes the required timestamp, inactive status, and self-reference while preserving comments and untouched YAML presentation.
+    - kind: test_function
+      name: test_staged_promotion_is_detected_as_git_rename
+      source_scenario: A tracked, stylistically hand-authored draft is committed, promoted, and the resulting filesystem changes are staged normally.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Git's default cached diff summary reports the draft-to-active transition as a rename rather than separate create and delete entries.
+  read:
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - manifests/fix-promote-multiline-yaml-style.manifest.yaml
+  - manifests/fix-promote-argv-self-reference.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_manifest_promote_git_rename_cmd.py
+outcome:
+  status: completed
+  completed_at: '2026-07-22T03:49:00Z'
+  summary: Draft promotion now round-trips human-authored YAML presentation closely enough for Git's default staged-diff similarity detection to report tracked draft-to-active transitions as renames, without invoking Git or mutating the index.
+  rationale: The promotion path retains strict PyYAML schema and duplicate-key validation, then applies the bounded timestamp, lifecycle-status, and self-reference mutations to a ruamel.yaml round-trip representation. In-place sequence mutation, source-derived indentation, block-scalar preservation, and metadata-specific merge-source replacement avoid whole-document reserialization while preserving the existing multiline readability and plan-lock migration contracts.
+  lessons:
+  - lesson_type: design
+    summary: Git rename history is a final-blob similarity decision rather than a stored move operation; source-preserving serialization fixes rename display without coupling a CLI workflow to git mv or staging user files.
+    tags:
+    - git-history
+    - yaml-round-trip
+    - manifest-promotion
+    paths:
+    - maid_runner/cli/commands/manifest.py
+  - lesson_type: test-design
+    summary: Round-trip YAML tests need semantic and presentation assertions together; comments and scalar styles alone missed inherited merge-key status, while parsed metadata assertions plus a real cached Git diff exposed both lifecycle and history regressions.
+    tags:
+    - behavioral-tests
+    - yaml-merge
+    - git-rename
+    paths:
+    - tests/cli/test_manifest_promote_git_rename_cmd.py
+  review_notes:
+  - source: independent-reviewer-review_promote_rename
+    severity: blocking-fixed
+    summary: Round one found inherited inactive status and folded-scalar conversion; both were fixed with metadata-specific merge replacement and preservation of existing folded/literal scalar subclasses.
+  - source: independent-reviewer-review_promote_rename_round2
+    severity: blocking-fixed
+    summary: Round two found that multi-source merge sequences retain a separate serialized operand; promotion now replaces both the effective and serialized metadata-specific merge entries without mutating shared sources.
+  - source: independent-reviewer-review_promote_rename_final
+    severity: ready
+    summary: Final review found no remaining actionable correctness or contract issues; residual advisory is that YAML presentation has broader edge cases than the locked regression fixture.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_manifest_promote_git_rename_cmd.py, tests/cli/test_manifest_promote_yaml_style_cmd.py, tests/cli/test_manifest_promote_argv_self_reference.py, tests/cli/test_manifest_promote_lock_cmd.py, tests/cli/test_manifest_cmd.py]
+    status: passed
+    summary: All 42 promotion-focused tests passed after review fixes, including comments, quotes, flow collections, folded/literal blocks, merge-source lifecycle clearing, lock migration, rollback, and Git rename detection.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full post-review pytest suite passed with 3490 passed and 5 skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: Full pre-review MAID command suite passed all 197 declared validation commands; review fixes were subsequently covered by the focused promotion suite and full post-review pytest run.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD]
+    status: passed
+    summary: Strict pre-review handoff verification passed all 9 gates with zero blockers; only pre-existing E307 validator-availability warnings were reported.

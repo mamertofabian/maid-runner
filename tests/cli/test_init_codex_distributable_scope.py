@@ -13,8 +13,10 @@ import json
 
 GENERIC_CODEX_SKILLS = [
     "maid-auditor",
+    "maid-evolver",
     "maid-implementation-review",
     "maid-implementer",
+    "maid-incident-logger",
     "maid-outcome-enrich",
     "maid-plan-review",
     "maid-planner",

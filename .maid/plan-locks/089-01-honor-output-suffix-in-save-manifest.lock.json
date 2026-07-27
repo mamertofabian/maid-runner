@@ -1,0 +1,379 @@
+{
+  "manifest_path": "manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml",
+  "manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
+  "test_hashes": {
+    "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+    "tests/integration/test_library_api.py": "sha256-pyast:0a2662b460da25aaef931f54f01f8c9fe5325444dd99aa401c4d27eb5f77a888",
+    "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+    "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+  },
+  "created_at": "2026-07-25T14:17:48.937387+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:bb2d3e03a45d65e81887829e34d81be63e3147dc8f038502f1c898f6c761414e",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-25T14:18:12.731922+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/089-01-honor-output-suffix-in-save-manifest.manifest.yaml -> manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/089-01-honor-output-suffix-in-save-manifest.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1d5347e35045749f80e71481af80d313f4f3fe9153eb16753cdb0eea31188cfb",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-25T14:22:02.946218+00:00",
+      "reason": "Run the declared tests/integration/test_library_api.py in the validate command so the public save_manifest export has regression coverage; E230 flagged it as declared-but-unrun",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_save_manifest_output_format.py tests/core/test_snapshot_output_format.py tests/core/test_manifest.py tests/integration/test_library_api.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_save_manifest_output_format.py tests/core/test_snapshot_output_format.py tests/core/test_manifest.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8fad8ed0cb55c0c8b3740e39d248780c2a72fbf461fc931332148099cf331070",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-25T14:27:18.343125+00:00",
+      "reason": "Record metadata.maid_task_base so verify --changed-scope has an explicit task baseline (E115); metadata-only change, contract and tests unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:de67df0a1dda0c1744fc84c6aacd4f33d11bafddf1072ab834f42b4be0559fa2",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-25T21:34:40.819411+00:00",
+      "reason": "Update sibling_drafts pointer after 089-02 promotion (metadata only)",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:203a72b8c6e561826b0db970d0d7c0277a8ee1f5e4bdbd1ef5b3c9e34880cab6",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-25T22:32:44.605044+00:00",
+      "reason": "089-03 promoted; update sibling pointer to the active manifest path",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-27T12:57:44.048854+00:00",
+      "reason": "Refresh shared release metadata test hash after finalizing the 2.23.0 changelog date.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T14:22:06.655109+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_save_manifest_output_format.py tests/core/test_snapshot_output_format.py tests/core/test_manifest.py tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "    def test_save_manifest_uppercase_suffix_is_rejected_without_writing(\n        tmp_path: Path,\n    ) -> None:\n        from maid_runner.core.manifest import save_manifest\n    \n        # load_manifest_raw and manifest chain discovery both match the lowercase\n        # suffix exactly, so \".YAML\" is not a loadable manifest even though it looks\n        # like one. Accepting it would recreate the silent-bad-artifact defect.\n        out_path = tmp_path / \"out.manifest.YAML\"\n    \n>       with pytest.raises(ValueError) as excinfo:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\ntests/core/test_save_manifest_output_format.py:76: Failed\n=========================== short test summary info ============================\nFAILED tests/core/test_save_manifest_output_format.py::test_save_manifest_json_suffix_round_trips_through_loader\nFAILED tests/core/test_save_manifest_output_format.py::test_save_manifest_unsupported_suffix_is_rejected_without_writing\nFAILED tests/core/test_save_manifest_output_format.py::test_save_manifest_uppercase_suffix_is_rejected_without_writing\n3 failed, 94 passed in 0.30s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/manifest.py:function:save_manifest",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:save_manifest:returns=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_json_suffix_round_trips_through_loader",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_json_suffix_round_trips_through_loader:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_json_suffix_round_trips_through_loader:kind=test_function",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_json_suffix_round_trips_through_loader:returns=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_unsupported_suffix_is_rejected_without_writing",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_unsupported_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_unsupported_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_unsupported_suffix_is_rejected_without_writing:returns=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_uppercase_suffix_is_rejected_without_writing",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_uppercase_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_uppercase_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_uppercase_suffix_is_rejected_without_writing:returns=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yaml_suffix_still_writes_banner_and_loads",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yaml_suffix_still_writes_banner_and_loads:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yaml_suffix_still_writes_banner_and_loads:kind=test_function",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yaml_suffix_still_writes_banner_and_loads:returns=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yml_suffix_writes_banner_and_loads",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yml_suffix_writes_banner_and_loads:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yml_suffix_writes_banner_and_loads:kind=test_function",
+      "tests/core/test_save_manifest_output_format.py:test_save_manifest_yml_suffix_writes_banner_and_loads:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_save_manifest_output_format.py"
+      ],
+      "edit": [
+        "maid_runner/core/manifest.py"
+      ],
+      "read": [
+        "maid_runner/__init__.py",
+        "tests/core/test_manifest.py",
+        "tests/core/test_snapshot_output_format.py",
+        "tests/integration/test_library_api.py"
+      ],
+      "scope": [
+        "maid_runner/core/snapshot.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_save_manifest_output_format.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_json_suffix_round_trips_through_loader",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller saves a manifest to a .json path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "load_manifest_raw parses the file with strict json.loads and the declared goal and type survive, with no YAML banner present."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_unsupported_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller saves a manifest to a .txt path, which MAID cannot load, and a sentinel file already occupies that path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_manifest raises ValueError naming the unsupported suffix and the sentinel bytes are untouched, proving the suffix is validated before any filesystem effect rather than rolled back after one."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_uppercase_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller saves a manifest to an uppercase .YAML path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_manifest raises ValueError and writes nothing, because load_manifest_raw and manifest chain discovery match the lowercase suffix exactly, so an uppercase suffix is not a loadable manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_yaml_suffix_still_writes_banner_and_loads",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The unchanged .yaml path is exercised as a regression guard.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file round-trips through load_manifest_raw and still starts with the 086-01 self-describing banner, which a JSON-emitting writer could not satisfy."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_yml_suffix_writes_banner_and_loads",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller saves a manifest to a .yml path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file round-trips through load_manifest_raw and carries the YAML banner, proving .yml is supported alongside .yaml rather than lumped in with the rejected suffixes."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "save_manifest",
+              "description": "Write the format the output suffix implies, matching the suffix case-sensitively because load_manifest_raw does, and reject an unsupported suffix before any filesystem effect. The 086-01 self-describing banner stays on the YAML path only, because JSON has no comment syntax.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__init__.py",
+        "tests/core/test_snapshot_output_format.py",
+        "tests/integration/test_library_api.py",
+        "tests/core/test_manifest.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/snapshot.py",
+          "reason": "The shared _SUFFIX_FORMATS map moves from this file to maid_runner/core/manifest.py, next to the load_manifest_raw dispatch it encodes, and this file imports it instead of redefining it. No public artifact declared in this file changes; declared under scope rather than read because the file is edited and files.read does not authorize edits."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_manifest.py",
+      "tests/core/test_save_manifest_output_format.py",
+      "tests/core/test_snapshot_output_format.py",
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_save_manifest_output_format.py tests/core/test_snapshot_output_format.py tests/core/test_manifest.py tests/integration/test_library_api.py",
+      "uv run maid validate manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

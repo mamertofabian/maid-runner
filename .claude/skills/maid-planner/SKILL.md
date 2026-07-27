@@ -207,8 +207,21 @@ For important choices, include rationale: state what was chosen and why. The imp
 ### Artifact Declaration Rules
 
 - Public symbols only. Private `_` symbols do not belong in the contract.
-- `files.create` is Strict Mode.
-- `files.edit` is Permissive Mode.
+- `files.create` and `files.edit` declare the public artifact contract for new
+  or intentionally changed public API. `files.create` is Strict Mode;
+  `files.edit` is Permissive Mode.
+- `files.scope` declares writable implementation files that have no stable
+  public artifact contract. Use it for narrow route/page wiring or similar
+  behavior covered through tests instead of private/local artifacts.
+- `files.read` lists dependency context and is not writable production scope.
+  Do not put production call-site rewiring in `files.read`; use `files.scope`
+  for no-artifact wiring or `files.edit` when the task changes/contracts public
+  artifacts.
+- Avoid moving a large existing file into `files.edit` just because a narrow
+  delegation edit is required. Declaring an existing public class can require
+  its full remaining public surface to be declared. Use `files.scope` for narrow
+  no-artifact wiring; use `files.edit` when the manifest intentionally contracts
+  public artifacts in that file.
 - `kind` values: `class`, `function`, `method`, `attribute`, `interface`, `type`, `enum`, `namespace`, `test_function`
 - `function` and `method` artifacts MUST include `args` and `returns`.
 - Zero-argument functions and methods MUST use `args: []`.

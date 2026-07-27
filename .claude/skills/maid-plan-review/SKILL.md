@@ -47,6 +47,24 @@ Check:
 
 Flag manifests that are too broad, too narrow, or missing critical read dependencies.
 
+For current MAID manifests, distinguish contracted, scope-only, and contextual
+files:
+
+- `files.create` and `files.edit` are the public artifact contract.
+- `files.scope` is writable implementation scope for files that need narrow
+  no-artifact changes, such as route/page wiring covered by behavioral tests.
+- `files.read` is dependency context and must not be used to authorize
+  production edits. Test files may appear in `files.read` as behavioral
+  contract inputs, but production call-site rewiring belongs in `files.scope`
+  or `files.edit`.
+- Require an intentional production edit to move from `files.read` to
+  `files.scope` when the file has no stable public artifact contract, or to
+  `files.edit` when the task changes/contracts public artifacts.
+- Be wary of forcing large existing public classes into `files.edit`; MAID may
+  then require declarations for the class's full public surface, expanding the
+  manifest beyond the behavioral contract. Use `files.scope` for narrow
+  no-artifact wiring instead.
+
 ## Phase 4 — Artifact Quality Review
 
 Confirm:

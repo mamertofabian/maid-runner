@@ -1,0 +1,405 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Count and label warnings nested inside verify stage report objects so the summary
+  header stops reporting zero warnings while a warning is failing a stage"
+type: fix
+created: "2026-07-26T07:33:53Z"
+metadata:
+  planning_state: contract-hardened
+  promotion_ready: true
+  tests_status: written-red-confirmed
+  maid_task_base: ac38d24e02bf9c95fd78efebe395f17c2aa84aee
+  source_review: manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml
+  tags:
+    - verify-summary
+    - diagnostics
+    - fail-loud
+  priority: medium
+description: |
+  090-01 made `build_verify_summary` collect findings from `stage._errors` as
+  well as `stage._validation`. That closed the case where a finding sits
+  directly in `_errors`, but two stages do not put findings there directly:
+  `_artifact_coverage_stage` and `_knockout_stage` each store a single report
+  object (`ArtifactCoverageReport`, `KnockoutReport`) whose own `.errors` tuple
+  holds the ValidationErrors. `_iter_stage_findings` yields the report object
+  itself, and `_is_warning`/`_is_info` read `severity` off that report, which
+  has no such attribute. Every nested finding is therefore excluded from the
+  summary's warning and info accounting.
+
+  Reproduced at `ac38d24` with an ArtifactCoverageReport carrying one
+  WARNING-severity E307 (exactly what `run_artifact_coverage` emits when
+  coverage.py is not installed):
+
+  ```
+  VERIFY: FAIL (1 blocking, 0 warnings unique / 0 raw, 0 passed, 0 skipped)
+  BLOCKING (1):
+    FAIL artifact_coverage
+      Artifact coverage: FAIL
+        Errors (1):
+          E307 coverage.py missing
+  ```
+
+  Scope of the defect, stated precisely so it is not overclaimed. The finding
+  text *is* rendered under the BLOCKING section, so it is not invisible. What is
+  wrong is the accounting and the label: the header claims `0 warnings unique /
+  0 raw` while a warning exists, and `_stage_is_warning_driven` cannot see the
+  nested finding either, so the stage is reported as plainly blocking and never
+  reaches the "blocking for: <stage>" phrasing that 082-01 added specifically to
+  disclose warning-driven failures. A reader is told a stage failed and,
+  separately, that there are no warnings. Both statements cannot be true.
+
+  Rationale for fixing collection rather than the pass/fail rule. Both reports
+  define `success = not self.errors`, so a warning-only report fails its stage.
+  That is deliberate and must not change: `--artifact-coverage` and `--knockout`
+  are explicitly requested gates, and a gate whose validator is unavailable
+  cannot do its job, so failing loudly is the correct fail-loud posture. This
+  differs from 090-01, where the widening warning was informational and blocking
+  on it would have broken every passing run. The defect here is purely that the
+  summary describes the failure inaccurately.
+
+  Rationale for generic recursion. `_iter_validation_findings` already reaches
+  into an object's `errors`/`warnings` attributes by `getattr`. Extending
+  `_iter_stage_findings` to do the same for objects found in `_errors` keeps one
+  rule instead of a per-report-type branch, so a future stage that stores a
+  report is covered without another fix. Plain strings, which several stages put
+  in `_errors`, expose no such attribute and continue to be ignored.
+temptations:
+  - risk: "Do not make ArtifactCoverageReport.success or KnockoutReport.success ignore
+      warning-severity errors so the stage stops failing. An explicitly requested
+      quality gate whose validator is unavailable must fail loudly."
+    instead: "Change only the summary's collection and labelling. Pin the unchanged
+      pass/fail rule with a test asserting a warning-only report still fails its stage."
+  - risk: "Do not special-case ArtifactCoverageReport or KnockoutReport by type or
+      class name; the next stage that stores a report would silently regress."
+    instead: "Recurse generically on nested `errors`/`warnings` attributes, mirroring
+      _iter_validation_findings, and cover both report types with tests."
+  - risk: "Do not double-count findings when a stage carries both direct _errors entries
+      and a nested report, or when a report object is also reachable through _validation.
+      Inflated counts are as dishonest as zeroed ones."
+    instead: "Assert exact counts in a test where a stage carries one direct finding
+      and one nested finding, expecting two, not three or four."
+  - risk: "Do not edit tests/core/test_verify_summary.py; it is locked by 082-01,
+      082-02, and add-verify-summary-output, so editing it cascades E701 to three
+      locks."
+    instead: "Create tests/core/test_verify_summary_nested_findings.py as a new file."
+  - risk: "Do not let a nested ERROR-severity finding start reporting its stage as
+      warning-driven; that would mislabel genuine failures as advisory."
+    instead: "Keep _stage_is_warning_driven returning False when any nested finding
+      is an error, and pin it with a mixed error-plus-warning report test."
+files:
+  edit:
+    - path: maid_runner/core/verify_summary.py
+      artifacts:
+        - kind: function
+          name: build_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+          returns: VerifySummary
+          description: >-
+            Collect warning and info groups from findings nested inside report
+            objects held in stage _errors, in addition to direct _errors entries
+            and _validation findings, so summary counts and the warning-driven
+            stage label reflect every finding exactly once.
+  create:
+    - path: tests/core/test_verify_summary_nested_findings.py
+      artifacts:
+        - kind: test_function
+          name: test_nested_report_warning_is_counted_in_summary_warning_groups
+          args: []
+          returns: None
+          source_scenario: >-
+            A stage holds an ArtifactCoverageReport whose errors contain one
+            WARNING-severity E307, as when coverage.py is not installed.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The warning appears in warning_groups with raw_warning_count 1,
+              instead of the header claiming zero warnings while the stage fails.
+        - kind: test_function
+          name: test_nested_report_info_is_counted_in_summary_info_groups
+          args: []
+          returns: None
+          source_scenario: A report object carries an INFO-severity finding.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The finding appears in info_groups with raw_info_count 1, so info
+              accounting matches warning accounting rather than diverging.
+        - kind: test_function
+          name: 
+            test_stage_failing_only_on_nested_warning_is_labeled_warning_driven
+          args: []
+          returns: None
+          source_scenario: >-
+            A stage fails and every finding nested in its report is a warning.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The stage name appears in warning_blocking_stages, so the summary
+              can say the failure is warning-driven instead of presenting it as
+              an unexplained hard failure.
+        - kind: test_function
+          name: test_nested_error_keeps_stage_out_of_warning_blocking_stages
+          args: []
+          returns: None
+          source_scenario: >-
+            A report carries one ERROR-severity and one WARNING-severity finding.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The stage is blocking but absent from warning_blocking_stages, so a
+              genuine error is never relabelled as merely advisory.
+        - kind: test_function
+          name: test_warning_only_report_still_fails_its_stage
+          args: []
+          returns: None
+          source_scenario: >-
+            An ArtifactCoverageReport contains only a warning-severity finding.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The stage remains in blocking_stages and summary success stays
+              False, proving collection changed without relaxing the requested
+              gate's pass/fail rule.
+        - kind: test_function
+          name: test_direct_and_nested_findings_are_each_counted_once
+          args: []
+          returns: None
+          source_scenario: >-
+            One stage carries a direct warning in _errors and a report whose
+            errors hold a second, differently-worded warning.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              raw_warning_count is exactly 2 and two distinct warning groups are
+              reported, so recursion neither drops nor duplicates findings.
+        - kind: test_function
+          name: test_knockout_report_nested_findings_are_collected
+          args: []
+          returns: None
+          source_scenario: A stage holds a KnockoutReport carrying a warning.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              The warning is counted, proving the rule is generic across report
+              types rather than special-cased for artifact coverage.
+        - kind: test_function
+          name: test_plain_string_stage_errors_are_still_ignored
+          args: []
+          returns: None
+          source_scenario: >-
+            A stage carries plain string entries in _errors, as the skipped and
+            error stage helpers produce.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              No warning or info group is produced and no exception is raised, so
+              generic recursion does not misread strings as findings.
+  read:
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/knockout.py
+    - maid_runner/core/result.py
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/cli/commands/_format.py
+    - tests/core/test_verify_summary.py
+validate:
+  - uv run maid validate 
+    manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml 
+    --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_verify_summary_nested_findings.py
+    tests/core/test_verify_summary.py 
+    tests/cli/test_verify_scope_widening_diagnostic.py
+outcome:
+  status: completed
+  completed_at: '2026-07-26T16:12:00+08:00'
+  summary: >-
+    build_verify_summary now traverses report objects held in a stage's _errors
+    instead of yielding the container, so findings nested inside
+    ArtifactCoverageReport and KnockoutReport are counted and labelled exactly
+    like direct ones. The header no longer claims zero warnings while a warning
+    is failing a stage, and _stage_is_warning_driven can now see nested findings
+    so a warning-only failure reaches the "blocking for: <stage>" phrasing that
+    082-01 added. The recursion is generic rather than per-report-type, and no
+    stage's pass/fail rule changed.
+  rationale: >-
+    Second of the follow-ups from the 090-01 review. 090-01 widened collection
+    from stage._validation to stage._errors, which closed the case where a
+    finding sits directly in _errors. It did not close the case where a stage
+    stores a whole report: _artifact_coverage_stage and _knockout_stage both do
+    _errors=(report,), and the ValidationErrors live in that report's own errors
+    tuple. _is_warning read severity off the report, which has no such
+    attribute, so every nested finding was excluded from the accounting.
+
+    The defect was reproduced before implementation at ac38d24 with an
+    ArtifactCoverageReport carrying one WARNING-severity E307, exactly what
+    run_artifact_coverage emits when coverage.py is not installed: the summary
+    reported "1 blocking, 0 warnings unique / 0 raw" while rendering the warning
+    text under BLOCKING. The header and the body could not both be true.
+
+    Collection was fixed rather than the pass/fail rule. Both reports define
+    success = not self.errors, so a warning-only report fails its stage; that is
+    correct fail-loud posture for an explicitly requested gate whose validator
+    is unavailable, and test_warning_only_report_still_fails_its_stage pins it
+    unchanged. This differs from 090-01, where the widening warning was
+    informational and blocking on it would have broken every passing run.
+
+    The container probe deliberately does not dedupe by object identity.
+    tests/core/test_verify_summary.py::test_build_summary_deduplicates_repeated_warnings
+    expects raw_warning_count == 3 for the same ValidationError object repeated
+    three times, because the summary's dedup contract is key-based on
+    (code, location, message) with a separate raw count. Identity dedup would
+    have broken a lock-covered test and changed the 082-01 contract. The
+    container is instead simply never yielded alongside its contents, since the
+    branch is exclusive.
+  lessons:
+    - lesson_type: diagnostic-completeness
+      summary: >-
+        Widening a collector one level is not the same as making it reach the
+        findings. 090-01 extended build_verify_summary from _validation to
+        _errors and its own Outcome recorded that rendering and success paths
+        need checking alongside the emission site; the remaining gap was that
+        two stages put a report object, not a finding, into the widened channel.
+        When a channel holds `object`, enumerate every construction site and
+        check the payload type at each, rather than assuming the widened channel
+        is homogeneous.
+      tags:
+        - diagnostics
+        - fail-loud
+      paths:
+        - maid_runner/core/verify_summary.py
+        - maid_runner/cli/commands/verify.py
+    - lesson_type: contract-design
+      summary: >-
+        A duck-typed container probe should exclude the type it is meant to
+        yield, not just include the type it is meant to traverse. The first
+        implementation recursed on anything exposing errors/warnings/chain_errors,
+        which would silently drop a future finding type that grew such an
+        attribute - a swallow, the worst failure mode for a diagnostic. Review
+        raised it as advisory and it was fixed in-session: a candidate carrying
+        its own severity is treated as a finding first. Nothing triggers it
+        today, which is exactly why it had to be closed by construction rather
+        than by test.
+      tags:
+        - anti-drift
+        - fail-loud
+      paths:
+        - maid_runner/core/verify_summary.py
+    - lesson_type: promotion-side-effects
+      summary: >-
+        maid manifest promote migrates the lock and rewrites self-referencing
+        validate paths, but it does not touch metadata, so a promoted manifest
+        keeps whatever planning_state, promotion_ready, and tests_status the
+        draft carried. This one shipped to review still saying
+        tests_status planned-not-created with eight green tests on disk, and it
+        was the only one of 460 active manifests still reading
+        planning_state draft-inventory. Correcting it costs a
+        plan revise --preserve-red-evidence because the contract hash covers
+        every key except outcome, so batch the metadata fix with Outcome capture
+        into a single revise.
+      tags:
+        - workflow
+        - manifest-authoring
+      paths:
+        - manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Verdict ready to merge, zero blocking findings. The reviewer
+        independently re-ran implementation and schema validation, the focused
+        tests, tests/core plus tests/cli (2443 passed), and the strict handoff
+        verify, and reproduced the corrected header. It enumerated every
+        _errors= construction site in maid_runner/cli/commands/verify.py and
+        confirmed the only payload types are ValidationError,
+        ArtifactCoverageReport, KnockoutReport, and str; that KnockoutResult has
+        no errors/warnings fields so KnockoutReport's results loop yields
+        nothing and cannot double-count; and that no stage sets _validation and
+        _errors to the same object. It confirmed the plan lock records
+        red_evidence.red true with collection succeeding, so the red phase was
+        assertion-driven rather than an ImportError.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Two advisories were fixed in-session rather than deferred. A4: the
+        container probe could swallow a future finding type exposing a nested
+        attribute, now closed by returning False for any candidate with its own
+        severity. A5: the promoted manifest still carried draft-inventory
+        metadata contradicting the green tests on disk, now corrected and
+        captured as the promotion-side-effects lesson.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Four advisories were accepted as genuinely out of scope and are follow-up
+        draft candidates. A1: _format.py prints a "use --advisory" hint whenever
+        warning_blocking_stages is non-empty, and this change makes
+        artifact_coverage and knockout reach that branch for the first time, but
+        --advisory only feeds fail_on_warnings into _validation_stage, so the
+        hint is inert for those two stages; _format.py is files.read here. A2
+        and A3: an INFO-severity finding nested in a report would fail its stage
+        while being neither error nor warning, rendering as an unexplained hard
+        failure, and _info_group_message groups purely by code so a nested E307
+        INFO would render with the non-code-file wording; neither is reachable
+        in production today. A6: the nested-error test asserts only labelling,
+        so an implementation dropping all nested findings once any is an error
+        would still pass it, though tests 1 and 6 cover that indirectly.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_verify_summary_nested_findings.py, tests/core/test_verify_summary.py, tests/cli/test_verify_scope_widening_diagnostic.py]
+      status: passed
+      summary: >-
+        The declared focused scope passed 25 tests, covering the 8 new cases
+        plus the locked 082-01 and 090-01 suites, neither of which changed
+        behavior. The red phase before implementation was 5 failed / 3 passed,
+        with all failures assertion-driven; the 3 that passed pre-implementation
+        are the deliberate regression guards for the unchanged pass/fail rule,
+        the nested-error label, and plain-string entries.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full Python suite passed 3578 tests with 5 skips.
+    - command: [uv, run, maid, validate, manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml, --mode, behavioral]
+      status: passed
+      summary: Behavioral validation passed on the promoted path.
+    - command: [uv, run, maid, validate, manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed for the promoted contract.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 460 manifests resolved with 363 passed, 0 failed, 97 superseded skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All manifest-declared validation commands passed with 0 failures.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, ac38d24]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking
+        findings. The 2 unique warnings are pre-existing E307 no-validator
+        notices for ts_compiler_resolver.cjs and Makefile, unrelated to this
+        contract.

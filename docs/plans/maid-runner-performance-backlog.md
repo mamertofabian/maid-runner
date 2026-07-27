@@ -399,11 +399,57 @@ Next draft:
 
 Future draft candidates:
 
-- Re-benchmark the 60.72s batched pytest command after 078-01 lands before
-  planning pytest parallelization, xdist, or batching-policy changes. The
-  current evidence says the first MAID-owned win is quiet validate caching.
+- CLOSED, negative result. Do not re-propose xdist injection into MAID batching.
+  See "Rejected: pytest-xdist injection into batched commands" below.
 - None for TypeScript validation until a fresh profile shows a new dominant
   TypeScript bridge cost.
+
+## Rejected: pytest-xdist injection into batched commands
+
+The re-benchmark this backlog asked for after 078-01 was run on 2026-07-27 at
+`30ae431`. The batched pytest command had grown from 60.72s to 102.09s and was
+70% of a 145s `maid test`. Injecting `-n auto` into the batch was measured and
+**rejected**. Recorded so the idea is not re-proposed from the headline number
+alone.
+
+Measured on a 16-thread machine, each row repeated, same 3597-test suite:
+
+| batch size | serial | `-n auto` | verdict |
+| --- | --- | --- | --- |
+| 1 file | 0.26s | 1.08-2.02s | 4-8x WORSE |
+| 12 files | 4.62s | 3.98s | ~even |
+| 40 files | 4.87-5.08s | 9.42-9.73s | 1.9x WORSE |
+| 80 files | 48.28s | 15.76s | 3.1x better |
+| 150 files | 74.59s | 22.23s | 3.4x better |
+| 284 files | 102.09s | 31.4s | 3.25x better |
+
+Why it was rejected rather than gated:
+
+- The win is real at this repository's full-suite scale and correctness is not
+  at risk (3597 passed across three repeat runs; no ordering dependencies -
+  tests use `tmp_path`/`monkeypatch.chdir` and no fixed shared paths).
+- But the gate would have to key on serial *runtime*, not target count. 40
+  targets ran in 4.9s and lost; 80 targets ran in 48.3s and won 3.1x. Target
+  count is not proportional to runtime, so a file-count threshold is
+  contradicted by this data. Nothing at batch-assembly time knows serial
+  runtime on a first run.
+- Bounding workers does not help and makes it worse: `-n 4` on the 40-file
+  batch measured 14.81s and 14.87s, worse than `-n auto` at 9.5s and ~3x worse
+  than serial at 5s.
+- `pytest -n` is a hard failure (`unrecognized arguments: -n`) when
+  pytest-xdist is absent, and the batch runs in the *consumer's* environment,
+  so unconditional injection breaks every consumer repo without the plugin.
+
+This independently reproduces the decision already recorded in
+`manifests/drafts/046-00-maid-runner-parallel-test-execution.epic.yaml`: "Do
+not parallelize by default and surprise users with changed resource usage."
+046 was right; parallel-by-default is a regression across a broad band of suite
+sizes.
+
+Still open, if the 102s batch is worth revisiting: a project may set `-n auto`
+in its own pytest configuration, which needs no MAID change. That interaction
+with MAID's pytest-addopts validation (044) is **unverified** and would need
+checking before it is recommended.
 
 ## Suggested Acceptance Criteria
 

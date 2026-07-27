@@ -225,6 +225,31 @@ class TestCmdManifestCreateErrors:
         assert manifest.files_create[0].path == "src/example.py"
         assert manifest.files_create[0].artifacts[0].name == "example_func"
 
+    def test_create_writes_self_describing_header(self, tmp_path):
+        """A committed manifest must identify itself to a MAID-unaware reader."""
+        from maid_runner.cli.commands.manifest import cmd_manifest
+
+        args = argparse.Namespace(
+            manifest_command="create",
+            file_path="src/example.py",
+            goal="Add example",
+            task_type="feature",
+            artifacts='[{"kind": "function", "name": "example_func"}]',
+            output_dir=str(tmp_path / "manifests"),
+            temptations=None,
+            dry_run=False,
+            json=False,
+        )
+        exit_code = cmd_manifest(args)
+
+        assert exit_code == 0
+        manifest_path = tmp_path / "manifests" / "add-example.manifest.yaml"
+        source = manifest_path.read_text()
+        assert source.startswith("#")
+        assert "github.com/mamertofabian/maid-runner" in source
+        # The banner must not break loading the manifest it heads.
+        assert load_manifest(manifest_path).goal == "Add example"
+
     def test_create_with_temptations(self, capsys):
         """Create includes structured temptations when provided."""
         from maid_runner.cli.commands.manifest import cmd_manifest

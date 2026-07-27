@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/063-02-add-maid-validators-cli-listing.manifest.yaml",
-  "manifest_hash": "sha256:474833d7d23127f6f9ba0996e7d26cc2fcfe83363f82cf66fe0794e51cf66888",
+  "manifest_hash": "sha256-contract:6379ed5adfb363960794b356709b9211d923754a273b2a548d24877ecd422df0",
   "test_hashes": {
-    "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+    "tests/cli/test_validators_cmd.py": "sha256:2887cd537354c5081909206d8b2e6926515601c9c9307f49d754950aa2cd6966"
   },
   "created_at": "2026-06-17T23:26:20.039255+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:b91be8d97547b274e2c6d99340a326278dda40d2949ac9d9c76c3d161c6a2b42",
@@ -14,7 +14,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:10ea29fd767c4fc5c7edc0c597abeae288e8c14712fbd385b9344e34fbe23ade"
       },
       "revised_at": "2026-06-17T23:26:24.415028+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/063-02-add-maid-validators-cli-listing.manifest.yaml -> manifests/063-02-add-maid-validators-cli-listing.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-02-add-maid-validators-cli-listing.manifest.yaml -> manifests/063-02-add-maid-validators-cli-listing.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:83cec934d50efeb80bfaf8c74d454c4c2ed731bf792d913c5be7b7ececbf8a79",
@@ -23,7 +25,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:10ea29fd767c4fc5c7edc0c597abeae288e8c14712fbd385b9344e34fbe23ade"
       },
       "revised_at": "2026-06-17T23:28:07.383367+00:00",
-      "reason": "Include the declared plugin-discovery behavioral test file in the focused validate command so maid test covers every declared test dependency."
+      "reason": "Include the declared plugin-discovery behavioral test file in the focused validate command so maid test covers every declared test dependency.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4518e109200e65fbd2af9affee4a2f12aa4cee7bda4ea1d6327012f6c4b5641c",
@@ -32,7 +36,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:29:08.952057+00:00",
-      "reason": "Remove contextual plugin-discovery test from files.read because it is reference material, not a behavioral target changed or required by this CLI listing contract."
+      "reason": "Remove contextual plugin-discovery test from files.read because it is reference material, not a behavioral target changed or required by this CLI listing contract.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6bdefb4cce374cfa718523ea973ab727368ff6c6834ebc78e2c63196a76d4f55",
@@ -40,7 +46,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:34:39.368254+00:00",
-      "reason": "Declare the minimal README CLI reference row required by existing parser-command documentation parity after registering maid validators."
+      "reason": "Declare the minimal README CLI reference row required by existing parser-command documentation parity after registering maid validators.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:cb586c54a03553b9fd411059c162df8f28656b5dcaf2e8db3c76f86294062c4d",
@@ -48,7 +56,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:46:54.253176+00:00",
-      "reason": "Add the parser-command documentation parity test to the manifest validation command after declaring the README CLI reference row."
+      "reason": "Add the parser-command documentation parity test to the manifest validation command after declaring the README CLI reference row.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:a205234ff2300b6d617f87422078e7a175d2ac44bd3235526a5b0b46d9b334c6",
@@ -57,7 +67,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:52:45.029337+00:00",
-      "reason": "Add README CLI reference coverage and docs parity validation after implementation review."
+      "reason": "Add README CLI reference coverage and docs parity validation after implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:5dfeacb3548bcbc98fa526fbe60a9eeaeaf76df5ba39f97fcb826a9755965160",
@@ -66,7 +78,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:54:13.481859+00:00",
-      "reason": "Restore validators CLI manifest to implementation-only scope; move README docs parity to a separate contract."
+      "reason": "Restore validators CLI manifest to implementation-only scope; move README docs parity to a separate contract.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:6bdefb4cce374cfa718523ea973ab727368ff6c6834ebc78e2c63196a76d4f55",
@@ -74,7 +88,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-17T23:59:05.590021+00:00",
-      "reason": "Declare README CLI reference row in the validators CLI manifest while preserving the original validator-listing red evidence."
+      "reason": "Declare README CLI reference row in the validators CLI manifest while preserving the original validator-listing red evidence.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e226c801986f1c04f87e379cbaa9ce24bf38a8207de37f4964f3db907786eb9c",
@@ -83,7 +99,9 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-18T00:00:01.236809+00:00",
-      "reason": "Keep README CLI reference in the validators CLI manifest without changing the locked validator-listing red command."
+      "reason": "Keep README CLI reference in the validators CLI manifest without changing the locked validator-listing red command.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:cb586c54a03553b9fd411059c162df8f28656b5dcaf2e8db3c76f86294062c4d",
@@ -91,7 +109,33 @@
         "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
       },
       "revised_at": "2026-06-18T00:09:42.519812+00:00",
-      "reason": "Capture completed implementation outcome after READY implementation review."
+      "reason": "Capture completed implementation outcome after READY implementation review.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:474833d7d23127f6f9ba0996e7d26cc2fcfe83363f82cf66fe0794e51cf66888",
+      "prior_test_hashes": {
+        "tests/cli/test_validators_cmd.py": "sha256:560d15f7646622376260137cfae2048fe581cede7297e55c67bcc0db618ffc17"
+      },
+      "revised_at": "2026-07-22T00:33:41.971135+00:00",
+      "reason": "Shared maid validators tests now expect loaded plugin class __name__ display labels",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/cli/commands/validators.py",
+          "create:tests/cli/test_validators_cmd.py",
+          "edit:README.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/_format.py",
+          "read:maid_runner/validators/registry.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -112,6 +156,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "README.md:attribute:documentation._maid_validators_cli_reference",
@@ -138,6 +184,161 @@
       "tests/cli/test_validators_cmd.py:test_validators_parser_accepts_text_and_json_and_main_dispatches",
       "tests/cli/test_validators_cmd.py:test_validators_parser_accepts_text_and_json_and_main_dispatches:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/validators.py",
+        "tests/cli/test_validators_cmd.py"
+      ],
+      "edit": [
+        "README.md",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/validators/registry.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/cli/commands/validators.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_validators",
+              "description": "List validator records as a text table or JSON with name, extensions, source, status, and detail; built-ins first, then plugins by distribution name; exits 0 when the listing is produced.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_validators_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validators_parser_accepts_text_and_json_and_main_dispatches",
+              "source_scenario": "A user asks the MAID CLI to audit installed validators.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid validators` and `maid validators --json` parse successfully, dispatch through main, print validator rows, and return 0."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cmd_validators_lists_builtin_records_first",
+              "source_scenario": "No validator plugins are installed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_validators"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The text listing contains built-in validator rows first, with sorted extensions, source builtin, status active, and an empty detail field."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validators_json_matches_text_rows_for_plugin_statuses",
+              "source_scenario": "Installed validator plugins include an active plugin, a builtin conflict, and a load failure.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Text and JSON output expose identical ordered rows, including source, status, and detail for active, conflict, and error plugin rows, and both forms exit 0."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validators_lists_disabled_plugins_without_loading_them",
+              "source_scenario": "MAID_DISABLE_VALIDATOR_PLUGINS=1 is set while plugin entry points are installed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The listing includes plugin rows with status disabled and does not import the disabled plugin."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "The parser exposes a validators subcommand with a --json option.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "The CLI dispatches maid validators to maid_runner.cli.commands.validators.cmd_validators.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_validators_cli_reference",
+              "description": "Minimal CLI reference entry for the registered `maid validators` audit command so parser-command documentation parity remains green.",
+              "of": "documentation",
+              "type": "markdown table row"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/registry.py",
+        "maid_runner/cli/commands/_format.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_validators_cmd.py"
     ],

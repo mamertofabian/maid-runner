@@ -1,0 +1,626 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make plan-lock scope widening visible in maid verify by naming the baseline
+  failure and the conflicting manifests, without changing which manifests are enforced"
+type: fix
+created: "2026-07-26T05:24:34Z"
+metadata:
+  maid_task_base: 2fc9c9f84e5474f2a47b20eee8032ce01db6491d
+  source_session: >-
+    Reproduced 2026-07-26 while investigating why the maid-verify pre-commit hook
+    appeared unpassable; the hook itself passes at clean HEAD.
+  tags:
+    - verify
+    - plan-lock
+    - fail-loud
+    - diagnostics
+  priority: medium
+description: |
+  `maid verify` silently escalates plan-lock enforcement from the task window to
+  every active manifest when its baseline cannot be resolved.
+
+  `_plan_lock_changed_paths` (`maid_runner/cli/commands/verify.py`) calls
+  `resolve_changed_scope_baseline` and falls back to working-tree
+  `changed_files(root)` only when the raised code is
+  `CHANGED_SCOPE_BASELINE_REQUIRED`. Every other failure — a
+  `CHANGED_SCOPE_BASELINE_INVALID` conflict, an unresolvable explicit
+  `--since`/`--base-ref`, or a `changed_files_since` failure — returns `None`.
+  `_manifest_in_changed_paths` (`maid_runner/core/plan_lock.py`) treats
+  `changed_paths is None` as "every manifest is in scope", so enforcement widens
+  to all 361 active manifests and emits an E700/E704 storm that names only
+  manifests the task never touched. Nothing anywhere states why.
+
+  Reproduced on this repository at `2fc9c9f`: with
+  `manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml` and
+  `manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml` both
+  dirty, they declare `maid_task_base` `965107ede0eb…` and `b87ebdcbe02a…`
+  respectively; resolution raises `CHANGED_SCOPE_BASELINE_INVALID` and
+  `_plan_lock_changed_paths` returns `None`. The only practical response to the
+  resulting storm is `--no-verify`, which is how a real finding gets masked.
+
+  Rationale for a diagnostic rather than a fallback. Manifest 067-07 chose
+  full-scope enforcement on a genuine conflict deliberately, and forbids both an
+  `INVALID`→worktree fallback inside verify and deleting `maid_task_base` from
+  historical manifests. That decision stands: fail-closed is correct. What is
+  wrong is that the degraded mode is indistinguishable from normal operation,
+  which the repository's fail-loud guidance forbids — a fallback is acceptable
+  only when disclosed. This manifest changes only what the user is told, never
+  which manifests are enforced.
+
+  Rationale for a new public accessor. The raised error carries a generic
+  message and no reference to the manifests that disagree, and the set actually
+  considered is computed by a private helper whose worktree-scoping rule
+  (067-07) is not obvious. `describe_changed_scope_baselines` exposes exactly
+  the declarations resolution considered, so the warning can name each
+  conflicting manifest with its declared commit-ish instead of asking the reader
+  to grep 458 manifest files. Returning the considered set even when it is
+  unambiguous keeps the function useful for `--json`/`--packet` consumers and
+  avoids a second code path that could disagree with resolution.
+
+  Rationale for touching the summary aggregator. `build_verify_summary` collects
+  warning groups only from `stage._validation`, so a warning attached to the
+  `plan_lock` stage's `_errors` would never render in `--summary` — the mode
+  repository guidance mandates for handoff. `_stage_is_warning_driven` already
+  reads `_errors`, so the aggregator half-knows about stage-level warnings
+  already; this closes that inconsistency rather than inventing a channel.
+
+  Rationale for the stage success rule. `_plan_lock_stage` computes
+  `success = not errors`, and `format_verify_summary` derives blocking status
+  from `stage.success`. Adding a warning to `_errors` under the current rule
+  would turn a disclosure into a hard failure and break every currently passing
+  run. Stage success must therefore be computed from ERROR-severity findings
+  only, leaving warning-only stages passing.
+temptations:
+  - risk: "Do not make CHANGED_SCOPE_BASELINE_INVALID fall back to worktree scope,
+      and do not narrow enforcement in any other way to quiet the storm. 067-07 chose
+      full-scope enforcement on a genuine conflict on purpose."
+    instead: "Leave the returned changed_paths exactly as it is today and add only
+      the warning. Pin this with a test that asserts the same manifests are still
+      enforced when the warning fires."
+  - risk: "Do not clear the conflict by deleting or rewriting metadata.maid_task_base
+      in any manifest under manifests/, including 089-01 and 089-02. 067-07 forbids
+      it: prior tasks' manifests are immutable."
+    instead: "Reproduce the conflict in a tmp_path git fixture with its own manifests,
+      and leave this repository's manifests untouched."
+  - risk: "Do not assert only that the warning text is non-empty or that E708 appears;
+      a generic 'scope widened' string would pass while leaving the user with the
+      same unactionable storm."
+    instead: "Assert the rendered warning contains both conflicting manifest paths
+      and both differing commit-ish values, so a message that omits the culprits fails."
+  - risk: "Do not edit tests/core/test_changed_scope.py; it is locked by 037-01, 038-03,
+      and 067-07, and editing it cascades E701 to all three locks."
+    instead: "Create tests/core/test_changed_scope_declarations.py and tests/cli/test_verify_scope_widening_diagnostic.py
+      as new files."
+  - risk: "Do not fix _plan_lock_stage's `success = not errors` rule by ignoring findings
+      generally. Making the warning non-blocking is required, but a stage that no
+      longer fails on a real E700 silently disarms the whole handoff gate — a far
+      worse bug than the one being fixed."
+    instead: "Filter on Severity.ERROR explicitly, and keep both tests: the stage
+      passes with only a warning, and still blocks on a missing plan lock."
+files:
+  edit:
+    - path: maid_runner/core/worktree.py
+      artifacts:
+        - kind: class
+          name: BaselineDeclaration
+          description: >-
+            One active manifest's declared changed-scope baseline, as considered
+            by resolve_changed_scope_baseline, so callers can report which
+            manifests disagree.
+        - kind: attribute
+          name: manifest_path
+          of: BaselineDeclaration
+          type: str
+          description: Project-relative path of the manifest that declares the 
+            baseline.
+        - kind: attribute
+          name: commitish
+          of: BaselineDeclaration
+          type: str
+          description: The declared metadata.maid_task_base value, stripped.
+        - kind: function
+          name: describe_changed_scope_baselines
+          args:
+            - name: chain
+              type: ManifestChain
+          returns: tuple[BaselineDeclaration, ...]
+          description: >-
+            Return the baseline declarations resolution actually considered,
+            ordered by manifest path, and an empty tuple when no considered
+            manifest declares a baseline. Must apply 067-07's worktree-scoping
+            rule by sharing _baseline_metadata_manifests rather than re-deriving
+            it, so the reported cause cannot drift from the resolution that
+            raised.
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: PLAN_LOCK_SCOPE_WIDENED
+          of: ErrorCode
+          type: str
+          description: >-
+            E708, a WARNING-severity code reporting that plan-lock enforcement
+            widened from the task window to every active manifest because the
+            changed-scope baseline could not be resolved.
+    - path: maid_runner/core/verify_summary.py
+      artifacts:
+        - kind: function
+          name: build_verify_summary
+          args:
+            - name: result
+              type: VerificationResult
+          returns: VerifySummary
+          description: >-
+            Collect warning and info groups from stage _errors findings in
+            addition to stage _validation findings, so a stage-level diagnostic
+            such as E708 is rendered in --summary instead of being dropped.
+            Collection must be generic by severity, never special-cased for one
+            code, so future stage-level findings are not silently dropped again.
+  create:
+    - path: tests/core/test_changed_scope_declarations.py
+      artifacts:
+        - kind: test_function
+          name: test_describe_returns_declaration_per_worktree_changed_manifest
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            Two manifests with uncommitted worktree changes declare different
+            metadata.maid_task_base values.
+          actions:
+            - type: api_call
+              subject:
+                export: describe_changed_scope_baselines
+          expected:
+            behavior: >-
+              Returns one BaselineDeclaration per declaring manifest, whose
+              manifest_path and commitish match what each manifest declares, so
+              a caller can name both sides of the conflict.
+        - kind: test_function
+          name: test_describe_ignores_committed_historical_declarations
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            A committed manifest declares one baseline and a dirty manifest
+            declares another.
+          actions:
+            - type: api_call
+              subject:
+                export: describe_changed_scope_baselines
+          expected:
+            behavior: >-
+              Only the dirty manifest's declaration is returned, proving the
+              accessor applies 067-07's worktree-scoping rule rather than
+              reporting a conflict resolution would never see.
+        - kind: test_function
+          name: test_describe_returns_empty_when_no_considered_manifest_declares
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: A clean tree where no considered manifest declares a 
+            baseline.
+          actions:
+            - type: api_call
+              subject:
+                export: describe_changed_scope_baselines
+          expected:
+            behavior: >-
+              Returns an empty tuple rather than raising, so the REQUIRED path
+              can report "no declaration" distinctly from a conflict.
+        - kind: test_function
+          name: test_describe_agrees_with_resolution_on_the_conflicting_set
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            The same fixture that makes resolve_changed_scope_baseline raise
+            CHANGED_SCOPE_BASELINE_INVALID.
+          actions:
+            - type: api_call
+              subject:
+                export: describe_changed_scope_baselines
+            - type: api_call
+              subject:
+                export: resolve_changed_scope_baseline
+          expected:
+            behavior: >-
+              The distinct commitish values returned by the accessor are exactly
+              the values whose disagreement makes resolution raise, so the
+              reported cause cannot drift from the actual cause.
+    - path: tests/cli/test_verify_scope_widening_diagnostic.py
+      artifacts:
+        - kind: test_function
+          name: 
+            test_conflicting_baselines_emit_scope_widened_warning_naming_manifests
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            maid verify --require-plan-lock runs where two dirty manifests
+            declare conflicting metadata.maid_task_base.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              The plan_lock stage carries a PLAN_LOCK_SCOPE_WIDENED finding whose
+              message names both manifest paths and both differing commit-ish
+              values, instead of widening with no explanation.
+        - kind: test_function
+          name: test_scope_widened_warning_does_not_block_the_plan_lock_stage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            Baseline resolution fails but every enforced manifest satisfies its
+            plan lock.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              The plan_lock stage still reports success and verify still exits 0,
+              proving the disclosure is a warning and not a new blocking gate.
+        - kind: test_function
+          name: test_scope_widening_still_enforces_every_active_manifest
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            Baseline resolution fails while an untouched active manifest has no
+            plan lock.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              That untouched manifest is still reported E700, proving the
+              diagnostic did not narrow enforcement and 067-07's fail-closed
+              behavior is intact.
+        - kind: test_function
+          name: test_scope_widened_warning_is_rendered_in_summary_output
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: maid verify --summary runs with an unresolvable 
+            baseline.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              E708 appears in the summary's warning groups and in the rendered
+              --summary text, proving a stage-level diagnostic is no longer
+              dropped by the aggregator's _validation-only collection.
+        - kind: test_function
+          name: test_missing_baseline_does_not_emit_scope_widened_warning
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            No manifest declares a baseline, so resolution raises
+            CHANGED_SCOPE_BASELINE_REQUIRED and verify falls back to worktree
+            changes.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              No PLAN_LOCK_SCOPE_WIDENED warning is emitted, because that path
+              narrows to the working tree rather than widening; a warning here
+              would make the diagnostic noise on the common clean path.
+        - kind: test_function
+          name: test_unresolvable_explicit_baseline_emits_scope_widened_warning
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            maid verify --since <nonexistent-ref> runs so changed_files_since
+            fails.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              PLAN_LOCK_SCOPE_WIDENED is emitted naming the unusable ref, proving
+              every silent widening path is disclosed and not only the metadata
+              conflict.
+        - kind: test_function
+          name: test_resolved_baseline_emits_no_scope_widened_warning
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            Every dirty manifest agrees on one metadata.maid_task_base, so the
+            baseline resolves normally.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              No PLAN_LOCK_SCOPE_WIDENED warning is emitted, proving the
+              diagnostic fires only on an actual widening rather than
+              unconditionally on the everyday path.
+        - kind: test_function
+          name: test_plan_lock_stage_still_blocks_on_a_missing_plan_lock
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            A changed manifest has no plan lock and the baseline resolves
+            normally, so no warning is involved.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              The plan_lock stage reports failure and verify exits non-zero,
+              proving the new severity filter did not disarm the gate along with
+              the warning.
+        - kind: test_function
+          name: test_unreadable_working_tree_emits_scope_widened_warning
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: >-
+            Verify runs in a directory with no git repository, so the working
+            tree cannot be read at all.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              PLAN_LOCK_SCOPE_WIDENED is emitted naming the unreadable working
+              tree, so a gitless checkout discloses why every manifest is
+              enforced instead of widening in silence.
+        - kind: test_function
+          name: test_contradictory_explicit_baselines_emit_scope_widened_warning
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: Verify runs with both --since and --base-ref supplied.
+          actions:
+            - type: api_call
+              subject:
+                export: ErrorCode
+          expected:
+            behavior: >-
+              PLAN_LOCK_SCOPE_WIDENED is emitted reporting that the requested
+              baseline could not be resolved, covering the explicit-flag
+              widening branch rather than leaving it removable unnoticed.
+        - kind: test_function
+          name:
+            test_summary_collects_warning_and_info_findings_from_stage_errors
+          args: []
+          returns: None
+          source_scenario: >-
+            A synthetic VerificationResult whose stage carries an unrelated
+            warning-severity and info-severity finding in _errors and has no
+            _validation object.
+          actions:
+            - type: api_call
+              subject:
+                export: build_verify_summary
+          expected:
+            behavior: >-
+              Both findings appear in the summary's warning and info groups,
+              proving collection is generic by severity rather than special-cased
+              for E708.
+        - kind: test_function
+          name: test_scope_widened_code_is_registered_as_a_warning_diagnostic
+          args: []
+          returns: None
+          source_scenario: The diagnostics registry is queried for the new code.
+          actions:
+            - type: api_call
+              subject:
+                export: get_rule
+          expected:
+            behavior: >-
+              get_rule("E708") reports warning severity, so SARIF and --json
+              consumers do not treat the disclosure as a blocking error.
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: >-
+        Emits the PLAN_LOCK_SCOPE_WIDENED warning from _plan_lock_changed_paths
+        and computes _plan_lock_stage success from ERROR-severity findings only.
+        Both are private helpers, so no public artifact in this file is
+        contracted or changed; declared under scope rather than read because the
+        file is edited and files.read does not authorize edits.
+    - path: maid_runner/core/diagnostics_registry.py
+      reason: >-
+        Registers E708 in the private _WARNING_CODES set and adds its description
+        and troubleshooting anchor. all_rules already generates a rule for every
+        ErrorCode, so the public surface is unchanged; only severity and copy are
+        added. Deliberately no repair recipe: tests/core/test_diagnostics_registry.py
+        pins the recipe set exactly and is locked by 065-01 and 070-01.
+    - path: tests/cli/test_verify_plan_lock_cmd.py
+      reason: >-
+        Two assertions read the plan_lock stage's findings positionally
+        (`[0]["code"]`), which now sees the disclosure warning first. Relaxed to
+        assert the expected code is present. No contract change; the locks that
+        hash these files are 067-05 and fix-pre-commit-task-scoped-plan-locks,
+        and both are revised with preserved red evidence.
+    - path: tests/cli/test_verify_plan_lock_scope_cmd.py
+      reason: >-
+        One assertion pins the stage's findings by exact list equality and now
+        also sees the disclosure warning, which is correct: that fixture has no
+        git repository, so verify genuinely enforces every manifest. Filtered by
+        severity rather than relaxed, so the assertion still pins that a corrupt
+        lock reports no other blocking error.
+    - path: docs/troubleshooting.md
+      reason: >-
+        Section 10 currently explains E116 only as an unresolvable --base-ref and
+        never mentions conflicting metadata.maid_task_base or the plan-lock
+        widening it triggers, which is why the storm reads as a broken hook.
+        Documentation-only edit; this file is not copied by
+        scripts/sync_claude_files.py, so no payload sync is required.
+  read:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/core/chain.py
+    - maid_runner/cli/commands/_format.py
+    - tests/core/test_changed_scope.py
+    - tests/cli/test_verify_handoff_baseline_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_changed_scope_declarations.py 
+    tests/cli/test_verify_scope_widening_diagnostic.py 
+    tests/core/test_changed_scope.py tests/core/test_diagnostics_registry.py 
+    tests/cli/test_verify_handoff_baseline_cmd.py
+  - uv run maid validate 
+    manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml --mode 
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-26T14:07:00+08:00'
+  summary: >-
+    maid verify now discloses every path on which plan-lock enforcement widens
+    from the task window to all active manifests, naming the conflicting
+    manifests and their declared metadata.maid_task_base values, while leaving
+    the set of enforced manifests byte-for-byte unchanged.
+  rationale: >-
+    067-07 deliberately chose full-scope enforcement when a genuine conflict
+    exists among worktree-changed manifests, and forbids both an
+    INVALID-to-worktree fallback in verify and deleting maid_task_base from
+    historical manifests. That decision was correct and is preserved; the defect
+    was that the degraded mode was indistinguishable from normal operation, so
+    the only practical response to the resulting E700 storm was --no-verify,
+    which masks real findings. The fix is therefore a diagnostic, not a fallback:
+    each of the four paths that return None (meaning "enforce everything")
+    records a WARNING-severity E708 naming its cause. Two structural
+    prerequisites were required and are the non-obvious part of the change.
+    First, build_verify_summary collected warnings only from stage._validation,
+    so a stage-level warning was dropped entirely from --summary, the mode repo
+    guidance mandates for handoff; collection now reads stage findings
+    generically by severity. Second, _plan_lock_stage computed success from any
+    finding, so attaching a warning would have turned a disclosure into a hard
+    failure on every passing run; success is now computed from ERROR-severity
+    findings only. describe_changed_scope_baselines shares
+    _baseline_metadata_manifests with resolve_changed_scope_baseline so the
+    reported cause cannot drift from the resolution that raised.
+  lessons:
+    - lesson_type: fail-loud
+      summary: >-
+        A fail-closed gate that widens scope without saying why is functionally
+        equivalent to a broken gate: the only actionable response is to bypass
+        it. Correct enforcement plus an unattributable error storm trained the
+        operator to run --no-verify, and a prior session then invented a false
+        root cause ("the hook enforces plan locks repo-wide and fails on clean
+        HEAD") that survived into a memory and a commit message before being
+        disproven by simply running the hook. Disclosure is part of the gate's
+        contract, not cosmetics.
+      tags:
+        - verify
+        - plan-lock
+        - diagnostics
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - docs/troubleshooting.md
+    - lesson_type: diagnostic-plumbing
+      summary: >-
+        Adding a diagnostic is not finished when the finding is constructed. The
+        summary aggregator collected warnings only from stage._validation, so a
+        warning attached to a stage's _errors would have been invisible in
+        --summary, the exact mode used for handoff; and stage success counted
+        every finding, so the warning would have blocked. A new severity level in
+        an existing channel needs the rendering and success paths checked, not
+        just the emission site.
+      tags:
+        - verify-summary
+        - severity
+        - review-finding
+      paths:
+        - maid_runner/core/verify_summary.py
+        - maid_runner/cli/commands/verify.py
+    - lesson_type: test-brittleness
+      summary: >-
+        Three locked tests asserted plan_lock findings by position
+        (`[0]["code"]`) or exact list equality, so adding one non-blocking
+        warning broke them without any behavior regression. Filtering by
+        severity preserved the original intent better than relaxing to a
+        presence check: the corrupt-lock test still pins that no other blocking
+        error is reported.
+      tags:
+        - test-design
+        - locked-tests
+      paths:
+        - tests/cli/test_verify_plan_lock_cmd.py
+        - tests/cli/test_verify_plan_lock_scope_cmd.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Ready to merge, no blocking findings. The reviewer independently proved
+        scope equivalence by extracting the pre-change _plan_lock_changed_paths
+        from 2fc9c9f and running old against new across seven fixtures
+        (conflict, no declaration, resolved baseline, bad --since, --since with
+        --base-ref, gitless tree, committed-historical): identical changed_paths
+        in every case, with exactly one E708 on each of the four None branches.
+        It confirmed the ERROR-severity filter cannot swallow a real blocker
+        because every enforce_plan_locks finding is constructed at default
+        Severity.ERROR and no severity-override path exists, and that the
+        aggregator change is safe for stages whose _errors hold plain strings or
+        report objects. It could not construct a hollow implementation passing
+        the suite.
+    - source: maid-implementation-reviewer
+      severity: medium
+      summary: >-
+        Nine advisory findings. Applied in one batch: _baseline_conflict_detail
+        silently swallowed accessor failures, an undisclosed fallback inside the
+        change whose purpose is ending undisclosed fallbacks, now reported in the
+        message; the corrupt-lock assertion was over-relaxed and was restored to
+        pin exclusivity via a severity filter; the two untested widening branches
+        (gitless working tree, --since with --base-ref) gained declared tests; the
+        summary test now pins that manifest names and commit-ish values survive
+        rendering, not only the code; and two factually wrong manifest reason
+        strings plus stale draft metadata were corrected. Deferred as out of
+        scope: warnings nested inside report objects are still not collected by
+        the aggregator (pre-existing), and agent-facing skill docs still describe
+        the plan-lock range as E700-E706.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: Full Python suite passed 3570 tests with 5 skips.
+    - command: [uv, run, maid, validate, manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml, --mode, behavioral]
+      status: passed
+      summary: Behavioral validation passed with zero errors and zero warnings.
+    - command: [uv, run, maid, validate, manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed with no undeclared public drift.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 362 active manifests passed with 0 failures; 97 superseded skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 204 manifest-declared validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, 2fc9c9f]
+      status: passed
+      summary: >-
+        Strict handoff gate passed all 9 stages with 0 blocking findings; only
+        pre-existing E307 non-code warnings remained.

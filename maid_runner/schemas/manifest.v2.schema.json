@@ -140,7 +140,10 @@
           },
           "name": { "type": "string", "minLength": 1 },
           "file": { "type": "string", "minLength": 1 },
-          "of": { "type": "string" },
+          "of": {
+            "type": "string",
+            "description": "Owning class/interface/type for method and attribute removals. Required for methods; recommended for attributes so supersession matching uses (file, kind, owner, name) and does not collide with same-named members on other owners."
+          },
           "reason": { "type": "string" }
         },
         "additionalProperties": false
@@ -206,6 +209,10 @@
       "required": ["model"],
       "properties": {
         "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasoning_effort": {
           "type": "string",
           "minLength": 1
         },

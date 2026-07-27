@@ -95,16 +95,26 @@ canonicalization, and non-string mapping keys normalize to the same string
 form JSON uses. Quoted and unquoted ISO dates therefore hash identically. Any
 other non-JSON-native value fails loud with the manifest path and offending
 location; there is still no byte-hash fallback.
-Behavioral test files remain byte-hashed with the legacy `sha256:` prefix.
 `maid plan status` and legacy-lock contract checks dispatch on the stored
-prefix — `sha256:` still compares raw file bytes — so existing locks stay
-valid without migration. Because the contract hash pins parsed data, YAML
-comment or formatting-only edits no longer flip status under the new format;
-every parsed key except `outcome` still participates, so real contract edits
-remain tamper-evident. Lock and revise fail loud on unreadable manifests rather
-than falling back to byte hashing. Status is reporting-oriented: an unreadable
-manifest returns exit 1 with `manifest_match: false` and `manifest_error` in
-JSON, with an equivalent `Manifest error` line in text.
+prefix — `sha256:` still compares raw file bytes for legacy manifest pins —
+so existing locks stay valid without migration. Because the contract hash pins
+parsed data, YAML comment or formatting-only edits no longer flip status under
+the new format; every parsed key except `outcome` still participates, so real
+contract edits remain tamper-evident. Lock and revise fail loud on unreadable
+manifests rather than falling back to byte hashing. Status is reporting-oriented:
+an unreadable manifest returns exit 1 with `manifest_match: false` and
+`manifest_error` in JSON, with an equivalent `Manifest error` line in text.
+
+Behavioral test files use a dual-format pin. New locks hash `.py`
+behavioral tests with a `sha256-pyast:` digest over
+`ast.dump(..., annotate_fields=True, include_attributes=False)` so
+whitespace- and comment-only edits (including Black reformats) do not flip
+status or force E701. Non-Python behavioral tests and legacy lock entries
+keep the byte `sha256:` prefix. Comparison dispatches on the stored
+prefix — existing test hashes stay valid without migration. The documented
+limit is intentional: under `sha256-pyast:`, comment-only and formatter-only
+Python edits are hash-neutral, while assertion, import, string-literal, and
+other AST-visible edits remain tamper-evident.
 
 Red-phase evidence uses exit-code-only classification. For pytest commands,
 exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid
@@ -251,6 +261,11 @@ a lock's red-phase evidence command strings do not match the `validate_commands`
 snapshot recorded in the lock's manifest contract. E702 applies when declared
 artifacts or behavioral test entries shrink relative to the locked manifest;
 additive manifest changes are legal.
+E708 PLAN_LOCK_SCOPE_WIDENED is a warning reporting that enforcement widened beyond the task window.
+This is deliberate fail-closed behavior after changed-scope baseline resolution:
+E708 reports this widening without changing which manifests are enforced, and
+callers should reconcile the named manifests or pass an explicit baseline when
+the wider scope was not intended.
 
 E707 binds red-phase evidence to the validate commands that produced it.
 Sanctioned flows (`maid plan lock`, `maid plan revise`, and the promote

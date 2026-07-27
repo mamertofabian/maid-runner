@@ -1,0 +1,307 @@
+{
+  "manifest_path": "manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml",
+  "manifest_hash": "sha256-contract:15c87946ba10921985200dadf0286182040f64d33c2a626190c1bce83a7bdf3e",
+  "test_hashes": {
+    "tests/core/test_verify_summary.py": "sha256-pyast:a81cfe224dcecbb30d246265fac0301c00a78da3da3f2ef99f8e1717cb3ad816",
+    "tests/core/test_verify_summary_nested_findings.py": "sha256-pyast:dd3482a9803871302e6f7f91d2bdb2c164f8cc4525d425df4f29d2bf5a9386ea",
+    "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78"
+  },
+  "created_at": "2026-07-26T07:33:49.200966+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5db093796777298c70493a78875d1dcb73126bd71589b7d6da1ee1f7f9cee340",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256-pyast:a81cfe224dcecbb30d246265fac0301c00a78da3da3f2ef99f8e1717cb3ad816",
+        "tests/core/test_verify_summary_nested_findings.py": "sha256-pyast:dd3482a9803871302e6f7f91d2bdb2c164f8cc4525d425df4f29d2bf5a9386ea",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78"
+      },
+      "revised_at": "2026-07-26T07:33:53.563613+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/090-02-collect-nested-report-findings-in-summary.manifest.yaml -> manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/090-02-collect-nested-report-findings-in-summary.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2ff3f6a3baa664841d5a5ffc3d4204703dedb99b7d70fa677879f8ebb80872c7",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256-pyast:a81cfe224dcecbb30d246265fac0301c00a78da3da3f2ef99f8e1717cb3ad816",
+        "tests/core/test_verify_summary_nested_findings.py": "sha256-pyast:dd3482a9803871302e6f7f91d2bdb2c164f8cc4525d425df4f29d2bf5a9386ea",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78"
+      },
+      "revised_at": "2026-07-26T07:59:01.930931+00:00",
+      "reason": "Correct stale draft metadata after promotion and capture Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-26T07:33:55.683694+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_verify_summary_nested_findings.py tests/core/test_verify_summary.py tests/cli/test_verify_scope_widening_diagnostic.py",
+        "exit_code": 1,
+        "output_tail": "            name=\"knockout\",\n            success=report.success,\n            _duration_ms=1.0,\n            _errors=(report,),\n        )\n    \n        summary = build_verify_summary(_result(stage))\n    \n>       assert summary.raw_warning_count == 1\nE       AssertionError: assert 0 == 1\nE        +  where 0 = VerifySummary(success=False, blocking_stages=('knockout',), warning_blocking_stages=(), passed_stages=(), skipped_stages=(), warning_groups=(), info_groups=(), raw_warning_count=0, raw_info_count=0).raw_warning_count\n\ntests/core/test_verify_summary_nested_findings.py:147: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_verify_summary_nested_findings.py::test_nested_report_warning_is_counted_in_summary_warning_groups\nFAILED tests/core/test_verify_summary_nested_findings.py::test_nested_report_info_is_counted_in_summary_info_groups\nFAILED tests/core/test_verify_summary_nested_findings.py::test_stage_failing_only_on_nested_warning_is_labeled_warning_driven\nFAILED tests/core/test_verify_summary_nested_findings.py::test_direct_and_nested_findings_are_each_counted_once\nFAILED tests/core/test_verify_summary_nested_findings.py::test_knockout_report_nested_findings_are_collected\n5 failed, 20 passed in 1.74s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "tests/core/test_verify_summary_nested_findings.py:test_direct_and_nested_findings_are_each_counted_once",
+      "tests/core/test_verify_summary_nested_findings.py:test_direct_and_nested_findings_are_each_counted_once:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_direct_and_nested_findings_are_each_counted_once:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_knockout_report_nested_findings_are_collected",
+      "tests/core/test_verify_summary_nested_findings.py:test_knockout_report_nested_findings_are_collected:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_knockout_report_nested_findings_are_collected:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_error_keeps_stage_out_of_warning_blocking_stages",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_error_keeps_stage_out_of_warning_blocking_stages:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_error_keeps_stage_out_of_warning_blocking_stages:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_info_is_counted_in_summary_info_groups",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_info_is_counted_in_summary_info_groups:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_info_is_counted_in_summary_info_groups:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_warning_is_counted_in_summary_warning_groups",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_warning_is_counted_in_summary_warning_groups:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_nested_report_warning_is_counted_in_summary_warning_groups:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_plain_string_stage_errors_are_still_ignored",
+      "tests/core/test_verify_summary_nested_findings.py:test_plain_string_stage_errors_are_still_ignored:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_plain_string_stage_errors_are_still_ignored:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_stage_failing_only_on_nested_warning_is_labeled_warning_driven",
+      "tests/core/test_verify_summary_nested_findings.py:test_stage_failing_only_on_nested_warning_is_labeled_warning_driven:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_stage_failing_only_on_nested_warning_is_labeled_warning_driven:returns=None",
+      "tests/core/test_verify_summary_nested_findings.py:test_warning_only_report_still_fails_its_stage",
+      "tests/core/test_verify_summary_nested_findings.py:test_warning_only_report_still_fails_its_stage:kind=test_function",
+      "tests/core/test_verify_summary_nested_findings.py:test_warning_only_report_still_fails_its_stage:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_verify_summary_nested_findings.py"
+      ],
+      "edit": [
+        "maid_runner/core/verify_summary.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/result.py",
+        "tests/core/test_verify_summary.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_verify_summary_nested_findings.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_report_warning_is_counted_in_summary_warning_groups",
+              "returns": "None",
+              "source_scenario": "A stage holds an ArtifactCoverageReport whose errors contain one WARNING-severity E307, as when coverage.py is not installed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The warning appears in warning_groups with raw_warning_count 1, instead of the header claiming zero warnings while the stage fails."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_report_info_is_counted_in_summary_info_groups",
+              "returns": "None",
+              "source_scenario": "A report object carries an INFO-severity finding.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The finding appears in info_groups with raw_info_count 1, so info accounting matches warning accounting rather than diverging."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stage_failing_only_on_nested_warning_is_labeled_warning_driven",
+              "returns": "None",
+              "source_scenario": "A stage fails and every finding nested in its report is a warning.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stage name appears in warning_blocking_stages, so the summary can say the failure is warning-driven instead of presenting it as an unexplained hard failure."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_error_keeps_stage_out_of_warning_blocking_stages",
+              "returns": "None",
+              "source_scenario": "A report carries one ERROR-severity and one WARNING-severity finding.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stage is blocking but absent from warning_blocking_stages, so a genuine error is never relabelled as merely advisory."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_warning_only_report_still_fails_its_stage",
+              "returns": "None",
+              "source_scenario": "An ArtifactCoverageReport contains only a warning-severity finding.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stage remains in blocking_stages and summary success stays False, proving collection changed without relaxing the requested gate's pass/fail rule."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_direct_and_nested_findings_are_each_counted_once",
+              "returns": "None",
+              "source_scenario": "One stage carries a direct warning in _errors and a report whose errors hold a second, differently-worded warning.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "raw_warning_count is exactly 2 and two distinct warning groups are reported, so recursion neither drops nor duplicates findings."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_report_nested_findings_are_collected",
+              "returns": "None",
+              "source_scenario": "A stage holds a KnockoutReport carrying a warning.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The warning is counted, proving the rule is generic across report types rather than special-cased for artifact coverage."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plain_string_stage_errors_are_still_ignored",
+              "returns": "None",
+              "source_scenario": "A stage carries plain string entries in _errors, as the skipped and error stage helpers produce.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No warning or info group is produced and no exception is raised, so generic recursion does not misread strings as findings."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/verify_summary.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_verify_summary",
+              "description": "Collect warning and info groups from findings nested inside report objects held in stage _errors, in addition to direct _errors entries and _validation findings, so summary counts and the warning-driven stage label reflect every finding exactly once.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                }
+              ],
+              "returns": "VerifySummary"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/result.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/cli/commands/_format.py",
+        "tests/core/test_verify_summary.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_scope_widening_diagnostic.py",
+      "tests/core/test_verify_summary.py",
+      "tests/core/test_verify_summary_nested_findings.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest -q tests/core/test_verify_summary_nested_findings.py tests/core/test_verify_summary.py tests/cli/test_verify_scope_widening_diagnostic.py"
+    ]
+  }
+}

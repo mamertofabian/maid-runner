@@ -132,7 +132,11 @@ places the MAID-only skill set into a target repository under `.claude/skills/`:
 The Codex distribution installed by `maid init --tool codex` places the same
 generic MAID workflow and audit skills into `.codex/skills/`: `maid-planner`,
 `maid-plan-review`, `maid-implementer`, `maid-implementation-review`,
-`maid-auditor`, `maid-outcome-enrich`, and `maid-run-review`. Repo-internal maid-runner skills remain packaged for this
+`maid-evolver`, `maid-auditor`, `maid-incident-logger`, `maid-outcome-enrich`,
+and `maid-run-review`. The Claude and Codex distributions ship the same skill
+set with the same skill bodies; the only intended differences are tool-specific
+reviewer-subagent mechanics and the pre-edit scope-check guidance that Claude
+receives through `.claude/settings.json` hooks instead of prose. Repo-internal maid-runner skills remain packaged for this
 repository's own tooling but are excluded from the distributable list. Skill-local
 agent metadata under `agents/` is copied with distributable skills and listed in
 the generated `maid_runner/codex/manifest.json` for stale-file pruning.

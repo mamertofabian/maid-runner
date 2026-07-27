@@ -23,6 +23,10 @@ def resolve_agent_provenance(
     """Resolve --agent-* flags with MAID_AGENT_* environment fallback."""
     fields = {
         "model": _resolve_string(flag_values.get("model"), env.get("MAID_AGENT_MODEL")),
+        "reasoning_effort": _resolve_string(
+            flag_values.get("reasoning_effort"),
+            env.get("MAID_AGENT_REASONING_EFFORT"),
+        ),
         "provider": _resolve_string(
             flag_values.get("provider"), env.get("MAID_AGENT_PROVIDER")
         ),
@@ -64,6 +68,7 @@ def resolve_agent_provenance(
     return ProvenanceResolution(
         provenance=AgentProvenance(
             model=str(resolved_values["model"]),
+            reasoning_effort=_optional_str(resolved_values.get("reasoning_effort")),
             provider=_optional_str(resolved_values.get("provider")),
             client=_optional_str(resolved_values.get("client")),
             skills=tuple(resolved_values.get("skills", ())),

@@ -44,6 +44,7 @@ from maid_runner.core.chain import (
     _exit_manifest_chain_cache_scope,
     _get_cached_manifest_chain_with_factory,
 )
+from maid_runner.core.module_paths import clear_reexport_resolution_cache
 from maid_runner.core.ts_module_paths import (
     clear_ts_resolution_cache,
     resolve_ts_import,
@@ -307,6 +308,7 @@ class ValidationEngine:
         if outermost:
             clear_artifact_collection_cache()
             clear_ts_resolution_cache()
+            clear_reexport_resolution_cache()
         self._validation_cache_depth += 1
         return outermost
 
@@ -315,6 +317,7 @@ class ValidationEngine:
         if outermost:
             clear_artifact_collection_cache()
             clear_ts_resolution_cache()
+            clear_reexport_resolution_cache()
 
     def validate_behavioral(
         self,

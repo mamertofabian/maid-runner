@@ -1,0 +1,241 @@
+# draft-kind: implementation
+schema: "2"
+goal: >
+  Make removed_artifacts attribute removals match owned members by
+  (file, kind, owner, name) so supersession E110 no longer false-positives
+  when an interface and its attributes are intentionally removed while a
+  same-named attribute survives on another type.
+type: fix
+created: "2026-07-22T05:02:36Z"
+metadata:
+  tags:
+  - removed-artifacts
+  - supersession
+  - E110
+  - typescript
+  - anti-gaming
+  priority: high
+description: |
+  Hubb-ops reconciliation manifests correctly list ContactInsert and its
+  attributes under removed_artifacts, but E110 still fires because
+  ownerless attribute removal keys (`attribute:created_by`) do not match
+  owned declaration keys (`attribute:ContactInsert.created_by`). The same
+  file retains `ExternalTicketTokenRow.created_by`, so an ownerless removal
+  cannot safely match by name alone.
+
+  `RemovedArtifactSpec.of` and the schema already allow an owner. This fix
+  hardens supersession accounting so:
+
+  1. An owned attribute removal with `of: <Owner>` exempts exactly
+     `attribute:<Owner>.<name>` after the symbol is verified absent.
+  2. A verified removal of a structural owner type (interface/class/type/
+     enum/namespace) also accounts for superseded members owned by that
+     type in the same file, without requiring every field to be listed.
+  3. Ownerless attribute removals still target module scope only and must
+     not exempt owned members (preserve fix-ownerless-module-attribute-
+     removal safety).
+  4. E110 remediation text names the `of` owner when the dropped artifact
+     was owned, so authors are not steered into re-declaring deleted
+     symbols.
+
+  Scope boundaries:
+  - In scope: supersession audit identity matching, owner-type cascade,
+    owned-attribute regression tests, E110 suggestion wording.
+  - Out of scope: changing E311 collection, requiring `of` on every
+    attribute removal, hubb-ops manifest edits, severity escalation.
+temptations:
+- risk: Do not match ownerless attribute removals to owned members by bare name.
+  instead: Compare exact merge keys; cascade only from a semantically absent owner
+    name across all structural owner kinds to members whose `of` equals that
+    owner.
+- risk: Do not let removing ContactInsert exempt
+    ExternalTicketTokenRow.created_by.
+  instead: Cascade only when artifact.of equals the removed owner name in the
+    same file.
+- risk: Do not treat removed_artifacts as self-attested supersession exemptions.
+  instead: Grant exemptions only after _removal_is_verified_absent succeeds for
+    the owner or owned entry.
+- risk: Do not "fix" E110 by re-declaring deleted attributes in files.edit.
+  instead: Account for intentional removals via of-qualified removed_artifacts
+    or owner-type cascade.
+files:
+  scope:
+  - path: maid_runner/core/supersession_audit.py
+    reason: Adjust supersession removal identity matching and E110 suggestion
+      text; no new public symbols.
+  - path: maid_runner/schemas/manifest.v2.schema.json
+    reason: Clarify removed_artifacts.of description for owned attributes;
+      schema shape unchanged.
+  edit:
+  - path: tests/core/test_removed_module_attributes.py
+    artifacts:
+    - kind: test_function
+      name: test_owned_attribute_removal_with_of_exempts_exact_owner
+      source_scenario: >
+        Both owner interfaces remain present. A replacement removes only
+        ContactInsert.created_by with of: ContactInsert while the same-named
+        ExternalTicketTokenRow.created_by remains in source but is omitted from
+        the replacement contract.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: >
+          find_violations returns no violation for ContactInsert.created_by
+          and still reports ExternalTicketTokenRow.created_by as dropped,
+          proving the qualified removal matches only the exact owner.
+    - kind: test_function
+      name: test_verified_owner_type_removal_cascades_to_owned_attributes
+      source_scenario: >
+        A replacement lists only the ContactInsert interface under
+        removed_artifacts; ContactInsert is absent from source; superseded
+        attributes were owned by ContactInsert.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: >
+          find_violations returns no E110-style drop for the owned
+          ContactInsert attributes.
+    - kind: test_function
+      name:
+        test_owner_cascade_does_not_exempt_same_named_attribute_on_other_owner
+      source_scenario: >
+        ContactInsert is removed and verified absent while
+        ExternalTicketTokenRow is re-declared without created_by.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: >
+          find_violations still reports ExternalTicketTokenRow.created_by as
+          dropped.
+    - kind: test_function
+      name: test_owner_cascade_requires_owner_name_absent_across_structural_kinds
+      source_scenario: >
+        A replacement marks interface ContactInsert removed while a class with
+        the same owner name and created_by member remains in source.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: >
+          find_violations still reports ContactInsert.created_by because an
+          owner with that name remains under another structural kind.
+    - kind: test_function
+      name: test_e110_suggestion_names_of_for_owned_attribute_drop
+      source_scenario: >
+        A replacement drops ContactInsert.created_by without removed_artifacts
+        or re-declaration.
+      actions:
+      - type: api_call
+        subject:
+          export: SupersessionAuditor
+      expected:
+        behavior: >
+          audit() E110 suggestion for the owned drop names of: ContactInsert.
+  read:
+  - maid_runner/core/_removed_artifacts.py
+  - manifests/fix-ownerless-module-attribute-removal.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_removed_module_attributes.py
+outcome:
+  status: completed
+  completed_at: "2026-07-22T06:05:07Z"
+  summary: >
+    E110 now accepts exact owner-qualified attribute removals and verified
+    structural-owner cascades without allowing a removed owner kind to hide
+    members of a same-named surviving owner.
+  rationale: >
+    Exact `of` merge keys solve member-level ambiguity. Owner-level cascade
+    remains safe only when the owner name is absent across every supported
+    structural kind, preventing interface-to-class changes from bypassing
+    supersession preservation.
+  lessons:
+  - lesson_type: anti-gaming
+    summary: >
+      Verifying only the declared owner kind is insufficient for cascade;
+      semantic owner absence must account for same-named structural kinds.
+    tags:
+    - supersession
+    - owner-identity
+    - anti-gaming
+  - lesson_type: testing
+    summary: >
+      Exact member-removal tests must avoid simultaneously removing the owner,
+      or owner cascade can mask a broken `of` identity implementation.
+    tags:
+    - behavioral-test
+    - exact-identity
+  review_notes:
+  - source: maid-implementation-reviewer
+    severity: warning
+    summary: >
+      Initial review found cross-kind owner cascade could exempt surviving
+      members; a second review found exact-owner coverage relied on cascade.
+      Both findings were fixed through locked contract revisions.
+  - source: maid-implementation-reviewer
+    severity: info
+    summary: >
+      Final independent convergence review returned Ready to merge with no
+      findings; method-specific cascade coverage was noted as non-blocking and
+      outside the attribute-removal contract.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_removed_module_attributes.py
+    - tests/core/test_supersession_audit.py
+    status: passed
+    summary: 53 focused supersession and removed-attribute tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 450 manifests validated with zero failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 197 declared test commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: All nine handoff stages passed with zero blockers.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --manifest-dir
+    - manifests
+    - --mode
+    - behavioral
+    status: passed
+    summary: Original hubb-ops reproduction passed 29 active manifests with zero failures.
+  agent:
+    model: GPT-5
+    client: codex
+    skills:
+    - maid-implementer
+    - maid-implementation-review

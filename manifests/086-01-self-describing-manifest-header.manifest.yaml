@@ -1,0 +1,315 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Emit a self-describing comment header in generated manifests so MAID-unaware
+  readers can identify and research a manifest without external context"
+type: feature
+created: "2026-07-25T08:54:02Z"
+metadata:
+  tags:
+    - adoption
+    - manifest-authoring
+    - developer-experience
+    - brownfield
+  priority: medium
+description: |
+  A committed manifest currently arrives in a shared repository with no
+  self-identification. A teammate who has never heard of MAID sees an
+  unfamiliar YAML file, cannot tell whether it is required to build or run the
+  project, and has no pointer for finding out. Manifests are the one MAID
+  artifact worth committing into a MAID-unaware repo — they document intent and
+  scope and are useful to reviewers who adopt nothing — so the missing
+  self-introduction is the sole blocker to a zero-pressure introduction.
+
+  Emit a fixed, ASCII-only, flush-left comment banner at the top of manifests
+  written by the generation commands. The banner states what a manifest is,
+  that it is not needed to build or run the project, and where to read more.
+
+  Emission points (verified by inspection):
+
+  - `maid manifest create` renders through
+    `maid_runner/cli/commands/manifest.py::_dump_manifest_yaml`.
+  - `maid manifest from-diff` renders through
+    `maid_runner/core/manifest_from_diff.py::write_from_diff_manifest`.
+  - `maid_runner/core/manifest.py::save_manifest` is a shared chokepoint rather
+    than a single command. `maid_runner/core/snapshot.py::save_snapshot` calls it
+    for its default `format="yaml"` output, and three CLI commands reach it:
+    `maid snapshot` and `maid snapshot-system` via
+    `maid_runner/cli/commands/snapshot.py`, and `maid bootstrap` via
+    `maid_runner/core/bootstrap.py::bootstrap_project`. Wiring the chokepoint
+    instead of the call sites is deliberate: it covers all three, including the
+    mass brownfield adoption command, and cannot drift per command.
+
+  Three writer functions, five reachable commands. Prefer describing the writer
+  functions over enumerating commands; the enumeration is what went stale and
+  produced the snapshot miss below.
+
+  `maid manifest promote` needs no change: it renders through
+  `_render_promoted_yaml`, which uses ruamel round-trip mode and preserves
+  leading comments, so a banner authored in a draft carries into
+  `manifests/` unchanged. `maid init` is deliberately out of scope because it
+  writes `.gitignore`, pre-commit config, and agent payloads but never manifest
+  YAML.
+
+  An earlier revision of this manifest excluded `maid snapshot` on the false
+  claim that it writes JSON. Only the explicit JSON branch of `save_snapshot`
+  does; `format` defaults to `"yaml"` and the CLI never overrides it, so the
+  default snapshot output is YAML written by `save_manifest`. Implementation
+  review caught this, and it mattered: `maid snapshot` is the documented
+  brownfield entry point and has produced 48 committed manifests in this
+  repository, making it the most likely source of a stranger's first manifest.
+  Excluding it would have left the goal unmet for exactly the audience the
+  banner exists for. `save_manifest` is public exported API, so it is declared
+  here rather than changed silently.
+
+  `maid_runner/compat/v1_loader.py::convert_v1_file` is a fourth YAML writer but
+  has no CLI caller, so it stays out of scope and belongs to follow-up inventory.
+
+  Three interactions are already verified and must be preserved rather than
+  rediscovered:
+
+  1. Contract hashing is comment-blind. `compute_manifest_contract_hash`
+     parses the YAML and hashes canonical JSON of the parsed mapping, so
+     inserting or rewording the banner leaves `manifest_hash` unchanged and
+     never invalidates an existing plan lock. This is what makes the banner
+     safe to backfill onto locked manifests.
+  2. Draft-kind marker detection survives a banner above it.
+     `chain.py::_has_leading_inactive_marker_comment` walks the whole leading
+     comment block, skipping blank lines, and only stops at the first line
+     that does not start with `#`. Confirmed empirically: a banner prepended
+     above `# draft-kind: epic` still resolves as marked.
+  3. The banner must be flush-left. That same function tests
+     `line.startswith("#")` on the raw line rather than the stripped line, so
+     an indented banner line returns `False` immediately and would hide a
+     following `draft-kind` marker. Confirmed empirically: a leading
+     `"  # indented"` line breaks detection.
+
+  For drafts the `# draft-kind:` / `# archive-kind:` marker keeps line 1, which
+  matches `manifests/drafts/README.md` and every existing draft; the banner is
+  inserted immediately after it. For non-draft output the banner goes at the
+  very top.
+
+  Acceptance criteria for the hardening agent to turn into behavioral tests:
+
+  - `maid manifest create` writes a manifest whose first line begins with `#`
+    and whose leading comment block contains the maid-runner docs URL.
+  - `maid manifest from-diff` writes a draft carrying the banner at the top.
+    from-diff renders pure `yaml.safe_dump` and emits no `draft-kind` marker, so
+    marker-after insertion is covered by a direct `prepend_manifest_header` unit
+    test rather than a from-diff assertion.
+  - `chain._has_leading_inactive_marker_comment` still returns `True` for a
+    generated draft carrying both the banner and a `draft-kind` marker.
+  - `compute_manifest_contract_hash` returns an identical hash for a manifest
+    before and after banner insertion, so existing plan locks stay valid.
+  - `prepend_manifest_header` applied twice equals applying it once.
+  - Every banner line is flush-left and contains only ASCII characters.
+  - `save_manifest` writes a banner, and the manifest it wrote still loads with
+    the same goal, so the banner never corrupts a round trip.
+  - `save_snapshot` with its default format writes a headed YAML manifest.
+  - A manifest whose body quotes the banner's first line still receives a
+    banner, because the idempotency check scans only the leading comment block.
+  - A banner whose first line carries trailing whitespace is recognized rather
+    than stacked, so backfilling a manifest an editor has touched stays
+    idempotent.
+  - Apart from the inserted banner, `from-diff` output bytes are unchanged for
+    identical input data.
+temptations:
+  - risk: "Do not add the banner to maid init just because the request named it; init
+      writes no manifest YAML, only .gitignore, pre-commit config, and the
+      .claude/.codex agent payloads."
+    instead: "Emit from the three verified manifest-writing functions and let promote
+      inherit the banner through ruamel comment preservation. Prefer the shared
+      chokepoint over per-command wiring: save_manifest covers maid snapshot,
+      snapshot-system, and bootstrap at once."
+  - risk: "Do not use non-ASCII characters such as an em dash in the banner."
+    instead: "Keep the banner ASCII-only, because every writer calls Path.write_text
+      without an explicit encoding and therefore depends on the locale encoding."
+  - risk: "Do not stack a second banner when regenerating with --force, and do not
+      reflow or normalize any other comment while inserting."
+    instead: "Make insertion idempotent via the banner sentinel line and only prepend,
+      leaving the rest of the rendered bytes untouched so from-diff stays byte-stable."
+  - risk: "Do not indent the banner or move it below the first YAML key for cosmetic
+      reasons."
+    instead: "Keep it flush-left and above the first YAML key so draft-kind and archive-kind
+      marker detection keeps working."
+  - risk: "Do not add a config flag, env var, or --no-header knob to make the banner
+      optional."
+    instead: "Keep generated output deterministic; a four-line comment needs no policy
+      surface, and comments are already free to delete by hand."
+files:
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: attribute
+          name: MANIFEST_HEADER_COMMENT
+          type: str
+          description: "Canonical ASCII-only, flush-left four-line comment banner
+            stating what a manifest is, that it is not required to build or run the
+            project, and the https://github.com/mamertofabian/maid-runner pointer.
+            Each line starts with '#' and the text ends with a newline."
+        - kind: function
+          name: prepend_manifest_header
+          args:
+            - name: rendered
+              type: str
+          returns: str
+          description: "Return rendered YAML with MANIFEST_HEADER_COMMENT inserted
+            flush-left above the first YAML key. Idempotent: returns rendered unchanged
+            when the banner already appears in the leading comment block, detected by
+            scanning only that block rather than the whole document so a manifest whose
+            body quotes the banner still gets one, and comparing each line with trailing
+            whitespace stripped so an editor-scuffed banner is still recognized rather
+            than stacked. Inserts the banner immediately after
+            a leading '# draft-kind:' or '# archive-kind:' marker line when one is
+            present, otherwise at the very top. Makes no other modification to rendered."
+        - kind: function
+          name: save_manifest
+          args:
+            - name: manifest
+              type: Manifest
+            - name: path
+              type: Union[str, Path]
+          returns: None
+          description: "Serialize a Manifest to YAML at path with the canonical header
+            banner prepended, so the default maid snapshot output identifies itself.
+            Key order and flow style are unchanged."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: _dump_manifest_yaml
+          args:
+            - name: data
+              type: dict
+          returns: str
+          description: "Render manifest YAML with human-reviewable string styles,
+            then return it with the canonical manifest header banner prepended via
+            prepend_manifest_header."
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: write_from_diff_manifest
+          args:
+            - name: data
+              type: dict
+            - name: output_path
+              type: Union[str, Path]
+            - name: force
+              type: bool
+              default: "False"
+          returns: Path
+          description: "Validate and write a byte-stable draft manifest whose rendered
+            text carries the canonical header banner below the draft-kind marker line;
+            schema validation and draft-path enforcement are unchanged."
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/plan_lock.py
+    - manifests/drafts/README.md
+validate:
+  - uv run maid validate 
+    manifests/086-01-self-describing-manifest-header.manifest.yaml --mode schema
+    --quiet
+  - uv run python -m pytest tests/core/test_manifest_header.py -v
+  - uv run python -m pytest tests/cli/test_manifest_cmd.py -v
+  - uv run python -m pytest tests/cli/test_manifest_from_diff_cmd.py -v
+  - uv run python -m pytest tests/core/test_manifest_from_diff.py -v
+  - uv run python -m pytest tests/core/test_manifest.py -v
+  - uv run python -m pytest tests/core/test_snapshot.py -v
+outcome:
+  status: completed
+  completed_at: "2026-07-25T09:38:36Z"
+  summary: "Manifests written by MAID now carry a four-line ASCII comment banner naming what a manifest is, stating it is not needed to build or run the project, and linking the project, so a manifest committed into a MAID-unaware repository introduces itself. Three writer functions cover five reachable commands: manifest create, manifest from-diff, snapshot, snapshot-system, and bootstrap."
+  rationale: "Manifests are the one MAID artifact worth committing into a repo where nobody else uses MAID, because they document intent and scope and help reviewers who adopt nothing. Nothing identified them. Comments were the right carrier: compute_manifest_contract_hash parses YAML and hashes canonical JSON, so the banner is contract-neutral and can be backfilled onto already-locked manifests, verified live when adding the banner to this manifest after locking left maid plan status reporting Manifest: match."
+  agent:
+    model: claude-opus-5
+    provider: anthropic
+    client: claude-code
+  lessons:
+  - lesson_type: workflow
+    summary: "Grep is not inspection. This contract originally excluded maid snapshot because grepping snapshot.py for write_text surfaced only its json.dumps branch; the default format=yaml path delegates to save_manifest in another module. The false rationale survived into a locked contract and was caught only by implementation review. Trace delegation chains before declaring a writer out of scope, and prefer wiring a shared chokepoint over enumerating commands: save_manifest turned out to serve snapshot, snapshot-system, and bootstrap at once."
+    tags:
+    - manifest-authoring
+    - contract-fidelity
+    - review-value
+    paths:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/bootstrap.py
+  - lesson_type: testing
+    summary: "A new red-phase test module that imports a not-yet-existing artifact at module scope fails collection with ImportError, which is pytest exit code 2. maid plan lock classifies that as invalid rather than red, one invalid command forces red_evidence.red to false, and plan revise --preserve-red-evidence then dead-ends. Import the artifacts under test inside each test function, matching the existing convention in tests/cli/test_manifest_cmd.py; recapture with plan revise --stash-implementation --allow-sibling-dirty."
+    tags:
+    - plan-lock
+    - red-evidence
+    - testing
+    paths:
+    - tests/core/test_manifest_header.py
+  - lesson_type: design
+    summary: "An idempotency guard must be scoped to the structural region it reasons about, and must tolerate cosmetic noise inside it. Checking `sentinel in rendered` across the whole document meant a manifest quoting the banner in its description silently received none; scoping the scan to the leading comment block, mirroring chain.py::_has_leading_inactive_marker_comment, also makes the two functions share one definition of leading comment block so they cannot drift apart. Tightening to exact line equality then introduced the mirror-image bug, stacking a second banner when a line carried trailing whitespace, so the comparison strips trailing whitespace. Recognition of an existing artifact should be as forgiving as correctness allows; emission stays exact."
+    tags:
+    - fail-loud
+    - idempotence
+    paths:
+    - maid_runner/core/manifest.py
+    - maid_runner/core/chain.py
+  - lesson_type: workflow
+    summary: "Comment-only manifest edits are contract-neutral, so a banner can be added to a locked manifest without plan revise. The inverse also holds and is a trap: maid manifest promote uses ruamel round-trip and preserves comments, so a promoted manifest keeps its # draft-kind: marker. That residue is cosmetic because _inactive_manifest_is_marked is only consulted for files already under an inactive directory."
+    tags:
+    - plan-lock
+    - promotion
+    - hashing
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/manifest.py
+  review_notes:
+  - source: maid-implementation-reviewer-round-1
+    severity: needs-discussion
+    summary: "Code correct and in scope, but the contract excluded maid snapshot on the false claim that it writes JSON; save_snapshot defaults to format=yaml via save_manifest, leaving the goal unmet for the documented brownfield entry point and its 48 committed manifests. Also flagged the unanchored idempotency sentinel as reachable once 088-01 applies the function to existing files."
+  - source: maid-implementation-reviewer-round-2
+    severity: needs-changes
+    summary: "Both fixes verified correct and broader than documented; save_manifest is the chokepoint for snapshot, snapshot-system, and bootstrap. Remaining blocker was contract fidelity only: temptations still described two writers, and 088-01 declares this manifest in files.read, so the next implementer would have read a stale procedure."
+  - source: maid-implementation-reviewer-round-2-followup
+    severity: ready
+    summary: "Stale temptations corrected and emission points reframed around the shared save_manifest chokepoint via contract-preserving plan revise with preserved red evidence."
+  - source: maid-implementation-reviewer-round-2-residual
+    severity: info
+    summary: "Reviewer's residual advisory about exact-equality sentinel stacking a banner on trailing whitespace was implemented here at user request rather than deferred to 088-01: red test first, then rstrip comparison at lock revision 7. 088-01 now carries it as a regression check through the backfill path instead of new work."
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/086-01-self-describing-manifest-header.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: "Implementation validation passed for the promoted manifest after save_manifest joined the declared artifacts."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --base-ref
+    - HEAD
+    status: passed
+    summary: "All nine stages passed; only pre-existing E307 no-validator warnings for ts_compiler_resolver.cjs and Makefile."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    status: passed
+    summary: "3516 passed, 5 skipped; three new banner tests and no regressions from changing save_manifest output."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "453 manifests, 356 passed, 0 failed, 97 skipped as superseded."

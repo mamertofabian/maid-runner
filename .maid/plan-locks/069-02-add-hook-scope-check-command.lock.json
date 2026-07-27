@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
-  "manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
+  "manifest_hash": "sha256-contract:da0222cb356cedfcde118b7b46c190a1e5f0ac0391821e2a404e3949d6e6440c",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_hook_cmd.py": "sha256-pyast:a3e54f782286e725d64e4c572ce33976a31618b6573a9eeb94b004354221cc7d"
   },
   "created_at": "2026-06-16T23:38:48.527182+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:8a870f317a7f15384931a0acba16cea943679d8b440ed488b725e80b71e9905c",
@@ -123,6 +123,24 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:6bc8bb0d9c8e8024edacc85f4d1741901673fd9045e53eb2baeef153cf62fff9",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_hook_cmd.py": "sha256:bc9c4d829567354a70fdbe95120f069414247a76a8807790d16160546d539953"
+      },
+      "revised_at": "2026-07-25T01:08:47.755671+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -149,6 +167,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -220,6 +239,183 @@
         "maid_runner/cli/commands/files.py",
         "maid_runner/core/active_task.py",
         "maid_runner/core/manifest.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/scope_check.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ScopeCheckDecision",
+              "description": "JSON-serializable allow/deny decision for one candidate path under the active manifest scope rules."
+            },
+            {
+              "kind": "attribute",
+              "name": "decision",
+              "description": "Whether the hook should allow or deny the candidate path.",
+              "of": "ScopeCheckDecision",
+              "type": "Literal['allow', 'deny']"
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "description": "Machine-readable or concise human-readable reason for the decision.",
+              "of": "ScopeCheckDecision",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "active_manifest",
+              "description": "Resolved active manifest path when one participated in the decision.",
+              "of": "ScopeCheckDecision",
+              "type": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "declared_scope_paths",
+              "description": "Return the single-manifest allowed path set: create/edit/delete paths, manifest path, declared test files from files.read and validate commands, and draft-manifest paths.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                }
+              ],
+              "returns": "set[str]"
+            },
+            {
+              "kind": "function",
+              "name": "scope_check_path",
+              "description": "Load only the active manifest when present and decide whether the candidate path is allowed under the pinned hook scope rules.",
+              "args": [
+                {
+                  "name": "candidate_path",
+                  "type": "str"
+                },
+                {
+                  "name": "active_manifest",
+                  "type": "str | None"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "strict",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "ScopeCheckDecision"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/hook.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_hook",
+              "description": "Handle maid hook scope-check: resolve the active task, decide allow/deny per the pinned scope rules, print one JSON decision object on stdout, and return 0 (allow), 2 (deny), or 1 (internal error, allow by default, deny under --strict).",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Parser exposes a hook command group with a scope-check subcommand accepting --path, --stdin, and --strict.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "The CLI dispatches hook subcommands to maid_runner.cli.commands.hook.cmd_hook.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_hook_cli_reference",
+              "description": "Minimal CLI reference entry for the registered `maid hook` command group so command-doc parity remains green before the fuller 069-04 workflow docs land.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_hook_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_build_parser_registers_hook_scope_check_subcommand",
+              "description": "The parser registers `maid hook scope-check` with --path, --stdin, and --strict arguments."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_allows_manifest_write_scope_manifest_and_drafts",
+              "description": "Paths in create/edit/delete scope, the active manifest path, and draft manifest paths are allowed."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_allows_declared_test_files_but_denies_plain_read_files",
+              "description": "Declared test files are allowed while non-test files.read dependencies remain denied with an active-manifest reason."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_accepts_stdin_json_path",
+              "description": "`--stdin` accepts a hook-style JSON object containing a path field."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_no_active_task_defaults_to_allow_and_strict_denies",
+              "description": "No active task allows by default with reason no-active-task and denies under --strict."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_internal_errors_fail_open_by_default_and_fail_closed_strict",
+              "description": "Manifest loading errors exit as internal errors while the JSON decision fails open by default and closed under --strict."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/active_task.py",
+        "maid_runner/cli/commands/files.py",
         "tests/test_agent_payload_distribution.py"
       ]
     },

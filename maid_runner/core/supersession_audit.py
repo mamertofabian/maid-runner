@@ -30,6 +30,16 @@ from maid_runner.core.types import ArtifactKind, RemovedArtifactSpec
 if TYPE_CHECKING:
     from maid_runner.core.chain import ManifestChain
 
+_OWNER_TYPE_KINDS = frozenset(
+    {
+        ArtifactKind.CLASS,
+        ArtifactKind.INTERFACE,
+        ArtifactKind.TYPE,
+        ArtifactKind.ENUM,
+        ArtifactKind.NAMESPACE,
+    }
+)
+
 
 class _GrandfatherLockLoadError(Exception):
     """Raised when a grandfather lock file exists but cannot be parsed.
@@ -255,6 +265,15 @@ class SupersessionAuditor:
                 return False
         return True
 
+    def _owner_name_is_verified_absent(self, spec: RemovedArtifactSpec) -> bool:
+        """Return True iff no structural owner kind still uses the name."""
+        return all(
+            self._removal_is_verified_absent(
+                RemovedArtifactSpec(kind=kind, name=spec.name, file=spec.file)
+            )
+            for kind in _OWNER_TYPE_KINDS
+        )
+
     def find_violations(
         self, chain: "ManifestChain"
     ) -> "tuple[SupersessionViolation, ...]":
@@ -272,10 +291,16 @@ class SupersessionAuditor:
                 if not (self._project_root / ds.path).exists()
             }
             removed_by_file: dict[str, set[str]] = {}
+            removed_owners_by_file: dict[str, set[str]] = {}
             for ra in replacement.removed_artifacts:
                 if not self._removal_is_verified_absent(ra):
                     continue
                 removed_by_file.setdefault(ra.file, set()).add(_removed_spec_key(ra))
+                if (
+                    ra.kind in _OWNER_TYPE_KINDS
+                    and self._owner_name_is_verified_absent(ra)
+                ):
+                    removed_owners_by_file.setdefault(ra.file, set()).add(ra.name)
 
             for superseded_slug in replacement.supersedes:
                 superseded = manifests_by_slug.get(superseded_slug)
@@ -286,6 +311,7 @@ class SupersessionAuditor:
                         continue
                     file_replacement_keys = replacement_keys_by_file.get(fs.path, set())
                     file_removed_keys = removed_by_file.get(fs.path, set())
+                    file_removed_owners = removed_owners_by_file.get(fs.path, set())
                     for artifact in fs.artifacts:
                         if artifact.is_private:
                             continue
@@ -295,6 +321,11 @@ class SupersessionAuditor:
                         if key in file_replacement_keys:
                             continue
                         if key in file_removed_keys:
+                            continue
+                        if (
+                            artifact.of is not None
+                            and artifact.of in file_removed_owners
+                        ):
                             continue
                         violations.append(
                             SupersessionViolation(
@@ -363,11 +394,7 @@ class SupersessionAuditor:
                         ),
                         severity=drop_severity,
                         location=Location(file=v.superseding_manifest_path),
-                        suggestion=(
-                            "Re-declare the artifact in the replacement manifest, "
-                            "list its file under files.delete, or list the symbol "
-                            "under removed_artifacts."
-                        ),
+                        suggestion=_drop_suggestion(v),
                     )
                 )
 
@@ -387,3 +414,26 @@ def _removed_spec_key(spec: RemovedArtifactSpec) -> str:
     if spec.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and spec.of:
         return f"{spec.kind.value}:{spec.of}.{spec.name}"
     return f"{spec.kind.value}:{spec.name}"
+
+
+def _owner_from_artifact_key(artifact_key: str) -> Optional[str]:
+    _, _, rest = artifact_key.partition(":")
+    if "." not in rest:
+        return None
+    owner, _, _ = rest.rpartition(".")
+    return owner or None
+
+
+def _drop_suggestion(violation: SupersessionViolation) -> str:
+    base = (
+        "Re-declare the artifact in the replacement manifest, "
+        "list its file under files.delete, or list the symbol "
+        "under removed_artifacts"
+    )
+    owner = _owner_from_artifact_key(violation.artifact_key)
+    if owner is None:
+        return f"{base}."
+    return (
+        f"{base} with `of: {owner}` so the removal matches "
+        f"the owned identity `{violation.artifact_key}`."
+    )

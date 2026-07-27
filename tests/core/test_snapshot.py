@@ -322,6 +322,25 @@ class TestSaveSnapshot:
         assert data["goal"] == "Snapshot of test.py"
         assert data["type"] == "snapshot"
 
+    def test_save_yaml_default_writes_self_describing_header(self, tmp_path):
+        """maid snapshot is the brownfield entry point, so its default output
+        is the most likely manifest a MAID-unaware teammate opens first."""
+        m = Manifest(
+            slug="snapshot-test",
+            source_path="",
+            goal="Snapshot of test.py",
+            validate_commands=(("pytest", "tests/", "-v"),),
+            task_type=TaskType.SNAPSHOT,
+            files_snapshot=(),
+        )
+
+        out = save_snapshot(m, output_dir=str(tmp_path))
+
+        source = out.read_text()
+        assert source.startswith("#")
+        assert "github.com/mamertofabian/maid-runner" in source
+        assert yaml.safe_load(source)["goal"] == "Snapshot of test.py"
+
     def test_save_json_format(self, tmp_path):
         """Save snapshot as JSON."""
         m = Manifest(

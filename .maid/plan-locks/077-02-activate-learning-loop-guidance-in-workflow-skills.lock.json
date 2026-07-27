@@ -1,15 +1,15 @@
 {
   "manifest_path": "manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml",
-  "manifest_hash": "sha256:4da1964e401dc2e5a613eb86d8452c3739f020511e3cef5b2167f2b822b49018",
+  "manifest_hash": "sha256-contract:b447be36fe0e6785738ddade63724d87a974584196d3854b38b3086f06c4fd97",
   "test_hashes": {
-    "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
-    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
-    "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
+    "tests/test_recall_skill_guidance.py": "sha256-pyast:9aa5c43988361275c65ab7b98aa25041a290da49b90f82c6d0657a3cb6789217",
+    "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_learn_cmd.py": "sha256-pyast:432ef9a672adfe5ca35f22852dd10452a4cbab9a84d36dc5a2f8bd6939f4eada",
+    "tests/test_learning_loop_workflow_guidance.py": "sha256-pyast:d9ab117426dc0269b2908b871617f7096affe324707402ded6eff3204764e44d"
   },
   "created_at": "2026-06-26T15:40:51.445215+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c85a5f1aacba8177d19f8b248aa51da35b4d9fbe74c5aa0c69830dd3e2934c2b",
@@ -135,6 +135,27 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:4da1964e401dc2e5a613eb86d8452c3739f020511e3cef5b2167f2b822b49018",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256:859416eadd58a9f8fa71ce9ff88e3d1079168a24ae71ab2bfcfbd4225c0b3757",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_learn_cmd.py": "sha256:e16a017514e6a6e4efc549c85863a6493ace7c1eccd0da4be5ac0d98a593e1a6",
+        "tests/test_learning_loop_workflow_guidance.py": "sha256:61bbee2ccc65ceff5d48734a08d2047bfe10dd82b92ae04ddaefd8f474d60fc8"
+      },
+      "revised_at": "2026-07-25T01:08:48.933679+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -149,6 +170,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -291,6 +313,308 @@
         "tests/test_agent_payload_distribution.py",
         "tests/test_recall_payload_sync.py",
         "tests/test_recall_skill_guidance.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_learning_loop_workflow_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_workflow_skills_have_active_insights_trigger",
+              "description": "Behavioral coverage that all four workflow skills contain an active `maid insights` trigger rather than only the defensive aggregate-evidence framing.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recall_threads_into_implementation_and_review",
+              "description": "Behavioral coverage that plan-review, implementer, and implementation-review contain active recall guidance with the exact shipped recall command surface.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_completed_recall_guidance_present",
+              "description": "Behavioral coverage that the failure-lesson opt-in note quotes the exact `maid learn --include-status completed --include-status abandoned` form.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_uses_registered_options",
+              "description": "Negative behavioral coverage that guidance uses only registered options per command and never attaches --include-status to recall/insights or invents insights flags.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_handles_stale_indexes_explicitly",
+              "description": "Behavioral coverage that all four workflow skills say stale recall/insights indexes fail by default and name `maid learn` plus `--allow-stale-index` as the only stale-read remedies.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_requires_learning_evidence_digestion",
+              "description": "Behavioral coverage that all four workflow skills require agents to reason over retrieved learning by naming applicable lessons, rejected stale or irrelevant lessons, and concrete influence on the current phase.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_learning_evidence_digest_is_phase_specific",
+              "description": "Behavioral coverage that the digestion protocol is phase-specific: planner affects scope/tests/temptations/questions, plan-review affects findings/revisions, implementer affects tests/approach/risk controls inside scope, and implementation-review affects review focus/Outcome capture/follow-up work.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_closes_loop_between_outcomes_and_decisions",
+              "description": "Behavioral coverage that all four workflow skills frame recall/insights as closing the loop between completed Outcome records and current agent decisions, not as a raw transcript or passive lookup.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_stays_advisory",
+              "description": "Behavioral coverage that each skill preserves the advisory framing that recalled, aggregated, and digested Outcomes never replace tests, scope, validation, approval, done gates, or review.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_synced",
+              "description": "Behavioral coverage that generated Claude and Codex package copies equal their sources for all four skills after an isolated sync and carry the activated guidance anchors.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_guidance_distribution_manifests_include_all_four_skills",
+              "description": "Behavioral coverage that an isolated payload sync lists maid-planner, maid-plan-review, maid-implementer, and maid-implementation-review in both generated Claude and Codex distributable skill manifests.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_planner_learning_loop_guidance",
+              "description": "Active insights trigger, failure-lesson opt-in note, and learning-evidence digestion protocol for the planner, preserving the existing 066-03 recall anchor and advisory framing.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_planner_learning_loop_guidance",
+              "description": "Codex source copy of the planner learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_planner_learning_loop_guidance",
+              "description": "Generated Claude package copy of the planner learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_planner_learning_loop_guidance",
+              "description": "Generated Codex package copy of the planner learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-plan-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_plan_review_learning_loop_guidance",
+              "description": "Active insights, threaded-recall, and learning-evidence digestion guidance for plan-review, preserving advisory framing.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-plan-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_plan_review_learning_loop_guidance",
+              "description": "Codex source copy of the plan-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-plan-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_plan_review_learning_loop_guidance",
+              "description": "Generated Claude package copy of the plan-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-plan-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_plan_review_learning_loop_guidance",
+              "description": "Generated Codex package copy of the plan-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementer_learning_loop_guidance",
+              "description": "Active insights trigger, threaded-recall guidance, failure-lesson opt-in note, and learning-evidence digestion protocol for the implementer, preserving advisory framing and manifest scope.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_implementer_learning_loop_guidance",
+              "description": "Codex source copy of the implementer learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_implementer_learning_loop_guidance",
+              "description": "Generated Claude package copy of the implementer learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_implementer_learning_loop_guidance",
+              "description": "Generated Codex package copy of the implementer learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementation_review_learning_loop_guidance",
+              "description": "Active insights, threaded-recall, and learning-evidence digestion guidance for implementation review, preserving advisory framing and the existing Outcome-record check.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_implementation_review_learning_loop_guidance",
+              "description": "Codex source copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_implementation_review_learning_loop_guidance",
+              "description": "Generated Claude package copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_implementation_review_learning_loop_guidance",
+              "description": "Generated Codex package copy of the implementation-review learning-loop guidance, including phase-specific evidence digestion.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
+        "manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+        "manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/cli/commands/learn.py",
+        "maid_runner/cli/commands/_main.py",
+        "scripts/sync_claude_files.py",
+        ".claude/manifest.json",
+        "tests/test_recall_skill_guidance.py",
+        "tests/test_recall_payload_sync.py",
+        "tests/test_agent_payload_distribution.py",
+        "tests/cli/test_learn_cmd.py",
+        "docs/agent-skills.md",
+        "docs/manifest-outcome-records.md"
       ]
     },
     "test_files": [

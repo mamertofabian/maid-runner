@@ -2,12 +2,12 @@
   "manifest_path": "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
   "manifest_hash": "sha256-contract:29bdf88caadf30d25f726000cb58bcafa368b408d5dfbf8ddb7715ed620c3205",
   "test_hashes": {
-    "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
-    "tests/cli/test_plan_cmd.py": "sha256:5959b38b09688a48c5a3b35f4cf48ed382d33868e0e776a1a1dcc24baac2de53",
-    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:72c898bebca53b7793e53f19e5315f7176d05a21124519ddd23554273382f38d"
+    "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+    "tests/cli/test_plan_cmd.py": "sha256-pyast:813372fafcff898d9c436ab664a92670c5ea0a20f33f96dcb2abbf53b188c283",
+    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:628478e32efa5a4812c1af58899bd428bb95850a45826527b285c692e249b698"
   },
   "created_at": "2026-06-11T21:47:18.911730+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:22be0c84f81c65f5419339f4e7d74383ad7492ffe1b290fc885b23696da01b42",
@@ -72,6 +72,25 @@
       },
       "revised_at": "2026-07-18T01:45:13.747535+00:00",
       "reason": "Re-baseline test hashes after removing unused promoted local in sha256-contract characterization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:29bdf88caadf30d25f726000cb58bcafa368b408d5dfbf8ddb7715ed620c3205",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256:b0c369c4d6658e83338dc1a1610b233574a58d9454c3aa3055d27054946d73c1",
+        "tests/cli/test_plan_cmd.py": "sha256:5959b38b09688a48c5a3b35f4cf48ed382d33868e0e776a1a1dcc24baac2de53",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256:72c898bebca53b7793e53f19e5315f7176d05a21124519ddd23554273382f38d"
+      },
+      "revised_at": "2026-07-25T09:03:12.554047+00:00",
+      "reason": "Shared behavioral test file tests/cli/test_manifest_cmd.py gained an unrelated header-banner test from 086-01; this contract is unchanged",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

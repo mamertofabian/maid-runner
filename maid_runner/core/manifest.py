@@ -10,6 +10,7 @@ from pathlib import PureWindowsPath
 import re
 import shlex
 from typing import Union
+import uuid
 
 import jsonschema
 import yaml
@@ -43,6 +44,19 @@ _RFC3339_DATE_TIME_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}" r"(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
 
+# ASCII-only and flush-left on purpose: writers call Path.write_text without an
+# explicit encoding, and chain._has_leading_inactive_marker_comment tests
+# startswith("#") on the raw line, so an indented banner line would hide a
+# following draft-kind marker.
+MANIFEST_HEADER_COMMENT = (
+    "# MAID manifest - a machine-checked contract for one change.\n"
+    "# Declares the intent, the files it may touch, and the commands that verify it.\n"
+    "# Nothing here is needed to build or run this project; safe to ignore.\n"
+    "# What it is: https://github.com/mamertofabian/maid-runner\n"
+)
+_HEADER_SENTINEL = MANIFEST_HEADER_COMMENT.splitlines()[0]
+_LEADING_MARKER_PREFIXES = ("# draft-kind:", "# archive-kind:")
+
 
 class ManifestLoadError(Exception):
     def __init__(self, path: str, reason: str):
@@ -58,7 +72,16 @@ class ManifestSchemaError(Exception):
         super().__init__(f"Schema validation failed for {path}: {'; '.join(errors)}")
 
 
-class _DuplicateKeySafeLoader(yaml.SafeLoader):
+# Manifest parsing is the single largest cost in loading a chain: 2.53s of a
+# 3.09s load across 463 manifests on the pure-Python loader, versus 0.276s on
+# libyaml. pyyaml>=6.0 does not guarantee the C extension is compiled into the
+# installed wheel, so selection is conditional rather than an unguarded import.
+# The duplicate-key constructor below is registered on whichever class wins, so
+# rejection is a property of this loader and not of the base it happens to use.
+_YamlSafeLoaderBase = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+
+class _DuplicateKeySafeLoader(_YamlSafeLoaderBase):  # type: ignore[valid-type,misc]
     pass
 
 
@@ -101,6 +124,53 @@ def slug_from_path(path: Union[str, Path]) -> str:
         if name.endswith(suffix):
             return name[: -len(suffix)]
     return name
+
+
+def prepend_manifest_header(rendered: str) -> str:
+    """Return rendered manifest YAML with the self-describing banner on top.
+
+    A committed manifest often lands in a repository where nobody else uses
+    MAID, so it has to introduce itself. Insertion is idempotent, and a leading
+    ``# draft-kind:`` or ``# archive-kind:`` marker keeps line 1 so draft
+    classification is unaffected. Nothing else in ``rendered`` is modified.
+    """
+    # Scoped to the leading comment block, not the whole document: a manifest
+    # that quotes the banner in its description must still receive one. Compared
+    # with trailing whitespace stripped, because backfill reads manifests an
+    # editor or formatter may have touched and must not stack a second banner.
+    for line in rendered.splitlines():
+        if line.strip() == "":
+            continue
+        if not line.startswith("#"):
+            break
+        if line.rstrip() == _HEADER_SENTINEL:
+            return rendered
+    marker, newline, remainder = rendered.partition("\n")
+    if newline and marker.startswith(_LEADING_MARKER_PREFIXES):
+        return f"{marker}{newline}{MANIFEST_HEADER_COMMENT}{remainder}"
+    return f"{MANIFEST_HEADER_COMMENT}{rendered}"
+
+
+def backfill_manifest_header(manifest_path: Union[str, Path]) -> bool:
+    """Add the self-describing banner to a manifest file when it is missing.
+
+    Returns True when the file was updated and False when it already carried the
+    banner. OSError intentionally propagates so CLI callers can keep the
+    backfill advisory without hiding write failures from direct callers.
+    """
+    path = Path(manifest_path)
+    original = path.read_text()
+    updated = prepend_manifest_header(original)
+    if updated == original:
+        return False
+    temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        temporary_path.write_text(updated)
+        temporary_path.replace(path)
+    except OSError:
+        temporary_path.unlink(missing_ok=True)
+        raise
+    return True
 
 
 def validate_manifest_schema(data: dict, schema_version: str = "2") -> list[str]:
@@ -382,6 +452,12 @@ def _display_path(path: Path) -> str:
     return text
 
 
+# The suffixes load_manifest_raw dispatches on, mapped to the format a writer
+# must emit for that suffix. Manifest writers share this so they cannot drift
+# away from the reader and emit a file MAID rejects on read.
+_SUFFIX_FORMATS = {".json": "json", ".yaml": "yaml", ".yml": "yaml"}
+
+
 def load_manifest_raw(path: Union[str, Path]) -> dict:
     path = Path(path)
     if not path.exists():
@@ -425,9 +501,30 @@ def load_manifest(path: Union[str, Path]) -> Manifest:
 
 
 def save_manifest(manifest: Manifest, path: Union[str, Path]) -> None:
+    """Write a manifest in the format its output suffix implies.
+
+    ``load_manifest_raw`` dispatches on the output suffix when reading the file
+    back, so an unsupported suffix is rejected before anything is written rather
+    than silently receiving YAML and producing a file MAID cannot load.
+    """
     path = Path(path)
+    # Matched case-sensitively on purpose: load_manifest_raw and manifest chain
+    # discovery both dispatch on the exact lowercase suffix, so accepting
+    # ".YAML" here would write a file MAID cannot load back.
+    output_format = _SUFFIX_FORMATS.get(path.suffix)
+    if output_format is None:
+        raise ValueError(
+            f"Unsupported manifest output suffix {path.suffix!r}: "
+            f"use one of {', '.join(sorted(_SUFFIX_FORMATS))}"
+        )
+
     data = _manifest_to_dict(manifest)
-    path.write_text(yaml.dump(data, default_flow_style=False, sort_keys=False))
+    if output_format == "json":
+        # JSON has no comment syntax, so the self-describing banner is omitted.
+        path.write_text(json.dumps(data, indent=2))
+        return
+    rendered = yaml.dump(data, default_flow_style=False, sort_keys=False)
+    path.write_text(prepend_manifest_header(rendered))
 
 
 def _parse_manifest(data: dict, path: Path) -> Manifest:
@@ -532,6 +629,7 @@ def _parse_agent_provenance(data: dict | None) -> AgentProvenance | None:
         return None
     return AgentProvenance(
         model=data["model"],
+        reasoning_effort=data.get("reasoning_effort"),
         provider=data.get("provider"),
         client=data.get("client"),
         skills=tuple(data.get("skills", [])),
@@ -763,6 +861,8 @@ def _outcome_to_dict(outcome: OutcomeRecord) -> dict:
 
 def _agent_provenance_to_dict(agent: AgentProvenance) -> dict:
     data = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        data["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         data["provider"] = agent.provider
     if agent.client is not None:

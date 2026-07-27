@@ -208,7 +208,8 @@ For important choices, include rationale: state what was chosen and why. The imp
 
 - Public symbols only. Private `_` symbols do not belong in the contract.
 - `files.create` and `files.edit` declare the public artifact contract for new
-  or intentionally changed public API.
+  or intentionally changed public API. `files.create` is Strict Mode;
+  `files.edit` is Permissive Mode.
 - `files.scope` declares writable implementation files that have no stable
   public artifact contract. Use it for narrow route/page wiring or similar
   behavior covered through tests instead of private/local artifacts.

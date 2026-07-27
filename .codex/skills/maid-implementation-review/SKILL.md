@@ -12,16 +12,16 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - NEVER edit files.
 - NEVER modify tests or manifests during review.
 - When you are the coordinating reviewer, run an independent read-only reviewer
-  subagent before the final verdict whenever subagents are available and not
-  explicitly disabled for the turn.
+  subagent before the final verdict whenever reviewer subagents are available
+  and have not been explicitly disabled for the turn.
 - Reviewer subagents must be fresh, context-minimal review agents. Never use a
   full-history fork or pass prior implementation reasoning, conclusions, or chat
   transcript unless the review explicitly depends on a user quote.
 - If your prompt identifies you as the reviewer subagent, do not spawn another
   subagent. Perform the review locally and return the verdict.
-- Confirm changed files stay within the manifest scope: `files.create` and
-  `files.edit` for contracted public artifacts, plus `files.read` for declared
-  dependency/context files whose public surface is not being contracted.
+- Confirm changed implementation stays within the manifest `files.create`,
+  `files.edit`, and `files.scope` scope. `files.read` is dependency context and
+  does not authorize production edits.
 - Flag any implementation-phase manifest or behavioral-test edit as a process violation unless explicitly approved by the user.
 - Treat concrete behavior regressions, undeclared public API drift, and missing validation as primary findings.
 - Audit fidelity to the approved plan, including rationale and `temptations`; passing tests are not sufficient if the implementation took a path the manifest warned against.
@@ -173,6 +173,11 @@ For implementation review:
 - After the review verdict is ready, check whether the completed manifest needs an `outcome:` record.
 - Outcome capture happens after implementation review and before final handoff.
 - Confirm new Outcome lessons cite concrete validation, review, or file evidence.
+- When capturing `outcome.agent`, prefer `MAID_AGENT_MODEL` and
+  `MAID_AGENT_REASONING_EFFORT` environment ground truth. Record the exact
+  client-invoked model slug (including version and variant) plus
+  `reasoning_effort`; use a self-reported marketing name only as a labeled
+  last resort when no ground truth or exact self-known slug is available.
 - Do not mark work ready if Outcome claims are not backed by validation and review evidence.
 - To intentionally include instructive failed or abandoned Outcome lessons,
   refresh the index with this opt-in command, then recall from that index:
@@ -265,6 +270,11 @@ packet explicitly states that opt-in enforcement is out of scope for the task.
 E700/E704/E705 requirement errors apply to manifests changed in the task window;
 E701/E702/E703/E706 integrity errors are blockers regardless of task window
 scope.
+E708 PLAN_LOCK_SCOPE_WIDENED is a non-blocking advisory disclosure. It means
+the plan-lock gate deliberately enforced manifests outside the requested task
+window after changed-scope baseline resolution widened the check. Do not treat
+E708 as a handoff blocker by itself; reconcile the manifests it names or rerun
+with an explicit baseline when the wider scope was not intended.
 Prefer `--summary` for agent and human review handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun with raw text,
 `--json`, `--packet`, or SARIF only when exhaustive machine-readable detail is

@@ -1,15 +1,15 @@
 {
   "manifest_path": "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
-  "manifest_hash": "sha256:32586a0eb0ec68e85d1259eb7636233b6873c7d0a245d3cf8979b70b1b729bfa",
+  "manifest_hash": "sha256-contract:0dcf872956cfe2077f302bfaa699b7c730d61bae1949d0352188f6d2fd6483fb",
   "test_hashes": {
-    "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
-    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
-    "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
-    "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
-    "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
+    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:58be7dbcb78b6e1319153f5536518bce4a011439d38fcd7b1d9b0c8fca63c5b9",
+    "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:f8e1a784c5c3fd62fd414d977a1a8789ccbfaaf4c30d6c8390159aca9b6e685d",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
+    "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0"
   },
   "created_at": "2026-06-10T23:05:23.305360+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:09a489e6f2373dfb9a6c8ec6097f70c1b809e24fda6678be21e9c4bb68f5b71d",
@@ -76,6 +76,48 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:32586a0eb0ec68e85d1259eb7636233b6873c7d0a245d3cf8979b70b1b729bfa",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256:c63d2327a3d24029d972c613b20d193641ba9e9953f0d9b8d48abc55eae87b64",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256:c8d298a75f54678aea849755cc67c75aa6b3064db6cab960b9dece773494fb83",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256:f4ad9ea01168c940929c0b5a234ec9179390bdd82313db3623176d7b259cb022",
+        "tests/test_plan_lock_docs.py": "sha256:f478b015495d86de50adb940888c3dbbe125aa836ed2f95c32acf3177c0f0db0"
+      },
+      "revised_at": "2026-07-26T05:32:34.059992+00:00",
+      "reason": "090-01 disclosure warning: relaxed positional/exact-equality assertions on plan_lock stage findings to presence checks; contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0dcf872956cfe2077f302bfaa699b7c730d61bae1949d0352188f6d2fd6483fb",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:cda1926e1c2e37e1c3356207535cd457c24135682b74250b5df8a269570e4087",
+        "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:f8e1a784c5c3fd62fd414d977a1a8789ccbfaaf4c30d6c8390159aca9b6e685d",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
+        "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0"
+      },
+      "revised_at": "2026-07-26T05:59:46.660589+00:00",
+      "reason": "090-01 review fixes: severity-filtered exclusivity assertion; contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -102,6 +144,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -169,6 +212,162 @@
         "tests/cli/test_verify_plan_lock_scope_cmd.py",
         "tests/core/test_plan_lock_enforcement.py",
         "tests/core/test_plan_lock_scope_enforcement.py",
+        "tests/test_plan_lock_docs.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "PLAN_LOCK_UNREADABLE",
+              "description": "E706: a plan lock file exists but is corrupt, unreadable, or malformed; fails closed.",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "CLAUDE.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_plan_lock_scope_workflow_note",
+              "description": "Workflow guidance stating E700/E704/E705 apply to task-window manifests, E704 covers a missing lock, and E706 reports unreadable locks.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_plan_lock_scope_spec_section",
+              "description": "Specification of task-window enforcement scope, unscoped integrity checks, the E704 missing-lock case, and E706 PLAN_LOCK_UNREADABLE.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_plan_lock_scope_readme_note",
+              "description": "README enforcement notes covering the task-window scope rule and the E706 error code.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_howto",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_review_plan_lock_scope_guidance",
+              "description": "Claude review skill guidance treating E700-E706 plan-lock failures as blockers and stating the task-window scope.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_review_plan_lock_scope_guidance",
+              "description": "Codex review skill guidance treating E700-E706 plan-lock failures as blockers and stating the task-window scope.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/cli/commands/_format.py",
+        "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml",
+        "tests/core/test_plan_lock_scope_enforcement.py",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py",
+        "tests/core/test_plan_lock_enforcement.py",
+        "tests/cli/test_verify_plan_lock_cmd.py",
         "tests/test_plan_lock_docs.py"
       ]
     },

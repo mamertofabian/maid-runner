@@ -1,0 +1,330 @@
+{
+  "manifest_path": "manifests/fix-acceptance-test-e230-conflict.manifest.yaml",
+  "manifest_hash": "sha256-contract:9d79cb14a9e0a4cbd79777eed7c7e035301c7a76dab69185f5294c37f0d02f91",
+  "test_hashes": {
+    "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:d4d476462364ba494a61394991db9c29896ce2b3e13311fedfc857856572b7e9",
+    "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd"
+  },
+  "created_at": "2026-07-22T09:23:51.361783+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c7b05388e9dcfe2e99c6b34278ddc1f21832028c456dccc70e9e6f2de46dc6f7",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:472efbc0a355023d00997027c987974075bca9ffcba6d8bfe5f56630be5f0491"
+      },
+      "revised_at": "2026-07-22T09:23:51.879984+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-acceptance-test-e230-conflict.manifest.yaml -> manifests/fix-acceptance-test-e230-conflict.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d880fedea5a90e192bea0e098bb9be7e01e7e12c129b8604af871dca1e274882",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:472efbc0a355023d00997027c987974075bca9ffcba6d8bfe5f56630be5f0491"
+      },
+      "revised_at": "2026-07-22T09:33:15.924268+00:00",
+      "reason": "Independent review found Playwright's test subcommand can be misclassified as a top-level directory target, requiring shared target-parser coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=allow_selectors:type=bool:default=False",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, ...]:default=None",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=django_test_paths_from_validate_segment:type=Optional[_DjangoPathResolver]:default=None",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=project_root:type=Path:default=None",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:kind=function",
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:returns=list[str]",
+          "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target",
+          "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:kind=test_function",
+          "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/_test_command_targets.py",
+          "edit:tests/core/validation/test_test_command_targets.py",
+          "scope:maid_runner/core/_test_runner_invocation.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/_test_command_targets.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_acceptance_command_integrity.py tests/core/validation/test_test_command_targets.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_acceptance_command_integrity.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af58eb07694f470f0a7d9690a538b9ec60cb0517ca00bdc399a471744ed0e9ef",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:d4d476462364ba494a61394991db9c29896ce2b3e13311fedfc857856572b7e9",
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:47f9afabc901feef6b977deceab9cb173ba7edf017d6b22d8499328cdac4c686"
+      },
+      "revised_at": "2026-07-22T09:33:46.134362+00:00",
+      "reason": "Correct variadic tuple type notation to the implementation collector's exact tuple[str, Ellipsis] representation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, Ellipsis]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, ...]:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9d79cb14a9e0a4cbd79777eed7c7e035301c7a76dab69185f5294c37f0d02f91",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:d4d476462364ba494a61394991db9c29896ce2b3e13311fedfc857856572b7e9",
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:47f9afabc901feef6b977deceab9cb173ba7edf017d6b22d8499328cdac4c686"
+      },
+      "revised_at": "2026-07-22T09:42:29.819182+00:00",
+      "reason": "Rereview found separated Playwright option values could be mistaken for directory targets; strengthen the existing parser contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9d79cb14a9e0a4cbd79777eed7c7e035301c7a76dab69185f5294c37f0d02f91",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:d4d476462364ba494a61394991db9c29896ce2b3e13311fedfc857856572b7e9",
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:c63917b4428697fa8b645a1c2fc6d8b4e8a5d20d0bbd2f5ffffc29aa81bdb4f2"
+      },
+      "revised_at": "2026-07-22T09:49:14.679381+00:00",
+      "reason": "Final review showed Playwright-specific and variadic option values require bounded runner-aware target normalization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9d79cb14a9e0a4cbd79777eed7c7e035301c7a76dab69185f5294c37f0d02f91",
+      "prior_test_hashes": {
+        "tests/core/test_acceptance_command_integrity.py": "sha256-pyast:d4d476462364ba494a61394991db9c29896ce2b3e13311fedfc857856572b7e9",
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:fa2e5f36f3e206b3a36f3647f4880dc798b68575d35b5ff328f8eaa377572c4c"
+      },
+      "revised_at": "2026-07-22T09:55:23.304285+00:00",
+      "reason": "Final review found preserved package-runner cwd options blocked inner Playwright subcommand normalization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T09:55:23.681246+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_acceptance_command_integrity.py tests/core/validation/test_test_command_targets.py",
+        "exit_code": 1,
+        "output_tail": "                \"--trace\",\n                \"on\",\n                \"e2e/covered.spec.ts\",\n            ),\n            tmp_path,\n        )\n    \n>       assert paths == [\"e2e/covered.spec.ts\"]\nE       AssertionError: assert ['test', 'chr...t', 'on', ...] == ['e2e/covered.spec.ts']\nE         \nE         At index 0 diff: 'test' != 'e2e/covered.spec.ts'\nE         Left contains 6 more items, first extra item: 'chromium'\nE         Use -v to get more diff\n\ntests/core/validation/test_test_command_targets.py:125: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_acceptance_command_integrity.py::test_acceptance_targeted_e2e_file_is_not_required_in_validate\nFAILED tests/core/test_acceptance_command_integrity.py::test_uncovered_declared_test_still_requires_validate_coverage\nFAILED tests/core/validation/test_test_command_targets.py::test_playwright_subcommand_is_not_an_executing_directory_target\n3 failed, 7 passed in 0.16s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=allow_selectors:type=bool:default=False",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=django_test_paths_from_validate_segment:type=Optional[_DjangoPathResolver]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:returns=list[str]",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:returns=list[ValidationError]",
+      "tests/core/test_acceptance_command_integrity.py:test_acceptance_targeted_e2e_file_is_not_required_in_validate",
+      "tests/core/test_acceptance_command_integrity.py:test_acceptance_targeted_e2e_file_is_not_required_in_validate:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_acceptance_command_integrity.py:test_acceptance_targeted_e2e_file_is_not_required_in_validate:kind=test_function",
+      "tests/core/test_acceptance_command_integrity.py:test_acceptance_targeted_e2e_file_is_not_required_in_validate:returns=None",
+      "tests/core/test_acceptance_command_integrity.py:test_uncovered_declared_test_still_requires_validate_coverage",
+      "tests/core/test_acceptance_command_integrity.py:test_uncovered_declared_test_still_requires_validate_coverage:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_acceptance_command_integrity.py:test_uncovered_declared_test_still_requires_validate_coverage:kind=test_function",
+      "tests/core/test_acceptance_command_integrity.py:test_uncovered_declared_test_still_requires_validate_coverage:returns=None",
+      "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target",
+      "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:kind=test_function",
+      "tests/core/validation/test_test_command_targets.py:test_playwright_subcommand_is_not_an_executing_directory_target:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_acceptance_command_integrity.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "tests/core/validation/test_test_command_targets.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "manifests/032-02-require-test-runner-validate-commands.manifest.yaml",
+        "manifests/ban-e2e-from-maid-test.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_acceptance_command_integrity.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_targeted_e2e_file_is_not_required_in_validate",
+              "description": "A Playwright spec declared in files.create and targeted by acceptance.tests does not trigger E230 when validate covers the separate fast behavioral test.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_uncovered_declared_test_still_requires_validate_coverage",
+              "description": "Acceptance targeting of one declared browser spec does not hide another declared test file that neither acceptance.tests nor validate covers.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_test_commands",
+              "description": "Require fast validate commands to cover discovered behavioral tests while excluding only files explicitly targeted by acceptance commands.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "test_paths_from_executing_validate_command",
+              "description": "Return only explicit executing test targets, excluding runner executable and subcommand tokens such as Playwright's `test`.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "allow_selectors",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "Optional[_DjangoPathResolver]",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[str]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_test_command_targets.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_playwright_subcommand_is_not_an_executing_directory_target",
+              "description": "A top-level test directory does not make Playwright's `test` subcommand a coverage target; only the explicit browser spec path is returned.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "manifests/032-02-require-test-runner-validate-commands.manifest.yaml",
+        "manifests/ban-e2e-from-maid-test.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Normalize the existing private Playwright invocation shape before shared command-target scanning without introducing a new public artifact."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_acceptance_command_integrity.py",
+      "tests/core/validation/test_test_command_targets.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_acceptance_command_integrity.py tests/core/validation/test_test_command_targets.py"
+    ]
+  }
+}

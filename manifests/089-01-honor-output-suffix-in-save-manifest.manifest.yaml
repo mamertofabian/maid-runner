@@ -1,0 +1,375 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make save_manifest agree with load_manifest_raw about the output suffix so
+  the core manifest writer cannot emit a file MAID rejects on read"
+type: fix
+created: "2026-07-25T14:18:12Z"
+metadata:
+  maid_task_base: 965107ede0ebbd5514fd5ca086a0cfb7b3bfbe8d
+  sibling_drafts:
+    - manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml
+    - manifests/089-03-validate-from-diff-output-suffix.manifest.yaml
+  tags:
+    - manifest-io
+    - fail-loud
+    - public-api
+  priority: medium
+description: |
+  Land this contract before 089-02 and 089-03, because `save_snapshot`'s YAML
+  branch delegates here.
+
+  Shared context for 089-01, 089-02, and 089-03 (recorded here because 089-01
+  lands first; the three are sibling drafts, not an epic with children).
+
+  `fix-snapshot-output-format-from-suffix` (landed 2026-07-25, commit 09b597e)
+  fixed one instance of a defect family. Its implementation review identified
+  three sibling writers with the same shape, each re-verified against the
+  current tree before drafting rather than taken from the review report:
+
+  - `save_manifest` (`maid_runner/core/manifest.py:465-469`) — this contract.
+  - `convert_v1_file` (`maid_runner/compat/v1_loader.py:136-153`) — 089-02. The
+    review packet called this `migrate_v1_to_v2`; no such symbol exists.
+  - `write_from_diff_manifest` (`maid_runner/core/manifest_from_diff.py:108-120`)
+    and its CLI guard — 089-03.
+
+  The shared root cause is reader/writer asymmetry. `load_manifest_raw`
+  (`maid_runner/core/manifest.py:423-436`) dispatches on the exact lowercase
+  suffix: `.json` to strict `json.loads`, `.yaml`/`.yml` to the YAML loader, and
+  anything else raises `Unknown extension`. Manifest chain discovery globs
+  lowercase suffixes only. Every writer above ignores that contract, so each can
+  emit a file MAID rejects on read while the command exits 0.
+
+  The reference fix pattern is the one already shipped in `save_snapshot`
+  (`maid_runner/core/snapshot.py:148-190`): derive the format from the suffix,
+  match case-sensitively because the reader does, reject an unsupported suffix
+  before any filesystem effect so a rejected call leaves no partial artifact.
+
+  These are three separate contracts rather than one, because they are distinct
+  public writers with different consumers and blast radii. None of them may
+  widen `load_manifest_raw` to accept new suffixes; making the reader
+  case-insensitive is a separate contract with its own compatibility question
+  and is out of scope for all three.
+
+  `save_manifest` (`maid_runner/core/manifest.py:465-469`) renders YAML and
+  writes it to whatever path it is handed:
+
+  ```python
+  def save_manifest(manifest: Manifest, path: Union[str, Path]) -> None:
+      path = Path(path)
+      data = _manifest_to_dict(manifest)
+      rendered = yaml.dump(data, default_flow_style=False, sort_keys=False)
+      path.write_text(prepend_manifest_header(rendered))
+  ```
+
+  So `save_manifest(m, "out.json")` writes YAML that the reader then rejects
+  with a JSONDecodeError, and `save_manifest(m, "out.txt")` writes a file no
+  MAID command can load.
+
+  Resolution of the drafting-stage design question. The draft recorded three
+  options for an unsupported suffix and deferred the choice because
+  `save_manifest` is a public library export (`maid_runner/__init__.py:23,83`
+  and `maid_runner/core/__init__.py:18,65`), making a hard rejection potentially
+  breaking for external consumers. **Option 1 is chosen: reject an unsupported
+  suffix outright, leaving the signature unchanged.**
+
+  Rationale. It is the same posture `save_snapshot` already ships, so the two
+  sibling writers do not disagree about what a valid manifest path is. Option 2
+  (an optional `format` parameter mirroring `save_snapshot`) was rejected
+  because it only earns its keep when a caller can name a format independently
+  of the path, and no in-repo caller does — `save_snapshot` already validates
+  its suffix before delegating here, so the parameter would exist solely to be
+  contradicted. Option 3 (YAML fallback for unknown suffixes) is the defect
+  itself and is forbidden by the temptations below.
+
+  Compatibility. The draft's in-repo caller survey was incomplete; it was
+  re-run for this contract. Every `save_manifest` call site in the tree passes a
+  `.yaml` path:
+
+  - `maid_runner/core/snapshot.py:197` — suffix already validated by
+    `save_snapshot`.
+  - `tests/core/test_manifest.py:453,646,825,835,863,893,969`,
+    `tests/core/test_manifest_outcome.py:154,193,195`,
+    `tests/core/test_reasoning_effort_provenance.py:76,83`,
+    `tests/core/test_outcome_agent_provenance.py:62,73,83`,
+    `tests/core/test_removed_artifacts.py:456`,
+    `tests/integration/test_library_api.py:523`.
+
+  No in-repo caller breaks. The only externally visible break is for a caller
+  who was already producing a file MAID cannot load, which is the defect being
+  fixed rather than behavior worth preserving.
+
+  `.json` output must not receive the 086-01 banner, since JSON has no comment
+  syntax.
+
+  Suffix-map placement. The `.json`/`.yaml`/`.yml` map currently lives in
+  `maid_runner/core/snapshot.py:148` as `_SUFFIX_FORMATS`, but it encodes
+  `load_manifest_raw`'s dispatch contract, which lives in
+  `maid_runner/core/manifest.py`. This contract moves it next to the reader it
+  mirrors and has `snapshot.py` import it, so the two writers cannot drift apart
+  and 089-02 and 089-03 have one place to import from instead of adding a third
+  and fourth copy. `snapshot.py` is declared under `files.scope` rather than
+  `files.read` because that file is edited; `files.read` does not authorize
+  edits.
+temptations:
+  - risk: "Do not widen load_manifest_raw to accept the suffixes the writer emits;
+      that inverts the fix and is explicitly out of scope for epic 089."
+    instead: "Change only the writer, and pin reader behavior as-is with a round-trip
+      assertion."
+  - risk: "Do not silently keep YAML as the fallback for unrecognized suffixes just
+      to preserve compatibility; that is the defect."
+    instead: "Reject the unsupported suffix per the chosen option 1, and pin the rejected
+      case with a test asserting no file was written."
+  - risk: "Do not prove either branch with a bare load_manifest_raw round-trip; valid-but-empty
+      JSON would satisfy the .json case, and PyYAML parses JSON, so a JSON-emitting
+      writer would satisfy the .yaml case."
+    instead: "Round-trip and assert declared goal and type survive on the JSON path,
+      and assert the 086-01 comment banner is present on the YAML path, which only
+      a real YAML write can carry."
+  - risk: "Do not assert only that a rejected path does not exist afterwards; that
+      cannot distinguish validate-before-write from write-then-rollback."
+    instead: "Pre-create a sentinel file at the rejected path and assert its bytes
+      are untouched, so a writer that wrote and then cleaned up still fails."
+  - risk: "Do not relax the case-sensitive match to accept .YAML or .JSON as a convenience;
+      the reader and chain discovery match lowercase exactly."
+    instead: "Reject the uppercase suffix and pin it with its own test, as the sibling
+      snapshot contract's review required."
+files:
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: save_manifest
+          args:
+            - name: manifest
+              type: Manifest
+            - name: path
+              type: Union[str, Path]
+          returns: None
+          description: >-
+            Write the format the output suffix implies, matching the suffix
+            case-sensitively because load_manifest_raw does, and reject an
+            unsupported suffix before any filesystem effect. The 086-01
+            self-describing banner stays on the YAML path only, because JSON has
+            no comment syntax.
+  create:
+    - path: tests/core/test_save_manifest_output_format.py
+      artifacts:
+        - kind: test_function
+          name: test_save_manifest_json_suffix_round_trips_through_loader
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller saves a manifest to a .json path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_manifest
+          expected:
+            behavior: "load_manifest_raw parses the file with strict json.loads and
+              the declared goal and type survive, with no YAML banner present."
+        - kind: test_function
+          name: 
+            test_save_manifest_unsupported_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller saves a manifest to a .txt path, which MAID cannot
+            load, and a sentinel file already occupies that path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_manifest
+          expected:
+            behavior: "save_manifest raises ValueError naming the unsupported suffix
+              and the sentinel bytes are untouched, proving the suffix is validated
+              before any filesystem effect rather than rolled back after one."
+        - kind: test_function
+          name: test_save_manifest_uppercase_suffix_is_rejected_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller saves a manifest to an uppercase .YAML path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_manifest
+          expected:
+            behavior: "save_manifest raises ValueError and writes nothing, because
+              load_manifest_raw and manifest chain discovery match the lowercase suffix
+              exactly, so an uppercase suffix is not a loadable manifest."
+        - kind: test_function
+          name: test_save_manifest_yaml_suffix_still_writes_banner_and_loads
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "The unchanged .yaml path is exercised as a regression
+            guard."
+          actions:
+            - type: api_call
+              subject:
+                export: save_manifest
+          expected:
+            behavior: "The file round-trips through load_manifest_raw and still starts
+              with the 086-01 self-describing banner, which a JSON-emitting writer
+              could not satisfy."
+        - kind: test_function
+          name: test_save_manifest_yml_suffix_writes_banner_and_loads
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A caller saves a manifest to a .yml path."
+          actions:
+            - type: api_call
+              subject:
+                export: save_manifest
+          expected:
+            behavior: "The file round-trips through load_manifest_raw and carries
+              the YAML banner, proving .yml is supported alongside .yaml rather than
+              lumped in with the rejected suffixes."
+  scope:
+    - path: maid_runner/core/snapshot.py
+      reason: >-
+        The shared _SUFFIX_FORMATS map moves from this file to
+        maid_runner/core/manifest.py, next to the load_manifest_raw dispatch it
+        encodes, and this file imports it instead of redefining it. No public
+        artifact declared in this file changes; declared under scope rather than
+        read because the file is edited and files.read does not authorize edits.
+  read:
+    - maid_runner/__init__.py
+    - tests/core/test_snapshot_output_format.py
+    - tests/integration/test_library_api.py
+    - tests/core/test_manifest.py
+validate:
+  - uv run python -m pytest -q tests/core/test_save_manifest_output_format.py
+    tests/core/test_snapshot_output_format.py tests/core/test_manifest.py
+    tests/integration/test_library_api.py
+  - uv run maid validate
+    manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml --mode
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-25T22:40:11+08:00'
+  summary: >-
+    save_manifest now writes the format its output suffix implies and rejects an
+    unsupported suffix before touching the filesystem, so the core manifest
+    writer can no longer hand back a file load_manifest_raw refuses to read. The
+    suffix map moved next to the reader it encodes, and save_snapshot imports it
+    instead of keeping a second copy.
+  rationale: >-
+    The writer and the reader disagreed about what a manifest path means:
+    load_manifest_raw dispatches on the exact lowercase suffix, while
+    save_manifest rendered YAML into whatever path it was handed. That made
+    save_manifest(m, "out.json") produce a JSONDecodeError on the next read and
+    save_manifest(m, "out.txt") produce a file no MAID command can load, both
+    from a call that returned normally. The drafting-stage design question was
+    resolved as option 1, reject outright with the signature unchanged, because
+    it matches the posture save_snapshot already ships and because an optional
+    format parameter only earns its keep when a caller can name a format
+    independently of the path, which no in-repo caller does. Suffixes are
+    matched case-sensitively on purpose, since the reader and chain discovery
+    both match lowercase exactly. Rejection happens before _manifest_to_dict and
+    before any filesystem call, so a rejected write leaves nothing behind.
+  lessons:
+    - lesson_type: reader-writer-symmetry
+      summary: >-
+        The suffix map belongs next to the dispatch it encodes, not in the first
+        writer that needed it. Keeping _SUFFIX_FORMATS in snapshot.py meant the
+        second writer to need it would have copied it; moving it beside
+        load_manifest_raw gives 089-02 and 089-03 one place to import from
+        instead of adding a third and fourth copy.
+      tags:
+        - manifest-io
+        - shared-contract
+      paths:
+        - maid_runner/core/manifest.py
+        - maid_runner/core/snapshot.py
+    - lesson_type: test-discrimination
+      summary: >-
+        A sentinel file at a rejected path proves less than the plan claimed. The
+        manifest asserted the sentinel makes a write-then-clean-up implementation
+        fail, but that only holds for a rollback that deletes; a rollback that
+        restores the original bytes passes. The real property was confirmed by
+        review instrumenting _manifest_to_dict and observing zero calls on the
+        reject path, which is the assertion the test should have made.
+      tags:
+        - anti-gaming
+        - implementation-review
+      paths:
+        - tests/core/test_save_manifest_output_format.py
+    - lesson_type: red-evidence
+      summary: >-
+        When E230 forces a validate-command change after plan lock, prefer
+        maid plan revise --stash-implementation over --preserve-red-evidence.
+        Stashing re-measures red against the final command set instead of
+        asserting that the older measurement still applies, and it restored the
+        implementation cleanly afterwards. --preserve-red-evidence was used only
+        for the later metadata-only maid_task_base addition.
+      tags:
+        - plan-lock
+        - workflow
+      paths:
+        - .maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Approved with zero blocking findings on the first pass. Review swept 16
+        path shapes (no suffix, trailing dot, dotfiles, multi-suffix, trailing
+        space, .jsonl/.yamlx near-misses, four case variants, symlinks) and found
+        the writer's verdict agrees with load_manifest_raw on all 16. It proved
+        validate-before-write directly by instrumenting _manifest_to_dict and
+        observing zero calls on the reject path, and confirmed the only
+        production caller reaches save_manifest through an already-validated
+        suffix.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Four wrong implementations pass all five locked tests: an empty-suffix
+        YAML fallback (shipped code rejects '' correctly but nothing pins it), a
+        lossy JSON body asserting only goal and type survive, a write-then-
+        rollback that restores prior bytes rather than deleting, and a YAML
+        branch emitting a JSON body under the banner. Recorded as a follow-up
+        draft rather than a locked-test revision, per the convergence protocol.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Three follow-ups for the 089 family, none in scope here. JSON output
+        raises a bare TypeError for a manifest carrying an unquoted YAML date in
+        metadata, an exposure save_snapshot already shares. save_snapshot's JSON
+        branch still hand-rolls json.dumps instead of delegating to the
+        now-capable save_manifest, so serialization can still drift even though
+        the suffix map no longer can. Once 089-02 and 089-03 also import
+        _SUFFIX_FORMATS, four importers across three modules will depend on an
+        underscore-prefixed name, which is the point to promote it to a public
+        constant.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_save_manifest_output_format.py, tests/core/test_snapshot_output_format.py, tests/core/test_manifest.py, tests/integration/test_library_api.py]
+      status: passed
+      summary: The focused contract scope passed, covering the new suffix tests and the existing save_manifest regression callers.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full Python suite passed 3535 tests with 5 skips, up from the 3530-test baseline by the five new cases.
+    - command: [uv, run, maid, validate, manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed for the promoted contract.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 359 active manifests passed with 0 failures; 97 superseded were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 201 manifest-declared validation commands passed with 0 chain issues, after E230 was resolved by running the declared tests/integration/test_library_api.py.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking findings;
+        only pre-existing E307 non-code warnings for ts_compiler_resolver.cjs and
+        Makefile remained.

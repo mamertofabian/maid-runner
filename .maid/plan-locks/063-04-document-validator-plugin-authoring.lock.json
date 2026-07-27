@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
-  "manifest_hash": "sha256:2bd28fa5bcc7d954064b505bbb58d71197d180896756386d225653f13d264e4d",
+  "manifest_hash": "sha256-contract:7f7a3846b8dc5a30155d9992cca2384a63e81739653331b3d85d2c5a91c72562",
   "test_hashes": {
-    "tests/test_validator_plugin_docs.py": "sha256:c1fefdb33f0330a2320f3fdd97e93a5d02a75f9bd43acdde5fcb1c3171449800"
+    "tests/test_validator_plugin_docs.py": "sha256:1a78e88d2022bb6accb8233dd5282e7f7231141f7328639f5249584f0f4ffb3f"
   },
   "created_at": "2026-06-18T01:22:08.220834+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:73859f06e2a96dcaac546323a0c1e53e5d4e6179100e1af298303d49e71bc288",
@@ -13,7 +13,9 @@
         "tests/test_validator_plugin_docs.py": "sha256:581a8b7a68dac6fdf4e8acba53614535ba6582cdfbf8c61a021ed3e672aeb499"
       },
       "revised_at": "2026-06-18T01:22:11.875675+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/063-04-document-validator-plugin-authoring.manifest.yaml -> manifests/063-04-document-validator-plugin-authoring.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/063-04-document-validator-plugin-authoring.manifest.yaml -> manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:34bbb7e4138e54b51b7c8650405e6438feef340f1cc3d3cc95e3b4b00601016f",
@@ -21,7 +23,9 @@
         "tests/test_validator_plugin_docs.py": "sha256:581a8b7a68dac6fdf4e8acba53614535ba6582cdfbf8c61a021ed3e672aeb499"
       },
       "revised_at": "2026-06-18T01:28:54.476455+00:00",
-      "reason": "Preserve red evidence after Black formatting of the locked docs test without changing assertions"
+      "reason": "Preserve red evidence after Black formatting of the locked docs test without changing assertions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:34bbb7e4138e54b51b7c8650405e6438feef340f1cc3d3cc95e3b4b00601016f",
@@ -29,7 +33,34 @@
         "tests/test_validator_plugin_docs.py": "sha256:c1fefdb33f0330a2320f3fdd97e93a5d02a75f9bd43acdde5fcb1c3171449800"
       },
       "revised_at": "2026-06-18T01:38:50.515294+00:00",
-      "reason": "Capture post-review Outcome metadata after implementation review without changing the locked behavioral contract"
+      "reason": "Capture post-review Outcome metadata after implementation review without changing the locked behavioral contract",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:2bd28fa5bcc7d954064b505bbb58d71197d180896756386d225653f13d264e4d",
+      "prior_test_hashes": {
+        "tests/test_validator_plugin_docs.py": "sha256:c1fefdb33f0330a2320f3fdd97e93a5d02a75f9bd43acdde5fcb1c3171449800"
+      },
+      "revised_at": "2026-07-22T00:33:42.177875+00:00",
+      "reason": "Authoring guide docs tests now cover loaded plugin display-name wording",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:docs/validator-plugin-authoring.md",
+          "create:tests/test_validator_plugin_docs.py",
+          "edit:README.md",
+          "edit:docs/ROADMAP.md",
+          "edit:maid_runner/cli/commands/howto.py",
+          "read:maid_runner/validators/base.py",
+          "read:maid_runner/validators/registry.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -50,6 +81,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "README.md:attribute:documentation._validator_plugins_readme_section",
@@ -75,6 +108,146 @@
       "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_states_support_boundary_and_semver",
       "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_states_support_boundary_and_semver:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "docs/validator-plugin-authoring.md",
+        "tests/test_validator_plugin_docs.py"
+      ],
+      "edit": [
+        "README.md",
+        "docs/ROADMAP.md",
+        "maid_runner/cli/commands/howto.py"
+      ],
+      "read": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "docs/validator-plugin-authoring.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_validator_plugin_authoring_guide",
+              "description": "Canonical plugin authoring guide: contract surface and semver discipline, entry-point packaging, conformance kit usage, discovery and precedence rules, kill switch, auditing, and the support boundary.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_validator_plugin_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validator_plugin_authoring_guide_documents_contract_and_runtime_rules",
+              "source_scenario": "The validator plugin authoring guide is read as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide names the public plugin contract, entry-point group, built-in-wins rule, E902/E903 diagnostics, warning surfacing, kill switch, auditing command, and conformance kit fixture contract."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validator_plugin_authoring_guide_states_support_boundary_and_semver",
+              "source_scenario": "The guide explains ownership and compatibility boundaries for third-party validator plugins.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide states that plugins own parser quality, MAID Runner owns the contract, and breaking the public validator surface requires a major version."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_language_support_entrypoints_route_requests_to_plugin_path",
+              "source_scenario": "Primary repository docs and CLI howto text are read as repository files.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_howto"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "README, maid howto topic text, and roadmap language-support guidance point language requests at docs/validator-plugin-authoring.md and the validator plugin path."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_validator_plugins_readme_section",
+              "description": "README section pointing language requests at the validator plugin path and the authoring guide.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_howto",
+              "description": "Howto topic text points new-language requests at the validator plugin authoring guide.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_language_support_plugin_pointer",
+              "description": "Roadmap language-support guidance routed through the plugin path instead of in-tree validators.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py"
+      ]
+    },
     "test_files": [
       "tests/test_validator_plugin_docs.py"
     ],

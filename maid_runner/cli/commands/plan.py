@@ -13,6 +13,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from maid_runner.cli.commands._format import print_error
+from maid_runner.core.manifest import backfill_manifest_header
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -117,6 +118,7 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
         f"Locked plan '{ctx.slug}' at revision {lock.revision} "
         f"({len(lock.test_hashes)} behavioral test file(s), {ctx.lock_path})"
     )
+    _advisory_backfill_manifest_header(ctx.manifest_path)
     return 0
 
 
@@ -217,20 +219,26 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
     _print_provenance_warning(provenance.warning)
 
     if stash_implementation:
-        return _cmd_plan_revise_with_stashed_implementation(
+        result = _cmd_plan_revise_with_stashed_implementation(
             ctx=ctx,
             existing=existing,
             reason=reason,
             agent=provenance.provenance,
             allow_sibling_dirty=allow_sibling_dirty,
         )
+        if result == 0:
+            _advisory_backfill_manifest_header(ctx.manifest_path)
+        return result
     if test_only_green:
-        return _cmd_plan_revise_test_only_green(
+        result = _cmd_plan_revise_test_only_green(
             ctx=ctx,
             existing=existing,
             reason=reason,
             agent=provenance.provenance,
         )
+        if result == 0:
+            _advisory_backfill_manifest_header(ctx.manifest_path)
+        return result
 
     prior_contract = _load_locked_contract(ctx.lock_path)
     auto_preserve = False
@@ -276,7 +284,18 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             else " by explicit request"
         )
         print(f"{evidence_class} evidence preserved{reason_text}.")
+    _advisory_backfill_manifest_header(ctx.manifest_path)
     return 0
+
+
+def _advisory_backfill_manifest_header(manifest_path: Path) -> None:
+    try:
+        backfill_manifest_header(manifest_path)
+    except OSError as exc:
+        print(
+            f"Advisory: could not backfill manifest header for {manifest_path}: {exc}",
+            file=sys.stderr,
+        )
 
 
 def cmd_plan_status(args: argparse.Namespace) -> int:
@@ -284,9 +303,10 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
     from maid_runner.core.plan_lock import (
         PlanLock,
         _PlanLockLoadError,
+        _current_test_hash_or_none,
         manifest_hash_matches,
+        test_hash_matches,
     )
-    from maid_runner.core.supersession_audit import compute_manifest_hash
 
     ctx = _PlanContext.from_args(args)
 
@@ -324,11 +344,11 @@ def cmd_plan_status(args: argparse.Namespace) -> int:
     test_files: dict[str, dict] = {}
     for rel, locked_hash in lock.test_hashes.items():
         full = ctx.project_root / rel
-        current_hash = compute_manifest_hash(full) if full.exists() else None
+        current_hash = _current_test_hash_or_none(full, lock_hash=locked_hash)
         test_files[rel] = {
             "locked_hash": locked_hash,
             "current_hash": current_hash,
-            "match": current_hash == locked_hash,
+            "match": test_hash_matches(locked_hash, full),
         }
     has_mismatch = not manifest_match or any(
         not entry["match"] for entry in test_files.values()
@@ -444,6 +464,7 @@ def _resolve_agent_provenance_from_args(args: argparse.Namespace):
         key: os.environ[key]
         for key in (
             "MAID_AGENT_MODEL",
+            "MAID_AGENT_REASONING_EFFORT",
             "MAID_AGENT_PROVIDER",
             "MAID_AGENT_CLIENT",
             "MAID_AGENT_SKILLS",
@@ -454,6 +475,7 @@ def _resolve_agent_provenance_from_args(args: argparse.Namespace):
     return resolve_agent_provenance(
         {
             "model": getattr(args, "agent_model", None),
+            "reasoning_effort": getattr(args, "agent_reasoning_effort", None),
             "provider": getattr(args, "agent_provider", None),
             "client": getattr(args, "agent_client", None),
             "skills": getattr(args, "agent_skill", None),
@@ -474,6 +496,8 @@ def _agent_to_payload(agent) -> dict | None:
     if agent is None:
         return None
     payload = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        payload["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         payload["provider"] = agent.provider
     if agent.client is not None:
@@ -528,6 +552,8 @@ def _delta_count_parts(sign: str, count: int, singular: str) -> list[str]:
 
 def _format_agent(agent) -> str:
     details = []
+    if agent.reasoning_effort:
+        details.append(f"reasoning_effort={agent.reasoning_effort}")
     if agent.provider:
         details.append(f"provider={agent.provider}")
     if agent.client:
@@ -1099,7 +1125,7 @@ def _is_matching_promoted_draft_deletion(
 def _contract_hashes_for_stash_revise(
     project_root: Path, manifest_path: Path, manifest
 ) -> dict[str, str | None]:
-    from maid_runner.core.supersession_audit import compute_manifest_hash
+    from maid_runner.core.plan_lock import compute_behavioral_test_hash
 
     paths = {_project_relative(manifest_path, project_root)}
     paths.update(_behavioral_test_paths_for_revise(manifest))
@@ -1107,7 +1133,7 @@ def _contract_hashes_for_stash_revise(
     for rel_path in sorted(paths):
         full_path = project_root / rel_path
         hashes[rel_path] = (
-            compute_manifest_hash(full_path) if full_path.exists() else None
+            compute_behavioral_test_hash(full_path) if full_path.exists() else None
         )
     return hashes
 

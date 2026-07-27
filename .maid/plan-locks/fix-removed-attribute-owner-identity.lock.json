@@ -1,0 +1,259 @@
+{
+  "manifest_path": "manifests/fix-removed-attribute-owner-identity.manifest.yaml",
+  "manifest_hash": "sha256-contract:675910342e2e36ac43a6d357d704184c4640b4d1c30a555d77fc5483356cd364",
+  "test_hashes": {
+    "tests/core/test_removed_module_attributes.py": "sha256-pyast:72745944dcd905dd951c90ae61baafb75ecdf85129dc112a6f7ec36013349421"
+  },
+  "created_at": "2026-07-22T05:02:33.556508+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:76d6e0f7d334d8da858ef588eb2debbac1ad9c5c965c991881f628783d9b2121",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9"
+      },
+      "revised_at": "2026-07-22T05:02:36.964937+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-removed-attribute-owner-identity.manifest.yaml -> manifests/fix-removed-attribute-owner-identity.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a3477eca464ef59d666c76e0c65ce2eb910954acb624c6cc9c5f968f2626a55a",
+      "prior_test_hashes": {
+        "tests/core/test_supersession_audit.py": "sha256-pyast:deb794ab13a2fe198a9b8d53172ac1ef5ff31576809c71ba4ddc24a219155407",
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9"
+      },
+      "revised_at": "2026-07-22T05:07:43.752058+00:00",
+      "reason": "Drop unused files.read of sibling supersession tests that E230 treated as undeclared behavioral coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_supersession_audit.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2a2ad7628a95b41b27a696366e7ed3eca1490e480197e0b8bc7213eea80800b7",
+      "prior_test_hashes": {
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9"
+      },
+      "revised_at": "2026-07-22T05:11:29.062206+00:00",
+      "reason": "Black-format shared behavioral tests after verify format gate",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2a2ad7628a95b41b27a696366e7ed3eca1490e480197e0b8bc7213eea80800b7",
+      "prior_test_hashes": {
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:e2cd044a97a977245faec188201a0502d6d54041b5b90c6b3754a4b22fe6d3b9"
+      },
+      "revised_at": "2026-07-22T05:52:43.190532+00:00",
+      "reason": "Independent review added cross-kind owner-presence anti-gaming coverage and strengthened exact-owner isolation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_removed_module_attributes.py:test_owner_cascade_requires_owner_name_absent_across_structural_kinds",
+          "tests/core/test_removed_module_attributes.py:test_owner_cascade_requires_owner_name_absent_across_structural_kinds:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5f891b899aebed6156c688690027cb5bc374f36ec85f468d9c00765a11ff28ef",
+      "prior_test_hashes": {
+        "tests/core/test_removed_module_attributes.py": "sha256-pyast:9b081201f9d0a8b460ede0227b3d23247b7c18e1a0ec680e6ece3d8381ad55ea"
+      },
+      "revised_at": "2026-07-22T06:00:44.646699+00:00",
+      "reason": "Independent review isolated exact owner-qualified removal coverage from owner cascade",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T06:00:45.014068+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_removed_module_attributes.py",
+        "exit_code": 1,
+        "output_tail": "        errors = SupersessionAuditor(project_root=tmp_path).audit(chain)\n    \n        owned = [\n            e\n            for e in errors\n            if e.code == ErrorCode.ARTIFACT_DROPPED_BY_SUPERSESSION\n            and \"created_by\" in e.message\n        ]\n        assert len(owned) == 1\n        assert owned[0].suggestion is not None\n>       assert \"of: ContactInsert\" in owned[0].suggestion\nE       assert 'of: ContactInsert' in 'Re-declare the artifact in the replacement manifest, list its file under files.delete, or list the symbol under removed_artifacts.'\nE        +  where 'Re-declare the artifact in the replacement manifest, list its file under files.delete, or list the symbol under removed_artifacts.' = ValidationError(code=<ErrorCode.ARTIFACT_DROPPED_BY_SUPERSESSION: 'E110'>, message=\"Manifest 'replacement' supersedes ...e artifact in the replacement manifest, list its file under files.delete, or list the symbol under removed_artifacts.').suggestion\n\ntests/core/test_removed_module_attributes.py:516: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_removed_module_attributes.py::test_verified_owner_type_removal_cascades_to_owned_attributes\nFAILED tests/core/test_removed_module_attributes.py::test_owner_cascade_does_not_exempt_same_named_attribute_on_other_owner\nFAILED tests/core/test_removed_module_attributes.py::test_e110_suggestion_names_of_for_owned_attribute_drop\n3 failed, 6 passed in 0.17s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-ownerless-module-attribute-removal.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_removed_module_attributes.py:test_e110_suggestion_names_of_for_owned_attribute_drop",
+      "tests/core/test_removed_module_attributes.py:test_e110_suggestion_names_of_for_owned_attribute_drop:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_owned_attribute_removal_with_of_exempts_exact_owner",
+      "tests/core/test_removed_module_attributes.py:test_owned_attribute_removal_with_of_exempts_exact_owner:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_owner_cascade_does_not_exempt_same_named_attribute_on_other_owner",
+      "tests/core/test_removed_module_attributes.py:test_owner_cascade_does_not_exempt_same_named_attribute_on_other_owner:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_owner_cascade_requires_owner_name_absent_across_structural_kinds",
+      "tests/core/test_removed_module_attributes.py:test_owner_cascade_requires_owner_name_absent_across_structural_kinds:kind=test_function",
+      "tests/core/test_removed_module_attributes.py:test_verified_owner_type_removal_cascades_to_owned_attributes",
+      "tests/core/test_removed_module_attributes.py:test_verified_owner_type_removal_cascades_to_owned_attributes:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/test_removed_module_attributes.py"
+      ],
+      "read": [
+        "maid_runner/core/_removed_artifacts.py",
+        "manifests/fix-ownerless-module-attribute-removal.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/schemas/manifest.v2.schema.json"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/test_removed_module_attributes.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_owned_attribute_removal_with_of_exempts_exact_owner",
+              "source_scenario": "Both owner interfaces remain present. A replacement removes only ContactInsert.created_by with of: ContactInsert while the same-named ExternalTicketTokenRow.created_by remains in source but is omitted from the replacement contract.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "find_violations returns no violation for ContactInsert.created_by and still reports ExternalTicketTokenRow.created_by as dropped, proving the qualified removal matches only the exact owner.\n"
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verified_owner_type_removal_cascades_to_owned_attributes",
+              "source_scenario": "A replacement lists only the ContactInsert interface under removed_artifacts; ContactInsert is absent from source; superseded attributes were owned by ContactInsert.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "find_violations returns no E110-style drop for the owned ContactInsert attributes.\n"
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_owner_cascade_does_not_exempt_same_named_attribute_on_other_owner",
+              "source_scenario": "ContactInsert is removed and verified absent while ExternalTicketTokenRow is re-declared without created_by.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "find_violations still reports ExternalTicketTokenRow.created_by as dropped.\n"
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_owner_cascade_requires_owner_name_absent_across_structural_kinds",
+              "source_scenario": "A replacement marks interface ContactInsert removed while a class with the same owner name and created_by member remains in source.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "find_violations still reports ContactInsert.created_by because an owner with that name remains under another structural kind.\n"
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_e110_suggestion_names_of_for_owned_attribute_drop",
+              "source_scenario": "A replacement drops ContactInsert.created_by without removed_artifacts or re-declaration.\n",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SupersessionAuditor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "audit() E110 suggestion for the owned drop names of: ContactInsert.\n"
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_removed_artifacts.py",
+        "manifests/fix-ownerless-module-attribute-removal.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/supersession_audit.py",
+          "reason": "Adjust supersession removal identity matching and E110 suggestion text; no new public symbols."
+        },
+        {
+          "path": "maid_runner/schemas/manifest.v2.schema.json",
+          "reason": "Clarify removed_artifacts.of description for owned attributes; schema shape unchanged."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_removed_module_attributes.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_removed_module_attributes.py"
+    ]
+  }
+}

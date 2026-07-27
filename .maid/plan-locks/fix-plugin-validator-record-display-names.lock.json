@@ -1,0 +1,262 @@
+{
+  "manifest_path": "manifests/fix-plugin-validator-record-display-names.manifest.yaml",
+  "manifest_hash": "sha256-contract:01bf8845a519acb062789b35d3653b667316c552cc6d1ac9fdde72c7136193c0",
+  "test_hashes": {
+    "tests/validators/test_plugin_discovery.py": "sha256:f68610b443a5d63ea561cc25afb50a28ba454fa590e853a0c44d767a0fc4455f",
+    "tests/cli/test_validators_cmd.py": "sha256:2887cd537354c5081909206d8b2e6926515601c9c9307f49d754950aa2cd6966",
+    "tests/test_validator_plugin_docs.py": "sha256:1a78e88d2022bb6accb8233dd5282e7f7231141f7328639f5249584f0f4ffb3f"
+  },
+  "created_at": "2026-07-22T00:32:39.247672+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d3a0c6f592d9cb727085a4550550b3d9ea709b10ced87d8a9ac2ddd2a5035019",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:f68610b443a5d63ea561cc25afb50a28ba454fa590e853a0c44d767a0fc4455f",
+        "tests/cli/test_validators_cmd.py": "sha256:2887cd537354c5081909206d8b2e6926515601c9c9307f49d754950aa2cd6966",
+        "tests/test_validator_plugin_docs.py": "sha256:1a78e88d2022bb6accb8233dd5282e7f7231141f7328639f5249584f0f4ffb3f"
+      },
+      "revised_at": "2026-07-22T00:32:39.835771+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-plugin-validator-record-display-names.manifest.yaml -> manifests/fix-plugin-validator-record-display-names.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:01bf8845a519acb062789b35d3653b667316c552cc6d1ac9fdde72c7136193c0",
+      "prior_test_hashes": {
+        "tests/validators/test_plugin_discovery.py": "sha256:f68610b443a5d63ea561cc25afb50a28ba454fa590e853a0c44d767a0fc4455f",
+        "tests/cli/test_validators_cmd.py": "sha256:2887cd537354c5081909206d8b2e6926515601c9c9307f49d754950aa2cd6966",
+        "tests/test_validator_plugin_docs.py": "sha256:1a78e88d2022bb6accb8233dd5282e7f7231141f7328639f5249584f0f4ffb3f"
+      },
+      "revised_at": "2026-07-22T00:39:52.759909+00:00",
+      "reason": "Capture completed Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-22T00:32:40.208875+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_plugin_discovery.py tests/cli/test_validators_cmd.py tests/test_validator_plugin_docs.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names() -> (\n        None\n    ):\n        guide = _read(GUIDE)\n    \n>       assert (\n            \"Loaded plugins are listed by their class `__name__`\" in guide\n            or \"Loaded plugins are listed by their class __name__\" in guide\n        )\nE       AssertionError: assert ('Loaded plugins are listed by their class `__name__`' in '# Validator Plugin Authoring\\n\\nThird-party validator plugins let a separate package add language support to\\nMAID Ru...t add a new in-tree validator to this\\nrepository unless a separate approved MAID plan changes the support boundary.\\n' or 'Loaded plugins are listed by their class __name__' in '# Validator Plugin Authoring\\n\\nThird-party validator plugins let a separate package add language support to\\nMAID Ru...t add a new in-tree validator to this\\nrepository unless a separate approved MAID plan changes the support boundary.\\n')\n\ntests/test_validator_plugin_docs.py:73: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_plugin_discovery.py::test_well_formed_plugin_claiming_unclaimed_extension_becomes_active\nFAILED tests/validators/test_plugin_discovery.py::test_discovery_and_record_order_are_deterministic\nFAILED tests/validators/test_plugin_discovery.py::test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers\nFAILED tests/cli/test_validators_cmd.py::test_validators_json_matches_text_rows_for_plugin_statuses\nFAILED tests/test_validator_plugin_docs.py::test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names\n5 failed, 13 passed in 0.21s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_validators_cmd.py:test_validators_json_matches_text_rows_for_plugin_statuses",
+      "tests/cli/test_validators_cmd.py:test_validators_json_matches_text_rows_for_plugin_statuses:kind=test_function",
+      "tests/cli/test_validators_cmd.py:test_validators_lists_disabled_plugins_without_loading_them",
+      "tests/cli/test_validators_cmd.py:test_validators_lists_disabled_plugins_without_loading_them:kind=test_function",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names",
+      "tests/test_validator_plugin_docs.py:test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names:kind=test_function",
+      "tests/validators/test_plugin_discovery.py:test_disable_environment_records_plugins_without_importing_them",
+      "tests/validators/test_plugin_discovery.py:test_disable_environment_records_plugins_without_importing_them:kind=test_function",
+      "tests/validators/test_plugin_discovery.py:test_discovery_and_record_order_are_deterministic",
+      "tests/validators/test_plugin_discovery.py:test_discovery_and_record_order_are_deterministic:kind=test_function",
+      "tests/validators/test_plugin_discovery.py:test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers",
+      "tests/validators/test_plugin_discovery.py:test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers:kind=test_function",
+      "tests/validators/test_plugin_discovery.py:test_well_formed_plugin_claiming_unclaimed_extension_becomes_active",
+      "tests/validators/test_plugin_discovery.py:test_well_formed_plugin_claiming_unclaimed_extension_becomes_active:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_validators_cmd.py",
+        "tests/test_validator_plugin_docs.py",
+        "tests/validators/test_plugin_discovery.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/validators.py",
+        "manifests/063-01-add-entry-point-validator-discovery.manifest.yaml",
+        "manifests/063-02-add-maid-validators-cli-listing.manifest.yaml",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml"
+      ],
+      "scope": [
+        "docs/validator-plugin-authoring.md",
+        "maid_runner/validators/registry.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/validators/test_plugin_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_well_formed_plugin_claiming_unclaimed_extension_becomes_active",
+              "source_scenario": "A fake entry point named go loads _GoValidator for an unclaimed .go extension.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidatorRegistry",
+                    "member": "with_builtin_validators"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The plugin ValidatorRecord.name is _GoValidator, not the entry-point key go."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers",
+              "source_scenario": "A fake entry point named mixed loads a validator that claims both .go and .py.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidatorRegistry",
+                    "member": "with_builtin_validators"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The conflict record still uses the loaded class __name__ as ValidatorRecord.name."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_discovery_and_record_order_are_deterministic",
+              "source_scenario": "Multiple fake plugins are supplied in shuffled order and load distinct or shared validator classes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidatorRegistry",
+                    "member": "with_builtin_validators"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Record order remains distribution-then-entry-point, while each loaded plugin's displayed name is its class __name__."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_disable_environment_records_plugins_without_importing_them",
+              "source_scenario": "MAID_DISABLE_VALIDATOR_PLUGINS=1 is set and a go entry point is present.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidatorRegistry",
+                    "member": "with_builtin_validators"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The disabled record keeps entry_point.name because the class was not loaded."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_validators_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validators_json_matches_text_rows_for_plugin_statuses",
+              "source_scenario": "maid validators lists an active go plugin, a conflicting python plugin, and a broken plugin.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Active and conflict rows show the loaded class names; the error row still shows the entry-point key."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validators_lists_disabled_plugins_without_loading_them",
+              "source_scenario": "maid validators --json runs with the plugin kill switch enabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The disabled plugin row name remains the entry-point key."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_validator_plugin_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validator_plugin_authoring_guide_documents_loaded_plugin_display_names",
+              "source_scenario": "The authoring guide is read after the naming rule is documented.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide states that loaded plugins are listed by class __name__ while disabled and error rows keep the entry-point name when the class was not loaded."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/validators.py",
+        "manifests/063-01-add-entry-point-validator-discovery.manifest.yaml",
+        "manifests/063-02-add-maid-validators-cli-listing.manifest.yaml",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/validators/registry.py",
+          "reason": "When a plugin entry point loads successfully, record ValidatorRecord.name from validator_class.__name__ instead of entry_point.name; leave disabled/error records on entry_point.name."
+        },
+        {
+          "path": "docs/validator-plugin-authoring.md",
+          "reason": "Document that maid validators shows the loaded class name for active/conflict plugins and the entry-point key only when the class was not loaded."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_validators_cmd.py",
+      "tests/test_validator_plugin_docs.py",
+      "tests/validators/test_plugin_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_plugin_discovery.py tests/cli/test_validators_cmd.py tests/test_validator_plugin_docs.py"
+    ]
+  }
+}

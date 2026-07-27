@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/fix-codex-init-honor-distributable.manifest.yaml",
-  "manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+  "manifest_hash": "sha256-contract:02d23b306672898046535fa2d0afdd6a48a52ff5a2d17e6e50fc84db36a85070",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db"
+    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+    "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/cli/test_init_codex_distributable_scope.py": "sha256-pyast:4411f1225bccd8e0ec7b936e6bf00834e6a4e986c6da7863f161cb883d5188f9"
   },
   "created_at": "2026-06-22T02:17:12.222652+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
@@ -83,6 +83,26 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:9ee8fac8950558abc3142ee432ee0ab5fc8ca87f1c28147b88613639e42ab3bc",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f",
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/cli/test_init_codex_distributable_scope.py": "sha256:c229a52e79e5be0c5c5af2257268685f0b67e826bb70b40fc0d48199a07b38db"
+      },
+      "revised_at": "2026-07-25T01:08:51.139806+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -97,6 +117,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -155,6 +176,140 @@
         "tests/cli/test_init_cmd.py",
         "tests/test_agent_payload_distribution.py",
         "tests/test_recall_payload_sync.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/codex/skills/maid-plan-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_plan_review_skill",
+              "description": "Generated package copy of the generic Codex maid-plan-review skill.",
+              "of": "codex_payload",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-plan-review/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_plan_review_agent_metadata",
+              "description": "Generated package copy of the Codex maid-plan-review skill-local OpenAI agent metadata.",
+              "of": "codex_payload",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_codex_distributable_scope.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_installs_only_distributable_skills",
+              "description": "Codex init installs exactly the four generic skills and no repo-internal skill directories.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_agents_md_describes_generic_workflow",
+              "description": "Codex init writes AGENTS.md guidance referencing the generic workflow skills and no maid-runner-* skills.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_payload_manifest_distributable_excludes_repo_internal_skills",
+              "description": "The synced Codex payload manifest lists only the four generic skills as distributable and excludes repo-internal skills and descriptions.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "sync_codex_payload",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_payload_manifest_distributable",
+              "description": "Regenerated Codex payload manifest whose skills.distributable lists only the four generic MAID skills and excludes repo-internal skills.",
+              "of": "codex_payload",
+              "type": "json object"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/cli/test_init_cmd.py",
+        "tests/test_recall_payload_sync.py",
+        "tests/test_agent_payload_distribution.py",
+        "maid_runner/cli/commands/_main.py",
+        ".codex/skills/maid-plan-review/SKILL.md",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
+        "manifests/fix-claude-skill-only-distribution.manifest.yaml"
       ]
     },
     "test_files": [

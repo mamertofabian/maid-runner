@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml",
-  "manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
+  "manifest_hash": "sha256-contract:fb85fec14a2a08ea55bbf5531122efe58b040dab95617e4346ba0dbffaf07c0b",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
-    "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
-    "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/test_claude_skill_distribution.py": "sha256-pyast:d909d20a1af0e92728d6f63903a58c87ab840d55d5049cdf46a29f8a09a7d010",
+    "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf"
   },
   "created_at": "2026-06-13T13:16:39.921655+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:7dffb970dd76a38d9f23617ae834dd50e4b682495b1bfa18a7aef124dac5567b",
@@ -118,6 +118,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:8c6f3ae9a65b3a938fecf590a8dd147c5b17f85e390f2abbbfe52cc9f1eabf8a",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256:b3616a5c2cf112acd8b6e8dfb5078105f95ebec0709d5204b99945e6a8dba9b4",
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_recall_payload_sync.py": "sha256:64026a8d8362654d7bbe4dd812b4866314c1bb9fcfbe6abb4d552c55881b4f0f"
+      },
+      "revised_at": "2026-07-25T01:08:47.319117+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -132,6 +151,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -203,6 +223,166 @@
         "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
         "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
         "manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+        "tests/test_agent_payload_distribution.py",
+        "tests/test_claude_skill_distribution.py",
+        "tests/test_recall_payload_sync.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_recall_payload_sync.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_recall_guidance_payload_sync_matches_sources",
+              "description": "Behavioral coverage that isolated payload sync copies recall-integrated Claude and Codex workflow skill sources byte-for-byte.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_payload_manifest_lists_recall_workflow_skills_and_agents",
+              "description": "Behavioral coverage that the generated Codex payload manifest lists the added workflow skills and their skill-local OpenAI agent metadata.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_recall_payload_package_data_covers_generated_files",
+              "description": "Behavioral coverage that pyproject package-data globs include the generated Codex workflow skill files and agent metadata.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_planner_skill",
+              "description": "Generated package copy of the Codex maid-planner skill with recall-integrated guidance.",
+              "of": "codex_payload",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_planner_agent_metadata",
+              "description": "Generated package copy of the Codex maid-planner skill-local OpenAI agent metadata.",
+              "of": "codex_payload",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_implementer_skill",
+              "description": "Generated package copy of the Codex maid-implementer skill with recall-integrated guidance.",
+              "of": "codex_payload",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_implementer_agent_metadata",
+              "description": "Generated package copy of the Codex maid-implementer skill-local OpenAI agent metadata.",
+              "of": "codex_payload",
+              "type": "yaml document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_implementation_review_skill",
+              "description": "Generated package copy of the Codex maid-implementation-review skill with recall-integrated guidance.",
+              "of": "codex_payload",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_implementation_review_agent_metadata",
+              "description": "Generated package copy of the Codex maid-implementation-review skill-local OpenAI agent metadata.",
+              "of": "codex_payload",
+              "type": "yaml document"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/manifest.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_payload_manifest_workflow_skills",
+              "description": "Regenerated Codex payload manifest listing the recall-updated workflow skills and their skill-local agent metadata for install and pruning.",
+              "of": "codex_payload",
+              "type": "json object"
+            }
+          ]
+        },
+        {
+          "path": "pyproject.toml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_runner_package_data_codex_workflow_skills",
+              "description": "Package data covers the newly packaged Codex workflow skill files and agent metadata.",
+              "of": "pyproject",
+              "type": "TOML package-data entry"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml",
+        "manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml",
+        "manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "maid_runner/cli/commands/init.py",
         "tests/test_agent_payload_distribution.py",
         "tests/test_claude_skill_distribution.py",
         "tests/test_recall_payload_sync.py"

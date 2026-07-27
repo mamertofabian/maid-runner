@@ -114,13 +114,22 @@ files:
         behavior: The revision succeeds, the saved lock still carries the original valid red evidence payload, the revision entry records an empty contract delta, and stdout states that red evidence was preserved.
     - kind: test_function
       name: test_revise_with_changed_test_file_recaptures_evidence
-      source_scenario: The same locked setup, but a locked behavioral test file's bytes changed before the revise.
+      source_scenario: The same locked setup, but a locked behavioral test file's AST changed (assertion edit) before the revise.
       actions:
       - type: api_call
         subject:
           function: cmd_plan_revise
       expected:
         behavior: The automatic preservation does not apply; the command follows the existing recapture path and the saved lock's evidence is the fresh capture result, not the prior payload.
+    - kind: test_function
+      name: test_revise_with_formatter_only_test_edit_preserves_red_evidence
+      source_scenario: The same locked setup, but a locked behavioral test file receives only a comment/whitespace edit that leaves the AST unchanged.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Automatic preservation applies; the saved lock keeps the original red evidence and stdout states that red evidence was preserved.
     - kind: test_function
       name: test_revise_with_new_discovered_test_file_recaptures_evidence
       source_scenario: A locked temp-project whose files.read points at the tests/ directory (discovery can grow), then a new tests/test_extra.py appears before plain revise while contract sets and locked file bytes stay unchanged.

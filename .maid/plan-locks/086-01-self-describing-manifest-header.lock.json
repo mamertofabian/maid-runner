@@ -1,0 +1,362 @@
+{
+  "manifest_path": "manifests/086-01-self-describing-manifest-header.manifest.yaml",
+  "manifest_hash": "sha256-contract:2d6b51bf68c323608af3a3e78ebc7bc3885a84d820b0df4fd5f10f5207526ef4",
+  "test_hashes": {
+    "tests/core/test_manifest_header.py": "sha256-pyast:f2f5784499acef5c76e006453f6aa47dc5c795fb0026a0164fa241fd707122bc",
+    "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+    "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+    "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594",
+    "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+    "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9"
+  },
+  "created_at": "2026-07-25T08:53:57.560110+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1aa333a7df16734988e0feba2c68a4fe0ce86b1952aa0040b3e91cb1d33685c7",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:18b3ed5507f59289a4b7572ae1c2c708e9330268e2cf579a0d37b405a7303554",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594"
+      },
+      "revised_at": "2026-07-25T08:54:02.735849+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/086-01-self-describing-manifest-header.manifest.yaml -> manifests/086-01-self-describing-manifest-header.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/086-01-self-describing-manifest-header.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/086-01-self-describing-manifest-header.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca3654d6b5be8022024770140561cd4b192ff780604e4157ddcf21afcae257f4",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:18b3ed5507f59289a4b7572ae1c2c708e9330268e2cf579a0d37b405a7303554",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594"
+      },
+      "revised_at": "2026-07-25T09:00:52.898207+00:00",
+      "reason": "Correct MANIFEST_HEADER_COMMENT artifact identity (collector emits module constants as kind attribute with no owner) and recapture assertion-level red evidence after making header test imports function-local",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT",
+          "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT:kind=attribute",
+          "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT:type=str"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/manifest.py:attribute:module.MANIFEST_HEADER_COMMENT",
+          "maid_runner/core/manifest.py:attribute:module.MANIFEST_HEADER_COMMENT:kind=attribute",
+          "maid_runner/core/manifest.py:attribute:module.MANIFEST_HEADER_COMMENT:of=module",
+          "maid_runner/core/manifest.py:attribute:module.MANIFEST_HEADER_COMMENT:type=str"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:53d323080d2666a2da16477b99216624c4814431c3bb3a6e740b1ba302fb6649",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:066ee5191697cf7104d527910f13a1a02cb313a6961f8643a564247ec82b31da",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594"
+      },
+      "revised_at": "2026-07-25T09:02:31.959049+00:00",
+      "reason": "Give test_banner_is_ascii_only an explicit isascii assertion to clear E210; contract and validate commands unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:53d323080d2666a2da16477b99216624c4814431c3bb3a6e740b1ba302fb6649",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:aabbeb1d9511d55f6262ea976ceb4d70f1ea3f91d8b2b40d25b9855739d261be",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594"
+      },
+      "revised_at": "2026-07-25T09:22:40.199478+00:00",
+      "reason": "Implementation review found maid snapshot excluded on a false premise: save_snapshot defaults to format=yaml via save_manifest, which produced 48 committed banner-less manifests. Add save_manifest to scope, scope the idempotency sentinel to the leading comment block, and correct the record",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/manifest.py:function:save_manifest",
+          "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+          "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+          "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+          "maid_runner/core/manifest.py:function:save_manifest:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_manifest.py -v",
+          "uv run python -m pytest tests/core/test_snapshot.py -v"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2670a7095f691551c1b02084b57038b1a48cb1e929886e9d52425e6ec8f47e6f",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:156673f294333abf06bdb3c1b8c3dc3e0798c9b0760ee6367d079417fc4e6c0a",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9"
+      },
+      "revised_at": "2026-07-25T09:37:26.596293+00:00",
+      "reason": "Implementation review A1/A2: temptations still described two writers after save_manifest joined the contract, and 088-01 reads this manifest as files.read context. Reframe emission points around the shared save_manifest chokepoint (three writer functions, five reachable commands)",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ee20ae957822240c3061094a4e877392ed0949afa19030e9d3e702f37fce463f",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:156673f294333abf06bdb3c1b8c3dc3e0798c9b0760ee6367d079417fc4e6c0a",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:8f07fee3b3e57f0f829f3066a1683e3881c84eadabc66e12252392aca5b7a790",
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/core/test_manifest_from_diff.py": "sha256-pyast:5e6911efbaff85e135bdbae1611229520d8af4f1515870b6d810c99db3cce594",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9"
+      },
+      "revised_at": "2026-07-25T09:45:24.830433+00:00",
+      "reason": "Implementation review residual: scope the banner idempotency comparison with trailing whitespace stripped so backfilling an editor-touched manifest cannot stack a second banner",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T09:45:27.347332+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/086-01-self-describing-manifest-header.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_manifest_header.py -v",
+        "exit_code": 1,
+        "output_tail": "        scuffed = \"\\n\".join([lines[0] + \"  \", *lines[1:]]) + \"\\n\" + _MANIFEST_BODY\n    \n        result = prepend_manifest_header(scuffed)\n    \n>       assert result == scuffed\nE       AssertionError: assert '# MAID manif...pe: feature\\n' == '# MAID manif...pe: feature\\n'\nE         \nE         + # MAID manifest - a machine-checked contract for one change.\nE         + # Declares the intent, the files it may touch, and the commands that verify it.\nE         + # Nothing here is needed to build or run this project; safe to ignore.\nE         + # What it is: https://github.com/mamertofabian/maid-runner\nE           # MAID manifest - a machine-checked contract for one change.  \nE           # Declares the intent, the files it may touch, and the commands that verify it....\nE         \nE         ...Full output truncated (5 lines hidden), use '-vv' to show\n\ntests/core/test_manifest_header.py:133: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_header.py::TestPrependManifestHeader::test_trailing_whitespace_on_a_banner_line_does_not_stack_a_banner\n========================= 1 failed, 12 passed in 0.13s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_manifest_cmd.py -v",
+        "exit_code": 0,
+        "output_tail": "tests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_invalid_artifacts_json_returns_2 PASSED [ 32%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_missing_artifact_key_returns_2 PASSED [ 36%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_non_dry_run_writes_manifest PASSED [ 40%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_writes_self_describing_header PASSED [ 44%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_with_temptations PASSED [ 48%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_with_invalid_temptation_format_returns_2 PASSED [ 52%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestCreateErrors::test_create_with_too_many_temptations_returns_2 PASSED [ 56%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestViaCLI::test_manifest_create_dry_run_via_main PASSED [ 60%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestViaCLI::test_manifest_no_subcommand_via_main PASSED [ 64%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_stamps_active_created_timestamp_and_removes_draft PASSED [ 68%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_refuses_to_overwrite_existing_active_manifest PASSED [ 72%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_rejects_json_manifest_without_removing_source PASSED [ 76%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_rejects_yaml_name_outside_manifest_patterns PASSED [ 80%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_clears_inactive_metadata_status PASSED [ 84%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_rejects_schema_invalid_draft_without_removing_source PASSED [ 88%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_promote_rejects_duplicate_yaml_keys_without_removing_source PASSED [ 92%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_manifest_promote_routes_through_main PASSED [ 96%]\ntests/cli/test_manifest_cmd.py::TestCmdManifestPromote::test_build_parser_registers_manifest_promote PASSED [100%]\n\n============================== 25 passed in 0.19s ==============================",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_manifest_from_diff_cmd.py -v",
+        "exit_code": 0,
+        "output_tail": "collecting ... collected 16 items\n\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_dry_run_json_writes_nothing PASSED [  6%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_dry_run_rejects_empty_diff PASSED [ 12%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_writes_default_draft_and_json_result PASSED [ 18%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_default_output_preserves_evidenced_validate_suggestion PASSED [ 25%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_custom_output_sets_validate_command PASSED [ 31%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_custom_output_preserves_evidenced_validate_suggestion PASSED [ 37%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_quotes_spaced_slug_validate_command PASSED [ 43%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_requires_exactly_one_baseline PASSED [ 50%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_counts_empty_string_baseline_flags PASSED [ 56%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_cmd_manifest_rejects_missing_baseline PASSED [ 62%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_build_parser_registers_subcommand PASSED [ 68%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_invalid_commitish_exits_without_writing PASSED [ 75%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_refuses_existing_output_without_force PASSED [ 81%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_force_overwrites_existing_output PASSED [ 87%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_rejects_active_manifest_output PASSED [ 93%]\ntests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_rejects_draft_output_outside_project PASSED [100%]\n\n============================== 16 passed in 0.53s ==============================",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_manifest_from_diff.py -v",
+        "exit_code": 0,
+        "output_tail": "platform linux -- Python 3.12.8, pytest-8.4.2, pluggy-1.6.0 -- /home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/python3\ncachedir: .pytest_cache\nrootdir: /home/atomrem/projects/codefrost-dev/maid-runner\nconfigfile: pyproject.toml\nplugins: cov-7.0.0\ncollecting ... collected 11 items\n\ntests/core/test_manifest_from_diff.py::test_build_from_diff_manifest_renders_schema_valid_review_marked_draft PASSED [  9%]\ntests/core/test_manifest_from_diff.py::test_build_from_diff_manifest_quotes_slug_path_in_validate_command PASSED [ 18%]\ntests/core/test_manifest_from_diff.py::test_build_from_diff_manifest_rejects_empty_diff PASSED [ 27%]\ntests/core/test_manifest_from_diff.py::test_build_from_diff_manifest_is_deterministic PASSED [ 36%]\ntests/core/test_manifest_from_diff.py::test_default_from_diff_slug_uses_resolved_since_commit_hash PASSED [ 45%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_refuses_existing_output_without_force PASSED [ 54%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_force_overwrites_with_stable_yaml PASSED [ 63%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_writes_self_describing_header PASSED [ 72%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_writes_nothing_when_schema_invalid PASSED [ 81%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_rejects_non_draft_output PASSED [ 90%]\ntests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_rejects_draft_path_outside_project PASSED [100%]\n\n============================== 11 passed in 0.14s ==============================",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_manifest.py -v",
+        "exit_code": 0,
+        "output_tail": "tests/core/test_manifest.py::TestLoadManifest::test_load_without_acceptance_backward_compat PASSED [ 69%]\ntests/core/test_manifest.py::TestLoadManifest::test_load_with_temptations PASSED [ 70%]\ntests/core/test_manifest.py::TestLoadManifest::test_load_without_temptations_backward_compat PASSED [ 72%]\ntests/core/test_manifest.py::TestLoadManifest::test_load_save_artifact_type_parameters_round_trip PASSED [ 74%]\ntests/core/test_manifest.py::TestLoadManifest::test_schema_accepts_artifact_type_parameters PASSED [ 76%]\ntests/core/test_manifest.py::TestValidateManifestSchemaAcceptance::test_valid_acceptance PASSED [ 78%]\ntests/core/test_manifest.py::TestValidateManifestSchemaTemptations::test_valid_temptations PASSED [ 80%]\ntests/core/test_manifest.py::TestValidateManifestSchemaTemptations::test_temptations_require_risk_and_instead PASSED [ 81%]\ntests/core/test_manifest.py::TestValidateManifestSchemaTemptations::test_temptations_are_capped_at_five PASSED [ 83%]\ntests/core/test_manifest.py::TestValidateManifestSchemaTemptations::test_acceptance_missing_tests PASSED [ 85%]\ntests/core/test_manifest.py::TestValidateManifestSchemaTemptations::test_acceptance_with_immutable_false PASSED [ 87%]\ntests/core/test_manifest.py::TestSaveManifest::test_writes_self_describing_header PASSED [ 89%]\ntests/core/test_manifest.py::TestSaveManifest::test_round_trip PASSED    [ 90%]\ntests/core/test_manifest.py::TestSaveManifest::test_round_trip_with_acceptance PASSED [ 92%]\ntests/core/test_manifest.py::TestSaveManifest::test_round_trip_with_temptations_preserves_order_near_top PASSED [ 94%]\ntests/core/test_manifest.py::TestImportsField::test_imports_parsed_from_yaml PASSED [ 96%]\ntests/core/test_manifest.py::TestImportsField::test_missing_imports_defaults_empty PASSED [ 98%]\ntests/core/test_manifest.py::TestImportsField::test_imports_roundtrip PASSED [100%]\n\n============================== 55 passed in 0.17s ==============================",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_snapshot.py -v",
+        "exit_code": 0,
+        "output_tail": "tests/core/test_snapshot.py::TestSaveSnapshot::test_save_yaml_default PASSED [ 48%]\ntests/core/test_snapshot.py::TestSaveSnapshot::test_save_yaml_default_writes_self_describing_header PASSED [ 51%]\ntests/core/test_snapshot.py::TestSaveSnapshot::test_save_json_format PASSED [ 54%]\ntests/core/test_snapshot.py::TestSaveSnapshot::test_save_specific_output_path PASSED [ 57%]\ntests/core/test_snapshot.py::TestGenerateTestStub::test_generates_stub_for_python PASSED [ 60%]\ntests/core/test_snapshot.py::TestGenerateTestStub::test_empty_manifest_returns_empty PASSED [ 63%]\ntests/core/test_snapshot.py::TestSnapshotSlug::test_nested_path_slug PASSED [ 66%]\ntests/core/test_snapshot.py::TestSnapshotSlug::test_single_dir_slug PASSED [ 69%]\ntests/core/test_snapshot.py::TestSnapshotSlug::test_top_level_file_slug PASSED [ 72%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_file_outside_project_root PASSED [ 75%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_system_snapshot_missing_dir PASSED [ 78%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_system_snapshot_empty_dir PASSED [ 81%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_system_snapshot_with_tracked_files PASSED [ 84%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_infer_test_path_typescript PASSED [ 87%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_infer_test_path_tsx PASSED [ 90%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_infer_test_path_unknown PASSED [ 93%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_infer_validation_command_typescript PASSED [ 96%]\ntests/core/test_snapshot.py::TestSnapshotEdgeCases::test_infer_validation_command_default PASSED [100%]\n\n============================== 33 passed in 0.17s ==============================",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/manifest.py:function:_dump_manifest_yaml",
+      "maid_runner/cli/commands/manifest.py:function:_dump_manifest_yaml:arg=data:type=dict:default=None",
+      "maid_runner/cli/commands/manifest.py:function:_dump_manifest_yaml:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:_dump_manifest_yaml:returns=str",
+      "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT",
+      "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT:kind=attribute",
+      "maid_runner/core/manifest.py:attribute:MANIFEST_HEADER_COMMENT:type=str",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:arg=rendered:type=str:default=None",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:kind=function",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:returns=str",
+      "maid_runner/core/manifest.py:function:save_manifest",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:save_manifest:returns=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=force:type=bool:default=False",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:kind=function",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:returns=Path"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/manifest_from_diff.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/plan_lock.py",
+        "manifests/drafts/README.md"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "MANIFEST_HEADER_COMMENT",
+              "description": "Canonical ASCII-only, flush-left four-line comment banner stating what a manifest is, that it is not required to build or run the project, and the https://github.com/mamertofabian/maid-runner pointer. Each line starts with '#' and the text ends with a newline.",
+              "type": "str"
+            },
+            {
+              "kind": "function",
+              "name": "prepend_manifest_header",
+              "description": "Return rendered YAML with MANIFEST_HEADER_COMMENT inserted flush-left above the first YAML key. Idempotent: returns rendered unchanged when the banner already appears in the leading comment block, detected by scanning only that block rather than the whole document so a manifest whose body quotes the banner still gets one, and comparing each line with trailing whitespace stripped so an editor-scuffed banner is still recognized rather than stacked. Inserts the banner immediately after a leading '# draft-kind:' or '# archive-kind:' marker line when one is present, otherwise at the very top. Makes no other modification to rendered.",
+              "args": [
+                {
+                  "name": "rendered",
+                  "type": "str"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "save_manifest",
+              "description": "Serialize a Manifest to YAML at path with the canonical header banner prepended, so the default maid snapshot output identifies itself. Key order and flow style are unchanged.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_dump_manifest_yaml",
+              "description": "Render manifest YAML with human-reviewable string styles, then return it with the canonical manifest header banner prepended via prepend_manifest_header.",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/manifest_from_diff.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "write_from_diff_manifest",
+              "description": "Validate and write a byte-stable draft manifest whose rendered text carries the canonical header banner below the draft-kind marker line; schema validation and draft-path enforcement are unchanged.",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "force",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/plan_lock.py",
+        "manifests/drafts/README.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_cmd.py",
+      "tests/cli/test_manifest_from_diff_cmd.py",
+      "tests/core/test_manifest.py",
+      "tests/core/test_manifest_from_diff.py",
+      "tests/core/test_manifest_header.py",
+      "tests/core/test_snapshot.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/086-01-self-describing-manifest-header.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest tests/core/test_manifest_header.py -v",
+      "uv run python -m pytest tests/cli/test_manifest_cmd.py -v",
+      "uv run python -m pytest tests/cli/test_manifest_from_diff_cmd.py -v",
+      "uv run python -m pytest tests/core/test_manifest_from_diff.py -v",
+      "uv run python -m pytest tests/core/test_manifest.py -v",
+      "uv run python -m pytest tests/core/test_snapshot.py -v"
+    ]
+  }
+}

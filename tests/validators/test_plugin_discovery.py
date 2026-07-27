@@ -179,7 +179,7 @@ def test_well_formed_plugin_claiming_unclaimed_extension_becomes_active(monkeypa
     assert ".go" in registry.supported_extensions()
     assert _plugin_records(registry) == [
         _validator_record(
-            name="go",
+            name="_GoValidator",
             extensions=(".go",),
             source="maid-validator-go 1.2.3",
             status="active",
@@ -261,9 +261,9 @@ def test_discovery_and_record_order_are_deterministic(monkeypatch):
     registry = ValidatorRegistry.with_builtin_validators()
 
     assert [record.name for record in _plugin_records(registry)] == [
-        "a-go",
-        "b-rust",
-        "z-go",
+        "_GoValidator",
+        "_RustValidator",
+        "_GoValidator",
     ]
     assert isinstance(registry.get("main.go"), _GoValidator)
     assert _plugin_records(registry)[2].status == "conflict"
@@ -287,7 +287,7 @@ def test_plugin_claiming_builtin_and_unclaimed_extensions_partially_registers(
     assert isinstance(registry.get("main.py"), PythonValidator)
     assert _plugin_records(registry) == [
         _validator_record(
-            name="mixed",
+            name="_MixedValidator",
             extensions=(".go", ".py"),
             source="maid-validator-mixed 1.0.0",
             status="conflict",

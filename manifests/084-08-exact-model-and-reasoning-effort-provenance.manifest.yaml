@@ -1,0 +1,400 @@
+schema: '2'
+goal: Record ground-truth agent provenance — the exact client-invoked model id (version and variant included) plus a new optional reasoning_effort field — by extending AgentProvenance end to end and having tools/codex_maid_loop.py inject MAID_AGENT_* environment ground truth into every codex exec session, so provenance stops depending on model self-report
+type: feature
+created: '2026-07-19T03:36:12Z'
+metadata:
+  epic: 084-00-after-action-run-evaluation
+  tags:
+  - run-evaluation
+  - agent-provenance
+  - reasoning-effort
+  - codex-loop
+  - cli
+  priority: medium
+description: |
+  Recorded provenance to date shows the problem: completed manifests carry
+  agent.model values like "GPT-5" and "Composer" — marketing-family
+  self-reports without version, variant, or reasoning level — while the one
+  component that knows the exact answer (the loop driver, which invokes
+  `codex exec --model gpt-5.5 -c model_reasoning_effort=medium`) never passes
+  it along. 084's evaluate/compare features use agent.model as the primary
+  comparison key, so coarse self-reported names undermine the whole
+  after-action loop. Depends on 084-01 (AgentProvenance) and 084-02
+  (resolution seam + plan-lock capture).
+
+  Pinned decisions (do not redesign):
+
+  1. reasoning_effort is a new optional free-form string field, not an enum.
+     Clients use different vocabularies (codex: minimal/low/medium/high/xhigh;
+     other clients differ), so the schema constrains it only to a non-empty
+     string. `AgentProvenance` gains `reasoning_effort: Optional[str] = None`;
+     all in-repo construction sites use keyword arguments, so field position
+     is not a compatibility surface. The JSON schema AgentProvenance
+     definition gains an optional `reasoning_effort` string property with
+     minLength 1; `additionalProperties` stays false and unknown-key
+     rejection stays tested.
+
+  2. No separate submodel field. Model variants (e.g. a vendor's named
+     submodels) are encoded in the model slug itself, matching industry
+     model-id conventions (e.g. gpt-5.6-luna). `model` remains the single
+     primary comparison key; docs show a full-slug example.
+
+  3. Resolution seam extension only: resolve_agent_provenance's flag_values
+     mapping gains a "reasoning_effort" key and the env fallback gains
+     MAID_AGENT_REASONING_EFFORT. Flags-win-per-field merge, the
+     flags/environment/mixed source semantics, and the model-required
+     advisory are unchanged — reasoning_effort without model is still
+     dropped visibly with the labeled stderr warning and exit code 0.
+
+  4. Serialization is omission-preserving in every serializer that handles
+     AgentProvenance (plan-lock payload save/load, outcome index
+     to/from-dict, manifest outcome parse/serialize, plan status JSON and
+     text, evaluate reporting): the key is emitted only when the value is
+     set, missing keys parse as None, and pre-existing locks, manifests,
+     and index files load exactly as before. Plan-lock parsing stays
+     fail-closed for structurally malformed agent payloads (084-02 lesson).
+
+  5. Provenance stays advisory and outside all tamper evidence: nothing in
+     this change may enter manifest_hash, test hashes, contract-weakening
+     checks, or enforce_plan_locks decisions. The 084-02
+     enforcement-equivalence guarantee extends to the new field.
+
+  6. CLI wiring: `maid plan lock` and `maid plan revise` gain
+     --agent-reasoning-effort; the composition roots add the flag and the
+     MAID_AGENT_REASONING_EFFORT env key to the existing single env read.
+     `maid plan status` text mode shows reasoning effort only when present;
+     --json includes it inside the agent object omission-preservingly.
+
+  7. Driver ground truth: tools/codex_maid_loop.py gains a pure public
+     `agent_provenance_env(model, reasoning_effort)` returning exactly
+     {"MAID_AGENT_MODEL": model, "MAID_AGENT_REASONING_EFFORT":
+     reasoning_effort, "MAID_AGENT_PROVIDER": "openai",
+     "MAID_AGENT_CLIENT": "codex-cli"}. run_codex_json_command gains a
+     trailing `extra_env: Mapping[str, str] | None = None` merged over its
+     automation env copy with extra_env winning — the driver's values are
+     ground truth for the session it spawns. run_loop passes
+     agent_provenance_env(args.model, args.reasoning_effort) for every
+     codex exec pass, so `maid plan lock` / `maid plan revise` inside the
+     session record the exact invoked model slug automatically. No global
+     os.environ mutation; no os.environ reads inside the pure helper.
+
+  8. Outcome blocks are agent-authored YAML, so env vars alone do not fix
+     them: the implementation prompt (reachable through the prompt string
+     returned by build_implementation_command) plus the outcome docs and
+     the maid-implementation-review skill guidance must state the
+     preference order for outcome.agent — (a) client-provided
+     MAID_AGENT_MODEL / MAID_AGENT_REASONING_EFFORT env ground truth,
+     (b) an exact self-known model slug, (c) marketing-name self-report
+     only as a last resort. Skill guidance is edited at the .claude source
+     and propagated to packaged copies via the sanctioned sync, never by
+     hand-editing packaged files.
+
+  Recalled Outcome evidence applied: optional schema extensions need
+  closed-object rejection plus omission-preserving round-trip tests
+  (084-01); new documentation assertions live in this manifest's own test
+  files instead of editing shared test files, which would tamper older plan
+  locks (084-01); advisory metadata needs fail-closed parsing when present
+  and enforcement-equivalence coverage (084-02).
+temptations:
+- risk: Do not loosen the AgentProvenance schema (additionalProperties, enums-to-anything, or accepting arbitrary agent keys) to make reasoning_effort fit.
+  instead: Add exactly one optional minLength-1 reasoning_effort string property and keep unknown-key and empty-string rejection covered by behavioral tests.
+- risk: Do not let reasoning_effort or any provenance field leak into manifest hashes, test hashes, contract-weakening checks, or enforce_plan_locks decisions.
+  instead: Keep provenance advisory payload only and extend the 084-02 enforcement-equivalence regression so locks with and without reasoning_effort verify identically.
+- risk: Do not inject driver env by mutating os.environ globally or reading os.environ inside the new pure helper.
+  instead: agent_provenance_env is a pure mapping builder; run_codex_json_command merges the injected extra_env over its automation env copy at the single subprocess composition boundary.
+- risk: Do not leave outcome.agent guidance telling agents to self-report their model name when env ground truth exists.
+  instead: Prompt, docs, and skill guidance state the explicit preference order — env-provided MAID_AGENT_* values first, exact self-known slug second, labeled marketing-name self-report last.
+- risk: Do not hand-edit packaged doc or skill copies independently of their sources.
+  instead: Edit docs/ and .claude sources, then propagate with the sanctioned sync (scripts/sync_claude_files.py / make build) so packaged copies stay byte-identical and sync tests stay green.
+files:
+  edit:
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: attribute
+      name: reasoning_effort
+      of: AgentProvenance
+      type: Optional[str]
+      description: Client-configured reasoning effort for the recorded run (e.g. 'minimal', 'low', 'medium', 'high', 'xhigh'); free-form because client vocabularies differ; None when unknown or for pre-existing records.
+  - path: maid_runner/schemas/manifest.v2.schema.json
+    artifacts:
+    - kind: attribute
+      name: _agent_reasoning_effort_schema_property
+      of: MAID Manifest v2 schema
+      type: optional non-empty string property
+      description: AgentProvenance definition gains optional reasoning_effort (string, minLength 1); additionalProperties stays false so unknown agent keys are still rejected.
+  - path: maid_runner/core/agent_provenance.py
+    artifacts:
+    - kind: function
+      name: resolve_agent_provenance
+      args:
+      - name: flag_values
+        type: Mapping[str, object]
+      - name: env
+        type: Mapping[str, str]
+      returns: ProvenanceResolution
+      description: flag_values gains a "reasoning_effort" key with MAID_AGENT_REASONING_EFFORT env fallback; per-field flags-win merge, flags/environment/mixed source semantics, and the model-required visible-drop advisory are unchanged.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: plan lock and plan revise additionally accept --agent-reasoning-effort alongside the existing --agent-* provenance flags.
+  - path: tools/codex_maid_loop.py
+    artifacts:
+    - kind: function
+      name: agent_provenance_env
+      args:
+      - name: model
+        type: str
+      - name: reasoning_effort
+        type: str
+      returns: dict[str, str]
+      description: 'Pure ground-truth mapping for spawned codex sessions: exactly MAID_AGENT_MODEL=model, MAID_AGENT_REASONING_EFFORT=reasoning_effort, MAID_AGENT_PROVIDER="openai", MAID_AGENT_CLIENT="codex-cli"; no os.environ access.'
+    - kind: function
+      name: run_codex_json_command
+      args:
+      - name: args
+        type: list[str]
+      - name: stdout_jsonl_path
+        type: Path
+      - name: stderr_path
+        type: Path
+      - name: final_message_path
+        type: Path
+      - name: color_enabled
+        type: bool
+      - name: extra_env
+        type: Mapping[str, str] | None
+        default: None
+      returns: CodexRunResult
+      description: Runs the codex session as before; extra_env entries are merged over the automation env copy with extra_env winning, so driver-known session ground truth reaches child maid commands.
+    - kind: function
+      name: build_implementation_command
+      args:
+      - name: codex
+        type: str
+      - name: final_message_path
+        type: Path
+      - name: selected_drafts
+        type: list[Path]
+      - name: model
+        type: str
+        default: gpt-5.5
+      - name: reasoning_effort
+        type: str
+        default: medium
+      - name: failure_packet
+        type: dict[str, Any] | None
+        default: None
+      returns: list[str]
+      description: Unchanged signature; the returned prompt string now instructs the implementing agent to source outcome.agent model and reasoning_effort from the MAID_AGENT_* env ground truth instead of self-description.
+  - path: docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _exact_model_provenance_guidance
+      of: documentation
+      type: markdown section
+      description: Agent Provenance section documents reasoning_effort, the MAID_AGENT_REASONING_EFFORT env var, the client-ground-truth-over-self-report preference order, and a full-slug model example with reasoning_effort.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_exact_model_provenance_guidance
+      of: package_resource
+      type: markdown section
+      description: Packaged copy of the exact-model provenance guidance, kept in sync with docs/manifest-outcome-records.md via the sanctioned sync.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _outcome_agent_capture_guidance
+      of: documentation
+      type: markdown section
+      description: Outcome capture guidance instructs sourcing outcome.agent from MAID_AGENT_* env values when present, recording the exact client-invoked model slug (version and variant) plus reasoning_effort, and labeling self-reported names as such only when no ground truth exists.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_claude_outcome_agent_capture_guidance
+      of: package_resource
+      type: markdown section
+      description: Packaged Claude copy of the outcome agent capture guidance, synced from the .claude source.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_codex_outcome_agent_capture_guidance
+      of: package_resource
+      type: markdown section
+      description: Packaged Codex copy of the outcome agent capture guidance, carrying the same preference-order rule through the repository's codex payload sync path.
+  read:
+  - scripts/sync_claude_files.py
+  - docs/agent-skills.md
+  - manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml
+  - manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml
+  - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+  - manifests/070-03-generalize-bounded-retry-loop.manifest.yaml
+  scope:
+  - path: maid_runner/core/manifest.py
+    reason: Add the new optional AgentProvenance field to private Outcome parsing and omission-preserving serialization without changing the public load/save signatures.
+  - path: maid_runner/core/outcomes.py
+    reason: Carry the optional field through private Outcome-index serialization and legacy parsing without changing the public index API.
+  - path: maid_runner/core/plan_lock.py
+    reason: Carry the optional field through private advisory lock payload serialization and fail-closed parsing outside hashes and enforcement decisions.
+  - path: maid_runner/cli/commands/plan.py
+    reason: Extend private provenance composition, status payload formatting, and text display for the new CLI field without changing command signatures.
+  - path: maid_runner/cli/commands/evaluate.py
+    reason: Include the optional field in private evaluate-report serialization while leaving comparison keys unchanged.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    reason: Keep the Codex source payload aligned with the Claude review guidance before sanctioned packaging sync copies it into the Codex distribution payload.
+  create:
+  - path: tests/core/test_reasoning_effort_provenance.py
+    artifacts:
+    - kind: test_function
+      name: test_resolver_reads_reasoning_effort_from_flags
+      args: []
+      returns: None
+      description: resolve_agent_provenance with model and reasoning_effort flags yields provenance carrying the exact reasoning_effort with source 'flags'.
+    - kind: test_function
+      name: test_resolver_reads_reasoning_effort_from_env_fallback
+      args: []
+      returns: None
+      description: A model flag plus MAID_AGENT_REASONING_EFFORT env yields the env value with source 'mixed'; env-only input yields source 'environment'.
+    - kind: test_function
+      name: test_reasoning_effort_without_model_warns_and_drops
+      args: []
+      returns: None
+      description: reasoning_effort input without model yields provenance None plus the labeled model-required warning, never silent loss.
+    - kind: test_function
+      name: test_outcome_agent_round_trips_reasoning_effort
+      args: []
+      returns: None
+      description: load_manifest/save_manifest round-trip an outcome.agent reasoning_effort losslessly and omission-preservingly — absent field emits no key.
+    - kind: test_function
+      name: test_schema_accepts_reasoning_effort_and_rejects_unknown_fields
+      args: []
+      returns: None
+      description: validate_manifest_schema accepts a reasoning_effort string, rejects an empty string, and still rejects unknown agent keys.
+    - kind: test_function
+      name: test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none
+      args: []
+      returns: None
+      description: A lock saved with reasoning_effort loads it back; pre-existing lock payloads without the field load with reasoning_effort None; lock verification results are identical with and without the field.
+    - kind: test_function
+      name: test_outcome_index_round_trips_reasoning_effort
+      args: []
+      returns: None
+      description: build/write/read of the outcome index carries agent reasoning_effort; pre-provenance index files load with None.
+  - path: tests/cli/test_plan_lock_reasoning_effort_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_plan_lock_stores_reasoning_effort_from_flag
+      args: []
+      returns: None
+      description: maid plan lock --agent-model --agent-reasoning-effort stores reasoning_effort on the lock agent payload.
+    - kind: test_function
+      name: test_plan_lock_stores_reasoning_effort_from_env
+      args: []
+      returns: None
+      description: With MAID_AGENT_MODEL and MAID_AGENT_REASONING_EFFORT env set, the stored agent carries reasoning_effort with source 'environment'.
+    - kind: test_function
+      name: test_plan_status_reports_reasoning_effort
+      args: []
+      returns: None
+      description: plan status --json includes reasoning_effort inside the agent object when set and omits the key when absent; text mode mentions it only when present.
+  - path: tests/ci/test_codex_loop_agent_provenance_env.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_provenance_env_returns_ground_truth_mapping
+      args: []
+      returns: None
+      description: agent_provenance_env('gpt-5.5', 'medium') equals exactly the four-key MAID_AGENT_* mapping with provider 'openai' and client 'codex-cli'.
+    - kind: test_function
+      name: test_run_codex_json_command_injects_extra_env_into_child
+      args: []
+      returns: None
+      description: Running a stub executable through run_codex_json_command with extra_env makes the child process observe the injected MAID_AGENT_* values; without extra_env they are absent.
+    - kind: test_function
+      name: test_implementation_prompt_instructs_env_sourced_outcome_agent
+      args: []
+      returns: None
+      description: The prompt string returned by build_implementation_command instructs sourcing outcome.agent model and reasoning_effort from MAID_AGENT_* env ground truth rather than self-description.
+  - path: tests/test_exact_model_provenance_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_outcome_docs_document_reasoning_effort_and_exact_model_rule
+      args: []
+      returns: None
+      description: docs/manifest-outcome-records.md and the packaged copy document reasoning_effort, MAID_AGENT_REASONING_EFFORT, and the client-ground-truth-over-self-report preference order, and the two copies stay in sync.
+    - kind: test_function
+      name: test_review_skill_instructs_env_sourced_outcome_agent
+      args: []
+      returns: None
+      description: The .claude maid-implementation-review source and both packaged copies instruct env-sourced outcome.agent capture with the exact-slug-plus-reasoning_effort rule.
+validate:
+- uv run python -m pytest -q tests/core/test_reasoning_effort_provenance.py tests/cli/test_plan_lock_reasoning_effort_cmd.py tests/ci/test_codex_loop_agent_provenance_env.py tests/test_exact_model_provenance_docs.py
+outcome:
+  status: completed
+  summary: Agent provenance now records exact model slugs and optional reasoning effort through Outcome records, plan locks, CLI reporting, evaluation serialization, and Codex-loop subprocess ground truth.
+  rationale: The field remains optional, free-form, omission-preserving, and advisory; it is rejected when structurally malformed in a lock payload and stays outside manifest hashes and enforcement decisions.
+  lessons:
+  - lesson_type: schema-hardening
+    summary: Optional advisory provenance fields still need non-empty schema validation, fail-closed parsing when present, and legacy payload tests that prove missing keys remain compatible.
+    tags:
+    - agent-provenance
+    - reasoning-effort
+    - plan-lock
+    paths:
+    - maid_runner/schemas/manifest.v2.schema.json
+    - maid_runner/core/plan_lock.py
+    - tests/core/test_reasoning_effort_provenance.py
+  - lesson_type: test-design
+    summary: Ground-truth subprocess injection needs paired assertions for override and absence, while distributed guidance needs source-to-package synchronization tests.
+    tags:
+    - codex-loop
+    - provenance
+    - payload-sync
+    paths:
+    - tools/codex_maid_loop.py
+    - tests/ci/test_codex_loop_agent_provenance_env.py
+    - tests/test_exact_model_provenance_docs.py
+  review_notes:
+  - source: implementation-review
+    severity: P2
+    summary: Initial independent review found blank lock payload acceptance and missing legacy/omission cases; all were fixed with focused regression coverage.
+  - source: implementation-review
+    severity: ready
+    summary: Independent re-review found no remaining findings and returned ready.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_reasoning_effort_provenance.py
+    - tests/cli/test_plan_lock_reasoning_effort_cmd.py
+    - tests/ci/test_codex_loop_agent_provenance_env.py
+    - tests/test_exact_model_provenance_docs.py
+    status: passed
+    summary: Focused behavioral suite passed, 15 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/084-08-exact-model-and-reasoning-effort-provenance.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Implementation validation passed with only expected E307 non-code-file warnings.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: passed
+    summary: All handoff stages passed with the locked red evidence preserved.

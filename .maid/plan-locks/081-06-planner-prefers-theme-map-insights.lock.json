@@ -1,14 +1,14 @@
 {
   "manifest_path": "manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml",
-  "manifest_hash": "sha256:0a40ad87f717ee5de4abc3bf6627b9758b0dfe534461c3ea297c3ce1bbf1543c",
+  "manifest_hash": "sha256-contract:65af7d5508c525fb1f4d7d40bc828083758602950670ae676fbc89e180c86a83",
   "test_hashes": {
-    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
-    "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
-    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
-    "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f"
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5",
+    "tests/test_insights_skill_guidance.py": "sha256-pyast:434a663bb10b133d290a6a2eb5c94963dcbb9440ef519d623a6230ad1b093ef4",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:2e2b372eabd5a9ba4744be4915bf0ae053ec778c59b4575c29d88aca7d77e36d",
+    "tests/test_planner_theme_map_guidance.py": "sha256-pyast:fadfeb65ce393c88329692a6c3ea6743d254a9b5ee487885634add14614c0a2c"
   },
   "created_at": "2026-06-28T23:49:37.447274+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:047d2ab545418d96c6ded1d59e8d2fd1f7eec789441e5b1b207457b9925b9390",
@@ -125,6 +125,26 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:0a40ad87f717ee5de4abc3bf6627b9758b0dfe534461c3ea297c3ce1bbf1543c",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_insights_skill_guidance.py": "sha256:6447591d23f1150a5a9eefba82aeed23a0ec41fdef94999d8956680851161f40",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/test_planner_theme_map_guidance.py": "sha256:0ac4352f3d1d75aa5d33db245f2ee371e932ab9300ab007e14f274a8505f800f"
+      },
+      "revised_at": "2026-07-25T01:08:50.377209+00:00",
+      "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -139,6 +159,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -202,6 +223,134 @@
         "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml",
         "scripts/sync_claude_files.py",
         "tests/cli/test_init_instruction_payload_version.py",
+        "tests/test_insights_skill_guidance.py",
+        "tests/test_outcome_enrich_skill_guidance.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_planner_theme_map_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_planner_outcome_phase_prefers_theme_map_when_digest_present",
+              "description": "Behavioral coverage that both Claude and Codex maid-planner Outcome-Aware guidance tells the planner to prefer `maid insights --theme-map .maid/outcomes-digest.json` when a fresh advisory enrichment digest exists.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_outcome_phase_falls_back_without_fresh_digest",
+              "description": "Behavioral coverage that both planner skills state the mandatory non-blocking fallback to plain `maid insights` when the digest is absent, stale, or invalid, and forbid forcing a stale digest with `--allow-stale-index`.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_theme_map_guidance_keeps_digest_advisory_and_read_only",
+              "description": "Behavioral coverage that both planner skills keep the digest advisory and read-only, stating the planner must not generate the digest, call a model, or run `maid enrich` generation.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_theme_map_guidance_uses_only_registered_insights_options",
+              "description": "Behavioral coverage that planner theme-map guidance uses only registered `maid insights` options and contains no unregistered flags such as `--digest`.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_theme_map_guidance_synced_to_agent_payloads",
+              "description": "Behavioral coverage that generated Claude and Codex maid-planner package copies equal their source skills after an isolated payload sync, so theme-map guidance cannot drift between source and package.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_planner_change",
+              "description": "Behavioral coverage that INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change `2026.06.27.1` baseline, so downstream `maid init --check` reports the changed planner payload as stale.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_planner_theme_map_insights_guidance",
+              "description": "Claude source maid-planner Outcome-Aware rule to prefer `maid insights --theme-map .maid/outcomes-digest.json` when a fresh advisory digest exists, with a mandatory non-blocking fallback to plain `maid insights`, no `--allow-stale-index` override, and no planner-side digest generation.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_planner_theme_map_insights_guidance",
+              "description": "Codex source maid-planner Outcome-Aware rule identical to the Claude copy, preferring `maid insights --theme-map` with the same fallback, override, and read-only-consumer constraints.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_planner_theme_map_insights_guidance",
+              "description": "Generated Claude package copy of the planner theme-map insights guidance, kept byte-for-byte in sync with the source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_planner_theme_map_insights_guidance",
+              "description": "Generated Codex package copy of the planner theme-map insights guidance, kept byte-for-byte in sync with the source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version advanced past `2026.06.27.1` so that changing the installed planner skill payload makes downstream `maid init --check` report the installed payload as stale.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml",
+        "manifests/081-03-wire-theme-map-into-insights.manifest.yaml",
+        "manifests/081-04-add-outcome-enrich-skill.manifest.yaml",
+        "manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/cli/commands/_main.py",
+        "scripts/sync_claude_files.py",
         "tests/test_insights_skill_guidance.py",
         "tests/test_outcome_enrich_skill_guidance.py"
       ]

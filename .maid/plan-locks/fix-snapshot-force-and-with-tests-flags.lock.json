@@ -1,0 +1,175 @@
+{
+  "manifest_path": "manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml",
+  "manifest_hash": "sha256-contract:05f8db666008f56b19b884f97a6386f60b4c382639800d906bef145cd82f3c5b",
+  "test_hashes": {
+    "tests/cli/test_main.py": "sha256-pyast:9e52980b25e9d5a975dba942f59ee669e6a80bcc8b475bb4800bc92e8bf552b7"
+  },
+  "created_at": "2026-07-27T03:06:42.513156+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1503d873c24d73f6f889e992e5b3011af7846cb536cfeeacb7496a7cc1ac212f",
+      "prior_test_hashes": {
+        "tests/cli/test_snapshot_cmd.py": "sha256-pyast:6ec03292b73a51366ca1e8f7ff8cdfc767e0fb9a3a7cb1b0a05f6ef498f2d05f",
+        "tests/cli/test_main.py": "sha256-pyast:5e60ec91e20ec59f5a6063419c0817284907e465fc82ba95e219fac44a28fefe"
+      },
+      "revised_at": "2026-07-27T03:06:46.186743+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-snapshot-force-and-with-tests-flags.manifest.yaml -> manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0ee3ca604f5f783eb13ea0946fdbc4244b1f80b60adebfb151ff59a9bd6d961a",
+      "prior_test_hashes": {
+        "tests/cli/test_snapshot_cmd.py": "sha256-pyast:6ec03292b73a51366ca1e8f7ff8cdfc767e0fb9a3a7cb1b0a05f6ef498f2d05f",
+        "tests/cli/test_main.py": "sha256-pyast:5e60ec91e20ec59f5a6063419c0817284907e465fc82ba95e219fac44a28fefe"
+      },
+      "revised_at": "2026-07-27T03:08:04.830163+00:00",
+      "reason": "Remove unnecessary snapshot command test read dependency and refresh promoted metadata",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_snapshot_cmd.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:528c165e4b1324f0732035c19ef291afd4e7ed32cc3f7ddc94af754cd7e37098",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:9e52980b25e9d5a975dba942f59ee669e6a80bcc8b475bb4800bc92e8bf552b7"
+      },
+      "revised_at": "2026-07-27T03:08:27.436698+00:00",
+      "reason": "Run the discovered parser behavioral test file in the manifest validate command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/cli/test_main.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/cli/test_main.py::TestMissingCLIFlags::test_snapshot_with_tests_flag_is_rejected tests/cli/test_main.py::TestMissingCLIFlags::test_snapshot_force_flag_is_rejected -q"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-27T03:08:28.337389+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_main.py -q",
+        "exit_code": 1,
+        "output_tail": "\ntests/cli/test_main.py:483: Failed\n___________ TestMissingCLIFlags.test_snapshot_force_flag_is_rejected ___________\n\nself = <test_main.TestMissingCLIFlags object at 0x7760d9db8290>\n\n    def test_snapshot_force_flag_is_rejected(self) -> None:\n        from maid_runner.cli.commands._main import build_parser\n    \n        parser = build_parser()\n    \n>       with pytest.raises(SystemExit) as exc_info:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'SystemExit'>\n\ntests/cli/test_main.py:493: Failed\n=========================== short test summary info ============================\nFAILED tests/cli/test_main.py::TestMissingCLIFlags::test_snapshot_with_tests_flag_is_rejected\nFAILED tests/cli/test_main.py::TestMissingCLIFlags::test_snapshot_force_flag_is_rejected\n2 failed, 50 passed in 0.55s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_force_flag_is_rejected",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_force_flag_is_rejected:arg=self:type=Any:default=None",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_force_flag_is_rejected:kind=method",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_force_flag_is_rejected:of=TestMissingCLIFlags",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_force_flag_is_rejected:returns=None",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_with_tests_flag_is_rejected",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_with_tests_flag_is_rejected:arg=self:type=Any:default=None",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_with_tests_flag_is_rejected:kind=method",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_with_tests_flag_is_rejected:of=TestMissingCLIFlags",
+      "tests/cli/test_main.py:method:TestMissingCLIFlags.test_snapshot_with_tests_flag_is_rejected:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_main.py"
+      ],
+      "read": [
+        "maid_runner/core/bootstrap.py",
+        "maid_runner/core/manifest_from_diff.py",
+        "maid_runner/core/snapshot.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_main.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "test_snapshot_with_tests_flag_is_rejected",
+              "of": "TestMissingCLIFlags",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "Any"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "test_snapshot_force_flag_is_rejected",
+              "of": "TestMissingCLIFlags",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "Any"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/manifest_from_diff.py",
+        "maid_runner/core/bootstrap.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Remove the inert snapshot parser options without changing a public Python artifact."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_main.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest tests/cli/test_main.py -q"
+    ]
+  }
+}

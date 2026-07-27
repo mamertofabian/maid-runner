@@ -592,7 +592,10 @@ def _plan_lock_stage(
         from maid_runner.core.plan_lock import enforce_plan_locks
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-        changed_paths = _plan_lock_changed_paths(root, chain, since, base_ref)
+        widening: list[ValidationError] = []
+        changed_paths = _plan_lock_changed_paths(
+            root, chain, since, base_ref, widening=widening
+        )
         errors = enforce_plan_locks(
             chain,
             root,
@@ -601,11 +604,17 @@ def _plan_lock_stage(
             changed_paths=changed_paths,
             plan_lock_scope=plan_lock_scope,
         )
+        findings = [*widening, *errors]
+        blocking = [
+            finding
+            for finding in findings
+            if getattr(finding, "severity", Severity.ERROR) == Severity.ERROR
+        ]
         return VerificationStageResult(
             name="plan_lock",
-            success=not errors,
+            success=not blocking,
             _duration_ms=_elapsed_ms(started),
-            _errors=tuple(errors),
+            _errors=tuple(findings),
         )
     except Exception as exc:
         return _error_stage("plan_lock", started, exc)
@@ -616,30 +625,90 @@ def _plan_lock_changed_paths(
     chain,
     since: str | None,
     base_ref: str | None,
+    *,
+    widening: "list[ValidationError] | None" = None,
 ) -> tuple[str, ...] | None:
+    """Resolve the plan-lock task window, disclosing any widening to full scope.
+
+    Returning None means "enforce every active manifest". That fail-closed
+    escalation is deliberate (067-07), but it must never be silent: each path
+    that returns None records a PLAN_LOCK_SCOPE_WIDENED warning naming the
+    cause, so the resulting findings are actionable instead of an
+    unattributable storm.
+    """
     from maid_runner.core.worktree import (
         changed_files,
         changed_files_since,
+        describe_changed_scope_baselines,
         resolve_changed_scope_baseline,
     )
+
+    def _widened(detail: str, suggestion: str) -> None:
+        if widening is None:
+            return
+        widening.append(
+            ValidationError(
+                code=ErrorCode.PLAN_LOCK_SCOPE_WIDENED,
+                message=(
+                    "PLAN_LOCK_SCOPE_WIDENED: plan-lock enforcement widened from "
+                    "the task window to every active manifest because "
+                    f"{detail}"
+                ),
+                severity=Severity.WARNING,
+                suggestion=suggestion,
+            )
+        )
 
     try:
         baseline = resolve_changed_scope_baseline(chain, since=since, base_ref=base_ref)
     except RuntimeError as exc:
         if since or base_ref:
+            _widened(
+                f"the requested baseline could not be resolved: {exc}",
+                "Pass a baseline this checkout can resolve.",
+            )
             return None
         error = getattr(exc, "error", None)
         if getattr(error, "code", None) != ErrorCode.CHANGED_SCOPE_BASELINE_REQUIRED:
+            _widened(
+                _baseline_conflict_detail(chain, exc, describe_changed_scope_baselines),
+                "Make the listed manifests agree on metadata.maid_task_base, or "
+                "pass --since/--base-ref for this run.",
+            )
             return None
         try:
             return changed_files(root)
-        except RuntimeError:
+        except RuntimeError as fallback_exc:
+            _widened(
+                f"the working tree could not be read: {fallback_exc}",
+                "Restore git metadata so verify can scope to the current task.",
+            )
             return None
 
     try:
         return changed_files_since(root, baseline)
-    except RuntimeError:
+    except RuntimeError as exc:
+        _widened(
+            f"baseline '{baseline.commitish}' could not be compared: {exc}",
+            "Pass a baseline commit this checkout contains.",
+        )
         return None
+
+
+def _baseline_conflict_detail(chain, exc: Exception, describe) -> str:
+    """Name the manifests whose disagreement blocked baseline resolution."""
+    try:
+        declarations = describe(chain)
+    except Exception as describe_exc:
+        # Disclose the degraded message rather than quietly dropping to the
+        # generic one; this helper exists to end silent fallbacks.
+        return f"{exc} (manifest declarations unavailable: {describe_exc})"
+    if not declarations:
+        return str(exc)
+    listed = ", ".join(
+        f"{entry.manifest_path} declares {entry.commitish}" for entry in declarations
+    )
+    return f"{exc} ({listed})"
 
 
 def _worktree_scope_stage(

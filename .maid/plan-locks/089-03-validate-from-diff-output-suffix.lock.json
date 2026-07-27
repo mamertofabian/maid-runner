@@ -1,0 +1,600 @@
+{
+  "manifest_path": "manifests/089-03-validate-from-diff-output-suffix.manifest.yaml",
+  "manifest_hash": "sha256-contract:ffdcfa605407c667207b5e9c4c7f69789aa2250b2d11537a02426429123785e0",
+  "test_hashes": {
+    "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+    "tests/cli/test_manifest_from_diff_output_suffix.py": "sha256-pyast:8a1b0264e161d1b7e96d6aeef924030f0fee02052660bba8bf74b64d173b6d26"
+  },
+  "created_at": "2026-07-25T22:29:07.728756+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:902586faba524eed7d5f7c2c620c0382916515e313f3f30f777073f2b01cbf24",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/cli/test_manifest_from_diff_output_suffix.py": "sha256-pyast:ef7bae114c0a38ad0c6972c6a8460d0938f7a4741e7803abe992800a3506186d"
+      },
+      "revised_at": "2026-07-25T22:29:14.698482+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/089-03-validate-from-diff-output-suffix.manifest.yaml -> manifests/089-03-validate-from-diff-output-suffix.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/089-03-validate-from-diff-output-suffix.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/089-03-validate-from-diff-output-suffix.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ffdcfa605407c667207b5e9c4c7f69789aa2250b2d11537a02426429123785e0",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:15c94d69f8f5fcadaec6dc649e967c3fc82478ad3b0889fe871f4d8668413ae4",
+        "tests/cli/test_manifest_from_diff_output_suffix.py": "sha256-pyast:ef7bae114c0a38ad0c6972c6a8460d0938f7a4741e7803abe992800a3506186d"
+      },
+      "revised_at": "2026-07-25T22:50:40.545246+00:00",
+      "reason": "Implementation review A1/A2: pin the writer-side pre-mkdir ordering for library callers and the suffixless rejection reason",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T22:50:44.857724+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_from_diff_output_suffix.py tests/cli/test_manifest_from_diff_cmd.py",
+        "exit_code": 1,
+        "output_tail": "    def test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit():\n        from maid_runner.core.manifest import _SUFFIX_FORMATS\n>       from maid_runner.core.manifest_from_diff import (\n            FromDiffRenderError,\n            validate_from_diff_output_suffix,\n        )\nE       ImportError: cannot import name 'validate_from_diff_output_suffix' from 'maid_runner.core.manifest_from_diff' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/manifest_from_diff.py)\n\ntests/cli/test_manifest_from_diff_output_suffix.py:254: ImportError\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_rejects_unsupported_output_suffix_without_writing\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_suffix_rejection_is_distinct_from_containment_rejection\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_rejects_suffixless_output_path\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_rejects_uppercase_yaml_output_suffix\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_from_diff_dry_run_rejects_unsupported_output_suffix\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix\nFAILED tests/cli/test_manifest_from_diff_output_suffix.py::test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit\n9 failed, 19 passed in 0.85s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/089-03-validate-from-diff-output-suffix.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json",
+      ".maid/plan-locks/089-02-honor-output-suffix-in-v1-conversion.lock.json",
+      "manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int",
+      "maid_runner/core/manifest_from_diff.py:function:validate_from_diff_output_suffix",
+      "maid_runner/core/manifest_from_diff.py:function:validate_from_diff_output_suffix:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:validate_from_diff_output_suffix:kind=function",
+      "maid_runner/core/manifest_from_diff.py:function:validate_from_diff_output_suffix:raises=FromDiffRenderError",
+      "maid_runner/core/manifest_from_diff.py:function:validate_from_diff_output_suffix:returns=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=force:type=bool:default=False",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:kind=function",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:returns=Path",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_default_yaml_draft_path:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_accepts_yml_output_suffix:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_dry_run_rejects_unsupported_output_suffix:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_suffixless_output_path:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_unsupported_output_suffix_without_writing:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_rejects_uppercase_yaml_output_suffix:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_still_rejects_output_outside_drafts_directory:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_from_diff_suffix_rejection_is_distinct_from_containment_rejection:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit:returns=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers:kind=test_function",
+      "tests/cli/test_manifest_from_diff_output_suffix.py:test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_from_diff_output_suffix.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/core/manifest_from_diff.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml",
+        "tests/cli/test_manifest_from_diff_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_from_diff_output_suffix.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_rejects_unsupported_output_suffix_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output manifests/drafts/x.json.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 with an error naming the '.json' suffix, and no manifests directory is created at all, proving the rejection precedes the writer's parent mkdir."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_suffix_rejection_is_distinct_from_containment_rejection",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes a drafts-directory path with an unsupported suffix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The error names the unsupported suffix and does not reuse the 'must be under manifests/drafts/' containment wording, so the two failures stay separately diagnosable."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --force with an existing manifests/drafts/x.json.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 and the existing file's bytes are unchanged, closing the write-then-restore rollback that satisfies a naive no-file assertion."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_still_rejects_output_outside_drafts_directory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes an --output path outside manifests/drafts/.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The existing containment rejection is unchanged in message and exit code, proving the new suffix condition was added alongside it rather than replacing it."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_accepts_default_yaml_draft_path",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The slug-derived default output path is used as a regression guard.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The generated draft is written, round-trips through load_manifest_raw, and its self-validate path points at the file that was actually written."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_accepts_yml_output_suffix",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output manifests/drafts/custom.manifest.yml.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The draft is written and round-trips through load_manifest_raw, proving the guard accepts every yaml-format suffix the reader dispatches on rather than only '.yaml'."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_rejects_suffixless_output_path",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes an output path with no suffix at all.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 and writes nothing, closing the empty-suffix YAML fallback that 089-01's review found unpinned."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_rejects_uppercase_yaml_output_suffix",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output manifests/drafts/custom.YAML.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 and writes nothing, because load_manifest_raw and chain discovery match the lowercase suffix exactly, so an uppercase suffix is not a loadable manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_from_diff_dry_run_rejects_unsupported_output_suffix",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --dry-run with --output manifests/drafts/x.json, the path that never reaches write_from_diff_manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 and prints no manifest body, so --dry-run cannot hand back a manifest whose embedded self-validate command points at a file MAID cannot load. This is the case a writer-only guard would miss."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A non-CLI caller invokes write_from_diff_manifest directly with an unsupported suffix and a body that would also fail schema validation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "write_from_diff_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "FromDiffRenderError names the suffix rather than reporting a schema failure, proving the guard runs before schema validation and covers library callers, and nothing is written."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix",
+              "returns": "None",
+              "source_scenario": "Every suffix load_manifest_raw maps to the yaml format is offered to the shared guard.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "validate_from_diff_output_suffix"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guard accepts all of them, so it cannot drift narrower than the reader and start rejecting a suffix MAID can still load."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit",
+              "returns": "None",
+              "source_scenario": "Every suffix load_manifest_raw maps to a non-yaml format is offered to the shared guard.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "validate_from_diff_output_suffix"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each raises FromDiffRenderError naming that suffix, so the guard cannot drift wider than what this YAML-only writer can correctly emit."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest_from_diff.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_from_diff_output_suffix",
+              "description": "Raise FromDiffRenderError naming the unsupported suffix when the output path's suffix is not one this writer can correctly emit. The accepted set is derived from _SUFFIX_FORMATS by selecting the suffixes mapped to the yaml format, so the guard cannot drift from load_manifest_raw. Shared by the writer and the CLI so both enforcement sites use one rule. Returns None when the suffix is supported.",
+              "args": [
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None",
+              "raises": [
+                "FromDiffRenderError"
+              ]
+            },
+            {
+              "kind": "function",
+              "name": "write_from_diff_manifest",
+              "description": "Reject an output path whose suffix MAID cannot load, with a FromDiffRenderError distinct from the drafts-directory containment failure, before any filesystem effect including the parent mkdir. Placed on the public writer so library callers are covered, not only the CLI.",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "force",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "description": "Surface the new suffix rejection as exit code 2 with the writer's message, for the writing path and for --dry-run alike, leaving the existing drafts-directory rejection message and exit code unchanged. Dispatches to the private _cmd_from_diff helper, which is not part of the contract.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "tests/cli/test_manifest_from_diff_cmd.py",
+        "manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_from_diff_cmd.py",
+      "tests/cli/test_manifest_from_diff_output_suffix.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_manifest_from_diff_output_suffix.py tests/cli/test_manifest_from_diff_cmd.py",
+      "uv run maid validate manifests/089-03-validate-from-diff-output-suffix.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

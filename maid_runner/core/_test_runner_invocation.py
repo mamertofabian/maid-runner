@@ -206,7 +206,9 @@ _TEST_RUNNER_VALUE_FLAGS = frozenset(
         "-c",
         "--environment",
         "--pool",
+        "--project",
         "--reporter",
+        "--output",
         "--testNamePattern",
         "-t",
     }
@@ -530,12 +532,20 @@ def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
         return _test_runner_target_scan_segment(parts[3:])
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
-        inner_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
-        if inner_command is not None:
-            return _test_runner_target_scan_segment(inner_command)
+        inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
+        scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
+        if inner_command is not None and scan_command is not None:
+            preserved_options = scan_command[: len(scan_command) - len(inner_command)]
+            return [
+                *preserved_options,
+                *_test_runner_target_scan_segment(inner_command),
+            ]
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
         return _test_runner_target_scan_segment(parts[2:])
+
+    if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
+        return parts[2:]
 
     return parts
 

@@ -1,0 +1,423 @@
+{
+  "manifest_path": "manifests/fix-snapshot-output-format-from-suffix.manifest.yaml",
+  "manifest_hash": "sha256-contract:d7ee431a4ed13d972d15e4c20f156a89e3767ecb788fbb34175d243873864bb2",
+  "test_hashes": {
+    "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9",
+    "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00"
+  },
+  "created_at": "2026-07-25T10:44:08.094679+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:203f767956dacc73b01aba71a40aaca8c11af696f21b5b26099bebfe6912688d",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9",
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:dcee84ad59975c795cab337dc8dcc27f21d672d846bedab2ce174d7cd77ec383"
+      },
+      "revised_at": "2026-07-25T10:44:11.933956+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-snapshot-output-format-from-suffix.manifest.yaml -> manifests/fix-snapshot-output-format-from-suffix.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-snapshot-output-format-from-suffix.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-snapshot-output-format-from-suffix.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:85f36d4171cdf8704c7314cad0a0763b778b8d0cd24f6de8c681174d27e6ba31",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9",
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:dcee84ad59975c795cab337dc8dcc27f21d672d846bedab2ce174d7cd77ec383"
+      },
+      "revised_at": "2026-07-25T11:01:38.423196+00:00",
+      "reason": "Close review-found uppercase-suffix hole that recreated the silent-bad-artifact defect, and cover matching-format and .yml acceptance",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted",
+          "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:kind=test_function",
+          "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:returns=None",
+          "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing",
+          "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:kind=test_function",
+          "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:returns=None",
+          "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml",
+          "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:kind=test_function",
+          "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/cli/commands/_main.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8ecb6e644e6cfb3b7c8afb2a3bfb3566bf06003e2de72f84a76103bbeee6e049",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot.py": "sha256-pyast:13a66bfa8005ed5d9a9a8607408b9e5161bd728c7cb8ffb2362cb97290ef1fc9",
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00"
+      },
+      "revised_at": "2026-07-25T11:19:16.679117+00:00",
+      "reason": "Declare the edited CLI help-string file under files.scope instead of files.read, since files.read does not authorize edits",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/cli/commands/_main.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/cli/commands/_main.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-25T11:01:41.967308+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_snapshot_output_format.py tests/core/test_snapshot.py",
+        "exit_code": 1,
+        "output_tail": "        tmp_path: Path,\n    ) -> None:\n        from maid_runner.core.snapshot import save_snapshot\n    \n        # load_manifest_raw and manifest discovery match the lowercase suffix\n        # exactly, so \".JSON\" is not a loadable manifest even though it looks like\n        # one. Accepting it would recreate the silent-bad-artifact defect.\n        out_path = tmp_path / \"out.manifest.JSON\"\n    \n>       with pytest.raises(ValueError) as excinfo:\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\ntests/core/test_snapshot_output_format.py:107: Failed\n=========================== short test summary info ============================\nFAILED tests/core/test_snapshot_output_format.py::test_output_with_json_suffix_writes_loadable_json\nFAILED tests/core/test_snapshot_output_format.py::test_output_with_unsupported_suffix_is_rejected_without_writing\nFAILED tests/core/test_snapshot_output_format.py::test_output_suffix_conflicting_with_explicit_format_is_rejected\nFAILED tests/core/test_snapshot_output_format.py::test_output_with_uppercase_suffix_is_rejected_without_writing\n4 failed, 37 passed in 0.21s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-snapshot-output-format-from-suffix.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-plan-lock-git-subdirectory-paths.lock.json",
+      "maid_runner/core/plan_lock.py",
+      "manifests/drafts/fix-legacy-baseline-post-run-guard-delta.manifest.yaml",
+      "manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
+      "tests/core/test_plan_lock_git_subdirectory.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/snapshot.py:function:save_snapshot",
+      "maid_runner/core/snapshot.py:function:save_snapshot:arg=format:type=Optional[str]:default=None",
+      "maid_runner/core/snapshot.py:function:save_snapshot:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/snapshot.py:function:save_snapshot:arg=output:type=Union[str, Path, None]:default=None",
+      "maid_runner/core/snapshot.py:function:save_snapshot:arg=output_dir:type=Union[str, Path]:default=manifests/",
+      "maid_runner/core/snapshot.py:function:save_snapshot:kind=function",
+      "maid_runner/core/snapshot.py:function:save_snapshot:returns=Path",
+      "tests/core/test_snapshot_output_format.py:test_output_dir_still_honors_explicit_format",
+      "tests/core/test_snapshot_output_format.py:test_output_dir_still_honors_explicit_format:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_dir_still_honors_explicit_format:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_dir_still_honors_explicit_format:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_conflicting_with_explicit_format_is_rejected",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_conflicting_with_explicit_format_is_rejected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_conflicting_with_explicit_format_is_rejected:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_conflicting_with_explicit_format_is_rejected:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_suffix_matching_explicit_format_is_accepted:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_json_suffix_writes_loadable_json",
+      "tests/core/test_snapshot_output_format.py:test_output_with_json_suffix_writes_loadable_json:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_json_suffix_writes_loadable_json:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_with_json_suffix_writes_loadable_json:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_unsupported_suffix_is_rejected_without_writing",
+      "tests/core/test_snapshot_output_format.py:test_output_with_unsupported_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_unsupported_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_with_unsupported_suffix_is_rejected_without_writing:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing",
+      "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_with_uppercase_suffix_is_rejected_without_writing:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yaml_suffix_writes_loadable_yaml_with_header",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yaml_suffix_writes_loadable_yaml_with_header:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yaml_suffix_writes_loadable_yaml_with_header:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yaml_suffix_writes_loadable_yaml_with_header:returns=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:kind=test_function",
+      "tests/core/test_snapshot_output_format.py:test_output_with_yml_suffix_writes_loadable_yaml:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_snapshot_output_format.py"
+      ],
+      "edit": [
+        "maid_runner/core/snapshot.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/snapshot.py",
+        "maid_runner/core/manifest.py",
+        "tests/core/test_snapshot.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_snapshot_output_format.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_output_with_json_suffix_writes_loadable_json",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output pointing at a .manifest.json path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file parses with strict json.loads via load_manifest_raw, preserves goal and type, and carries no YAML comment banner."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_with_yaml_suffix_writes_loadable_yaml_with_header",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output pointing at a .manifest.yaml path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file round-trips through load_manifest_raw and still starts with the 086-01 self-describing banner."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_with_unsupported_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output with a suffix MAID cannot load, such as .txt.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_snapshot raises ValueError naming the unsupported suffix and leaves no file on disk."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_suffix_conflicting_with_explicit_format_is_rejected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes output='x.manifest.json' together with an explicit format='yaml'.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_snapshot raises ValueError describing the contradiction and writes nothing, instead of silently honoring one of the two."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_with_uppercase_suffix_is_rejected_without_writing",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output with an uppercase suffix such as .manifest.JSON.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_snapshot raises ValueError and writes nothing, because load_manifest_raw and manifest discovery match the lowercase suffix exactly, so an uppercase suffix is not a loadable manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_suffix_matching_explicit_format_is_accepted",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes output='x.manifest.json' together with a matching explicit format='json'.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_snapshot writes loadable JSON, proving only a contradicting format is rejected rather than every explicit format."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_with_yml_suffix_writes_loadable_yaml",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A caller passes --output pointing at a .manifest.yml path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "save_snapshot writes YAML that round-trips through load_manifest_raw, proving .yml is supported alongside .yaml."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_output_dir_still_honors_explicit_format",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The unchanged output_dir path is used with an explicit format.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "save_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "format='json' still derives a .json extension and format=None still derives .yaml, proving the output_dir branch was not altered."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/snapshot.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "save_snapshot",
+              "description": "Derive the write format from the output path suffix when output is given, reject an unsupported suffix or a suffix that contradicts an explicit format without writing anything, and keep the YAML-only self-describing banner off the JSON path.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "output_dir",
+                  "type": "Union[str, Path]",
+                  "default": "manifests/"
+                },
+                {
+                  "name": "output",
+                  "type": "Union[str, Path, None]",
+                  "default": "None"
+                },
+                {
+                  "name": "format",
+                  "type": "Optional[str]",
+                  "default": "None"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/cli/commands/snapshot.py",
+        "tests/core/test_snapshot.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Wiring-only edit to the maid snapshot --output help string so it states the newly required .yaml/.yml/.json suffix. No public artifact in this file is contracted or changed; declared under scope rather than read because the file is edited and files.read does not authorize edits."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_snapshot.py",
+      "tests/core/test_snapshot_output_format.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_snapshot_output_format.py tests/core/test_snapshot.py",
+      "uv run maid validate manifests/fix-snapshot-output-format-from-suffix.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

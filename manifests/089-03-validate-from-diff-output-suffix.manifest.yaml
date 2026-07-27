@@ -1,0 +1,583 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reject a maid manifest from-diff --output path whose suffix MAID cannot load,
+  so the drafts-directory guard stops being the only thing checked"
+type: fix
+created: "2026-07-25T22:29:14Z"
+metadata:
+  planning_state: contract-hardened
+  promotion_ready: true
+  tests_status: written-red-confirmed
+  sibling_manifests:
+    - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+    - manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml
+  tags:
+    - manifest-io
+    - fail-loud
+    - cli
+  priority: medium
+description: |
+  `maid manifest from-diff --output <path>` validates only that the path is
+  inside `manifests/drafts/`. `_is_manifest_draft_path`
+  (`maid_runner/cli/commands/manifest.py:526-534`) resolves the candidate and
+  checks `relative_to(draft_root)`; it performs no suffix check whatsoever. So
+  `--output manifests/drafts/x.json` passes the guard at line 466 and then
+  receives YAML through `write_from_diff_manifest`, producing a draft that
+  `load_manifest_raw` rejects with a JSONDecodeError.
+
+  Reproduced against the current tree before writing this contract:
+  `maid manifest from-diff --worktree --slug demo --output
+  manifests/drafts/x.json` prints `Wrote manifests/drafts/x.json` and exits 0;
+  the file it wrote begins with the 086-01 YAML comment banner; and the
+  `validate:` command the command itself embedded into that draft —
+  `maid validate manifests/drafts/x.json --mode schema --quiet` — then fails
+  with `E003 Failed to load manifest ...: Expecting value: line 1 column 1`.
+
+  The failure is worse here than in the sibling writers, because a draft is
+  meant to be promoted. An unloadable draft blocks `maid validate`,
+  `maid plan lock`, and `maid manifest promote` at the next step, after the
+  agent or human has already moved on believing the command succeeded.
+
+  RESOLVED (was deferred by the draft): from-diff does not support JSON at all.
+  It accepts only the suffixes `_SUFFIX_FORMATS` maps to the `yaml` format, so
+  the accepted set is derived from the reader rather than restated. Three pieces
+  of tree-verified evidence forced this over adding a `json.dumps` branch:
+
+  1. A from-diff manifest exists to be promoted, and `_cmd_promote`
+     (`maid_runner/cli/commands/manifest.py:165-169`) rejects any path not
+     ending in `.manifest.yaml` or `.manifest.yml`. A JSON draft would be a
+     dead end even if it were written as well-formed JSON.
+  2. `write_from_diff_manifest` emits the 086-01 self-describing banner through
+     `prepend_manifest_header`. JSON has no comment syntax, so a JSON branch
+     would silently drop the banner from exactly the generated manifests 086-01
+     added it for.
+  3. This writer is not a general-purpose manifest writer. 089-01's
+     `save_manifest` and 089-02's `convert_v1_file` legitimately emit both
+     formats because their callers choose the format; this command's contract is
+     drafts-for-promotion, which is YAML-only.
+
+  Deriving the accepted set from `_SUFFIX_FORMATS` rather than hardcoding
+  `{".yaml", ".yml"}` keeps the guard from drifting away from the reader: if
+  `load_manifest_raw` ever learns a new YAML-format suffix, this writer accepts
+  it automatically, and if it drops one, this writer stops accepting it.
+
+  Where the fix belongs, verified against the tree. The containment check is
+  currently duplicated: `_is_manifest_draft_path`
+  (`maid_runner/cli/commands/manifest.py:526-534`) and `_is_draft_output_path`
+  (`maid_runner/core/manifest_from_diff.py:241-249`) are byte-for-byte identical
+  logic, and `write_from_diff_manifest` (line 108-120) re-checks containment and
+  the `force` overwrite condition before writing. `write_from_diff_manifest` is
+  public and is the actual writer, so the suffix condition belongs there: it
+  then covers both the CLI path and any library caller, rather than only the
+  CLI.
+
+  The writer alone is not sufficient, and this is the second thing the draft
+  asked to verify during implementation. `_cmd_from_diff` returns at line 473-480
+  for `--dry-run` without ever calling `write_from_diff_manifest`, so a
+  writer-only check leaves `--dry-run --output manifests/drafts/x.json` exiting
+  0 while printing a manifest whose embedded self-validate command points at a
+  file MAID cannot load. Confirmed against the tree: the existing containment
+  guard *does* fire under `--dry-run` (exit 2), so a suffix check that does not
+  is not "alongside the existing check" — it is weaker than it. The suffix
+  condition is therefore checked at both sites the containment condition is
+  already checked at, through one shared `validate_from_diff_output_suffix`
+  helper so the two sites cannot drift apart.
+
+  Ordering requirement: the suffix check runs before the `force`/exists branch
+  and before schema validation, so it produces no filesystem effect at all — not
+  even the `path.parent.mkdir(parents=True, exist_ok=True)` at line 131.
+
+  Note the CLI dispatch shape. `_cmd_from_diff`
+  (`maid_runner/cli/commands/manifest.py:442`) is private and cannot be a
+  declared artifact; the public entry point is `cmd_manifest` (line 21), which
+  dispatches on `args.manifest_command`. Behavioral tests must drive
+  `cmd_manifest` or the real parser, not the private helper.
+
+  Why this is separate from 089-01 and 089-02: this writer has its own
+  drafts-only contract, its own `force` semantics, and a CLI-level error and
+  exit code as observable behavior. It is not a general-purpose manifest writer.
+
+  Scope boundary: do not relax or restructure the existing drafts-directory
+  containment guard, and do not deduplicate the two identical containment
+  helpers in this contract. This contract only adds a suffix condition alongside
+  the existing check, which must keep its current message and exit code.
+  Consolidating the duplicated helpers is a separate refactor.
+temptations:
+  - risk: "Do not accept .json here and leave the writer emitting YAML; the guard
+      and the writer must agree on the same suffix set."
+    instead: "from-diff is YAML-only, resolved above. Accept exactly the suffixes
+      _SUFFIX_FORMATS maps to the yaml format and reject .json with the rest."
+  - risk: "Do not fold the suffix rejection into the existing containment error message;
+      the two failures have different causes and different remedies."
+    instead: "Raise a distinct FromDiffRenderError naming the unsupported suffix,
+      and pin both rejection messages separately."
+  - risk: "Do not assert only on the CLI exit code; an exit 2 that still wrote a partial
+      draft would satisfy that."
+    instead: "Assert the exit code and that no file exists at the requested path afterward."
+  - risk: "Do not satisfy the reject tests with a write-then-restore rollback; 089-01's
+      review demonstrated that a rollback passes a naive no-file assertion."
+    instead: "Assert no parent directory was created for a fresh path, and that an
+      existing file's bytes are untouched even under --force."
+  - risk: "Do not hardcode {'.yaml', '.yml'} in the guard; a literal set silently
+      drifts from load_manifest_raw the first time the reader changes."
+    instead: "Derive the accepted set from _SUFFIX_FORMATS by selecting the entries
+      whose format is yaml, matching how 089-01 and 089-02 consume the same map."
+files:
+  edit:
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: validate_from_diff_output_suffix
+          args:
+            - name: output_path
+              type: Union[str, Path]
+          returns: None
+          raises:
+            - FromDiffRenderError
+          description: >-
+            Raise FromDiffRenderError naming the unsupported suffix when the
+            output path's suffix is not one this writer can correctly emit.
+            The accepted set is derived from _SUFFIX_FORMATS by selecting the
+            suffixes mapped to the yaml format, so the guard cannot drift from
+            load_manifest_raw. Shared by the writer and the CLI so both
+            enforcement sites use one rule. Returns None when the suffix is
+            supported.
+        - kind: function
+          name: write_from_diff_manifest
+          args:
+            - name: data
+              type: dict
+            - name: output_path
+              type: Union[str, Path]
+            - name: force
+              type: bool
+              default: "False"
+          returns: Path
+          description: >-
+            Reject an output path whose suffix MAID cannot load, with a
+            FromDiffRenderError distinct from the drafts-directory containment
+            failure, before any filesystem effect including the parent mkdir.
+            Placed on the public writer so library callers are covered, not only
+            the CLI.
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: >-
+            Surface the new suffix rejection as exit code 2 with the writer's
+            message, for the writing path and for --dry-run alike, leaving the
+            existing drafts-directory rejection message and exit code unchanged.
+            Dispatches to the private _cmd_from_diff helper, which is not part of
+            the contract.
+  create:
+    - path: tests/cli/test_manifest_from_diff_output_suffix.py
+      artifacts:
+        - kind: test_function
+          name: test_from_diff_rejects_unsupported_output_suffix_without_writing
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes --output manifests/drafts/x.json."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 with an error naming the '.json' suffix,
+              and no manifests directory is created at all, proving the rejection
+              precedes the writer's parent mkdir."
+        - kind: test_function
+          name: 
+            test_from_diff_suffix_rejection_is_distinct_from_containment_rejection
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes a drafts-directory path with an unsupported
+            suffix."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The error names the unsupported suffix and does not reuse the
+              'must be under manifests/drafts/' containment wording, so the two failures
+              stay separately diagnosable."
+        - kind: test_function
+          name: 
+            test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes --force with an existing manifests/drafts/x.json."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 and the existing file's bytes are unchanged,
+              closing the write-then-restore rollback that satisfies a naive no-file
+              assertion."
+        - kind: test_function
+          name: test_from_diff_still_rejects_output_outside_drafts_directory
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes an --output path outside manifests/drafts/."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The existing containment rejection is unchanged in message
+              and exit code, proving the new suffix condition was added alongside
+              it rather than replacing it."
+        - kind: test_function
+          name: test_from_diff_accepts_default_yaml_draft_path
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "The slug-derived default output path is used as a regression
+            guard."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The generated draft is written, round-trips through load_manifest_raw,
+              and its self-validate path points at the file that was actually written."
+        - kind: test_function
+          name: test_from_diff_accepts_yml_output_suffix
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes --output manifests/drafts/custom.manifest.yml."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The draft is written and round-trips through load_manifest_raw,
+              proving the guard accepts every yaml-format suffix the reader dispatches
+              on rather than only '.yaml'."
+        - kind: test_function
+          name: test_from_diff_rejects_suffixless_output_path
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes an output path with no suffix at all."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 and writes nothing, closing the empty-suffix
+              YAML fallback that 089-01's review found unpinned."
+        - kind: test_function
+          name: test_from_diff_rejects_uppercase_yaml_output_suffix
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes --output manifests/drafts/custom.YAML."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 and writes nothing, because load_manifest_raw
+              and chain discovery match the lowercase suffix exactly, so an uppercase
+              suffix is not a loadable manifest."
+        - kind: test_function
+          name: test_from_diff_dry_run_rejects_unsupported_output_suffix
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture
+          returns: None
+          source_scenario: "A caller passes --dry-run with --output manifests/drafts/x.json,
+            the path that never reaches write_from_diff_manifest."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The command exits 2 and prints no manifest body, so --dry-run
+              cannot hand back a manifest whose embedded self-validate command points
+              at a file MAID cannot load. This is the case a writer-only guard would
+              miss."
+        - kind: test_function
+          name: 
+            test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          source_scenario: "A non-CLI caller invokes write_from_diff_manifest directly
+            with an unsupported suffix and a body that would also fail schema validation."
+          actions:
+            - type: api_call
+              subject:
+                export: write_from_diff_manifest
+          expected:
+            behavior: "FromDiffRenderError names the suffix rather than reporting
+              a schema failure, proving the guard runs before schema validation and
+              covers library callers, and nothing is written."
+        - kind: test_function
+          name: 
+            test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix
+          returns: None
+          source_scenario: "Every suffix load_manifest_raw maps to the yaml format
+            is offered to the shared guard."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_from_diff_output_suffix
+          expected:
+            behavior: "The guard accepts all of them, so it cannot drift narrower
+              than the reader and start rejecting a suffix MAID can still load."
+        - kind: test_function
+          name: 
+            test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit
+          returns: None
+          source_scenario: "Every suffix load_manifest_raw maps to a non-yaml format
+            is offered to the shared guard."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_from_diff_output_suffix
+          expected:
+            behavior: "Each raises FromDiffRenderError naming that suffix, so the
+              guard cannot drift wider than what this YAML-only writer can correctly
+              emit."
+  read:
+    - maid_runner/core/manifest.py
+    - tests/cli/test_manifest_from_diff_cmd.py
+    - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+validate:
+  - uv run python -m pytest -q 
+    tests/cli/test_manifest_from_diff_output_suffix.py 
+    tests/cli/test_manifest_from_diff_cmd.py
+  - uv run maid validate
+    manifests/089-03-validate-from-diff-output-suffix.manifest.yaml --mode
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-26T07:00:19+08:00'
+  summary: >-
+    maid manifest from-diff now rejects an --output path whose suffix it cannot
+    correctly emit, at both sites the drafts-directory containment condition is
+    already checked, so the guard covers --dry-run and library callers as well
+    as the writing path. The rejection produces no filesystem effect at all, not
+    even the writer's parent mkdir. from-diff is YAML-only by decision, and the
+    accepted set is derived from the reader's own _SUFFIX_FORMATS map rather
+    than restated, so the writer cannot drift away from load_manifest_raw.
+  rationale: >-
+    Third and last of the sibling writers found by the
+    fix-snapshot-output-format-from-suffix review, after 089-01 (save_manifest)
+    and 089-02 (convert_v1_file). This one mattered most because a from-diff
+    manifest is a draft, and a draft exists to be promoted: the old behavior
+    exited 0, wrote YAML to manifests/drafts/x.json, and embedded
+    "maid validate manifests/drafts/x.json --mode schema --quiet" into the draft
+    as its own validate command, which then failed with E003. The agent or human
+    had already moved on believing the command succeeded.
+
+    Two questions the draft deferred were resolved with tree-verified evidence
+    before the plan lock, and both were approved by the user.
+
+    First, whether from-diff supports JSON at all. It does not. _cmd_promote
+    (maid_runner/cli/commands/manifest.py:165-169) accepts only *.manifest.yaml
+    and *.manifest.yml, so a JSON draft would be unpromotable even if written as
+    well-formed JSON; and the writer emits the 086-01 comment banner, which JSON
+    cannot carry. Unlike save_manifest and convert_v1_file, whose callers choose
+    the format, this writer's contract is drafts-for-promotion.
+
+    Second, where the check belongs. The writer alone is not enough:
+    _cmd_from_diff returns for --dry-run without ever reaching
+    write_from_diff_manifest, and the existing containment guard was confirmed
+    to fire under --dry-run. A writer-only suffix check would therefore have
+    been weaker than the condition it was meant to sit alongside, leaving
+    --dry-run printing a manifest whose embedded self-validate path names a file
+    MAID cannot load. One shared validate_from_diff_output_suffix helper is
+    called from both sites so they cannot drift apart.
+  lessons:
+    - lesson_type: guard-placement
+      summary: >-
+        A guard added "alongside" an existing one should be checked at every
+        site the existing one is checked at. Comparing enforcement sites, rather
+        than just adding the new condition where it seemed natural, is what
+        surfaced the --dry-run gap: _cmd_from_diff returns before the writer, so
+        a writer-only suffix check would have been strictly weaker than the
+        containment check it was meant to accompany, and the declared contract
+        would have shipped a cmd_manifest whose stated exit-2 behavior was false
+        for one flag. Enumerate the existing condition's enforcement sites
+        before deciding where the new one lives.
+      tags:
+        - contract-design
+        - cli
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - maid_runner/core/manifest_from_diff.py
+    - lesson_type: drift-resistance
+      summary: >-
+        Deriving an accepted set from the reader's own map beats restating it.
+        A hardcoded {".yaml", ".yml"} passes every test in this contract today,
+        because _SUFFIX_FORMATS maps exactly those two suffixes to yaml, so no
+        test can currently discriminate the two implementations. Deriving the
+        set anyway is what makes the guard track load_manifest_raw the moment
+        the reader changes, and the derivation tests become discriminating at
+        exactly that point. Review confirmed this survivor is inherent rather
+        than a test defect.
+      tags:
+        - anti-drift
+        - manifest-io
+      paths:
+        - maid_runner/core/manifest.py
+        - maid_runner/core/manifest_from_diff.py
+    - lesson_type: repo-tooling
+      summary: >-
+        Editing a doc under docs/ can break tests in this repo.
+        docs/draft-manifest-workflow.md is mirrored into maid_runner/docs/ for
+        the packaged init payload, and test_packaged_workflow_docs_match_source_docs
+        plus test_learning_digest_payload_sources_and_packages_match both fail
+        until `make sync-agent-payloads` runs. Run the sync in the same pass as
+        any docs/ edit, and commit both copies together.
+      tags:
+        - workflow
+        - documentation
+      paths:
+        - docs/draft-manifest-workflow.md
+        - maid_runner/docs/draft-manifest-workflow.md
+    - lesson_type: promotion-side-effects
+      summary: >-
+        Promotion strands sibling pointers in both directions. 089-02's Outcome
+        recorded this when 089-01 was promoted and predicted 089-03 would hit it
+        twice; it did, with both 089-01 and 089-02 pointing at 089-03's draft
+        path, and both needed a plan revise --preserve-red-evidence on
+        already-completed contracts. Two independent recurrences now confirm the
+        earlier recommendation: reference sibling manifests by slug rather than
+        by path, so promotion cannot invalidate the pointer.
+      tags:
+        - workflow
+        - manifest-authoring
+      paths:
+        - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+        - manifests/089-02-honor-output-suffix-in-v1-conversion.manifest.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Verdict ready to merge, zero blocking findings. The reviewer
+        independently re-ran implementation validation, the focused tests plus
+        tests/core/test_manifest_from_diff.py (39 passed), the strict handoff
+        verify, and an end-to-end CLI check in a throwaway repo. It wrote 13
+        deliberately wrong guard implementations and confirmed 11 were killed by
+        the locked tests, including a write-then-restore rollback, a merged
+        containment/suffix message, a case-insensitive match, a CLI-only guard,
+        a writer-only guard, an empty-suffix acceptance, and a rule narrower
+        than the reader. It also confirmed the module-level _SUFFIX_FORMATS
+        import is cycle-free here, unlike 089-02's case where core.manifest
+        reaches back into v1_loader.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Two surviving mutants were reported as regression-guard gaps and both
+        were fixed in this session rather than deferred, because each was a gap
+        against this manifest's own temptations. A1: hoisting the writer's
+        parent mkdir above the suffix guard passed all 12 tests while leaving a
+        stray manifests/drafts/ behind, so the library-caller test now asserts
+        the parent directory was never created (temptation 4). A2: the
+        suffixless test asserted only that stderr was non-empty, so a guard
+        using the containment wording passed, and it now pins the rejection
+        reason (temptation 2). Both fixes were confirmed to kill their mutants
+        before the lock was revised with --stash-implementation.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Also flagged and accepted as non-defects: a hardcoded suffix set passes
+        today only because _SUFFIX_FORMATS happens to map exactly two suffixes
+        to yaml, which the derivation tests will discriminate the moment the map
+        changes; the 089-01/089-02 metadata edits are genuinely metadata-only,
+        with empty contract_delta lists and untouched test hashes and red
+        evidence; and this manifest uses metadata.sibling_manifests where the
+        siblings use metadata.sibling_drafts, left as-is because these are no
+        longer drafts. The reviewer's docs finding was fixed rather than
+        deferred: docs/draft-manifest-workflow.md now documents the YAML-only
+        --output restriction.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_manifest_from_diff_output_suffix.py, tests/cli/test_manifest_from_diff_cmd.py, tests/core/test_manifest_from_diff.py]
+      status: passed
+      summary: The focused contract scope passed 39 tests, covering the 12 new cases plus the pre-existing CLI and core from-diff callers, none of which changed behavior.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full Python suite passed 3554 tests with 5 skips, up from the 3542-test baseline by the twelve new cases.
+    - command: [uv, run, maid, validate, manifests/089-03-validate-from-diff-output-suffix.manifest.yaml, --mode, behavioral]
+      status: passed
+      summary: Behavioral validation passed on the promoted path, with red evidence recaptured at lock revision 3 via --stash-implementation after the review-driven test tightening.
+    - command: [uv, run, maid, validate, manifests/089-03-validate-from-diff-output-suffix.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed for the promoted contract.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 361 active manifests passed with 0 failures; 97 superseded were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 203 manifest-declared validation commands passed with 0 failures.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, 66a2ebf]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking
+        findings, including changed_scope after the documentation edit; only
+        pre-existing E307 non-code warnings for ts_compiler_resolver.cjs and
+        Makefile remained.

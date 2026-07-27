@@ -136,20 +136,46 @@ def convert_v1_to_v2(data: dict) -> dict:
 def convert_v1_file(
     input_path: Union[str, Path], output_path: Union[str, Path, None] = None
 ) -> Path:
+    """Migrate a v1 manifest file to v2, writing the format its suffix implies.
+
+    ``load_manifest_raw`` dispatches on the output suffix when reading the file
+    back, so an unsupported suffix is rejected before anything is read or
+    written rather than silently receiving YAML and producing a file MAID cannot
+    load. YAML output carries the self-describing banner; JSON output does not,
+    because JSON has no comment syntax.
+    """
     import json
     import yaml
 
-    input_path = Path(input_path)
-    data = json.loads(input_path.read_text())
-    v2_data = convert_v1_to_v2(data)
+    # Imported inside the function because maid_runner.core.manifest reaches
+    # back into this module to convert v1 data while loading.
+    from maid_runner.core.manifest import _SUFFIX_FORMATS, prepend_manifest_header
 
+    input_path = Path(input_path)
     if output_path is None:
         slug = _path_to_slug(str(input_path))
         output_path = input_path.parent / f"{slug}.manifest.yaml"
     output_path = Path(output_path)
-    output_path.write_text(
-        yaml.dump(v2_data, default_flow_style=False, sort_keys=False)
-    )
+
+    # Resolved before the input is read so a rejected call has no filesystem
+    # effect at all. Matched case-sensitively on purpose: load_manifest_raw and
+    # manifest chain discovery both dispatch on the exact lowercase suffix, so
+    # accepting ".YAML" here would write a file MAID cannot load back.
+    output_format = _SUFFIX_FORMATS.get(output_path.suffix)
+    if output_format is None:
+        raise ValueError(
+            f"Unsupported manifest output suffix {output_path.suffix!r}: "
+            f"use one of {', '.join(sorted(_SUFFIX_FORMATS))}"
+        )
+
+    data = json.loads(input_path.read_text())
+    v2_data = convert_v1_to_v2(data)
+
+    if output_format == "json":
+        output_path.write_text(json.dumps(v2_data, indent=2))
+        return output_path
+    rendered = yaml.dump(v2_data, default_flow_style=False, sort_keys=False)
+    output_path.write_text(prepend_manifest_header(rendered))
     return output_path
 
 

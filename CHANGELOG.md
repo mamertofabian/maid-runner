@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.23.0] - 2026-07-27
+
+### Added
+- **AST-scoped Python plan-lock hashes** — Hashed `.py` behavioral tests as `sha256-pyast` digests so Black and whitespace-only reformats no longer force plan revisions, while legacy byte hashes and non-Python tests stay fail-closed.
+- **Exact agent reasoning provenance** — Carried optional reasoning effort through Outcome records, plan locks, CLI reporting, evaluation output, and Codex-loop child environments so model provenance can record the driver-known exact slug when available.
+- **Self-describing manifest headers** — Generated and promoted manifests now receive a short comment header at creation, promotion, and plan-lock gates so committed contracts remain readable without prior MAID context.
+
+### Changed
+- **Validation hot-path caching** — Cached repeated manifest loading, chain replay, module path discovery, and daemon validation primitives to reduce repeated `maid validate`, `maid test`, and `maid verify` overhead while keeping cache invalidation fail-closed.
+- **Plan-lock scope widening disclosure** — `maid verify` now surfaces changed files that widen the locked implementation scope, including summary reporting and troubleshooting guidance, so review packets expose scope expansion explicitly.
+- **Agent review guidance** — Clarified that E708 plan-lock scope widening is advisory review guidance rather than a standalone implementation failure.
+
+### Fixed
+- **Manifest promotion rename history** — Round-tripped promoted manifests with ruamel.yaml so comments, quoting, indentation, flow collections, and block scalar styles survive bounded promotion updates, and preserved Git's default staged rename detection without mutating the user's index.
+- **Validator plugin discovery guidance** — Centralized missing-validator guidance through warning-level E307 diagnostics, `UnsupportedLanguageError`, and init-installed Claude and Codex instructions, and advanced the instruction payload version so downstream installations detect the update.
+- **Plugin validator display names** — Aligned `maid validators` / `ValidatorRecord` labels with built-ins by using `validator_class.__name__` for active and conflict plugins, while keeping entry-point names for disabled and load-error rows.
+- **Removed attribute owner identity** — Qualified removed module attributes by owner so similarly named symbols in different modules do not collide during supersession and validation.
+- **Acceptance-test command coverage** — Kept acceptance-command integrity checks separate from E230 behavioral coverage so release validation reports the right contract failure when command surfaces drift.
+- **C# test discovery** — Recognized conventional C# test files and namespaces during behavioral artifact validation.
+- **Shipped skill payload convergence** — Re-synchronized distributed Claude and Codex skill payloads with the packaged source of truth.
+- **Legacy-baseline path handling** — Resolved legacy baseline Git paths against the project root and detected post-run mutations of legacy baseline evidence files.
+- **Manifest output suffix handling** — Honored requested output suffixes across `save_manifest`, snapshot creation, v1 conversion, and `manifest from-diff`, and rejected unloadable suffixes before writing invalid files.
+- **Verify summary nested findings** — Counted findings nested inside verify stage reports so summary totals match the detailed diagnostics.
+- **Snapshot parser flags** — Removed inert snapshot parser flags so unsupported options no longer appear accepted without effect.
+
 ## [2.22.0] - 2026-07-18
 
 ### Added
@@ -1176,6 +1201,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0
 [2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1
 [2.21.0]: https://github.com/mamertofabian/maid-runner/compare/v2.20.0...v2.21.0

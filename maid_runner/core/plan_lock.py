@@ -18,6 +18,7 @@ validate commands when a plan is locked or revised.
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import shlex
@@ -44,7 +45,10 @@ from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
 
 _CONTRACT_HASH_PREFIX = "sha256-contract:"
+_PYAST_HASH_PREFIX = "sha256-pyast:"
 _BYTE_HASH_PREFIX = "sha256:"
+_DELETED_FILE_FINGERPRINT = "<deleted>"
+_CLEAN_FILE_FINGERPRINT = "<clean>"
 
 
 class _PlanLockLoadError(Exception):
@@ -373,6 +377,41 @@ def manifest_hash_matches(lock_hash: str, manifest_path: Path) -> bool:
     return False
 
 
+def compute_behavioral_test_hash(path: Path) -> str:
+    """Return a formatting-aware hash for a behavioral test file.
+
+    Python (``.py``) files are hashed via an AST dump so whitespace- and
+    comment-only edits stay digest-stable. Other suffixes keep the legacy
+    byte hash. Syntax and decode errors raise (fail loud); there is no
+    silent byte-hash fallback for ``.py`` paths.
+    """
+    file_path = Path(path)
+    if file_path.suffix == ".py":
+        source = file_path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(file_path))
+        canonical = ast.dump(tree, annotate_fields=True, include_attributes=False)
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return f"{_PYAST_HASH_PREFIX}{digest}"
+    return compute_manifest_hash(file_path)
+
+
+def test_hash_matches(lock_hash: str, path: Path) -> bool:
+    """Compare a stored behavioral-test hash to the current file by prefix.
+
+    ``sha256-pyast:`` values use the AST-canonical hash; legacy ``sha256:``
+    values use the raw byte hash. Unknown prefixes and missing files return
+    False (fail closed).
+    """
+    file_path = Path(path)
+    if not file_path.is_file():
+        return False
+    if lock_hash.startswith(_PYAST_HASH_PREFIX):
+        return lock_hash == compute_behavioral_test_hash(file_path)
+    if lock_hash.startswith(_BYTE_HASH_PREFIX):
+        return lock_hash == compute_manifest_hash(file_path)
+    return False
+
+
 def create_plan_lock(
     manifest_path: Path,
     project_root: Path,
@@ -468,7 +507,7 @@ def revision_preserves_red_evidence(
 
     for rel, locked_hash in existing.test_hashes.items():
         full = root / rel
-        if not full.is_file() or compute_manifest_hash(full) != locked_hash:
+        if not full.is_file() or not test_hash_matches(locked_hash, full):
             return False
     return True
 
@@ -495,6 +534,8 @@ def _agent_to_payload(agent: AgentProvenance | None) -> dict | None:
     if agent is None:
         return None
     payload = {"model": agent.model}
+    if agent.reasoning_effort is not None:
+        payload["reasoning_effort"] = agent.reasoning_effort
     if agent.provider is not None:
         payload["provider"] = agent.provider
     if agent.client is not None:
@@ -517,6 +558,9 @@ def _agent_from_payload(value: object) -> AgentProvenance | None:
     if not isinstance(model, str) or not model.strip():
         raise TypeError("agent.model must be a non-empty string")
     provider = _optional_agent_string(value, "provider")
+    reasoning_effort = _optional_agent_string(value, "reasoning_effort")
+    if reasoning_effort is not None and not reasoning_effort.strip():
+        raise TypeError("agent.reasoning_effort must be a non-empty string")
     client = _optional_agent_string(value, "client")
     instructions_fingerprint = _optional_agent_string(value, "instructions_fingerprint")
     source = _optional_agent_string(value, "source")
@@ -527,6 +571,7 @@ def _agent_from_payload(value: object) -> AgentProvenance | None:
         raise TypeError("agent.skills must be an array of strings")
     return AgentProvenance(
         model=model,
+        reasoning_effort=reasoning_effort,
         provider=provider,
         client=client,
         skills=tuple(raw_skills),
@@ -627,7 +672,10 @@ def capture_legacy_baseline_evidence(
     current_path = Path(manifest_path).resolve()
     manifest_rel = _project_relative_path(current_path, root)
     baseline_commit = _git_text(root, "rev-parse", "HEAD").strip()
-    baseline_bytes = _git_bytes(root, "show", f"HEAD:{manifest_rel}")
+    # git show resolves paths from the repository root regardless of cwd, so the
+    # blob must be addressed by its repo-root path even though every comparison
+    # below is project-relative.
+    baseline_bytes = _git_bytes(root, "show", f"HEAD:{_git_prefix(root)}{manifest_rel}")
     dirty_paths = _git_changed_paths(root)
     if dirty_paths - {manifest_rel}:
         raise ValueError(
@@ -678,6 +726,7 @@ def capture_legacy_baseline_evidence(
         )
 
     before_hashes = _contract_file_hashes(current_path, current_manifest, root)
+    before_dirty_fingerprints = _git_changed_path_fingerprints(root)
     commands: list[RedPhaseCommandEvidence] = []
     for command in current_manifest.validate_commands:
         result = _run_test_command(
@@ -707,6 +756,18 @@ def capture_legacy_baseline_evidence(
             "Legacy-baseline validation mutated contract file(s): " + ", ".join(changed)
         )
     post_run_dirty = _git_changed_paths(root)
+    post_run_dirty_fingerprints = _git_changed_path_fingerprints(root)
+    mutated_dirty_paths = sorted(
+        path
+        for path in set(before_dirty_fingerprints) | set(post_run_dirty_fingerprints)
+        if before_dirty_fingerprints.get(path, _CLEAN_FILE_FINGERPRINT)
+        != post_run_dirty_fingerprints.get(path, _CLEAN_FILE_FINGERPRINT)
+    )
+    if mutated_dirty_paths:
+        raise ValueError(
+            "Legacy-baseline validation created or changed unrelated path(s): "
+            + ", ".join(mutated_dirty_paths)
+        )
     if post_run_dirty - {manifest_rel}:
         raise ValueError(
             "Legacy-baseline validation created or changed unrelated path(s): "
@@ -933,7 +994,7 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
         full = project_root / rel
         if not full.exists():
             raise FileNotFoundError(f"Behavioral test file not found: {full}")
-        hashes[rel] = compute_manifest_hash(full)
+        hashes[rel] = compute_behavioral_test_hash(full)
     return hashes
 
 
@@ -942,14 +1003,25 @@ def _red_evidence_dict_is_valid(evidence: dict | None) -> bool:
     return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
 
 
-def _file_hash_or_none(path: Path) -> str | None:
-    """Hash a regular file, returning None for missing or unreadable paths."""
+def _current_test_hash_or_none(
+    path: Path, *, lock_hash: str | None = None
+) -> str | None:
+    """Hash a regular file for status/display, returning None when unreadable."""
     try:
         if not path.is_file():
             return None
-        return compute_manifest_hash(path)
-    except OSError:
+        if lock_hash is None or lock_hash.startswith(_PYAST_HASH_PREFIX):
+            return compute_behavioral_test_hash(path)
+        if lock_hash.startswith(_BYTE_HASH_PREFIX):
+            return compute_manifest_hash(path)
+        return compute_behavioral_test_hash(path)
+    except (OSError, SyntaxError, UnicodeDecodeError):
         return None
+
+
+def _file_hash_or_none(path: Path) -> str | None:
+    """Hash a regular file, returning None for missing or unreadable paths."""
+    return _current_test_hash_or_none(path)
 
 
 def _project_relative_path(manifest_path: Path, project_root: Path) -> str:
@@ -1102,7 +1174,7 @@ def _contract_file_hashes(
     paths.update(_behavioral_test_paths(manifest, project_root))
     return {
         path: (
-            compute_manifest_hash(project_root / path)
+            compute_behavioral_test_hash(project_root / path)
             if (project_root / path).is_file()
             else None
         )
@@ -1137,8 +1209,62 @@ def _git_result(
     return result
 
 
+def _git_prefix(project_root: Path) -> str:
+    """Return the project root's path within the repository, '' at the root.
+
+    Mirrors the prefix resolution in core/worktree.py, but routed through this
+    module's own git helper so failures keep the legacy-baseline error wording.
+    """
+    # splitlines() strips only the trailing newline. .strip() would also eat
+    # leading or trailing whitespace that belongs to a directory name.
+    lines = _git_text(project_root, "rev-parse", "--show-prefix").splitlines()
+    return (lines[0] if lines else "").replace("\\", "/")
+
+
+def _git_repository_root(project_root: Path) -> Path:
+    """Return the containing git repository root for a MAID project root."""
+    lines = _git_text(project_root, "rev-parse", "--show-toplevel").splitlines()
+    if not lines:
+        raise ValueError(
+            "Git command failed for legacy-baseline migration: git rev-parse "
+            "--show-toplevel returned no output"
+        )
+    return Path(lines[0]).resolve()
+
+
+def _git_changed_path_fingerprints(project_root: Path) -> dict[str, str | None]:
+    """Return repo-relative dirty paths and their current content fingerprints."""
+    repository_root = _git_repository_root(project_root)
+    tracked = _git_bytes(repository_root, "diff", "--name-only", "-z", "HEAD", "--")
+    untracked = _git_bytes(
+        repository_root, "ls-files", "--others", "--exclude-standard", "-z"
+    )
+    paths = {
+        path.decode(errors="surrogateescape").replace("\\", "/")
+        for path in tracked.split(b"\0") + untracked.split(b"\0")
+        if path
+    }
+    return {
+        path: _working_tree_file_fingerprint(repository_root / path)
+        for path in sorted(paths)
+    }
+
+
+def _working_tree_file_fingerprint(path: Path) -> str | None:
+    if not path.is_file():
+        return _DELETED_FILE_FINGERPRINT
+    return _BYTE_HASH_PREFIX + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _git_changed_paths(project_root: Path) -> set[str]:
-    tracked = _git_bytes(project_root, "diff", "--name-only", "-z", "HEAD", "--")
+    # --relative makes git emit paths relative to project_root and drops paths
+    # outside it. Without it, git diff reports repository-root-relative paths
+    # while git ls-files --others reports project-relative ones, so the union
+    # would mix two namespaces. ls-files is already project-relative and must
+    # not be stripped.
+    tracked = _git_bytes(
+        project_root, "diff", "--name-only", "--relative", "-z", "HEAD", "--"
+    )
     untracked = _git_bytes(
         project_root, "ls-files", "--others", "--exclude-standard", "-z"
     )
@@ -1190,10 +1316,10 @@ def _historical_production_test_paths(
     production_paths: set[str] = set()
     for path in set(lock.test_hashes) & declared_paths & set(test_files):
         full_path = project_root / path
-        current_hash = _file_hash_or_none(full_path)
-        if current_hash == lock.test_hashes[
-            path
-        ] and not is_command_integrity_test_file(path, project_root):
+        locked_hash = lock.test_hashes[path]
+        if test_hash_matches(
+            locked_hash, full_path
+        ) and not is_command_integrity_test_file(path, project_root):
             production_paths.add(path)
     return production_paths
 
@@ -1257,8 +1383,7 @@ def _test_hash_errors(
 
     for rel, locked_hash in locked_test_hashes.items():
         full = project_root / rel
-        current_hash = _file_hash_or_none(full)
-        if current_hash != locked_hash:
+        if not test_hash_matches(locked_hash, full):
             errors.append(
                 _lock_error(
                     ErrorCode.BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK,

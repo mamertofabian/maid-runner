@@ -1,0 +1,301 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Restore repository-wide detection of validation-induced mutations by comparing
+  pre-run and post-run dirty sets as a delta instead of absolutely"
+type: fix
+created: "2026-07-27T00:28:54Z"
+metadata:
+  planning_state: implementation-ready
+  promotion_ready: true
+  tests_status: red-confirmed
+  parent_manifest: manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml
+  tags:
+    - plan-lock
+    - legacy-migration
+    - anti-gaming
+    - follow-up
+  priority: medium
+description: |
+  Follow-up from the implementation review of
+  `fix-plan-lock-git-subdirectory-paths`.
+
+  `capture_legacy_baseline_evidence` uses `_git_changed_paths` for two guards
+  that look alike but answer different questions:
+
+  - The **pre-run** guard (`plan_lock.py:677`) asks "is anything other than the
+    manifest dirty before we start?". Scoping it to the MAID project root is
+    correct — a sibling application's dirty tree is not evidence about this
+    contract.
+  - The **post-run** guard (`plan_lock.py:755`) asks "did the validate commands
+    mutate the tree?". A command that writes outside the project root *is*
+    evidence about this contract, so project scoping loses real signal here.
+
+  Adding `--relative` fixed the pre-run guard's namespace bug and, as a side
+  effect, narrowed the post-run guard too. That shipped deliberately: at the
+  repository root `--relative` is provably a no-op, so no previously working
+  configuration changed behavior, and in a subdirectory the function used to
+  abort before either guard ran. Untracked out-of-project writes were already
+  invisible because `git ls-files --others` has always been cwd-scoped, so only
+  out-of-project *tracked* modifications newly became invisible.
+
+  The narrowing cannot be reverted by simply passing repository-wide paths to
+  the post-run guard. That guard compares `post_run_dirty - {manifest_rel}`
+  **absolutely**, not as a delta against the pre-run set, so a repository-wide
+  version would immediately raise on pre-existing out-of-project dirt — which
+  the locked test
+  `test_legacy_baseline_ignores_dirty_paths_outside_the_project_subdirectory`
+  deliberately permits. The two behaviors are coupled.
+
+  Proposed direction: capture a repository-wide dirty set before and after
+  command execution and reject only paths that *appear or change* between the
+  two snapshots, keeping the project-scoped absolute check for the pre-run
+  guard. This is a behavioral contract change to the mutation guard, which is
+  why it is a separate manifest rather than a widening of the parent fix.
+
+  Resolved design choices for this manifest:
+  1. A validate command that creates or changes tracked content outside the
+     project root is a hard failure, because it proves the baseline capture
+     cannot trust the tree it just executed against.
+  2. The delta is content-based. Rewriting a file to identical bytes does not
+     count as a mutation because the committed and dirty content evidence is
+     unchanged.
+  3. `maid plan revise --stash-implementation` remains out of scope; it may use
+     the same helper later through its own manifest if evidence shows the same
+     defect there.
+temptations:
+  - risk: "Do not simply drop `--relative` from `_git_changed_paths` to widen the
+      post-run guard; that reintroduces the mixed-namespace defect the parent manifest
+      fixed."
+    instead: "Keep the pre-run guard project-scoped and give the post-run guard its
+      own repository-wide before/after snapshots."
+  - risk: "Do not compare the post-run set against the manifest path alone once it
+      is repository-wide; pre-existing out-of-project dirt would raise immediately."
+    instead: "Reject only the delta between the pre-run and post-run snapshots, and
+      pin the permitted pre-existing-dirt case with a test."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: capture_legacy_baseline_evidence
+          args:
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: reason
+              type: str
+          returns: LegacyBaselineEvidence
+          description: >-
+            Detect validation-induced mutations repository-wide by rejecting only
+            paths that appear or change between a pre-run and post-run dirty
+            snapshot, while the pre-run eligibility guard stays project-scoped.
+  create:
+    - path: tests/core/test_plan_lock_post_run_mutation_guard.py
+      artifacts:
+        - kind: test_function
+          name: test_validation_writing_outside_the_project_root_is_rejected
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A validate command writes to a tracked sibling application
+            file outside the MAID project root."
+          actions:
+            - type: api_call
+              subject:
+                export: capture_legacy_baseline_evidence
+          expected:
+            behavior: "capture_legacy_baseline_evidence raises ValueError naming the
+              out-of-project path that the command mutated."
+        - kind: test_function
+          name: test_pre_existing_out_of_project_dirt_still_permits_migration
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A sibling application is already dirty before capture
+            begins and no command touches it."
+          actions:
+            - type: api_call
+              subject:
+                export: capture_legacy_baseline_evidence
+          expected:
+            behavior: "capture_legacy_baseline_evidence succeeds, because the delta
+              comparison distinguishes pre-existing dirt from command-induced mutation."
+        - kind: test_function
+          name: test_validation_deleting_outside_the_project_root_is_rejected
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A validate command deletes a tracked sibling application
+            file outside the MAID project root."
+          actions:
+            - type: api_call
+              subject:
+                export: capture_legacy_baseline_evidence
+          expected:
+            behavior: "capture_legacy_baseline_evidence raises ValueError naming the
+              out-of-project path that the command deleted."
+  read:
+    - maid_runner/core/worktree.py
+    - manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml
+    - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+    - tests/core/test_plan_lock_git_subdirectory.py
+validate:
+  - uv run python -m pytest -q 
+    tests/core/test_plan_lock_post_run_mutation_guard.py
+    tests/core/test_plan_lock_git_subdirectory.py
+  - uv run maid validate 
+    manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml --mode 
+    behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-07-27T08:26:00+08:00'
+  summary: >-
+    Legacy-baseline capture now detects validation-induced tracked writes and
+    deletions anywhere in the containing git repository while still permitting
+    pre-existing sibling-project dirt when the MAID project root is a
+    subdirectory.
+  rationale: >-
+    The pre-run eligibility guard remains project-scoped so unrelated sibling
+    work does not block an intentional legacy-baseline migration. The post-run
+    mutation guard now captures repository-root dirty path fingerprints before
+    and after validate commands and rejects only content deltas introduced by
+    those commands. Dirty deleted paths use a distinct sentinel and missing
+    snapshot entries use a separate clean sentinel, so a command-induced tracked
+    deletion cannot be confused with a path that was clean before and after.
+  review_notes:
+    - source: independent-implementation-review
+      severity: blocking
+      summary: >-
+        First review found that tracked sibling deletions were missed because
+        deleted files and missing dictionary keys both compared as None.
+    - source: implementation-fix
+      severity: info
+      summary: >-
+        Added deletion regression coverage and separated deleted-file and clean
+        absence sentinels before rerunning focused, manifest, repo, and verify
+        gates.
+    - source: independent-implementation-review
+      severity: info
+      summary: >-
+        Re-review found no findings after the deletion fix; residual risks were
+        limited to metadata-only changes and untracked empty directories, which
+        are outside this content-based dirty-fingerprint contract.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_plan_lock_post_run_mutation_guard.py
+        - tests/core/test_plan_lock_git_subdirectory.py
+        - tests/cli/test_plan_legacy_baseline_cmd.py
+      status: passed
+      summary: >-
+        25 focused legacy-baseline tests passed, including sibling write,
+        sibling deletion, and pre-existing sibling dirt scenarios.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: Behavioral validation passed for the promoted manifest.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml
+        - --mode
+        - implementation
+        - --quiet
+      status: passed
+      summary: Implementation validation passed for the promoted manifest.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-legacy-baseline-post-run-guard-delta.manifest.yaml
+      status: passed
+      summary: 2 manifest commands passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: 463 manifests checked; 366 passed and 97 superseded skipped.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: 208 commands passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --plan-lock-scope
+        - task
+        - --since
+        - HEAD
+      status: passed
+      summary: >-
+        0 blocking findings; only existing non-blocking E307 no-validator
+        warnings for Makefile, ts_compiler_resolver.cjs, and non-code files.
+  lessons:
+    - lesson_type: anti-gaming
+      summary: >-
+        Delta checks over dictionaries need explicit absence semantics. Treating
+        a dirty deleted file and a missing snapshot key as the same None value
+        allowed a command-induced deletion to pass through a repository-wide
+        mutation guard.
+      tags:
+        - plan-lock
+        - legacy-migration
+        - dirty-tree
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/core/test_plan_lock_post_run_mutation_guard.py
+    - lesson_type: test-discrimination
+      summary: >-
+        A write-only mutation test did not discriminate deletion behavior. The
+        independent review forced a deletion case that reproduced the missed
+        path and proved the sentinel fix.
+      tags:
+        - implementation-review
+        - regression-test
+        - git-paths
+      paths:
+        - tests/core/test_plan_lock_post_run_mutation_guard.py
+    - lesson_type: cross-module-consistency
+      summary: >-
+        The pre-run and post-run guards intentionally use different git scopes:
+        the former is project-relative eligibility, while the latter is
+        repository-relative runtime mutation evidence. Keeping those namespaces
+        explicit avoids undoing the earlier subdirectory path fix.
+      tags:
+        - monorepo
+        - git-paths
+        - plan-lock
+      paths:
+        - maid_runner/core/plan_lock.py

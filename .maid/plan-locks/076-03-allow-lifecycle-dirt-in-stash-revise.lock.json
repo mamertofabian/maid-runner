@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml",
-  "manifest_hash": "sha256:7af43482536b5c1594255a449470798a4edf9505b137ef92f6615311fe884878",
+  "manifest_hash": "sha256-contract:a665ab6401f4d55ed3d229c0d36ddc5538e03ff0d05f7f0fc8f0466223dbeb73",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:fa8fd3a8f624c09299878cb59363a4cb9acb3438d680ef214a31f55a2d569e15"
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:bf1051bb92c8936540563b78c63dcd038bfb30885845fe1257e563566591f5f7"
   },
   "created_at": "2026-06-26T23:14:56.954675+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:b1c14f90005e072a10d49d651a1b8db698ce466d3b771778ce15b7c46f81cd47",
@@ -13,7 +13,9 @@
         "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:f4582da7c404210400a65e93a9c9534e9bb3fea2a4d72ff1f32c775413486ed7"
       },
       "revised_at": "2026-06-26T23:15:12.176111+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml -> manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml -> manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:04b32c226ab6d08420ab5ab4c051a39d86f6be0fe1c09b25f46d9b6b224b3628",
@@ -21,7 +23,9 @@
         "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:f4582da7c404210400a65e93a9c9534e9bb3fea2a4d72ff1f32c775413486ed7"
       },
       "revised_at": "2026-06-26T23:34:02.921776+00:00",
-      "reason": "Review tightened promoted draft deletion guard for staged mixed statuses"
+      "reason": "Review tightened promoted draft deletion guard for staged mixed statuses",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:20e4624d3c419b2cf16428907755119167747dedc88a5582d28100d0ffc07818",
@@ -29,7 +33,9 @@
         "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:b3112ba34948b11961985caf79c2b1c12a7a1ac111ff93b2b1de5fb64d47514b"
       },
       "revised_at": "2026-06-26T23:42:52.512926+00:00",
-      "reason": "Review tightened active marker guard for staged mixed statuses"
+      "reason": "Review tightened active marker guard for staged mixed statuses",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e51f2f89d636b08376694c437bad77833215e176d8eb47522ca2b0dd1e2f9ffd",
@@ -37,17 +43,45 @@
         "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:fa8fd3a8f624c09299878cb59363a4cb9acb3438d680ef214a31f55a2d569e15"
       },
       "revised_at": "2026-06-26T23:51:35.628939+00:00",
-      "reason": "Capture completed implementation outcome after ready review"
+      "reason": "Capture completed implementation outcome after ready review",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:7af43482536b5c1594255a449470798a4edf9505b137ef92f6615311fe884878",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256:fa8fd3a8f624c09299878cb59363a4cb9acb3438d680ef214a31f55a2d569e15"
+      },
+      "revised_at": "2026-07-22T02:03:27.097702+00:00",
+      "reason": "Adapt stash-revise characterization for sha256-pyast behavioral test hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/plan.py",
+          "edit:tests/cli/test_plan_cmd_stash_implementation.py",
+          "read:maid_runner/core/active_task.py",
+          "read:maid_runner/core/manifest.py",
+          "read:maid_runner/core/plan_lock.py",
+          "read:manifests/069-01-add-task-active-manifest-commands.manifest.yaml",
+          "read:manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+          "read:manifests/076-01-add-stash-backed-plan-revise.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-06-26T23:43:03.724623+00:00",
+    "captured_at": "2026-07-22T02:03:39.433355+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_implementation.py",
         "exit_code": 1,
-        "output_tail": "        exit_code = cmd_plan_revise(\n            _revise_args(\n                manifest_path,\n                tmp_path,\n                \"review added missing behavior after draft promotion\",\n            )\n        )\n    \n>       assert exit_code == 0\nE       assert 2 == 0\n\ntests/cli/test_plan_cmd_stash_implementation.py:395: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-127/test_stash_implementation_allo2/.maid/plan-locks/demo-task.lock.json)\n----------------------------- Captured stderr call -----------------------------\nError: --stash-implementation refuses unrelated dirty path(s): manifests/drafts/demo-task.manifest.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_active_manifest_marker\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_promoted_draft_deletion\n2 failed, 18 passed in 8.53s",
+        "output_tail": "    \n        assert exit_code == 0\n        assert implementation_path.read_text() == \"def demo() -> int:\\n    return 1\\n\"\n        assert _git(tmp_path, \"stash\", \"list\") == \"\"\n        record = _lock_record(tmp_path)\n        assert record[\"revision\"] == 2\n        assert record[\"red_evidence\"][\"red\"] is True\n        assert record[\"red_evidence\"][\"commands\"][0][\"classification\"] == \"red\"\n>       assert record[\"test_hashes\"][\"tests/test_demo.py\"].startswith(\"sha256-pyast:\")\nE       AssertionError: assert False\nE        +  where False = <built-in method startswith of str object at 0x74c9941577c0>('sha256-pyast:')\nE        +    where <built-in method startswith of str object at 0x74c9941577c0> = 'sha256:5c16d73805bddc34633e2ac5821204f6cd9d3ffd559866fb6a3c72486a393bf8'.startswith\n\ntests/cli/test_plan_cmd_stash_implementation.py:199: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-69/test_stash_implementation_reca0/.maid/plan-locks/demo-task.lock.json)\nRevised plan lock for 'demo-task' to revision 2 (/tmp/pytest-of-atomrem/pytest-69/test_stash_implementation_reca0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change\n1 failed, 19 passed in 8.89s",
         "classification": "red"
       },
       {
@@ -62,8 +96,22 @@
         "output_tail": "",
         "classification": "not_red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/085-03-contract-scoped-plan-lock-manifest-hash.lock.json",
+      ".maid/plan-locks/085-07-ast-scoped-behavioral-test-hash.lock.json",
+      "docs/maid_specs.md",
+      "maid_runner/docs/maid_specs.md",
+      "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py",
+      "tests/core/test_contract_scoped_manifest_hash.py",
+      "tests/core/test_plan_lock.py"
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
@@ -87,6 +135,186 @@
       "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_draft_deletion",
       "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_unrelated_draft_deletion:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "tests/cli/test_plan_cmd_stash_implementation.py"
+      ],
+      "read": [
+        "maid_runner/core/active_task.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "manifests/069-01-add-task-active-manifest-commands.manifest.yaml",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Allows verified same-task MAID lifecycle dirt during --stash-implementation while still stashing only declared non-test implementation paths and rejecting unrelated dirty paths before mutating the lock.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_stash_implementation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_allows_matching_active_manifest_marker",
+              "source_scenario": "A promoted implementation session has a dirty declared implementation path and an untracked `.maid/active-manifest` marker pointing at the manifest being revised.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The revise succeeds, captures valid red evidence, restores the implementation path, leaves the active marker intact, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_different_active_manifest_marker",
+              "source_scenario": "A dirty active-task marker points at a different manifest while the current manifest also has dirty implementation changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the implementation and active marker contents, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_staged_different_active_marker",
+              "source_scenario": "The active-task marker has a staged value for a different manifest and a worktree value for the current manifest while implementation changes are dirty.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the implementation and active marker contents, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_allows_matching_promoted_draft_deletion",
+              "source_scenario": "A normal promote-then-implement workflow leaves a tracked `manifests/drafts/<slug>.manifest.yaml` deletion next to the promoted `manifests/<slug>.manifest.yaml` while implementation changes are dirty.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The revise succeeds, captures valid red evidence, restores the implementation path, preserves the draft deletion, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_matching_draft_modification",
+              "source_scenario": "The matching source draft path is modified rather than deleted while the promoted manifest has dirty implementation changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the modified draft contents and implementation contents, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_staged_matching_draft_modification_then_delete",
+              "source_scenario": "The matching source draft path has a staged modification and a worktree deletion while the promoted manifest has dirty implementation changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the staged draft/worktree deletion state and implementation contents, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_staged_matching_draft_add_then_delete",
+              "source_scenario": "The matching source draft path is staged as a new file and deleted from the worktree while the promoted manifest has dirty implementation changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the staged draft/worktree deletion state and implementation contents, and leaves no stash entry behind."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_implementation_rejects_unrelated_draft_deletion",
+              "source_scenario": "A different tracked draft manifest deletion is present while the current manifest has dirty implementation changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2 before stashing, leaves the lock unchanged, preserves the unrelated draft deletion and implementation contents, and leaves no stash entry behind."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/active_task.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "manifests/069-01-add-task-active-manifest-commands.manifest.yaml",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/cli/test_plan_cmd_stash_implementation.py"
     ],

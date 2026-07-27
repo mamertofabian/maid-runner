@@ -2,10 +2,10 @@
   "manifest_path": "manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml",
   "manifest_hash": "sha256-contract:d3649d74b8711ee21a0717217261258885ef38e2dd38f84bd4d2168ae1159cf9",
   "test_hashes": {
-    "tests/core/test_contract_scoped_manifest_hash.py": "sha256:6de5b4673deeb0f76c207345cac044810352ccfbdc93770eeee09bf2b6c3c095"
+    "tests/core/test_contract_scoped_manifest_hash.py": "sha256-pyast:687aaa89d9a2cc3e1893b411f3fbdb58e8b60fa6a70ebf01f615e398c3c546b4"
   },
   "created_at": "2026-07-18T01:15:49.254101+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4c844a9930876da36841f36b3ef3a5b1e59a529d347bca4fba7b370d5836e77d",
@@ -117,16 +117,33 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d3649d74b8711ee21a0717217261258885ef38e2dd38f84bd4d2168ae1159cf9",
+      "prior_test_hashes": {
+        "tests/core/test_contract_scoped_manifest_hash.py": "sha256:6de5b4673deeb0f76c207345cac044810352ccfbdc93770eeee09bf2b6c3c095"
+      },
+      "revised_at": "2026-07-22T02:03:10.300914+00:00",
+      "reason": "Adapt create_plan_lock characterization for sha256-pyast behavioral test hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-07-18T01:15:59.752171+00:00",
+    "captured_at": "2026-07-22T02:03:13.930980+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest tests/core/test_contract_scoped_manifest_hash.py -v",
         "exit_code": 1,
-        "output_tail": "tmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-70/test_contract_hash_raises_on_u0')\n\n    def test_contract_hash_raises_on_unparseable_manifest(tmp_path: Path) -> None:\n>       assert hasattr(\n            plan_lock_mod, \"compute_manifest_contract_hash\"\n        ), \"compute_manifest_contract_hash must be public on plan_lock\"\nE       AssertionError: compute_manifest_contract_hash must be public on plan_lock\nE       assert False\nE        +  where False = hasattr(plan_lock_mod, 'compute_manifest_contract_hash')\n\ntests/core/test_contract_scoped_manifest_hash.py:212: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_contract_hash_ignores_outcome_section\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_contract_hash_tracks_contract_changes\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_contract_hash_ignores_yaml_formatting_only_edits\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_manifest_hash_matches_dispatches_on_prefix\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_new_locks_store_contract_prefixed_hash\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_plan_status_reports_match_after_outcome_capture\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_contract_hash_raises_on_unparseable_manifest\n============================== 7 failed in 0.14s ===============================",
+        "output_tail": "=================================== FAILURES ===================================\n_________________ test_new_locks_store_contract_prefixed_hash __________________\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-67/test_new_locks_store_contract_0')\n\n    def test_new_locks_store_contract_prefixed_hash(tmp_path: Path) -> None:\n        manifest_path = _write_project(tmp_path)\n    \n        lock = create_plan_lock(manifest_path, tmp_path)\n    \n        assert lock.manifest_hash.startswith(\"sha256-contract:\")\n        assert lock.manifest_hash == _compute_manifest_contract_hash(manifest_path)\n>       assert all(h.startswith(\"sha256-pyast:\") for h in lock.test_hashes.values())\nE       assert False\nE        +  where False = all(<generator object test_new_locks_store_contract_prefixed_hash.<locals>.<genexpr> at 0x71a9e1bd41e0>)\n\ntests/core/test_contract_scoped_manifest_hash.py:177: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_contract_scoped_manifest_hash.py::test_new_locks_store_contract_prefixed_hash\n========================= 1 failed, 6 passed in 0.15s ==========================",
         "classification": "red"
       },
       {
@@ -141,6 +158,13 @@
         "output_tail": "",
         "classification": "not_red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/085-07-ast-scoped-behavioral-test-hash.lock.json",
+      "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+      "tests/cli/test_plan_cmd_stash_implementation.py",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py"
     ]
   },
   "legacy_baseline": null,

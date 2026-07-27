@@ -1,0 +1,569 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Halve maid verify validation-stage wall time by parsing manifests with libyaml,
+  memoizing resolve_reexport, and indexing manifests_for_file, with byte-identical
+  findings"
+type: refactor
+created: "2026-07-27T01:47:43Z"
+metadata:
+  planning_state: implemented
+  promotion_ready: true
+  tests_status: written-green-reviewed
+  maid_task_base: 30ae4315ef224c670429171f9c1844dec305e451
+  tags:
+    - performance
+    - validation-engine
+    - caching
+  priority: medium
+description: |
+  This was originally numbered 091-02 behind an xdist parallelism slice. That
+  slice was measured, rejected, and deleted before implementation; the negative
+  result is recorded under "Rejected: pytest-xdist injection into batched
+  commands" in `docs/plans/maid-runner-performance-backlog.md`. This manifest is
+  renumbered 091-01 as the only surviving slice of that performance pass.
+
+  Measured problem, at HEAD 30ae431, against 463 manifests (366 active). A
+  cProfile run identified three uncached hot paths.
+
+  Authoritative result, measured after implementation on an identical tree with
+  this manifest, its lock, and its test file removed from BOTH arms so
+  changed_scope aborted at the same stage in each, three runs per arm:
+
+  ```
+  maid verify (schema..worktree_scope)   12.73s -> 6.33s   -50%
+  maid validate (full run)                7.88s -> 4.10s   -48%
+  ```
+
+  Verify findings are byte-identical: 1 blocking, 2 unique warnings from 5 raw,
+  1 unique info from 428 raw. Only the duration line differs.
+
+  A caution recorded because it produced a wrong number twice in this contract's
+  own history. An earlier monkeypatch prototype reported 12.84s to 7.87s, but it
+  imported maid_runner before starting its timer in the optimized arm only, so
+  it moved module import cost outside the measurement on one side. A later A/B
+  appeared to show only 5 percent, but its baseline arm aborted early on
+  fail-fast and therefore did strictly less work. Neither number is real. Any
+  future re-benchmark of this contract must hold the tree, the process shape,
+  and the executed stage set identical across arms.
+
+  Per-fix attribution is deliberately not restated here. The individual figures
+  came from the flawed prototype harness; the three fixes compound because each
+  removes work the others traverse, so only the combined figure above is sound.
+
+  (a) `load_manifest_raw` parses every manifest with the pure-Python
+  `yaml.SafeLoader`. Across 463 manifests that is 2.53s of a 3.09s chain load;
+  libyaml parses the same files in 0.276s, a 9.2x difference.
+
+  (b) `module_paths.resolve_reexport` is called 195,925 times per verify with no
+  cache, costing 196K `Path.exists()` syscalls and 6,104 redundant `ast.parse`
+  calls. It is a pure function of `(module, name, project_root)`.
+
+  (c) `ManifestChain.manifests_for_file` is called 8,140 times and scans all 366
+  active manifests per call, evaluating the `all_writable_paths` property
+  2,980,704 times. That property is not cached and rebuilds five set
+  comprehensions on every access.
+
+  Rationale for the CSafeLoader guard. `pyproject.toml` declares `pyyaml>=6.0`,
+  which does not guarantee the libyaml extension is compiled into the installed
+  wheel. The loader selection must be conditional on `hasattr(yaml, "CSafeLoader")`
+  with a fallback to `SafeLoader`, and `_construct_mapping_rejecting_duplicate_keys`
+  must be registered on whichever loader is selected. Duplicate-key rejection is
+  a correctness guarantee, not an optimization; losing it silently on the fast
+  path would be a far worse outcome than being slow.
+
+  Rationale for cache invalidation shape, corrected after implementation review.
+  Joining the existing scope discipline is necessary but NOT sufficient.
+  `ValidationEngine._enter/_exit_validation_cache_scope` already clear the
+  artifact and TypeScript caches, and the re-export cache joins that set - but
+  `DaemonValidationCacheScope` enters the outermost scope once at construction
+  and holds it for the daemon's lifetime, so every later request runs at depth 1
+  and the boundary clear never fires again. Review reproduced the consequence
+  end-to-end: after a barrel dropped a re-export the daemon returned a PASS for
+  a symbol that no longer existed, where the task base correctly reported E200.
+  The reason this cache alone is exposed is that every other member of the
+  clear-set is content-addressed - the artifact cache keys on a sha256 of the
+  source, the TypeScript cache on a stat signature - while this one is keyed
+  only by `(module, name, project_root)`. The contract therefore clears at the
+  scope boundary AND per request in `DaemonValidationCacheScope.validate`.
+
+  The `manifests_for_file` index is per-chain state and must be invalidated
+  wherever `_active_cache` is, including `reload`.
+
+  Explicitly rejected after measurement, recorded so it is not re-proposed.
+  `validate_manifest_schema` rebuilds a `jsonschema.Draft7Validator` for every
+  manifest, which looks like an obvious O(N) to O(1) win. Measured across all
+  463 manifests it is 497ms versus 433ms cached, and on a full verify run the
+  difference was inside noise (13.03s versus 12.84s). Not worth the cache.
+
+  Unprototyped follow-up candidate, not in this scope.
+  `coherence/checks/boundary.py::_detect_boundary_violation_from_type` linearly
+  scans every graph node on each of 1,971 calls (0.78s tottime under cProfile).
+  A name-to-ArtifactNode index would fix it; it needs its own measurement first.
+temptations:
+  - risk: "Do not select CSafeLoader unconditionally, and do not lose _construct_mapping_rejecting_duplicate_keys
+      on the swap. pyyaml>=6.0 does not guarantee the libyaml extension exists, so
+      an unguarded import breaks every maid command on affected platforms; an unregistered
+      constructor makes a duplicate-key manifest load silently with last-key-wins
+      instead of raising."
+    instead: "Select the loader behind a hasattr(yaml, 'CSafeLoader') check with a
+      SafeLoader fallback, register the constructor on whichever class is selected,
+      and pin it with a duplicate-key manifest test that must raise regardless of
+      which loader is active."
+  - risk: "Do not assume scope-boundary clearing is enough for resolve_reexport.
+      DaemonValidationCacheScope enters the outermost scope once at construction and
+      holds it for the daemon's lifetime, so every later request runs at depth 1, the
+      boundary clear never fires again, and the daemon returns a false PASS after a
+      barrel edit. Unlike the artifact and TS caches this one is not content-addressed,
+      so nothing else rescues it."
+    instead: "Clear at the scope boundary AND per request in
+      DaemonValidationCacheScope.validate. Pin the held-open-scope shape explicitly,
+      not just two sequential scopes. Measured alternatives: 4.86s uncached, 4.11s
+      unkeyed cache, 4.71s signature-keyed - so a stat signature would surrender ~80%
+      of the win and per-request clearing is the correct fix."
+  - risk: "Do not cache the manifests_for_file index without invalidating it wherever
+      _active_cache is invalidated, including ManifestChain.reload."
+    instead: "Clear the index in the same statements that clear _active_cache and
+      test that reload after a manifest edit returns the new manifest set."
+  - risk: "Do not accept a speedup that changes verify findings. A faster verify that
+      reports differently is a regression, not an optimization."
+    instead: "Assert byte-identical verify output against the recorded baseline: 1
+      blocking, 2 unique warnings from 5 raw, 1 unique info from 428 raw, 6 stages
+      passed, with only the duration line permitted to differ."
+  - risk: "Do not also cache the jsonschema Draft7Validator because it looks like
+      an obvious win. It was measured at 497ms versus 433ms across 463 manifests and
+      is inside noise on a full run."
+    instead: "Leave validate_manifest_schema alone and keep this contract to the three
+      measured fixes."
+files:
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: load_manifest_raw
+          args:
+            - name: path
+              type: "Union[str, Path]"
+          returns: dict
+          description: >-
+            Parse manifest YAML with the libyaml-backed loader when the
+            installed pyyaml provides it, falling back to the pure-Python
+            loader, with duplicate-key rejection registered on whichever loader
+            is selected.
+    - path: maid_runner/core/module_paths.py
+      artifacts:
+        - kind: function
+          name: resolve_reexport
+          args:
+            - name: module
+              type: str
+            - name: name
+              type: str
+            - name: project_root
+              type: Path
+          returns: "Optional[tuple[str, str]]"
+          description: >-
+            Memoize one-level barrel re-export resolution on
+            (module, name, project_root), preserving the existing return
+            contract and None-on-failure behavior exactly.
+        - kind: function
+          name: clear_reexport_resolution_cache
+          args: []
+          returns: None
+          description: >-
+            Drop every memoized re-export resolution so validation scopes cannot
+            serve stale results after a source file changes.
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: manifests_for_file
+          of: ManifestChain
+          args:
+            - name: path
+              type: str
+          returns: "list[Manifest]"
+          description: >-
+            Resolve writable-path ownership through a per-chain path-to-manifest
+            index built once from the active manifest set, instead of scanning
+            every active manifest and re-evaluating all_writable_paths per call.
+        - kind: method
+          name: reload
+          of: ManifestChain
+          args: []
+          returns: None
+          description: >-
+            Invalidate the writable-path index alongside the existing active
+            manifest cache so a reloaded chain cannot answer from a stale index.
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validation_cache_scope
+          of: ValidationEngine
+          args: []
+          returns: "AbstractContextManager[None]"
+          description: >-
+            Include the re-export resolution cache in the caches cleared when
+            the outermost validation scope is entered and exited.
+    - path: maid_runner/daemon/cache.py
+      artifacts:
+        - kind: method
+          name: validate
+          of: DaemonValidationCacheScope
+          args:
+            - name: manifest_path
+              type: str
+            - name: mode
+              type: str
+              default: '"implementation"'
+            - name: use_chain
+              type: bool
+              default: "True"
+            - name: manifest_dir
+              type: str
+              default: '"manifests/"'
+            - name: check_assertions
+              type: bool
+              default: "False"
+            - name: check_stubs
+              type: bool
+              default: "False"
+            - name: fail_on_warnings
+              type: bool
+              default: "False"
+          returns: dict
+          description: >-
+            Drop the re-export resolution cache at the start of every daemon
+            request. The daemon holds one validation scope open for its whole
+            lifetime, so the scope-boundary clear never fires after construction
+            and the cache would otherwise answer from a resolution taken before
+            the source changed. Per-request clearing keeps the full intra-run
+            benefit because every resolution burst happens inside one request.
+  create:
+    - path: tests/core/test_validation_hot_path_caches.py
+      artifacts:
+        - kind: test_function
+          name: test_duplicate_manifest_keys_are_rejected_on_the_selected_loader
+          args: []
+          returns: None
+          source_scenario: >-
+            A manifest declaring the same top-level key twice, loaded on
+            whichever YAML loader the installed pyyaml provides.
+          actions:
+            - type: api_call
+              subject:
+                export: load_manifest_raw
+          expected:
+            behavior: >-
+              A ManifestLoadError is raised rather than the file loading with
+              last-key-wins, proving the duplicate-key guarantee survived the
+              loader swap.
+        - kind: test_function
+          name: test_manifest_parsing_result_is_loader_independent
+          args: []
+          returns: None
+          source_scenario: >-
+            A manifest exercising anchors, aliases, block scalars, and unicode.
+          actions:
+            - type: api_call
+              subject:
+                export: load_manifest_raw
+          expected:
+            behavior: >-
+              The parsed dictionary equals the pure-Python loader's result, so
+              the faster loader is not quietly changing manifest semantics.
+        - kind: test_function
+          name: test_reexport_resolution_is_memoized_within_a_scope
+          args: []
+          returns: None
+          source_scenario: >-
+            The same module and name are resolved twice against an unchanged
+            package.
+          actions:
+            - type: api_call
+              subject:
+                export: resolve_reexport
+          expected:
+            behavior: >-
+              Both calls return equal results while the underlying package file
+              is read only once, proving the repeated filesystem work is gone.
+        - kind: test_function
+          name: test_reexport_cache_clear_observes_changed_source
+          args: []
+          returns: None
+          source_scenario: >-
+            A package __init__.py that re-exports a symbol is edited to stop
+            re-exporting it, with the cache cleared in between.
+          actions:
+            - type: api_call
+              subject:
+                export: clear_reexport_resolution_cache
+          expected:
+            behavior: >-
+              Resolution returns None after the clear, so a long-lived process
+              cannot serve a stale re-export.
+        - kind: test_function
+          name: test_validation_scope_boundary_clears_reexport_cache
+          args: []
+          returns: None
+          source_scenario: >-
+            A re-export is resolved inside one ValidationEngine cache scope, the
+            package source is then edited, and a second scope is entered.
+          actions:
+            - type: api_call
+              subject:
+                export: validation_cache_scope
+          expected:
+            behavior: >-
+              The second scope observes the edited source rather than the cached
+              answer, so the cache is bound to the validation scope and a
+              long-lived process such as the daemon cannot serve a stale
+              resolution.
+        - kind: test_function
+          name: test_held_open_scope_observes_barrel_edit_between_requests
+          args: []
+          returns: None
+          source_scenario: >-
+            A DaemonValidationCacheScope validates a manifest whose declared
+            artifact lives behind a barrel, the barrel stops re-exporting the
+            symbol, and the same held-open scope serves a second request. The
+            declared file is deliberately not the edited barrel: when they are
+            the same file the content-addressed artifact cache reports the
+            missing symbol as E300/E301 and the stale resolution never matters.
+          actions:
+            - type: api_call
+              subject:
+                export: validate
+          expected:
+            behavior: >-
+              The second request reports success False with exactly E200, so the
+              daemon cannot return a PASS for a symbol the barrel no longer
+              exports. Asserting the code and not merely the failure is what
+              makes this specific to the re-export cache rather than satisfiable
+              by a fix that clears some other cache.
+        - kind: test_function
+          name: test_manifests_for_file_returns_same_manifests_as_a_linear_scan
+          args: []
+          returns: None
+          source_scenario: >-
+            A chain where one path is writable in several manifests and another
+            appears only under files.read.
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: >-
+              The indexed result equals a linear scan over active manifests in
+              the same order, so ownership resolution is unchanged.
+        - kind: test_function
+          name: test_manifests_for_file_index_is_invalidated_on_reload
+          args: []
+          returns: None
+          source_scenario: >-
+            A chain is queried, a new manifest claiming the same path is added,
+            and the chain is reloaded.
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: >-
+              The added manifest appears in the result after reload, so the
+              index cannot outlive the manifest set it was built from.
+        - kind: test_function
+          name: test_read_only_path_still_resolves_to_no_writable_manifest
+          args: []
+          returns: None
+          source_scenario: A path declared only under files.read across the 
+            chain.
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: >-
+              An empty list is returned, so the index does not widen writable
+              ownership to read declarations.
+  scope:
+    - path: docs/plans/maid-runner-performance-backlog.md
+      reason: >-
+        Records the re-benchmark that gated this performance pass and closes the
+        backlog's open xdist candidate with the measured negative result, so the
+        rejected slice is not re-proposed. Edited, not merely read.
+  read:
+    - maid_runner/core/_artifact_collection_cache.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/_validate_all.py
+    - maid_runner/core/types.py
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/daemon/server.py
+    - pyproject.toml
+    - tests/core/test_manifest.py
+    - tests/core/test_chain.py
+    - tests/core/test_ts_module_paths.py
+validate:
+  - uv run maid validate
+    manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml --mode
+    schema --quiet
+  - uv run python -m pytest -q
+    tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py
+    tests/core/test_chain.py tests/core/test_ts_module_paths.py
+    tests/daemon/test_daemon_cache.py
+outcome:
+  status: completed
+  completed_at: '2026-07-27T11:05:00+08:00'
+  summary: >-
+    Three uncached hot paths in the validation engine are now cached: manifest
+    YAML parses through libyaml when the installed pyyaml provides it,
+    resolve_reexport is memoized on (module, name, project_root), and
+    ManifestChain resolves writable-path ownership through a per-chain index.
+    Measured same-tree A/B, three runs each, with this manifest removed from
+    both arms so changed_scope aborted identically: maid verify's validation
+    stages 12.73s to 6.33s, maid validate 7.88s to 4.10s. Verify findings are
+    byte-identical. Implementation review found one blocking regression, fixed
+    in-session, and the manifest's own temptation was rewritten because it had
+    prescribed the mitigation that failed.
+  rationale: >-
+    The three fixes were chosen from a cProfile run over 463 manifests, not from
+    intuition. resolve_reexport ran 195,925 times per verify with no cache;
+    manifests_for_file ran 8,140 times and re-evaluated the uncached
+    all_writable_paths property 2,980,704 times; YAML parsing was 2.53s of a
+    3.09s chain load. Caching the jsonschema Draft7Validator looked like an
+    equally obvious win and was rejected on measurement (497ms versus 433ms
+    across 463 manifests, inside noise on a full run), and that rejection is
+    recorded in the temptations so it is not re-proposed.
+
+    The re-export cache is the only member of the engine's clear-set that is not
+    content-addressed. The artifact cache keys on a sha256 of the source and the
+    TypeScript cache keys on a stat signature, so both self-invalidate; this one
+    is keyed only by identity and depends entirely on being cleared. Signature-
+    keying it would have made it self-invalidating but was measured to surrender
+    roughly 80 percent of the win (5.07s uncached, 4.30s unkeyed, 4.87s
+    signature-keyed), so per-request clearing in the daemon was chosen instead.
+    That costs the daemon nothing measurable (1064ms versus 1044ms per request,
+    inside noise) because the large resolution burst is a whole-chain effect that
+    a single-manifest daemon request never had.
+  lessons:
+    - lesson_type: cache-invalidation
+      summary: >-
+        Scope-boundary clearing is not invalidation when a caller holds the scope
+        open. DaemonValidationCacheScope enters the outermost validation scope
+        once at construction and holds it for the daemon's lifetime, so every
+        later request runs at depth 1 and the boundary clear never fires again.
+        The result was a false PASS: after a barrel dropped a re-export, the
+        daemon still validated the symbol as present. Before adding a cache to a
+        shared clear-set, check whether every existing member self-invalidates on
+        content; if the new one does not, the boundary is not enough and the
+        long-lived caller has to clear per unit of work.
+      tags:
+        - fail-loud
+        - daemon
+        - performance
+      paths:
+        - maid_runner/core/module_paths.py
+        - maid_runner/daemon/cache.py
+    - lesson_type: test-design
+      summary: >-
+        A regression test for a stale-cache bug must separate the cached input
+        from the declared artifact. The first attempt declared the barrel file
+        itself and passed, which nearly led to the finding being dismissed as
+        unreproducible: editing the declared file invalidates the
+        content-addressed artifact cache, which reports E300/E301 before the
+        stale resolution can matter. The defect only appears when the declared
+        file (pkg/impl.py) and the edited barrel (pkg/__init__.py) are different
+        files, so identity matching is the only consumer of the memoized answer.
+        Asserting the exact code E200 rather than a bare failure is what makes
+        the test specific; the reviewer confirmed it fails against both the
+        unfixed code and a hollow fix that clears a different cache.
+      tags:
+        - anti-drift
+        - testing
+      paths:
+        - tests/core/test_validation_hot_path_caches.py
+    - lesson_type: measurement-discipline
+      summary: >-
+        Three measurement errors in this session all had the same root cause -
+        an uncontrolled comparison - and each one produced a confident wrong
+        number. A monkeypatch prototype imported maid_runner before starting its
+        timer in the optimized arm only, inflating the win to 39 percent. A
+        later A/B looked like only 5 percent because the baseline arm aborted
+        early on fail-fast and did strictly less work. A sibling xdist slice was
+        measured at one batch size and generalized to all, then rejected when
+        the crossover was mapped. The rule that survived: measure the same tree,
+        the same process shape, and the same stage set, repeat each arm, and
+        confirm no other agent is writing to the repo.
+      tags:
+        - workflow
+        - performance
+      paths:
+        - docs/plans/maid-runner-performance-backlog.md
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: blocking
+      summary: >-
+        B1: the memoized resolve_reexport made the daemon return a false PASS
+        after a barrel edit, reproduced end-to-end through handle_validate in
+        both implementation and behavioral modes against task base 30ae431,
+        which correctly reported E200. The reviewer identified that
+        DaemonValidationCacheScope holds the outermost scope open for the
+        daemon's lifetime, and that this cache is the only non-content-addressed
+        member of the clear-set. Fixed by clearing per request; the reviewer
+        then re-verified all six reachable daemon entry points as correct.
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Re-review returned ready to merge. It confirmed the per-request clear is
+        correctly placed and complete, that the regression test fails against
+        both the unfixed code and a hollow fix that clears the artifact and TS
+        caches instead, and that the CLI win is intact (5.07s uncached versus
+        4.30s cached). It additionally established the daemon pays no measurable
+        cost for the clear, and noted the daemon is threaded but that verify only
+        ever clears the global cache so concurrency cannot produce a stale answer.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Four advisories deferred to a follow-up draft. A1: the cache key uses an
+        unresolved str(project_root), a latent cross-test hazard only, since the
+        daemon resolves its root and production CLI never chdirs in-process. A2:
+        CSafeLoader and SafeLoader diverge on three synthetic inputs (tab after a
+        scalar or colon, lone surrogate), a portability inconsistency rather than
+        wrong data; all 501 real manifests parse identically. A3: the SafeLoader
+        fallback branch is never exercised on a libyaml-enabled machine. A4: a
+        wrong implementation keying on (module, project_root) and dropping name
+        would pass all declared tests.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        Two completeness items raised at re-review and closed in-session rather
+        than deferred. S1: the held-open-scope regression test was not declared
+        as a contract artifact, so the manifest would not have required the test
+        guarding this fix to exist. S2: the validate command did not cover
+        tests/daemon even though daemon/cache.py had entered files.edit. Both
+        landed in plan-lock revision 5.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_validation_hot_path_caches.py, tests/core/test_manifest.py, tests/core/test_chain.py, tests/core/test_ts_module_paths.py, tests/daemon/test_daemon_cache.py]
+      status: passed
+      summary: >-
+        The declared scope passed 165 tests. Red phase before implementation was
+        2 failed / 6 passed with collection succeeding, so the failures were
+        assertion and in-test import errors rather than an invalid exit 2. The
+        daemon regression test was separately confirmed red against the unfixed
+        implementation.
+    - command: [uv, run, python, -m, pytest, -q, tests/]
+      status: passed
+      summary: The full suite passed 3606 tests with 5 skips.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 464 manifests resolved with 367 passed, 0 failed, 97 superseded skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 209 manifest-declared validation commands passed with 0 failures.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, 30ae431]
+      status: passed
+      summary: >-
+        Strict handoff verification passed all 9 stages with 0 blocking findings.
+        The 2 unique warnings are pre-existing E307 no-validator notices for
+        ts_compiler_resolver.cjs and Makefile, unrelated to this contract.

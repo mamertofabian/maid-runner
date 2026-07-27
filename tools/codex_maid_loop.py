@@ -12,7 +12,7 @@ import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 try:
     from tools.maid_loop_core import (
@@ -80,6 +80,10 @@ Automation reporting requirements:
 - Capture Outcome after implementation review and before final handoff: update
   the promoted manifest with an evidence-backed `outcome:` section before
   reporting READY or emitting a commit packet. Do not report AUTOMATION_STATUS: READY when Outcome is missing unless the final message states a concrete not-applicable or blocked reason.
+- For outcome.agent provenance, use MAID_AGENT_MODEL and
+  MAID_AGENT_REASONING_EFFORT environment ground truth first; then an exact
+  self-known model slug; use a marketing-name self-report only as a labeled
+  last resort.
 - When READY, include a commit packet for the outer automation script:
   AUTOMATION_COMMIT_MESSAGE: <conventional commit message>
   AUTOMATION_COMMIT_FILES:
@@ -170,6 +174,16 @@ def build_implementation_command(
         str(final_message_path),
         _implementation_prompt(selected_drafts, failure_packet=failure_packet),
     ]
+
+
+def agent_provenance_env(model: str, reasoning_effort: str) -> dict[str, str]:
+    """Return driver-known provenance for a spawned Codex session."""
+    return {
+        "MAID_AGENT_MODEL": model,
+        "MAID_AGENT_REASONING_EFFORT": reasoning_effort,
+        "MAID_AGENT_PROVIDER": "openai",
+        "MAID_AGENT_CLIENT": "codex-cli",
+    }
 
 
 def render_codex_json_event(
@@ -278,6 +292,7 @@ def run_codex_json_command(
     stderr_path: Path,
     final_message_path: Path,
     color_enabled: bool,
+    extra_env: Mapping[str, str] | None = None,
 ) -> CodexRunResult:
     """Run one Codex JSON session while saving and rendering its output."""
     stdout_jsonl_path.parent.mkdir(parents=True, exist_ok=True)
@@ -286,10 +301,13 @@ def run_codex_json_command(
 
     render_state: dict[str, Any] = {}
 
+    env = _automation_env()
+    if extra_env is not None:
+        env.update(extra_env)
     process = subprocess.Popen(
         args,
         cwd=_ROOT,
-        env=_automation_env(),
+        env=env,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -407,6 +425,7 @@ def run_loop(args: argparse.Namespace) -> int:
                 stderr_path=implement_stderr,
                 final_message_path=implement_final,
                 color_enabled=color_enabled,
+                extra_env=agent_provenance_env(args.model, args.reasoning_effort),
             )
             implementation_status = parse_automation_status(
                 implementation.final_message

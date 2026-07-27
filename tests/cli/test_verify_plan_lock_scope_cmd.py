@@ -276,4 +276,8 @@ def test_verify_json_reports_e706_for_corrupt_lock(
     payload = json.loads(capsys.readouterr().out)
     errors = _stage_errors(payload, "plan_lock")
     assert exit_code == 1
-    assert [error["code"] for error in errors] == [ErrorCode.PLAN_LOCK_UNREADABLE.value]
+    # Filtered by severity rather than relaxed to a presence check, so this
+    # still pins exclusivity: a corrupt lock must not also report E700.
+    assert [error["code"] for error in errors if error["severity"] == "error"] == [
+        ErrorCode.PLAN_LOCK_UNREADABLE.value
+    ]

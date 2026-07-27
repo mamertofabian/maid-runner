@@ -12,6 +12,12 @@ import ast
 from pathlib import Path
 from typing import Optional, Union
 
+# resolve_reexport was measured at 195,925 calls in a single `maid verify` run
+# against 463 manifests, each call paying a stat and, on a hit, a read plus an
+# ast.parse. The result depends only on the key below, so it is memoized and
+# cleared at validation-scope boundaries by ValidationEngine.
+_REEXPORT_RESOLUTION_CACHE: dict[tuple[str, str, str], Optional[tuple[str, str]]] = {}
+
 
 def file_to_module_path(
     file_path: Union[str, Path],
@@ -88,6 +94,20 @@ def resolve_reexport(
     itself re-exports through another ``__init__.py``, this function
     does not follow that chain.
     """
+    cache_key = (module, name, str(project_root))
+    if cache_key in _REEXPORT_RESOLUTION_CACHE:
+        return _REEXPORT_RESOLUTION_CACHE[cache_key]
+
+    resolved = _resolve_reexport_uncached(module, name, project_root)
+    _REEXPORT_RESOLUTION_CACHE[cache_key] = resolved
+    return resolved
+
+
+def _resolve_reexport_uncached(
+    module: str,
+    name: str,
+    project_root: Path,
+) -> Optional[tuple[str, str]]:
     init_path = Path(project_root) / Path(*module.split(".")) / "__init__.py"
     if not init_path.exists():
         return None
@@ -108,6 +128,18 @@ def resolve_reexport(
             return (resolved, alias.name)
 
     return None
+
+
+def clear_reexport_resolution_cache() -> None:
+    """Drop every memoized re-export resolution.
+
+    The cache is bound to a validation scope rather than to the process:
+    ``ValidationEngine`` clears it when the outermost scope is entered and
+    exited, alongside the artifact and TypeScript resolution caches. Without
+    that, a long-lived process such as the daemon would keep answering from a
+    resolution taken before the source changed.
+    """
+    _REEXPORT_RESOLUTION_CACHE.clear()
 
 
 def _resolve_init_relative(
