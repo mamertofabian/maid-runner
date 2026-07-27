@@ -47,6 +47,8 @@ from maid_runner.core.types import AgentProvenance, Manifest
 _CONTRACT_HASH_PREFIX = "sha256-contract:"
 _PYAST_HASH_PREFIX = "sha256-pyast:"
 _BYTE_HASH_PREFIX = "sha256:"
+_DELETED_FILE_FINGERPRINT = "<deleted>"
+_CLEAN_FILE_FINGERPRINT = "<clean>"
 
 
 class _PlanLockLoadError(Exception):
@@ -724,6 +726,7 @@ def capture_legacy_baseline_evidence(
         )
 
     before_hashes = _contract_file_hashes(current_path, current_manifest, root)
+    before_dirty_fingerprints = _git_changed_path_fingerprints(root)
     commands: list[RedPhaseCommandEvidence] = []
     for command in current_manifest.validate_commands:
         result = _run_test_command(
@@ -753,6 +756,18 @@ def capture_legacy_baseline_evidence(
             "Legacy-baseline validation mutated contract file(s): " + ", ".join(changed)
         )
     post_run_dirty = _git_changed_paths(root)
+    post_run_dirty_fingerprints = _git_changed_path_fingerprints(root)
+    mutated_dirty_paths = sorted(
+        path
+        for path in set(before_dirty_fingerprints) | set(post_run_dirty_fingerprints)
+        if before_dirty_fingerprints.get(path, _CLEAN_FILE_FINGERPRINT)
+        != post_run_dirty_fingerprints.get(path, _CLEAN_FILE_FINGERPRINT)
+    )
+    if mutated_dirty_paths:
+        raise ValueError(
+            "Legacy-baseline validation created or changed unrelated path(s): "
+            + ", ".join(mutated_dirty_paths)
+        )
     if post_run_dirty - {manifest_rel}:
         raise ValueError(
             "Legacy-baseline validation created or changed unrelated path(s): "
@@ -1204,6 +1219,41 @@ def _git_prefix(project_root: Path) -> str:
     # leading or trailing whitespace that belongs to a directory name.
     lines = _git_text(project_root, "rev-parse", "--show-prefix").splitlines()
     return (lines[0] if lines else "").replace("\\", "/")
+
+
+def _git_repository_root(project_root: Path) -> Path:
+    """Return the containing git repository root for a MAID project root."""
+    lines = _git_text(project_root, "rev-parse", "--show-toplevel").splitlines()
+    if not lines:
+        raise ValueError(
+            "Git command failed for legacy-baseline migration: git rev-parse "
+            "--show-toplevel returned no output"
+        )
+    return Path(lines[0]).resolve()
+
+
+def _git_changed_path_fingerprints(project_root: Path) -> dict[str, str | None]:
+    """Return repo-relative dirty paths and their current content fingerprints."""
+    repository_root = _git_repository_root(project_root)
+    tracked = _git_bytes(repository_root, "diff", "--name-only", "-z", "HEAD", "--")
+    untracked = _git_bytes(
+        repository_root, "ls-files", "--others", "--exclude-standard", "-z"
+    )
+    paths = {
+        path.decode(errors="surrogateescape").replace("\\", "/")
+        for path in tracked.split(b"\0") + untracked.split(b"\0")
+        if path
+    }
+    return {
+        path: _working_tree_file_fingerprint(repository_root / path)
+        for path in sorted(paths)
+    }
+
+
+def _working_tree_file_fingerprint(path: Path) -> str | None:
+    if not path.is_file():
+        return _DELETED_FILE_FINGERPRINT
+    return _BYTE_HASH_PREFIX + hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _git_changed_paths(project_root: Path) -> set[str]:
