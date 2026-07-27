@@ -72,7 +72,16 @@ class ManifestSchemaError(Exception):
         super().__init__(f"Schema validation failed for {path}: {'; '.join(errors)}")
 
 
-class _DuplicateKeySafeLoader(yaml.SafeLoader):
+# Manifest parsing is the single largest cost in loading a chain: 2.53s of a
+# 3.09s load across 463 manifests on the pure-Python loader, versus 0.276s on
+# libyaml. pyyaml>=6.0 does not guarantee the C extension is compiled into the
+# installed wheel, so selection is conditional rather than an unguarded import.
+# The duplicate-key constructor below is registered on whichever class wins, so
+# rejection is a property of this loader and not of the base it happens to use.
+_YamlSafeLoaderBase = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+
+class _DuplicateKeySafeLoader(_YamlSafeLoaderBase):  # type: ignore[valid-type,misc]
     pass
 
 

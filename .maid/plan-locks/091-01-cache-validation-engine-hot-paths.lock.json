@@ -1,0 +1,587 @@
+{
+  "manifest_path": "manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml",
+  "manifest_hash": "sha256-contract:b5169445b6bb9612579391b31baa0d0d74474126029dc95d10372f3b5e58b6fd",
+  "test_hashes": {
+    "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+    "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+    "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+    "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:1776ee5c883e2ea250036558f1e928c9f26eb889069cd12be84cb60fc733fecc",
+    "tests/daemon/test_daemon_cache.py": "sha256-pyast:46508265783c50b8ed2981db229d9c3f952caf5c4ad0f6f33e4f6740025186f3"
+  },
+  "created_at": "2026-07-27T01:47:40.173699+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1fec82f80bbfae1b06a9062b86a444288a0560e389e29b57559961bc236a44d7",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+        "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+        "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:b24d843ff873b92b643b66f0e9c895dcb7647ecf28f90997e1860ad2fd8debc8"
+      },
+      "revised_at": "2026-07-27T01:47:43.247503+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/091-01-cache-validation-engine-hot-paths.manifest.yaml -> manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/091-01-cache-validation-engine-hot-paths.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cb520f4cf153d00650749ab3576a55e8930e5455002baeec76f0ebd125b3d823",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+        "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+        "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:b24d843ff873b92b643b66f0e9c895dcb7647ecf28f90997e1860ad2fd8debc8"
+      },
+      "revised_at": "2026-07-27T01:58:47.657926+00:00",
+      "reason": "Promoted manifest needs a pytest validate command per E230; recapture genuine red evidence by stashing the landed implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py tests/core/test_chain.py tests/core/test_ts_module_paths.py"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d98fb208c48467d990bc77b67be9891732c769429c00331fdcf84d3efa25fbcc",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+        "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+        "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:b24d843ff873b92b643b66f0e9c895dcb7647ecf28f90997e1860ad2fd8debc8"
+      },
+      "revised_at": "2026-07-27T02:26:37.111130+00:00",
+      "reason": "Implementation review B1: daemon holds one validation scope open for its lifetime so the scope-boundary clear never recurs, producing a false PASS after a barrel edit. Add per-request clear in DaemonValidationCacheScope.validate, scope daemon/cache.py, correct temptation 2, add held-open-scope regression test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_assertions:type=bool:default=False",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_stubs:type=bool:default=False",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=fail_on_warnings:type=bool:default=False",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_dir:type=str:default=\"manifests/\"",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_path:type=str:default=None",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=mode:type=str:default=\"implementation\"",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=use_chain:type=bool:default=True",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:kind=method",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:of=DaemonValidationCacheScope",
+          "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:returns=dict"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/daemon/cache.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7570ec3c3195699e1c45e176932519d3d15d1edb2a6166a965a1be8477cdaef4",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+        "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+        "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:1776ee5c883e2ea250036558f1e928c9f26eb889069cd12be84cb60fc733fecc"
+      },
+      "revised_at": "2026-07-27T02:45:27.632531+00:00",
+      "reason": "Review completeness items S1 and S2: declare the held-open-scope regression test as a contract artifact and extend the validate command to cover tests/daemon now that daemon/cache.py is in files.edit",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests",
+          "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests:kind=test_function",
+          "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py tests/core/test_chain.py tests/core/test_ts_module_paths.py tests/daemon/test_daemon_cache.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py tests/core/test_chain.py tests/core/test_ts_module_paths.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:55a93b8071b15a704d969508037bab1a48bb022c476d0193ec8a5213d6392dd1",
+      "prior_test_hashes": {
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_chain.py": "sha256-pyast:208db58a6322592bfc745c02121942c5f9406a2a878b03c74bc19eed392aeb2b",
+        "tests/core/test_ts_module_paths.py": "sha256-pyast:c80fd9fb6e54e410ac4941c5a426988e0f7be0f354bc6e18c786b51a2a97412d",
+        "tests/core/test_validation_hot_path_caches.py": "sha256-pyast:1776ee5c883e2ea250036558f1e928c9f26eb889069cd12be84cb60fc733fecc",
+        "tests/daemon/test_daemon_cache.py": "sha256-pyast:46508265783c50b8ed2981db229d9c3f952caf5c4ad0f6f33e4f6740025186f3"
+      },
+      "revised_at": "2026-07-27T02:47:13.518102+00:00",
+      "reason": "Outcome capture, corrected planning metadata, and replace the flawed prototype measurement with the authoritative same-tree A/B; behavioral tests unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-27T02:45:30.455646+00:00",
+    "commands": [
+      {
+        "command": "uv run maid validate manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py tests/core/test_chain.py tests/core/test_ts_module_paths.py tests/daemon/test_daemon_cache.py",
+        "exit_code": 1,
+        "output_tail": "\ntests/core/test_validation_hot_path_caches.py:128: ImportError\n_ TestReexportResolutionCache.test_reexport_cache_clear_observes_changed_source _\n\nself = <core.test_validation_hot_path_caches.TestReexportResolutionCache object at 0x7558b0403680>\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-160/test_reexport_cache_clear_obse0')\n\n    def test_reexport_cache_clear_observes_changed_source(self, tmp_path):\n        \"\"\"A long-lived process must not serve a stale re-export after an edit.\"\"\"\n>       from maid_runner.core.module_paths import (\n            clear_reexport_resolution_cache,\n            resolve_reexport,\n        )\nE       ImportError: cannot import name 'clear_reexport_resolution_cache' from 'maid_runner.core.module_paths' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/module_paths.py)\n\ntests/core/test_validation_hot_path_caches.py:148: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_validation_hot_path_caches.py::TestReexportResolutionCache::test_reexport_resolution_is_memoized_within_a_scope\nFAILED tests/core/test_validation_hot_path_caches.py::TestReexportResolutionCache::test_reexport_cache_clear_observes_changed_source\n2 failed, 163 passed in 2.42s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:arg=path:type=str:default=None",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:returns=list[Manifest]",
+      "maid_runner/core/chain.py:method:ManifestChain.reload",
+      "maid_runner/core/chain.py:method:ManifestChain.reload:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.reload:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.reload:returns=None",
+      "maid_runner/core/manifest.py:function:load_manifest_raw",
+      "maid_runner/core/manifest.py:function:load_manifest_raw:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:load_manifest_raw:kind=function",
+      "maid_runner/core/manifest.py:function:load_manifest_raw:returns=dict",
+      "maid_runner/core/module_paths.py:function:clear_reexport_resolution_cache",
+      "maid_runner/core/module_paths.py:function:clear_reexport_resolution_cache:kind=function",
+      "maid_runner/core/module_paths.py:function:clear_reexport_resolution_cache:returns=None",
+      "maid_runner/core/module_paths.py:function:resolve_reexport",
+      "maid_runner/core/module_paths.py:function:resolve_reexport:arg=module:type=str:default=None",
+      "maid_runner/core/module_paths.py:function:resolve_reexport:arg=name:type=str:default=None",
+      "maid_runner/core/module_paths.py:function:resolve_reexport:arg=project_root:type=Path:default=None",
+      "maid_runner/core/module_paths.py:function:resolve_reexport:kind=function",
+      "maid_runner/core/module_paths.py:function:resolve_reexport:returns=Optional[tuple[str, str]]",
+      "maid_runner/core/validate.py:method:ValidationEngine.validation_cache_scope",
+      "maid_runner/core/validate.py:method:ValidationEngine.validation_cache_scope:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.validation_cache_scope:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.validation_cache_scope:returns=AbstractContextManager[None]",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_assertions:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=check_stubs:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=fail_on_warnings:type=bool:default=False",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_dir:type=str:default=\"manifests/\"",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=manifest_path:type=str:default=None",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=mode:type=str:default=\"implementation\"",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:arg=use_chain:type=bool:default=True",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:kind=method",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:of=DaemonValidationCacheScope",
+      "maid_runner/daemon/cache.py:method:DaemonValidationCacheScope.validate:returns=dict",
+      "tests/core/test_validation_hot_path_caches.py:test_duplicate_manifest_keys_are_rejected_on_the_selected_loader",
+      "tests/core/test_validation_hot_path_caches.py:test_duplicate_manifest_keys_are_rejected_on_the_selected_loader:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_duplicate_manifest_keys_are_rejected_on_the_selected_loader:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests",
+      "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_held_open_scope_observes_barrel_edit_between_requests:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_manifest_parsing_result_is_loader_independent",
+      "tests/core/test_validation_hot_path_caches.py:test_manifest_parsing_result_is_loader_independent:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_manifest_parsing_result_is_loader_independent:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_index_is_invalidated_on_reload",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_index_is_invalidated_on_reload:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_index_is_invalidated_on_reload:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_returns_same_manifests_as_a_linear_scan",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_returns_same_manifests_as_a_linear_scan:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_manifests_for_file_returns_same_manifests_as_a_linear_scan:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_read_only_path_still_resolves_to_no_writable_manifest",
+      "tests/core/test_validation_hot_path_caches.py:test_read_only_path_still_resolves_to_no_writable_manifest:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_read_only_path_still_resolves_to_no_writable_manifest:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_cache_clear_observes_changed_source",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_cache_clear_observes_changed_source:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_cache_clear_observes_changed_source:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_resolution_is_memoized_within_a_scope",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_resolution_is_memoized_within_a_scope:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_reexport_resolution_is_memoized_within_a_scope:returns=None",
+      "tests/core/test_validation_hot_path_caches.py:test_validation_scope_boundary_clears_reexport_cache",
+      "tests/core/test_validation_hot_path_caches.py:test_validation_scope_boundary_clears_reexport_cache:kind=test_function",
+      "tests/core/test_validation_hot_path_caches.py:test_validation_scope_boundary_clears_reexport_cache:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_validation_hot_path_caches.py"
+      ],
+      "edit": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/daemon/cache.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/core/_validate_all.py",
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/core/types.py",
+        "maid_runner/daemon/server.py",
+        "pyproject.toml",
+        "tests/core/test_chain.py",
+        "tests/core/test_manifest.py",
+        "tests/core/test_ts_module_paths.py"
+      ],
+      "scope": [
+        "docs/plans/maid-runner-performance-backlog.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_validation_hot_path_caches.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_duplicate_manifest_keys_are_rejected_on_the_selected_loader",
+              "returns": "None",
+              "source_scenario": "A manifest declaring the same top-level key twice, loaded on whichever YAML loader the installed pyyaml provides.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "load_manifest_raw"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "A ManifestLoadError is raised rather than the file loading with last-key-wins, proving the duplicate-key guarantee survived the loader swap."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_parsing_result_is_loader_independent",
+              "returns": "None",
+              "source_scenario": "A manifest exercising anchors, aliases, block scalars, and unicode.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "load_manifest_raw"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The parsed dictionary equals the pure-Python loader's result, so the faster loader is not quietly changing manifest semantics."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_resolution_is_memoized_within_a_scope",
+              "returns": "None",
+              "source_scenario": "The same module and name are resolved twice against an unchanged package.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "resolve_reexport"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both calls return equal results while the underlying package file is read only once, proving the repeated filesystem work is gone."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_cache_clear_observes_changed_source",
+              "returns": "None",
+              "source_scenario": "A package __init__.py that re-exports a symbol is edited to stop re-exporting it, with the cache cleared in between.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "clear_reexport_resolution_cache"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Resolution returns None after the clear, so a long-lived process cannot serve a stale re-export."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_scope_boundary_clears_reexport_cache",
+              "returns": "None",
+              "source_scenario": "A re-export is resolved inside one ValidationEngine cache scope, the package source is then edited, and a second scope is entered.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "validation_cache_scope"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The second scope observes the edited source rather than the cached answer, so the cache is bound to the validation scope and a long-lived process such as the daemon cannot serve a stale resolution."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_held_open_scope_observes_barrel_edit_between_requests",
+              "returns": "None",
+              "source_scenario": "A DaemonValidationCacheScope validates a manifest whose declared artifact lives behind a barrel, the barrel stops re-exporting the symbol, and the same held-open scope serves a second request. The declared file is deliberately not the edited barrel: when they are the same file the content-addressed artifact cache reports the missing symbol as E300/E301 and the stale resolution never matters.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The second request reports success False with exactly E200, so the daemon cannot return a PASS for a symbol the barrel no longer exports. Asserting the code and not merely the failure is what makes this specific to the re-export cache rather than satisfiable by a fix that clears some other cache."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifests_for_file_returns_same_manifests_as_a_linear_scan",
+              "returns": "None",
+              "source_scenario": "A chain where one path is writable in several manifests and another appears only under files.read.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The indexed result equals a linear scan over active manifests in the same order, so ownership resolution is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifests_for_file_index_is_invalidated_on_reload",
+              "returns": "None",
+              "source_scenario": "A chain is queried, a new manifest claiming the same path is added, and the chain is reloaded.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The added manifest appears in the result after reload, so the index cannot outlive the manifest set it was built from."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_read_only_path_still_resolves_to_no_writable_manifest",
+              "returns": "None",
+              "source_scenario": "A path declared only under files.read across the chain.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "An empty list is returned, so the index does not widen writable ownership to read declarations."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "load_manifest_raw",
+              "description": "Parse manifest YAML with the libyaml-backed loader when the installed pyyaml provides it, falling back to the pure-Python loader, with duplicate-key rejection registered on whichever loader is selected.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "dict"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/module_paths.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "resolve_reexport",
+              "description": "Memoize one-level barrel re-export resolution on (module, name, project_root), preserving the existing return contract and None-on-failure behavior exactly.",
+              "args": [
+                {
+                  "name": "module",
+                  "type": "str"
+                },
+                {
+                  "name": "name",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "Optional[tuple[str, str]]"
+            },
+            {
+              "kind": "function",
+              "name": "clear_reexport_resolution_cache",
+              "description": "Drop every memoized re-export resolution so validation scopes cannot serve stale results after a source file changes.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "manifests_for_file",
+              "description": "Resolve writable-path ownership through a per-chain path-to-manifest index built once from the active manifest set, instead of scanning every active manifest and re-evaluating all_writable_paths per call.",
+              "of": "ManifestChain",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[Manifest]"
+            },
+            {
+              "kind": "method",
+              "name": "reload",
+              "description": "Invalidate the writable-path index alongside the existing active manifest cache so a reloaded chain cannot answer from a stale index.",
+              "of": "ManifestChain",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/validate.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "validation_cache_scope",
+              "description": "Include the re-export resolution cache in the caches cleared when the outermost validation scope is entered and exited.",
+              "of": "ValidationEngine",
+              "returns": "AbstractContextManager[None]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/daemon/cache.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "description": "Drop the re-export resolution cache at the start of every daemon request. The daemon holds one validation scope open for its whole lifetime, so the scope-boundary clear never fires after construction and the cache would otherwise answer from a resolution taken before the source changed. Per-request clearing keeps the full intra-run benefit because every resolution burst happens inside one request.",
+              "of": "DaemonValidationCacheScope",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "str"
+                },
+                {
+                  "name": "mode",
+                  "type": "str",
+                  "default": "\"implementation\""
+                },
+                {
+                  "name": "use_chain",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "\"manifests/\""
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "dict"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/core/_validate_all.py",
+        "maid_runner/core/types.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/daemon/server.py",
+        "pyproject.toml",
+        "tests/core/test_manifest.py",
+        "tests/core/test_chain.py",
+        "tests/core/test_ts_module_paths.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/maid-runner-performance-backlog.md",
+          "reason": "Records the re-benchmark that gated this performance pass and closes the backlog's open xdist candidate with the measured negative result, so the rejected slice is not re-proposed. Edited, not merely read."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_chain.py",
+      "tests/core/test_manifest.py",
+      "tests/core/test_ts_module_paths.py",
+      "tests/core/test_validation_hot_path_caches.py",
+      "tests/daemon/test_daemon_cache.py"
+    ],
+    "validate_commands": [
+      "uv run maid validate manifests/091-01-cache-validation-engine-hot-paths.manifest.yaml --mode schema --quiet",
+      "uv run python -m pytest -q tests/core/test_validation_hot_path_caches.py tests/core/test_manifest.py tests/core/test_chain.py tests/core/test_ts_module_paths.py tests/daemon/test_daemon_cache.py"
+    ]
+  }
+}
