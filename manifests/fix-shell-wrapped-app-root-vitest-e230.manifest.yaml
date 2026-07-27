@@ -1,0 +1,224 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Accept shell-wrapped app-root Vitest validate commands in E230 coverage
+type: fix
+created: "2026-07-27T14:34:11Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  tags:
+    - e230
+    - vitest
+    - command-integrity
+    - monorepo
+  priority: high
+description: |
+  Fix the E230 false positive reported from tma-studio where `maid verify`
+  rejects validate commands that run Vitest from an app root through a
+  `bash -lc` wrapper while targeting repo-root behavioral test files through a
+  `$ROOT=$PWD` variable.
+
+  The command-integrity gate should keep requiring a recognized executing test
+  runner. This contract accepts only transparent shell wrappers that can be
+  statically reduced to variable assignments, `cd`, and one executing test
+  runner segment, and accepts dotenv-cli only when it exposes an explicit
+  `-- <runner>` inner command. It does not make arbitrary shell path tokens,
+  echoed file names, or unrelated wrapper metadata count as test execution.
+temptations:
+  - risk: Do not treat every path-like token inside a shell command as covered
+      test execution.
+    instead: Parse only transparent shell structure and require the resulting
+      segment to invoke a known test runner.
+  - risk: Do not accept arbitrary dotenv command strings or option values as
+      runner targets.
+    instead: Unwrap dotenv-cli only after an explicit `--` separator and scan
+      the inner runner command.
+  - risk: Do not weaken selector and non-executing-mode protections to make
+      wrapped commands pass.
+    instead: Reuse the existing executing-target checks after shell and dotenv
+      normalization.
+files:
+  edit:
+    - path: maid_runner/core/_test_command_targets.py
+      artifacts:
+        - kind: function
+          name: test_paths_from_executing_validate_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+            - name: allow_selectors
+              type: bool
+              default: "False"
+            - name: django_test_paths_from_validate_segment
+              type: Optional[_DjangoPathResolver]
+              default: None
+          returns: list[str]
+          description: Return explicit executing test targets from direct commands and bounded transparent shell wrappers while rejecting non-runner shell commands.
+        - kind: function
+          name: test_files_covered_by_validate_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: test_files
+              type: list[str]
+            - name: project_root
+              type: Path
+            - name: django_test_paths_from_validate_segment
+              type: Optional[_DjangoPathResolver]
+              default: None
+          returns: set[str]
+          description: Map shell-wrapped app-root Vitest targets with repo-root `$ROOT` prefixes to discovered behavioral test files.
+    - path: maid_runner/core/_test_runner_invocation.py
+      artifacts:
+        - kind: function
+          name: _test_runner_invocation
+          args:
+            - name: segment
+              type: list[str]
+          returns: Optional[tuple[str, list[str]]]
+          description: Recognize dotenv-cli as a transparent wrapper only when an explicit `--` inner command invokes a known test runner.
+        - kind: function
+          name: _test_runner_target_scan_segment
+          args:
+            - name: segment
+              type: list[str]
+          returns: list[str]
+          description: Scan the target arguments of the dotenv-cli inner test runner instead of dotenv wrapper options.
+  create:
+    - path: tests/core/validation/test_shell_wrapped_vitest_e230.py
+      artifacts:
+        - kind: test_function
+          name: test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A `bash -lc` command that stores repo root in `$ROOT`, cds into an app, and runs `pnpm exec dotenv -- vitest run` covers the declared repo-root Vitest files.
+        - kind: test_function
+          name: test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A shell wrapper that only echoes a repo-root test path returns no executing targets and cannot satisfy E230 coverage.
+        - kind: test_function
+          name: test_glob_target_does_not_cover_nested_test_file
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A non-recursive glob target such as `tests/*.test.ts` covers direct matching tests but not nested discovered test files.
+        - kind: test_function
+          name: test_executing_targets_reject_shell_or_branch_before_runner
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A shell wrapper using `||` before the runner returns no executing targets because the runner may not execute after a successful prior command.
+        - kind: test_function
+          name: test_executing_targets_reject_missing_cd_before_runner
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A shell wrapper using `cd missing && <runner>` returns no executing targets because the runner would not execute after a failed directory change.
+        - kind: test_function
+          name: test_executing_targets_reject_command_scoped_root_assignment
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A command-scoped `ROOT=$PWD` assignment does not make `$ROOT` available to path expansion in the same shell command and therefore fails closed.
+  read:
+    - maid_runner/core/_validation_test_artifacts.py
+    - tests/core/validation/test_test_command_targets.py
+    - manifests/038-14-extract-test-command-targets-helper.manifest.yaml
+    - manifests/fix-acceptance-test-e230-conflict.manifest.yaml
+    - manifests/fix-django-dotted-validate-test-targets.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_shell_wrapped_vitest_e230.py tests/core/validation/test_test_command_targets.py
+outcome:
+  status: completed
+  completed_at: "2026-07-27T15:06:00Z"
+  summary: "Resolved the reported E230 false positive for app-root Vitest commands wrapped in `bash -lc` with repo-root `$ROOT` test targets."
+  rationale: "The implementation keeps E230 fail-closed by accepting only bounded shell structures that can be reduced to standalone assignments, successful `cd`, and one recognized executing runner segment. Dotenv is transparent only after an explicit `--` inner command, unresolved shell variables are rejected, `||` branches are rejected, and glob coverage is limited to concrete files selected by `Path.glob`."
+  lessons:
+    - lesson_type: review-hardening
+      summary: "Wrapper-aware command integrity needs negative coverage for shell control-flow, command-scoped assignments, missing cwd changes, and glob semantics, not only the reported positive command shape."
+      tags:
+        - e230
+        - command-integrity
+        - shell
+        - vitest
+      paths:
+        - maid_runner/core/_test_command_targets.py
+        - tests/core/validation/test_shell_wrapped_vitest_e230.py
+    - lesson_type: validation-boundary
+      summary: "Glob target coverage must use the same path-segment semantics as target discovery; broad filename matching can mark nested tests as covered when the runner target would not select them."
+      tags:
+        - e230
+        - glob
+        - test-discovery
+      paths:
+        - maid_runner/core/_test_command_targets.py
+        - tests/core/validation/test_shell_wrapped_vitest_e230.py
+  review_notes:
+    - source: independent-review-round-1
+      severity: needs-changes
+      summary: "Review found stale shared-test lock drift, unsafe `||` handling, command-scoped assignment leakage, and missing `cd` execution modeling; the contract moved to a dedicated test file and added fail-closed regressions."
+    - source: independent-review-round-2
+      severity: needs-changes
+      summary: "Review found glob overmatching via `fnmatch`; coverage now enumerates concrete `Path.glob` matches before mapping discovered test files."
+    - source: independent-review-final
+      severity: info
+      summary: "Final re-review reported no findings and a ready verdict; residual risk is limited to the intentionally bounded shell model."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/validation/test_shell_wrapped_vitest_e230.py
+        - tests/core/validation/test_test_command_targets.py
+      status: passed
+      summary: "Focused parser and regression suite passed with 14 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-shell-wrapped-app-root-vitest-e230.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Manifest implementation validation passed after plan-lock revision 5."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-shell-wrapped-app-root-vitest-e230.manifest.yaml
+      status: passed
+      summary: "Manifest-declared validation command passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - 5e86c9ef4a558d107838467a6353cd314f9a5418
+      status: passed
+      summary: "Strict verify passed all 9 stages with 0 blocking findings; only existing E307 no-validator warnings remained."

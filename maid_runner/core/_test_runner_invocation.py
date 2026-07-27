@@ -458,6 +458,11 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
         return _test_runner_invocation(parts[3:])
 
+    if command == "dotenv":
+        inner_command = _dotenv_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_invocation(inner_command)
+
     if (
         _is_python_command(command)
         and len(parts) >= 3
@@ -530,6 +535,11 @@ def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
         return _test_runner_target_scan_segment(parts[3:])
+
+    if command == "dotenv":
+        inner_command = _dotenv_inner_command(parts)
+        if inner_command is not None:
+            return _test_runner_target_scan_segment(inner_command)
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
@@ -604,6 +614,15 @@ def _uv_run_inner_command(parts: list[str]) -> list[str] | None:
         return parts[index:]
 
     return None
+
+
+def _dotenv_inner_command(parts: list[str]) -> list[str] | None:
+    try:
+        separator_index = parts.index("--")
+    except ValueError:
+        return None
+    inner = parts[separator_index + 1 :]
+    return inner or None
 
 
 def _is_attached_uv_run_value_option(part: str) -> bool:
