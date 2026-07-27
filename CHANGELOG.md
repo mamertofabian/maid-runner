@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.23.1] - 2026-07-27
+
+### Fixed
+- **Stash revise red-evidence diagnostics** — Reported command-level diagnostics when `maid plan revise --stash-implementation` cannot capture valid red evidence, so invalid and not-red captures show the failing command output instead of a generic refusal.
+- **Shell-wrapped app-root Vitest coverage** — Recognized bounded `bash`/`sh`/`zsh -c` validate commands that set a repo-root variable, `cd` into an app, and run Vitest through dotenv with explicit repo-root test targets, while keeping E230 fail-closed for non-executing shell branches, missing `cd` targets, command-scoped variables, unresolved variables, and overbroad glob coverage.
+
 ## [2.23.0] - 2026-07-27
 
 ### Added
@@ -1201,6 +1207,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.23.1]: https://github.com/mamertofabian/maid-runner/compare/v2.23.0...v2.23.1
 [2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0
 [2.21.1]: https://github.com/mamertofabian/maid-runner/compare/v2.21.0...v2.21.1
