@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
-    "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4"
+    "tests/integration/test_library_api.py": "sha256-pyast:0a2662b460da25aaef931f54f01f8c9fe5325444dd99aa401c4d27eb5f77a888"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 19,
+  "revision": 20,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -243,6 +243,24 @@
       },
       "revised_at": "2026-07-22T04:32:11.681573+00:00",
       "reason": "Refresh the shared integration-test hash for the approved v2.23.0 release metadata contract; preserve the predecessor contract and its genuine red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4"
+      },
+      "revised_at": "2026-07-27T12:57:43.610882+00:00",
+      "reason": "Refresh shared release metadata test hash after finalizing the 2.23.0 changelog date.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

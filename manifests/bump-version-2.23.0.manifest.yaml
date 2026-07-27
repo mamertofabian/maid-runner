@@ -1,4 +1,8 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: Bump maid-runner minor version to 2.23.0
 type: feature
@@ -67,9 +71,9 @@ validate:
 - uv run python -m pytest -q tests/integration/test_library_api.py
 outcome:
   status: completed
-  completed_at: '2026-07-22T04:37:06Z'
-  summary: Bumped maid-runner from 2.22.0 to 2.23.0 and synchronized package metadata, editable lock metadata, release notes and compare link, roadmap version and update date, release metadata coverage, and MAID plan-lock evidence including the sanctioned shared-test lock revision.
-  rationale: The five commits after v2.22.0 include two backward-compatible public features (AST-scoped Python plan-lock hashes and exact agent reasoning provenance) plus three fixes, so the user selected SemVer minor 2.23.0 instead of the initially requested patch.
+  completed_at: '2026-07-27T13:00:00Z'
+  summary: Bumped maid-runner from 2.22.0 to 2.23.0 and synchronized package metadata, editable lock metadata, finalized release notes and compare link, roadmap version references, release metadata coverage, local package build evidence, and MAID plan-lock evidence including sanctioned shared-test lock revisions.
+  rationale: The release branch after v2.22.0 includes backward-compatible public features, validation performance work, workflow and guidance changes, and compatibility fixes, so 2.23.0 remains a SemVer minor release while the finalized changelog now covers commits through 722ed51.
   lessons:
   - lesson_type: release-version-consistency
     summary: Release metadata coverage kept the package, lockfile, changelog, roadmap, and runtime CLI version synchronized, and asking for SemVer confirmation before locking avoided repeating the earlier patch-vs-minor release correction.
@@ -85,7 +89,7 @@ outcome:
     - docs/ROADMAP.md
     - tests/integration/test_library_api.py
   - lesson_type: plan-lock
-    summary: The release contract locked with genuine red evidence against 2.22.0 metadata, promotion migrated the lock, and the shared 065-01 integration-test hash was refreshed with preserved predecessor red evidence.
+    summary: The release contract locked with genuine red evidence against 2.22.0 metadata, promotion migrated the lock, and shared release-metadata test hashes were refreshed with preserved predecessor red evidence after the final 2026-07-27 changelog date update.
     tags:
     - release
     - plan-lock
@@ -97,7 +101,10 @@ outcome:
   review_notes:
   - source: maid-implementation-review-subagent/release_2230_review
     severity: ready
-    summary: Ready with no blocking findings; the reviewer confirmed SemVer minor alignment, complete coverage of all five post-2.22.0 commits, consistent version mirrors, healthy plan locks, and the expected shared-test lock revision.
+    summary: Ready with no blocking findings for the initial 2.23.0 version bump; the reviewer confirmed SemVer minor alignment, consistent version mirrors, healthy plan locks, and the expected shared-test lock revision for the then-current release batch.
+  - source: maid-implementation-review-subagent/release_2230_finalization_review
+    severity: needs_changes
+    summary: Reviewer found stale Outcome text and validation counts after the release notes were finalized; the changelog, release metadata test, and plan-lock revisions themselves were otherwise aligned.
   validation:
   - command:
     - uv
@@ -142,14 +149,14 @@ outcome:
     - maid
     - validate
     status: passed
-    summary: Repository-wide MAID validation passed with 352 active contracts, 0 failed, and 97 superseded.
+    summary: Repository-wide MAID validation passed with 465 manifests, 368 passed, 0 failed, and 97 superseded.
   - command:
     - uv
     - run
     - maid
     - test
     status: passed
-    summary: Repository-wide manifest testing passed all 197 commands.
+    summary: Repository-wide manifest testing passed all 210 commands.
   - command:
     - uv
     - run
@@ -162,6 +169,11 @@ outcome:
     - HEAD
     status: passed
     summary: Strict nine-stage handoff verification passed for the v2.23.0 contract and its sanctioned shared-test lock revision.
+  - command:
+    - make
+    - build
+    status: passed
+    summary: Local package build succeeded and produced maid_runner-2.23.0.tar.gz and maid_runner-2.23.0-py3-none-any.whl.
   - command:
     - git
     - diff

@@ -2,10 +2,10 @@
   "manifest_path": "manifests/bump-version-2.23.0.manifest.yaml",
   "manifest_hash": "sha256-contract:8ba6e5733563e90dcfcc2cf0f890422e884487ab81ad8de67eceb84fdecc38e8",
   "test_hashes": {
-    "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4"
+    "tests/integration/test_library_api.py": "sha256-pyast:0a2662b460da25aaef931f54f01f8c9fe5325444dd99aa401c4d27eb5f77a888"
   },
   "created_at": "2026-07-22T04:32:06.905167+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:809fbd2947f87aa9fdb1a4ac2c8e6e40960db75402d7c188b0c24deff13a7241",
@@ -14,6 +14,23 @@
       },
       "revised_at": "2026-07-22T04:32:10.824007+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.23.0.manifest.yaml -> manifests/bump-version-2.23.0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8ba6e5733563e90dcfcc2cf0f890422e884487ab81ad8de67eceb84fdecc38e8",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:ff4f45a8fce5ae8c67fee9ece3590c971319ad8ccd2f3d8ac1d1fbb61a43ddd4"
+      },
+      "revised_at": "2026-07-27T12:57:43.819379+00:00",
+      "reason": "Refresh release metadata test hash after finalizing the 2.23.0 changelog date and complete release notes.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

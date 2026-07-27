@@ -47,7 +47,7 @@ class TestPublicAPIImports:
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.23.0] - 2026-07-22" in changelog_text
+        assert "## [2.23.0] - 2026-07-27" in changelog_text
         assert (
             "[2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0"
             in changelog_text
