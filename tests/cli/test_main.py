@@ -475,19 +475,25 @@ class TestMissingCLIFlags:
         args = parser.parse_args(["snapshot", "src/app.py", "--output", "out.yaml"])
         assert args.output == "out.yaml"
 
-    def test_snapshot_with_tests_flag(self):
+    def test_snapshot_with_tests_flag_is_rejected(self) -> None:
         from maid_runner.cli.commands._main import build_parser
 
         parser = build_parser()
-        args = parser.parse_args(["snapshot", "src/app.py", "--with-tests"])
-        assert args.with_tests is True
 
-    def test_snapshot_force_flag(self):
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["snapshot", "src/app.py", "--with-tests"])
+
+        assert exc_info.value.code == 2
+
+    def test_snapshot_force_flag_is_rejected(self) -> None:
         from maid_runner.cli.commands._main import build_parser
 
         parser = build_parser()
-        args = parser.parse_args(["snapshot", "src/app.py", "--force"])
-        assert args.force is True
+
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["snapshot", "src/app.py", "--force"])
+
+        assert exc_info.value.code == 2
 
     def test_files_hide_private_flag(self):
         from maid_runner.cli.commands._main import build_parser

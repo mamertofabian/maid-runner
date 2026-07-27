@@ -1,0 +1,197 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Remove maid snapshot --force and --with-tests so the CLI stops advertising
+  two flags that silently do nothing"
+type: fix
+created: "2026-07-27T03:06:46Z"
+metadata:
+  planning_state: promoted
+  promotion_ready: true
+  tests_status: red-confirmed
+  source_review: manifests/fix-snapshot-output-format-from-suffix.manifest.yaml
+  tags:
+    - snapshot
+    - cli
+    - fail-loud
+    - dead-flags
+  priority: medium
+description: |
+  `maid snapshot` declares two flags that no code reads. Verified against the
+  current tree: `cmd_snapshot` (`maid_runner/cli/commands/snapshot.py:11-36`)
+  reads only `args.file_path`, `args.dry_run`, `args.json`, `args.output_dir`,
+  and `args.output`. Neither `args.with_tests` nor `args.force` is referenced
+  anywhere in `maid_runner/`.
+
+  This contract chooses the least-invasive cleanup: remove both options from
+  the snapshot parser instead of implementing new snapshot behavior. This keeps
+  existing snapshot overwrite behavior and bootstrap behavior unchanged, avoids
+  designing ambiguous test-discovery or test-stub semantics, and prevents
+  agents/users from seeing CLI options that appear meaningful but are inert.
+
+  - `--force` ("Overwrite an existing output manifest",
+    `maid_runner/cli/commands/_main.py:670-672`) silently no-ops. Worse, the
+    default is already destructive: `save_snapshot` overwrites unconditionally,
+    so a user who omits `--force` still loses an existing manifest, and a user
+    who passes it gets no additional guarantee. The flag's existence implies a
+    safety default that does not exist.
+  - `--with-tests` ("Include discovered test files in the snapshot",
+    `_main.py:665-669`) silently no-ops. `generate_test_stub`
+    (`maid_runner/core/snapshot.py:202`) already exists and is the obvious
+    intended implementation, but nothing wires it to the flag.
+
+  Scope boundary: do not change `save_snapshot`, `cmd_snapshot`, snapshot
+  artifact collection, output-format selection, bootstrap behavior, or test-stub
+  generation. The only production behavior change is argparse rejecting these
+  two previously accepted inert flags.
+temptations:
+  - risk: "Do not implement new --force overwrite semantics in this cleanup task."
+    instead: "Remove the inert parser option and leave existing snapshot write behavior
+      untouched."
+  - risk: "Do not wire --with-tests to generate_test_stub or invent test-discovery
+      semantics here."
+    instead: "Remove the inert parser option and leave test-stub generation as a separate
+      future feature decision."
+  - risk: "Do not leave parser tests asserting that the removed options are accepted."
+    instead: "Change the behavioral tests to assert argparse rejects --force and --with-tests
+      for maid snapshot."
+files:
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Remove the inert snapshot parser options without changing a public
+        Python artifact."
+  edit:
+    - path: tests/cli/test_main.py
+      artifacts:
+        - kind: method
+          name: test_snapshot_with_tests_flag_is_rejected
+          of: TestMissingCLIFlags
+          args:
+            - name: self
+              type: Any
+          returns: None
+          source_scenario: "The CLI parser receives `maid snapshot src/app.py --with-tests`."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Argparse rejects the removed inert flag instead of accepting
+              it silently."
+        - kind: method
+          name: test_snapshot_force_flag_is_rejected
+          of: TestMissingCLIFlags
+          args:
+            - name: self
+              type: Any
+          returns: None
+          source_scenario: "The CLI parser receives `maid snapshot src/app.py --force`."
+          actions:
+            - type: api_call
+              subject:
+                export: build_parser
+          expected:
+            behavior: "Argparse rejects the removed inert flag instead of accepting
+              it silently."
+  read:
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/manifest_from_diff.py
+    - maid_runner/core/bootstrap.py
+validate:
+  - uv run maid validate 
+    manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml --mode 
+    schema --quiet
+  - uv run python -m pytest tests/cli/test_main.py -q
+outcome:
+  status: completed
+  completed_at: "2026-07-27T03:19:21Z"
+  summary: "Removed the inert `maid snapshot --force` and `--with-tests` parser options instead of designing new snapshot overwrite or test-discovery behavior."
+  rationale: "The least-change path resolved confusing advertised flags without touching `cmd_snapshot`, `save_snapshot`, bootstrap, snapshot output format, artifact collection, or test-stub generation. Parser tests now pin that both removed options fail loudly with argparse exit code 2."
+  lessons:
+    - lesson_type: workflow
+      summary: "When a draft captures ambiguous low-value feature work, narrowing it to remove inert CLI surface can close the confusing inventory without forcing a deeper design decision."
+      tags:
+        - cli
+        - draft-cleanup
+        - fail-loud
+      paths:
+        - manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml
+        - maid_runner/cli/commands/_main.py
+        - tests/cli/test_main.py
+  review_notes:
+    - source: maid-implementation-review-subagent
+      severity: needs-changes
+      summary: "Found no code-level issues; required clearing untracked `.maid/active-manifest` lifecycle state before handoff."
+    - source: maid-implementation-review-fix
+      severity: ready
+      summary: "`uv run maid task stop` cleared the active task marker, and the strict handoff verify rerun passed."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/cli/test_main.py
+        - -q
+      status: passed
+      summary: "All 52 CLI parser tests passed, including rejection of `snapshot --force` and `snapshot --with-tests`."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml
+        - --mode
+        - behavioral
+      status: passed
+      summary: "Behavioral validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml
+        - --mode
+        - implementation
+        - --packet
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-snapshot-force-and-with-tests-flags.manifest.yaml
+      status: passed
+      summary: "Manifest-specific MAID test gate passed both declared commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed: 465 manifests, 368 passed, 97 skipped, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide MAID test gate passed: 210 commands, 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff verify passed after clearing active task state; only pre-existing E307 no-validator warnings for declared non-code files remained."

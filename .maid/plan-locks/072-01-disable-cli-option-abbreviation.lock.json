@@ -1,12 +1,39 @@
 {
   "manifest_path": "manifests/072-01-disable-cli-option-abbreviation.manifest.yaml",
-  "manifest_hash": "sha256:84808cdf2807ddd236baba7ca342cab72a2f40272ca77a4f62023f45dcc2ebc8",
+  "manifest_hash": "sha256-contract:a7fbf559f158621d66992a7f018b39500a18fc7abf58d1a5ffb9f6f87a4161f8",
   "test_hashes": {
-    "tests/cli/test_main.py": "sha256:1f08e1221605b8a028da1398e4a3bae2dc899060cc57f0004532eef8587b9d67"
+    "tests/cli/test_main.py": "sha256-pyast:9e52980b25e9d5a975dba942f59ee669e6a80bcc8b475bb4800bc92e8bf552b7"
   },
   "created_at": "2026-06-11T14:21:53.020618+00:00",
-  "revision": 1,
-  "revisions": [],
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:84808cdf2807ddd236baba7ca342cab72a2f40272ca77a4f62023f45dcc2ebc8",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256:1f08e1221605b8a028da1398e4a3bae2dc899060cc57f0004532eef8587b9d67"
+      },
+      "revised_at": "2026-07-27T03:11:28.173530+00:00",
+      "reason": "Refresh behavioral test file hash after unrelated snapshot parser flag tests were added",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:tests/cli/test_main.py",
+          "read:maid_runner/cli/commands/serve.py",
+          "read:manifests/045-01-extract-cli-parser-registration.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode schema --quiet",
+          "uv run python -m pytest -q tests/cli/test_main.py"
+        ],
+        "validate_commands_removed": []
+      }
+    }
+  ],
   "red_evidence": {
     "red": true,
     "captured_at": "2026-06-11T14:21:55.400314+00:00",
@@ -31,6 +58,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/_main.py:function:build_parser",
@@ -51,8 +80,144 @@
       "tests/cli/test_main.py:test_verify_rejects_manifest_option_abbreviation",
       "tests/cli/test_main.py:test_verify_rejects_manifest_option_abbreviation:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "tests/cli/test_main.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/serve.py",
+        "manifests/045-01-extract-cli-parser-registration.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Return the MAID CLI parser with long-option prefix abbreviation disabled for the root parser and all nested subcommand parsers; registered option spellings, defaults, and aliases are unchanged.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "CLI entry point; abbreviated option spellings exit with argparse's usage error (SystemExit code 2) before any command handler runs.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_main.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_rejects_manifest_option_abbreviation",
+              "source_scenario": "An agent runs the incident command shape `maid verify --require-plan-lock --require-red-evidence --manifest <file>` where verify defines --manifest-dir but not --manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Parsing exits with SystemExit code 2 and stderr names `--manifest`; the manifest file path is never accepted as a manifest directory."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_top_level_option_abbreviation_rejected",
+              "source_scenario": "A prefix spelling of a registered option is passed to a top-level subcommand, e.g. `validate --manifest-d`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Parsing exits with SystemExit code 2 instead of expanding the prefix to --manifest-dir."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_subcommand_option_abbreviation_rejected",
+              "source_scenario": "Prefix spellings are passed to nested subcommand families, e.g. `plan lock <manifest> --no-r` and `manifest create <file> --goal <goal> --dry`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Nested parsers inherit the no-abbreviation behavior and exit with SystemExit code 2."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_full_option_spellings_still_parse",
+              "source_scenario": "Full option spellings for the same commands are used: `verify --manifest-dir`, `plan lock --no-run`, `test --manifest`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "build_parser"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Full spellings parse to the same namespace values as before; disabling abbreviation does not change registered options."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_main_rejects_abbreviated_option_before_dispatch",
+              "source_scenario": "The CLI entry point receives the incident command shape end to end.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main raises SystemExit with code 2 from argument parsing; no command handler output is produced."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/045-01-extract-cli-parser-registration.manifest.yaml",
+        "maid_runner/cli/commands/serve.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_main.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_main.py",
+      "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/072-01-disable-cli-option-abbreviation.manifest.yaml --mode schema --quiet"
     ]
   }
 }

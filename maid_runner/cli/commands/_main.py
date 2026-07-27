@@ -661,14 +661,6 @@ def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
             "which must be .yaml, .yml, or .json"
         ),
     )
-    p.add_argument(
-        "--with-tests",
-        action="store_true",
-        help="Include discovered test files in the snapshot",
-    )
-    p.add_argument(
-        "--force", action="store_true", help="Overwrite an existing output manifest"
-    )
     p.add_argument("--json", action="store_true", help="Print snapshot result as JSON")
     p.add_argument(
         "--dry-run",
