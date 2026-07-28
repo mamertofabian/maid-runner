@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Stash revise red-evidence diagnostics** — Reported command-level diagnostics when `maid plan revise --stash-implementation` cannot capture valid red evidence, so invalid and not-red captures show the failing command output instead of a generic refusal.
 - **Shell-wrapped app-root Vitest coverage** — Recognized bounded `bash`/`sh`/`zsh -c` validate commands that set a repo-root variable, `cd` into an app, and run Vitest through dotenv with explicit repo-root test targets, while keeping E230 fail-closed for non-executing shell branches, missing `cd` targets, command-scoped variables, unresolved variables, and overbroad glob coverage.
+- **Task-scoped verify test execution** — Limited `maid verify --file-tracking-scope task --plan-lock-scope task` test execution to active manifests changed in the resolved task window, while preserving full-scope fallback when task scope cannot be resolved and stopping before commands run on blocking chain diagnostics.
 
 ## [2.23.0] - 2026-07-27
 
