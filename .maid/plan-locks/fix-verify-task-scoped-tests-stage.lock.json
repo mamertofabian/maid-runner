@@ -1,0 +1,392 @@
+{
+  "manifest_path": "manifests/fix-verify-task-scoped-tests-stage.manifest.yaml",
+  "manifest_hash": "sha256-contract:e206310166d9bda708cc2b74b072c27085ad890b7fa3ca8001a1babc7b6ff438",
+  "test_hashes": {
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:330acb4c67f009279858419f7c5a4716ce5201818e8a5856ffd06fff48d58d80",
+    "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:d3fc89571e029043d78206cc593ae8038c07bb02fc6e1007dfbd796ece039e4b"
+  },
+  "created_at": "2026-07-28T22:41:20.495681+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:40bc96214fefd92f0582005ff04745ac4e149d6a7566500a9633817c8036a6ad",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:58be7dbcb78b6e1319153f5536518bce4a011439d38fcd7b1d9b0c8fca63c5b9",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:ea7da9fd1eff21299d8787d7134b6a78d560f0c86b9987c3a66eed7e785267bf"
+      },
+      "revised_at": "2026-07-28T22:41:49.251608+00:00",
+      "reason": "Narrow behavioral read list after maid test exposed an unexecuted support test file",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_verify_plan_lock_scope_cmd.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1ab1ff5f7ed11baaf38b747a58a40b6752bafec17ed7bd11094f0588713bef92",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:ea7da9fd1eff21299d8787d7134b6a78d560f0c86b9987c3a66eed7e785267bf"
+      },
+      "revised_at": "2026-07-28T22:42:06.901600+00:00",
+      "reason": "Run declared behavioral test files instead of node selectors so maid test command integrity can verify coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/test_test_runner.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_verify_cmd.py::test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands tests/cli/test_verify_cmd.py::test_verify_passes_test_jobs_to_tests_stage tests/core/test_test_runner.py::test_run_tests_ignores_acceptance_commands_while_batching_implementation"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1f13f933cd80ffa76252a20628d0a1cdd5d1ac1ed398d070f7bd985ea77f97d4",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:ea7da9fd1eff21299d8787d7134b6a78d560f0c86b9987c3a66eed7e785267bf",
+        "tests/core/test_test_runner.py": "sha256-pyast:3ce3b86bf3d4ab142b75128698dc3b59363a3d7f62b0510d6bb14ea421ad933a"
+      },
+      "revised_at": "2026-07-28T22:43:11.764853+00:00",
+      "reason": "Normalize created timestamp to UTC to avoid E118 chain warning",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ce1dda169f3aa75824d86379b5b4f73eafea5fcff7ff4d6bdf67220edc7e8c21",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:ea7da9fd1eff21299d8787d7134b6a78d560f0c86b9987c3a66eed7e785267bf",
+        "tests/core/test_test_runner.py": "sha256-pyast:3ce3b86bf3d4ab142b75128698dc3b59363a3d7f62b0510d6bb14ea421ad933a"
+      },
+      "revised_at": "2026-07-28T22:48:58.176586+00:00",
+      "reason": "Keep task-scoped tests orchestration inside verify and move regression into a dedicated test file",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands",
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/test_runner.py:function:_run_tests_cached",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=batch:type=bool | None:default=None",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=fail_fast:type=bool:default=False",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=jobs:type=int:default=1",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=manifest_paths:type=Union[Iterable[Union[str, Path]], None]:default=None",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=project_root:type=Union[str, Path]:default='.'",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:kind=function",
+          "maid_runner/core/test_runner.py:function:_run_tests_cached:returns=BatchTestResult",
+          "maid_runner/core/test_runner.py:function:run_tests",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=batch:type=bool | None:default=None",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=fail_fast:type=bool:default=False",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=jobs:type=int:default=1",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=manifest_paths:type=Union[Iterable[Union[str, Path]], None]:default=None",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=project_root:type=Union[str, Path]:default='.'",
+          "maid_runner/core/test_runner.py:function:run_tests:kind=function",
+          "maid_runner/core/test_runner.py:function:run_tests:returns=BatchTestResult",
+          "tests/cli/test_verify_cmd.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands",
+          "tests/cli/test_verify_cmd.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands:kind=test_function"
+        ],
+        "files_added": [
+          "edit:tests/cli/test_verify_task_scoped_tests_stage.py",
+          "read:maid_runner/core/test_runner.py",
+          "read:tests/cli/test_verify_cmd.py"
+        ],
+        "files_removed": [
+          "edit:maid_runner/core/test_runner.py",
+          "edit:tests/cli/test_verify_cmd.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_verify_cmd.py tests/core/test_test_runner.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7a58b7c95e455fb7852dc77a3f66ff42c09bec578c65d82c48b961478d992999",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:330acb4c67f009279858419f7c5a4716ce5201818e8a5856ffd06fff48d58d80",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:7c7380639884aaa5bcb39cb972aad2f0829ae0cfbc4fc8894140729d1fbdce31"
+      },
+      "revised_at": "2026-07-28T22:49:34.267840+00:00",
+      "reason": "Recapture red evidence with verify implementation stashed after implementation-shape revision",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7a58b7c95e455fb7852dc77a3f66ff42c09bec578c65d82c48b961478d992999",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:330acb4c67f009279858419f7c5a4716ce5201818e8a5856ffd06fff48d58d80",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:7c7380639884aaa5bcb39cb972aad2f0829ae0cfbc4fc8894140729d1fbdce31"
+      },
+      "revised_at": "2026-07-28T22:58:44.515625+00:00",
+      "reason": "Address implementation review finding by short-circuiting task-scoped tests on blocking chain diagnostics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_scoped_tests_stage_stops_before_commands_on_chain_errors",
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_scoped_tests_stage_stops_before_commands_on_chain_errors:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-28T22:58:49.033374+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_cmd.py",
+        "exit_code": 1,
+        "output_tail": "        def fake_run_command(command, **kwargs):\n            command_calls.append(command)\n            raise AssertionError(\"validation commands should not execute\")\n    \n        monkeypatch.setattr(\"maid_runner.core.chain.get_cached_manifest_chain\", fake_chain)\n        monkeypatch.setattr(\"maid_runner.core.test_runner.run_command\", fake_run_command)\n    \n>       stage = _tests_stage(\n            tmp_path,\n            \"manifests\",\n            fail_fast=False,\n            manifest_paths=(\"manifests/changed-task.manifest.yaml\",),\n        )\nE       TypeError: _tests_stage() got an unexpected keyword argument 'manifest_paths'\n\ntests/cli/test_verify_task_scoped_tests_stage.py:116: TypeError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_task_scoped_tests_stage_stops_before_commands_on_chain_errors\n2 failed, 37 passed in 3.01s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:returns=VerificationResult",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:returns=Union[tuple[str, Ellipsis], None]",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=fail_fast:type=bool:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_paths:type=Union[Iterable[Union[str, Path]], None]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:returns=VerificationStageResult",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_scoped_tests_stage_stops_before_commands_on_chain_errors",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_scoped_tests_stage_stops_before_commands_on_chain_errors:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/verify.py",
+        "tests/cli/test_verify_task_scoped_tests_stage.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/worktree.py",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml",
+        "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+        "tests/cli/test_verify_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_verify_cached",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_tests_stage",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "manifest_paths",
+                  "type": "Union[Iterable[Union[str, Path]], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "VerificationStageResult"
+            },
+            {
+              "kind": "function",
+              "name": "_task_scoped_test_manifest_paths",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None"
+                }
+              ],
+              "returns": "Union[tuple[str, Ellipsis], None]"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_task_scoped_tests_stage.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands",
+              "source_scenario": "A brownfield repository has a historical manifest with a failing validation command and a changed task manifest with a passing command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`maid verify --file-tracking-scope task --plan-lock-scope task --since <baseline> --include-tests` passes the tests stage and reports one executed command from the task manifest, not the historical failing command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_scoped_tests_stage_stops_before_commands_on_chain_errors",
+              "source_scenario": "The task-scoped tests stage receives a blocking active-manifest-chain diagnostic.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_tests_stage"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stage fails from the chain diagnostic with zero executed validation commands, matching full-scope run_tests behavior."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/test_runner.py",
+        "tests/cli/test_verify_cmd.py",
+        "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_cmd.py",
+      "tests/cli/test_verify_task_scoped_tests_stage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_cmd.py",
+      "uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

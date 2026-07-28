@@ -1,0 +1,412 @@
+{
+  "manifest_path": "manifests/fix-shell-wrapped-app-root-vitest-e230.manifest.yaml",
+  "manifest_hash": "sha256-contract:2c112d19831b84a0fdeca3bb4ff65fbcc55afc6c69f3e122f7f332d34b556715",
+  "test_hashes": {
+    "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd",
+    "tests/core/validation/test_shell_wrapped_vitest_e230.py": "sha256-pyast:637d9bd8eea4419031fd5821a2a8d17f97ee0962f9f391df5f864332ae7d294a"
+  },
+  "created_at": "2026-07-27T14:34:37.096976+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5636ff6f4b194c1c390cbc786867f81ce2dc69adb71e8fba410f588e8a9f4649",
+      "prior_test_hashes": {
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:eb762c90c3abd31ad162b46b842cd52e0c09dcff8a40b2f5957d75d659b1618a"
+      },
+      "revised_at": "2026-07-27T14:40:11.627796+00:00",
+      "reason": "Move shell-wrapped Vitest regression tests into a dedicated module to avoid sibling plan-lock drift",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:returns=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:kind=test_function",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:returns=None",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:kind=test_function",
+          "tests/core/validation/test_test_command_targets.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:returns=None"
+        ],
+        "files_added": [
+          "create:tests/core/validation/test_shell_wrapped_vitest_e230.py",
+          "read:tests/core/validation/test_test_command_targets.py"
+        ],
+        "files_removed": [
+          "edit:tests/core/validation/test_test_command_targets.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/validation/test_shell_wrapped_vitest_e230.py tests/core/validation/test_test_command_targets.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/validation/test_test_command_targets.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3ea2b97ab3ca798d847b03b005102184f8d103f6106299eaf428c65d88448fa3",
+      "prior_test_hashes": {
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd",
+        "tests/core/validation/test_shell_wrapped_vitest_e230.py": "sha256-pyast:c249cded0c23656a3164a4e505bccf7b1a297195d1a5b7d2af0f582e0b215af8"
+      },
+      "revised_at": "2026-07-27T14:41:52.363859+00:00",
+      "reason": "Add reviewer-driven fail-closed shell semantics coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:returns=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:56ef0123817c7c01f3533dccc42bb445f7a69840e7eed5a0e91f08edad84efef",
+      "prior_test_hashes": {
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd",
+        "tests/core/validation/test_shell_wrapped_vitest_e230.py": "sha256-pyast:d327822fb49f18b8de2387800177ea557ded581795b211b71d57e3024f8e3fe7"
+      },
+      "revised_at": "2026-07-27T14:44:14.830643+00:00",
+      "reason": "Add missing cd fail-closed shell coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8d4a2315269d02b6c9c9e3f62245fe8fb40fdf708c1da16bb4bfe31ee965d85c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd",
+        "tests/core/validation/test_shell_wrapped_vitest_e230.py": "sha256-pyast:df781ae88c8da9e192aa137841db0de03dff5b25ae334ad85355a00ab7158860"
+      },
+      "revised_at": "2026-07-27T14:45:52.181975+00:00",
+      "reason": "Add non-recursive glob coverage regression",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:kind=test_function",
+          "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2c112d19831b84a0fdeca3bb4ff65fbcc55afc6c69f3e122f7f332d34b556715",
+      "prior_test_hashes": {
+        "tests/core/validation/test_test_command_targets.py": "sha256-pyast:715cb40825bce5ddf87ea95e6eb6931d2073dd514072041811c316fa489a63dd",
+        "tests/core/validation/test_shell_wrapped_vitest_e230.py": "sha256-pyast:637d9bd8eea4419031fd5821a2a8d17f97ee0962f9f391df5f864332ae7d294a"
+      },
+      "revised_at": "2026-07-27T14:49:12.327266+00:00",
+      "reason": "Capture completed outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-27T14:45:52.473810+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_shell_wrapped_vitest_e230.py tests/core/validation/test_test_command_targets.py",
+        "exit_code": 1,
+        "output_tail": "        nested_test.write_text(\"test('nested', () => {})\\n\")\n    \n        covered = targets.test_files_covered_by_validate_command(\n            (\"vitest\", \"run\", \"tests/*.test.ts\"),\n            [\"tests/direct.test.ts\", \"tests/unit/nested.test.ts\"],\n            tmp_path,\n        )\n    \n>       assert covered == {\"tests/direct.test.ts\"}\nE       AssertionError: assert set() == {'tests/direct.test.ts'}\nE         \nE         Extra items in the right set:\nE         'tests/direct.test.ts'\nE         Use -v to get more diff\n\ntests/core/validation/test_shell_wrapped_vitest_e230.py:72: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_shell_wrapped_vitest_e230.py::test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths\nFAILED tests/core/validation/test_shell_wrapped_vitest_e230.py::test_glob_target_does_not_cover_nested_test_file\n2 failed, 12 passed in 0.13s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=django_test_paths_from_validate_segment:type=Optional[_DjangoPathResolver]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=test_files:type=list[str]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:returns=set[str]",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=allow_selectors:type=bool:default=False",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=django_test_paths_from_validate_segment:type=Optional[_DjangoPathResolver]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:returns=list[str]",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_invocation",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_invocation:arg=segment:type=list[str]:default=None",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_invocation:kind=function",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_invocation:returns=Optional[tuple[str, list[str]]]",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_target_scan_segment",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_target_scan_segment:arg=segment:type=list[str]:default=None",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_target_scan_segment:kind=function",
+      "maid_runner/core/_test_runner_invocation.py:function:_test_runner_target_scan_segment:returns=list[str]",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths:returns=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_command_scoped_root_assignment:returns=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_missing_cd_before_runner:returns=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_or_branch_before_runner:returns=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path:returns=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:kind=test_function",
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py:test_glob_target_does_not_cover_nested_test_file:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_shell_wrapped_vitest_e230.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "manifests/038-14-extract-test-command-targets-helper.manifest.yaml",
+        "manifests/fix-acceptance-test-e230-conflict.manifest.yaml",
+        "manifests/fix-django-dotted-validate-test-targets.manifest.yaml",
+        "tests/core/validation/test_test_command_targets.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_shell_wrapped_vitest_e230.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_executing_targets_accept_shell_wrapped_app_root_vitest_with_root_paths",
+              "description": "A `bash -lc` command that stores repo root in `$ROOT`, cds into an app, and runs `pnpm exec dotenv -- vitest run` covers the declared repo-root Vitest files.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executing_targets_reject_shell_wrapper_that_only_echoes_test_path",
+              "description": "A shell wrapper that only echoes a repo-root test path returns no executing targets and cannot satisfy E230 coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_glob_target_does_not_cover_nested_test_file",
+              "description": "A non-recursive glob target such as `tests/*.test.ts` covers direct matching tests but not nested discovered test files.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executing_targets_reject_shell_or_branch_before_runner",
+              "description": "A shell wrapper using `||` before the runner returns no executing targets because the runner may not execute after a successful prior command.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executing_targets_reject_missing_cd_before_runner",
+              "description": "A shell wrapper using `cd missing && <runner>` returns no executing targets because the runner would not execute after a failed directory change.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executing_targets_reject_command_scoped_root_assignment",
+              "description": "A command-scoped `ROOT=$PWD` assignment does not make `$ROOT` available to path expansion in the same shell command and therefore fails closed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "test_paths_from_executing_validate_command",
+              "description": "Return explicit executing test targets from direct commands and bounded transparent shell wrappers while rejecting non-runner shell commands.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "allow_selectors",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "Optional[_DjangoPathResolver]",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "test_files_covered_by_validate_command",
+              "description": "Map shell-wrapped app-root Vitest targets with repo-root `$ROOT` prefixes to discovered behavioral test files.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "test_files",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "Optional[_DjangoPathResolver]",
+                  "default": "None"
+                }
+              ],
+              "returns": "set[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_test_runner_invocation",
+              "description": "Recognize dotenv-cli as a transparent wrapper only when an explicit `--` inner command invokes a known test runner.",
+              "args": [
+                {
+                  "name": "segment",
+                  "type": "list[str]"
+                }
+              ],
+              "returns": "Optional[tuple[str, list[str]]]"
+            },
+            {
+              "kind": "function",
+              "name": "_test_runner_target_scan_segment",
+              "description": "Scan the target arguments of the dotenv-cli inner test runner instead of dotenv wrapper options.",
+              "args": [
+                {
+                  "name": "segment",
+                  "type": "list[str]"
+                }
+              ],
+              "returns": "list[str]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "tests/core/validation/test_test_command_targets.py",
+        "manifests/038-14-extract-test-command-targets-helper.manifest.yaml",
+        "manifests/fix-acceptance-test-e230-conflict.manifest.yaml",
+        "manifests/fix-django-dotted-validate-test-targets.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_shell_wrapped_vitest_e230.py",
+      "tests/core/validation/test_test_command_targets.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_shell_wrapped_vitest_e230.py tests/core/validation/test_test_command_targets.py"
+    ]
+  }
+}

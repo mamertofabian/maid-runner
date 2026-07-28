@@ -228,6 +228,7 @@ def test_stash_implementation_restores_untracked_declared_create_file(
 
 def test_stash_implementation_rejects_green_stashed_state_without_revising_lock(
     tmp_path: Path,
+    capsys,
 ) -> None:
     manifest_path = _write_tracked_project(tmp_path)
     implementation_path = tmp_path / "src" / "demo.py"
@@ -246,9 +247,58 @@ def test_stash_implementation_rejects_green_stashed_state_without_revising_lock(
     )
 
     assert exit_code == 1
+    err = capsys.readouterr().err
+    assert "--stash-implementation did not capture valid red evidence" in err
+    assert "python -m pytest -q tests/test_demo.py" in err
+    assert "classification not_red" in err
+    assert "exit 0" in err
+    assert "passed" in err
     assert lock_path.read_bytes() == original_lock
     assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
     assert _git(tmp_path, "stash", "list") == ""
+
+
+def test_stash_implementation_invalid_red_evidence_names_command_details(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    manifest_path = _write_tracked_project(tmp_path)
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "invalid_red_evidence.py").write_text(
+        "import sys\n"
+        "print('invalid red evidence marker', file=sys.stderr)\n"
+        "sys.exit(2)\n"
+    )
+    manifest_path.write_text(
+        manifest_path.read_text().replace(
+            "  - python -m pytest -q tests/test_demo.py",
+            "  - python scripts/invalid_red_evidence.py",
+        )
+    )
+    _commit_all(tmp_path, "use invalid red evidence command")
+    implementation_path = tmp_path / "src" / "demo.py"
+    implementation_path.write_text("def demo() -> int:\n    return 1\n")
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    original_lock = lock_path.read_bytes()
+
+    exit_code = cmd_plan_revise(
+        _revise_args(
+            manifest_path,
+            tmp_path,
+            "refresh red evidence for final validate commands",
+        )
+    )
+
+    err = capsys.readouterr().err
+    assert exit_code == 1
+    assert lock_path.read_bytes() == original_lock
+    assert implementation_path.read_text() == "def demo() -> int:\n    return 1\n"
+    assert _git(tmp_path, "stash", "list") == ""
+    assert "--stash-implementation did not capture valid red evidence" in err
+    assert "python scripts/invalid_red_evidence.py" in err
+    assert "classification invalid" in err
+    assert "exit 2" in err
+    assert "invalid red evidence marker" in err
 
 
 def test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing(

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import shlex
 from pathlib import Path
 from typing import Callable
 
@@ -60,6 +62,8 @@ _PLAYWRIGHT_VALUE_FLAGS = frozenset(
         "-j",
     }
 )
+_SHELL_COMMANDS = frozenset({"bash", "sh", "zsh"})
+_SHELL_ASSIGNMENT_RE = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)=(.*)")
 
 
 def test_paths_from_validate_command(
@@ -150,6 +154,15 @@ def test_paths_from_executing_validate_command(
     allow_selectors: bool = False,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None = None,
 ) -> list[str]:
+    shell_segments = _shell_wrapped_command_segments(command)
+    if shell_segments is not None:
+        return _test_paths_from_executing_shell_segments(
+            shell_segments,
+            project_root,
+            allow_selectors=allow_selectors,
+            django_test_paths_from_validate_segment=django_test_paths_from_validate_segment,
+        )
+
     paths: list[str] = []
     cwd = Path(".")
     segment = list(command)
@@ -217,6 +230,215 @@ def test_paths_from_executing_validate_command(
     return paths
 
 
+def _test_paths_from_executing_shell_segments(
+    segments: list[list[str]],
+    project_root: Path,
+    *,
+    allow_selectors: bool,
+    django_test_paths_from_validate_segment: _DjangoPathResolver | None,
+) -> list[str]:
+    paths: list[str] = []
+    cwd = Path(".")
+    variables: dict[str, Path] = {"PWD": cwd}
+    saw_runner = False
+
+    for raw_segment in segments:
+        segment = _strip_shell_assignments(raw_segment, variables, cwd)
+        if not segment:
+            continue
+
+        if segment[0] == "cd":
+            if saw_runner or len(segment) != 2:
+                return []
+            resolved = _resolve_shell_path(segment[1], variables)
+            if resolved is None:
+                return []
+            next_cwd = Path(_normalize_relative_path(cwd / resolved))
+            if not (project_root / next_cwd).is_dir():
+                return []
+            cwd = next_cwd
+            variables["PWD"] = cwd
+            continue
+
+        if saw_runner:
+            return []
+        segment = _expand_shell_path_tokens(segment, variables)
+        if not _runs_known_test_runner(segment):
+            return []
+        if _has_non_executing_test_runner_mode(segment):
+            return []
+        if not allow_selectors and _has_test_runner_selector(segment):
+            return []
+
+        saw_runner = True
+        paths.extend(
+            _test_paths_from_executing_runner_segment(
+                segment,
+                project_root,
+                cwd,
+                allow_selectors=allow_selectors,
+                django_test_paths_from_validate_segment=django_test_paths_from_validate_segment,
+            )
+        )
+
+    return paths if saw_runner else []
+
+
+def _test_paths_from_executing_runner_segment(
+    segment: list[str],
+    project_root: Path,
+    cwd: Path,
+    *,
+    allow_selectors: bool,
+    django_test_paths_from_validate_segment: _DjangoPathResolver | None,
+) -> list[str]:
+    paths: list[str] = []
+    django_runner = _runs_django_test_runner(segment)
+    scan_segment = _test_runner_target_scan_segment(segment)
+    invocation = _test_runner_invocation(segment)
+    if invocation is not None and invocation[0] == "playwright":
+        scan_segment = _playwright_target_scan_segment(scan_segment)
+    index = 0
+    while index < len(scan_segment):
+        part = scan_segment[index]
+        if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
+            scan_segment
+        ):
+            cwd = Path(_normalize_relative_path(cwd / scan_segment[index + 1]))
+            index += 2
+            continue
+        if django_runner and _is_django_test_runner_value_flag(part):
+            index += 2 if "=" not in part and index + 1 < len(scan_segment) else 1
+            continue
+        if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(scan_segment):
+            index += 2
+            continue
+        if part.startswith("-"):
+            index += 1
+            continue
+
+        if not django_runner:
+            raw_candidate = _normalize_relative_path(cwd / part)
+            if "::" in raw_candidate and not allow_selectors:
+                index += 1
+                continue
+            candidate = _normalize_test_selector(cwd / part) or "."
+            if _looks_like_test_path(
+                candidate,
+                project_root,
+                allow_explicit_directories=True,
+            ):
+                paths.append(candidate)
+        index += 1
+
+    if django_test_paths_from_validate_segment is not None:
+        paths.extend(
+            django_test_paths_from_validate_segment(
+                segment,
+                project_root,
+                cwd,
+            )
+        )
+
+    return paths
+
+
+def _shell_wrapped_command_segments(command: tuple[str, ...]) -> list[list[str]] | None:
+    parts = list(command)
+    if len(parts) < 3 or Path(parts[0]).name not in _SHELL_COMMANDS:
+        return None
+
+    index = 1
+    while index < len(parts):
+        part = parts[index]
+        if _is_shell_command_string_flag(part):
+            if index + 1 >= len(parts):
+                return None
+            return _split_shell_command(parts[index + 1])
+        if part == "--" or part.startswith("-"):
+            index += 1
+            continue
+        return None
+    return None
+
+
+def _is_shell_command_string_flag(part: str) -> bool:
+    return part.startswith("-") and "c" in part and not part.startswith("--")
+
+
+def _split_shell_command(command: str) -> list[list[str]]:
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|")
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return []
+
+    segments: list[list[str]] = [[]]
+    for token in tokens:
+        if token == "||":
+            return []
+        if token in {";", "&&", "||"}:
+            segments.append([])
+            continue
+        segments[-1].append(token)
+    return segments
+
+
+def _strip_shell_assignments(
+    segment: list[str],
+    variables: dict[str, Path],
+    cwd: Path,
+) -> list[str]:
+    index = 0
+    assignments: list[tuple[str, Path]] = []
+    while index < len(segment):
+        match = _SHELL_ASSIGNMENT_RE.fullmatch(segment[index])
+        if match is None:
+            break
+        name, value = match.groups()
+        resolved = _resolve_shell_path(value, variables)
+        if resolved is not None:
+            assignments.append((name, Path(_normalize_relative_path(cwd / resolved))))
+        index += 1
+    if index >= len(segment):
+        variables.update(assignments)
+        return []
+    return segment[index:]
+
+
+def _expand_shell_path_tokens(
+    segment: list[str],
+    variables: dict[str, Path],
+) -> list[str]:
+    return [_expand_shell_path_token(part, variables) for part in segment]
+
+
+def _expand_shell_path_token(part: str, variables: dict[str, Path]) -> str:
+    resolved = _resolve_shell_path(part, variables)
+    if resolved is None:
+        return part
+    if resolved.is_absolute():
+        return resolved.as_posix()
+    return _normalize_relative_path(resolved)
+
+
+def _resolve_shell_path(value: str, variables: dict[str, Path]) -> Path | None:
+    if value == "$PWD":
+        return variables.get("PWD", Path("."))
+    for name, path in variables.items():
+        prefix = f"${name}/"
+        if value.startswith(prefix):
+            suffix = value[len(prefix) :]
+            if path == Path(".") and name != "PWD":
+                return Path("/") / suffix
+            return path / suffix
+    if "$" in value:
+        return None
+    return Path(value)
+
+
 def _playwright_target_scan_segment(parts: list[str]) -> list[str]:
     targets: list[str] = []
     index = 0
@@ -276,6 +498,13 @@ def _test_target_covers_file(
         return True
     if target == test_file:
         return True
+    if _has_glob_pattern(target):
+        return any(
+            candidate.is_file()
+            and _normalize_relative_path(candidate.relative_to(project_root))
+            == test_file
+            for candidate in project_root.glob(target)
+        )
 
     full_target = project_root / target
     if full_target.is_dir():
@@ -297,7 +526,7 @@ def command_segments(command: tuple[str, ...]) -> list[list[str]]:
 def _normalize_relative_path(path: Path) -> str:
     parts: list[str] = []
     for part in path.parts:
-        if part in ("", "."):
+        if part in ("", ".", "/"):
             continue
         if part == "..":
             if parts:
@@ -313,8 +542,16 @@ def _looks_like_test_path(
     *,
     allow_explicit_directories: bool = False,
 ) -> bool:
+    if "$" in path:
+        return False
     if is_test_file(path):
         return True
+    if _has_glob_pattern(path):
+        return any(
+            is_test_file(candidate.as_posix())
+            for candidate in project_root.glob(path)
+            if candidate.is_file()
+        )
 
     full_path = project_root / path
     if not full_path.is_dir():
@@ -324,3 +561,7 @@ def _looks_like_test_path(
     return allow_explicit_directories or any(
         part.lower() in test_dir_names for part in full_path.parts
     )
+
+
+def _has_glob_pattern(path: str) -> bool:
+    return any(char in path for char in "*?[")

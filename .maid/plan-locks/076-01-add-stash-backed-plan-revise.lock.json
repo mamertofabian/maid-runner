@@ -2,10 +2,10 @@
   "manifest_path": "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
   "manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:bf1051bb92c8936540563b78c63dcd038bfb30885845fe1257e563566591f5f7"
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
   },
   "created_at": "2026-06-26T09:50:28.500670+00:00",
-  "revision": 12,
+  "revision": 14,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:e5c421748ea776dc1e135500c7ca844fb8d397560293d9d1918fe762b87daea0",
@@ -131,6 +131,40 @@
           "read:manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
           "read:manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:bf1051bb92c8936540563b78c63dcd038bfb30885845fe1257e563566591f5f7"
+      },
+      "revised_at": "2026-07-27T13:55:45.567241+00:00",
+      "reason": "Refresh shared stash-revise behavioral test hash after adding unrelated diagnostic coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:5ac2e39afda5f1ae446dec1eaa4f69b27881e33762d7434b4bd057ef184a7b69"
+      },
+      "revised_at": "2026-07-27T14:02:55.769242+00:00",
+      "reason": "Refresh shared stash-revise behavioral test hash after strengthening diagnostic assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
