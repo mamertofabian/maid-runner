@@ -1,0 +1,217 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Scope maid verify tests stage to task-window manifests for brownfield handoffs"
+type: fix
+created: "2026-07-28T22:55:00Z"
+metadata:
+  tags:
+    - verify
+    - brownfield
+    - test-runner
+    - task-scope
+  priority: high
+description: |
+  A Manatal Coop bug report showed that a brownfield handoff command using
+  `maid verify --file-tracking-scope task --plan-lock-scope task --since <ref>
+  --include-tests` still ran the tests stage across every active manifest.
+  That made a focused task verify slow and brittle because legacy manifests'
+  validation commands executed before the current task's manifest.
+
+  Add task-window filtering to the verify tests stage. When verify is already
+  running with task-oriented scope (`--file-tracking-scope task` or
+  `--plan-lock-scope task`) and a task window can be resolved from `--since`,
+  `--base-ref`, or manifest metadata, the tests stage executes validation
+  commands only for active manifests whose manifest files changed in that task
+  window. Repository-wide verify and unresolvable task windows preserve the
+  existing full-manifest behavior.
+temptations:
+  - risk: "Do not add a new verify --manifest flag as a workaround for this bug."
+    instead: "Use the existing task-window inputs so generated handoff hooks and brownfield workflows stay aligned."
+  - risk: "Do not skip the tests stage when no changed task manifest is found."
+    instead: "Run an empty active subset only when the task window resolves to no changed active manifest; fail closed to full scope when the task window cannot be resolved."
+  - risk: "Do not change repository-wide maid test defaults."
+    instead: "Keep task-window selection inside the verify tests stage; ordinary maid test still runs all active manifests."
+files:
+  edit:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _run_verify_cached
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+            - name: file_tracking_scope
+              type: str
+              default: "'repository'"
+            - name: plan_lock_scope
+              type: str
+              default: "'repository'"
+            - name: since
+              type: str | None
+              default: None
+            - name: base_ref
+              type: str | None
+              default: None
+          returns: VerificationResult
+          source_scenario: "`maid verify --file-tracking-scope task --plan-lock-scope task --since <ref> --include-tests` reaches the tests stage in a brownfield repository."
+          actions:
+            - type: api_call
+              subject:
+                function: _run_verify_cached
+          expected:
+            behavior: "The tests stage runs only the validation commands from active manifests changed in the resolved task window, while repository-scope verify still runs all active manifests."
+        - kind: function
+          name: _tests_stage
+          args:
+            - name: root
+              type: Path
+            - name: manifest_dir
+              type: str
+            - name: fail_fast
+              type: bool
+            - name: test_jobs
+              type: int
+              default: "1"
+            - name: manifest_paths
+              type: Union[Iterable[Union[str, Path]], None]
+              default: None
+          returns: VerificationStageResult
+          source_scenario: "A resolved task-window manifest subset is supplied to the verify tests stage."
+          actions:
+            - type: api_call
+              subject:
+                function: _tests_stage
+          expected:
+            behavior: "The stage forwards the selected manifest paths to run_tests so historical active manifests are not executed."
+        - kind: function
+          name: _task_scoped_test_manifest_paths
+          args:
+            - name: root
+              type: Path
+            - name: manifest_dir
+              type: str
+            - name: since
+              type: str | None
+            - name: base_ref
+              type: str | None
+          returns: Union[tuple[str, Ellipsis], None]
+          source_scenario: "The tests stage needs the active manifests changed since the handoff baseline."
+          actions:
+            - type: api_call
+              subject:
+                function: _task_scoped_test_manifest_paths
+          expected:
+            behavior: "A resolvable task window returns changed active manifest source paths; an unresolvable window returns None so tests fall back to full scope."
+    - path: tests/cli/test_verify_task_scoped_tests_stage.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_task_scoped_tests_stage_runs_only_changed_manifest_commands
+          source_scenario: "A brownfield repository has a historical manifest with a failing validation command and a changed task manifest with a passing command."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "`maid verify --file-tracking-scope task --plan-lock-scope task --since <baseline> --include-tests` passes the tests stage and reports one executed command from the task manifest, not the historical failing command."
+        - kind: test_function
+          name: test_task_scoped_tests_stage_stops_before_commands_on_chain_errors
+          source_scenario: "The task-scoped tests stage receives a blocking active-manifest-chain diagnostic."
+          actions:
+            - type: api_call
+              subject:
+                function: _tests_stage
+          expected:
+            behavior: "The stage fails from the chain diagnostic with zero executed validation commands, matching full-scope run_tests behavior."
+  read:
+    - maid_runner/core/worktree.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/test_runner.py
+    - tests/cli/test_verify_cmd.py
+    - manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml
+    - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_cmd.py
+  - uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/fix-verify-task-scoped-tests-stage.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-07-28T23:08:00Z"
+  summary: "Scoped the `maid verify` tests stage to the task-window active manifests when handoff verification uses task-scoped file tracking or plan-lock policy."
+  rationale: "The fix resolves the Manatal Coop bug report where `maid verify --file-tracking-scope task --plan-lock-scope task --since <ref> --include-tests` still ran every active manifest's validation commands. The implementation reuses the existing changed-scope baseline resolver to identify changed active manifest files, keeps full-scope `run_tests` behavior unchanged when task scope is not requested or the task window cannot be resolved, and short-circuits before command execution when the active manifest chain has blocking diagnostics."
+  lessons:
+    - lesson_type: design
+      summary: "Task-scoped orchestration belongs in `maid verify` rather than the shared `maid test` API when the behavior depends on verify-only handoff flags such as file-tracking and plan-lock scope."
+      tags:
+        - verify
+        - task-scope
+        - brownfield
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - tests/cli/test_verify_task_scoped_tests_stage.py
+    - lesson_type: review
+      summary: "A scoped fast path must preserve full-scope preflight semantics: blocking chain diagnostics should stop before selected manifests are read or validation commands execute."
+      tags:
+        - implementation-review
+        - chain-diagnostics
+        - test-runner
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - tests/cli/test_verify_task_scoped_tests_stage.py
+  review_notes:
+    - source: independent-reviewer-subagent
+      severity: needs_changes
+      summary: "Initial read-only review found the task-scoped tests path preserved chain diagnostics but still executed commands when a blocking chain diagnostic existed."
+    - source: independent-reviewer-subagent
+      severity: ready
+      summary: "Re-review found no findings after `_tests_stage` returned a zero-command BatchTestResult on blocking chain diagnostics and the regression proved no command execution or active-manifest reads occur."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_verify_task_scoped_tests_stage.py
+        - tests/cli/test_verify_cmd.py
+      status: passed
+      summary: "Focused regression suite passed with 39 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full manifest validation passed with 371 active manifests and 98 superseded manifests skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full manifest test gate passed with 212 commands."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+        - --include-tests
+        - --file-tracking-scope
+        - task
+        - --plan-lock-scope
+        - task
+        - --test-jobs
+        - "1"
+      status: passed
+      summary: "Strict task-scoped handoff verify passed all 9 stages with only existing non-blocking E307 no-validator warnings."
