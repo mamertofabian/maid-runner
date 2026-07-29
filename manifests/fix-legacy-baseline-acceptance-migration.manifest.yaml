@@ -1,0 +1,184 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Accept audited validate-to-acceptance legacy-baseline migrations
+type: fix
+created: "2026-07-29T00:33:59Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  source_bug_report: 
+    /home/atomrem/.maid/bug-report/20260729-081327-manatal-coop-validate-to-acceptance-red-evidence.md
+  tags:
+    - plan-lock
+    - legacy-migration
+    - red-evidence
+    - acceptance
+    - bug-fix
+description: |
+  Strict red-evidence enforcement currently has no honest path for a tracked,
+  already-completed manifest whose only metadata cleanup moves a slow/manual
+  validate command into acceptance.tests. The command is still declared as
+  opt-in acceptance evidence, but the legacy-baseline migration rejects it as
+  validate-command removal.
+
+  Extend the existing legacy-baseline exception narrowly: every committed
+  validate command must still either map one-to-one to a current validate
+  command under the existing strengthening rule or appear exactly in the
+  current acceptance.tests command list. The green evidence still runs only the
+  current validate commands, remains command-snapshot-bound, and continues to
+  reject artifact/file contract changes, dirty non-manifest paths, non-green
+  validation, and command rewrites not preserved in acceptance.
+temptations:
+  - risk: "Do not treat validate removal as generally safe."
+    instead: "Permit a removed committed validate command only when the exact command
+      string is preserved in current acceptance.tests."
+  - risk: "Do not run acceptance tests while capturing green legacy-baseline evidence."
+    instead: "Keep evidence bound to current validate commands so slow/manual acceptance
+      checks stay opt-in."
+  - risk: "Do not weaken legacy-baseline contract and dirty-path guards."
+    instead: "Leave artifact, file-contract, test-coverage, mutation, and green-validation
+      checks intact."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: capture_legacy_baseline_evidence
+          args:
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: reason
+              type: str
+          returns: LegacyBaselineEvidence
+          description: Allows tracked metadata-only legacy migration when 
+            committed validate commands are retained/strengthened in current 
+            validate or exactly preserved under current acceptance.tests, while 
+            recording green provenance for current validate commands only.
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _legacy_baseline_acceptance_migration_specification
+          of: documentation
+          type: markdown paragraph
+          description: Documents the audited validate-to-acceptance cleanup path
+            and its exact-command preservation boundary.
+  create:
+    - path: tests/cli/test_plan_legacy_baseline_acceptance_migration.py
+      artifacts:
+        - kind: test_function
+          name: 
+            test_legacy_baseline_accepts_validate_command_preserved_in_acceptance
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A tracked manifest can move a committed slow/manual 
+            validate command to acceptance.tests, record green legacy-baseline 
+            evidence for the remaining fast validate command, and satisfy strict
+            task-scoped enforcement.
+        - kind: test_function
+          name: 
+            test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: A committed validate command removed from current 
+            validate without exact acceptance.tests preservation is still 
+            rejected as validate weakening.
+validate:
+  - uv run python -m pytest -q 
+    tests/cli/test_plan_legacy_baseline_acceptance_migration.py
+outcome:
+  status: completed
+  completed_at: "2026-07-29T08:57:00+08:00"
+  summary: Legacy-baseline migration now accepts tracked metadata-only cleanup
+    where a committed validate command is moved exactly to acceptance.tests,
+    preserving strict red-evidence enforcement without running slow/manual
+    acceptance commands in default gates.
+  rationale: The fix consumes exact argv-normalized acceptance.tests matches
+    before applying the existing one-to-one validate-command strengthening
+    matcher, so removed validate commands are accepted only when they remain
+    explicitly declared as opt-in acceptance evidence. Green legacy-baseline
+    provenance still records current validate commands only, and the existing
+    dirty-path, artifact/file-contract, behavioral-test coverage, mutation,
+    non-green validation, and malformed evidence checks remain fail-closed.
+  lessons:
+    - lesson_type: validation-trust
+      summary: Evidence exceptions for gate-hygiene metadata cleanup should
+        preserve command provenance in another audited manifest channel instead
+        of fabricating red evidence or treating command removal as generally
+        safe.
+      tags:
+        - plan-lock
+        - legacy-migration
+        - acceptance
+        - anti-gaming
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/cli/test_plan_legacy_baseline_acceptance_migration.py
+        - docs/maid_specs.md
+  review_notes:
+    - source: independent-implementation-reviewer
+      severity: ready
+      summary: No blocking findings; residual risk is that exact preservation
+        uses MAID's existing argv-normalized shlex.join command identity rather
+        than raw YAML quote style.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_legacy_baseline_acceptance_migration.py
+      status: passed
+      summary: Both focused validate-to-acceptance migration scenarios passed
+        after the implementation; before implementation the acceptance-preserved
+        case failed for the intended legacy-baseline validate weakening error.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-legacy-baseline-acceptance-migration.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: Implementation validation passed with only the expected E307
+        documentation no-validator warning for docs/maid_specs.md.
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_legacy_baseline_cmd.py
+        - tests/cli/test_plan_legacy_baseline_acceptance_migration.py
+      status: passed
+      summary: Existing legacy-baseline behavior and the new acceptance
+        migration coverage passed together, 19 tests.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: Repository validation passed for 470 manifests; 372 active
+        manifests passed, 98 superseded manifests were skipped, and none failed.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: All 212 manifest-declared validation commands passed.

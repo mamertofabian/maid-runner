@@ -129,12 +129,16 @@ path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
 The manifest must be tracked and already present at Git HEAD. The command
 rejects every dirty path except the manifest, requires identical declared
 artifacts and file sections relative to HEAD, permits behavioral-test discovery
-only to grow, and requires every prior validate argv to remain exact or gain
-only appended behavioral-test paths discovered from the current command set.
-Suffix extension is refused when the committed argv ends in an option token,
-because the path could be consumed as that option's value. Overlapping command
-prefixes are matched one-to-one, and additional validate commands are allowed.
-It then runs every current command and requires a green exit code of zero.
+only to grow, and requires every prior validate argv to remain exact, gain only
+appended behavioral-test paths discovered from the current command set, or be
+preserved exactly under `acceptance.tests` for an audited validate-to-acceptance
+cleanup. Acceptance-preserved commands are not run while capturing the green
+baseline; they remain explicit opt-in evidence outside default `maid test` and
+`maid verify` gates. Suffix extension is refused when the committed argv ends in
+an option token, because the path could be consumed as that option's value.
+Overlapping command prefixes are matched one-to-one, and additional validate
+commands are allowed. It then runs every current command and requires a green
+exit code of zero.
 Manifest and behavioral-test hashes are compared before and after execution,
 and unrelated generated or modified paths also fail the migration.
 

@@ -1,0 +1,155 @@
+{
+  "manifest_path": "manifests/fix-legacy-baseline-acceptance-migration.manifest.yaml",
+  "manifest_hash": "sha256-contract:3371a580b1ae1150c154c1597dc65665161a426c2e83dbfcd04457c2076d6e87",
+  "test_hashes": {
+    "tests/cli/test_plan_legacy_baseline_acceptance_migration.py": "sha256-pyast:5a1481ba6fbb53691aabfb7a9aa44cbea5ccbb755515bcb90cd7fdb08f80da20"
+  },
+  "created_at": "2026-07-29T00:33:53.778346+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3e76367ea3370496ecc33b8f80107e93701bb8e48c44d1ca41aaab9a57302872",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_acceptance_migration.py": "sha256-pyast:5a1481ba6fbb53691aabfb7a9aa44cbea5ccbb755515bcb90cd7fdb08f80da20"
+      },
+      "revised_at": "2026-07-29T00:33:59.309064+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-legacy-baseline-acceptance-migration.manifest.yaml -> manifests/fix-legacy-baseline-acceptance-migration.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-29T00:34:00.380925+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_acceptance_migration.py",
+        "exit_code": 1,
+        "output_tail": "        current_tests = set(current_contract.get(\"test_files\", ()))\n        if baseline_tests - current_tests:\n            raise ValueError(\n                \"Legacy-baseline migration cannot remove behavioral-test coverage\"\n            )\n        if not _validate_commands_are_strengthened(\n            baseline_contract.get(\"validate_commands\"),\n            current_contract.get(\"validate_commands\"),\n            current_tests,\n        ):\n>           raise ValueError(\n                \"Legacy-baseline migration may only retain validate commands, append \"\n                \"discovered behavioral-test targets to them, or add new commands\"\n            )\nE           ValueError: Legacy-baseline migration may only retain validate commands, append discovered behavioral-test targets to them, or add new commands\n\nmaid_runner/core/plan_lock.py:723: ValueError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_legacy_baseline_acceptance_migration.py::test_legacy_baseline_accepts_validate_command_preserved_in_acceptance\n1 failed, 1 passed in 0.91s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_acceptance_migration_specification",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_acceptance_migration_specification:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_acceptance_migration_specification:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_acceptance_migration_specification:type=markdown paragraph",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:returns=LegacyBaselineEvidence",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_accepts_validate_command_preserved_in_acceptance",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_accepts_validate_command_preserved_in_acceptance:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_accepts_validate_command_preserved_in_acceptance:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_accepts_validate_command_preserved_in_acceptance:returns=None",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation:kind=test_function",
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py:test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_legacy_baseline_acceptance_migration.py"
+      ],
+      "edit": [
+        "docs/maid_specs.md",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_legacy_baseline_acceptance_migration.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_accepts_validate_command_preserved_in_acceptance",
+              "description": "A tracked manifest can move a committed slow/manual validate command to acceptance.tests, record green legacy-baseline evidence for the remaining fast validate command, and satisfy strict task-scoped enforcement.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_baseline_rejects_validate_command_removed_without_acceptance_preservation",
+              "description": "A committed validate command removed from current validate without exact acceptance.tests preservation is still rejected as validate weakening.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "capture_legacy_baseline_evidence",
+              "description": "Allows tracked metadata-only legacy migration when committed validate commands are retained/strengthened in current validate or exactly preserved under current acceptance.tests, while recording green provenance for current validate commands only.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                }
+              ],
+              "returns": "LegacyBaselineEvidence"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_legacy_baseline_acceptance_migration_specification",
+              "description": "Documents the audited validate-to-acceptance cleanup path and its exact-command preservation boundary.",
+              "of": "documentation",
+              "type": "markdown paragraph"
+            }
+          ]
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_legacy_baseline_acceptance_migration.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_legacy_baseline_acceptance_migration.py"
+    ]
+  }
+}

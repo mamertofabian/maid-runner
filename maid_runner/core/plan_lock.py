@@ -715,14 +715,16 @@ def capture_legacy_baseline_evidence(
         raise ValueError(
             "Legacy-baseline migration cannot remove behavioral-test coverage"
         )
-    if not _validate_commands_are_strengthened(
+    if not _validate_commands_are_retained_or_preserved_in_acceptance(
         baseline_contract.get("validate_commands"),
         current_contract.get("validate_commands"),
         current_tests,
+        current_manifest,
     ):
         raise ValueError(
             "Legacy-baseline migration may only retain validate commands, append "
-            "discovered behavioral-test targets to them, or add new commands"
+            "discovered behavioral-test targets to them, move exact commands to "
+            "acceptance.tests, or add new commands"
         )
 
     before_hashes = _contract_file_hashes(current_path, current_manifest, root)
@@ -1165,6 +1167,38 @@ def _validate_commands_are_strengthened(
         key=lambda index: (len(candidates[index]), -len(baseline_commands[index])),
     )
     return all(assign(index, set()) for index in baseline_order)
+
+
+def _validate_commands_are_retained_or_preserved_in_acceptance(
+    baseline_value: object,
+    current_value: object,
+    behavioral_test_paths: Collection[str],
+    current_manifest: Manifest,
+) -> bool:
+    """Allow exact validate-to-acceptance moves before applying strengthen rules."""
+    if not isinstance(baseline_value, list) or not all(
+        isinstance(command, str) for command in baseline_value
+    ):
+        return False
+
+    acceptance_counter: Counter[str] = Counter()
+    if current_manifest.acceptance is not None:
+        acceptance_counter.update(
+            shlex.join(command) for command in current_manifest.acceptance.tests
+        )
+
+    remaining_baseline_commands: list[str] = []
+    for command in baseline_value:
+        if acceptance_counter[command] > 0:
+            acceptance_counter[command] -= 1
+        else:
+            remaining_baseline_commands.append(command)
+
+    return _validate_commands_are_strengthened(
+        remaining_baseline_commands,
+        current_value,
+        behavioral_test_paths,
+    )
 
 
 def _contract_file_hashes(
