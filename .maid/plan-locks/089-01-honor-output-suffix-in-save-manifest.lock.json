@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
   "test_hashes": {
     "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
-    "tests/integration/test_library_api.py": "sha256-pyast:0ec5eb52084a6af26f49243251c716adbe354b86ca9c7b1fc6b9f9e63ae4a6b7",
+    "tests/integration/test_library_api.py": "sha256-pyast:d195a1870b8f73b471a0e599bddb6051aafea4b9c766832aa4b4b6bbabb9ea15",
     "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
     "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
   },
   "created_at": "2026-07-25T14:17:48.937387+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:bb2d3e03a45d65e81887829e34d81be63e3147dc8f038502f1c898f6c761414e",
@@ -148,6 +148,26 @@
       },
       "revised_at": "2026-07-27T15:09:22.082246+00:00",
       "reason": "Refresh shared release metadata test hash for v2.23.1 bump",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:8ef9f8e27c1d99c21d539ff2500bd21c179548b800ab6218496530dd49ec2f00",
+        "tests/integration/test_library_api.py": "sha256-pyast:0ec5eb52084a6af26f49243251c716adbe354b86ca9c7b1fc6b9f9e63ae4a6b7",
+        "tests/core/test_manifest.py": "sha256-pyast:4f2ee39c31767cbc96395a41fccacafe69cae4abdcbc76eb24aa2cd214c4c93e",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:90a78a7223180bd2aa61a0678b6168655c686227641955f838b90284d5c2a424"
+      },
+      "revised_at": "2026-07-29T01:10:24.991309+00:00",
+      "reason": "Refresh shared release metadata test hash for 2.23.2 release bump",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

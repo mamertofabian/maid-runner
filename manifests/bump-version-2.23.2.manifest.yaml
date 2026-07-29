@@ -1,0 +1,226 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Bump maid-runner patch version to 2.23.2
+type: fix
+created: "2026-07-29T01:09:12Z"
+supersedes:
+  - bump-version-2.23.1
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  tags:
+    - release
+    - version
+  priority: high
+description: |
+  Bump the package version from 2.23.1 to 2.23.2 for the next patch release.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized.
+
+  The patch version follows SemVer because the post-2.23.1 branch contains a
+  focused compatibility fix for legacy-baseline validation metadata cleanup:
+  committed validate commands may move exactly to acceptance.tests without
+  fabricating red evidence or running manual/browser checks in default gates.
+temptations:
+  - risk: Do not update only pyproject.toml and leave release mirrors stale.
+    instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release 
+      metadata test alongside the package version.
+  - risk: Do not turn this into a minor release without public feature evidence.
+    instead: Keep 2.23.2 as a patch release because the included change fixes an
+      existing MAID workflow limitation.
+  - risk: Do not omit the changelog compare link from automated coverage.
+    instead: Assert the 2.23.2 heading and v2.23.1...v2.23.2 compare link in the
+      release metadata test.
+  - risk: Do not add runtime version constants that duplicate pyproject.toml.
+    instead: Keep maid_runner.__version__ reading package or source metadata 
+      dynamically.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Package version metadata has no analyzer-visible public artifact 
+        contract.
+    - path: uv.lock
+      reason: Editable package lock metadata must mirror pyproject version.
+    - path: CHANGELOG.md
+      reason: Release notes document the patch version, release date, and 
+        compare link.
+    - path: docs/ROADMAP.md
+      reason: Roadmap current-version references mirror the released CLI 
+        version.
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: Runtime version, pyproject metadata, uv.lock metadata, 
+            changelog heading and compare link, and roadmap all report 2.23.2.
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.23.1.manifest.yaml
+    - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: "2026-07-29T09:18:00+08:00"
+  summary: Bumped maid-runner from 2.23.1 to 2.23.2 and synchronized package
+    metadata, editable lock metadata, changelog release notes and compare link,
+    roadmap version references, release metadata coverage, package build
+    artifacts, and MAID plan-lock evidence.
+  rationale: The only post-v2.23.1 release content is a focused compatibility
+    fix for legacy-baseline validate-to-acceptance metadata cleanup, so 2.23.2
+    is a SemVer patch release. The release metadata test keeps pyproject,
+    uv.lock, changelog, roadmap, and runtime version aligned, while dependent
+    shared-test locks were revised with preserved red evidence after the
+    release metadata test hash changed.
+  lessons:
+    - lesson_type: release-version-consistency
+      summary: Patch release preparation still needs every release mirror and
+        packaging check updated together, including package metadata, editable
+        lock metadata, changelog heading/link, roadmap current-version text,
+        runtime CLI version, release metadata tests, and twine-checked build
+        artifacts.
+      tags:
+        - release
+        - version
+        - changelog
+        - packaging
+      paths:
+        - pyproject.toml
+        - uv.lock
+        - CHANGELOG.md
+        - docs/ROADMAP.md
+        - tests/integration/test_library_api.py
+    - lesson_type: plan-lock
+      summary: Editing the shared release metadata test requires sanctioned
+        preserved-evidence revisions for predecessor locks that hash the same
+        test file before strict task-scoped handoff verification can pass.
+      tags:
+        - release
+        - plan-lock
+        - red-evidence
+      paths:
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+        - .maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json
+  review_notes:
+    - source: independent-implementation-reviewer
+      severity: ready
+      summary: No blocking findings; reviewer confirmed version consistency
+        across pyproject, uv.lock, changelog heading/link, roadmap text,
+        runtime-version tests, promoted manifest/lock, and dependent shared-test
+        lock revisions.
+    - source: independent-implementation-reviewer
+      severity: advisory
+      summary: The local .maid/active-manifest task marker must not be included
+        in release commits; it was cleared with maid task stop before handoff.
+    - source: independent-implementation-reviewer
+      severity: advisory
+      summary: The pre-existing helper name/docstring
+        test_release_metadata_is_2_21_0 remains stale but delegates to the
+        current-version assertion and does not undermine the 2.23.2 bump.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/integration/test_library_api.py
+      status: failed
+      summary: Red phase failed before implementation because runtime version
+        still reported 2.23.1 while the release metadata contract expected
+        2.23.2.
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/integration/test_library_api.py
+      status: passed
+      summary: Focused public API and release metadata suite passed with 29
+        tests.
+    - command:
+        - uv
+        - run
+        - maid
+        - --version
+      status: passed
+      summary: Local CLI reported maid 2.23.2.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/bump-version-2.23.2.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: Patch-release contract passed implementation validation.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: Repository-wide MAID validation passed with 471 manifests, 372
+        passed, 0 failed, and 99 superseded.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/bump-version-2.23.2.manifest.yaml
+      status: passed
+      summary: Manifest-declared release metadata test command passed.
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+        - --plan-lock-scope
+        - task
+      status: passed
+      summary: Strict task-scoped handoff verification passed with 0 blockers
+        after preserved-evidence revisions for the two shared-test locks; only
+        existing E307 no-validator warnings remained.
+    - command:
+        - make
+        - build
+      status: passed
+      summary: Local package build succeeded and produced
+        maid_runner-2.23.2.tar.gz and maid_runner-2.23.2-py3-none-any.whl.
+    - command:
+        - uv
+        - run
+        - twine
+        - check
+        - dist/maid_runner-2.23.2.tar.gz
+        - dist/maid_runner-2.23.2-py3-none-any.whl
+      status: passed
+      summary: Twine metadata validation passed for both 2.23.2 artifacts.
+    - command:
+        - git
+        - diff
+        - --check
+      status: passed
+      summary: Whitespace validation passed.

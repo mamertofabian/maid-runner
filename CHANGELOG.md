@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.23.2] - 2026-07-29
+
+### Fixed
+- **Legacy validate-to-acceptance migrations** — Allowed audited legacy-baseline cleanup to move a committed validate command exactly into `acceptance.tests`, preserving strict red-evidence enforcement without running slow/manual browser commands in default `maid test` and `maid verify` gates.
+
 ## [2.23.1] - 2026-07-27
 
 ### Fixed
@@ -1208,6 +1213,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.23.2]: https://github.com/mamertofabian/maid-runner/compare/v2.23.1...v2.23.2
 [2.23.1]: https://github.com/mamertofabian/maid-runner/compare/v2.23.0...v2.23.1
 [2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/mamertofabian/maid-runner/compare/v2.21.1...v2.22.0
