@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
-    "tests/integration/test_library_api.py": "sha256-pyast:0ec5eb52084a6af26f49243251c716adbe354b86ca9c7b1fc6b9f9e63ae4a6b7"
+    "tests/integration/test_library_api.py": "sha256-pyast:d195a1870b8f73b471a0e599bddb6051aafea4b9c766832aa4b4b6bbabb9ea15"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 21,
+  "revision": 22,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -279,6 +279,24 @@
       },
       "revised_at": "2026-07-27T15:09:22.022715+00:00",
       "reason": "Refresh shared release metadata test hash for v2.23.1 bump",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
+        "tests/integration/test_library_api.py": "sha256-pyast:0ec5eb52084a6af26f49243251c716adbe354b86ca9c7b1fc6b9f9e63ae4a6b7"
+      },
+      "revised_at": "2026-07-29T01:10:24.945476+00:00",
+      "reason": "Refresh shared release metadata test hash for 2.23.2 release bump",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
