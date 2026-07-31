@@ -1,0 +1,366 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Add a deterministic risk-v1 coverage recommender with repository-wide history
+  and dependency indexes while preserving legacy bootstrap ranking"
+type: feature
+created: "2026-07-31T00:01:16Z"
+metadata:
+  epic: 092-00-coverage-priority-recommender
+  tags:
+    - adoption
+    - bootstrap
+    - coverage-risk
+    - performance
+  priority: high
+description: |
+  Add `maid bootstrap --rank --model risk-v1` as an additive alternative to
+  the existing 061-04 raw ordering. `legacy-v1` remains the default and its
+  text and JSON output stay unchanged.
+
+  risk-v1 candidates come from the same file-tracking classification as
+  `maid files`: undeclared files score 30 coverage points, writable manifest
+  files with no artifacts score 22, read-only registrations score 14, and
+  fully tracked/scope-only files are excluded. Test files are never candidates.
+
+  The pinned 100-point model uses:
+
+  - blast 25: direct production inbound references 9*S(n,20), unique reverse
+    transitive dependents through three levels 6*S(n,100), entrypoint
+    reachability 4, and public artifacts 6*S(n,20);
+  - change pressure 20: 90-day commits 5*S(n,12), 365-day commits 3*S(n,30),
+    365-day added/deleted lines 6*S(n,2000), active months 3*min(n/12,1), and
+    recency 3*2^(-days/90);
+  - complexity 15: production-repository percentiles for logical lines 4,
+    decisions 4, largest definition 3, public artifacts 2, plus parse
+    uncertainty 2;
+  - test/evidence gap 10: no test dependency/reference 4, no acceptance
+    artifact reference 3, and no relevant validation command 3.
+
+  S(x, cap)=min(1, log1p(x)/log1p(cap)). Percentiles use average ranks mapped
+  to 0..1, with a one-item population at 0.5. Unknown or demonstrably
+  incomplete measurements have normalized_value null, contribute at least
+  half the affected cap, and lower the recommendation confidence.
+
+  Priority bands are critical 80+, high 60+, medium 35+, low below 35.
+  Ordering is priority, score descending, then path ascending. Explain on a
+  fully tracked file returns an eligible=false explanation rather than a score.
+  Missing/out-of-root paths fail. The CLI adds --model and --explain; --deep is
+  reserved for 092-03 and fails visibly until configured there.
+
+  Git history is collected by one repository-wide `git log --numstat
+  --find-renames --since=365.days` process. Each source file is parsed once
+  into separate production and test dependency graphs; inbound and transitive
+  counts are then edge-index operations. Standard Python project scripts and
+  package.json main/bin paths are entrypoints.
+
+  Outcome recall highlighted that parser registration, defaults, handler
+  behavior, and JSON parity must be exercised through the real CLI main path,
+  not direct handler tests alone.
+temptations:
+  - risk: "Do not count test imports as production blast radius."
+    instead: "Build separate production and test dependency graphs and use the test
+      graph only as test evidence."
+  - risk: "Do not launch git log per candidate or compare every importer to every
+      candidate."
+    instead: "Build one repository history index and one import-edge index, then derive
+      candidate metrics from those indexes."
+  - risk: "Do not turn parse, validator, shallow-history, or unresolved-import failures
+      into zero-valued safe-looking signals."
+    instead: "Emit null normalized evidence, use the pinned half-cap conservative
+      contribution, and lower confidence."
+  - risk: "Do not change legacy-v1 output while adding model selection."
+    instead: "Dispatch legacy-v1 through rank_bootstrap_candidates and its existing
+      formatter unchanged."
+files:
+  create:
+    - path: maid_runner/core/coverage_recommendation.py
+      artifacts:
+        - kind: class
+          name: CoverageStatus
+          bases:
+            - str
+            - Enum
+        - kind: attribute
+          name: UNDECLARED
+          of: CoverageStatus
+          type: str
+        - kind: attribute
+          name: WRITABLE_NO_ARTIFACTS
+          of: CoverageStatus
+          type: str
+        - kind: attribute
+          name: READ_ONLY
+          of: CoverageStatus
+          type: str
+        - kind: attribute
+          name: TRACKED
+          of: CoverageStatus
+          type: str
+        - kind: class
+          name: CoveragePriority
+          bases:
+            - str
+            - Enum
+        - kind: attribute
+          name: CRITICAL
+          of: CoveragePriority
+          type: str
+        - kind: attribute
+          name: HIGH
+          of: CoveragePriority
+          type: str
+        - kind: attribute
+          name: MEDIUM
+          of: CoveragePriority
+          type: str
+        - kind: attribute
+          name: LOW
+          of: CoveragePriority
+          type: str
+        - kind: class
+          name: CoverageConfidence
+          bases:
+            - str
+            - Enum
+        - kind: attribute
+          name: HIGH
+          of: CoverageConfidence
+          type: str
+        - kind: attribute
+          name: MEDIUM
+          of: CoverageConfidence
+          type: str
+        - kind: attribute
+          name: LOW
+          of: CoverageConfidence
+          type: str
+        - kind: class
+          name: CoverageSignal
+        - kind: attribute
+          name: name
+          of: CoverageSignal
+          type: str
+        - kind: attribute
+          name: raw_value
+          of: CoverageSignal
+          type: "str | int | float | bool | tuple[str, ...] | None"
+        - kind: attribute
+          name: normalized_value
+          of: CoverageSignal
+          type: "float | None"
+        - kind: attribute
+          name: contribution
+          of: CoverageSignal
+          type: float
+        - kind: attribute
+          name: confidence
+          of: CoverageSignal
+          type: CoverageConfidence
+        - kind: attribute
+          name: evidence
+          of: CoverageSignal
+          type: "tuple[str, ...]"
+        - kind: class
+          name: CoverageRecommendation
+        - kind: attribute
+          name: path
+          of: CoverageRecommendation
+          type: str
+        - kind: attribute
+          name: coverage_status
+          of: CoverageRecommendation
+          type: CoverageStatus
+        - kind: attribute
+          name: score
+          of: CoverageRecommendation
+          type: float
+        - kind: attribute
+          name: priority
+          of: CoverageRecommendation
+          type: CoveragePriority
+        - kind: attribute
+          name: confidence
+          of: CoverageRecommendation
+          type: CoverageConfidence
+        - kind: attribute
+          name: signals
+          of: CoverageRecommendation
+          type: "tuple[CoverageSignal, ...]"
+        - kind: attribute
+          name: reasons
+          of: CoverageRecommendation
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: recommended_action
+          of: CoverageRecommendation
+          type: str
+        - kind: class
+          name: CoverageRecommendationReport
+        - kind: attribute
+          name: model
+          of: CoverageRecommendationReport
+          type: str
+        - kind: attribute
+          name: repository_head
+          of: CoverageRecommendationReport
+          type: "str | None"
+        - kind: attribute
+          name: candidates
+          of: CoverageRecommendationReport
+          type: "tuple[CoverageRecommendation, ...]"
+        - kind: attribute
+          name: total_candidates
+          of: CoverageRecommendationReport
+          type: int
+        - kind: attribute
+          name: limit
+          of: CoverageRecommendationReport
+          type: int
+        - kind: attribute
+          name: warnings
+          of: CoverageRecommendationReport
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: cache_status
+          of: CoverageRecommendationReport
+          type: str
+        - kind: class
+          name: CoverageExplanation
+        - kind: attribute
+          name: path
+          of: CoverageExplanation
+          type: str
+        - kind: attribute
+          name: eligible
+          of: CoverageExplanation
+          type: bool
+        - kind: attribute
+          name: coverage_status
+          of: CoverageExplanation
+          type: CoverageStatus
+        - kind: attribute
+          name: exclusion_reason
+          of: CoverageExplanation
+          type: "str | None"
+        - kind: attribute
+          name: recommendation
+          of: CoverageExplanation
+          type: "CoverageRecommendation | None"
+        - kind: function
+          name: recommend_coverage
+          args:
+            - name: project_root
+              type: "Union[str, Path]"
+            - name: manifest_dir
+              type: str
+              default: "'manifests/'"
+            - name: limit
+              type: int
+              default: "20"
+            - name: exclude_patterns
+              type: "set[str] | None"
+              default: "None"
+            - name: respect_gitignore
+              type: bool
+              default: "True"
+            - name: deep
+              type: bool
+              default: "False"
+          returns: CoverageRecommendationReport
+        - kind: function
+          name: explain_coverage
+          args:
+            - name: project_root
+              type: "Union[str, Path]"
+            - name: path
+              type: "Union[str, Path]"
+            - name: manifest_dir
+              type: str
+              default: "'manifests/'"
+            - name: deep
+              type: bool
+              default: "False"
+          returns: CoverageExplanation
+  edit:
+    - path: maid_runner/cli/commands/bootstrap.py
+      artifacts:
+        - kind: function
+          name: cmd_bootstrap
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Dispatch legacy-v1 unchanged or render risk-v1 recommendations/explanations
+            in text and JSON."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Bootstrap parser adds --model, --explain, and reserved --deep
+            flags."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: "list[str] | None"
+              default: "None"
+          returns: int
+  scope:
+    - path: maid_runner/core/_repository_history.py
+      reason: "Private repository-wide Git history index used only by recommend_coverage."
+    - path: maid_runner/core/_dependency_index.py
+      reason: "Private production/test import graph index used only by recommend_coverage."
+    - path: maid_runner/core/_risk_metrics.py
+      reason: "Private built-in complexity collection and scoring helpers used only
+        by recommend_coverage."
+    - path: maid_runner/core/__init__.py
+      reason: "Preserve the snapshot-controlled package surface; callers import the stable API from coverage_recommendation."
+  read:
+    - maid_runner/core/bootstrap.py
+    - maid_runner/core/_file_tracking.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/_js_ts_imports.py
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/validators/registry.py
+    - tests/core/test_coverage_recommendation.py
+    - tests/cli/test_coverage_recommendation_cmd.py
+validate:
+  - uv run python -m pytest tests/core/test_coverage_recommendation.py
+    tests/cli/test_coverage_recommendation_cmd.py -v
+  - uv run python -m pytest tests/core/test_bootstrap_ranking.py
+    tests/cli/test_bootstrap_rank_cmd.py -v
+outcome:
+  status: completed
+  completed_at: "2026-07-31T00:42:49Z"
+  summary: "Added deterministic risk-v1 coverage recommendations while preserving legacy-v1 as the default."
+  rationale: "The model scores incomplete MAID states from explainable coverage, blast-radius, change, complexity, and test-evidence signals, with batch history and conservative uncertainty."
+  lessons:
+    - lesson_type: testing
+      summary: "Exact scores and low-confidence contributions must be pinned because type-only signal tests can miss uncertainty represented as zero risk."
+      tags: [coverage-risk, scoring, confidence]
+      paths: [maid_runner/core/coverage_recommendation.py, tests/core/test_coverage_recommendation.py]
+    - lesson_type: compatibility
+      summary: "Expose the API from coverage_recommendation without widening the snapshot-controlled maid_runner.core package surface."
+      tags: [public-api, snapshots]
+      paths: [maid_runner/core/coverage_recommendation.py, maid_runner/core/__init__.py]
+  review_notes:
+    - source: coverage_recommender_review
+      severity: ready
+      summary: "Independent review reached ready after uncertainty, import, plugin, cache, and deep-command findings were fixed."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Full suite passed: 3648 passed, 5 skipped."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "Repository validation passed: 375 active manifests, 0 failures."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 212 manifest command groups passed."

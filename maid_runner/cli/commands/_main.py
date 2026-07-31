@@ -718,6 +718,23 @@ def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
         help="Maximum number of ranked files to include",
     )
     p.add_argument(
+        "--model",
+        choices=("legacy-v1", "risk-v1"),
+        default="legacy-v1",
+        help="Ranking model; legacy-v1 remains the compatibility default",
+    )
+    p.add_argument(
+        "--explain",
+        metavar="PATH",
+        default=None,
+        help="Explain one path with risk-v1, including non-candidate eligibility",
+    )
+    p.add_argument(
+        "--deep",
+        action="store_true",
+        help="Run configured deep test evidence collection for risk-v1",
+    )
+    p.add_argument(
         "--include-private",
         action="store_true",
         help="Include private or hidden files in bootstrap discovery",

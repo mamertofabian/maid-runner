@@ -10,11 +10,21 @@ from pathlib import Path
 from typing import Optional, Union
 
 from maid_runner.core.ts_module_paths import (
+    resolve_ts_import,
     resolve_ts_reexport,
     ts_file_to_module_path,
 )
+from maid_runner.core._js_ts_imports import collect_import_modules
 from maid_runner.core.types import ArtifactKind
-from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
+from maid_runner.validators.base import (
+    BaseValidator,
+    CollectionResult,
+    ComplexityResult,
+    DependencyCollectionResult,
+    FoundArtifact,
+    _braced_complexity,
+    _logical_line_count,
+)
 from maid_runner.validators._typescript_parse import parse_typescript_source
 
 try:
@@ -125,6 +135,40 @@ class SvelteValidator(BaseValidator):
             language="svelte",
             file_path=str(file_path),
             errors=result.errors,
+        )
+
+    def collect_dependencies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> DependencyCollectionResult:
+        importer_module = ts_file_to_module_path(file_path, project_root)
+        try:
+            modules = {
+                resolve_ts_import(specifier, importer_module, project_root)
+                for specifier in collect_import_modules(source, str(file_path))
+            }
+        except Exception as exc:
+            return DependencyCollectionResult(errors=(str(exc),))
+        return DependencyCollectionResult(modules=tuple(sorted(modules)))
+
+    def collect_complexity(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> ComplexityResult:
+        artifacts = self.collect_implementation_artifacts(source, file_path)
+        if artifacts.errors:
+            return ComplexityResult(errors=tuple(artifacts.errors))
+        decisions, largest = _braced_complexity(source)
+        return ComplexityResult(
+            logical_lines=_logical_line_count(source),
+            decision_points=decisions,
+            largest_definition_lines=largest,
+            public_artifacts=sum(
+                1 for artifact in artifacts.artifacts if not artifact.is_private
+            ),
         )
 
     def get_test_function_bodies(

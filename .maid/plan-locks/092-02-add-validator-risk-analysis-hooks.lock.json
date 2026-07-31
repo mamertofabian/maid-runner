@@ -1,0 +1,516 @@
+{
+  "manifest_path": "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+  "manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+  "test_hashes": {
+    "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:847a9ba93a3b7fe7fa258002538630316671e4dc88825f965a1ec73340743117",
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+  },
+  "created_at": "2026-07-31T00:13:10.681074+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1c8183ae34631028275ddd9765e4c7f25a938e7333d5abfadf4ab442c71ad9a4",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:268299e7be1e6d9de8cb850a1bac3fbefc4bf6000279444dc352a89754d0df68",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915"
+      },
+      "revised_at": "2026-07-31T00:13:11.274524+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/092-02-add-validator-risk-analysis-hooks.manifest.yaml -> manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:268299e7be1e6d9de8cb850a1bac3fbefc4bf6000279444dc352a89754d0df68",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915"
+      },
+      "revised_at": "2026-07-31T00:14:54.418004+00:00",
+      "reason": "Correct the Python fixture's logical-line expectation from six physical lines to the established five nonblank logical lines.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:8f3eee6f502dc6c4b18e27d9a1b1cce7a599d445969b7cdd52b2dc70aba680d6",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915"
+      },
+      "revised_at": "2026-07-31T00:23:27.181408+00:00",
+      "reason": "Apply repository Black formatting to the validator hook behavioral test after implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:8f3eee6f502dc6c4b18e27d9a1b1cce7a599d445969b7cdd52b2dc70aba680d6",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:3f45492ab05ff8c1734f46620983a394f67cc70136fc520fbbb026a165f1fc5f"
+      },
+      "revised_at": "2026-07-31T00:34:44.629573+00:00",
+      "reason": "Address independent review: cover package-submodule imports and registry-supported extension discovery.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:c1be0fee7367e5be20c2d9e9e41e587d7280c6473b6c22251502ff2bcf3bb928",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:2ba2b13c8eb81508de49fd1c7c52faf5c7cb94fdf3ac40ee4cca6071676520ad"
+      },
+      "revised_at": "2026-07-31T00:39:16.234337+00:00",
+      "reason": "Complete re-review fixes with plugin module-identity graph coverage and package-initializer relative imports.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:995d59866f40cdc29190d35baa1e2db20d94e63b720c88215f69088df9592aeb",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+      },
+      "revised_at": "2026-07-31T00:41:30.961821+00:00",
+      "reason": "Resolve the final review case for mixed package attribute and submodule imports.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-31T00:13:11.636600+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_coverage_recommendation_hooks.py tests/core/test_coverage_recommendation.py -v",
+        "exit_code": 1,
+        "output_tail": "        tmp_path: Path,\n    ) -> None:\n        from maid_runner.validators.svelte import SvelteValidator\n        from maid_runner.validators.typescript import TypeScriptValidator\n    \n        typescript = TypeScriptValidator()\n>       ts_dependencies = typescript.collect_dependencies(\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            \"import { dep } from './dep';\\nexport function run() { return dep ? 1 : 0; }\\n\",\n            \"src/app.ts\",\n            tmp_path,\n        )\nE       AttributeError: 'TypeScriptValidator' object has no attribute 'collect_dependencies'\n\ntests/validators/test_coverage_recommendation_hooks.py:90: AttributeError\n=========================== short test summary info ============================\nFAILED tests/validators/test_coverage_recommendation_hooks.py::test_base_validator_defaults_preserve_existing_plugin_compatibility\nFAILED tests/validators/test_coverage_recommendation_hooks.py::test_python_validator_collects_resolved_dependencies_and_complexity\nFAILED tests/validators/test_coverage_recommendation_hooks.py::test_typescript_and_svelte_hooks_return_language_aware_results\n========================= 3 failed, 7 passed in 0.20s ==========================",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/base.py:attribute:ComplexityResult.decision_points",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.decision_points:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.decision_points:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.decision_points:type=int | None",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.errors",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.errors:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.errors:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.errors:type=tuple[str, ...]",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.largest_definition_lines",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.largest_definition_lines:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.largest_definition_lines:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.largest_definition_lines:type=int | None",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.logical_lines",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.logical_lines:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.logical_lines:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.logical_lines:type=int | None",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.public_artifacts",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.public_artifacts:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.public_artifacts:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.public_artifacts:type=int | None",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.supported",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.supported:kind=attribute",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.supported:of=ComplexityResult",
+      "maid_runner/validators/base.py:attribute:ComplexityResult.supported:type=bool",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.errors",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.errors:kind=attribute",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.errors:of=DependencyCollectionResult",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.errors:type=tuple[str, ...]",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.modules",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.modules:kind=attribute",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.modules:of=DependencyCollectionResult",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.modules:type=tuple[str, ...]",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.supported",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.supported:kind=attribute",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.supported:of=DependencyCollectionResult",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.supported:type=bool",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.unresolved",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.unresolved:kind=attribute",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.unresolved:of=DependencyCollectionResult",
+      "maid_runner/validators/base.py:attribute:DependencyCollectionResult.unresolved:type=tuple[str, ...]",
+      "maid_runner/validators/base.py:class:ComplexityResult",
+      "maid_runner/validators/base.py:class:ComplexityResult:kind=class",
+      "maid_runner/validators/base.py:class:DependencyCollectionResult",
+      "maid_runner/validators/base.py:class:DependencyCollectionResult:kind=class",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity:arg=source:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_complexity:returns=ComplexityResult",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:arg=source:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.collect_dependencies:returns=DependencyCollectionResult",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity:arg=source:type=str:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_complexity:returns=ComplexityResult",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:arg=source:type=str:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_dependencies:returns=DependencyCollectionResult",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity:arg=source:type=str:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity:kind=method",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity:of=SvelteValidator",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_complexity:returns=ComplexityResult",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:arg=source:type=str:default=None",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:kind=method",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:of=SvelteValidator",
+      "maid_runner/validators/svelte.py:method:SvelteValidator.collect_dependencies:returns=DependencyCollectionResult",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity:arg=source:type=str:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_complexity:returns=ComplexityResult",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:arg=source:type=str:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.collect_dependencies:returns=DependencyCollectionResult"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/svelte.py",
+        "maid_runner/validators/typescript.py"
+      ],
+      "read": [
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/validators/registry.py",
+        "tests/core/test_coverage_recommendation.py",
+        "tests/validators/test_coverage_recommendation_hooks.py"
+      ],
+      "scope": [
+        "maid_runner/core/_dependency_index.py",
+        "maid_runner/core/_risk_metrics.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/validators/base.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "DependencyCollectionResult"
+            },
+            {
+              "kind": "attribute",
+              "name": "modules",
+              "of": "DependencyCollectionResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "unresolved",
+              "of": "DependencyCollectionResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "DependencyCollectionResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "supported",
+              "of": "DependencyCollectionResult",
+              "type": "bool"
+            },
+            {
+              "kind": "class",
+              "name": "ComplexityResult"
+            },
+            {
+              "kind": "attribute",
+              "name": "logical_lines",
+              "of": "ComplexityResult",
+              "type": "int | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "decision_points",
+              "of": "ComplexityResult",
+              "type": "int | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "largest_definition_lines",
+              "of": "ComplexityResult",
+              "type": "int | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "public_artifacts",
+              "of": "ComplexityResult",
+              "type": "int | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ComplexityResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "supported",
+              "of": "ComplexityResult",
+              "type": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "collect_dependencies",
+              "of": "BaseValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "DependencyCollectionResult",
+              "default_hook": true
+            },
+            {
+              "kind": "method",
+              "name": "collect_complexity",
+              "of": "BaseValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "ComplexityResult",
+              "default_hook": true
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/python.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_dependencies",
+              "of": "PythonValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "DependencyCollectionResult"
+            },
+            {
+              "kind": "method",
+              "name": "collect_complexity",
+              "of": "PythonValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "ComplexityResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/typescript.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_dependencies",
+              "of": "TypeScriptValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "DependencyCollectionResult"
+            },
+            {
+              "kind": "method",
+              "name": "collect_complexity",
+              "of": "TypeScriptValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "ComplexityResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/svelte.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_dependencies",
+              "of": "SvelteValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "DependencyCollectionResult"
+            },
+            {
+              "kind": "method",
+              "name": "collect_complexity",
+              "of": "SvelteValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "ComplexityResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/validators/registry.py",
+        "tests/validators/test_coverage_recommendation_hooks.py",
+        "tests/core/test_coverage_recommendation.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_dependency_index.py",
+          "reason": "Delegate per-file dependency collection to registered validator hooks."
+        },
+        {
+          "path": "maid_runner/core/_risk_metrics.py",
+          "reason": "Delegate per-file complexity collection to registered validator hooks."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_coverage_recommendation.py",
+      "tests/validators/test_coverage_recommendation_hooks.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_coverage_recommendation_hooks.py tests/core/test_coverage_recommendation.py -v"
+    ]
+  }
+}

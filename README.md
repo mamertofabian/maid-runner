@@ -51,8 +51,8 @@ maid init
 # Interactive guide
 maid howto --section quickstart
 
-# Brownfield entry: rank existing files, then generate reviewed drafts per change
-maid bootstrap --rank --limit 20
+# Brownfield entry: prioritize coverage risk, then generate reviewed drafts per change
+maid bootstrap --rank --model risk-v1 --limit 20
 maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
 maid validate manifests/drafts/describe-the-change.manifest.yaml --mode schema --quiet
 ```
@@ -132,7 +132,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid incident capture\|update\|list` | Store and review caller-asserted gaming incident records | `capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list>`, `update <incident-path> --chosen-diff <path>`, `list --tag <tag> --json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |
 | `maid snapshot-system` | Aggregate all active manifests | `--output`, `--manifest-dir` |
-| `maid bootstrap [directory]` | Bootstrap manifests for an existing project | `--output-dir`, `--exclude`, `--include-private`, `--dry-run`, `--json` |
+| `maid bootstrap [directory]` | Bootstrap manifests or rank brownfield coverage work | `--rank`, `--model legacy-v1\|risk-v1`, `--limit`, `--explain`, `--deep`, `--output-dir`, `--exclude`, `--include-private`, `--dry-run`, `--json` |
 | `maid learn` | Refresh the deterministic Outcome index | `--manifest-dir`, `--output`, `--include-status`, `--json`, `--quiet` |
 | `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
 | `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
@@ -275,8 +275,8 @@ maid verify --require-plan-lock --require-red-evidence
 maid validate --artifact-coverage manifests/add-auth.manifest.yaml
 maid verify --artifact-coverage --knockout
 
-# Brownfield onboarding: rank candidates before adding contracts
-maid bootstrap --rank --limit 20
+# Brownfield onboarding: prioritize incomplete coverage before adding contracts
+maid bootstrap --rank --model risk-v1 --limit 20
 
 # Draft a manifest from one implemented change; choose exactly one baseline
 maid manifest from-diff --since <commit> --slug describe-the-change
@@ -436,13 +436,53 @@ For existing projects, start with a ranked adoption pass instead of bulk
 snapshotting every file:
 
 ```bash
-maid bootstrap --rank --limit 20
+maid bootstrap --rank --model risk-v1 --limit 20
+maid bootstrap --rank --model risk-v1 --explain src/auth/session.py
+maid bootstrap --rank --model risk-v1 --json
 ```
 
-The ranked output is advisory and writes no manifests. It lists undeclared files
-with raw `churn`, `inbound_refs`, and `public_artifacts` values, ordered by churn
-descending, inbound references descending, public artifacts descending, then
-path ascending. Use `--json` when automation needs the same raw signals.
+The deterministic `risk-v1` model ranks undeclared, read-only, and writable
+files without artifact contracts using coverage gap, production blast radius,
+recent change pressure, repository-relative complexity, and test evidence.
+Every contribution includes its raw value, confidence, and evidence. Test
+imports remain separate from production dependency reachability. Missing
+history or validator evidence lowers confidence and receives a conservative
+contribution instead of being treated as zero risk.
+
+`legacy-v1` remains the default for compatibility in this release:
+
+```bash
+maid bootstrap --rank --model legacy-v1 --limit 20
+```
+
+It preserves the original lexicographic ordering by lifetime `churn`, then
+`inbound_refs`, then `public_artifacts`. Use `risk-v1` for new brownfield
+adoption planning.
+
+Repository owners can set explicit priority floors and entrypoints in
+`.maidrc.yaml`. Floors change the displayed priority band but never the
+numeric score:
+
+```yaml
+coverage_recommendation:
+  critical_paths:
+    - pattern: "src/auth/**"
+      minimum_priority: high
+    - pattern: "src/payments/**"
+      minimum_priority: critical
+  entrypoints:
+    - src/main.py
+  cache: true
+  deep:
+    command: [python, -m, pytest, tests, -q]
+```
+
+Static reports are cached at `.maid/cache/coverage-risk-v1.json` using the
+repository HEAD and content fingerprints for source, manifests, configuration,
+Outcomes, and incidents. `--deep` bypasses this cache, requires the configured
+Python pytest command, and replaces the four-point static test-reference signal
+with executed pytest-cov evidence. Outcome and incident matches are advisory
+zero-point context and cannot change ordering.
 
 Onboard the top files one at a time. For an implemented change, generate a draft
 contract from the diff:

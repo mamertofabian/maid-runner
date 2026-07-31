@@ -13,6 +13,10 @@ class TestMaidConfig:
         assert config.languages == ("python", "typescript")
         assert config.coherence_enabled is False
         assert config.coherence_checks == ()
+        assert config.coverage_recommendation.critical_paths == ()
+        assert config.coverage_recommendation.entrypoints == ()
+        assert config.coverage_recommendation.cache_enabled is True
+        assert config.coverage_recommendation.deep_command is None
 
     def test_custom_values(self):
         config = MaidConfig(

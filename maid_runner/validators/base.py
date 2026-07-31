@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import ast
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 from typing import Callable, Optional, Union
 
 from maid_runner.core.types import ArtifactKind, ArgSpec
@@ -61,6 +63,28 @@ class CollectionResult:
     errors: list[str] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class DependencyCollectionResult:
+    """Language-aware dependency collection with explicit uncertainty."""
+
+    modules: tuple[str, ...] = ()
+    unresolved: tuple[str, ...] = ()
+    errors: tuple[str, ...] = ()
+    supported: bool = True
+
+
+@dataclass(frozen=True)
+class ComplexityResult:
+    """Language-aware source complexity with explicit uncertainty."""
+
+    logical_lines: int | None = None
+    decision_points: int | None = None
+    largest_definition_lines: int | None = None
+    public_artifacts: int | None = None
+    errors: tuple[str, ...] = ()
+    supported: bool = True
+
+
 class BaseValidator(ABC):
     """Abstract base for language-specific code validators."""
 
@@ -87,6 +111,23 @@ class BaseValidator(ABC):
         file_path: Union[str, Path],
     ) -> CollectionResult:
         """Collect artifact REFERENCES from source code (test files)."""
+
+    def collect_dependencies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> DependencyCollectionResult:
+        """Collect imported module identities when the language supports it."""
+        return DependencyCollectionResult(supported=False)
+
+    def collect_complexity(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> ComplexityResult:
+        """Collect source-risk metrics when the language supports it."""
+        return ComplexityResult(supported=False)
 
     def _collect_with_parse_guard(
         self,
@@ -220,3 +261,76 @@ class BaseValidator(ABC):
         if artifact.type_annotation:
             d["type"] = artifact.type_annotation
         return d
+
+
+def _logical_line_count(source: str) -> int:
+    return sum(
+        1
+        for line in source.splitlines()
+        if line.strip() and not line.lstrip().startswith(("#", "//"))
+    )
+
+
+def _python_complexity(source: str, file_path: Union[str, Path]) -> tuple[int, int]:
+    tree = ast.parse(source, filename=str(file_path))
+    decisions = sum(
+        1
+        for node in ast.walk(tree)
+        if isinstance(
+            node,
+            (
+                ast.If,
+                ast.For,
+                ast.AsyncFor,
+                ast.While,
+                ast.Try,
+                ast.BoolOp,
+                ast.IfExp,
+                ast.Match,
+                ast.comprehension,
+            ),
+        )
+    )
+    sizes = [
+        max(
+            (getattr(node, "end_lineno", node.lineno) or node.lineno) - node.lineno + 1,
+            1,
+        )
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+    ]
+    return decisions, max(sizes, default=0)
+
+
+def _braced_complexity(source: str) -> tuple[int, int]:
+    decision_pattern = re.compile(
+        r"\b(?:if|else\s+if|for|while|case|catch)\b|&&|\|\||\?"
+    )
+    definition_pattern = re.compile(
+        r"\b(?:function|class|interface|type)\b|(?:=>\s*\{)"
+    )
+    starts = [
+        index
+        for index, line in enumerate(source.splitlines(), start=1)
+        if definition_pattern.search(line)
+    ]
+    return len(decision_pattern.findall(source)), _largest_braced_definition(
+        source, starts
+    )
+
+
+def _largest_braced_definition(source: str, starts: list[int]) -> int:
+    lines = source.splitlines()
+    largest = 0
+    for start in starts:
+        depth = 0
+        seen_open = False
+        end = start
+        for index in range(start - 1, len(lines)):
+            depth += lines[index].count("{") - lines[index].count("}")
+            seen_open = seen_open or "{" in lines[index]
+            end = index + 1
+            if seen_open and depth <= 0:
+                break
+        largest = max(largest, end - start + 1)
+    return largest

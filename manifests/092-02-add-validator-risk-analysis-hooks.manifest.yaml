@@ -1,0 +1,218 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Expose optional validator dependency and complexity hooks without changing
+  risk-v1 recommendation output"
+type: feature
+created: "2026-07-31T00:13:11Z"
+metadata:
+  epic: 092-00-coverage-priority-recommender
+  tags:
+    - validators
+    - plugin-api
+    - coverage-risk
+  priority: high
+description: |
+  Add concrete, optional dependency and complexity analysis methods to
+  BaseValidator. Existing third-party validators remain constructible because
+  the methods are not abstract and return explicit supported=false results.
+
+  Python, TypeScript, and Svelte implement both hooks. The dependency hook
+  returns resolved module identities plus unresolved/error evidence; the
+  complexity hook returns the exact logical-line, decision-point, largest
+  definition, and public-artifact metrics already used by 092-01.
+
+  Refactor the risk-v1 indexes to call these hooks. Recommendation output for
+  built-in languages must remain identical for the same tree; this child adds
+  plugin extensibility and does not redefine weights, percentiles, confidence,
+  or priority bands.
+temptations:
+  - risk: "Do not make the new hooks abstract and break existing validator plugins."
+    instead: "Provide concrete BaseValidator defaults with supported=false and empty
+      evidence values."
+  - risk: "Do not change risk-v1 metrics while moving collection behind hooks."
+    instead: "Characterize current Python, TypeScript, and Svelte outputs and preserve
+      their recommendation signals exactly."
+  - risk: "Do not convert hook errors into zero metrics."
+    instead: "Return typed errors/unsupported state so risk-v1 retains conservative
+      low-confidence contributions."
+files:
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: class
+          name: DependencyCollectionResult
+        - kind: attribute
+          name: modules
+          of: DependencyCollectionResult
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: unresolved
+          of: DependencyCollectionResult
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: errors
+          of: DependencyCollectionResult
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: supported
+          of: DependencyCollectionResult
+          type: bool
+        - kind: class
+          name: ComplexityResult
+        - kind: attribute
+          name: logical_lines
+          of: ComplexityResult
+          type: "int | None"
+        - kind: attribute
+          name: decision_points
+          of: ComplexityResult
+          type: "int | None"
+        - kind: attribute
+          name: largest_definition_lines
+          of: ComplexityResult
+          type: "int | None"
+        - kind: attribute
+          name: public_artifacts
+          of: ComplexityResult
+          type: "int | None"
+        - kind: attribute
+          name: errors
+          of: ComplexityResult
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: supported
+          of: ComplexityResult
+          type: bool
+        - kind: method
+          name: collect_dependencies
+          of: BaseValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+          returns: DependencyCollectionResult
+          default_hook: true
+        - kind: method
+          name: collect_complexity
+          of: BaseValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: ComplexityResult
+          default_hook: true
+    - path: maid_runner/validators/python.py
+      artifacts:
+        - kind: method
+          name: collect_dependencies
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+          returns: DependencyCollectionResult
+        - kind: method
+          name: collect_complexity
+          of: PythonValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: ComplexityResult
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: method
+          name: collect_dependencies
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+          returns: DependencyCollectionResult
+        - kind: method
+          name: collect_complexity
+          of: TypeScriptValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: ComplexityResult
+    - path: maid_runner/validators/svelte.py
+      artifacts:
+        - kind: method
+          name: collect_dependencies
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+            - name: project_root
+              type: Path
+          returns: DependencyCollectionResult
+        - kind: method
+          name: collect_complexity
+          of: SvelteValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: "Union[str, Path]"
+          returns: ComplexityResult
+  scope:
+    - path: maid_runner/core/_dependency_index.py
+      reason: "Delegate per-file dependency collection to registered validator hooks."
+    - path: maid_runner/core/_risk_metrics.py
+      reason: "Delegate per-file complexity collection to registered validator hooks."
+  read:
+    - maid_runner/core/coverage_recommendation.py
+    - maid_runner/validators/registry.py
+    - tests/validators/test_coverage_recommendation_hooks.py
+    - tests/core/test_coverage_recommendation.py
+validate:
+  - uv run python -m pytest
+    tests/validators/test_coverage_recommendation_hooks.py
+    tests/core/test_coverage_recommendation.py -v
+outcome:
+  status: completed
+  completed_at: "2026-07-31T00:42:49Z"
+  summary: "Added optional validator dependency and complexity hooks and delegated risk-v1 analysis through the plugin registry."
+  rationale: "Concrete defaults preserve plugin compatibility, built-ins return typed evidence, and registry module identities let plugin languages participate in dependency graphs."
+  lessons:
+    - lesson_type: implementation
+      summary: "Plugin discovery must be paired with validator module identities or plugin files cannot form reverse dependency edges."
+      tags: [validators, plugins, dependencies]
+      paths: [maid_runner/core/_dependency_index.py, maid_runner/validators/base.py]
+    - lesson_type: testing
+      summary: "Python import coverage needs package initializer, relative, submodule, mixed attribute/submodule, and external-import scenarios."
+      tags: [python, imports]
+      paths: [maid_runner/validators/python.py, tests/validators/test_coverage_recommendation_hooks.py]
+  review_notes:
+    - source: coverage_recommender_review
+      severity: ready
+      summary: "Independent review confirmed plugin reverse edges and mixed Python import behavior after fixes."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Full suite passed: 3648 passed, 5 skipped."
+    - command: [uv, run, maid, validate, manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Scoped implementation validation passed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 212 manifest command groups passed."

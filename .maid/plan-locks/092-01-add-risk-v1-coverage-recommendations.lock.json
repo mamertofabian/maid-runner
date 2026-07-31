@@ -1,0 +1,924 @@
+{
+  "manifest_path": "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+  "manifest_hash": "sha256-contract:ec86251d8e6533f3c8c07fd03dcf60695d84d5168e6776debd6ceaab9e2d560a",
+  "test_hashes": {
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575",
+    "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+    "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+    "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+  },
+  "created_at": "2026-07-31T00:01:12.121717+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:4acd6c2979e3c891cd01e9a7bcb7770b93e04a28fca72290506960bef4865beb",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:d567cc9f34b624112e6f4baad9c77caf3f9a905142f47cefb4983e56fd360b1e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:01:16.550902+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/092-01-add-risk-v1-coverage-recommendations.manifest.yaml -> manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecfb470bf38b6bd3f9015743d6e87632677f4516c9d6fe8a5f10ae617874114f",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:d567cc9f34b624112e6f4baad9c77caf3f9a905142f47cefb4983e56fd360b1e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:06:57.866521+00:00",
+      "reason": "Correct the writable-no-artifacts fixture and move new-module imports inside test bodies so the missing implementation yields valid exit-1 red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecfb470bf38b6bd3f9015743d6e87632677f4516c9d6fe8a5f10ae617874114f",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:4d192551faac5dff6e286f4d448016b908656133ef1fc59f2dacb3e74f6efc39",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:08:13.609039+00:00",
+      "reason": "Use a valid files.delete fixture for writable registration without artifacts and align Python enum declarations with the collector's class-plus-typed-members representation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:of=CoverageConfidence",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:of=CoverageConfidence",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:of=CoverageConfidence",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:of=CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:of=CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:of=CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:of=CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:of=CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:of=CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:of=CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:type=str",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:kind=attribute",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:of=CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:type=str",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:base=Enum",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:base=str",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:kind=class",
+          "maid_runner/core/coverage_recommendation.py:class:CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:base=Enum",
+          "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:base=str",
+          "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:kind=class",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:base=Enum",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:base=str",
+          "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:kind=class"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/coverage_recommendation.py:enum:CoverageConfidence",
+          "maid_runner/core/coverage_recommendation.py:enum:CoverageConfidence:kind=enum",
+          "maid_runner/core/coverage_recommendation.py:enum:CoveragePriority",
+          "maid_runner/core/coverage_recommendation.py:enum:CoveragePriority:kind=enum",
+          "maid_runner/core/coverage_recommendation.py:enum:CoverageStatus",
+          "maid_runner/core/coverage_recommendation.py:enum:CoverageStatus:kind=enum"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:25eccbe1d04ae6285c5d3b353e3909d6a375c5ae6f3859fbd036f70f721f57cd",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:6a593f7811ca3638afefb6197983d4011cf052b5916be0d6dfb9df9cd4b7a16d",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:09:05.143303+00:00",
+      "reason": "Use a schema-valid read-only fixture with a writable owner and add TYPE_CHECKING enum imports so behavioral validation resolves member owner identities without causing collection-time red failures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:25eccbe1d04ae6285c5d3b353e3909d6a375c5ae6f3859fbd036f70f721f57cd",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:04ae4875b032a4a324bfd876ac9fcbf942b74515651ac5c20939c1200db7836b",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:09:33.321945+00:00",
+      "reason": "Replace ignored TYPE_CHECKING enum imports with top-level guarded imports so MAID resolves enum member owner identities while missing-module red evidence remains a normal test failure",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:25eccbe1d04ae6285c5d3b353e3909d6a375c5ae6f3859fbd036f70f721f57cd",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:4009c964b9e45bbbace8b67e7ac36b0cda973698bbbcdaf3c4a41fdc3dcc922b",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:09:56.336313+00:00",
+      "reason": "Remove fallback assignments that shadowed guarded enum imports and prevented MAID from resolving their owner identities",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:25eccbe1d04ae6285c5d3b353e3909d6a375c5ae6f3859fbd036f70f721f57cd",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:22:39.007102+00:00",
+      "reason": "Evolve the core cache-status assertion from disabled to the risk-v1 static cache miss introduced by child 092-03.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:25eccbe1d04ae6285c5d3b353e3909d6a375c5ae6f3859fbd036f70f721f57cd",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:3f45492ab05ff8c1734f46620983a394f67cc70136fc520fbbb026a165f1fc5f",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:34:44.419953+00:00",
+      "reason": "Address independent review: pin an exact baseline score and conservative dependency uncertainty, and clarify the snapshot-controlled import surface.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ec86251d8e6533f3c8c07fd03dcf60695d84d5168e6776debd6ceaab9e2d560a",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:2ba2b13c8eb81508de49fd1c7c52faf5c7cb94fdf3ac40ee4cca6071676520ad",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-07-31T00:39:16.028252+00:00",
+      "reason": "Complete re-review fixes by distinguishing external imports from unresolved local dependencies.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-31T00:09:57.396576+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_coverage_recommendation_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version]\n            {validate,validators,test,pgtap,verify,plan,task,hook,snapshot,snapshot-system,bootstrap,learn,recall,insights,enrich,evaluate,benchmark,incident,daemon,skills,manifest,manifests,files,init,graph,coherence,schema,howto,chain,serve,audit}\n            ...\nmaid: error: unrecognized arguments: --model\n=========================== short test summary info ============================\nFAILED tests/core/test_coverage_recommendation.py::test_recommendation_includes_incomplete_tracking_states_and_excludes_tracked\nFAILED tests/core/test_coverage_recommendation.py::test_dependency_evidence_separates_production_and_test_importers\nFAILED tests/core/test_coverage_recommendation.py::test_parse_failure_is_low_confidence_and_not_zero_risk\nFAILED tests/core/test_coverage_recommendation.py::test_explain_tracked_file_reports_non_candidate_without_score\nFAILED tests/core/test_coverage_recommendation.py::test_report_types_and_priority_bands_are_stable\nFAILED tests/core/test_coverage_recommendation.py::test_repository_history_uses_one_git_log_process_for_all_candidates\nFAILED tests/cli/test_coverage_recommendation_cmd.py::test_bootstrap_model_parser_defaults_to_legacy_and_registers_risk_flags\nFAILED tests/cli/test_coverage_recommendation_cmd.py::test_risk_v1_json_dispatches_through_main\nFAILED tests/cli/test_coverage_recommendation_cmd.py::test_risk_v1_human_output_carries_evidence\nFAILED tests/cli/test_coverage_recommendation_cmd.py::test_risk_v1_explain_tracked_file_is_structured_non_candidate\nFAILED tests/cli/test_coverage_recommendation_cmd.py::test_risk_only_flags_fail_visibly_without_risk_rank\n============================== 11 failed in 0.37s ==============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_bootstrap_ranking.py tests/cli/test_bootstrap_rank_cmd.py -v",
+        "exit_code": 0,
+        "output_tail": "============================= test session starts ==============================\nplatform linux -- Python 3.12.8, pytest-8.4.2, pluggy-1.6.0 -- /home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/python3\ncachedir: .pytest_cache\nrootdir: /home/atomrem/projects/codefrost-dev/maid-runner\nconfigfile: pyproject.toml\nplugins: cov-7.0.0\ncollecting ... collected 9 items\n\ntests/core/test_bootstrap_ranking.py::test_rank_orders_by_churn_inbound_artifacts_then_path PASSED [ 11%]\ntests/core/test_bootstrap_ranking.py::test_rank_excludes_tracked_and_test_files PASSED [ 22%]\ntests/core/test_bootstrap_ranking.py::test_rank_limit_truncates_after_ordering_and_reports_total PASSED [ 33%]\ntests/core/test_bootstrap_ranking.py::test_rank_untracked_files_have_zero_churn_and_are_deterministic PASSED [ 44%]\ntests/core/test_bootstrap_ranking.py::test_rank_degrades_when_registered_validator_cannot_construct PASSED [ 55%]\ntests/cli/test_bootstrap_rank_cmd.py::test_bootstrap_rank_json_dispatches_through_main PASSED [ 66%]\ntests/cli/test_bootstrap_rank_cmd.py::test_bootstrap_rank_parser_registers_flags PASSED [ 77%]\ntests/cli/test_bootstrap_rank_cmd.py::test_bootstrap_rank_default_limit_is_twenty PASSED [ 88%]\ntests/cli/test_bootstrap_rank_cmd.py::test_bootstrap_rank_human_output_lists_raw_signal_values PASSED [100%]\n\n============================== 9 passed in 0.36s ===============================",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/last-failure-packet.json",
+      "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/bootstrap.py:function:cmd_bootstrap",
+      "maid_runner/cli/commands/bootstrap.py:function:cmd_bootstrap:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/bootstrap.py:function:cmd_bootstrap:kind=function",
+      "maid_runner/cli/commands/bootstrap.py:function:cmd_bootstrap:returns=int",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:of=CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.HIGH:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:of=CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.LOW:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:of=CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageConfidence.MEDIUM:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.coverage_status",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.coverage_status:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.coverage_status:of=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.coverage_status:type=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.eligible",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.eligible:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.eligible:of=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.eligible:type=bool",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.exclusion_reason",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.exclusion_reason:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.exclusion_reason:of=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.exclusion_reason:type=str | None",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.path",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.path:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.path:of=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.path:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.recommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.recommendation:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.recommendation:of=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageExplanation.recommendation:type=CoverageRecommendation | None",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:of=CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.CRITICAL:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:of=CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.HIGH:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:of=CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.LOW:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:of=CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoveragePriority.MEDIUM:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.confidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.confidence:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.confidence:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.confidence:type=CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.coverage_status",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.coverage_status:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.coverage_status:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.coverage_status:type=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.path",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.path:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.path:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.path:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.priority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.priority:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.priority:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.priority:type=CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.reasons",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.reasons:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.reasons:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.reasons:type=tuple[str, ...]",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.recommended_action",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.recommended_action:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.recommended_action:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.recommended_action:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.score",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.score:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.score:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.score:type=float",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.signals",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.signals:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.signals:of=CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendation.signals:type=tuple[CoverageSignal, ...]",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.cache_status",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.cache_status:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.cache_status:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.cache_status:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.candidates",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.candidates:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.candidates:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.candidates:type=tuple[CoverageRecommendation, ...]",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.limit",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.limit:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.limit:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.limit:type=int",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.model",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.model:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.model:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.model:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.repository_head",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.repository_head:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.repository_head:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.repository_head:type=str | None",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.total_candidates",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.total_candidates:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.total_candidates:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.total_candidates:type=int",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.warnings",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.warnings:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.warnings:of=CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageRecommendationReport.warnings:type=tuple[str, ...]",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.confidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.confidence:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.confidence:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.confidence:type=CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.contribution",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.contribution:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.contribution:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.contribution:type=float",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.evidence",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.evidence:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.evidence:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.evidence:type=tuple[str, ...]",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.name",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.name:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.name:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.name:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.normalized_value",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.normalized_value:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.normalized_value:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.normalized_value:type=float | None",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.raw_value",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.raw_value:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.raw_value:of=CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageSignal.raw_value:type=str | int | float | bool | tuple[str, ...] | None",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:of=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.READ_ONLY:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:of=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.TRACKED:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:of=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.UNDECLARED:type=str",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:kind=attribute",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:of=CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:attribute:CoverageStatus.WRITABLE_NO_ARTIFACTS:type=str",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:base=Enum",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:base=str",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageConfidence:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageExplanation:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoveragePriority",
+      "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:base=Enum",
+      "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:base=str",
+      "maid_runner/core/coverage_recommendation.py:class:CoveragePriority:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageRecommendation",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageRecommendation:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageRecommendationReport",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageRecommendationReport:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageSignal",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageSignal:kind=class",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageStatus",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:base=Enum",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:base=str",
+      "maid_runner/core/coverage_recommendation.py:class:CoverageStatus:kind=class",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:arg=deep:type=bool:default=False",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:arg=manifest_dir:type=str:default='manifests/'",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:kind=function",
+      "maid_runner/core/coverage_recommendation.py:function:explain_coverage:returns=CoverageExplanation",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=deep:type=bool:default=False",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=limit:type=int:default=20",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=manifest_dir:type=str:default='manifests/'",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=respect_gitignore:type=bool:default=True",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:kind=function",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:returns=CoverageRecommendationReport"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/coverage_recommendation.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/bootstrap.py"
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/_file_tracking.py",
+        "maid_runner/core/_js_ts_imports.py",
+        "maid_runner/core/bootstrap.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/validators/registry.py",
+        "tests/cli/test_coverage_recommendation_cmd.py",
+        "tests/core/test_coverage_recommendation.py"
+      ],
+      "scope": [
+        "maid_runner/core/__init__.py",
+        "maid_runner/core/_dependency_index.py",
+        "maid_runner/core/_repository_history.py",
+        "maid_runner/core/_risk_metrics.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/coverage_recommendation.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CoverageStatus",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "UNDECLARED",
+              "of": "CoverageStatus",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "WRITABLE_NO_ARTIFACTS",
+              "of": "CoverageStatus",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "READ_ONLY",
+              "of": "CoverageStatus",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "TRACKED",
+              "of": "CoverageStatus",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoveragePriority",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "CRITICAL",
+              "of": "CoveragePriority",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "HIGH",
+              "of": "CoveragePriority",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "MEDIUM",
+              "of": "CoveragePriority",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "LOW",
+              "of": "CoveragePriority",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageConfidence",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "HIGH",
+              "of": "CoverageConfidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "MEDIUM",
+              "of": "CoverageConfidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "LOW",
+              "of": "CoverageConfidence",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageSignal"
+            },
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "CoverageSignal",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "raw_value",
+              "of": "CoverageSignal",
+              "type": "str | int | float | bool | tuple[str, ...] | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "normalized_value",
+              "of": "CoverageSignal",
+              "type": "float | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "contribution",
+              "of": "CoverageSignal",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "confidence",
+              "of": "CoverageSignal",
+              "type": "CoverageConfidence"
+            },
+            {
+              "kind": "attribute",
+              "name": "evidence",
+              "of": "CoverageSignal",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageRecommendation"
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "CoverageRecommendation",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_status",
+              "of": "CoverageRecommendation",
+              "type": "CoverageStatus"
+            },
+            {
+              "kind": "attribute",
+              "name": "score",
+              "of": "CoverageRecommendation",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "priority",
+              "of": "CoverageRecommendation",
+              "type": "CoveragePriority"
+            },
+            {
+              "kind": "attribute",
+              "name": "confidence",
+              "of": "CoverageRecommendation",
+              "type": "CoverageConfidence"
+            },
+            {
+              "kind": "attribute",
+              "name": "signals",
+              "of": "CoverageRecommendation",
+              "type": "tuple[CoverageSignal, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "reasons",
+              "of": "CoverageRecommendation",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "recommended_action",
+              "of": "CoverageRecommendation",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageRecommendationReport"
+            },
+            {
+              "kind": "attribute",
+              "name": "model",
+              "of": "CoverageRecommendationReport",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "repository_head",
+              "of": "CoverageRecommendationReport",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "candidates",
+              "of": "CoverageRecommendationReport",
+              "type": "tuple[CoverageRecommendation, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "total_candidates",
+              "of": "CoverageRecommendationReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "limit",
+              "of": "CoverageRecommendationReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "warnings",
+              "of": "CoverageRecommendationReport",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "cache_status",
+              "of": "CoverageRecommendationReport",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageExplanation"
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "CoverageExplanation",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "eligible",
+              "of": "CoverageExplanation",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_status",
+              "of": "CoverageExplanation",
+              "type": "CoverageStatus"
+            },
+            {
+              "kind": "attribute",
+              "name": "exclusion_reason",
+              "of": "CoverageExplanation",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "recommendation",
+              "of": "CoverageExplanation",
+              "type": "CoverageRecommendation | None"
+            },
+            {
+              "kind": "function",
+              "name": "recommend_coverage",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "limit",
+                  "type": "int",
+                  "default": "20"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "deep",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "CoverageRecommendationReport"
+            },
+            {
+              "kind": "function",
+              "name": "explain_coverage",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "deep",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "CoverageExplanation"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/bootstrap.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_bootstrap",
+              "description": "Dispatch legacy-v1 unchanged or render risk-v1 recommendations/explanations in text and JSON.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Bootstrap parser adds --model, --explain, and reserved --deep flags.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/bootstrap.py",
+        "maid_runner/core/_file_tracking.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/_js_ts_imports.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/validators/registry.py",
+        "tests/core/test_coverage_recommendation.py",
+        "tests/cli/test_coverage_recommendation_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_repository_history.py",
+          "reason": "Private repository-wide Git history index used only by recommend_coverage."
+        },
+        {
+          "path": "maid_runner/core/_dependency_index.py",
+          "reason": "Private production/test import graph index used only by recommend_coverage."
+        },
+        {
+          "path": "maid_runner/core/_risk_metrics.py",
+          "reason": "Private built-in complexity collection and scoring helpers used only by recommend_coverage."
+        },
+        {
+          "path": "maid_runner/core/__init__.py",
+          "reason": "Preserve the snapshot-controlled package surface; callers import the stable API from coverage_recommendation."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_bootstrap_rank_cmd.py",
+      "tests/cli/test_coverage_recommendation_cmd.py",
+      "tests/core/test_bootstrap_ranking.py",
+      "tests/core/test_coverage_recommendation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_coverage_recommendation_cmd.py -v",
+      "uv run python -m pytest tests/core/test_bootstrap_ranking.py tests/cli/test_bootstrap_rank_cmd.py -v"
+    ]
+  }
+}

@@ -37,7 +37,15 @@ from maid_runner.validators._python_implementation import (
     _is_stub_body as _python_is_stub_body,
     collect_implementation_artifacts,
 )
-from maid_runner.validators.base import BaseValidator, CollectionResult, FoundArtifact
+from maid_runner.validators.base import (
+    BaseValidator,
+    CollectionResult,
+    ComplexityResult,
+    DependencyCollectionResult,
+    FoundArtifact,
+    _logical_line_count,
+    _python_complexity,
+)
 
 
 _ImportScope = dict[str, tuple[Optional[str], Optional[str]]]
@@ -157,6 +165,67 @@ class PythonValidator(BaseValidator):
             exception_to_error=_python_syntax_error_to_error,
         )
 
+    def collect_dependencies(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+        project_root: Path,
+    ) -> DependencyCollectionResult:
+        try:
+            tree = _get_python_ast_for_source(source, file_path)
+        except SyntaxError as exc:
+            return DependencyCollectionResult(errors=(f"Syntax error: {exc}",))
+
+        importer_module = file_to_module_path(file_path, project_root)
+        relative_importer_module = importer_module
+        if Path(file_path).name == "__init__.py":
+            relative_importer_module = f"{importer_module}.__init__"
+        modules: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                modules.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                module = resolve_relative_import(
+                    node.module,
+                    node.level,
+                    relative_importer_module,
+                )
+                if module:
+                    imported_names = [
+                        alias.name for alias in node.names if alias.name != "*"
+                    ]
+                    submodules = set()
+                    for name in imported_names:
+                        candidate = f"{module}.{name}"
+                        if _python_module_exists(candidate, project_root):
+                            submodules.add(candidate)
+                    if submodules:
+                        modules.update(submodules)
+                    if len(submodules) < len(imported_names) or not imported_names:
+                        modules.add(module)
+        return DependencyCollectionResult(modules=tuple(sorted(modules)))
+
+    def collect_complexity(
+        self,
+        source: str,
+        file_path: Union[str, Path],
+    ) -> ComplexityResult:
+        artifacts = self.collect_implementation_artifacts(source, file_path)
+        if artifacts.errors:
+            return ComplexityResult(errors=tuple(artifacts.errors))
+        try:
+            decisions, largest = _python_complexity(source, file_path)
+        except SyntaxError as exc:
+            return ComplexityResult(errors=(f"Python parse failed: {exc.msg}",))
+        return ComplexityResult(
+            logical_lines=_logical_line_count(source),
+            decision_points=decisions,
+            largest_definition_lines=largest,
+            public_artifacts=sum(
+                1 for artifact in artifacts.artifacts if not artifact.is_private
+            ),
+        )
+
     def get_test_function_bodies(
         self,
         source: str,
@@ -186,6 +255,13 @@ class PythonValidator(BaseValidator):
         project_root: Path,
     ) -> Optional[tuple[str, str]]:
         return resolve_reexport(module, name, project_root)
+
+
+def _python_module_exists(module: str, project_root: Path) -> bool:
+    relative = Path(*module.split("."))
+    return (project_root / relative).with_suffix(".py").is_file() or (
+        project_root / relative / "__init__.py"
+    ).is_file()
 
 
 class _ImplementationCollector(_MovedImplementationCollector):
