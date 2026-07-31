@@ -45,7 +45,7 @@ maid test --json > /tmp/maid-audit-behavioral.json 2>&1
 maid validate --coherence --json > /tmp/maid-audit-coherence.json 2>&1
 
 # 4. File tracking: any undeclared or partially compliant files?
-maid validate --json > /tmp/maid-audit-tracking.json 2>&1
+maid files --json > /tmp/maid-audit-tracking.json 2>&1
 ```
 
 ---
@@ -105,6 +105,10 @@ maid coherence
 ### File Tracking Analysis
 
 The file tracking analysis identifies files that exist in the codebase but are not fully covered by manifests:
+
+```bash
+maid files --json
+```
 
 | Status | Meaning | Action |
 |--------|---------|--------|
@@ -179,6 +183,17 @@ Based on findings, recommend prioritized actions:
 - **REGISTERED files** — add artifacts and tests for partial coverage.
 - **Consolidate snapshots** — merge long manifest chains into consolidated snapshots.
 
+When incomplete brownfield coverage needs an implementation order, use the
+evidence-backed recommender:
+
+```bash
+maid bootstrap --rank --model risk-v1 --limit 20
+```
+
+This recommendation is advisory and must not change the audit verdict.
+`maid files` remains the source of truth for TRACKED, REGISTERED, and UNDECLARED
+status; risk-v1 only prioritizes the incomplete brownfield coverage backlog.
+
 ---
 
 ## Usage Patterns
@@ -236,9 +251,9 @@ options are `--index`, `--manifest-dir`, `--project-root`,
 
 ```
 User: "How much of this brownfield project is MAID-covered?"
-AI: [runs maid-auditor, focuses on file tracking]
+AI: [runs maid files for status, then risk-v1 for advisory priority]
 Report: 30 TRACKED, 15 REGISTERED, 45 UNDECLARED
-Result: Clear picture of onboarding progress
+Result: Clear coverage totals plus an evidence-backed migration order
 ```
 
 ---
@@ -268,6 +283,10 @@ This is what makes MAID different from traditional testing:
 maid validate              # Structural: all manifests
 maid test                  # Behavioral: all tests
 maid validate --coherence  # Architectural: coherence checks
+maid files                 # Coverage status and totals
+
+# Advisory priority for incomplete brownfield coverage
+maid bootstrap --rank --model risk-v1 --limit 20
 
 # JSON output (for automation)
 maid validate --json

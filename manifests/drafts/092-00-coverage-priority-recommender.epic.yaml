@@ -11,15 +11,17 @@ metadata:
     - developer-experience
   priority: high
 description: |
-  Split the second-generation brownfield recommender into three implementation
-  children so the scoring contract is stable before plugin extensibility and
-  optional expensive evidence are added:
+  Split the second-generation brownfield recommender into implementation
+  children so the scoring contract is stable before plugin extensibility,
+  optional expensive evidence, and adoption-guidance alignment are added:
 
   - 092-01 ships risk-v1, repository-wide indexes, explainable scoring, and CLI.
   - 092-02 moves dependency and complexity collection behind optional validator
     hooks without changing risk-v1 output.
   - 092-03 adds project policy, cache, historical context, and opt-in deep
     coverage evidence without changing the 100-point base weights.
+  - 092-04 aligns CLI how-to content and brownfield agent skills so risk-v1 is
+    the recommended migration-ordering model while legacy-v1 remains available.
 
   Existing `maid bootstrap --rank` behavior remains `legacy-v1` and stays the
   default for one release. No LLM participates in scoring.
@@ -38,7 +40,7 @@ files:
           name: _coverage_priority_recommender_epic
           of: manifest
           type: draft epic
-          description: "Planning inventory for children 092-01 through 092-03."
+          description: "Planning inventory for children 092-01 through 092-04."
   read:
     - manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml
 validate:

@@ -1,0 +1,287 @@
+{
+  "manifest_path": "manifests/092-04-align-risk-v1-guidance.manifest.yaml",
+  "manifest_hash": "sha256-contract:60fd8bd573de86ea42950ace0a6b78ba6f6a29e93bc90f4b8e36c23ee3059bfa",
+  "test_hashes": {
+    "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+    "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:511525bbff53e74a118a835c7c5c6429dcdf405495e845e9ef7d709e047e6eeb",
+    "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+  },
+  "created_at": "2026-07-31T01:28:02.946671+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:dfb59682caf0305df53cf55abbff738f16ce5dec93ee9dd73e860e26604cec78",
+      "prior_test_hashes": {
+        "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:aeace90e6388a5bb26305926cc9aeef7f3553888acea4f332b289613a0709aaa",
+        "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+      },
+      "revised_at": "2026-07-31T01:28:07.854532+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/092-04-align-risk-v1-guidance.manifest.yaml -> manifests/092-04-align-risk-v1-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:36ccc8f9bf467f5792a9871d8a6591e03c3b4b597f9c574480cd4d901367eda9",
+      "prior_test_hashes": {
+        "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:aeace90e6388a5bb26305926cc9aeef7f3553888acea4f332b289613a0709aaa",
+        "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+      },
+      "revised_at": "2026-07-31T01:38:02.352582+00:00",
+      "reason": "Address implementation review: declare the epic inventory, assert all risk-v1 incomplete candidate states, and remove stale draft-phase wording",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:manifests/drafts/092-00-coverage-priority-recommender.epic.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3b861cfabbf192989f11ffa93a58999bbd8b865bd4cb93f51a3121219b207edc",
+      "prior_test_hashes": {
+        "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:e73b16b70068feb2aae98fe9d57d4a8f48ebdcb5c68d6ae22aa3823bdb7a6e26",
+        "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+      },
+      "revised_at": "2026-07-31T01:50:39.149215+00:00",
+      "reason": "Add the required instruction payload version bump and behavioral version-floor contract for distributed skill guidance",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+          "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance",
+          "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance:kind=test_function",
+          "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/instruction_payload.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-31T01:50:39.677744+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/test_brownfield_onboarding_docs.py tests/test_coverage_recommendation_guidance.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py -v",
+        "exit_code": 1,
+        "output_tail": "______ test_instruction_payload_version_bumped_for_risk_v1_skill_guidance ______\n\n    def test_instruction_payload_version_bumped_for_risk_v1_skill_guidance() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\n            \"2026.07.25.1\"\n        )\nE       AssertionError: assert (2026, 7, 25, 1) > (2026, 7, 25, 1)\nE        +  where (2026, 7, 25, 1) = _version_tuple('2026.07.25.1')\nE        +  and   (2026, 7, 25, 1) = _version_tuple('2026.07.25.1')\n\ntests/test_coverage_recommendation_guidance.py:113: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_brownfield_onboarding_docs.py::test_howto_content_covers_rank_from_diff_and_baseline_rule\nFAILED tests/test_coverage_recommendation_guidance.py::test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default\nFAILED tests/test_coverage_recommendation_guidance.py::test_howto_distinguishes_risk_v1_from_legacy_ordering\nFAILED tests/test_coverage_recommendation_guidance.py::test_auditor_uses_risk_v1_for_priority_not_verdict\nFAILED tests/test_coverage_recommendation_guidance.py::test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage\nFAILED tests/test_coverage_recommendation_guidance.py::test_risk_v1_skill_guidance_sources_match_packaged_copies\nFAILED tests/test_coverage_recommendation_guidance.py::test_instruction_payload_version_bumped_for_risk_v1_skill_guidance\n========================= 7 failed, 9 passed in 0.36s ==========================",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_coverage_recommendation_guidance.py:test_auditor_uses_risk_v1_for_priority_not_verdict",
+      "tests/test_coverage_recommendation_guidance.py:test_auditor_uses_risk_v1_for_priority_not_verdict:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_auditor_uses_risk_v1_for_priority_not_verdict:returns=None",
+      "tests/test_coverage_recommendation_guidance.py:test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default",
+      "tests/test_coverage_recommendation_guidance.py:test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default:returns=None",
+      "tests/test_coverage_recommendation_guidance.py:test_howto_distinguishes_risk_v1_from_legacy_ordering",
+      "tests/test_coverage_recommendation_guidance.py:test_howto_distinguishes_risk_v1_from_legacy_ordering:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_howto_distinguishes_risk_v1_from_legacy_ordering:returns=None",
+      "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance",
+      "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_instruction_payload_version_bumped_for_risk_v1_skill_guidance:returns=None",
+      "tests/test_coverage_recommendation_guidance.py:test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage",
+      "tests/test_coverage_recommendation_guidance.py:test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage:returns=None",
+      "tests/test_coverage_recommendation_guidance.py:test_risk_v1_skill_guidance_sources_match_packaged_copies",
+      "tests/test_coverage_recommendation_guidance.py:test_risk_v1_skill_guidance_sources_match_packaged_copies:kind=test_function",
+      "tests/test_coverage_recommendation_guidance.py:test_risk_v1_skill_guidance_sources_match_packaged_copies:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_coverage_recommendation_guidance.py"
+      ],
+      "edit": [
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "README.md",
+        "maid_runner/cli/commands/bootstrap.py",
+        "manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/ci/test_claude_sync.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-auditor/SKILL.md",
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-auditor/SKILL.md",
+        ".codex/skills/maid-onboard/SKILL.md",
+        "maid_runner/claude/skills/maid-auditor/SKILL.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/howto.py",
+        "maid_runner/codex/skills/maid-auditor/SKILL.md",
+        "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+        "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+        "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml",
+        "tests/test_brownfield_onboarding_docs.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_coverage_recommendation_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default",
+              "description": "Bootstrap help presents risk-v1 for inadequately covered files and legacy-v1 as the compatibility default.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_howto_distinguishes_risk_v1_from_legacy_ordering",
+              "description": "Built-in guidance recommends explicit risk-v1 commands while accurately retaining the legacy raw-signal explanation.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_auditor_uses_risk_v1_for_priority_not_verdict",
+              "description": "Auditor skills keep maid files as coverage truth and treat risk-v1 ordering as advisory across Claude, Codex, and packaged copies.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage",
+              "description": "Onboard skills offer risk-v1 after setup when incomplete coverage remains without making it a workflow prerequisite.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_risk_v1_skill_guidance_sources_match_packaged_copies",
+              "description": "Canonical auditor and onboard skill sources match all generated and packaged Claude/Codex copies.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_risk_v1_skill_guidance",
+              "description": "The instruction payload version advances beyond 2026.07.25.1 so downstream init checks detect stale auditor guidance.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version advanced beyond 2026.07.25.1 for the changed distributed maid-auditor guidance.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "maid_runner/cli/commands/bootstrap.py",
+        "README.md",
+        "tests/ci/test_claude_sync.py",
+        "tests/test_agent_payload_distribution.py",
+        "manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Correct bootstrap rank/model help without changing parser behavior or defaults."
+        },
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "reason": "Recommend risk-v1 and distinguish it from the legacy raw-signal ordering."
+        },
+        {
+          "path": ".claude/skills/maid-auditor/SKILL.md",
+          "reason": "Add advisory risk-v1 prioritization while retaining maid files as coverage truth."
+        },
+        {
+          "path": ".codex/skills/maid-auditor/SKILL.md",
+          "reason": "Mirror the Claude auditor prioritization contract for Codex."
+        },
+        {
+          "path": ".claude/skills/maid-onboard/SKILL.md",
+          "reason": "Offer risk-v1 as a brownfield next step after setup."
+        },
+        {
+          "path": ".codex/skills/maid-onboard/SKILL.md",
+          "reason": "Mirror the Claude onboarding recommendation for Codex."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-auditor/SKILL.md",
+          "reason": "Generated Claude auditor payload synchronized from its canonical source."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-auditor/SKILL.md",
+          "reason": "Generated Codex auditor payload synchronized from its canonical source."
+        },
+        {
+          "path": "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "reason": "Packaged Claude user skill synchronized from its canonical source."
+        },
+        {
+          "path": "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+          "reason": "Packaged Codex user skill synchronized from its canonical source."
+        },
+        {
+          "path": "tests/test_brownfield_onboarding_docs.py",
+          "reason": "Replace obsolete legacy-only how-to expectations with model-aware behavior."
+        },
+        {
+          "path": "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml",
+          "reason": "Register 092-04 in the existing coverage-priority epic inventory."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_claude_sync.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_brownfield_onboarding_docs.py",
+      "tests/test_coverage_recommendation_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/test_brownfield_onboarding_docs.py tests/test_coverage_recommendation_guidance.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py -v"
+    ]
+  }
+}

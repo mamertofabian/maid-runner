@@ -1,0 +1,279 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Align bootstrap help, brownfield how-to content, and adoption skills with risk-v1
+  coverage prioritization while preserving legacy-v1 compatibility"
+type: feature
+created: "2026-07-31T01:28:07Z"
+metadata:
+  epic: 092-00-coverage-priority-recommender
+  tags:
+    - agent-skills
+    - bootstrap
+    - coverage-risk
+    - documentation
+  priority: medium
+description: |
+  Complete the risk-v1 rollout at the guidance layer. The CLI already exposes
+  both ranking models, but its `--rank` help still describes undeclared files
+  only, the built-in how-to still teaches the legacy raw-signal ordering, and
+  the brownfield auditor/onboarding skills do not use risk-v1 when choosing
+  what incomplete coverage to address next.
+
+  Pinned behavior:
+
+  1. Keep `legacy-v1` as the compatibility default. Help and how-to content
+     recommend the explicit `--model risk-v1` command for evidence-backed
+     brownfield migration ordering while explaining that `legacy-v1` preserves
+     the original undeclared-file ordering.
+
+  2. Describe risk-v1 candidates as inadequately covered files, including
+     undeclared files, read-only registrations, and writable manifests without
+     declared artifacts. Guidance names evidence, confidence, `--explain`, and
+     `--json` without changing the command surface or claiming that low
+     confidence means low risk.
+
+  3. Keep `maid files` as the auditor's source for coverage totals and tracking
+     status. Use `maid bootstrap --rank --model risk-v1` only to prioritize
+     incomplete brownfield coverage; recommendation scores are advisory and
+     must not change the audit verdict.
+
+  4. Teach maid-onboard to offer risk-v1 after repository setup when incomplete
+     brownfield coverage remains. Do not make ranking a prerequisite for init,
+     validation, or ordinary MAID work.
+
+  5. Edit canonical Claude and Codex skill sources, then run
+     `uv run python scripts/sync_claude_files.py` so packaged auditor skills and
+     user-level onboard skills stay byte-aligned with their sources.
+
+  6. Advance `INSTRUCTION_PAYLOAD_VERSION` beyond `2026.07.25.1` because
+     maid-auditor is installed through `maid init`. This lets downstream
+     `maid init --check` report the older distributed guidance as stale.
+
+  Behavioral tests confirmed the intended red phase before plan lock:
+
+  - Bootstrap parser help identifies risk-v1 as the recommended coverage-risk
+    model, identifies legacy-v1 as the compatibility default, and no longer
+    limits `--rank` conceptually to completely undeclared files.
+  - Built-in how-to output recommends explicit risk-v1 commands and accurately
+    distinguishes risk-v1 evidence from the legacy lexicographic raw signals.
+  - Auditor guidance uses risk-v1 only for prioritization, retains `maid files`
+    for coverage status, and states that recommendation output is advisory.
+  - Onboard guidance offers risk-v1 as the next-step migration order only when
+    brownfield coverage remains incomplete.
+  - Canonical Claude/Codex skill sources and every generated or packaged copy
+    remain synchronized.
+  - The instruction payload version advances beyond the pre-change
+    `2026.07.25.1` value.
+
+  Initial red phase: the parser-help assertion failed on the current
+  "undeclared files" wording; how-to assertions failed because the output
+  omitted `--model risk-v1` and presented only churn/inbound/public-artifact
+  ordering; skill assertions failed because neither auditor nor onboard
+  guidance named
+  risk-v1.
+
+  The review follow-up adds a version-floor assertion; plan revision captures
+  its red phase before the payload version is changed.
+
+  Outcome recall applied: prior agent-guidance work showed that every active
+  source and packaged copy needs parity coverage, and prior CLI help work showed
+  that documented options should be checked against the real argparse surface.
+  Older locked test contracts must be revised through MAID's plan-revision
+  workflow with preserved evidence where eligible, not by manufacturing a new
+  historical red phase.
+
+  Out of scope: risk-v1 scoring or collection changes, model-default changes,
+  README changes, general AGENTS.md or CLAUDE.md policy, planner/implementer/
+  reviewer/evolver skills, historical 061 manifests, and mandatory recommender
+  execution for every coding task.
+temptations:
+  - risk: "Do not silently replace legacy-v1 or change the bootstrap default."
+    instead: "Recommend explicit --model risk-v1 commands while documenting legacy-v1
+      as the compatibility default."
+  - risk: "Do not edit packaged skill copies as independent sources."
+    instead: "Edit canonical Claude and Codex skills, run the sync script, and assert
+      source/copy parity."
+  - risk: "Do not let an advisory recommendation score determine audit success or
+      failure."
+    instead: "Use maid files for tracking truth and risk-v1 only to order incomplete
+      coverage work."
+  - risk: "Do not spread risk-v1 instructions across every MAID workflow skill or
+      global agent policy."
+    instead: "Limit guidance to bootstrap help/how-to and the auditor/onboard brownfield
+      decision points."
+  - risk: "Do not change an init-distributed skill without a payload version signal."
+    instead: "Advance INSTRUCTION_PAYLOAD_VERSION and pin the new floor in the focused guidance test."
+files:
+  edit:
+    - path: maid_runner/instruction_payload.py
+      artifacts:
+        - kind: attribute
+          name: INSTRUCTION_PAYLOAD_VERSION
+          type: str
+          description: "Date-stamped instruction payload version advanced beyond 2026.07.25.1 for the changed distributed maid-auditor guidance."
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Correct bootstrap rank/model help without changing parser behavior
+        or defaults."
+    - path: maid_runner/cli/commands/howto.py
+      reason: "Recommend risk-v1 and distinguish it from the legacy raw-signal ordering."
+    - path: .claude/skills/maid-auditor/SKILL.md
+      reason: "Add advisory risk-v1 prioritization while retaining maid files as coverage
+        truth."
+    - path: .codex/skills/maid-auditor/SKILL.md
+      reason: "Mirror the Claude auditor prioritization contract for Codex."
+    - path: .claude/skills/maid-onboard/SKILL.md
+      reason: "Offer risk-v1 as a brownfield next step after setup."
+    - path: .codex/skills/maid-onboard/SKILL.md
+      reason: "Mirror the Claude onboarding recommendation for Codex."
+    - path: maid_runner/claude/skills/maid-auditor/SKILL.md
+      reason: "Generated Claude auditor payload synchronized from its canonical source."
+    - path: maid_runner/codex/skills/maid-auditor/SKILL.md
+      reason: "Generated Codex auditor payload synchronized from its canonical source."
+    - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+      reason: "Packaged Claude user skill synchronized from its canonical source."
+    - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+      reason: "Packaged Codex user skill synchronized from its canonical source."
+    - path: tests/test_brownfield_onboarding_docs.py
+      reason: "Replace obsolete legacy-only how-to expectations with model-aware behavior."
+    - path: manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+      reason: "Register 092-04 in the existing coverage-priority epic inventory."
+  create:
+    - path: tests/test_coverage_recommendation_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_bootstrap_help_recommends_risk_v1_and_preserves_legacy_default
+          args: []
+          returns: None
+          description: "Bootstrap help presents risk-v1 for inadequately covered files
+            and legacy-v1 as the compatibility default."
+        - kind: test_function
+          name: test_howto_distinguishes_risk_v1_from_legacy_ordering
+          args: []
+          returns: None
+          description: "Built-in guidance recommends explicit risk-v1 commands while
+            accurately retaining the legacy raw-signal explanation."
+        - kind: test_function
+          name: test_auditor_uses_risk_v1_for_priority_not_verdict
+          args: []
+          returns: None
+          description: "Auditor skills keep maid files as coverage truth and treat
+            risk-v1 ordering as advisory across Claude, Codex, and packaged copies."
+        - kind: test_function
+          name: test_onboard_offers_risk_v1_for_incomplete_brownfield_coverage
+          args: []
+          returns: None
+          description: "Onboard skills offer risk-v1 after setup when incomplete coverage
+            remains without making it a workflow prerequisite."
+        - kind: test_function
+          name: test_risk_v1_skill_guidance_sources_match_packaged_copies
+          args: []
+          returns: None
+          description: "Canonical auditor and onboard skill sources match all generated
+            and packaged Claude/Codex copies."
+        - kind: test_function
+          name: test_instruction_payload_version_bumped_for_risk_v1_skill_guidance
+          args: []
+          returns: None
+          description: "The instruction payload version advances beyond 2026.07.25.1 so downstream init checks detect stale auditor guidance."
+  read:
+    - scripts/sync_claude_files.py
+    - maid_runner/cli/commands/bootstrap.py
+    - README.md
+    - tests/ci/test_claude_sync.py
+    - tests/test_agent_payload_distribution.py
+    - manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml
+    - manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml
+    - manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml
+    - manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml
+validate:
+  - uv run python -m pytest tests/test_brownfield_onboarding_docs.py
+    tests/test_coverage_recommendation_guidance.py tests/ci/test_claude_sync.py
+    tests/test_agent_payload_distribution.py -v
+outcome:
+  status: completed
+  completed_at: "2026-07-31T02:01:38Z"
+  summary: "Aligned bootstrap and brownfield skill guidance with risk-v1, synchronized Claude/Codex payloads, and advanced the instruction payload version to 2026.07.31.1."
+  rationale: "The guidance recommends risk-v1 for evidence-backed ordering of inadequately covered files while retaining legacy-v1 as the parser default, maid files as tracking truth, and recommendations as advisory. The payload version bump makes downstream init checks detect the older distributed auditor guidance."
+  lessons:
+    - lesson_type: testing
+      summary: "Guidance tests should assert every materially distinct eligibility state, not only an umbrella phrase such as inadequately covered."
+      tags: [coverage-risk, behavioral-tests, cli-help]
+      paths:
+        - maid_runner/cli/commands/_main.py
+        - maid_runner/cli/commands/howto.py
+        - tests/test_coverage_recommendation_guidance.py
+    - lesson_type: workflow
+      summary: "Planning inventory edits made during implementation must be declared in the child manifest's writable scope even when the inventory predates promotion."
+      tags: [manifest-scope, implementation-review]
+      paths:
+        - manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+        - manifests/092-04-align-risk-v1-guidance.manifest.yaml
+    - lesson_type: compatibility
+      summary: "Changing an init-distributed Claude or Codex skill requires advancing INSTRUCTION_PAYLOAD_VERSION and pinning the prior version as a behavioral floor."
+      tags: [agent-skills, init-payload, versioning]
+      paths:
+        - maid_runner/instruction_payload.py
+        - tests/test_coverage_recommendation_guidance.py
+    - lesson_type: compatibility
+      summary: "Brownfield guidance can recommend a stronger model without changing compatibility by naming risk-v1 explicitly and retaining legacy-v1 as the actual default."
+      tags: [bootstrap, legacy-v1, risk-v1]
+      paths:
+        - maid_runner/cli/commands/_main.py
+        - maid_runner/cli/commands/howto.py
+  review_notes:
+    - source: risk_v1_guidance_review
+      severity: P1
+      summary: "Initial review found the epic inventory outside writable scope; fixed through lock revision 3."
+    - source: risk_v1_guidance_review
+      severity: P2
+      summary: "Initial review found missing explicit candidate categories and stale draft wording; fixed with tightened tests and renewed red evidence."
+    - source: user_follow_up
+      severity: P1
+      summary: "User identified the missing instruction payload version bump for changed distributed skills; fixed through lock revision 4."
+    - source: risk_v1_guidance_review
+      severity: ready
+      summary: "Final revision 4 review found no blocking or advisory findings and confirmed the payload version semantics."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/test_brownfield_onboarding_docs.py
+        - tests/test_coverage_recommendation_guidance.py
+        - tests/ci/test_claude_sync.py
+        - tests/test_agent_payload_distribution.py
+        - tests/cli/test_init_instruction_payload_version.py
+        - -v
+      status: passed
+      summary: "Expanded guidance, payload, and init-version tests passed: 23 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/092-04-align-risk-v1-guidance.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Promoted manifest implementation validation passed under lock revision 4."
+    - command: [uv, run, ruff, check, maid_runner/instruction_payload.py, maid_runner/cli/commands/_main.py, maid_runner/cli/commands/howto.py, tests/test_brownfield_onboarding_docs.py, tests/test_coverage_recommendation_guidance.py]
+      status: passed
+      summary: "Focused Ruff checks passed."
+    - command: [uv, run, black, --check, .]
+      status: passed
+      summary: "Repository Black formatting check passed for 467 files."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "Repository validation passed: 376 active manifests, 0 failures."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 212 manifest command groups passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Full test suite passed: 3657 passed, 5 skipped."
