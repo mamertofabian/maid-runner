@@ -1,0 +1,406 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Let validator plugins distinguish exact function and method overloads without
+  changing representative artifact matching"
+type: feature
+created: "2026-08-01T10:11:40Z"
+metadata:
+  sequence: "093-03"
+  tags:
+    - validator-plugin
+    - overloads
+    - artifact-identity
+    - signatures
+  priority: high
+description: |
+  Add an optional opaque `signature` discriminator to manifest and collected
+  function/method artifacts. Validator plugins own the discriminator's syntax
+  and must emit it only when they have exact evidence. Runner does not parse,
+  normalize, or infer language signatures.
+
+  Existing `merge_key()` behavior remains name/owner representative identity.
+  A separate collision-safe `contract_key()` includes the signature only when
+  supplied, so
+  exact overload declarations coexist in manifest chains while every existing
+  signatureless validator and manifest retains its current behavior. During
+  implementation validation, an exact declaration selects only the same exact
+  collected signature; a signatureless declaration deterministically retains
+  the previous last-collected representative comparison and covers all sibling
+  overloads in strict mode. Exact declarations make undeclared signed siblings
+  visible in strict mode.
+
+  Behavioral matching is equally conservative: a signatureless declaration
+  accepts existing representative references, but an exact declaration requires
+  an exact equal reference signature. A syntax-only collector must leave a call
+  signature unset rather than guess an overload from argument count, variable
+  names, or visible imports. Snapshot, manifest round-trip, from-diff, plan-lock,
+  diff-scope, implementation-coverage, validate-suggestion, and supersession
+  paths preserve the discriminator so no secondary tool silently collapses the
+  contract. Name-level removed_artifacts continue to mean every overload with
+  that representative identity.
+temptations:
+  - risk: "Do not add signatures to merge_key or change its established representative
+      identity."
+    instead: "Add a separate collision-safe contract_key that equals merge_key when
+      signature is absent and length-frames the exact opaque discriminator when present."
+  - risk: "Do not derive a language signature globally from args, returns, argument
+      count, or source text."
+    instead: "Carry a plugin-supplied opaque string end to end; validators emit it
+      only from exact language evidence."
+  - risk: "Do not let a signatureless behavioral reference satisfy an exact overload
+      declaration."
+    instead: "Require exact discriminator equality when the declared artifact has
+      a signature, while retaining representative fallback only for unsigned declarations."
+  - risk: "Do not preserve signatures only in implementation validation while snapshots,
+      chains, diff tools, or plan locks drop them."
+    instead: "Exercise schema, round-trip, snapshots, chain merging, from-diff rendering,
+      plan-lock hashes, coverage matching, and supersession auditing in the same contract."
+  - risk: "Do not make exact overload support weaken strict validation or supersession
+      preservation."
+    instead: "Treat signed siblings as distinct exact contracts, report undeclared
+      strict siblings, and audit a dropped signed overload independently."
+files:
+  create:
+    - path: tests/validators/test_artifact_signature_contract.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_signature_is_opt_in_exact_identity_without_changing_merge_key
+          source_scenario: "Signed and unsigned manifest and collected artifacts share
+            a representative name/owner identity."
+          actions:
+            - type: api_call
+              subject:
+                function: ArtifactSpec.contract_key
+            - type: api_call
+              subject:
+                function: FoundArtifact.contract_key
+          expected:
+            behavior: "Unsigned contract keys equal historical merge keys, while different
+              non-empty signatures and delimiter-like names cannot collide in exact
+              keys without changing merge_key."
+        - kind: test_function
+          name:
+            test_signature_schema_round_trip_and_snapshot_preserve_exact_value
+          source_scenario: "A method signature passes through schema validation, manifest
+            load/save, and validator snapshot generation."
+          actions:
+            - type: api_call
+              subject:
+                function: BaseValidator.generate_snapshot
+          expected:
+            behavior: "The exact opaque value survives every round-trip, while signature
+              is rejected on non-function/method kinds."
+        - kind: test_function
+          name:
+            test_exact_signature_selects_overload_and_strict_mode_rejects_siblings
+          source_scenario: "Collected overloads share name and owner but expose different
+            exact signatures and return contracts."
+          actions:
+            - type: api_call
+              subject:
+                function: compare_artifacts
+          expected:
+            behavior: "Exact declarations select only their signature for contract
+              and stub checks, exact default-hook acknowledgments do not leak across
+              overloads, undeclared signed siblings fail strict mode, and unsigned
+              declarations retain representative behavior."
+        - kind: test_function
+          name:
+            test_manifest_chain_and_validation_engine_retain_multiple_exact_overloads
+          source_scenario: "One file declares two same-name method contracts with
+            distinct signatures and the plugin collects both."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "Chain merging retains both exact contracts and end-to-end implementation
+              validation matches both without overwriting either."
+        - kind: test_function
+          name: test_behavioral_signature_matching_requires_exact_evidence
+          source_scenario: "An exact artifact is compared with equal, different, and
+            signatureless behavioral references."
+          actions:
+            - type: api_call
+              subject:
+                function: match_artifact_to_references
+          expected:
+            behavior: "Only an equal exact reference covers a signed artifact; an
+              unsigned artifact retains representative reference matching."
+        - kind: test_function
+          name:
+            test_signature_survives_from_diff_and_changes_plan_lock_contract_hash
+          source_scenario: "A signed overload is rendered from diff scope and then
+            its signature changes in an otherwise identical manifest."
+          actions:
+            - type: api_call
+              subject:
+                function: build_from_diff_manifest
+            - type: api_call
+              subject:
+                function: compute_manifest_contract_hash
+          expected:
+            behavior: "From-diff output includes the signature and plan-lock contract
+              hashing detects an exact signature change."
+        - kind: test_function
+          name: test_supersession_audit_detects_one_dropped_exact_overload
+          source_scenario: "A replacement manifest keeps one of two signed overloads
+            and silently omits the other, or changes between exact and representative
+            identity without declaring that contract change."
+          actions:
+            - type: api_call
+              subject:
+                function: SupersessionAuditor.find_violations
+          expected:
+            behavior: "The omitted exact overload and either exact/representative
+              identity-mode narrowing produce independent supersession violations
+              instead of collapsing under representative identity."
+        - kind: test_function
+          name: test_plugin_authoring_guide_documents_exact_signature_boundary
+          source_scenario: "The public validator-plugin guide describes the overload
+            discriminator."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide identifies signature as opaque and plugin-owned,
+              distinguishes exact from representative behavior, and forbids guessed
+              behavioral signatures."
+  edit:
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: attribute
+          name: signature
+          of: ArtifactSpec
+          type: Optional[str]
+          description: "Optional opaque exact overload discriminator; None retains
+            representative identity."
+        - kind: method
+          name: __post_init__
+          of: ArtifactSpec
+          args: []
+          returns: None
+          description: "Rejects empty signatures and signatures on artifact kinds
+            other than function and method."
+        - kind: method
+          name: contract_key
+          of: ArtifactSpec
+          args: []
+          returns: str
+          description: "Returns merge_key unchanged when unsigned and an exact signature-qualified
+            key otherwise."
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: attribute
+          name: signature
+          of: FoundArtifact
+          type: Optional[str]
+          description: "Optional exact discriminator emitted by a validator only from
+            exact language evidence."
+        - kind: method
+          name: __post_init__
+          of: FoundArtifact
+          args: []
+          returns: None
+          description: "Rejects empty signatures and signatures on artifact kinds
+            other than function and method so malformed plugins fail loudly."
+        - kind: method
+          name: contract_key
+          of: FoundArtifact
+          args: []
+          returns: str
+          description: "Mirrors ArtifactSpec exact contract identity without changing
+            merge_key."
+        - kind: method
+          name: generate_snapshot
+          of: BaseValidator
+          args:
+            - name: source
+              type: str
+            - name: file_path
+              type: Union[str, Path]
+          returns: "list[dict]"
+          description: "Includes a collected exact signature in snapshot output while
+            omitting absent signatures."
+    - path: maid_runner/core/identity.py
+      artifacts:
+        - kind: function
+          name: match_artifact_to_references
+          args:
+            - name: artifact
+              type: FoundArtifact
+            - name: references
+              type: Iterable[FoundArtifact]
+            - name: project_root
+              type: Path
+            - name: reexport_resolver
+              type: Optional[_ReexportResolver]
+              default: None
+          returns: bool
+          description: "Requires equal exact signatures for signed artifacts and retains
+            current representative identity rules for unsigned artifacts."
+  scope:
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      reason: "Allow a non-empty signature only on function and method ArtifactSpec
+        objects."
+    - path: maid_runner/core/manifest.py
+      reason: "Parse and serialize the optional signature without changing public
+        loader or saver signatures."
+    - path: maid_runner/core/snapshot.py
+      reason: "Preserve signature between FoundArtifact and ArtifactSpec in file/system
+        snapshots and test-stub conversion."
+    - path: maid_runner/core/chain.py
+      reason: "Merge exact signed artifacts by contract_key while leaving representative
+        merge_key behavior unchanged."
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Select exact overload candidates for contract and stub checks, scope
+        exact default-hook acknowledgments, and preserve deterministic legacy representative
+        and strict behavior when unsigned."
+    - path: maid_runner/core/_behavioral_validation.py
+      reason: "Carry ArtifactSpec.signature into behavioral identity matching."
+    - path: maid_runner/core/_implementation_coverage.py
+      reason: "Apply the same exact-versus-representative evidence rule in implementation
+        coverage."
+    - path: maid_runner/core/validate_suggestions.py
+      reason: "Do not suggest a test as covering an exact changed overload when its
+        reference is signatureless or different."
+    - path: maid_runner/core/diff_scope.py
+      reason: "Retain multiple signed overloads as distinct diff identities, deterministically
+        sort them, and treat discriminator changes as exact artifact changes."
+    - path: maid_runner/core/manifest_from_diff.py
+      reason: "Render the optional signature in generated draft artifact declarations."
+    - path: maid_runner/core/plan_lock.py
+      reason: "Prefix locked declarations with contract_key and include signature
+        so overload-specific return/argument changes cannot be reassociated without
+        changing the hash."
+    - path: maid_runner/core/supersession_audit.py
+      reason: "Audit signed overloads independently while keeping name-level removed_artifacts
+        representative over all overloads."
+    - path: docs/validator-plugin-authoring.md
+      reason: "Document opaque signature format ownership, exact/representative semantics,
+        snapshot behavior, and the no-guess rule for behavioral collectors."
+  read:
+    - manifests/093-02-add-validator-type-comparison-hook.manifest.yaml
+    - manifests/fix-artifact-kind-identity.manifest.yaml
+    - manifests/add-semantic-reference-index.manifest.yaml
+    - manifests/add-supersession-artifact-preservation.manifest.yaml
+    - manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml
+    - manifests/063-04-document-validator-plugin-authoring.manifest.yaml
+    - maid_runner/core/_removed_artifacts.py
+    - maid_runner/core/validate.py
+validate:
+  - uv run python -m pytest tests/validators/test_artifact_signature_contract.py
+    -v
+  - uv run maid validate
+    manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode
+    behavioral --quiet
+  - uv run maid validate
+    manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode schema
+    --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-01T18:40:34+08:00'
+  summary: >-
+    Validator plugins can now attach an optional opaque exact signature to
+    function and method artifacts. Runner preserves the discriminator through
+    manifests, snapshots, chains, validation, coverage evidence, diff tooling,
+    plan locks, and supersession without changing historical representative
+    merge identity for unsigned plugins and contracts.
+  rationale: >-
+    A separate collision-safe contract_key keeps exact overloads distinct while
+    merge_key remains the compatibility identity. Signed declarations require
+    equal signed implementation and behavioral evidence; unsigned declarations
+    retain deterministic last-collected comparison and strict-mode sibling
+    coverage. Signatures are plugin-owned, are never inferred globally, and are
+    rejected when empty or attached to non-callable artifact kinds.
+  lessons:
+    - lesson_type: compatibility
+      summary: >-
+        Adding exact identity safely required a second key rather than changing
+        merge_key. Unsigned validators, removals, and representative contracts
+        keep their established behavior while signed declarations opt into
+        stricter matching.
+      tags:
+        - validator-plugin
+        - artifact-identity
+        - overloads
+      paths:
+        - maid_runner/core/types.py
+        - maid_runner/validators/base.py
+        - maid_runner/core/_implementation_validation.py
+    - lesson_type: test-design
+      summary: >-
+        End-to-end fake-plugin fixtures must use a filename Runner recognizes as
+        a test and must emit evidence for every exact overload in a success
+        scenario. Stash-backed revisions preserved honest red evidence while
+        correcting both fixture assumptions.
+      tags:
+        - behavioral-contract
+        - red-evidence
+        - exact-identity
+      paths:
+        - tests/validators/test_artifact_signature_contract.py
+        - .maid/plan-locks/093-03-add-exact-artifact-signatures.lock.json
+    - lesson_type: workflow
+      summary: >-
+        Independent review caught a supersession weakening that broad tests did
+        not: a signed replacement must not satisfy an unsigned representative
+        contract, and an unsigned replacement must not erase a prior exact
+        contract. Cross-mode tests now enforce both directions.
+      tags:
+        - implementation-review
+        - supersession
+        - anti-gaming
+      paths:
+        - maid_runner/core/supersession_audit.py
+        - tests/validators/test_artifact_signature_contract.py
+  review_notes:
+    - source: implementation-review-subagent-round-1
+      severity: needs-changes
+      summary: >-
+        Found one P1: signed replacement artifacts were incorrectly entered in
+        the representative preservation bucket, allowing an unsigned
+        superseded contract to narrow silently.
+    - source: implementation-review-subagent-round-2
+      severity: ready
+      summary: >-
+        Confirmed the P1 is resolved and found no remaining actionable issues.
+        Residual advisory: diff scope classifies discriminator changes as
+        remove/add rather than signature_changed, while preserving the new
+        exact value in generated output.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/validators/test_artifact_signature_contract.py, -v]
+      status: failed
+      summary: >-
+        Initial and stash-backed red phases produced eight intended failures
+        before implementation, including exact identity, propagation, strict,
+        coverage, plan-lock, and supersession scenarios.
+    - command: [uv, run, python, -m, pytest, tests/validators/test_artifact_signature_contract.py, tests/core/test_supersession_audit.py, -q]
+      status: passed
+      summary: All 52 focused and post-review supersession tests passed.
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: Full suite passed with 3674 tests and 5 expected skips.
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: Repository Ruff gate passed.
+    - command: [uv, run, black, --check, .]
+      status: passed
+      summary: Repository Black gate passed for all 469 checked files.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 378 active manifests passed; 100 superseded manifests skipped.
+    - command: [uv, run, maid, test, --jobs, '4']
+      status: passed
+      summary: All 216 repository manifest validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, '1705459']
+      status: passed
+      summary: >-
+        All 9 strict handoff gates passed with zero blocking findings; only the
+        pre-existing E307 warnings for Makefile and the CJS resolver remained.

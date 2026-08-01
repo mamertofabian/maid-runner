@@ -1411,11 +1411,13 @@ def _artifact_declarations(manifest: Manifest) -> set[str]:
     declarations: set[str] = set()
     for file_spec in manifest.all_file_specs:
         for artifact in file_spec.artifacts:
-            prefix = f"{file_spec.path}:{artifact.merge_key()}"
+            prefix = f"{file_spec.path}:{artifact.contract_key()}"
             declarations.add(prefix)
             declarations.add(f"{prefix}:kind={artifact.kind.value}")
             if artifact.of is not None:
                 declarations.add(f"{prefix}:of={artifact.of}")
+            if artifact.signature is not None:
+                declarations.add(f"{prefix}:signature={artifact.signature}")
             if artifact.returns is not None:
                 declarations.add(f"{prefix}:returns={artifact.returns}")
             if artifact.type_annotation is not None:

@@ -1,0 +1,527 @@
+{
+  "manifest_path": "manifests/093-03-add-exact-artifact-signatures.manifest.yaml",
+  "manifest_hash": "sha256-contract:e0af9cb996e3952e75d9b07359f4b036fc7c4e24adf0b1deb0847af15815f7c7",
+  "test_hashes": {
+    "tests/validators/test_artifact_signature_contract.py": "sha256-pyast:v2:3302972ca2355f4946705c2e17edcf23cfb42b5923f3152cdc4bffd7cc59baf4"
+  },
+  "created_at": "2026-08-01T10:11:32.890780+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1f2b3f2818fa8e7c9ab472932f25bf55a31717044215c0278d9688de9f4ff4c9",
+      "prior_test_hashes": {
+        "tests/validators/test_artifact_signature_contract.py": "sha256-pyast:v2:f92061a7d09225005d25d4bed465f3305e49514e749db241351a833b2affde9f"
+      },
+      "revised_at": "2026-08-01T10:11:40.476424+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/093-03-add-exact-artifact-signatures.manifest.yaml -> manifests/093-03-add-exact-artifact-signatures.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/093-03-add-exact-artifact-signatures.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/093-03-add-exact-artifact-signatures.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07850f001fae61d72f97721e83ce87f33b342fa3c87a8da8fc864a74ba663ac1",
+      "prior_test_hashes": {
+        "tests/validators/test_artifact_signature_contract.py": "sha256-pyast:v2:f92061a7d09225005d25d4bed465f3305e49514e749db241351a833b2affde9f"
+      },
+      "revised_at": "2026-08-01T10:18:06.324622+00:00",
+      "reason": "Use an established test-file naming pattern for the fake plugin fixture and assert schema rejection without coupling to diagnostic path wording",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07850f001fae61d72f97721e83ce87f33b342fa3c87a8da8fc864a74ba663ac1",
+      "prior_test_hashes": {
+        "tests/validators/test_artifact_signature_contract.py": "sha256-pyast:v2:7b3cd07300c5f0f043e1ead5e3cfd0e0bf59592e893b0ad73d3d5c8c51e936fb"
+      },
+      "revised_at": "2026-08-01T10:18:31.495806+00:00",
+      "reason": "Make the two-overload success fixture provide exact behavioral evidence for both declared overloads",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07850f001fae61d72f97721e83ce87f33b342fa3c87a8da8fc864a74ba663ac1",
+      "prior_test_hashes": {
+        "tests/validators/test_artifact_signature_contract.py": "sha256-pyast:v2:7e8a9b11b28c381c259c4b38c2408424cc8863df235fd41001fb9fac98c61c11"
+      },
+      "revised_at": "2026-08-01T10:36:04.507962+00:00",
+      "reason": "Add review-required supersession coverage so exact and representative identity modes cannot silently replace one another",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-01T10:36:06.312639+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_artifact_signature_contract.py -v",
+        "exit_code": 1,
+        "output_tail": "tests/validators/test_artifact_signature_contract.py:483: AssertionError\n________ test_plugin_authoring_guide_documents_exact_signature_boundary ________\n\n    def test_plugin_authoring_guide_documents_exact_signature_boundary() -> None:\n        guide = Path(\"docs/validator-plugin-authoring.md\").read_text().lower()\n    \n>       assert \"signature\" in guide\nE       assert 'signature' in \"# validator plugin authoring\\n\\nthird-party validator plugins let a separate package add language support to\\nmaid runner without adding that parser to this repository. a plugin owns parser\\nquality for its language; maid runner owns the validator contract, discovery,\\ndiagnostics, and validation semantics.\\n\\nlanguage requests against this repository should use the validator plugin path.\\nreference validators, such as a minimal rust validator, belong in separate\\nrepositories rather than in tree.\\n\\n## public contract\\n\\nthe public validator plugin contract is deliberately small:\\n\\n- `basevalidator`\\n- `collectionresult`\\n- `foundartifact` values returned inside `collectionresult.artifacts`\\n- `validatorregistry.register()` registration semantics\\n- the entry-point discovery rules documented here\\n\\nthis surface carries semver discipline. any breaking change to the public\\nvalidator surface, including `basevalidator`, `collectionresult`, or\\nregistration semantics, requires a major version of maid runner. everything else under `maid_runner/validators/` is internal; it can change without plugin compatibility guarantees.\\n\\n## validator class\\n\\na plugin exposes a `basevalidator...s.\\n\\nthe kit verifies that implementation samples produce exact artifact kinds and\\nidentity fields, repeated collection is deterministic, private artifacts stay\\nprivate and out of snapshots, the correct behavioral sample references the\\ndeclared target, the wrong identity sample does not match that target, parse\\nerrors return `collectionresult(errors=[...], artifacts=[])`, and empty files\\nreturn no artifacts or errors.\\n\\ndo not treat the kit as optional guidance. a plugin that cannot pass it has not\\nshown that its collector preserves maid validation semantics.\\n\\n## support boundary\\n\\nplugins own parser quality; maid runner owns the contract. plugin maintainers\\nare responsible for their parser dependency, language version coverage, edge\\ncases, and release cadence. maid runner maintains the public contract,\\nentry-point discovery, conflict isolation, e902/e903 diagnostics, the\\n`maid validators` audit surface, and the conformance kit.\\n\\nfor a new language, publish an external plugin package and run the conformance\\nkit in that package's test suite. do not add a new in-tree validator to this\\nrepository unless a separate approved maid plan changes the support boundary.\\n\"\n\ntests/validators/test_artifact_signature_contract.py:508: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_artifact_signature_contract.py::test_signature_is_opt_in_exact_identity_without_changing_merge_key\nFAILED tests/validators/test_artifact_signature_contract.py::test_signature_schema_round_trip_and_snapshot_preserve_exact_value\nFAILED tests/validators/test_artifact_signature_contract.py::test_exact_signature_selects_overload_and_strict_mode_rejects_siblings\nFAILED tests/validators/test_artifact_signature_contract.py::test_manifest_chain_and_validation_engine_retain_multiple_exact_overloads\nFAILED tests/validators/test_artifact_signature_contract.py::test_behavioral_signature_matching_requires_exact_evidence\nFAILED tests/validators/test_artifact_signature_contract.py::test_signature_survives_from_diff_and_changes_plan_lock_contract_hash\nFAILED tests/validators/test_artifact_signature_contract.py::test_supersession_audit_detects_one_dropped_exact_overload\nFAILED tests/validators/test_artifact_signature_contract.py::test_plugin_authoring_guide_documents_exact_signature_boundary\n============================== 8 failed in 0.22s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/identity.py:function:match_artifact_to_references",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=artifact:type=FoundArtifact:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=project_root:type=Path:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=reexport_resolver:type=Optional[_ReexportResolver]:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:arg=references:type=Iterable[FoundArtifact]:default=None",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:kind=function",
+      "maid_runner/core/identity.py:function:match_artifact_to_references:returns=bool",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.signature",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.signature:kind=attribute",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.signature:of=ArtifactSpec",
+      "maid_runner/core/types.py:attribute:ArtifactSpec.signature:type=Optional[str]",
+      "maid_runner/core/types.py:method:ArtifactSpec.__post_init__",
+      "maid_runner/core/types.py:method:ArtifactSpec.__post_init__:kind=method",
+      "maid_runner/core/types.py:method:ArtifactSpec.__post_init__:of=ArtifactSpec",
+      "maid_runner/core/types.py:method:ArtifactSpec.__post_init__:returns=None",
+      "maid_runner/core/types.py:method:ArtifactSpec.contract_key",
+      "maid_runner/core/types.py:method:ArtifactSpec.contract_key:kind=method",
+      "maid_runner/core/types.py:method:ArtifactSpec.contract_key:of=ArtifactSpec",
+      "maid_runner/core/types.py:method:ArtifactSpec.contract_key:returns=str",
+      "maid_runner/validators/base.py:attribute:FoundArtifact.signature",
+      "maid_runner/validators/base.py:attribute:FoundArtifact.signature:kind=attribute",
+      "maid_runner/validators/base.py:attribute:FoundArtifact.signature:of=FoundArtifact",
+      "maid_runner/validators/base.py:attribute:FoundArtifact.signature:type=Optional[str]",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot:arg=source:type=str:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.generate_snapshot:returns=list[dict]",
+      "maid_runner/validators/base.py:method:FoundArtifact.__post_init__",
+      "maid_runner/validators/base.py:method:FoundArtifact.__post_init__:kind=method",
+      "maid_runner/validators/base.py:method:FoundArtifact.__post_init__:of=FoundArtifact",
+      "maid_runner/validators/base.py:method:FoundArtifact.__post_init__:returns=None",
+      "maid_runner/validators/base.py:method:FoundArtifact.contract_key",
+      "maid_runner/validators/base.py:method:FoundArtifact.contract_key:kind=method",
+      "maid_runner/validators/base.py:method:FoundArtifact.contract_key:of=FoundArtifact",
+      "maid_runner/validators/base.py:method:FoundArtifact.contract_key:returns=str",
+      "tests/validators/test_artifact_signature_contract.py:test_behavioral_signature_matching_requires_exact_evidence",
+      "tests/validators/test_artifact_signature_contract.py:test_behavioral_signature_matching_requires_exact_evidence:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_exact_signature_selects_overload_and_strict_mode_rejects_siblings",
+      "tests/validators/test_artifact_signature_contract.py:test_exact_signature_selects_overload_and_strict_mode_rejects_siblings:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_manifest_chain_and_validation_engine_retain_multiple_exact_overloads",
+      "tests/validators/test_artifact_signature_contract.py:test_manifest_chain_and_validation_engine_retain_multiple_exact_overloads:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_plugin_authoring_guide_documents_exact_signature_boundary",
+      "tests/validators/test_artifact_signature_contract.py:test_plugin_authoring_guide_documents_exact_signature_boundary:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_is_opt_in_exact_identity_without_changing_merge_key",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_is_opt_in_exact_identity_without_changing_merge_key:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_schema_round_trip_and_snapshot_preserve_exact_value",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_schema_round_trip_and_snapshot_preserve_exact_value:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_survives_from_diff_and_changes_plan_lock_contract_hash",
+      "tests/validators/test_artifact_signature_contract.py:test_signature_survives_from_diff_and_changes_plan_lock_contract_hash:kind=test_function",
+      "tests/validators/test_artifact_signature_contract.py:test_supersession_audit_detects_one_dropped_exact_overload",
+      "tests/validators/test_artifact_signature_contract.py:test_supersession_audit_detects_one_dropped_exact_overload:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_artifact_signature_contract.py"
+      ],
+      "edit": [
+        "maid_runner/core/identity.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py"
+      ],
+      "read": [
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/validate.py",
+        "manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml",
+        "manifests/add-semantic-reference-index.manifest.yaml",
+        "manifests/add-supersession-artifact-preservation.manifest.yaml",
+        "manifests/fix-artifact-kind-identity.manifest.yaml"
+      ],
+      "scope": [
+        "docs/validator-plugin-authoring.md",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/_implementation_coverage.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/manifest_from_diff.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/validate_suggestions.py",
+        "maid_runner/schemas/manifest.v2.schema.json"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_artifact_signature_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_signature_is_opt_in_exact_identity_without_changing_merge_key",
+              "source_scenario": "Signed and unsigned manifest and collected artifacts share a representative name/owner identity.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ArtifactSpec.contract_key"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "FoundArtifact.contract_key"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Unsigned contract keys equal historical merge keys, while different non-empty signatures and delimiter-like names cannot collide in exact keys without changing merge_key."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_signature_schema_round_trip_and_snapshot_preserve_exact_value",
+              "source_scenario": "A method signature passes through schema validation, manifest load/save, and validator snapshot generation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "BaseValidator.generate_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The exact opaque value survives every round-trip, while signature is rejected on non-function/method kinds."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_exact_signature_selects_overload_and_strict_mode_rejects_siblings",
+              "source_scenario": "Collected overloads share name and owner but expose different exact signatures and return contracts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compare_artifacts"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Exact declarations select only their signature for contract and stub checks, exact default-hook acknowledgments do not leak across overloads, undeclared signed siblings fail strict mode, and unsigned declarations retain representative behavior."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_chain_and_validation_engine_retain_multiple_exact_overloads",
+              "source_scenario": "One file declares two same-name method contracts with distinct signatures and the plugin collects both.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Chain merging retains both exact contracts and end-to-end implementation validation matches both without overwriting either."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_behavioral_signature_matching_requires_exact_evidence",
+              "source_scenario": "An exact artifact is compared with equal, different, and signatureless behavioral references.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "match_artifact_to_references"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only an equal exact reference covers a signed artifact; an unsigned artifact retains representative reference matching."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_signature_survives_from_diff_and_changes_plan_lock_contract_hash",
+              "source_scenario": "A signed overload is rendered from diff scope and then its signature changes in an otherwise identical manifest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "build_from_diff_manifest"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "compute_manifest_contract_hash"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "From-diff output includes the signature and plan-lock contract hashing detects an exact signature change."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_supersession_audit_detects_one_dropped_exact_overload",
+              "source_scenario": "A replacement manifest keeps one of two signed overloads and silently omits the other, or changes between exact and representative identity without declaring that contract change.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "SupersessionAuditor.find_violations"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The omitted exact overload and either exact/representative identity-mode narrowing produce independent supersession violations instead of collapsing under representative identity."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plugin_authoring_guide_documents_exact_signature_boundary",
+              "source_scenario": "The public validator-plugin guide describes the overload discriminator.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide identifies signature as opaque and plugin-owned, distinguishes exact from representative behavior, and forbids guessed behavioral signatures."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/types.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "signature",
+              "description": "Optional opaque exact overload discriminator; None retains representative identity.",
+              "of": "ArtifactSpec",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "method",
+              "name": "__post_init__",
+              "description": "Rejects empty signatures and signatures on artifact kinds other than function and method.",
+              "of": "ArtifactSpec",
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "contract_key",
+              "description": "Returns merge_key unchanged when unsigned and an exact signature-qualified key otherwise.",
+              "of": "ArtifactSpec",
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/base.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "signature",
+              "description": "Optional exact discriminator emitted by a validator only from exact language evidence.",
+              "of": "FoundArtifact",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "method",
+              "name": "__post_init__",
+              "description": "Rejects empty signatures and signatures on artifact kinds other than function and method so malformed plugins fail loudly.",
+              "of": "FoundArtifact",
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "contract_key",
+              "description": "Mirrors ArtifactSpec exact contract identity without changing merge_key.",
+              "of": "FoundArtifact",
+              "returns": "str"
+            },
+            {
+              "kind": "method",
+              "name": "generate_snapshot",
+              "description": "Includes a collected exact signature in snapshot output while omitting absent signatures.",
+              "of": "BaseValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "list[dict]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/identity.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "match_artifact_to_references",
+              "description": "Requires equal exact signatures for signed artifacts and retains current representative identity rules for unsigned artifacts.",
+              "args": [
+                {
+                  "name": "artifact",
+                  "type": "FoundArtifact"
+                },
+                {
+                  "name": "references",
+                  "type": "Iterable[FoundArtifact]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reexport_resolver",
+                  "type": "Optional[_ReexportResolver]",
+                  "default": "None"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml",
+        "manifests/fix-artifact-kind-identity.manifest.yaml",
+        "manifests/add-semantic-reference-index.manifest.yaml",
+        "manifests/add-supersession-artifact-preservation.manifest.yaml",
+        "manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/validate.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/schemas/manifest.v2.schema.json",
+          "reason": "Allow a non-empty signature only on function and method ArtifactSpec objects."
+        },
+        {
+          "path": "maid_runner/core/manifest.py",
+          "reason": "Parse and serialize the optional signature without changing public loader or saver signatures."
+        },
+        {
+          "path": "maid_runner/core/snapshot.py",
+          "reason": "Preserve signature between FoundArtifact and ArtifactSpec in file/system snapshots and test-stub conversion."
+        },
+        {
+          "path": "maid_runner/core/chain.py",
+          "reason": "Merge exact signed artifacts by contract_key while leaving representative merge_key behavior unchanged."
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Select exact overload candidates for contract and stub checks, scope exact default-hook acknowledgments, and preserve deterministic legacy representative and strict behavior when unsigned."
+        },
+        {
+          "path": "maid_runner/core/_behavioral_validation.py",
+          "reason": "Carry ArtifactSpec.signature into behavioral identity matching."
+        },
+        {
+          "path": "maid_runner/core/_implementation_coverage.py",
+          "reason": "Apply the same exact-versus-representative evidence rule in implementation coverage."
+        },
+        {
+          "path": "maid_runner/core/validate_suggestions.py",
+          "reason": "Do not suggest a test as covering an exact changed overload when its reference is signatureless or different."
+        },
+        {
+          "path": "maid_runner/core/diff_scope.py",
+          "reason": "Retain multiple signed overloads as distinct diff identities, deterministically sort them, and treat discriminator changes as exact artifact changes."
+        },
+        {
+          "path": "maid_runner/core/manifest_from_diff.py",
+          "reason": "Render the optional signature in generated draft artifact declarations."
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "reason": "Prefix locked declarations with contract_key and include signature so overload-specific return/argument changes cannot be reassociated without changing the hash."
+        },
+        {
+          "path": "maid_runner/core/supersession_audit.py",
+          "reason": "Audit signed overloads independently while keeping name-level removed_artifacts representative over all overloads."
+        },
+        {
+          "path": "docs/validator-plugin-authoring.md",
+          "reason": "Document opaque signature format ownership, exact/representative semantics, snapshot behavior, and the no-guess rule for behavioral collectors."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_artifact_signature_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_artifact_signature_contract.py -v",
+      "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/093-03-add-exact-artifact-signatures.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

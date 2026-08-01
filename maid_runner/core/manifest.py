@@ -719,6 +719,7 @@ def _parse_artifact(data: dict) -> ArtifactSpec:
         type_annotation=data.get("type"),
         test_details=test_details,
         default_hook=data.get("default_hook", False),
+        signature=data.get("signature"),
     )
 
 
@@ -903,6 +904,8 @@ def _artifact_to_dict(spec: ArtifactSpec) -> dict:
         ]
     if spec.returns:
         d["returns"] = spec.returns
+    if spec.signature is not None:
+        d["signature"] = spec.signature
     if spec.raises:
         d["raises"] = list(spec.raises)
     if spec.is_async:

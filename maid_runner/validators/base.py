@@ -10,7 +10,12 @@ import re
 from typing import Callable, Optional, Union
 
 from maid_runner.core._type_compare import types_match as _types_match
-from maid_runner.core.types import ArtifactKind, ArgSpec
+from maid_runner.core.types import (
+    ArtifactKind,
+    ArgSpec,
+    _artifact_contract_key,
+    _validate_artifact_signature,
+)
 
 
 @dataclass(frozen=True)
@@ -33,6 +38,10 @@ class FoundArtifact:
     import_source: Optional[str] = None
     alias_of: Optional[str] = None
     reference_context: Optional[str] = None
+    signature: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        _validate_artifact_signature(self.kind, self.signature)
 
     @property
     def is_private(self) -> bool:
@@ -52,6 +61,9 @@ class FoundArtifact:
         if self.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and self.of:
             return f"{self.kind.value}:{self.of}.{self.name}"
         return f"{self.kind.value}:{self.name}"
+
+    def contract_key(self) -> str:
+        return _artifact_contract_key(self.merge_key(), self.signature)
 
 
 @dataclass
@@ -251,6 +263,8 @@ class BaseValidator(ABC):
         d: dict = {"kind": artifact.kind.value, "name": artifact.name}
         if artifact.of:
             d["of"] = artifact.of
+        if artifact.signature is not None:
+            d["signature"] = artifact.signature
         if artifact.args:
             d["args"] = [
                 {

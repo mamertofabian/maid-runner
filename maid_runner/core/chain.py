@@ -229,7 +229,7 @@ class ManifestChain:
             for fs in m.all_file_specs:
                 file_artifacts = result.setdefault(fs.path, {})
                 for a in fs.artifacts:
-                    file_artifacts[a.merge_key()] = a
+                    file_artifacts[a.contract_key()] = a
 
             for ds in m.files_delete:
                 result.pop(ds.path, None)
@@ -301,7 +301,7 @@ class ManifestChain:
             for fs in m.all_file_specs:
                 if fs.path == path:
                     for artifact in fs.artifacts:
-                        merged[artifact.merge_key()] = artifact
+                        merged[artifact.contract_key()] = artifact
 
         return list(merged.values())
 

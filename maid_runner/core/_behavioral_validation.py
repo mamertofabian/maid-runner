@@ -101,6 +101,7 @@ def _validate_artifacts_used_in_tests(
                 name=artifact.name,
                 of=artifact.of,
                 module_path=artifact_module,
+                signature=artifact.signature,
             )
             used = False
             for refs in test_artifacts.values():

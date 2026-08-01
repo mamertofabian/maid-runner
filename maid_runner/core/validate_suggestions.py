@@ -82,6 +82,8 @@ def _test_references_changed_artifact(
 def _references_artifact(reference: FoundArtifact, artifact: ArtifactSpec) -> bool:
     if reference.name != artifact.name:
         return False
+    if artifact.signature is not None and reference.signature != artifact.signature:
+        return False
     if artifact.of is not None:
         return reference.of == artifact.of
     return True

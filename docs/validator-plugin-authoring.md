@@ -114,6 +114,32 @@ source. Overrides must be deterministic. If comparison cannot be performed,
 fail loud with a visible exception or diagnostic; Runner does not silently
 retry with the default comparator under different language semantics.
 
+### Exact Overload Signatures
+
+`FoundArtifact.signature` is an optional, opaque discriminator for function and
+method overloads. The validator plugin owns its syntax. Runner carries the value
+through snapshots and manifests, but does not parse, normalize, or infer it.
+
+Leave `signature` unset for representative identity. Existing unsigned
+artifacts retain name-and-owner matching: one declaration represents every
+collected sibling overload with that identity. Set a non-empty signature only
+when the implementation collector can identify an exact overload. An exact
+manifest declaration then matches only a `FoundArtifact` with the same opaque
+signature, including during strict, behavioral, coverage, and supersession
+checks.
+
+Behavioral collectors should emit an exact signature only when the language
+syntax or a compiler/parser service resolves the referenced overload exactly.
+Do not guess a signature from argument count, variable names, visible imports,
+or other incomplete syntax. A signatureless behavioral reference cannot prove
+coverage of an exact declaration; leaving it unset produces a visible missing
+coverage diagnostic instead of a false green.
+
+Signatures are valid only on `function` and `method` artifacts. Empty values and
+signatures on other artifact kinds are rejected. `generate_snapshot()` includes
+exact signatures and omits absent ones, so generated contracts preserve the
+plugin's evidence without changing legacy snapshot output.
+
 ## Entry-Point Packaging
 
 Plugins register under the `maid_runner.validators` entry-point group. After a
