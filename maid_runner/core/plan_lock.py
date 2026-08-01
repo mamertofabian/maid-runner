@@ -45,6 +45,7 @@ from maid_runner.core.supersession_audit import compute_manifest_hash
 from maid_runner.core.types import AgentProvenance, Manifest
 
 _CONTRACT_HASH_PREFIX = "sha256-contract:"
+_PYAST_V2_HASH_PREFIX = "sha256-pyast:v2:"
 _PYAST_HASH_PREFIX = "sha256-pyast:"
 _BYTE_HASH_PREFIX = "sha256:"
 _DELETED_FILE_FINGERPRINT = "<deleted>"
@@ -380,33 +381,79 @@ def manifest_hash_matches(lock_hash: str, manifest_path: Path) -> bool:
 def compute_behavioral_test_hash(path: Path) -> str:
     """Return a formatting-aware hash for a behavioral test file.
 
-    Python (``.py``) files are hashed via an AST dump so whitespace- and
-    comment-only edits stay digest-stable. Other suffixes keep the legacy
-    byte hash. Syntax and decode errors raise (fail loud); there is no
-    silent byte-hash fallback for ``.py`` paths.
+    Python (``.py``) files use the versioned, cross-interpreter AST v2
+    payload so whitespace- and comment-only edits stay digest-stable without
+    inheriting version-added empty ``ast`` fields. Other suffixes keep the
+    legacy byte hash. Syntax, decode, and canonicalization errors raise (fail
+    loud); there is no silent byte-hash fallback for ``.py`` paths.
     """
     file_path = Path(path)
     if file_path.suffix == ".py":
         source = file_path.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(file_path))
-        canonical = ast.dump(tree, annotate_fields=True, include_attributes=False)
+        canonical = json.dumps(
+            _canonical_python_ast(tree),
+            ensure_ascii=True,
+            separators=(",", ":"),
+        )
         digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-        return f"{_PYAST_HASH_PREFIX}{digest}"
+        return f"{_PYAST_V2_HASH_PREFIX}{digest}"
     return compute_manifest_hash(file_path)
+
+
+def _canonical_python_ast(value: object) -> object:
+    """Return a stable semantic payload for a supported Python AST value."""
+    if isinstance(value, ast.AST):
+        fields: list[list[object]] = []
+        for name, child in ast.iter_fields(value):
+            normalized = _canonical_python_ast(child)
+            if normalized is None or normalized == []:
+                continue
+            fields.append([name, normalized])
+        return [type(value).__name__, fields]
+    if isinstance(value, list):
+        return [_canonical_python_ast(item) for item in value]
+    if value is Ellipsis:
+        return ["ellipsis"]
+    if isinstance(value, str):
+        return ["str", value.encode("utf-8", "surrogatepass").hex()]
+    if isinstance(value, bytes):
+        return ["bytes", value.hex()]
+    if isinstance(value, complex):
+        return ["complex", repr(value)]
+    if isinstance(value, float):
+        return ["float", repr(value)]
+    if value is None or isinstance(value, (bool, int)):
+        return value
+    raise ValueError(
+        f"Cannot hash Python behavioral test: unsupported AST value "
+        f"{type(value).__name__}"
+    )
+
+
+def _compute_legacy_pyast_hash(file_path: Path) -> str:
+    source = file_path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(file_path))
+    canonical = ast.dump(tree, annotate_fields=True, include_attributes=False)
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return f"{_PYAST_HASH_PREFIX}{digest}"
 
 
 def test_hash_matches(lock_hash: str, path: Path) -> bool:
     """Compare a stored behavioral-test hash to the current file by prefix.
 
-    ``sha256-pyast:`` values use the AST-canonical hash; legacy ``sha256:``
-    values use the raw byte hash. Unknown prefixes and missing files return
-    False (fail closed).
+    ``sha256-pyast:v2:`` uses the portable AST payload, historical
+    ``sha256-pyast:`` uses the interpreter-shaped v1 AST dump, and legacy
+    ``sha256:`` values use the raw byte hash. Unknown prefixes and missing
+    files return False (fail closed).
     """
     file_path = Path(path)
     if not file_path.is_file():
         return False
-    if lock_hash.startswith(_PYAST_HASH_PREFIX):
+    if lock_hash.startswith(_PYAST_V2_HASH_PREFIX):
         return lock_hash == compute_behavioral_test_hash(file_path)
+    if lock_hash.startswith(_PYAST_HASH_PREFIX):
+        return lock_hash == _compute_legacy_pyast_hash(file_path)
     if lock_hash.startswith(_BYTE_HASH_PREFIX):
         return lock_hash == compute_manifest_hash(file_path)
     return False
@@ -1012,8 +1059,10 @@ def _current_test_hash_or_none(
     try:
         if not path.is_file():
             return None
-        if lock_hash is None or lock_hash.startswith(_PYAST_HASH_PREFIX):
+        if lock_hash is None or lock_hash.startswith(_PYAST_V2_HASH_PREFIX):
             return compute_behavioral_test_hash(path)
+        if lock_hash.startswith(_PYAST_HASH_PREFIX):
+            return _compute_legacy_pyast_hash(path)
         if lock_hash.startswith(_BYTE_HASH_PREFIX):
             return compute_manifest_hash(path)
         return compute_behavioral_test_hash(path)
