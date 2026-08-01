@@ -99,6 +99,21 @@ Private artifacts must be marked private by name or parent name. The shared
 private, including methods or attributes whose `of` parent begins that way.
 Private artifacts must not appear in `generate_snapshot()` output.
 
+### Language-Aware Type Comparison
+
+Runner calls `BaseValidator.types_match(manifest_type, implementation_type)`
+when implementation validation compares declared parameter and return types.
+Its concrete implementation delegates to the existing default comparator, so
+plugins that do not override the method keep current Runner behavior.
+
+A language plugin may override the hook to compare aliases, nullable forms,
+generics, arrays, tuples, or qualified names according to its own syntax. Keep
+canonical values internal to the comparison: collectors, snapshots, and E302
+diagnostics continue to expose the raw type spellings from the manifest and
+source. Overrides must be deterministic. If comparison cannot be performed,
+fail loud with a visible exception or diagnostic; Runner does not silently
+retry with the default comparator under different language semantics.
+
 ## Entry-Point Packaging
 
 Plugins register under the `maid_runner.validators` entry-point group. After a

@@ -1,0 +1,286 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Let validator plugins define language-aware type equivalence without changing
+  existing validator behavior"
+type: feature
+created: "2026-08-01T07:26:29Z"
+metadata:
+  tags:
+    - validators
+    - plugin-api
+    - type-comparison
+    - csharp-enabler
+  priority: high
+description: |
+  Add one concrete, optional `BaseValidator.types_match` hook for comparing a
+  manifest type spelling with the raw type spelling collected from source.
+  The default delegates to the existing global Python-oriented comparator, so
+  every built-in and third-party validator keeps its current behavior without
+  implementing the hook.
+
+  Implementation validation passes the registered validator's bound hook into
+  private argument and return-type comparison plumbing. The public
+  `compare_artifacts` helper keeps its existing four-argument signature and
+  current comparator. A plugin may override the
+  hook to canonicalize its own aliases, nullability, generics, arrays, tuples,
+  or qualified names, but the collected artifact and E302 diagnostic keep the
+  original spellings; Runner does not rewrite snapshots or embed language
+  rules in `_type_compare.py`.
+
+  This is the additive Runner boundary needed by the C# plugin's next child.
+  It intentionally does not add C# normalization, overload identity,
+  namespace resolution, attribute-type validation, or semantic compiler
+  integration. Hook exceptions remain fail-loud and never fall back silently
+  to the global comparator.
+temptations:
+  - risk: "Do not add C# aliases or syntax rules to Runner's global type normalizer."
+    instead: "Expose a validator-owned comparison hook and keep the existing default
+      comparator byte-for-byte compatible."
+  - risk: "Do not make the hook abstract and break already-installed validator plugins."
+    instead: "Provide a concrete BaseValidator default that delegates to the current
+      types_match function."
+  - risk: "Do not normalize or overwrite FoundArtifact type strings before diagnostics
+      or snapshots."
+    instead: "Use canonical forms only inside the Boolean comparison and preserve
+      raw expected/actual spellings in observable output."
+  - risk: "Do not catch a plugin hook failure and quietly retry with Runner's global
+      comparator."
+    instead: "Let the hook failure remain visible so validation cannot report a false
+      green under the wrong language semantics."
+files:
+  create:
+    - path: tests/validators/test_type_comparison_hook.py
+      artifacts:
+        - kind: test_function
+          name: test_base_validator_type_match_hook_preserves_default_comparison
+          source_scenario: "A third-party validator subclass does not override the
+            new optional type comparison hook."
+          actions:
+            - type: api_call
+              subject:
+                function: BaseValidator.types_match
+          expected:
+            behavior: "The concrete default preserves unspecified-type acceptance,
+              missing implementation-type rejection, Optional/union equivalence, and
+              PEP 585 equivalence."
+        - kind: test_function
+          name: test_validation_engine_preserves_builtin_default_type_comparison
+          source_scenario: "Python source uses PEP 604 and PEP 585 spellings while
+            its manifest uses Optional and typing aliases."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "End-to-end implementation validation keeps the existing built-in
+              type-equivalence behavior after comparison is delegated through BaseValidator."
+        - kind: test_function
+          name: test_validation_engine_uses_registered_validator_type_match_hook
+          source_scenario: "A custom validator collects raw qualified parameter and
+            return types while its manifest uses language aliases."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "Implementation validation delegates both comparisons to the
+              registered validator hook and succeeds without changing the collected
+              raw spellings."
+        - kind: test_function
+          name: 
+            test_validator_type_match_rejection_preserves_raw_mismatch_diagnostic
+          source_scenario: "A custom validator rejects two non-equivalent raw return-type
+            spellings."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "Validation reports E302 with the original manifest and implementation
+              spellings rather than canonicalized replacements."
+        - kind: test_function
+          name: 
+            test_validator_type_match_failure_does_not_fallback_to_global_comparator
+          source_scenario: "A custom validator type hook raises while comparing spellings
+            that Runner's global comparator would accept."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "The hook exception remains visible and Runner does not retry
+              with its global comparator."
+        - kind: test_function
+          name: test_plugin_authoring_guide_documents_type_comparison_hook
+          source_scenario: "The public validator plugin authoring guide is read as
+            repository markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide names BaseValidator.types_match, its compatible default,
+              raw-spelling preservation, and the requirement for deterministic fail-loud
+              overrides."
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: method
+          name: types_match
+          of: BaseValidator
+          args:
+            - name: manifest_type
+              type: Optional[str]
+            - name: implementation_type
+              type: Optional[str]
+          returns: bool
+          default_hook: true
+          description: "Concrete language-aware type-equivalence hook whose default
+            preserves the existing global comparator."
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: method
+          name: validate_file_spec
+          of: ImplementationFileValidator
+          args:
+            - name: fs
+              type: FileSpec
+            - name: manifest
+              type: Manifest
+            - name: chain
+              type: Optional[ManifestChain]
+          returns: "list[ValidationError]"
+          description: "Passes the file validator's bound types_match hook into artifact
+            signature comparison."
+        - kind: function
+          name: compare_artifacts
+          args:
+            - name: expected
+              type: "list[ArtifactSpec]"
+            - name: found
+              type: "list[FoundArtifact]"
+            - name: file_path
+              type: str
+            - name: is_strict
+              type: bool
+          returns: "list[ValidationError]"
+          description: "Preserves the four-argument direct-call API and existing comparator
+            while validator-aware engine calls use private matcher plumbing."
+  scope:
+    - path: docs/validator-plugin-authoring.md
+      reason: "Document the new public hook, its compatible default, raw-spelling
+        boundary, and fail-loud override requirements."
+  read:
+    - maid_runner/core/_type_compare.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/registry.py
+    - manifests/063-04-document-validator-plugin-authoring.manifest.yaml
+    - manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml
+    - tests/core/test_implementation_validation.py
+    - tests/core/test_type_compare.py
+validate:
+  - uv run python -m pytest tests/validators/test_type_comparison_hook.py 
+    tests/core/test_implementation_validation.py tests/core/test_type_compare.py -v
+  - uv run maid validate 
+    manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode 
+    behavioral --quiet
+  - uv run maid validate 
+    manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode 
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-01T15:37:57+08:00'
+  summary: >-
+    Validator plugins can now override BaseValidator.types_match for
+    language-aware parameter and return-type equivalence while existing
+    validators retain Runner's prior default comparison behavior.
+  rationale: >-
+    The additive concrete hook keeps installed plugins constructible and
+    delegates to the existing comparator by default. Implementation validation
+    passes the registered validator's bound hook through private comparison
+    plumbing, leaving the public compare_artifacts signature unchanged. Raw
+    manifest and source spellings remain in snapshots and E302 diagnostics,
+    and hook exceptions stay visible instead of falling back to the wrong
+    language semantics.
+  lessons:
+    - lesson_type: compatibility
+      summary: >-
+        A plugin extension point can remain minor-version compatible when it is
+        concrete by default and private wiring carries the new behavior. The
+        existing compare_artifacts and validate.py wrapper signatures did not
+        need to change.
+      tags:
+        - validator-plugin
+        - semver
+        - type-comparison
+      paths:
+        - maid_runner/validators/base.py
+        - maid_runner/core/_implementation_validation.py
+    - lesson_type: test-design
+      summary: >-
+        A mismatch-only test was hollow because Runner's old global comparator
+        also rejected the sample. Recording the exact pair received by the
+        custom validator proved the plugin hook, rather than legacy behavior,
+        produced the result.
+      tags:
+        - anti-gaming
+        - behavioral-contract
+        - raw-spellings
+      paths:
+        - tests/validators/test_type_comparison_hook.py
+    - lesson_type: workflow
+      summary: >-
+        Behavioral files listed under files.read are discovered contract tests
+        too. Revision 2 expanded the pytest command to run all three discovered
+        modules after maid test correctly rejected the incomplete command with
+        E230.
+      tags:
+        - maid-test
+        - plan-revise
+        - red-evidence
+      paths:
+        - manifests/093-02-add-validator-type-comparison-hook.manifest.yaml
+        - .maid/plan-locks/093-02-add-validator-type-comparison-hook.lock.json
+  review_notes:
+    - source: implementation-review-subagent
+      severity: ready
+      summary: >-
+        No blocking findings. The reviewer confirmed default and plugin hook
+        behavior, unchanged wrapper signatures, raw diagnostics, fail-loud
+        exceptions, scope, import-order safety, all existing plugin classes,
+        and the current C# plugin's 62-test source-overlay suite. Before the C#
+        plugin relies on this hook, its minimum maid-runner version must be
+        raised to the first release containing it.
+  validation:
+    - command: [uv, run, pytest, -q, tests/validators/test_type_comparison_hook.py]
+      status: failed
+      summary: >-
+        Red phase produced five intended failures and one passing built-in
+        compatibility characterization before production changes.
+    - command: [uv, run, pytest, -q, tests/validators/test_type_comparison_hook.py, tests/core/test_implementation_validation.py, tests/core/test_type_compare.py]
+      status: passed
+      summary: All 33 focused hook and comparison tests passed.
+    - command: [uv, run, pytest, -q]
+      status: passed
+      summary: Full suite passed with 3666 tests and 5 expected skips.
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: Repository Ruff gate passed.
+    - command: [uv, run, black, --check, .]
+      status: passed
+      summary: Repository Black gate passed for all 468 checked files.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 377 active manifests passed; 100 superseded manifests skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 214 manifest-declared validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: >-
+        All 9 strict handoff stages passed with zero blocking findings; only
+        pre-existing E307 warnings for Makefile and the CJS resolver remained.

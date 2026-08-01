@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 from typing import Callable, Optional, Union
 
+from maid_runner.core._type_compare import types_match as _types_match
 from maid_runner.core.types import ArtifactKind, ArgSpec
 
 
@@ -128,6 +129,19 @@ class BaseValidator(ABC):
     ) -> ComplexityResult:
         """Collect source-risk metrics when the language supports it."""
         return ComplexityResult(supported=False)
+
+    def types_match(
+        self,
+        manifest_type: Optional[str],
+        implementation_type: Optional[str],
+    ) -> bool:
+        """Return whether manifest and implementation type spellings agree.
+
+        Language plugins may override this comparison without rewriting the raw
+        type spellings stored on artifacts. The concrete default preserves the
+        existing Runner type-normalization behavior.
+        """
+        return _types_match(manifest_type, implementation_type)
 
     def _collect_with_parse_guard(
         self,

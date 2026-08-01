@@ -1,0 +1,326 @@
+{
+  "manifest_path": "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml",
+  "manifest_hash": "sha256-contract:94370f597f585e76f91e39205fd5f50526ae83da4f92442e6c71ef76064524f8",
+  "test_hashes": {
+    "tests/core/test_implementation_validation.py": "sha256-pyast:v2:2856cdefeb2b34c252661904ff2a71c96daa186ee48d7aba29b2a962b47174b7",
+    "tests/core/test_type_compare.py": "sha256-pyast:v2:bc7c66da0e983fe2d6b97a94e3550597847b30218233722bfababce54ca68ac3",
+    "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:7a1f849ef811a6924e2c3123151bbc927699dd19cf5d4387ca6e5955ffb3dcc9"
+  },
+  "created_at": "2026-08-01T07:26:48.616708+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7da4284bd8c97ff42843a66dd4a90016adb75dd83268560195c726d1e68f917c",
+      "prior_test_hashes": {
+        "tests/core/test_implementation_validation.py": "sha256-pyast:v2:2856cdefeb2b34c252661904ff2a71c96daa186ee48d7aba29b2a962b47174b7",
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:bc7c66da0e983fe2d6b97a94e3550597847b30218233722bfababce54ca68ac3",
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:7a1f849ef811a6924e2c3123151bbc927699dd19cf5d4387ca6e5955ffb3dcc9"
+      },
+      "revised_at": "2026-08-01T07:31:05.642235+00:00",
+      "reason": "Run every discovered behavioral comparison test in the manifest command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/validators/test_type_comparison_hook.py tests/core/test_implementation_validation.py tests/core/test_type_compare.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/validators/test_type_comparison_hook.py -v"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-01T07:31:07.489432+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_type_comparison_hook.py tests/core/test_implementation_validation.py tests/core/test_type_compare.py -v",
+        "exit_code": 1,
+        "output_tail": "tests/validators/test_type_comparison_hook.py:279: Failed\n__________ test_plugin_authoring_guide_documents_type_comparison_hook __________\n\n    def test_plugin_authoring_guide_documents_type_comparison_hook() -> None:\n        guide = (\n            Path(__file__).resolve().parents[2] / \"docs\" / \"validator-plugin-authoring.md\"\n        )\n        content = guide.read_text(encoding=\"utf-8\")\n    \n>       assert \"BaseValidator.types_match\" in content\nE       assert 'BaseValidator.types_match' in \"# Validator Plugin Authoring\\n\\nThird-party validator plugins let a separate package add language support to\\nMAID Runner without adding that parser to this repository. A plugin owns parser\\nquality for its language; MAID Runner owns the validator contract, discovery,\\ndiagnostics, and validation semantics.\\n\\nLanguage requests against this repository should use the validator plugin path.\\nReference validators, such as a minimal Rust validator, belong in separate\\nrepositories rather than in tree.\\n\\n## Public Contract\\n\\nThe public validator plugin contract is deliberately small:\\n\\n- `BaseValidator`\\n- `CollectionResult`\\n- `FoundArtifact` values returned inside `CollectionResult.artifacts`\\n- `ValidatorRegistry.register()` registration semantics\\n- the entry-point discovery rules documented here\\n\\nThis surface carries semver discipline. Any breaking change to the public\\nvalidator surface, including `BaseValidator`, `CollectionResult`, or\\nregistration semantics, requires a major version of MAID Runner. Everything else under `maid_runner/validators/` is internal; it can change without plugin compatibility guarantees.\\n\\n## Validator Class\\n\\nA plugin exposes a `BaseValidator...s.\\n\\nThe kit verifies that implementation samples produce exact artifact kinds and\\nidentity fields, repeated collection is deterministic, private artifacts stay\\nprivate and out of snapshots, the correct behavioral sample references the\\ndeclared target, the wrong identity sample does not match that target, parse\\nerrors return `CollectionResult(errors=[...], artifacts=[])`, and empty files\\nreturn no artifacts or errors.\\n\\nDo not treat the kit as optional guidance. A plugin that cannot pass it has not\\nshown that its collector preserves MAID validation semantics.\\n\\n## Support Boundary\\n\\nPlugins own parser quality; MAID Runner owns the contract. Plugin maintainers\\nare responsible for their parser dependency, language version coverage, edge\\ncases, and release cadence. MAID Runner maintains the public contract,\\nentry-point discovery, conflict isolation, E902/E903 diagnostics, the\\n`maid validators` audit surface, and the conformance kit.\\n\\nFor a new language, publish an external plugin package and run the conformance\\nkit in that package's test suite. Do not add a new in-tree validator to this\\nrepository unless a separate approved MAID plan changes the support boundary.\\n\"\n\ntests/validators/test_type_comparison_hook.py:289: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_type_comparison_hook.py::test_base_validator_type_match_hook_preserves_default_comparison\nFAILED tests/validators/test_type_comparison_hook.py::test_validation_engine_uses_registered_validator_type_match_hook\nFAILED tests/validators/test_type_comparison_hook.py::test_validator_type_match_rejection_preserves_raw_mismatch_diagnostic\nFAILED tests/validators/test_type_comparison_hook.py::test_validator_type_match_failure_does_not_fallback_to_global_comparator\nFAILED tests/validators/test_type_comparison_hook.py::test_plugin_authoring_guide_documents_type_comparison_hook\n========================= 5 failed, 28 passed in 0.19s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=expected:type=list[ArtifactSpec]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=found:type=list[FoundArtifact]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=is_strict:type=bool:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:kind=function",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:returns=list[ValidationError]",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=chain:type=Optional[ManifestChain]:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=fs:type=FileSpec:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:kind=method",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:of=ImplementationFileValidator",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:returns=list[ValidationError]",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match:arg=implementation_type:type=Optional[str]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match:arg=manifest_type:type=Optional[str]:default=None",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match:kind=method",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match:of=BaseValidator",
+      "maid_runner/validators/base.py:method:BaseValidator.types_match:returns=bool",
+      "tests/validators/test_type_comparison_hook.py:test_base_validator_type_match_hook_preserves_default_comparison",
+      "tests/validators/test_type_comparison_hook.py:test_base_validator_type_match_hook_preserves_default_comparison:kind=test_function",
+      "tests/validators/test_type_comparison_hook.py:test_plugin_authoring_guide_documents_type_comparison_hook",
+      "tests/validators/test_type_comparison_hook.py:test_plugin_authoring_guide_documents_type_comparison_hook:kind=test_function",
+      "tests/validators/test_type_comparison_hook.py:test_validation_engine_preserves_builtin_default_type_comparison",
+      "tests/validators/test_type_comparison_hook.py:test_validation_engine_preserves_builtin_default_type_comparison:kind=test_function",
+      "tests/validators/test_type_comparison_hook.py:test_validation_engine_uses_registered_validator_type_match_hook",
+      "tests/validators/test_type_comparison_hook.py:test_validation_engine_uses_registered_validator_type_match_hook:kind=test_function",
+      "tests/validators/test_type_comparison_hook.py:test_validator_type_match_failure_does_not_fallback_to_global_comparator",
+      "tests/validators/test_type_comparison_hook.py:test_validator_type_match_failure_does_not_fallback_to_global_comparator:kind=test_function",
+      "tests/validators/test_type_comparison_hook.py:test_validator_type_match_rejection_preserves_raw_mismatch_diagnostic",
+      "tests/validators/test_type_comparison_hook.py:test_validator_type_match_rejection_preserves_raw_mismatch_diagnostic:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_type_comparison_hook.py"
+      ],
+      "edit": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/validators/base.py"
+      ],
+      "read": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/registry.py",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "tests/core/test_implementation_validation.py",
+        "tests/core/test_type_compare.py"
+      ],
+      "scope": [
+        "docs/validator-plugin-authoring.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_type_comparison_hook.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_base_validator_type_match_hook_preserves_default_comparison",
+              "source_scenario": "A third-party validator subclass does not override the new optional type comparison hook.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "BaseValidator.types_match"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The concrete default preserves unspecified-type acceptance, missing implementation-type rejection, Optional/union equivalence, and PEP 585 equivalence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_engine_preserves_builtin_default_type_comparison",
+              "source_scenario": "Python source uses PEP 604 and PEP 585 spellings while its manifest uses Optional and typing aliases.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "End-to-end implementation validation keeps the existing built-in type-equivalence behavior after comparison is delegated through BaseValidator."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_engine_uses_registered_validator_type_match_hook",
+              "source_scenario": "A custom validator collects raw qualified parameter and return types while its manifest uses language aliases.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation delegates both comparisons to the registered validator hook and succeeds without changing the collected raw spellings."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validator_type_match_rejection_preserves_raw_mismatch_diagnostic",
+              "source_scenario": "A custom validator rejects two non-equivalent raw return-type spellings.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Validation reports E302 with the original manifest and implementation spellings rather than canonicalized replacements."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validator_type_match_failure_does_not_fallback_to_global_comparator",
+              "source_scenario": "A custom validator type hook raises while comparing spellings that Runner's global comparator would accept.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The hook exception remains visible and Runner does not retry with its global comparator."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plugin_authoring_guide_documents_type_comparison_hook",
+              "source_scenario": "The public validator plugin authoring guide is read as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide names BaseValidator.types_match, its compatible default, raw-spelling preservation, and the requirement for deterministic fail-loud overrides."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/base.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "types_match",
+              "description": "Concrete language-aware type-equivalence hook whose default preserves the existing global comparator.",
+              "of": "BaseValidator",
+              "args": [
+                {
+                  "name": "manifest_type",
+                  "type": "Optional[str]"
+                },
+                {
+                  "name": "implementation_type",
+                  "type": "Optional[str]"
+                }
+              ],
+              "returns": "bool",
+              "default_hook": true
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "validate_file_spec",
+              "description": "Passes the file validator's bound types_match hook into artifact signature comparison.",
+              "of": "ImplementationFileValidator",
+              "args": [
+                {
+                  "name": "fs",
+                  "type": "FileSpec"
+                },
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "chain",
+                  "type": "Optional[ManifestChain]"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "compare_artifacts",
+              "description": "Preserves the four-argument direct-call API and existing comparator while validator-aware engine calls use private matcher plumbing.",
+              "args": [
+                {
+                  "name": "expected",
+                  "type": "list[ArtifactSpec]"
+                },
+                {
+                  "name": "found",
+                  "type": "list[FoundArtifact]"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "is_strict",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/registry.py",
+        "manifests/063-04-document-validator-plugin-authoring.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "tests/core/test_implementation_validation.py",
+        "tests/core/test_type_compare.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/validator-plugin-authoring.md",
+          "reason": "Document the new public hook, its compatible default, raw-spelling boundary, and fail-loud override requirements."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_implementation_validation.py",
+      "tests/core/test_type_compare.py",
+      "tests/validators/test_type_comparison_hook.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_type_comparison_hook.py tests/core/test_implementation_validation.py tests/core/test_type_compare.py -v",
+      "uv run maid validate manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/093-02-add-validator-type-comparison-hook.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

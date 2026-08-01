@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._file_discovery import is_test_file
@@ -32,6 +32,7 @@ from maid_runner.validators.registry import UnsupportedLanguageError, ValidatorR
 # These don't require manifest declaration in strict mode.
 _STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
 _DEFAULT_HOOK_KINDS = frozenset({ArtifactKind.FUNCTION, ArtifactKind.METHOD})
+_TypeMatcher = Callable[[Optional[str], Optional[str]], bool]
 
 
 class ImplementationFileValidator:
@@ -106,11 +107,12 @@ class ImplementationFileValidator:
 
         expected = self._expected_artifacts(fs, chain)
         is_strict = self._is_strict(fs, chain)
-        errors = compare_artifacts(
+        errors = _compare_artifacts(
             expected=expected,
             found=collection.artifacts,
             file_path=fs.path,
             is_strict=is_strict,
+            type_matcher=validator.types_match,
         )
 
         if self._check_stubs:
@@ -183,6 +185,24 @@ def compare_artifacts(
     file_path: str,
     is_strict: bool,
 ) -> list[ValidationError]:
+    """Compare artifacts with Runner's existing default type semantics."""
+    return _compare_artifacts(
+        expected=expected,
+        found=found,
+        file_path=file_path,
+        is_strict=is_strict,
+        type_matcher=types_match,
+    )
+
+
+def _compare_artifacts(
+    expected: list[ArtifactSpec],
+    found: list[FoundArtifact],
+    file_path: str,
+    is_strict: bool,
+    *,
+    type_matcher: _TypeMatcher,
+) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
     found_by_key: dict[str, FoundArtifact] = {}
@@ -202,7 +222,7 @@ def compare_artifacts(
             )
             continue
 
-        errors.extend(_compare_single(spec, fa, file_path))
+        errors.extend(_compare_single(spec, fa, file_path, type_matcher=type_matcher))
 
     if is_strict:
         expected_keys = {spec.merge_key() for spec in expected}
@@ -236,6 +256,8 @@ def _compare_single(
     spec: ArtifactSpec,
     found: FoundArtifact,
     file_path: str,
+    *,
+    type_matcher: _TypeMatcher = types_match,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
@@ -284,7 +306,7 @@ def _compare_single(
                         location=Location(file=file_path, line=found.line),
                     )
                 )
-            elif expected_arg.type and not types_match(
+            elif expected_arg.type and not type_matcher(
                 expected_arg.type, found_arg.type
             ):
                 errors.append(
@@ -312,7 +334,7 @@ def _compare_single(
             )
         )
     elif spec.returns and found.returns:
-        if not types_match(spec.returns, found.returns):
+        if not type_matcher(spec.returns, found.returns):
             errors.append(
                 ValidationError(
                     code=ErrorCode.TYPE_MISMATCH,
