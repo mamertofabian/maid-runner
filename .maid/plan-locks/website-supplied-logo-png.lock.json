@@ -1,19 +1,42 @@
 {
-  "manifest_path": "manifests/website-static-landing-page.manifest.yaml",
-  "manifest_hash": "sha256-contract:1c7b76a2cc28eb38415de40159210579f3016a05a606320628f2de7b18132627",
+  "manifest_path": "manifests/website-supplied-logo-png.manifest.yaml",
+  "manifest_hash": "sha256-contract:38d3f386144451f702fc0a437fb72ed413641bfb0d329090698f5845a984fc6e",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:08f4a6dbee914ebc30179688597b5d1dba66039023cab93e694ea9e0a9b91c47"
   },
-  "created_at": "2026-08-02T14:56:44.525264+00:00",
+  "created_at": "2026-08-02T22:21:20.700192+00:00",
   "revision": 4,
   "revisions": [
     {
-      "prior_manifest_hash": "sha256-contract:e6f94b95acdc9d865665f9ba08671effd9541822a416a27b521ef84a13395800",
+      "prior_manifest_hash": "sha256-contract:91d57d6dce3b37e4bcf0cdc7d8a06fe43ff3add95de21b305283758bfb6eccad",
       "prior_test_hashes": {
-        "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:08f4a6dbee914ebc30179688597b5d1dba66039023cab93e694ea9e0a9b91c47"
       },
-      "revised_at": "2026-08-02T15:10:38.346736+00:00",
-      "reason": "Format the fresh website behavioral contract with Black without changing its assertions",
+      "revised_at": "2026-08-02T22:21:26.059098+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-supplied-logo-png.manifest.yaml -> manifests/website-supplied-logo-png.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-supplied-logo-png.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-supplied-logo-png.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7fc5ac5c8d06801d3eae28f8b036a78eafbcf49066747d650ad7d8d79e85051",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:08f4a6dbee914ebc30179688597b5d1dba66039023cab93e694ea9e0a9b91c47"
+      },
+      "revised_at": "2026-08-02T22:25:14.313902+00:00",
+      "reason": "Record formatter-only contract test normalization after implementation",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -25,29 +48,12 @@
       }
     },
     {
-      "prior_manifest_hash": "sha256-contract:e6f94b95acdc9d865665f9ba08671effd9541822a416a27b521ef84a13395800",
+      "prior_manifest_hash": "sha256-contract:c7fc5ac5c8d06801d3eae28f8b036a78eafbcf49066747d650ad7d8d79e85051",
       "prior_test_hashes": {
-        "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:08f4a6dbee914ebc30179688597b5d1dba66039023cab93e694ea9e0a9b91c47"
       },
-      "revised_at": "2026-08-02T15:13:28.538091+00:00",
-      "reason": "Normalize the fresh contract timestamp to UTC to clear the active-manifest advisory",
-      "agent": null,
-      "contract_delta": {
-        "artifacts_added": [],
-        "artifacts_removed": [],
-        "files_added": [],
-        "files_removed": [],
-        "validate_commands_added": [],
-        "validate_commands_removed": []
-      }
-    },
-    {
-      "prior_manifest_hash": "sha256-contract:16f25b5068d85f1043cc3d24bb8b59a28237699fa989f41b37c2483c54afcd2e",
-      "prior_test_hashes": {
-        "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
-      },
-      "revised_at": "2026-08-02T15:32:24.416935+00:00",
-      "reason": "Capture evidence-backed Outcome after implementation review",
+      "revised_at": "2026-08-02T22:33:45.041511+00:00",
+      "reason": "Capture evidence-backed Outcome after the logo asset review",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -61,22 +67,22 @@
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-08-02T14:56:46.041172+00:00",
+    "captured_at": "2026-08-02T22:21:27.587804+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/test_website_static_contract.py",
         "exit_code": 1,
-        "output_tail": "    \n        for token in (\n            \"--bg:\",\n            \"--surface:\",\n            \"--text:\",\n            \"--text-muted:\",\n            \"--cyan:\",\n            \"--green:\",\n            \"--focus:\",\n        ):\n>           assert token in stylesheet\nE           AssertionError: assert '--bg:' in ':root {\\n  --ink: #08111f;\\n  --ink-deep: #050a14;\\n  --ink-soft: #101c31;\\n  --paper: #f4f1ea;\\n  --paper-bright: #f...0.01ms !important;\\n    animation-duration: 0.01ms !important;\\n    animation-iteration-count: 1 !important;\\n  }\\n}\\n'\n\ntests/test_website_static_contract.py:159: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_matches_mockup_story_and_navigation\nFAILED tests/test_website_static_contract.py::test_homepage_renders_workflow_capabilities_tools_and_quickstart\nFAILED tests/test_website_static_contract.py::test_homepage_uses_final_local_brand_and_social_assets\nFAILED tests/test_website_static_contract.py::test_dark_surface_accessibility_contract_is_declared\n4 failed, 3 passed in 0.04s",
+        "output_tail": "\ntests/test_website_static_contract.py:110: AssertionError\n_______ test_static_fallback_and_search_metadata_target_canonical_domain _______\n\n    def test_static_fallback_and_search_metadata_target_canonical_domain() -> None:\n        homepage = _read(HOMEPAGE)\n        fallback = _read(WEBSITE / \"404.html\")\n        robots = _read(WEBSITE / \"robots.txt\")\n        sitemap = _read(WEBSITE / \"sitemap.xml\")\n    \n        assert 'href=\"/\"' in fallback\n        assert 'href=\"/styles.css\"' in fallback\n>       assert 'href=\"/assets/logo.png\"' in fallback\nE       assert 'href=\"/assets/logo.png\"' in '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...n-primary\" href=\"/\">Return home <span aria-hidden=\"true\">\u2192</span></a>\\n      </div>\\n    </main>\\n  </body>\\n</html>\\n'\n\ntests/test_website_static_contract.py:198: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_uses_final_local_brand_and_social_assets\nFAILED tests/test_website_static_contract.py::test_static_fallback_and_search_metadata_target_canonical_domain\n2 failed, 5 passed in 0.04s",
         "classification": "red"
       },
       {
-        "command": "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
+        "command": "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode behavioral --quiet",
         "exit_code": 0,
         "output_tail": "",
         "classification": "not_red"
       },
       {
-        "command": "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet",
+        "command": "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode schema --quiet",
         "exit_code": 0,
         "output_tail": "",
         "classification": "not_red"
@@ -110,10 +116,10 @@
       "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:returns=None"
     ],
     "files": {
-      "create": [
+      "create": [],
+      "edit": [
         "tests/test_website_static_contract.py"
       ],
-      "edit": [],
       "read": [
         "README.md",
         "pyproject.toml"
@@ -121,7 +127,7 @@
       "scope": [
         ".github/workflows/deploy-website.yml",
         "website/404.html",
-        "website/assets/logo.svg",
+        "website/assets/logo.png",
         "website/assets/social-card.png",
         "website/index.html",
         "website/robots.txt",
@@ -130,14 +136,14 @@
         "website/styles.css"
       ],
       "delete": [
-        "website/assets/logo.png",
+        "website/assets/logo.svg",
         "website/assets/mockup-redesign.png",
         "website/assets/social-card-v2.png"
       ],
       "snapshot": []
     },
     "file_contract": {
-      "create": [
+      "edit": [
         {
           "path": "tests/test_website_static_contract.py",
           "artifacts": [
@@ -179,7 +185,7 @@
               "kind": "test_function",
               "name": "test_homepage_uses_final_local_brand_and_social_assets",
               "returns": "None",
-              "source_scenario": "A browser and social crawler load the homepage after the disposable design inputs have been consumed.",
+              "source_scenario": "A browser and social crawler load the homepage after the supplied logo has replaced the generated mark.",
               "actions": [
                 {
                   "type": "api_call",
@@ -189,7 +195,7 @@
                 }
               ],
               "expected": {
-                "behavior": "Favicon, touch-icon, header/footer logo, and social metadata point to local final assets; every local HTML reference exists; and mockup-redesign.png, logo.png, and social-card-v2.png are absent and unreferenced."
+                "behavior": "Favicon, touch-icon, header/footer logo, and social metadata point to local final assets; the supplied PNG has a valid signature; every local HTML reference exists; and logo.svg plus all disposable design inputs are absent and unreferenced."
               }
             },
             {
@@ -240,7 +246,7 @@
                 }
               ],
               "expected": {
-                "behavior": "404.html provides a real recovery link and local brand asset, robots.txt points to the canonical sitemap, sitemap.xml is valid XML, and all canonical locations target https://maidrunner.dev/."
+                "behavior": "404.html provides a real recovery link and the supplied local PNG brand asset, robots.txt points to the canonical sitemap, sitemap.xml is valid XML, and all canonical locations target https://maidrunner.dev/."
               }
             },
             {
@@ -270,19 +276,19 @@
       "scope": [
         {
           "path": "website/index.html",
-          "reason": "The static homepage is the mockup implementation surface; its observable structure and copy are covered by the behavioral contract."
+          "reason": "Homepage brand surfaces and favicon metadata must use the supplied PNG asset while retaining the mockup-aligned page contract."
         },
         {
           "path": "website/styles.css",
-          "reason": "The responsive dark visual system and accessibility behavior have no stable programmatic API and are covered by source-level contract assertions plus a browser smoke check."
+          "reason": "Existing responsive visual system remains part of the superseded website contract."
         },
         {
           "path": "website/script.js",
-          "reason": "Progressive-enhancement navigation wiring has no public API; the behavior contract covers open, close, Escape, focus return, and no-JavaScript fallback."
+          "reason": "Existing progressive-enhancement navigation remains part of the superseded website contract."
         },
         {
           "path": "website/404.html",
-          "reason": "The GitHub Pages fallback document is a static route artifact covered through canonical recovery and brand-asset assertions."
+          "reason": "Fallback brand surface and favicon must use the supplied PNG asset."
         },
         {
           "path": "website/robots.txt",
@@ -293,30 +299,30 @@
           "reason": "Search-engine discovery metadata remains part of the canonical static deployment surface."
         },
         {
-          "path": "website/assets/logo.svg",
-          "reason": "The final native brand mark is a static asset used by the header, footer, favicon, and touch icon."
+          "path": "website/assets/logo.png",
+          "reason": "The supplied transparent PNG is the authoritative production brand asset."
         },
         {
           "path": "website/assets/social-card.png",
-          "reason": "The final social preview is a static binary asset referenced by Open Graph and Twitter metadata."
+          "reason": "The final social preview remains part of the website asset contract."
         },
         {
           "path": ".github/workflows/deploy-website.yml",
-          "reason": "The existing Pages workflow is part of the site contract and remains covered for path scoping, permissions, and artifact-root behavior."
+          "reason": "The existing Pages workflow remains part of the website deployment contract."
         }
       ],
       "delete": [
         {
-          "path": "website/assets/mockup-redesign.png",
-          "reason": "Disposable supplied visual reference; the finished site must not ship its design screenshot."
+          "path": "website/assets/logo.svg",
+          "reason": "Generated logo variant does not match the supplied brand asset and must not ship."
         },
         {
-          "path": "website/assets/logo.png",
-          "reason": "Disposable supplied logo reference; the finished site uses the native production SVG mark."
+          "path": "website/assets/mockup-redesign.png",
+          "reason": "Disposable supplied visual reference is not a production website asset."
         },
         {
           "path": "website/assets/social-card-v2.png",
-          "reason": "Disposable supplied source artwork; the finished site uses the copied production social-card.png asset."
+          "reason": "Disposable supplied source artwork is represented by the production social-card.png asset."
         }
       ]
     },
@@ -325,8 +331,8 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/test_website_static_contract.py",
-      "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
-      "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet"
+      "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-supplied-logo-png.manifest.yaml --mode schema --quiet"
     ]
   }
 }

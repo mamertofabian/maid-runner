@@ -3,58 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#08111f" />
-    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#070d12" />
+    <link rel="icon" href="/assets/logo.png" type="image/png" />
     <link rel="stylesheet" href="/styles.css" />
-    <title>404 — MAID Runner</title>
     <style>
-      .not-found {
-        display: grid;
-        min-height: 100vh;
-        place-items: center;
-        padding: 40px 0;
-        background: var(--ink);
-        color: #f7f3ea;
-        text-align: center;
-      }
-
-      .not-found-inner {
-        width: min(calc(100% - 36px), 620px);
-      }
-
       .not-found .not-found-code {
-        margin: 0;
-        color: var(--violet-bright);
+        color: #6ae7ff;
         font-size: clamp(5rem, 18vw, 10rem);
-        font-weight: 550;
-        letter-spacing: -0.09em;
-        line-height: 0.85;
-      }
-
-      .not-found h1 {
-        margin: 30px 0 12px;
-        font-size: clamp(1.8rem, 5vw, 3rem);
-        font-weight: 550;
-        letter-spacing: -0.06em;
-      }
-
-      .not-found p {
-        margin: 0 auto 30px;
-        color: var(--muted-light);
+        font-weight: 800;
       }
     </style>
+    <title>404 — MAID Runner</title>
   </head>
   <body>
     <main class="not-found">
       <div class="not-found-inner">
         <a class="brand" href="/" aria-label="MAID Runner home">
-          <img src="/assets/logo.svg" width="40" height="40" alt="" />
-          <span>MAID <strong>Runner</strong></span>
+          <img src="/assets/logo.png" width="42" height="42" alt="" />
+          <span class="brand-name">MAID <strong>Runner</strong></span>
         </a>
         <p class="not-found-code">404</p>
         <h1>This route drifted from the contract.</h1>
         <p>The page you were looking for does not exist. Return to the verified path and keep going.</p>
-        <a class="button button-primary" href="/">Return home <span aria-hidden="true">↗</span></a>
+        <a class="button button-primary" href="/">Return home <span aria-hidden="true">→</span></a>
       </div>
     </main>
   </body>
