@@ -391,6 +391,11 @@
         "returns": {
           "type": "string"
         },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque plugin-owned exact overload discriminator for function and method artifacts."
+        },
         "raises": {
           "type": "array",
           "items": { "type": "string" }
@@ -441,6 +446,18 @@
             "properties": {
               "default_hook": { "const": true }
             }
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "enum": ["function", "method"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["signature"]
           },
           "then": {
             "properties": {

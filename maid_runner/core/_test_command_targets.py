@@ -7,6 +7,7 @@ import shlex
 from pathlib import Path
 from typing import Callable
 
+from maid_runner.core.config import TestRunnerWrapperConfig
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._test_runner_invocation import (
     _TEST_RUNNER_VALUE_FLAGS,
@@ -71,6 +72,7 @@ def test_paths_from_validate_command(
     project_root: Path,
     *,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None = None,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
 ) -> list[str]:
     paths: list[str] = []
     cwd = Path(".")
@@ -84,9 +86,11 @@ def test_paths_from_validate_command(
                 cwd = Path(_normalize_relative_path(cwd / segment[1]))
             continue
 
-        django_runner = _runs_django_test_runner(segment)
-        allow_explicit_directories = _runs_known_test_runner(segment)
-        scan_segment = _test_runner_target_scan_segment(segment)
+        django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
+        allow_explicit_directories = _runs_known_test_runner(
+            segment, test_runner_wrappers
+        )
+        scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
         index = 0
         while index < len(scan_segment):
             part = scan_segment[index]
@@ -134,12 +138,14 @@ def test_files_covered_by_validate_command(
     project_root: Path,
     *,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None = None,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
 ) -> set[str]:
     covered: set[str] = set()
     for target in test_paths_from_executing_validate_command(
         command,
         project_root,
         django_test_paths_from_validate_segment=django_test_paths_from_validate_segment,
+        test_runner_wrappers=test_runner_wrappers,
     ):
         for test_file in test_files:
             if _test_target_covers_file(target, test_file, project_root):
@@ -153,6 +159,7 @@ def test_paths_from_executing_validate_command(
     *,
     allow_selectors: bool = False,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None = None,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
 ) -> list[str]:
     shell_segments = _shell_wrapped_command_segments(command)
     if shell_segments is not None:
@@ -161,6 +168,7 @@ def test_paths_from_executing_validate_command(
             project_root,
             allow_selectors=allow_selectors,
             django_test_paths_from_validate_segment=django_test_paths_from_validate_segment,
+            test_runner_wrappers=test_runner_wrappers,
         )
 
     paths: list[str] = []
@@ -173,16 +181,16 @@ def test_paths_from_executing_validate_command(
         return paths
     if segment[0] == "cd":
         return paths
-    if not _runs_known_test_runner(segment):
+    if not _runs_known_test_runner(segment, test_runner_wrappers):
         return paths
-    if _has_non_executing_test_runner_mode(segment):
+    if _has_non_executing_test_runner_mode(segment, test_runner_wrappers):
         return paths
-    if not allow_selectors and _has_test_runner_selector(segment):
+    if not allow_selectors and _has_test_runner_selector(segment, test_runner_wrappers):
         return paths
 
-    django_runner = _runs_django_test_runner(segment)
-    scan_segment = _test_runner_target_scan_segment(segment)
-    invocation = _test_runner_invocation(segment)
+    django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
+    scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
+    invocation = _test_runner_invocation(segment, test_runner_wrappers)
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
     index = 0
@@ -236,6 +244,7 @@ def _test_paths_from_executing_shell_segments(
     *,
     allow_selectors: bool,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...],
 ) -> list[str]:
     paths: list[str] = []
     cwd = Path(".")
@@ -263,11 +272,13 @@ def _test_paths_from_executing_shell_segments(
         if saw_runner:
             return []
         segment = _expand_shell_path_tokens(segment, variables)
-        if not _runs_known_test_runner(segment):
+        if not _runs_known_test_runner(segment, test_runner_wrappers):
             return []
-        if _has_non_executing_test_runner_mode(segment):
+        if _has_non_executing_test_runner_mode(segment, test_runner_wrappers):
             return []
-        if not allow_selectors and _has_test_runner_selector(segment):
+        if not allow_selectors and _has_test_runner_selector(
+            segment, test_runner_wrappers
+        ):
             return []
 
         saw_runner = True
@@ -278,6 +289,7 @@ def _test_paths_from_executing_shell_segments(
                 cwd,
                 allow_selectors=allow_selectors,
                 django_test_paths_from_validate_segment=django_test_paths_from_validate_segment,
+                test_runner_wrappers=test_runner_wrappers,
             )
         )
 
@@ -291,11 +303,12 @@ def _test_paths_from_executing_runner_segment(
     *,
     allow_selectors: bool,
     django_test_paths_from_validate_segment: _DjangoPathResolver | None,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...],
 ) -> list[str]:
     paths: list[str] = []
-    django_runner = _runs_django_test_runner(segment)
-    scan_segment = _test_runner_target_scan_segment(segment)
-    invocation = _test_runner_invocation(segment)
+    django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
+    scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
+    invocation = _test_runner_invocation(segment, test_runner_wrappers)
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
     index = 0

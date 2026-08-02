@@ -6,6 +6,8 @@ import re
 import shlex
 from pathlib import Path
 
+from maid_runner.core.config import TestRunnerWrapperConfig
+
 _TEST_RUNNERS = frozenset(
     {
         "pytest",
@@ -215,12 +217,18 @@ _TEST_RUNNER_VALUE_FLAGS = frozenset(
 )
 
 
-def _runs_known_test_runner(segment: list[str]) -> bool:
-    return _invokes_known_test_runner(segment)
+def _runs_known_test_runner(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> bool:
+    return _invokes_known_test_runner(segment, test_runner_wrappers)
 
 
-def _invokes_known_test_runner(segment: list[str]) -> bool:
-    return _test_runner_invocation(segment) is not None
+def _invokes_known_test_runner(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> bool:
+    return _test_runner_invocation(segment, test_runner_wrappers) is not None
 
 
 def _strip_environment_prefix(segment: list[str]) -> list[str]:
@@ -261,8 +269,11 @@ def _is_python_command(command: str) -> bool:
     return command in {"python", "python3", "py"} or command.startswith("python3.")
 
 
-def _has_non_executing_test_runner_mode(segment: list[str]) -> bool:
-    invocation = _effective_test_runner_invocation(segment)
+def _has_non_executing_test_runner_mode(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> bool:
+    invocation = _effective_test_runner_invocation(segment, test_runner_wrappers)
     if invocation is None:
         return False
 
@@ -279,8 +290,11 @@ def _has_non_executing_test_runner_mode(segment: list[str]) -> bool:
     return False
 
 
-def _has_test_runner_selector(segment: list[str]) -> bool:
-    invocation = _effective_test_runner_invocation(segment)
+def _has_test_runner_selector(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> bool:
+    invocation = _effective_test_runner_invocation(segment, test_runner_wrappers)
     if invocation is None:
         return False
 
@@ -335,8 +349,11 @@ def _is_pythonpath_env_value(value: str) -> bool:
     return value == "PYTHONPATH" or value.startswith("PYTHONPATH=")
 
 
-def _runs_django_test_runner(segment: list[str]) -> bool:
-    invocation = _effective_test_runner_invocation(segment)
+def _runs_django_test_runner(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> bool:
+    invocation = _effective_test_runner_invocation(segment, test_runner_wrappers)
     return invocation is not None and invocation[0] == _DJANGO_TEST_RUNNER
 
 
@@ -373,8 +390,9 @@ def _is_test_runner_selector_flag(part: str) -> bool:
 
 def _effective_test_runner_invocation(
     segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
 ) -> tuple[str, list[str]] | None:
-    invocation = _test_runner_invocation(segment)
+    invocation = _test_runner_invocation(segment, test_runner_wrappers)
     if invocation is None:
         return None
 
@@ -434,21 +452,28 @@ def _pytest_ini_addopts_args(value: str) -> list[str]:
         return [value.split("=", 1)[1]]
 
 
-def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
+def _test_runner_invocation(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> tuple[str, list[str]] | None:
     parts = _strip_environment_prefix(segment)
     if not parts:
         return None
 
     command = _command_name(parts[0])
 
+    registered_wrapper = _registered_test_runner_wrapper(parts[0], test_runner_wrappers)
+    if registered_wrapper is not None:
+        return registered_wrapper.runner, parts[1:]
+
     if command == "uv" and len(parts) >= 3 and parts[1] == "run":
         inner_command = _uv_run_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command)
+            return _test_runner_invocation(inner_command, test_runner_wrappers)
         return None
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
-        return _test_runner_invocation(parts[2:])
+        return _test_runner_invocation(parts[2:], test_runner_wrappers)
 
     if command == "docker":
         inner_command = _docker_exec_inner_command(parts)
@@ -456,12 +481,12 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
             return _test_runner_invocation(inner_command)
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
-        return _test_runner_invocation(parts[3:])
+        return _test_runner_invocation(parts[3:], test_runner_wrappers)
 
     if command == "dotenv":
         inner_command = _dotenv_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command)
+            return _test_runner_invocation(inner_command, test_runner_wrappers)
 
     if (
         _is_python_command(command)
@@ -503,30 +528,39 @@ def _test_runner_invocation(segment: list[str]) -> tuple[str, list[str]] | None:
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
-        if inner_command is not None:
-            return _test_runner_invocation(inner_command)
+        scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
+        if inner_command is not None and scan_command is not None:
+            preserved_options = scan_command[: len(scan_command) - len(inner_command)]
+            inner_wrappers = () if preserved_options else test_runner_wrappers
+            return _test_runner_invocation(inner_command, inner_wrappers)
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
-        return _test_runner_invocation(parts[2:])
+        return _test_runner_invocation(parts[2:], test_runner_wrappers)
 
     return None
 
 
-def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
+def _test_runner_target_scan_segment(
+    segment: list[str],
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+) -> list[str]:
     parts = _strip_environment_prefix(segment)
     if not parts:
         return parts
 
     command = _command_name(parts[0])
 
+    if _registered_test_runner_wrapper(parts[0], test_runner_wrappers) is not None:
+        return parts[1:]
+
     if command == "uv" and len(parts) >= 3 and parts[1] == "run":
         inner_command = _uv_run_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_target_scan_segment(inner_command)
+            return _test_runner_target_scan_segment(inner_command, test_runner_wrappers)
         return parts
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
-        return _test_runner_target_scan_segment(parts[2:])
+        return _test_runner_target_scan_segment(parts[2:], test_runner_wrappers)
 
     if command == "docker":
         inner_command = _docker_exec_inner_command(parts)
@@ -534,30 +568,44 @@ def _test_runner_target_scan_segment(segment: list[str]) -> list[str]:
             return _test_runner_target_scan_segment(inner_command)
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
-        return _test_runner_target_scan_segment(parts[3:])
+        return _test_runner_target_scan_segment(parts[3:], test_runner_wrappers)
 
     if command == "dotenv":
         inner_command = _dotenv_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_target_scan_segment(inner_command)
+            return _test_runner_target_scan_segment(inner_command, test_runner_wrappers)
 
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
         if inner_command is not None and scan_command is not None:
             preserved_options = scan_command[: len(scan_command) - len(inner_command)]
+            inner_wrappers = () if preserved_options else test_runner_wrappers
             return [
                 *preserved_options,
-                *_test_runner_target_scan_segment(inner_command),
+                *_test_runner_target_scan_segment(inner_command, inner_wrappers),
             ]
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
-        return _test_runner_target_scan_segment(parts[2:])
+        return _test_runner_target_scan_segment(parts[2:], test_runner_wrappers)
 
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return parts[2:]
 
     return parts
+
+
+def _registered_test_runner_wrapper(
+    command: str,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...],
+) -> TestRunnerWrapperConfig | None:
+    normalized = Path(command).as_posix()
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+    for wrapper in test_runner_wrappers:
+        if wrapper.command == normalized:
+            return wrapper
+    return None
 
 
 def _package_runner_inner_command(

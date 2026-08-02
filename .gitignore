@@ -41,4 +41,5 @@ maid_agents/.claude/tdd-guard/data/test.json
 .maid/run-review-request.json
 .maid/run-review.json
 .maid/run-reviews/
+.maid/cache/
 # END MAID RUNNER GENERATED FILES

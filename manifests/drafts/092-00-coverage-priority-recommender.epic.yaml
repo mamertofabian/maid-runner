@@ -1,0 +1,47 @@
+schema: "2"
+goal: "Deliver an evidence-backed, deterministic brownfield coverage priority recommender while preserving legacy bootstrap ranking"
+type: feature
+created: "2026-07-31T00:00:00Z"
+metadata:
+  status: planning
+  tags:
+    - adoption
+    - bootstrap
+    - coverage-risk
+    - developer-experience
+  priority: high
+description: |
+  Split the second-generation brownfield recommender into implementation
+  children so the scoring contract is stable before plugin extensibility,
+  optional expensive evidence, and adoption-guidance alignment are added:
+
+  - 092-01 ships risk-v1, repository-wide indexes, explainable scoring, and CLI.
+  - 092-02 moves dependency and complexity collection behind optional validator
+    hooks without changing risk-v1 output.
+  - 092-03 adds project policy, cache, historical context, and opt-in deep
+    coverage evidence without changing the 100-point base weights.
+  - 092-04 aligns CLI how-to content and brownfield agent skills so risk-v1 is
+    the recommended migration-ordering model while legacy-v1 remains available.
+
+  Existing `maid bootstrap --rank` behavior remains `legacy-v1` and stays the
+  default for one release. No LLM participates in scoring.
+temptations:
+  - risk: "Do not replace or reinterpret the 061-04 raw ranking contract."
+    instead: "Keep legacy-v1 byte-compatible and add risk-v1 behind an explicit model selector."
+  - risk: "Do not ship a changing risk-v1 formula across the child manifests."
+    instead: "Pin the full 100-point scoring model in 092-01; later children may add evidence and policy but not redefine base weights."
+  - risk: "Do not represent missing analysis as zero risk."
+    instead: "Carry unknown evidence explicitly, contribute at least half the affected component cap, and lower confidence."
+files:
+  edit:
+    - path: manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _coverage_priority_recommender_epic
+          of: manifest
+          type: draft epic
+          description: "Planning inventory for children 092-01 through 092-04."
+  read:
+    - manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/092-00-coverage-priority-recommender.epic.yaml --mode schema --quiet

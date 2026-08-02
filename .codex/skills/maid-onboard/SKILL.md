@@ -141,6 +141,21 @@ and stating what changed because of the evidence, while preserving the advisory
 boundary that recall, insights, and digested Outcomes do not replace MAID
 gates.
 
+### Optional brownfield migration order
+
+When setup is complete and `maid files` still reports
+incomplete brownfield coverage, offer risk-v1 as the evidence-backed next-step
+ordering:
+
+```bash
+<maid> bootstrap --rank --model risk-v1 --limit 20
+```
+
+With the standard executable, the command is
+`maid bootstrap --rank --model risk-v1 --limit 20`; otherwise retain the
+detected `<maid>` invocation. This is optional and not a prerequisite for
+initialization, validation, or ordinary MAID work.
+
 ## Phase 8 — Hand off for commit (do not auto-commit)
 
 Run the repo's quality gate if present (`make check`, or lint/type/test), show

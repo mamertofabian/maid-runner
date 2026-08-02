@@ -243,6 +243,8 @@ def _artifact_to_dict(artifact: ArtifactSpec) -> dict:
         data["args"] = [_arg_to_dict(arg) for arg in artifact.args]
     if artifact.returns:
         data["returns"] = artifact.returns
+    if artifact.signature is not None:
+        data["signature"] = artifact.signature
     if artifact.raises:
         data["raises"] = list(artifact.raises)
     if artifact.is_async:
@@ -267,8 +269,13 @@ def _arg_to_dict(arg) -> dict:
     return data
 
 
-def _artifact_sort_key(artifact: ArtifactSpec) -> tuple[str, str, str]:
-    return (artifact.name, artifact.of or "", artifact.kind.value)
+def _artifact_sort_key(artifact: ArtifactSpec) -> tuple[str, str, str, str]:
+    return (
+        artifact.name,
+        artifact.of or "",
+        artifact.kind.value,
+        artifact.contract_key(),
+    )
 
 
 def _schema_validate_command(path: Path) -> str:

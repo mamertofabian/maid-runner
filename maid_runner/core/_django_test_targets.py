@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from maid_runner.core.config import TestRunnerWrapperConfig
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._test_command_targets import _normalize_relative_path
 from maid_runner.core._test_runner_invocation import (
@@ -22,8 +23,9 @@ def django_test_paths_from_validate_segment(
     segment: list[str],
     project_root: Path,
     cwd: Path,
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
 ) -> list[str]:
-    invocation = _effective_test_runner_invocation(segment)
+    invocation = _effective_test_runner_invocation(segment, test_runner_wrappers)
     if invocation is None:
         return []
 

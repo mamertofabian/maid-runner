@@ -44,10 +44,12 @@ def test_howto_content_covers_rank_from_diff_and_baseline_rule(capsys) -> None:
 
     assert exit_code == 0
     output = capsys.readouterr().out
-    assert "maid bootstrap --rank" in output
+    assert "maid bootstrap --rank --model risk-v1 --limit 20" in output
+    assert "maid bootstrap --rank --model risk-v1 --json" in output
     assert "maid manifest from-diff" in output
     assert "Exactly one of --since, --base-ref, or --worktree is required" in output
     assert "metadata.needs_review: true" in output
+    assert "legacy-v1" in output
     assert "orders by churn descending" in output
     assert "inbound_refs descending" in output
     assert "public_artifacts descending" in output

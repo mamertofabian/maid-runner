@@ -257,8 +257,8 @@ def _file_delta(
     )
 
 
-def _identity(spec: ArtifactSpec) -> tuple[str, str]:
-    return (spec.name, spec.of or "")
+def _identity(spec: ArtifactSpec) -> tuple[str, str, str]:
+    return (spec.name, spec.of or "", spec.contract_key())
 
 
 def _signature_differs(baseline: ArtifactSpec, current: ArtifactSpec) -> bool:

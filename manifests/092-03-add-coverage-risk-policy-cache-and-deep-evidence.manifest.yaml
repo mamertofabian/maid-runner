@@ -1,0 +1,192 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Add repository policy floors, static caching, advisory history, and opt-in
+  Python coverage evidence to risk-v1"
+type: feature
+created: "2026-07-31T00:19:37Z"
+metadata:
+  epic: 092-00-coverage-priority-recommender
+  tags:
+    - coverage-risk
+    - configuration
+    - cache
+    - test-evidence
+  priority: high
+description: |
+  Complete risk-v1 with repository-owned critical path and entrypoint policy,
+  deterministic static-report caching, zero-point Outcome/incident context,
+  and an opt-in Python-only deep coverage mode.
+
+  Critical path rules set a minimum priority band without changing the numeric
+  score. Static cache keys include the repository HEAD plus content fingerprints
+  for discovered source, manifests, configuration, and advisory evidence.
+  Deep mode bypasses the cache and executes only an explicitly configured pytest
+  command with pytest-cov JSON output.
+temptations:
+  - risk: "Do not infer criticality from filenames such as auth or payments."
+    instead: "Apply only explicit .maidrc.yaml critical_paths patterns and expose
+      the matched rule as evidence."
+  - risk: "Do not let Outcome or incident prose alter deterministic ranking."
+    instead: "Attach matched records as zero-point historical_context evidence."
+  - risk: "Do not execute an implicit or guessed test command in deep mode."
+    instead: "Require an explicit Python pytest command and fail loudly when it is
+      absent or unsupported."
+  - risk: "Do not serve deep or stale static results from cache."
+    instead: "Bypass cache for deep mode and fingerprint every static input plus model/config
+      version."
+files:
+  edit:
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: class
+          name: CriticalPathRule
+        - kind: attribute
+          name: pattern
+          of: CriticalPathRule
+          type: str
+        - kind: attribute
+          name: minimum_priority
+          of: CriticalPathRule
+          type: str
+        - kind: class
+          name: CoverageRecommendationConfig
+        - kind: attribute
+          name: critical_paths
+          of: CoverageRecommendationConfig
+          type: "tuple[CriticalPathRule, ...]"
+        - kind: attribute
+          name: entrypoints
+          of: CoverageRecommendationConfig
+          type: "tuple[str, ...]"
+        - kind: attribute
+          name: cache_enabled
+          of: CoverageRecommendationConfig
+          type: bool
+        - kind: attribute
+          name: deep_command
+          of: CoverageRecommendationConfig
+          type: "tuple[str, ...] | None"
+        - kind: attribute
+          name: coverage_recommendation
+          of: MaidConfig
+          type: CoverageRecommendationConfig
+    - path: maid_runner/core/coverage_recommendation.py
+      artifacts:
+        - kind: function
+          name: recommend_coverage
+          args:
+            - name: project_root
+              type: "Union[str, Path]"
+            - name: manifest_dir
+              type: str
+              default: manifests/
+            - name: limit
+              type: int
+              default: "20"
+            - name: exclude_patterns
+              type: "set[str] | None"
+              default: "None"
+            - name: respect_gitignore
+              type: bool
+              default: "True"
+            - name: deep
+              type: bool
+              default: "False"
+          returns: CoverageRecommendationReport
+    - path: maid_runner/core/_coverage_cache.py
+      artifacts:
+        - kind: function
+          name: load_cached_coverage_report
+          args:
+            - name: project_root
+              type: Path
+            - name: cache_key
+              type: str
+          returns: "dict | None"
+        - kind: function
+          name: write_cached_coverage_report
+          args:
+            - name: project_root
+              type: Path
+            - name: cache_key
+              type: str
+            - name: report
+              type: dict
+          returns: None
+    - path: maid_runner/core/_deep_coverage.py
+      artifacts:
+        - kind: class
+          name: DeepCoverageResult
+        - kind: function
+          name: collect_deep_coverage
+          args:
+            - name: project_root
+              type: Path
+            - name: command
+              type: "tuple[str, Ellipsis]"
+            - name: paths
+              type: "Collection[str]"
+          returns: DeepCoverageResult
+    - path: maid_runner/core/_coverage_history_evidence.py
+      artifacts:
+        - kind: function
+          name: collect_coverage_history_evidence
+          args:
+            - name: project_root
+              type: Path
+            - name: paths
+              type: "Collection[str]"
+          returns: "dict[str, tuple[str, Ellipsis]]"
+  scope:
+    - path: .gitignore
+      reason: "Keep generated coverage recommendation cache entries out of version control."
+    - path: maid_runner/core/_dependency_index.py
+      reason: "Merge configured entrypoints with standard metadata entrypoints."
+    - path: maid_runner/cli/commands/bootstrap.py
+      reason: "Render priority-floor, cache, historical, and deep evidence."
+    - path: README.md
+      reason: "Document risk-v1 compatibility, configuration, cache, and deep-mode
+        behavior."
+  read:
+    - tests/core/test_coverage_recommendation_policy.py
+    - tests/cli/test_coverage_recommendation_cmd.py
+    - tests/core/test_config.py
+validate:
+  - uv run python -m pytest tests/core/test_coverage_recommendation_policy.py
+    tests/core/test_coverage_recommendation.py
+    tests/cli/test_coverage_recommendation_cmd.py tests/core/test_config.py -v
+outcome:
+  status: completed
+  completed_at: "2026-07-31T00:42:49Z"
+  summary: "Completed risk-v1 with policy floors, static caching, advisory history, and opt-in Python deep coverage."
+  rationale: "Policy floors never mutate scores, cache keys cover direct and indirect static inputs, historical records are zero-point context, and deep mode bypasses cache with structurally validated pytest commands."
+  lessons:
+    - lesson_type: implementation
+      summary: "Recommendation caches must fingerprint entrypoint metadata, validator state, shallow history, and the rolling-history date as well as source and manifests."
+      tags: [cache, invalidation, determinism]
+      paths: [maid_runner/core/_coverage_cache.py, maid_runner/core/coverage_recommendation.py]
+    - lesson_type: security
+      summary: "Configured deep commands require exact structural executable validation; substring and prefix checks admit unrelated executables."
+      tags: [deep-coverage, command-execution]
+      paths: [maid_runner/core/_deep_coverage.py, tests/core/test_coverage_recommendation_policy.py]
+    - lesson_type: compatibility
+      summary: "Test-directory classification for recommendations must remain local rather than widening the shared is_test_file contract."
+      tags: [test-discovery, compatibility]
+      paths: [maid_runner/core/_dependency_index.py, maid_runner/core/_file_discovery.py]
+  review_notes:
+    - source: coverage_recommender_review
+      severity: ready
+      summary: "Independent review returned ready with no remaining blocking findings."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Full suite passed: 3648 passed, 5 skipped."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "Repository validation passed: 375 active manifests, 0 failures."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 212 manifest command groups passed."

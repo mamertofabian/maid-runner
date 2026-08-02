@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -78,6 +80,32 @@ def test_demo():
     assert "changed" == "changed"
 """
 
+_CROSS_INTERPRETER_TEST = """\
+from __future__ import annotations
+
+MARKERS = (b"\\x00", 1 + 2j, ..., -0.0)
+
+
+def choose(value: int | None = None) -> str:
+    if value is None:
+        return "missing"
+    return f"value={value}"
+"""
+
+_CROSS_INTERPRETER_HASH = (
+    "sha256-pyast:v2:"
+    "6c231e332a5a799c74f9ca8b695acb2333df80af6ba3bef8b735901dd18bf881"
+)
+
+_LONE_SURROGATE_TEST = 'VALUE = "\\ud800"\n'
+_SURROGATE_PAIR_TEST = 'VALUE = "\\ud83d\\ude00"\n'
+_ASTRAL_CHARACTER_TEST = 'VALUE = "😀"\n'
+_SURROGATE_HASHES = (
+    "sha256-pyast:v2:0b8ca8f018a6176f0e0efd3b9efa4b3153b0649984a823c067d0563149efac99",
+    "sha256-pyast:v2:971d6e8e4740b4ff2a01a2f30bc32e1d7b4f158fc52989fb21fff971ebbf386b",
+    "sha256-pyast:v2:c88c235a1746ec2f174c7a312862e679f0992e065c35851c75522da58b014e5d",
+)
+
 
 def _compute_behavioral_test_hash(path: Path) -> str:
     assert hasattr(
@@ -125,7 +153,7 @@ def test_pyast_hash_ignores_whitespace_and_comment_only_edits(tmp_path: Path) ->
     right = _compute_behavioral_test_hash(formatted)
 
     assert left == right
-    assert left.startswith("sha256-pyast:")
+    assert left.startswith("sha256-pyast:v2:")
 
 
 def test_pyast_hash_tracks_assertion_and_import_changes(tmp_path: Path) -> None:
@@ -174,6 +202,25 @@ def test_test_hash_matches_dispatches_on_prefix(tmp_path: Path) -> None:
     assert _test_hash_matches("not-a-hash", path) is False
 
 
+def test_test_hash_matches_accepts_historical_pyast_v1(tmp_path: Path) -> None:
+    path = tmp_path / "test_demo.py"
+    path.write_text(_BASELINE_TEST, encoding="utf-8")
+    canonical = ast.dump(
+        ast.parse(_BASELINE_TEST),
+        annotate_fields=True,
+        include_attributes=False,
+    )
+    legacy_hash = "sha256-pyast:" + hashlib.sha256(canonical.encode()).hexdigest()
+
+    assert _test_hash_matches(legacy_hash, path) is True
+
+    path.write_text(_FORMATTED_TEST, encoding="utf-8")
+    assert _test_hash_matches(legacy_hash, path) is True
+
+    path.write_text(_ASSERTION_CHANGED_TEST, encoding="utf-8")
+    assert _test_hash_matches(legacy_hash, path) is False
+
+
 def test_new_locks_store_pyast_prefixed_python_test_hashes(tmp_path: Path) -> None:
     manifest_path = _write_project(tmp_path)
 
@@ -181,7 +228,7 @@ def test_new_locks_store_pyast_prefixed_python_test_hashes(tmp_path: Path) -> No
 
     assert lock.test_hashes
     assert all(
-        path.endswith(".py") and digest.startswith("sha256-pyast:")
+        path.endswith(".py") and digest.startswith("sha256-pyast:v2:")
         for path, digest in lock.test_hashes.items()
     )
 
@@ -237,3 +284,31 @@ def test_pyast_hash_raises_on_unparseable_python(tmp_path: Path) -> None:
 
     with pytest.raises(SyntaxError):
         plan_lock_mod.compute_behavioral_test_hash(bad)
+
+
+def test_pyast_v2_hash_has_cross_interpreter_golden_digest(tmp_path: Path) -> None:
+    path = tmp_path / "test_portable.py"
+    path.write_text(_CROSS_INTERPRETER_TEST, encoding="utf-8")
+
+    assert _compute_behavioral_test_hash(path) == _CROSS_INTERPRETER_HASH
+
+
+def test_pyast_v2_hash_handles_surrogate_escapes_without_collisions(
+    tmp_path: Path,
+) -> None:
+    sources = (
+        _LONE_SURROGATE_TEST,
+        _SURROGATE_PAIR_TEST,
+        _ASTRAL_CHARACTER_TEST,
+    )
+    digests = []
+
+    for index, source in enumerate(sources):
+        path = tmp_path / f"test_unicode_{index}.py"
+        path.write_text(source, encoding="utf-8")
+        digest = _compute_behavioral_test_hash(path)
+        assert digest.startswith("sha256-pyast:v2:")
+        digests.append(digest)
+
+    assert digests == list(_SURROGATE_HASHES)
+    assert len(set(digests)) == len(sources)

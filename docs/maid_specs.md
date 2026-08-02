@@ -105,16 +105,22 @@ manifests rather than falling back to byte hashing. Status is reporting-oriented
 an unreadable manifest returns exit 1 with `manifest_match: false` and
 `manifest_error` in JSON, with an equivalent `Manifest error` line in text.
 
-Behavioral test files use a dual-format pin. New locks hash `.py`
-behavioral tests with a `sha256-pyast:` digest over
-`ast.dump(..., annotate_fields=True, include_attributes=False)` so
-whitespace- and comment-only edits (including Black reformats) do not flip
-status or force E701. Non-Python behavioral tests and legacy lock entries
-keep the byte `sha256:` prefix. Comparison dispatches on the stored
-prefix — existing test hashes stay valid without migration. The documented
-limit is intentional: under `sha256-pyast:`, comment-only and formatter-only
-Python edits are hash-neutral, while assertion, import, string-literal, and
-other AST-visible edits remain tamper-evident.
+Behavioral test files use versioned prefix dispatch. New locks hash `.py`
+behavioral tests with `sha256-pyast:v2:` over a compact canonical AST payload.
+The payload preserves node names, ordered non-empty fields, and type-tagged
+literal values while omitting only absent and empty-list fields. Strings are
+encoded as the hexadecimal form of their exact UTF-8 `surrogatepass` bytes, so
+lone or paired surrogate escapes cannot collide with actual astral code points.
+This keeps whitespace- and comment-only edits (including Black reformats)
+hash-neutral and avoids false E701 tampering when supported CPython versions
+add empty AST fields. Historical `sha256-pyast:` v1 entries continue to compare
+through the original
+`ast.dump(..., annotate_fields=True, include_attributes=False)` rule,
+and non-Python or older test entries retain byte `sha256:` comparison. Existing
+locks are never rewritten automatically; v1 remains tied to its historical
+interpreter shape until an intentional plan revision writes v2. Assertion,
+import, string-literal, and other AST-visible edits remain tamper-evident under
+both AST formats, and parse/decode/canonicalization failures remain fail-loud.
 
 Red-phase evidence uses exit-code-only classification. For pytest commands,
 exit 1 is valid red because tests ran and failed, exits 2/3/4/5 are invalid
@@ -123,6 +129,30 @@ and exit 0 means the tests already pass and are not red. MAID stores the final
 output tail for human inspection, but it does not parse text output to decide
 whether evidence is red. `maid plan lock --no-run` records
 `red_evidence: null`.
+
+##### **Repository-Owned Django Test Wrappers**
+
+Command-integrity checks recognize standard Django entry points by default. A
+repository that must run Django tests through its own safety or isolation script
+can register that reviewed executable in `.maidrc.yaml`:
+
+```yaml
+test_runner_wrappers:
+  - command: ./scripts/test
+    runner: django
+```
+
+The command must be an exact project-relative path to an existing file. Absolute
+paths, parent-directory escapes, duplicate normalized paths, missing files, and
+unsupported runner kinds fail configuration loading. Registration does not skip
+E230: MAID interprets only the registered command's remaining arguments as Django
+test arguments, maps whole-module dotted labels to existing in-project test files,
+and retains the normal selector, malformed-option, and Python-path-shadowing
+guards. Unregistered or differently named scripts remain opaque and fail closed.
+
+Wrapper registration is an explicit repository policy and review boundary. MAID
+does not infer trust by executable basename or attempt to prove arbitrary shell
+control flow by parsing the wrapper source.
 
 Completed manifests that predate plan-lock adoption have a separate migration
 path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.

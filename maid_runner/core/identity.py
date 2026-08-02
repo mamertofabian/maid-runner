@@ -26,6 +26,8 @@ def _reference_can_cover_artifact(
     reference: FoundArtifact,
     artifact: FoundArtifact,
 ) -> bool:
+    if artifact.signature is not None and reference.signature != artifact.signature:
+        return False
     if reference.kind == ArtifactKind.TEST_FUNCTION:
         return False
     if reference.reference_context == "import":

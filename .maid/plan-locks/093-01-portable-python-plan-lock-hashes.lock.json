@@ -1,0 +1,313 @@
+{
+  "manifest_path": "manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml",
+  "manifest_hash": "sha256-contract:791284a45a2e9e413c8a0a98eecfbb6a5e33cb2f3242852842b873a923361b92",
+  "test_hashes": {
+    "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:v2:26abda55c392bd25505ca29556dfdb8a805df3de857b0013ce05fbd488e855e3"
+  },
+  "created_at": "2026-08-01T06:22:08.716570+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d4f358bbea8736b5dab9dc746338a0e6aabc822c74ab0030a9bb184608ca8224",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:6104f77fa6eaeaa5f6a17e9d6965b8df36f4a5985d866e42979157504e8ad4e6"
+      },
+      "revised_at": "2026-08-01T06:22:14.896361+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/093-01-portable-python-plan-lock-hashes.manifest.yaml -> manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a4355ebd44daeb699e511e8123b63a12c2b4960aa85d9ed9db366c55b9e287f1",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:6104f77fa6eaeaa5f6a17e9d6965b8df36f4a5985d866e42979157504e8ad4e6"
+      },
+      "revised_at": "2026-08-01T06:30:26.000814+00:00",
+      "reason": "Remove the pending epic reference so this implementation slice remains independently valid",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aef6bae5ab5122f5d11b64695051f1d5df4236d69bfa9599c996ccad81846fd4",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:v2:4cc1717d1ce33f9743ea0992658d83012c6432a619583c1554985d74dd0ff829"
+      },
+      "revised_at": "2026-08-01T06:53:27.284448+00:00",
+      "reason": "Harden v2 AST hashing for escaped surrogates and pin new-lock v2 output after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_handles_surrogate_escapes_without_collisions",
+          "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_handles_surrogate_escapes_without_collisions:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:791284a45a2e9e413c8a0a98eecfbb6a5e33cb2f3242852842b873a923361b92",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:v2:ba4453b05c27c2d384bd35d53437b877e150a1aba96bb548682d5cf099806068"
+      },
+      "revised_at": "2026-08-01T07:00:18.692012+00:00",
+      "reason": "Re-pin behavioral test hashes with the final surrogate-safe v2 serializer",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:791284a45a2e9e413c8a0a98eecfbb6a5e33cb2f3242852842b873a923361b92",
+      "prior_test_hashes": {
+        "tests/core/test_ast_scoped_behavioral_test_hash.py": "sha256-pyast:v2:3743a86568eb6839e042a002c79c5bbe2123324fb1997470ec156dc1838397c1"
+      },
+      "revised_at": "2026-08-01T07:06:21.043796+00:00",
+      "reason": "Pin reviewer-requested surrogate golden digests without changing the behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-01T06:53:29.053217+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_ast_scoped_behavioral_test_hash.py -v",
+        "exit_code": 1,
+        "output_tail": "            _ASTRAL_CHARACTER_TEST,\n        )\n        digests = []\n    \n        for index, source in enumerate(sources):\n            path = tmp_path / f\"test_unicode_{index}.py\"\n            path.write_text(source, encoding=\"utf-8\")\n            digest = _compute_behavioral_test_hash(path)\n>           assert digest.startswith(\"sha256-pyast:v2:\")\nE           AssertionError: assert False\nE            +  where False = <built-in method startswith of str object at 0x7e9ae3c71db0>('sha256-pyast:v2:')\nE            +    where <built-in method startswith of str object at 0x7e9ae3c71db0> = 'sha256-pyast:29688d2793f286983ac6c6ffdf9ce0b438f4075cc7f2858c078fdf6e435ecc2d'.startswith\n\ntests/core/test_ast_scoped_behavioral_test_hash.py:305: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_hash_ignores_whitespace_and_comment_only_edits\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_new_locks_store_pyast_prefixed_python_test_hashes\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_v2_hash_has_cross_interpreter_golden_digest\nFAILED tests/core/test_ast_scoped_behavioral_test_hash.py::test_pyast_v2_hash_handles_surrogate_escapes_without_collisions\n========================= 4 failed, 6 passed in 0.16s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:arg=path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:kind=function",
+      "maid_runner/core/plan_lock.py:function:compute_behavioral_test_hash:returns=str",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:create_plan_lock:returns=PlanLock",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:arg=lock_hash:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:arg=path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:kind=function",
+      "maid_runner/core/plan_lock.py:function:test_hash_matches:returns=bool",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_new_locks_store_pyast_prefixed_python_test_hashes",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_new_locks_store_pyast_prefixed_python_test_hashes:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_non_python_behavioral_test_remains_byte_hashed",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_non_python_behavioral_test_remains_byte_hashed:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_plan_status_and_enforce_tolerate_formatter_only_python_edits",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_plan_status_and_enforce_tolerate_formatter_only_python_edits:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_ignores_whitespace_and_comment_only_edits",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_ignores_whitespace_and_comment_only_edits:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_raises_on_unparseable_python",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_raises_on_unparseable_python:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_tracks_assertion_and_import_changes",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_hash_tracks_assertion_and_import_changes:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_handles_surrogate_escapes_without_collisions",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_handles_surrogate_escapes_without_collisions:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_has_cross_interpreter_golden_digest",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_pyast_v2_hash_has_cross_interpreter_golden_digest:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_accepts_historical_pyast_v1",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_accepts_historical_pyast_v1:kind=test_function",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_dispatches_on_prefix",
+      "tests/core/test_ast_scoped_behavioral_test_hash.py:test_test_hash_matches_dispatches_on_prefix:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/plan_lock.py",
+        "tests/core/test_ast_scoped_behavioral_test_hash.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/supersession_audit.py",
+        "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml"
+      ],
+      "scope": [
+        "docs/maid_specs.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/test_ast_scoped_behavioral_test_hash.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_ignores_whitespace_and_comment_only_edits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_tracks_assertion_and_import_changes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_python_behavioral_test_remains_byte_hashed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_hash_matches_dispatches_on_prefix"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_hash_matches_accepts_historical_pyast_v1"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_new_locks_store_pyast_prefixed_python_test_hashes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_status_and_enforce_tolerate_formatter_only_python_edits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_hash_raises_on_unparseable_python"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_v2_hash_has_cross_interpreter_golden_digest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pyast_v2_hash_handles_surrogate_escapes_without_collisions"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compute_behavioral_test_hash",
+              "description": "Writes sha256-pyast:v2 for parseable UTF-8 Python and sha256 byte hashes for other suffixes; raises instead of silently degrading.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "test_hash_matches",
+              "description": "Fail-closed prefix dispatch for sha256-pyast:v2, historical sha256-pyast v1, and sha256 byte hashes.",
+              "args": [
+                {
+                  "name": "lock_hash",
+                  "type": "str"
+                },
+                {
+                  "name": "path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "create_plan_lock",
+              "description": "Stores the current versioned compute_behavioral_test_hash result; public signature remains unchanged.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "agent",
+                  "type": "Optional[AgentProvenance]"
+                }
+              ],
+              "returns": "PlanLock"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/supersession_audit.py",
+        "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document v2 writes, v1/byte compatibility, migration boundaries, and the formatting-neutral semantic limit."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep the packaged MAID specification synchronized with the canonical documentation."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_ast_scoped_behavioral_test_hash.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_ast_scoped_behavioral_test_hash.py -v",
+      "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/093-01-portable-python-plan-lock-hashes.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

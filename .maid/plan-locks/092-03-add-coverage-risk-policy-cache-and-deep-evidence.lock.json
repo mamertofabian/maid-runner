@@ -1,0 +1,491 @@
+{
+  "manifest_path": "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:cfce8f522c860e38dd994848ac8e32b470e79f4e2be27624f365e24f780d99e2",
+  "test_hashes": {
+    "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:ce07dd94ae0d0d2b1f0b11fb383ce119cd5a33fc73b802627ed4e1b79ddc71c9",
+    "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+    "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+  },
+  "created_at": "2026-07-31T00:19:36.730948+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:19f1456468c2140646f513f2131123a3d146878081f782e5259bba5bf2dd8b9c",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:196bb9eedd2b535bcd8500699a03f898144ee4b0d843a5a69d82585a4c572f6e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915"
+      },
+      "revised_at": "2026-07-31T00:19:37.524803+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml -> manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f303d9574b8b0978165cc4eb99eab3df4080728ac5403352e62337883d526072",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:196bb9eedd2b535bcd8500699a03f898144ee4b0d843a5a69d82585a4c572f6e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:a286a3ade37b20f30b9eaa3acb02326085bde93ba42a97c6b27376bb3f97a915"
+      },
+      "revised_at": "2026-07-31T00:22:39.217981+00:00",
+      "reason": "Retain explicit behavioral identity references after formatting and complete the default-cache contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f303d9574b8b0978165cc4eb99eab3df4080728ac5403352e62337883d526072",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:196bb9eedd2b535bcd8500699a03f898144ee4b0d843a5a69d82585a4c572f6e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:3f45492ab05ff8c1734f46620983a394f67cc70136fc520fbbb026a165f1fc5f"
+      },
+      "revised_at": "2026-07-31T00:23:03.100452+00:00",
+      "reason": "Use MAID's canonical Ellipsis spelling for variadic tuple annotations reported by implementation validation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:returns=dict[str, tuple[str, Ellipsis]]",
+          "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:arg=command:type=tuple[str, Ellipsis]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:returns=dict[str, tuple[str, ...]]",
+          "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:arg=command:type=tuple[str, ...]:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:577ba8e064d539e8b333d166494b7d77a2a79d5696e7730ecf5f3a104764d579",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:196bb9eedd2b535bcd8500699a03f898144ee4b0d843a5a69d82585a4c572f6e",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:3f45492ab05ff8c1734f46620983a394f67cc70136fc520fbbb026a165f1fc5f"
+      },
+      "revised_at": "2026-07-31T00:34:44.830429+00:00",
+      "reason": "Address independent review: cover metadata cache invalidation, strict deep commands, entrypoint self-reachability, and test-support directory separation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_file_discovery.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b0b809deb8e0bb928fe3ebf74912b283a1ad461d7b2ef9bbb6bf12ffe28c08f0",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:d075e33396d704799316bceb701794a29a2b1cca5da7718c5209fbd44ae2799c",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:2ba2b13c8eb81508de49fd1c7c52faf5c7cb94fdf3ac40ee4cca6071676520ad"
+      },
+      "revised_at": "2026-07-31T00:39:16.443667+00:00",
+      "reason": "Complete re-review fixes with exact pytest executable validation and recommender-local test-directory classification.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "scope:maid_runner/core/_file_discovery.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:577ba8e064d539e8b333d166494b7d77a2a79d5696e7730ecf5f3a104764d579",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:d10c7512b7727617fb7e34beb4e79ddd0641bb37359698f406df56e75caf3ee6",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+      },
+      "revised_at": "2026-07-31T00:41:31.191042+00:00",
+      "reason": "Resolve the final review case by rejecting arbitrary Python-prefixed deep executables.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:577ba8e064d539e8b333d166494b7d77a2a79d5696e7730ecf5f3a104764d579",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:53521e22f78373343503195bbc7f49c216a9d86aaee7e45b43f8add75e3ee229",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_config.py": "sha256-pyast:5e25cae7c63a6f0c42481e50286eedcd7b56bc07ceeed52de4e9bb8941d02324",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+      },
+      "revised_at": "2026-07-31T00:47:21.614377+00:00",
+      "reason": "Ignore generated coverage cache files and protect the repository hygiene contract with a focused test.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.gitignore"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-07-31T00:19:38.102914+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_coverage_recommendation_policy.py tests/core/test_coverage_recommendation.py tests/cli/test_coverage_recommendation_cmd.py tests/core/test_config.py -v",
+        "exit_code": 1,
+        "output_tail": "        config = MaidConfig()\n        assert config.manifest_dir == \"manifests/\"\n        assert config.schema_version == \"2\"\n        assert config.default_validation_mode == ValidationMode.IMPLEMENTATION\n        assert config.languages == (\"python\", \"typescript\")\n        assert config.coherence_enabled is False\n        assert config.coherence_checks == ()\n>       assert config.coverage_recommendation.critical_paths == ()\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'MaidConfig' object has no attribute 'coverage_recommendation'\n\ntests/core/test_config.py:16: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_coverage_recommendation_policy.py::test_config_loads_coverage_recommendation_policy\nFAILED tests/core/test_coverage_recommendation_policy.py::test_critical_path_floor_changes_priority_without_changing_score\nFAILED tests/core/test_coverage_recommendation_policy.py::test_static_cache_hits_and_invalidates_when_source_changes\nFAILED tests/core/test_coverage_recommendation_policy.py::test_outcome_and_incident_matches_are_zero_point_context\nFAILED tests/core/test_coverage_recommendation_policy.py::test_deep_mode_uses_python_coverage_and_bypasses_cache\nFAILED tests/core/test_config.py::TestMaidConfig::test_defaults - AttributeEr...\n========================= 6 failed, 17 passed in 0.38s =========================",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_coverage_cache.py:function:load_cached_coverage_report",
+      "maid_runner/core/_coverage_cache.py:function:load_cached_coverage_report:arg=cache_key:type=str:default=None",
+      "maid_runner/core/_coverage_cache.py:function:load_cached_coverage_report:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_coverage_cache.py:function:load_cached_coverage_report:kind=function",
+      "maid_runner/core/_coverage_cache.py:function:load_cached_coverage_report:returns=dict | None",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report:arg=cache_key:type=str:default=None",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report:arg=report:type=dict:default=None",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report:kind=function",
+      "maid_runner/core/_coverage_cache.py:function:write_cached_coverage_report:returns=None",
+      "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence",
+      "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:arg=paths:type=Collection[str]:default=None",
+      "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:kind=function",
+      "maid_runner/core/_coverage_history_evidence.py:function:collect_coverage_history_evidence:returns=dict[str, tuple[str, Ellipsis]]",
+      "maid_runner/core/_deep_coverage.py:class:DeepCoverageResult",
+      "maid_runner/core/_deep_coverage.py:class:DeepCoverageResult:kind=class",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:arg=paths:type=Collection[str]:default=None",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:kind=function",
+      "maid_runner/core/_deep_coverage.py:function:collect_deep_coverage:returns=DeepCoverageResult",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.cache_enabled",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.cache_enabled:kind=attribute",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.cache_enabled:of=CoverageRecommendationConfig",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.cache_enabled:type=bool",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.critical_paths",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.critical_paths:kind=attribute",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.critical_paths:of=CoverageRecommendationConfig",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.critical_paths:type=tuple[CriticalPathRule, ...]",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.deep_command",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.deep_command:kind=attribute",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.deep_command:of=CoverageRecommendationConfig",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.deep_command:type=tuple[str, ...] | None",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.entrypoints",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.entrypoints:kind=attribute",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.entrypoints:of=CoverageRecommendationConfig",
+      "maid_runner/core/config.py:attribute:CoverageRecommendationConfig.entrypoints:type=tuple[str, ...]",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.minimum_priority",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.minimum_priority:kind=attribute",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.minimum_priority:of=CriticalPathRule",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.minimum_priority:type=str",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.pattern",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.pattern:kind=attribute",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.pattern:of=CriticalPathRule",
+      "maid_runner/core/config.py:attribute:CriticalPathRule.pattern:type=str",
+      "maid_runner/core/config.py:attribute:MaidConfig.coverage_recommendation",
+      "maid_runner/core/config.py:attribute:MaidConfig.coverage_recommendation:kind=attribute",
+      "maid_runner/core/config.py:attribute:MaidConfig.coverage_recommendation:of=MaidConfig",
+      "maid_runner/core/config.py:attribute:MaidConfig.coverage_recommendation:type=CoverageRecommendationConfig",
+      "maid_runner/core/config.py:class:CoverageRecommendationConfig",
+      "maid_runner/core/config.py:class:CoverageRecommendationConfig:kind=class",
+      "maid_runner/core/config.py:class:CriticalPathRule",
+      "maid_runner/core/config.py:class:CriticalPathRule:kind=class",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=deep:type=bool:default=False",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=limit:type=int:default=20",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=manifest_dir:type=str:default=manifests/",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=respect_gitignore:type=bool:default=True",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:kind=function",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:returns=CoverageRecommendationReport"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_coverage_cache.py",
+        "maid_runner/core/_coverage_history_evidence.py",
+        "maid_runner/core/_deep_coverage.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/coverage_recommendation.py"
+      ],
+      "read": [
+        "tests/cli/test_coverage_recommendation_cmd.py",
+        "tests/core/test_config.py",
+        "tests/core/test_coverage_recommendation_policy.py"
+      ],
+      "scope": [
+        ".gitignore",
+        "README.md",
+        "maid_runner/cli/commands/bootstrap.py",
+        "maid_runner/core/_dependency_index.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CriticalPathRule"
+            },
+            {
+              "kind": "attribute",
+              "name": "pattern",
+              "of": "CriticalPathRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "minimum_priority",
+              "of": "CriticalPathRule",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "CoverageRecommendationConfig"
+            },
+            {
+              "kind": "attribute",
+              "name": "critical_paths",
+              "of": "CoverageRecommendationConfig",
+              "type": "tuple[CriticalPathRule, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "entrypoints",
+              "of": "CoverageRecommendationConfig",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "cache_enabled",
+              "of": "CoverageRecommendationConfig",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "deep_command",
+              "of": "CoverageRecommendationConfig",
+              "type": "tuple[str, ...] | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_recommendation",
+              "of": "MaidConfig",
+              "type": "CoverageRecommendationConfig"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/coverage_recommendation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "recommend_coverage",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "manifests/"
+                },
+                {
+                  "name": "limit",
+                  "type": "int",
+                  "default": "20"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "deep",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "CoverageRecommendationReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_coverage_cache.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "load_cached_coverage_report",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "cache_key",
+                  "type": "str"
+                }
+              ],
+              "returns": "dict | None"
+            },
+            {
+              "kind": "function",
+              "name": "write_cached_coverage_report",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "cache_key",
+                  "type": "str"
+                },
+                {
+                  "name": "report",
+                  "type": "dict"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_deep_coverage.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "DeepCoverageResult"
+            },
+            {
+              "kind": "function",
+              "name": "collect_deep_coverage",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "paths",
+                  "type": "Collection[str]"
+                }
+              ],
+              "returns": "DeepCoverageResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_coverage_history_evidence.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "collect_coverage_history_evidence",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "paths",
+                  "type": "Collection[str]"
+                }
+              ],
+              "returns": "dict[str, tuple[str, Ellipsis]]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/test_coverage_recommendation_policy.py",
+        "tests/cli/test_coverage_recommendation_cmd.py",
+        "tests/core/test_config.py"
+      ],
+      "scope": [
+        {
+          "path": ".gitignore",
+          "reason": "Keep generated coverage recommendation cache entries out of version control."
+        },
+        {
+          "path": "maid_runner/core/_dependency_index.py",
+          "reason": "Merge configured entrypoints with standard metadata entrypoints."
+        },
+        {
+          "path": "maid_runner/cli/commands/bootstrap.py",
+          "reason": "Render priority-floor, cache, historical, and deep evidence."
+        },
+        {
+          "path": "README.md",
+          "reason": "Document risk-v1 compatibility, configuration, cache, and deep-mode behavior."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_coverage_recommendation_cmd.py",
+      "tests/core/test_config.py",
+      "tests/core/test_coverage_recommendation.py",
+      "tests/core/test_coverage_recommendation_policy.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_coverage_recommendation_policy.py tests/core/test_coverage_recommendation.py tests/cli/test_coverage_recommendation_cmd.py tests/core/test_config.py -v"
+    ]
+  }
+}

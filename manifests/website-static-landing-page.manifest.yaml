@@ -1,0 +1,323 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+schema: "2"
+goal: "Add the initial static MAID Runner website and GitHub Pages deployment"
+type: feature
+created: "2026-08-02T10:08:27Z"
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - github-pages
+    - accessibility
+    - seo
+    - static-site
+  priority: medium
+description: |
+  Add the first MAID Runner product website inside `website/` and deploy that
+  directory through a path-scoped GitHub Pages workflow. The first slice is a
+  hand-built static site: semantic HTML, dependency-free CSS, and a small
+  progressive-enhancement script for the mobile navigation. It intentionally
+  has no npm package, framework, build step, analytics, or external font
+  dependency so the Python repository remains the only maintained toolchain.
+
+  The homepage explains the product using the repository's existing three
+  streams (acceptance, structural, and unit validation), shows the manifest /
+  implement / verify workflow, and gives visitors direct paths to the GitHub
+  repository, PyPI, and the documented quick start. The page must remain useful
+  with JavaScript disabled. `404.html`, `robots.txt`, and `sitemap.xml` make the
+  custom-domain Pages deployment complete, while `logo.svg` and
+  `social-card.png` provide local brand and social metadata assets. Visual
+  asset generation is part of implementation: use the built-in imagegen path
+  for the social-card artwork and brand exploration, inspect the result, copy
+  the selected project-bound output into `website/assets/`, and translate the
+  selected mark into a crisp native SVG for the production logo when needed.
+
+  Pinned deployment decisions:
+
+  - The source directory is `website/`; the existing `docs/` directory remains
+    technical repository documentation.
+  - `.github/workflows/deploy-website.yml` deploys only on pushes to `main`
+    when website or workflow files change, plus manual dispatch. It uses the
+    GitHub Pages artifact/deploy actions with least-privilege contents, pages,
+    and OIDC permissions.
+  - The canonical public URL is `https://maidrunner.dev/`. Custom-domain
+    configuration, the certificate, HTTPS enforcement, and any `www` DNS
+    redirect are GitHub/Dynadot settings outside this repository; do not add a
+    `CNAME` file or pretend those external settings are validated locally.
+  - Rendered page assets use relative paths so the same files work from a local
+    checkout and from the configured apex domain. Social preview metadata uses
+    the canonical absolute image URL required by crawlers. No remote script,
+    stylesheet, font, tracker, or placeholder link is part of this slice.
+  - GitHub Actions references are pinned to immutable commit SHAs (with the
+    release tag recorded in the workflow comment) because the Pages workflow
+    has write and OIDC permissions.
+  - The public quick start must not run `maid verify` against a newly initialized
+    repository with no manifests. It sends visitors to `maid howto --section
+    quickstart`, which documents the first manifest, red phase, plan lock, and
+    verification loop.
+  - Light-surface body, card metadata, and footer text must meet WCAG AA contrast
+    targets, terminal metadata must remain readable on dark surfaces, and focus
+    indicators must remain distinguishable on both light and dark sections;
+    navigation behavior must retain a usable no-JavaScript fallback, restore focus
+    after menu-link activation, and explicitly cover keyboard dismissal. The skip
+    link must move focus to the main content target, and the 404 code must retain
+    its visual emphasis against the fallback paragraph styles.
+
+  Out of scope: additional routes such as `/quickstart/`, generated technical
+  documentation, a JavaScript framework, a site build system, live DNS
+  changes, repository commits, and artwork beyond the logo and social-card
+  assets required by this first page.
+temptations:
+  - risk: "Do not turn the first landing page into a framework or npm project just
+      to obtain reusable components."
+    instead: "Keep the implementation to semantic HTML, local CSS, and a small dependency-free
+      script; add a build tool only in a separately planned multi-page contract."
+  - risk: "Do not invent product capabilities or marketing claims that are absent
+      from the repository."
+    instead: "Base the three validation streams, installation commands, repository
+      URL, and PyPI URL on README.md and assert those anchors in the behavioral contract."
+  - risk: "Do not make Pages redeploy on every Python implementation change or grant
+      broad workflow permissions."
+    instead: "Pin the push trigger to main with website/workflow path filters and
+      assert contents: read, pages: write, and id-token: write in the workflow test."
+  - risk: "Do not hide a broken site behind remote assets, JavaScript-only navigation,
+      fake fallback links, or uninspected files left in the imagegen cache."
+    instead: "Generate and inspect the scoped assets, copy the selected final files
+      into website/assets/, use relative local references, keep primary content in
+      HTML, provide a real 404 recovery link, and test the asset graph plus no external
+      runtime dependencies."
+  - risk: "Do not claim the repository configures DNS or the custom domain through
+      a CNAME artifact."
+    instead: "Encode the canonical URL in SEO files and document the Pages/DNS boundary
+      in the contract; leave custom-domain settings to GitHub and Dynadot."
+files:
+  scope:
+    - path: website/index.html
+      reason: "Static homepage behavior is specified through the website contract
+        tests rather than a language-level public API."
+    - path: website/styles.css
+      reason: "Presentation and responsive accessibility behavior are covered through
+        the rendered asset contract and source-level safety checks."
+    - path: website/script.js
+      reason: "Progressive-enhancement navigation wiring has no stable public API;
+        tests cover its no-dependency and accessibility contract."
+    - path: website/404.html
+      reason: "GitHub Pages fallback document is a static route artifact covered through
+        file-content behavior."
+    - path: website/robots.txt
+      reason: "Crawler policy is a deployment asset covered through its canonical
+        sitemap directive."
+    - path: website/sitemap.xml
+      reason: "Search-engine discovery metadata is a static deployment asset covered
+        through XML and canonical URL assertions."
+    - path: website/assets/logo.svg
+      reason: "The local brand mark is a static asset with no public programmatic
+        API."
+    - path: website/assets/social-card.png
+      reason: "The social preview image is a static binary asset covered through existence
+        and PNG signature checks."
+    - path: .github/workflows/deploy-website.yml
+      reason: "GitHub Actions wiring has no repository runtime API; the behavioral
+        test validates its trigger, permissions, artifact path, and deployment job."
+  create:
+    - path: tests/test_website_static_contract.py
+      artifacts:
+        - kind: test_function
+          name: test_homepage_contract_exposes_product_story_and_primary_actions
+          args: []
+          returns: None
+          source_scenario: "A visitor opens the static homepage at the configured
+            custom domain."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The homepage is a semantic, language-declared document with
+              canonical/OG metadata, the MAID Runner product story, three validation
+              streams, workflow sections, and working repository/PyPI actions."
+        - kind: test_function
+          name: test_homepage_assets_are_local_responsive_and_progressively_enhanced
+          args: []
+          returns: None
+          source_scenario: "A visitor loads the homepage in a normal browser or with
+            JavaScript disabled."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Every referenced stylesheet, script, logo, and social image
+              exists locally; CSS provides responsive/focus/reduced-motion behavior;
+              and the script uses no remote dependency or native browser dialog."
+        - kind: test_function
+          name: test_static_fallback_and_search_metadata_target_canonical_domain
+          args: []
+          returns: None
+          source_scenario: "A visitor follows a stale Pages URL or a crawler reads
+            the deployment metadata."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "404.html provides a real recovery link to the homepage, robots.txt
+              points to the canonical sitemap, sitemap.xml is valid XML, and every
+              canonical location targets https://maidrunner.dev/."
+        - kind: test_function
+          name: test_pages_workflow_is_path_scoped_and_uploads_website_root
+          args: []
+          returns: None
+          source_scenario: "A website change lands on main or an operator manually
+            dispatches the Pages workflow."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.load
+          expected:
+            behavior: "The workflow triggers only for main website/workflow changes
+              or manual dispatch, uses least-privilege Pages permissions, uploads
+              website as the artifact root, and deploys through GitHub Pages."
+        - kind: test_function
+          name: test_mobile_navigation_covers_javascript_and_no_javascript_paths
+          args: []
+          returns: None
+          source_scenario: "A visitor uses the mobile navigation with JavaScript enabled or disabled."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The script covers open/close, link dismissal, Escape dismissal, and focus return while CSS keeps navigation usable without JavaScript."
+        - kind: test_function
+          name: test_light_surface_text_colors_meet_wcag_aa_contrast
+          args: []
+          returns: None
+          source_scenario: "A visitor reads body, card, quote, and footer text on the website's light and dark surfaces."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The declared text colors meet the WCAG AA 4.5:1 contrast threshold against their tested surfaces."
+  read:
+    - README.md
+    - pyproject.toml
+    - .github/workflows/maid-validation.yml
+    - .github/workflows/publish.yml
+validate:
+  - uv run python -m pytest -q tests/test_website_static_contract.py
+  - uv run maid validate manifests/website-static-landing-page.manifest.yaml
+    --mode behavioral --quiet
+  - uv run maid validate manifests/website-static-landing-page.manifest.yaml
+    --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-02T20:23:18+08:00"
+  summary: "Added a polished static MAID Runner landing page under website/, local inspected brand and social assets, and a path-scoped GitHub Pages deployment workflow."
+  rationale: "The repository now has a dependency-free public product surface that explains MAID's acceptance, structural, and unit validation streams, guides visitors into the documented contract workflow, preserves a no-JavaScript fallback, and deploys only website changes through immutable SHA-pinned Pages actions. The implementation deliberately leaves DNS, custom-domain settings, and live deployment to GitHub and Dynadot configuration outside the repository."
+  lessons:
+    - lesson_type: review-fix-loop
+      summary: "Independent review was especially valuable for static sites: it caught mobile CSS specificity, focus restoration, surface-specific focus contrast, 404 cascade behavior, and the empty-repository quickstart sequence that source authoring alone did not make obvious. Each contract-affecting correction received a plan revision with preserved red evidence before revalidation."
+      tags:
+        - accessibility
+        - css-cascade
+        - mobile-navigation
+        - plan-lock
+        - review-loop
+      paths:
+        - website/styles.css
+        - website/script.js
+        - website/404.html
+        - website/index.html
+        - tests/test_website_static_contract.py
+        - .maid/plan-locks/website-static-landing-page.lock.json
+    - lesson_type: test-design
+      summary: "A static website contract can stay dependency-free while still checking the asset graph, canonical metadata, workflow pinning, CSS contrast declarations, keyboard fallback selectors, and exact quickstart commands; a small Chrome smoke check complements those source-level assertions for rendered layout."
+      tags:
+        - static-site
+        - accessibility
+        - browser-smoke
+        - dependency-free
+      paths:
+        - tests/test_website_static_contract.py
+        - website/index.html
+        - website/styles.css
+  review_notes:
+    - source: implementation-review-subagent
+      severity: ready
+      summary: "The final independent review found no remaining implementation, accessibility, SEO, workflow-security, or scope-drift issue; the remaining handoff action was this required Outcome capture."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Six static website contract tests passed, covering product content, local assets, progressive navigation, WCAG contrast declarations, canonical fallback metadata, and Pages workflow pinning."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/website-static-landing-page.manifest.yaml
+        - --mode
+        - behavioral
+        - --quiet
+      status: passed
+      summary: "The active website behavioral contract validated successfully."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide validation passed 380 manifests with 0 failures and 100 superseded skips."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 218 declared MAID validation commands passed."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - .
+      status: passed
+      summary: "Ruff reported no issues."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - .
+      status: passed
+      summary: "Black reported no formatting drift."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+        - --packet
+      status: passed
+      summary: "Strict handoff verification passed all 9 stages with 0 blocking findings; only pre-existing non-code validator warnings remained."
+    - command:
+        - google-chrome
+        - --headless
+        - --no-sandbox
+        - --disable-gpu
+        - --window-size=390,844
+      status: passed
+      summary: "A local 390px Chrome smoke check rendered the responsive homepage and loaded its local stylesheet, script, logo, and social asset paths successfully; live Pages and DNS were intentionally not exercised."

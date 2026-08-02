@@ -411,6 +411,7 @@ def _found_to_spec(artifact: FoundArtifact) -> ArtifactSpec:
         bases=artifact.bases,
         type_parameters=artifact.type_parameters,
         type_annotation=artifact.type_annotation,
+        signature=artifact.signature,
     )
 
 
@@ -426,6 +427,7 @@ def _spec_to_found(spec: ArtifactSpec) -> FoundArtifact:
         bases=spec.bases,
         type_parameters=spec.type_parameters,
         type_annotation=spec.type_annotation,
+        signature=spec.signature,
     )
 
 

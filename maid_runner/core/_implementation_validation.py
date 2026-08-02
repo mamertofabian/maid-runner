@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from maid_runner.core import _artifact_collection_cache as artifact_cache
 from maid_runner.core._file_discovery import is_test_file
@@ -32,6 +32,7 @@ from maid_runner.validators.registry import UnsupportedLanguageError, ValidatorR
 # These don't require manifest declaration in strict mode.
 _STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
 _DEFAULT_HOOK_KINDS = frozenset({ArtifactKind.FUNCTION, ArtifactKind.METHOD})
+_TypeMatcher = Callable[[Optional[str], Optional[str]], bool]
 
 
 class ImplementationFileValidator:
@@ -106,11 +107,12 @@ class ImplementationFileValidator:
 
         expected = self._expected_artifacts(fs, chain)
         is_strict = self._is_strict(fs, chain)
-        errors = compare_artifacts(
+        errors = _compare_artifacts(
             expected=expected,
             found=collection.artifacts,
             file_path=fs.path,
             is_strict=is_strict,
+            type_matcher=validator.types_match,
         )
 
         if self._check_stubs:
@@ -183,15 +185,34 @@ def compare_artifacts(
     file_path: str,
     is_strict: bool,
 ) -> list[ValidationError]:
+    """Compare artifacts with Runner's existing default type semantics."""
+    return _compare_artifacts(
+        expected=expected,
+        found=found,
+        file_path=file_path,
+        is_strict=is_strict,
+        type_matcher=types_match,
+    )
+
+
+def _compare_artifacts(
+    expected: list[ArtifactSpec],
+    found: list[FoundArtifact],
+    file_path: str,
+    is_strict: bool,
+    *,
+    type_matcher: _TypeMatcher,
+) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
     found_by_key: dict[str, FoundArtifact] = {}
+    found_by_contract_key: dict[str, FoundArtifact] = {}
     for found_art in found:
         found_by_key[found_art.merge_key()] = found_art
+        found_by_contract_key[found_art.contract_key()] = found_art
 
     for spec in expected:
-        key = spec.merge_key()
-        fa = found_by_key.get(key)
+        fa = _found_artifact_for_spec(spec, found_by_key, found_by_contract_key)
         if fa is None:
             errors.append(
                 ValidationError(
@@ -202,25 +223,39 @@ def compare_artifacts(
             )
             continue
 
-        errors.extend(_compare_single(spec, fa, file_path))
+        errors.extend(_compare_single(spec, fa, file_path, type_matcher=type_matcher))
 
     if is_strict:
-        expected_keys = {spec.merge_key() for spec in expected}
+        representative_keys = {
+            spec.merge_key() for spec in expected if spec.signature is None
+        }
+        exact_keys = {
+            spec.contract_key() for spec in expected if spec.signature is not None
+        }
         undeclared_structural = {
             fa.name
             for fa in found
             if fa.kind in _STRUCTURAL_KINDS
             and not fa.is_private
-            and fa.merge_key() not in expected_keys
+            and not _found_artifact_is_declared(
+                fa,
+                representative_keys,
+                exact_keys,
+            )
         }
         for fa in found:
             if fa.is_private:
                 continue
-            if fa.kind in _STRUCTURAL_KINDS and fa.merge_key() not in expected_keys:
+            is_declared = _found_artifact_is_declared(
+                fa,
+                representative_keys,
+                exact_keys,
+            )
+            if fa.kind in _STRUCTURAL_KINDS and not is_declared:
                 continue
             if fa.of and fa.of in undeclared_structural:
                 continue
-            if fa.merge_key() not in expected_keys:
+            if not is_declared:
                 errors.append(
                     ValidationError(
                         code=ErrorCode.UNEXPECTED_ARTIFACT,
@@ -232,10 +267,32 @@ def compare_artifacts(
     return errors
 
 
+def _found_artifact_for_spec(
+    spec: ArtifactSpec,
+    found_by_key: dict[str, FoundArtifact],
+    found_by_contract_key: dict[str, FoundArtifact],
+) -> Optional[FoundArtifact]:
+    if spec.signature is None:
+        return found_by_key.get(spec.merge_key())
+    return found_by_contract_key.get(spec.contract_key())
+
+
+def _found_artifact_is_declared(
+    found: FoundArtifact,
+    representative_keys: set[str],
+    exact_keys: set[str],
+) -> bool:
+    return (
+        found.merge_key() in representative_keys or found.contract_key() in exact_keys
+    )
+
+
 def _compare_single(
     spec: ArtifactSpec,
     found: FoundArtifact,
     file_path: str,
+    *,
+    type_matcher: _TypeMatcher = types_match,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
@@ -284,7 +341,7 @@ def _compare_single(
                         location=Location(file=file_path, line=found.line),
                     )
                 )
-            elif expected_arg.type and not types_match(
+            elif expected_arg.type and not type_matcher(
                 expected_arg.type, found_arg.type
             ):
                 errors.append(
@@ -312,7 +369,7 @@ def _compare_single(
             )
         )
     elif spec.returns and found.returns:
-        if not types_match(spec.returns, found.returns):
+        if not type_matcher(spec.returns, found.returns):
             errors.append(
                 ValidationError(
                     code=ErrorCode.TYPE_MISMATCH,
@@ -337,9 +394,13 @@ def _check_stub_artifacts(
     errors: list[ValidationError] = []
     default_hook_artifacts = default_hook_artifacts or set()
     found_by_key = {fa.merge_key(): fa for fa in found}
+    found_by_contract_key = {fa.contract_key(): fa for fa in found}
     for spec in expected:
-        fa = found_by_key.get(spec.merge_key())
-        if fa and (file_path, fa.qualified_name) in default_hook_artifacts:
+        fa = _found_artifact_for_spec(spec, found_by_key, found_by_contract_key)
+        if fa and (
+            (file_path, fa.contract_key()) in default_hook_artifacts
+            or (file_path, fa.merge_key()) in default_hook_artifacts
+        ):
             continue
         if fa and fa.is_stub and not fa.is_private:
             errors.append(
@@ -371,7 +432,7 @@ def _default_hook_artifacts_for_file(
         declarations.extend(fs.artifacts)
 
     return {
-        (fs.path, artifact.qualified_name)
+        (fs.path, artifact.contract_key())
         for artifact in declarations
         if artifact.default_hook and artifact.kind in _DEFAULT_HOOK_KINDS
     }

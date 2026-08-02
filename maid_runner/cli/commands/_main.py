@@ -709,13 +709,36 @@ def _register_bootstrap_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--rank",
         action="store_true",
-        help="Rank undeclared files into an adoption plan",
+        help=(
+            "Rank inadequately covered files: undeclared, read-only, or "
+            "writable without artifacts"
+        ),
     )
     p.add_argument(
         "--limit",
         type=int,
         default=20,
         help="Maximum number of ranked files to include",
+    )
+    p.add_argument(
+        "--model",
+        choices=("legacy-v1", "risk-v1"),
+        default="legacy-v1",
+        help=(
+            "Ranking model; risk-v1 is recommended for coverage risk and "
+            "legacy-v1 remains the compatibility default"
+        ),
+    )
+    p.add_argument(
+        "--explain",
+        metavar="PATH",
+        default=None,
+        help="Explain one path with risk-v1, including non-candidate eligibility",
+    )
+    p.add_argument(
+        "--deep",
+        action="store_true",
+        help="Run configured deep test evidence collection for risk-v1",
     )
     p.add_argument(
         "--include-private",

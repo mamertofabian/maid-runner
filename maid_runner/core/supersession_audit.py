@@ -284,7 +284,10 @@ class SupersessionAuditor:
             if not replacement.supersedes:
                 continue
 
-            replacement_keys_by_file = _collect_artifact_keys_by_file(replacement)
+            (
+                replacement_contract_keys_by_file,
+                replacement_representative_keys_by_file,
+            ) = _collect_artifact_keys_by_file(replacement)
             deleted_paths = {
                 ds.path
                 for ds in replacement.files_delete
@@ -309,7 +312,12 @@ class SupersessionAuditor:
                 for fs in superseded.all_file_specs:
                     if fs.path in deleted_paths:
                         continue
-                    file_replacement_keys = replacement_keys_by_file.get(fs.path, set())
+                    file_replacement_contract_keys = (
+                        replacement_contract_keys_by_file.get(fs.path, set())
+                    )
+                    file_replacement_representative_keys = (
+                        replacement_representative_keys_by_file.get(fs.path, set())
+                    )
                     file_removed_keys = removed_by_file.get(fs.path, set())
                     file_removed_owners = removed_owners_by_file.get(fs.path, set())
                     for artifact in fs.artifacts:
@@ -317,10 +325,17 @@ class SupersessionAuditor:
                             continue
                         if artifact.kind == ArtifactKind.TEST_FUNCTION:
                             continue
-                        key = artifact.merge_key()
-                        if key in file_replacement_keys:
+                        representative_key = artifact.merge_key()
+                        contract_key = artifact.contract_key()
+                        if artifact.signature is None and (
+                            representative_key in file_replacement_representative_keys
+                        ):
                             continue
-                        if key in file_removed_keys:
+                        if artifact.signature is not None and (
+                            contract_key in file_replacement_contract_keys
+                        ):
+                            continue
+                        if representative_key in file_removed_keys:
                             continue
                         if (
                             artifact.of is not None
@@ -333,7 +348,7 @@ class SupersessionAuditor:
                                 superseded_slug=superseded.slug,
                                 superseding_manifest_path=replacement.source_path,
                                 file_path=fs.path,
-                                artifact_key=key,
+                                artifact_key=contract_key,
                                 artifact_name=artifact.name,
                                 artifact_kind=artifact.kind.value,
                             )
@@ -401,13 +416,19 @@ class SupersessionAuditor:
         return tuple(errors)
 
 
-def _collect_artifact_keys_by_file(manifest) -> dict[str, set[str]]:
-    keys: dict[str, set[str]] = {}
+def _collect_artifact_keys_by_file(
+    manifest,
+) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    contract_keys: dict[str, set[str]] = {}
+    representative_keys: dict[str, set[str]] = {}
     for fs in manifest.all_file_specs:
-        bucket = keys.setdefault(fs.path, set())
+        contract_bucket = contract_keys.setdefault(fs.path, set())
+        representative_bucket = representative_keys.setdefault(fs.path, set())
         for a in fs.artifacts:
-            bucket.add(a.merge_key())
-    return keys
+            contract_bucket.add(a.contract_key())
+            if a.signature is None:
+                representative_bucket.add(a.merge_key())
+    return contract_keys, representative_keys
 
 
 def _removed_spec_key(spec: RemovedArtifactSpec) -> str:
@@ -417,6 +438,10 @@ def _removed_spec_key(spec: RemovedArtifactSpec) -> str:
 
 
 def _owner_from_artifact_key(artifact_key: str) -> Optional[str]:
+    if artifact_key.startswith("exact:"):
+        length_text, separator, framed = artifact_key[len("exact:") :].partition(":")
+        if separator and length_text.isdigit():
+            artifact_key = framed[: int(length_text)]
     _, _, rest = artifact_key.partition(":")
     if "." not in rest:
         return None

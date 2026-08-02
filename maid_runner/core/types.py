@@ -19,6 +19,29 @@ class ArtifactKind(str, Enum):
     TEST_FUNCTION = "test_function"
 
 
+_SIGNATURE_KINDS = frozenset({ArtifactKind.FUNCTION, ArtifactKind.METHOD})
+
+
+def _validate_artifact_signature(
+    kind: ArtifactKind,
+    signature: Optional[str],
+) -> None:
+    if signature is None:
+        return
+    if not isinstance(signature, str) or not signature:
+        raise ValueError("artifact signature must be a non-empty string")
+    if kind not in _SIGNATURE_KINDS:
+        raise ValueError(
+            "artifact signature is supported only for function or method artifacts"
+        )
+
+
+def _artifact_contract_key(merge_key: str, signature: Optional[str]) -> str:
+    if signature is None:
+        return merge_key
+    return f"exact:{len(merge_key)}:{merge_key}{len(signature)}:{signature}"
+
+
 class TaskType(str, Enum):
     FEATURE = "feature"
     FIX = "fix"
@@ -152,6 +175,10 @@ class ArtifactSpec:
     type_annotation: Optional[str] = None
     test_details: Optional[TestFunctionDetails] = None
     default_hook: bool = False
+    signature: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        _validate_artifact_signature(self.kind, self.signature)
 
     @property
     def qualified_name(self) -> str:
@@ -175,6 +202,9 @@ class ArtifactSpec:
         if self.kind == ArtifactKind.TEST_FUNCTION:
             return self.name
         return f"{self.kind.value}:{self.name}"
+
+    def contract_key(self) -> str:
+        return _artifact_contract_key(self.merge_key(), self.signature)
 
 
 @dataclass(frozen=True)
