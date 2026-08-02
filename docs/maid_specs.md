@@ -130,6 +130,30 @@ output tail for human inspection, but it does not parse text output to decide
 whether evidence is red. `maid plan lock --no-run` records
 `red_evidence: null`.
 
+##### **Repository-Owned Django Test Wrappers**
+
+Command-integrity checks recognize standard Django entry points by default. A
+repository that must run Django tests through its own safety or isolation script
+can register that reviewed executable in `.maidrc.yaml`:
+
+```yaml
+test_runner_wrappers:
+  - command: ./scripts/test
+    runner: django
+```
+
+The command must be an exact project-relative path to an existing file. Absolute
+paths, parent-directory escapes, duplicate normalized paths, missing files, and
+unsupported runner kinds fail configuration loading. Registration does not skip
+E230: MAID interprets only the registered command's remaining arguments as Django
+test arguments, maps whole-module dotted labels to existing in-project test files,
+and retains the normal selector, malformed-option, and Python-path-shadowing
+guards. Unregistered or differently named scripts remain opaque and fail closed.
+
+Wrapper registration is an explicit repository policy and review boundary. MAID
+does not infer trust by executable basename or attempt to prove arbitrary shell
+control flow by parsing the wrapper source.
+
 Completed manifests that predate plan-lock adoption have a separate migration
 path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
 The manifest must be tracked and already present at Git HEAD. The command

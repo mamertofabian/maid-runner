@@ -1,0 +1,258 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Allow reviewed repository-owned Django test wrappers to satisfy E230"
+type: fix
+created: "2026-08-02T06:54:47Z"
+metadata:
+  tags:
+    - django
+    - test-runner
+    - command-integrity
+    - e230
+description: |
+  Add an explicit project configuration seam for repository-owned test wrappers,
+  beginning with Django wrappers whose remaining arguments use Django dotted test
+  labels. A repository can register an exact project-relative executable such as
+  `./scripts/test` in `.maidrc.yaml`; command-integrity then treats only that exact
+  command as Django while retaining the existing dotted-label, selector, and path
+  mutation guards.
+
+  Registration is project policy, not automatic shell analysis. Wrapper paths must
+  be relative, stay inside the project, be unique, and name an existing file. The
+  first implementation supports only the `django` runner kind needed by the report.
+  Unregistered scripts and unsupported runner kinds remain fail-closed.
+temptations:
+  - risk: "Do not recognize arbitrary executable files by basename or by searching
+      their shell source for manage.py tokens."
+    instead: "Load exact project-relative wrapper mappings from .maidrc.yaml and inject
+      them into the existing runner classifier."
+  - risk: "Do not make wrapper registration a blanket E230 bypass."
+    instead: "Reuse Django dotted-label resolution and reject class/method selectors,
+      path mutation, malformed flags, and non-matching commands."
+  - risk: "Do not accept absolute, escaping, duplicate, missing, or unsupported wrapper
+      declarations."
+    instead: "Validate wrapper configuration at load time against the project root
+      and the bounded django runner enum."
+  - risk: "Do not add broad shell control-flow interpretation to prove wrapper behavior."
+    instead: "Treat the reviewed repository configuration as the trust boundary and
+      keep runner semantics behind the existing invocation seam."
+files:
+  edit:
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: class
+          name: TestRunnerWrapperConfig
+        - kind: attribute
+          name: command
+          of: TestRunnerWrapperConfig
+          type: str
+        - kind: attribute
+          name: runner
+          of: TestRunnerWrapperConfig
+          type: str
+        - kind: attribute
+          name: test_runner_wrappers
+          of: MaidConfig
+          type: "tuple[TestRunnerWrapperConfig, ...]"
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: "Thread exact registered wrapper mappings through private runner classification
+        without exposing new public API."
+    - path: maid_runner/core/_test_command_targets.py
+      reason: "Use registered wrapper semantics when deciding whether a command executes
+        and covers a declared test target."
+    - path: maid_runner/core/_django_test_targets.py
+      reason: "Resolve dotted labels for registered Django wrappers through the same
+        fail-closed selector and path guards as direct Django commands."
+    - path: maid_runner/core/_validation_test_artifacts.py
+      reason: "Load project wrapper policy at the command-integrity boundary and inject
+        it into target discovery and E230 coverage checks."
+    - path: docs/maid_specs.md
+      reason: "Document the .maidrc.yaml wrapper registration syntax, constraints,
+        and E230 trust boundary."
+  create:
+    - path: tests/core/validation/test_registered_django_test_wrapper.py
+      artifacts:
+        - kind: test_function
+          name: test_load_config_accepts_existing_project_relative_django_wrapper
+          source_scenario: "A project .maidrc.yaml registers an existing ./scripts/test
+            executable as a Django test wrapper."
+          actions:
+            - type: api_call
+              subject:
+                export: load_config
+          expected:
+            behavior: "The loaded MaidConfig exposes one TestRunnerWrapperConfig with
+              the normalized project-relative command and django runner kind."
+        - kind: test_function
+          name: test_load_config_rejects_unsafe_or_unsupported_test_wrapper_declarations
+          source_scenario: "Project configuration contains absolute, parent-escaping,
+            missing, duplicate, or unsupported test-wrapper entries."
+          actions:
+            - type: api_call
+              subject:
+                export: load_config
+          expected:
+            behavior: "Configuration loading fails visibly instead of trusting an
+              ambiguous or unsafe wrapper mapping."
+        - kind: test_function
+          name: test_command_integrity_accepts_registered_django_wrapper_dotted_label
+          source_scenario: "A manifest declares a src-layout Django test file, .maidrc
+            registers ./scripts/test as django, and validate invokes that wrapper
+            with the equivalent dotted module label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns no E230 error for the exact registered
+              wrapper and mapped whole-file dotted label."
+        - kind: test_function
+          name: test_command_integrity_keeps_unregistered_wrapper_fail_closed
+          source_scenario: "A manifest invokes ./scripts/test with a valid Django
+            dotted label but the project does not register that wrapper."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 and does not infer runner semantics
+              from the executable name or arguments."
+        - kind: test_function
+          name: test_registered_django_wrapper_does_not_authorize_another_command
+          source_scenario: "Project policy registers ./scripts/test, but the manifest
+            invokes a different executable with the same valid Django dotted label."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 because wrapper registration
+              matches the normalized command path exactly."
+        - kind: test_function
+          name: test_registered_django_wrapper_rejects_package_runner_cwd_change
+          source_scenario: "Project policy registers the root ./scripts/test wrapper, but a package runner changes cwd and invokes a distinct nested ./scripts/test file."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 because cwd-changing package-runner options cannot authorize a registered repository wrapper by its unresolved spelling."
+        - kind: test_function
+          name: test_registered_django_wrapper_rejects_docker_exec_namespace
+          source_scenario: "Project policy registers a host ./scripts/test wrapper, but docker exec selects the same spelling inside a container with its own working directory and filesystem namespace."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 because host wrapper registrations never authorize paths executed inside Docker containers."
+        - kind: test_function
+          name: test_registered_django_wrapper_rejects_narrow_selector
+          source_scenario: "A registered Django wrapper targets a class inside the
+            declared behavioral test module rather than the whole file."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 because registration does not
+              weaken Django whole-file coverage rules."
+        - kind: test_function
+          name: test_registered_django_wrapper_rejects_pythonpath_mutation
+          source_scenario: "A registered Django wrapper targets the declared module
+            while adding a Python-path mutation that can shadow the in-repository
+            test file."
+          actions:
+            - type: api_call
+              subject:
+                export: validate_manifest_test_commands
+          expected:
+            behavior: "Command integrity returns E230 because registration retains
+              the direct Django runner's path-shadowing guard."
+        - kind: test_function
+          name: test_run_manifest_tests_executes_registered_django_wrapper
+          source_scenario: "A registered local wrapper targets the declared dotted
+            Django test module and exits successfully while recording that it ran."
+          actions:
+            - type: api_call
+              subject:
+                export: run_manifest_tests
+          expected:
+            behavior: "maid test runs one command successfully instead of returning
+              zero commands with E230."
+  read:
+    - manifests/fix-django-dotted-validate-test-targets.manifest.yaml
+    - manifests/fix-shell-wrapped-app-root-vitest-e230.manifest.yaml
+    - maid_runner/core/test_runner.py
+    - tests/core/validation/test_django_test_targets.py
+    - tests/core/validation/test_test_runner_invocation.py
+validate:
+  - uv run python -m pytest -q
+    tests/core/validation/test_registered_django_test_wrapper.py
+    tests/core/validation/test_django_test_targets.py
+    tests/core/validation/test_test_runner_invocation.py
+outcome:
+  status: completed
+  completed_at: "2026-08-02T07:20:00Z"
+  summary: "Added reviewed project-level registration for production-safe Django test wrappers while keeping E230 fail-closed across path, selector, cwd, and container namespace boundaries."
+  rationale: "Repositories can register an exact existing project-relative executable as a Django wrapper in .maidrc.yaml. The command's dotted labels reuse the direct Django resolution and path-shadowing guards; unsafe declarations, unregistered or mismatched commands, cwd-changing package runners, and Docker container namespaces remain rejected."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-validate-hardening
+      - maid-evolver
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-boundary
+      summary: "A reviewed host wrapper registration must preserve execution context: cwd-changing package runners and container namespaces cannot reuse a root-relative path identity after their context is stripped."
+      tags: [e230, django, test-wrapper, path-identity]
+      paths:
+        - maid_runner/core/_test_runner_invocation.py
+        - tests/core/validation/test_registered_django_test_wrapper.py
+    - lesson_type: review-hardening
+      summary: "Positive custom-runner coverage needs adversarial checks for exact command matching, selector and PYTHONPATH guards, package-runner cwd changes, and Docker filesystem boundaries."
+      tags: [command-integrity, anti-gaming, independent-review]
+      paths:
+        - maid_runner/core/config.py
+        - maid_runner/core/_test_command_targets.py
+        - tests/core/validation/test_registered_django_test_wrapper.py
+  review_notes:
+    - source: independent-review-round-1
+      severity: needs-changes
+      summary: "Found that package-runner cwd options could authorize an unregistered nested wrapper; custom mappings now fail closed whenever package-runner cwd options are present."
+    - source: independent-review-round-2
+      severity: needs-changes
+      summary: "Found that Docker workdir/container namespaces could reuse a host wrapper spelling; Docker recursion now excludes all host custom-wrapper mappings."
+    - source: independent-review-final
+      severity: ready
+      summary: "Confirmed both blocking path-identity findings closed with no remaining blockers; native Windows alias and symlink tests remain advisory only."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Full suite passed with 3684 tests and 5 skips after the final review fixes."
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: "Repository-wide lint passed."
+    - command: [uv, run, black, --check, .]
+      status: passed
+      summary: "All 470 formatted files were unchanged."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 379 active manifests passed; 100 superseded manifests were skipped and none failed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All active manifest test commands passed."
+    - command: [uv, run, maid, verify, --summary, --plan-lock-scope, task, --file-tracking-scope, task, --since, HEAD, --include-tests]
+      status: passed
+      summary: "Task-scoped verify passed all eight stages with zero blockers; only existing E307 no-validator warnings remained."

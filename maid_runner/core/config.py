@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from pathlib import PureWindowsPath
 from typing import Union
 
 import yaml
@@ -26,6 +27,12 @@ class CoverageRecommendationConfig:
 
 
 @dataclass(frozen=True)
+class TestRunnerWrapperConfig:
+    command: str
+    runner: str
+
+
+@dataclass(frozen=True)
 class MaidConfig:
     manifest_dir: str = "manifests/"
     schema_version: str = "2"
@@ -33,13 +40,15 @@ class MaidConfig:
     languages: tuple[str, ...] = ("python", "typescript")
     coherence_enabled: bool = False
     coherence_checks: tuple[str, ...] = ()
+    test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = ()
     coverage_recommendation: CoverageRecommendationConfig = (
         CoverageRecommendationConfig()
     )
 
 
 def load_config(project_root: Union[str, Path]) -> MaidConfig:
-    config_path = Path(project_root) / ".maidrc.yaml"
+    root = Path(project_root)
+    config_path = root / ".maidrc.yaml"
     if not config_path.exists():
         return MaidConfig()
 
@@ -52,6 +61,10 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         return MaidConfig()
 
     coherence = data.get("coherence", {}) or {}
+    test_runner_wrappers = _parse_test_runner_wrappers(
+        data.get("test_runner_wrappers", []),
+        root,
+    )
     recommendation = data.get("coverage_recommendation", {}) or {}
     if not isinstance(recommendation, dict):
         raise ValueError("coverage_recommendation must be a mapping")
@@ -98,6 +111,7 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         languages=tuple(data.get("languages", ("python", "typescript"))),
         coherence_enabled=bool(coherence.get("enabled", False)),
         coherence_checks=tuple(coherence.get("checks", ())),
+        test_runner_wrappers=test_runner_wrappers,
         coverage_recommendation=CoverageRecommendationConfig(
             critical_paths=tuple(rules),
             entrypoints=tuple(raw_entrypoints),
@@ -105,3 +119,73 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
             deep_command=tuple(raw_command) if raw_command is not None else None,
         ),
     )
+
+
+def _parse_test_runner_wrappers(
+    raw_wrappers: object,
+    project_root: Path,
+) -> tuple[TestRunnerWrapperConfig, ...]:
+    if raw_wrappers is None:
+        return ()
+    if not isinstance(raw_wrappers, list):
+        raise ValueError("test_runner_wrappers must be a list")
+
+    wrappers: list[TestRunnerWrapperConfig] = []
+    seen_commands: set[str] = set()
+    for raw_wrapper in raw_wrappers:
+        if not isinstance(raw_wrapper, dict):
+            raise ValueError("test_runner_wrappers entries must be mappings")
+        if set(raw_wrapper) != {"command", "runner"}:
+            raise ValueError(
+                "test_runner_wrappers entries require only command and runner"
+            )
+
+        command = raw_wrapper.get("command")
+        runner = raw_wrapper.get("runner")
+        if not isinstance(command, str) or not command.strip():
+            raise ValueError("test runner wrapper command must be a non-empty string")
+        if runner != "django":
+            raise ValueError("test runner wrapper runner must be django")
+
+        normalized = _normalize_test_runner_wrapper_command(command, project_root)
+        if normalized in seen_commands:
+            raise ValueError(f"duplicate test runner wrapper command: {normalized}")
+        seen_commands.add(normalized)
+        wrappers.append(TestRunnerWrapperConfig(normalized, runner))
+
+    return tuple(wrappers)
+
+
+def _normalize_test_runner_wrapper_command(command: str, project_root: Path) -> str:
+    candidate = Path(command)
+    windows_candidate = PureWindowsPath(command)
+    if candidate.is_absolute() or windows_candidate.is_absolute():
+        raise ValueError("test runner wrapper command must be project-relative")
+    if (
+        windows_candidate.drive
+        or ".." in candidate.parts
+        or ".." in windows_candidate.parts
+    ):
+        raise ValueError("test runner wrapper command must stay inside the project")
+
+    normalized = candidate.as_posix()
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+    if normalized in {"", "."} or len(Path(normalized).parts) < 2:
+        raise ValueError(
+            "test runner wrapper command must include a project-relative path"
+        )
+
+    root = project_root.resolve()
+    try:
+        resolved = (project_root / normalized).resolve()
+        resolved.relative_to(root)
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise ValueError(
+            "test runner wrapper command must stay inside the project"
+        ) from exc
+    if not resolved.is_file():
+        raise ValueError(
+            f"test runner wrapper command does not name an existing file: {normalized}"
+        )
+    return normalized

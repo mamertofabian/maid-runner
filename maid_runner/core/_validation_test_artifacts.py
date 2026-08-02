@@ -70,6 +70,7 @@ from maid_runner.core._test_runner_invocation import (
     _test_runner_target_scan_segment as _test_runner_target_scan_segment,
     _uv_run_inner_command as _uv_run_inner_command,
 )
+from maid_runner.core.config import load_config
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, Manifest
 from maid_runner.validators.base import BaseValidator, FoundArtifact
@@ -332,6 +333,7 @@ def _test_paths_from_validate_command(
         command,
         project_root,
         django_test_paths_from_validate_segment=_django_test_paths_from_validate_segment,
+        test_runner_wrappers=load_config(project_root).test_runner_wrappers,
     )
 
 
@@ -980,6 +982,7 @@ def _test_files_covered_by_validate_command(
         test_files,
         project_root,
         django_test_paths_from_validate_segment=_django_test_paths_from_validate_segment,
+        test_runner_wrappers=load_config(project_root).test_runner_wrappers,
     )
 
 
@@ -1002,6 +1005,7 @@ def _test_paths_from_executing_validate_command(
         project_root,
         allow_selectors=allow_selectors,
         django_test_paths_from_validate_segment=_django_test_paths_from_validate_segment,
+        test_runner_wrappers=load_config(project_root).test_runner_wrappers,
     )
 
 
@@ -1010,7 +1014,12 @@ def _django_test_paths_from_validate_segment(
     project_root: Path,
     cwd: Path,
 ) -> list[str]:
-    return django_test_paths_from_validate_segment(segment, project_root, cwd)
+    return django_test_paths_from_validate_segment(
+        segment,
+        project_root,
+        cwd,
+        load_config(project_root).test_runner_wrappers,
+    )
 
 
 def _django_test_paths_from_args(
