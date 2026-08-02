@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.0] - 2026-08-02
+
+### Added
+- **Coverage priority recommender** — Added deterministic risk-v1 coverage recommendations that rank incomplete MAID coverage using explainable coverage, blast-radius, change-pressure, complexity, and test-evidence signals, with conservative confidence handling. The recommender also includes validator dependency and complexity hooks, plugin-aware graph indexing, repository policy floors, static cache invalidation, advisory Outcome/incident context, and opt-in structurally validated Python deep coverage.
+- **Validator plugin extension points** — Added language-aware type comparison hooks and optional exact function/method signatures so validators can distinguish overloads without changing historical unsigned-contract behavior.
+- **MAID Runner website** — Added a dependency-free static landing page, local brand and social assets, responsive progressive navigation, SEO metadata, and a path-scoped GitHub Pages deployment workflow.
+
+### Changed
+- **Python plan-lock hashes** — Made new Python behavioral-test hashes interpreter-portable with a versioned canonical AST serializer while preserving historical lock compatibility and fail-closed parsing behavior.
+- **Risk-v1 adoption guidance** — Updated bootstrap, how-to, and brownfield onboarding guidance to recommend deterministic risk-v1 while retaining legacy-v1 as the compatibility default and keeping recommendations advisory.
+
+### Fixed
+- **Registered Django test wrappers** — Allowed reviewed, exact project-relative Django test wrappers to satisfy E230 while keeping path, selector, working-directory, package-runner, and container-namespace checks fail-closed.
+
 ## [2.23.2] - 2026-07-29
 
 ### Fixed
@@ -1213,6 +1227,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.24.0]: https://github.com/mamertofabian/maid-runner/compare/v2.23.2...v2.24.0
 [2.23.2]: https://github.com/mamertofabian/maid-runner/compare/v2.23.1...v2.23.2
 [2.23.1]: https://github.com/mamertofabian/maid-runner/compare/v2.23.0...v2.23.1
 [2.23.0]: https://github.com/mamertofabian/maid-runner/compare/v2.22.0...v2.23.0

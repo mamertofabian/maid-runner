@@ -1,0 +1,231 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Bump maid-runner minor version to 2.24.0
+type: feature
+created: "2026-08-02T13:04:38Z"
+supersedes:
+  - bump-version-2.23.2
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  status: implementation-ready
+  tags:
+    - release
+    - version
+    - changelog
+  priority: high
+description: |
+  Bump the package version from 2.23.2 to 2.24.0 for the next minor release.
+  Keep package metadata, editable lockfile metadata, changelog, roadmap version
+  references, and release metadata tests synchronized.
+
+  The minor version follows SemVer because the post-v2.23.2 release branch
+  adds backward-compatible public surfaces and a new static MAID Runner
+  website: deterministic risk-v1 coverage recommendations, validator plugin
+  extension points for type comparison and exact artifact signatures,
+  interpreter-portable Python plan-lock hashes, reviewed Django test-wrapper
+  registration, and GitHub Pages deployment assets.
+temptations:
+  - risk: Do not update only pyproject.toml and leave release mirrors stale.
+    instead: Update uv.lock, CHANGELOG.md, docs/ROADMAP.md, and the release
+      metadata test alongside the package version.
+  - risk: Do not derive release notes only from commit subjects.
+    instead: Summarize the observable behavior, compatibility guarantees, and
+      safety properties of every user-facing change since v2.23.2.
+  - risk: Do not omit the changelog compare link from automated coverage.
+    instead: Assert the 2.24.0 heading and v2.23.2...v2.24.0 compare link in the
+      release metadata test.
+  - risk: Do not add runtime version constants that duplicate pyproject.toml.
+    instead: Keep maid_runner.__version__ reading package or source metadata
+      dynamically.
+  - risk: Do not leave the roadmap describing the previous release after the
+      package version changes.
+    instead: Update both current-version roadmap references and their release
+      date in the same metadata change.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Package version metadata has no analyzer-visible public artifact
+        contract.
+    - path: uv.lock
+      reason: Editable package lock metadata must mirror pyproject version.
+    - path: CHANGELOG.md
+      reason: Release notes document the minor version, release date, and
+        compare link.
+    - path: docs/ROADMAP.md
+      reason: Roadmap current-version references mirror the released CLI
+        version.
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: Runtime version, pyproject metadata, uv.lock metadata,
+            changelog heading and compare link, and roadmap all report 2.24.0.
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.23.2.manifest.yaml
+    - manifests/snapshot-maid-runner-version.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: "2026-08-02T13:30:00+08:00"
+  summary: Bumped maid-runner from 2.23.2 to 2.24.0 and synchronized package
+    metadata, editable lock metadata, release notes, roadmap references,
+    release metadata coverage, and MAID plan-lock evidence.
+  rationale: The post-v2.23.2 branch adds backward-compatible public
+    functionality across risk-v1 coverage recommendations, validator plugin
+    extension points, portable Python plan-lock hashes, reviewed Django wrapper
+    registration, and the static website, so 2.24.0 is a SemVer minor release.
+    The release contract keeps package metadata, runtime loading, changelog,
+    roadmap, and packaging artifacts aligned.
+  lessons:
+    - lesson_type: release-version-consistency
+      summary: Minor release preparation must synchronize package metadata,
+        editable lock metadata, changelog heading and compare link, roadmap
+        version/date references, runtime version loading, release metadata
+        coverage, and built distribution metadata.
+      tags:
+        - release
+        - version
+        - changelog
+        - packaging
+      paths:
+        - pyproject.toml
+        - uv.lock
+        - CHANGELOG.md
+        - docs/ROADMAP.md
+        - tests/integration/test_library_api.py
+    - lesson_type: review-fix-loop
+      summary: Independent release review caught incomplete recommender release
+        notes and missing Outcome capture; the changelog and behavioral test were
+        strengthened before final verification, with shared-test lock hashes
+        refreshed through preserved-red-evidence revisions.
+      tags:
+        - release
+        - review
+        - changelog
+        - outcome
+        - plan-lock
+      paths:
+        - CHANGELOG.md
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/bump-version-2.24.0.lock.json
+  review_notes:
+    - source: independent-implementation-reviewer
+      severity: needs_changes
+      summary: Initial review identified incomplete coverage of the risk-v1
+        recommender release notes and missing evidence-backed Outcome capture.
+        The changelog now names dependency and complexity hooks, policy floors,
+        cache invalidation, and deep coverage; Outcome and date/content tests
+        were added before the final review.
+    - source: independent-implementation-reviewer
+      severity: ready
+      summary: Final independent review found no additional findings. Version
+        metadata, changelog coverage, roadmap, packaging artifacts, scope,
+        dependent lock revisions, red evidence, and supplied validations were
+        consistent; the stale enrichment digest remained advisory only.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/integration/test_library_api.py
+      status: failed
+      summary: Red phase failed as intended because the worktree still
+        reported 2.23.2 while the 2.24.0 contract expected the new metadata.
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/integration/test_library_api.py
+      status: passed
+      summary: Focused release metadata and public API suite passed with 29
+        tests, including release-note and roadmap-date assertions.
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: Repository-wide MAID validation passed with 481 manifests, 380
+        passed, 0 failed, and 101 superseded.
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: All 218 MAID test command groups passed.
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: Full test suite passed with 3690 tests and 5 skips.
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+        - --packet
+      status: passed
+      summary: Strict handoff verification passed all 9 stages with 0
+        blockers; only pre-existing E307 warnings and informational non-code
+        notices remained.
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - .
+      status: passed
+      summary: Ruff reported no issues.
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - .
+      status: passed
+      summary: Black left all 471 files unchanged.
+    - command:
+        - make
+        - build
+      status: passed
+      summary: Built maid_runner-2.24.0.tar.gz and maid_runner-2.24.0-py3-none-any.whl.
+    - command:
+        - uv
+        - run
+        - twine
+        - check
+        - dist/maid_runner-2.24.0.tar.gz
+        - dist/maid_runner-2.24.0-py3-none-any.whl
+      status: passed
+      summary: Twine metadata validation passed for both 2.24.0 artifacts.

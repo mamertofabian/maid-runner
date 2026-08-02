@@ -2,11 +2,11 @@
   "manifest_path": "manifests/065-01-add-error-code-rule-registry-export.manifest.yaml",
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
-    "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
-    "tests/integration/test_library_api.py": "sha256-pyast:d195a1870b8f73b471a0e599bddb6051aafea4b9c766832aa4b4b6bbabb9ea15"
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:5e093aea42b193b803eb40fe9b1566a98950c1be5409e38e1c6f1a3f29f05bda"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 22,
+  "revision": 25,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -297,6 +297,60 @@
       },
       "revised_at": "2026-07-29T01:10:24.945476+00:00",
       "reason": "Refresh shared release metadata test hash for 2.23.2 release bump",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2",
+        "tests/integration/test_library_api.py": "sha256-pyast:d195a1870b8f73b471a0e599bddb6051aafea4b9c766832aa4b4b6bbabb9ea15"
+      },
+      "revised_at": "2026-08-02T13:10:53.258296+00:00",
+      "reason": "Refresh shared release metadata test hash for the 2.24.0 release bump",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:b7c1bbb790b04c7fc8e80165b9e1ce683aaf8ebdc8dad8c8688d44b6a026609a"
+      },
+      "revised_at": "2026-08-02T13:21:37.055423+00:00",
+      "reason": "Strengthen 2.24.0 release metadata coverage after independent review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:b7c1bbb790b04c7fc8e80165b9e1ce683aaf8ebdc8dad8c8688d44b6a026609a"
+      },
+      "revised_at": "2026-08-02T13:22:04.093184+00:00",
+      "reason": "Record reviewed release-note and roadmap-date assertions for 2.24.0",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
