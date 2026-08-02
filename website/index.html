@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="MAID Runner validates AI-assisted code against explicit manifests, acceptance tests, structural contracts, and unit tests."
+    />
+    <meta name="theme-color" content="#08111f" />
+    <link rel="canonical" href="https://maidrunner.dev/">
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://maidrunner.dev/" />
+    <meta property="og:title" content="MAID Runner — Verifiable development for AI-assisted code" />
+    <meta
+      property="og:description"
+      content="Turn AI-assisted development into a workflow with explicit intent, implementation, and verification."
+    />
+    <meta property="og:image" content="https://maidrunner.dev/assets/social-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MAID Runner — Verifiable development for AI-assisted code" />
+    <meta
+      name="twitter:description"
+      content="Manifest-driven validation for AI-assisted development."
+    />
+    <meta name="twitter:image" content="https://maidrunner.dev/assets/social-card.png" />
+    <title>MAID Runner — Verifiable development for AI-assisted code</title>
+  </head>
+  <body class="no-js">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="/" aria-label="MAID Runner home">
+          <img src="assets/logo.svg" width="40" height="40" alt="" />
+          <span>MAID <strong>Runner</strong></span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+          data-nav-toggle
+        >
+          <span class="sr-only">Toggle navigation</span>
+          <span class="nav-toggle-line"></span>
+          <span class="nav-toggle-line"></span>
+        </button>
+
+        <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
+          <a href="#why-maid">Why MAID</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#quickstart">Quick start</a>
+          <a
+            class="nav-github"
+            href="https://github.com/mamertofabian/maid-runner"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View on GitHub
+            <span aria-hidden="true">↗</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-grid container">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span>Manifest-driven AI development</p>
+            <h1 id="hero-title">Ship code with a <em>contract</em>, not a hunch.</h1>
+            <p class="hero-lede">
+              MAID Runner turns AI-assisted development into a verifiable workflow.
+              Describe what should exist, build it, then prove the implementation still
+              matches the intent.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#quickstart">
+                Start the workflow
+                <span aria-hidden="true">↓</span>
+              </a>
+              <a class="button button-quiet" href="#why-maid">See how it works</a>
+            </div>
+            <ul class="hero-proof" aria-label="MAID Runner characteristics">
+              <li><span class="proof-check">✓</span> Python library + CLI</li>
+              <li><span class="proof-check">✓</span> TypeScript and Svelte support</li>
+              <li><span class="proof-check">✓</span> MIT licensed</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" role="img" aria-label="Three validation streams converge on a verified checkpoint">
+            <div class="visual-grid"></div>
+            <div class="visual-orbit orbit-one"></div>
+            <div class="visual-orbit orbit-two"></div>
+            <div class="visual-core">
+              <div class="core-glow"></div>
+              <div class="core-shape">
+                <span class="core-check">✓</span>
+              </div>
+              <span class="core-label">verified</span>
+            </div>
+            <div class="stream stream-violet"><span></span><span></span><span></span></div>
+            <div class="stream stream-cyan"><span></span><span></span><span></span></div>
+            <div class="stream stream-amber"><span></span><span></span><span></span></div>
+            <div class="visual-caption"><span>03</span> streams, one contract</div>
+          </div>
+        </div>
+        <div class="hero-bottom-fade"></div>
+      </section>
+
+      <section class="signal-strip" aria-label="MAID Runner overview">
+        <div class="container signal-grid">
+          <div class="signal-item">
+            <span class="signal-number">01</span>
+            <span><strong>Declare</strong> the contract</span>
+          </div>
+          <div class="signal-connector" aria-hidden="true">→</div>
+          <div class="signal-item">
+            <span class="signal-number">02</span>
+            <span><strong>Implement</strong> the change</span>
+          </div>
+          <div class="signal-connector" aria-hidden="true">→</div>
+          <div class="signal-item">
+            <span class="signal-number">03</span>
+            <span><strong>Verify</strong> the result</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="why-maid" class="section section-light" aria-labelledby="why-title">
+        <div class="container">
+          <div class="section-heading section-heading-split">
+            <div>
+              <p class="eyebrow eyebrow-dark">Why MAID</p>
+              <h2 id="why-title">AI can move fast.<br /><span>Keep the shape.</span></h2>
+            </div>
+            <p class="section-intro">
+              LLMs are excellent at producing plausible code. MAID Runner adds the
+              missing constraint: a machine-checkable agreement between the intent,
+              the structure, and the behavior of a change.
+            </p>
+          </div>
+
+          <div class="stream-grid">
+            <article class="stream-card stream-card-acceptance">
+              <div class="card-topline">
+                <span class="card-number">01</span>
+                <span class="card-tag">WHAT</span>
+              </div>
+              <div class="stream-mark mark-acceptance" aria-hidden="true">
+                <span class="mark-ring"></span>
+                <span class="mark-check">✓</span>
+              </div>
+              <h3>Acceptance</h3>
+              <p>Immutable tests from the specification define the behavior the change must deliver.</p>
+              <div class="card-footer"><span>Acceptance tests</span><span class="footer-arrow">↗</span></div>
+            </article>
+
+            <article class="stream-card stream-card-structural">
+              <div class="card-topline">
+                <span class="card-number">02</span>
+                <span class="card-tag">SKELETON</span>
+              </div>
+              <div class="stream-mark mark-structural" aria-hidden="true">
+                <span class="mark-node node-a"></span>
+                <span class="mark-node node-b"></span>
+                <span class="mark-node node-c"></span>
+                <span class="mark-line line-a"></span>
+                <span class="mark-line line-b"></span>
+              </div>
+              <h3>Structural</h3>
+              <p>AST-level validation confirms that the implementation matches the declared contract.</p>
+              <div class="card-footer"><span>Manifest artifacts</span><span class="footer-arrow">↗</span></div>
+            </article>
+
+            <article class="stream-card stream-card-unit">
+              <div class="card-topline">
+                <span class="card-number">03</span>
+                <span class="card-tag">HOW</span>
+              </div>
+              <div class="stream-mark mark-unit" aria-hidden="true">
+                <span class="unit-bar bar-one"></span>
+                <span class="unit-bar bar-two"></span>
+                <span class="unit-bar bar-three"></span>
+                <span class="unit-pulse"></span>
+              </div>
+              <h3>Unit</h3>
+              <p>Implementation-level tests check the internal correctness behind the public behavior.</p>
+              <div class="card-footer"><span>Focused feedback</span><span class="footer-arrow">↗</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section section-dark" aria-labelledby="workflow-title">
+        <div class="container">
+          <div class="section-heading section-heading-centered">
+            <p class="eyebrow">The workflow</p>
+            <h2 id="workflow-title">From intention to evidence.</h2>
+            <p class="section-intro">
+              A small loop that makes an AI-assisted change legible to both humans and machines.
+            </p>
+          </div>
+
+          <div class="workflow-rail" aria-label="Three-step MAID workflow">
+            <article class="workflow-step">
+              <div class="step-marker"><span>01</span></div>
+              <div class="step-copy">
+                <p class="step-kicker">Write intent</p>
+                <h3>Make the change explicit.</h3>
+                <p>Put the goal, files, artifacts, and validation commands in a versioned YAML manifest.</p>
+              </div>
+              <pre class="code-card"><code><span class="code-key">goal</span>: <span class="code-string">"Add a feature"</span>
+<span class="code-key">files</span>:
+  <span class="code-key">edit</span>:
+    - <span class="code-string">src/service.py</span>
+<span class="code-key">validate</span>:
+  - <span class="code-string">pytest tests/</span></code></pre>
+            </article>
+
+            <article class="workflow-step">
+              <div class="step-marker"><span>02</span></div>
+              <div class="step-copy">
+                <p class="step-kicker">Build freely</p>
+                <h3>Let the implementation evolve.</h3>
+                <p>Use your agent, editor, and normal engineering tools while the contract stays stable.</p>
+              </div>
+              <div class="implementation-card">
+                <div class="implementation-header"><span class="terminal-dot dot-red"></span><span class="terminal-dot dot-yellow"></span><span class="terminal-dot dot-green"></span><span class="terminal-title">maid-runner</span></div>
+                <div class="implementation-body"><span class="terminal-prompt">$</span> implement the manifest<br /><span class="terminal-muted">→ 3 artifacts declared</span><br /><span class="terminal-muted">→ 4 validation commands</span></div>
+              </div>
+            </article>
+
+            <article class="workflow-step">
+              <div class="step-marker"><span>03</span></div>
+              <div class="step-copy">
+                <p class="step-kicker">Prove the result</p>
+                <h3>Verify the shape and behavior.</h3>
+                <p>Run the MAID gates. Drift becomes visible before it becomes architecture.</p>
+              </div>
+              <div class="result-card">
+                <div class="result-status"><span class="status-dot"></span> validation complete</div>
+                <div class="result-row"><span>Acceptance</span><strong>PASS</strong></div>
+                <div class="result-row"><span>Structural</span><strong>PASS</strong></div>
+                <div class="result-row"><span>Unit</span><strong>PASS</strong></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="quote-section" aria-labelledby="quote-title">
+        <div class="container quote-grid">
+          <div class="quote-mark" aria-hidden="true">“</div>
+          <div>
+            <p class="quote-label">The idea</p>
+            <h2 id="quote-title">Turn AI from a junior developer into a stochastic compiler.</h2>
+            <p class="quote-source">— MAID philosophy</p>
+          </div>
+          <div class="quote-signal" aria-hidden="true"><span></span><span></span><span></span></div>
+        </div>
+      </section>
+
+      <section id="quickstart" class="section section-light quickstart-section" aria-labelledby="quickstart-title">
+        <div class="container quickstart-grid">
+          <div class="quickstart-copy">
+            <p class="eyebrow eyebrow-dark">Quick start</p>
+            <h2 id="quickstart-title">Put a contract<br /><span>in the loop.</span></h2>
+            <p>
+              Install the runner, initialize MAID in a repository, and open the guided
+              quickstart for your first contract. The detailed technical guide lives on GitHub.
+            </p>
+            <div class="quickstart-links">
+              <a class="text-link" href="https://github.com/mamertofabian/maid-runner" target="_blank" rel="noreferrer">Read the documentation <span aria-hidden="true">↗</span></a>
+              <a class="text-link" href="https://pypi.org/project/maid-runner/" target="_blank" rel="noreferrer">Get it from PyPI <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <div class="terminal-card" aria-label="MAID Runner installation commands">
+            <div class="terminal-bar">
+              <div class="terminal-controls"><span></span><span></span><span></span></div>
+              <span class="terminal-name">quickstart.sh</span>
+              <span class="terminal-shell">bash</span>
+            </div>
+            <pre><code><span class="terminal-comment"># install</span>
+<span class="terminal-prompt">$</span> pip install maid-runner
+
+<span class="terminal-comment"># initialize MAID tooling</span>
+<span class="terminal-prompt">$</span> maid init
+
+<span class="terminal-comment"># follow the first contract loop</span>
+<span class="terminal-prompt">$</span> maid howto --section quickstart
+
+<span class="terminal-success">✓</span> ready to write a verifiable change</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta" aria-labelledby="cta-title">
+        <div class="container final-cta-inner">
+          <div>
+            <p class="eyebrow">Keep the contract close</p>
+            <h2 id="cta-title">Build boldly.<br /><span>Verify honestly.</span></h2>
+          </div>
+          <a class="button button-light" href="https://github.com/mamertofabian/maid-runner" target="_blank" rel="noreferrer">
+            Explore MAID Runner
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <a class="brand footer-brand" href="/" aria-label="MAID Runner home">
+          <img src="assets/logo.svg" width="32" height="32" alt="" />
+          <span>MAID <strong>Runner</strong></span>
+        </a>
+        <p>Manifest-driven validation for AI-assisted development.</p>
+        <div class="footer-links">
+          <a href="https://github.com/mamertofabian/maid-runner" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://pypi.org/project/maid-runner/" target="_blank" rel="noreferrer">PyPI</a>
+          <a href="https://archspec.dev" target="_blank" rel="noreferrer">ArchSpec</a>
+        </div>
+        <p class="footer-meta">MIT License · Built for the contract</p>
+      </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">MAID Runner mark</title>
+  <defs>
+    <linearGradient id="logo-bg" x1="8" y1="7" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172747" />
+      <stop offset="1" stop-color="#0A1223" />
+    </linearGradient>
+    <linearGradient id="logo-cyan" x1="10" y1="45" x2="30" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35BDE1" stop-opacity="0" />
+      <stop offset="1" stop-color="#76EEFF" />
+    </linearGradient>
+    <linearGradient id="logo-amber" x1="54" y1="44" x2="34" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB24F" stop-opacity="0" />
+      <stop offset="1" stop-color="#FFD99A" />
+    </linearGradient>
+    <linearGradient id="logo-violet" x1="32" y1="7" x2="32" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C99CFF" stop-opacity="0" />
+      <stop offset="1" stop-color="#B77DFF" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="url(#logo-bg)" />
+  <path d="M8 48C17 45 20 36 31 31" stroke="url(#logo-cyan)" stroke-width="4" stroke-linecap="round" />
+  <path d="M56 48C47 45 44 36 33 31" stroke="url(#logo-amber)" stroke-width="4" stroke-linecap="round" />
+  <path d="M32 7C32 16 32 21 32 31" stroke="url(#logo-violet)" stroke-width="4" stroke-linecap="round" />
+  <path d="m32 23 10 10-10 10-10-10 10-10Z" fill="#101D35" stroke="#ECF1FA" stroke-opacity=".82" />
+  <path d="m26.5 33 4 4.2 7.8-8.4" fill="none" stroke="#FFF9EA" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.2" />
+</svg>

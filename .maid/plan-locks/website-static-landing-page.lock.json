@@ -1,0 +1,464 @@
+{
+  "manifest_path": "manifests/website-static-landing-page.manifest.yaml",
+  "manifest_hash": "sha256-contract:cb7338780365759299314613c6cbb71433692b4450bd74f17b849165fcbad6fd",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:42c6861d3501e199536db09413f12084495209d315808a29671058229f0ca0bb"
+  },
+  "created_at": "2026-08-02T10:08:22.879789+00:00",
+  "revision": 13,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5615eb57bf370b7187e068899bd576d8c377738ec01bee48599d8d242001e8b7",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:b0050e80e6c890169ab91b9e79b7783096e6a37570368527adb446a8a8ba2fad"
+      },
+      "revised_at": "2026-08-02T10:08:27.741520+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-static-landing-page.manifest.yaml -> manifests/website-static-landing-page.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-static-landing-page.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9a3451c2076e547a7c91ca366cdf48f31ed53bbb937e43ca7e1c4929b86e3899",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:b0050e80e6c890169ab91b9e79b7783096e6a37570368527adb446a8a8ba2fad"
+      },
+      "revised_at": "2026-08-02T10:23:45.887096+00:00",
+      "reason": "Apply Black formatting to the behavioral test without changing its contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9a3451c2076e547a7c91ca366cdf48f31ed53bbb937e43ca7e1c4929b86e3899",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:b0050e80e6c890169ab91b9e79b7783096e6a37570368527adb446a8a8ba2fad"
+      },
+      "revised_at": "2026-08-02T10:41:24.067057+00:00",
+      "reason": "Harden the website contract after independent implementation review: assert JS-disabled navigation fallback, root-safe 404 assets, canonical social metadata, and immutable Pages action references",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8736d5ea2edc7b030d1a5b1889bba2682e4878645bff595f919f69cdf37b7cbe",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:5ee3cb248852692446e843a1e7a455b94d69c97bb785049b43a7ec01c41faa5b"
+      },
+      "revised_at": "2026-08-02T10:42:16.095717+00:00",
+      "reason": "Apply Black formatting to the tightened review assertions without changing behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8736d5ea2edc7b030d1a5b1889bba2682e4878645bff595f919f69cdf37b7cbe",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:5ee3cb248852692446e843a1e7a455b94d69c97bb785049b43a7ec01c41faa5b"
+      },
+      "revised_at": "2026-08-02T11:04:06.564657+00:00",
+      "reason": "Address independent review findings: make the quick start valid for an empty repository, harden light-surface contrast, and add explicit mobile navigation and contrast contract coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast",
+          "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast:kind=test_function",
+          "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast:returns=None",
+          "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+          "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:kind=test_function",
+          "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96bfe7a43ac20fb30097d244edda76c97811cc61393bd85d053fd804eeaebcf1",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:d862fa6b6f3770f34bfc3074865bab688d8d9094e7f843c659528cca7721ff1c"
+      },
+      "revised_at": "2026-08-02T11:04:26.159602+00:00",
+      "reason": "Preserve the valid red-phase evidence after formatting the strengthened static website contract tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96bfe7a43ac20fb30097d244edda76c97811cc61393bd85d053fd804eeaebcf1",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:d862fa6b6f3770f34bfc3074865bab688d8d9094e7f843c659528cca7721ff1c"
+      },
+      "revised_at": "2026-08-02T11:16:37.497575+00:00",
+      "reason": "Address the second independent review: raise terminal metadata contrast, guard Escape focus restoration to open navigation, and make the static contract derive contrast and action-pin assertions from actual CSS and workflow declarations.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96bfe7a43ac20fb30097d244edda76c97811cc61393bd85d053fd804eeaebcf1",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:15fa1399a19441e03a990d104599109d7abdd636e8dfdecf562d0b36e04c923c"
+      },
+      "revised_at": "2026-08-02T11:31:00.198623+00:00",
+      "reason": "Address the final accessibility review: use surface-appropriate focus indicators, cover terminal-muted contrast, and resolve the last applicable CSS declaration in the contrast contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3c5d8c401868722517360fa8df88509d2404a474b9d5be3d84c287ab878a36c2",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:9eff235d2ef6f882c29ad97d9693ec6fb23cfefd7eebfa72140a37c71efce636"
+      },
+      "revised_at": "2026-08-02T11:43:52.014192+00:00",
+      "reason": "Address final interaction and fallback review findings: apply dark focus styling to the 404 surface, restore focus after mobile link activation, and extend the static contract for both behaviors.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:81dbe4cb5176f323cf506a90652cf7538d50e3296d95fe8e4a364cab42af92d6",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:27f9d5c02ada33b0e2a85e5fc7edd6e6fa0a4e203cfd80e6bb35ce38abd94c8f"
+      },
+      "revised_at": "2026-08-02T11:56:39.805928+00:00",
+      "reason": "Fix the mobile navigation specificity regression found in final review by making the open-state selector explicitly override the JavaScript-hidden state and asserting the exact selector.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:81dbe4cb5176f323cf506a90652cf7538d50e3296d95fe8e4a364cab42af92d6",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:a3fcf96fcef6c9c14c7b2b9077e72fda18dcdfceb638f5505c3f12f7d288f314"
+      },
+      "revised_at": "2026-08-02T12:10:50.566316+00:00",
+      "reason": "Fix final accessibility and fallback presentation findings: make the skip target focusable, preserve 404 code emphasis against paragraph styles, and assert both static contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a4d3cdf59067246d09c3f81c98136f2442156beb78bcadbba9542b7bf9fcebcd",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:42c6861d3501e199536db09413f12084495209d315808a29671058229f0ca0bb"
+      },
+      "revised_at": "2026-08-02T12:24:03.875913+00:00",
+      "reason": "Capture the completed implementation Outcome and close the manifest lifecycle after final review and strict handoff verification.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-02T12:10:52.162724+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_static_contract.py",
+        "exit_code": 1,
+        "output_tail": "             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/maid-runner/.github/workflows/deploy-website.yml'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_contract_exposes_product_story_and_primary_actions\nFAILED tests/test_website_static_contract.py::test_homepage_assets_are_local_responsive_and_progressively_enhanced\nFAILED tests/test_website_static_contract.py::test_mobile_navigation_covers_javascript_and_no_javascript_paths\nFAILED tests/test_website_static_contract.py::test_light_surface_text_colors_meet_wcag_aa_contrast\nFAILED tests/test_website_static_contract.py::test_static_fallback_and_search_metadata_target_canonical_domain\nFAILED tests/test_website_static_contract.py::test_pages_workflow_is_path_scoped_and_uploads_website_root\n6 failed in 0.11s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_static_contract.py:test_homepage_assets_are_local_responsive_and_progressively_enhanced",
+      "tests/test_website_static_contract.py:test_homepage_assets_are_local_responsive_and_progressively_enhanced:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_assets_are_local_responsive_and_progressively_enhanced:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_contract_exposes_product_story_and_primary_actions",
+      "tests/test_website_static_contract.py:test_homepage_contract_exposes_product_story_and_primary_actions:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_contract_exposes_product_story_and_primary_actions:returns=None",
+      "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast",
+      "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast:kind=test_function",
+      "tests/test_website_static_contract.py:test_light_surface_text_colors_meet_wcag_aa_contrast:returns=None",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:kind=test_function",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:returns=None",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root:kind=test_function",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root:returns=None",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:kind=test_function",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_static_contract.py"
+      ],
+      "edit": [],
+      "read": [
+        ".github/workflows/maid-validation.yml",
+        ".github/workflows/publish.yml",
+        "README.md",
+        "pyproject.toml"
+      ],
+      "scope": [
+        ".github/workflows/deploy-website.yml",
+        "website/404.html",
+        "website/assets/logo.svg",
+        "website/assets/social-card.png",
+        "website/index.html",
+        "website/robots.txt",
+        "website/script.js",
+        "website/sitemap.xml",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_static_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_homepage_contract_exposes_product_story_and_primary_actions",
+              "returns": "None",
+              "source_scenario": "A visitor opens the static homepage at the configured custom domain.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The homepage is a semantic, language-declared document with canonical/OG metadata, the MAID Runner product story, three validation streams, workflow sections, and working repository/PyPI actions."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_assets_are_local_responsive_and_progressively_enhanced",
+              "returns": "None",
+              "source_scenario": "A visitor loads the homepage in a normal browser or with JavaScript disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every referenced stylesheet, script, logo, and social image exists locally; CSS provides responsive/focus/reduced-motion behavior; and the script uses no remote dependency or native browser dialog."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_static_fallback_and_search_metadata_target_canonical_domain",
+              "returns": "None",
+              "source_scenario": "A visitor follows a stale Pages URL or a crawler reads the deployment metadata.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "404.html provides a real recovery link to the homepage, robots.txt points to the canonical sitemap, sitemap.xml is valid XML, and every canonical location targets https://maidrunner.dev/."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pages_workflow_is_path_scoped_and_uploads_website_root",
+              "returns": "None",
+              "source_scenario": "A website change lands on main or an operator manually dispatches the Pages workflow.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow triggers only for main website/workflow changes or manual dispatch, uses least-privilege Pages permissions, uploads website as the artifact root, and deploys through GitHub Pages."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+              "returns": "None",
+              "source_scenario": "A visitor uses the mobile navigation with JavaScript enabled or disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The script covers open/close, link dismissal, Escape dismissal, and focus return while CSS keeps navigation usable without JavaScript."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_light_surface_text_colors_meet_wcag_aa_contrast",
+              "returns": "None",
+              "source_scenario": "A visitor reads body, card, quote, and footer text on the website's light and dark surfaces.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The declared text colors meet the WCAG AA 4.5:1 contrast threshold against their tested surfaces."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "README.md",
+        "pyproject.toml",
+        ".github/workflows/maid-validation.yml",
+        ".github/workflows/publish.yml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Static homepage behavior is specified through the website contract tests rather than a language-level public API."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Presentation and responsive accessibility behavior are covered through the rendered asset contract and source-level safety checks."
+        },
+        {
+          "path": "website/script.js",
+          "reason": "Progressive-enhancement navigation wiring has no stable public API; tests cover its no-dependency and accessibility contract."
+        },
+        {
+          "path": "website/404.html",
+          "reason": "GitHub Pages fallback document is a static route artifact covered through file-content behavior."
+        },
+        {
+          "path": "website/robots.txt",
+          "reason": "Crawler policy is a deployment asset covered through its canonical sitemap directive."
+        },
+        {
+          "path": "website/sitemap.xml",
+          "reason": "Search-engine discovery metadata is a static deployment asset covered through XML and canonical URL assertions."
+        },
+        {
+          "path": "website/assets/logo.svg",
+          "reason": "The local brand mark is a static asset with no public programmatic API."
+        },
+        {
+          "path": "website/assets/social-card.png",
+          "reason": "The social preview image is a static binary asset covered through existence and PNG signature checks."
+        },
+        {
+          "path": ".github/workflows/deploy-website.yml",
+          "reason": "GitHub Actions wiring has no repository runtime API; the behavioral test validates its trigger, permissions, artifact path, and deployment job."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_static_contract.py",
+      "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
