@@ -1,0 +1,173 @@
+{
+  "manifest_path": "manifests/fix-preserve-red-command-mismatch.manifest.yaml",
+  "manifest_hash": "sha256-contract:fe4f73678e97415963902624f014b3d1e5e93599e9063e41a850974e4e447319",
+  "test_hashes": {
+    "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa"
+  },
+  "created_at": "2026-08-03T13:04:52.723379+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1be072e1ea7606d1845d580af70e9c8ac0d1d6176b98fccb41e6f9d758ead15f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:1150cb8a55590672789aaa49c7ac28f1926235bcd6f67aa097cfdb8ec547361c"
+      },
+      "revised_at": "2026-08-03T13:04:53.403207+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-preserve-red-command-mismatch.manifest.yaml -> manifests/fix-preserve-red-command-mismatch.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ffd75e89d52af1554717207c480c949547d7fffca4fa760211bde93608e36b46",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:1150cb8a55590672789aaa49c7ac28f1926235bcd6f67aa097cfdb8ec547361c"
+      },
+      "revised_at": "2026-08-03T13:13:48.403583+00:00",
+      "reason": "Strengthen preserved-evidence trust boundary after implementation review found E707 laundering",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock",
+          "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d646071a7b44d1047e6e99aa5676d88b9d6c5fd434ceda799c1c9e37ccec4238",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:d8316bd62f760d5527837de21d14c0b330912c4dcc54f3efaa02a9901158cbdf"
+      },
+      "revised_at": "2026-08-03T13:19:08.095499+00:00",
+      "reason": "Fail closed on malformed preserved-evidence command payloads after round-two review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock",
+          "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-03T13:19:08.759523+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_revise_preserve_command_mismatch.py",
+        "exit_code": 1,
+        "output_tail": "                \"not\": \"a command string\"\n            }\n        lock_path.write_text(json.dumps(malformed_lock, indent=2))\n        malformed_lock_bytes = lock_path.read_bytes()\n        original_revision = malformed_lock[\"revision\"]\n    \n        exit_code = cmd_plan_revise(_revise_args(manifest_path, tmp_path))\n    \n        captured = capsys.readouterr()\n>       assert exit_code == 2\nE       assert 0 == 2\n\ntests/cli/test_plan_revise_preserve_command_mismatch.py:182: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_preserve_command_mismatch.py::test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock\nFAILED tests/cli/test_plan_revise_preserve_command_mismatch.py::test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock[red]\nFAILED tests/cli/test_plan_revise_preserve_command_mismatch.py::test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock[test_only_green]\nFAILED tests/cli/test_plan_revise_preserve_command_mismatch.py::test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock[locked_contract]\nFAILED tests/cli/test_plan_revise_preserve_command_mismatch.py::test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock[red_evidence]\n5 failed, 1 passed in 0.37s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_accepts_reordered_validate_command_multiset",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_accepts_reordered_validate_command_multiset:kind=test_function",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock:kind=test_function",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock:kind=test_function",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py:test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock",
+              "description": "A locked red-evidence plan whose validate command is replaced gets exit 2 and an actionable fresh-evidence diagnostic from explicit preserve mode while the existing lock bytes and revision remain unchanged."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_red_evidence_accepts_reordered_validate_command_multiset",
+              "description": "Explicit preserve mode still succeeds and carries the original evidence when the current validate commands are only reordered, matching E707 multiset semantics rather than imposing list-order equality."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock",
+              "description": "For both red and test-only-green evidence classes, explicit preserve mode rejects an existing lock whose evidence commands mismatch its locked contract even when the current manifest was changed to match the spliced evidence; lock bytes and revision remain unchanged."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock",
+              "description": "Malformed non-string command entries in either the locked contract snapshot or red evidence produce exit 2 without an exception, lock rewrite, or revision advance."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Rejects explicit preserved-evidence revisions whose evidence command multiset differs from the current manifest validate commands, reports an actionable fresh-evidence workflow, and leaves the lock unchanged; matching metadata-only preservation remains supported.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_revise_preserve_command_mismatch.py"
+    ]
+  }
+}

@@ -9,11 +9,12 @@ import shlex
 import subprocess
 import sys
 import uuid
+from collections import Counter
 from dataclasses import replace
 from pathlib import Path
 
 from maid_runner.cli.commands._format import print_error
-from maid_runner.core.manifest import backfill_manifest_header
+from maid_runner.core.manifest import backfill_manifest_header, load_manifest
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
@@ -214,6 +215,28 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             json_mode=ctx.json_mode,
         )
         return 2
+    if preserve_red_evidence:
+        try:
+            locked_contract = _load_locked_contract(ctx.lock_path)
+            preserved_commands_match = _preserved_evidence_commands_match_manifest(
+                existing.red_evidence,
+                ctx.manifest_path,
+                locked_contract,
+            )
+        except _plan_input_errors() as exc:
+            print_error(str(exc), json_mode=ctx.json_mode)
+            return 2
+        if not preserved_commands_match:
+            print_error(
+                "--preserve-red-evidence cannot be used because validate commands "
+                "changed or the existing plan lock is already E707-invalid. Evidence "
+                "commands must match both the existing plan lock and current manifest. "
+                "Capture fresh evidence with a revision workflow such as `maid plan "
+                'revise <manifest> --reason "<text>" --stash-implementation`; the '
+                "existing plan lock was left unchanged.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
 
     provenance = _resolve_agent_provenance_from_args(args)
     _print_provenance_warning(provenance.warning)
@@ -429,6 +452,40 @@ def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _preserved_evidence_commands_match_manifest(
+    evidence: dict | None,
+    manifest_path: Path,
+    locked_contract: dict | None,
+) -> bool:
+    """Bind preserved commands to both the locked and current contracts."""
+    if not isinstance(evidence, dict):
+        return False
+    commands = evidence.get("commands")
+    if not isinstance(commands, list):
+        return False
+    if not all(
+        isinstance(command, dict) and isinstance(command.get("command"), str)
+        for command in commands
+    ):
+        return False
+    if not isinstance(locked_contract, dict):
+        return False
+    locked_commands = locked_contract.get("validate_commands")
+    if not isinstance(locked_commands, list) or not all(
+        isinstance(command, str) for command in locked_commands
+    ):
+        return False
+    evidence_commands = [command["command"] for command in commands]
+    manifest_commands = [
+        shlex.join(command)
+        for command in load_manifest(manifest_path).validate_commands
+    ]
+    evidence_counter = Counter(evidence_commands)
+    return evidence_counter == Counter(locked_commands) and evidence_counter == Counter(
+        manifest_commands
+    )
 
 
 def _format_red_evidence_capture_details(evidence: dict) -> str:

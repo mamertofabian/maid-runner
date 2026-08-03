@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 from xml.etree import ElementTree
@@ -8,6 +9,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WEBSITE = ROOT / "website"
 HOMEPAGE = WEBSITE / "index.html"
+PRACTICE_STATS = WEBSITE / "data" / "practice-stats.json"
 WORKFLOW = ROOT / ".github/workflows/deploy-website.yml"
 
 
@@ -36,13 +38,21 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
     assert "maid validate" in homepage
     assert "HANDOFF READY" in homepage
 
-    for section_id in ("why-maid", "workflow", "capabilities", "quickstart"):
+    for section_id in (
+        "why-maid",
+        "workflow",
+        "capabilities",
+        "maid-in-practice",
+        "quickstart",
+    ):
         assert f'id="{section_id}"' in homepage
 
     for label in (
         "Why MAID Runner",
         "From plan to evidence",
         "Capabilities",
+        "MAID in practice",
+        "The tool is developed under the rules it enforces.",
         "Works with your existing tools",
         "Quick start",
         "Build boldly. Verify honestly.",
@@ -53,6 +63,7 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
         'href="#why-maid"',
         'href="#workflow"',
         'href="#capabilities"',
+        'href="#maid-in-practice"',
         'href="#quickstart"',
         'href="https://github.com/mamertofabian/maid-runner"',
     ):
@@ -100,6 +111,82 @@ def test_homepage_renders_workflow_capabilities_tools_and_quickstart() -> None:
         assert command in quickstart
     assert "maid verify" not in quickstart
     assert "See the docs for detailed guides" in quickstart
+
+
+def test_homepage_renders_maid_in_practice_section() -> None:
+    homepage = _read(HOMEPAGE)
+    stats = json.loads(_read(PRACTICE_STATS))
+    practice = homepage.split('id="maid-in-practice"', 1)[1].split(
+        'id="quickstart"', 1
+    )[0]
+
+    assert "MAID Runner is not only a workflow we recommend" in practice
+    assert "The framework dogfoods itself." in practice
+    assert (
+        "manifest → plan lock → red evidence → implementation → review → outcome"
+        in practice
+    )
+    assert "Strict verification" in practice
+    assert "required before handoff" in practice
+
+    runner = stats["maidRunner"]
+    csharp = stats["csharpValidator"]
+    for value in (
+        runner["manifests"],
+        runner["tests"],
+        runner["maidCommandGroups"],
+        csharp["manifests"],
+        csharp["tests"],
+    ):
+        assert str(value) in practice
+
+    assert "validated manifests" in practice
+    assert "passing tests" in practice
+    assert "MAID validation command groups" in practice
+    assert "MAID Validator for C#" in practice
+    assert "A separate plugin developed under MAID." in practice
+    assert "Python 3.10–3.14" in practice
+    assert "Private production projects" in practice
+    assert "Used beyond demonstration repositories." in practice
+    assert "Real projects. Real constraints. Private by design." in practice
+    assert "Built something with MAID?" in practice
+
+    for phrase in (
+        "scoped feature and maintenance work",
+        "plan review before implementation",
+        "test-driven changes with red evidence",
+        "independent AI-assisted implementation review",
+        "evidence-backed handoff before merge or release",
+    ):
+        assert phrase in practice
+
+    assert (
+        'href="https://github.com/mamertofabian/maid-runner/tree/main/manifests"'
+        in practice
+    )
+    assert 'href="https://github.com/mamertofabian/maid-validator-csharp"' in practice
+    assert (
+        'href="https://github.com/mamertofabian/maid-runner/issues/new?title=Showcase%3A%20"'
+        in practice
+    )
+    assert "Explore the MAID Runner manifests" in practice
+    assert "View the C# validator on GitHub" in practice
+    assert "Share your project" in practice
+
+    for excluded in ("maid-runner-mcp", "vscode-maid", "maid-lsp"):
+        assert excluded not in practice
+
+    stylesheet = _read(WEBSITE / "styles.css")
+    for selector in (
+        ".practice-section",
+        ".practice-featured-card",
+        ".practice-workflow-rail",
+        ".practice-stats",
+        ".practice-secondary-grid",
+        ".practice-private-icon",
+        ".practice-share",
+    ):
+        assert selector in stylesheet
 
 
 def test_homepage_uses_final_local_brand_and_social_assets() -> None:
@@ -176,6 +263,7 @@ def test_dark_surface_accessibility_contract_is_declared() -> None:
         ".site-header :focus-visible",
         ".hero :focus-visible",
         ".section-dark :focus-visible",
+        ".practice-section :focus-visible",
         ".final-cta :focus-visible",
         ".site-footer :focus-visible",
         ".not-found :focus-visible",
