@@ -1,0 +1,329 @@
+{
+  "manifest_path": "manifests/website-maid-in-practice-section.manifest.yaml",
+  "manifest_hash": "sha256-contract:677d9ca2c5827821f86689a70184a2dd00f175b258b104d654b05e22cd7633f6",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3"
+  },
+  "created_at": "2026-08-03T23:30:14.720084+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5d551390dcc6a9abedc61f40f0a48eaafce7b0c03a4d928f1cc4dd9719077855",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3"
+      },
+      "revised_at": "2026-08-03T23:30:20.952709+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-maid-in-practice-section.manifest.yaml -> manifests/website-maid-in-practice-section.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-maid-in-practice-section.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-maid-in-practice-section.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-03T23:30:22.673877+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_static_contract.py",
+        "exit_code": 1,
+        "output_tail": "        assert \":focus-visible\" in stylesheet\n    \n        for surface in (\n            \".site-header :focus-visible\",\n            \".hero :focus-visible\",\n            \".section-dark :focus-visible\",\n            \".practice-section :focus-visible\",\n            \".final-cta :focus-visible\",\n            \".site-footer :focus-visible\",\n            \".not-found :focus-visible\",\n        ):\n>           assert surface in stylesheet\nE           AssertionError: assert '.practice-section :focus-visible' in ':root {\\n  --bg: #070d12;\\n  --bg-deep: #04080c;\\n  --surface: #0d151b;\\n  --surface-raised: #121c23;\\n  --surface-so...0.01ms !important;\\n    animation-duration: 0.01ms !important;\\n    animation-iteration-count: 1 !important;\\n  }\\n}\\n'\n\ntests/test_website_static_contract.py:273: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_matches_mockup_story_and_navigation\nFAILED tests/test_website_static_contract.py::test_homepage_renders_maid_in_practice_section\nFAILED tests/test_website_static_contract.py::test_dark_surface_accessibility_contract_is_declared\n3 failed, 5 passed in 0.06s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:kind=test_function",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:returns=None",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:kind=test_function",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:returns=None",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root:kind=test_function",
+      "tests/test_website_static_contract.py:test_pages_workflow_is_path_scoped_and_uploads_website_root:returns=None",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:kind=test_function",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/test_website_static_contract.py"
+      ],
+      "read": [
+        "README.md",
+        "pyproject.toml"
+      ],
+      "scope": [
+        ".github/workflows/deploy-website.yml",
+        "website/404.html",
+        "website/assets/logo.png",
+        "website/assets/social-card.png",
+        "website/data/practice-stats.json",
+        "website/index.html",
+        "website/robots.txt",
+        "website/script.js",
+        "website/sitemap.xml",
+        "website/styles.css"
+      ],
+      "delete": [
+        "website/assets/logo.svg",
+        "website/assets/mockup-redesign.png",
+        "website/assets/social-card-v2.png"
+      ],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/test_website_static_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_homepage_matches_mockup_story_and_navigation",
+              "returns": "None",
+              "source_scenario": "A visitor opens the MAID Runner homepage and scans the product story.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The homepage exposes the mockup-aligned hero, primary actions, navigation anchors including MAID in practice, validation panels, problem cards, and all major page sections with semantic headings."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+              "returns": "None",
+              "source_scenario": "A visitor scrolls through the homepage to understand the MAID loop and how to start.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page renders seven plan-to-evidence steps, six capability cards, tool compatibility labels, and the documented quick-start commands without suggesting maid verify on an empty repository."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_maid_in_practice_section",
+              "returns": "None",
+              "source_scenario": "A visitor looks for evidence that MAID is used on real software before installing.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The MAID in practice section shows the featured MAID Runner card with workflow diagram and JSON-mirrored stats, the C# validator card, the private-production card, share CTA links, and omits ecosystem tools without public manifests."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_uses_final_local_brand_and_social_assets",
+              "returns": "None",
+              "source_scenario": "A browser and social crawler load the homepage after the supplied logo has replaced the generated mark.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Favicon, touch-icon, header/footer logo, and social metadata point to local final assets; the supplied PNG has a valid signature; every local HTML reference exists; and logo.svg plus all disposable design inputs are absent and unreferenced."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+              "returns": "None",
+              "source_scenario": "A visitor uses the compact navigation on a small screen with JavaScript enabled or disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The script covers open/close, link dismissal, Escape dismissal, and focus return while CSS keeps navigation visible and usable without JavaScript."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dark_surface_accessibility_contract_is_declared",
+              "returns": "None",
+              "source_scenario": "A visitor reads and navigates the dark mockup-aligned page across desktop and mobile.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stylesheet declares readable text tokens, visible focus states on dark surfaces including the practice section, responsive rules, and reduced-motion handling."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_static_fallback_and_search_metadata_target_canonical_domain",
+              "returns": "None",
+              "source_scenario": "A visitor follows a stale Pages URL or a crawler reads deployment metadata.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "404.html provides a real recovery link and the supplied local PNG brand asset, robots.txt points to the canonical sitemap, sitemap.xml is valid XML, and all canonical locations target https://maidrunner.dev/."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pages_workflow_is_path_scoped_and_uploads_website_root",
+              "returns": "None",
+              "source_scenario": "A website change lands on main or an operator manually dispatches the Pages workflow.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow triggers only for main website/workflow changes or manual dispatch, uses least-privilege Pages permissions, uploads website as the artifact root, and deploys through GitHub Pages with immutable action SHAs."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "README.md",
+        "pyproject.toml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Homepage gains the MAID in practice section, nav anchor, and mirrored practice stats while retaining the mockup-aligned page contract."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Practice-section layout, featured/secondary cards, workflow rail, stats, shield icon, and focus rules are CSS-only and covered by source contract assertions."
+        },
+        {
+          "path": "website/script.js",
+          "reason": "Existing progressive-enhancement navigation remains part of the superseded website contract."
+        },
+        {
+          "path": "website/404.html",
+          "reason": "Fallback brand surface remains part of the website contract."
+        },
+        {
+          "path": "website/robots.txt",
+          "reason": "Crawler policy remains part of the canonical static deployment surface."
+        },
+        {
+          "path": "website/sitemap.xml",
+          "reason": "Search-engine discovery metadata remains part of the canonical static deployment surface."
+        },
+        {
+          "path": "website/assets/logo.png",
+          "reason": "The supplied transparent PNG remains the authoritative production brand asset."
+        },
+        {
+          "path": "website/assets/social-card.png",
+          "reason": "The final social preview remains part of the website asset contract."
+        },
+        {
+          "path": "website/data/practice-stats.json",
+          "reason": "Canonical evidence-backed stats for MAID Runner and the C# validator; HTML mirrors these values without a runtime fetch."
+        },
+        {
+          "path": ".github/workflows/deploy-website.yml",
+          "reason": "The existing Pages workflow remains part of the website deployment contract."
+        }
+      ],
+      "delete": [
+        {
+          "path": "website/assets/logo.svg",
+          "reason": "Generated logo variant must not ship; the supplied PNG remains authoritative."
+        },
+        {
+          "path": "website/assets/mockup-redesign.png",
+          "reason": "Disposable supplied visual reference is not a production website asset."
+        },
+        {
+          "path": "website/assets/social-card-v2.png",
+          "reason": "Disposable supplied source artwork is represented by the production social-card.png asset."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_static_contract.py",
+      "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-maid-in-practice-section.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

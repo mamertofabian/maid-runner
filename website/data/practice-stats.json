@@ -1,0 +1,17 @@
+{
+  "updatedAt": "2026-08-04",
+  "semantics": {
+    "manifests": "Total manifests reported by `uv run maid validate` (passed + superseded).",
+    "tests": "Full-suite pytest passed count from `uv run python -m pytest tests/ -q`.",
+    "maidCommandGroups": "Command count from `uv run maid test`."
+  },
+  "maidRunner": {
+    "manifests": 484,
+    "tests": 3698,
+    "maidCommandGroups": 218
+  },
+  "csharpValidator": {
+    "manifests": 7,
+    "tests": 116
+  }
+}

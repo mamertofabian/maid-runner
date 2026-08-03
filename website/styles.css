@@ -110,6 +110,7 @@ svg {
 .site-header :focus-visible,
 .hero :focus-visible,
 .section-dark :focus-visible,
+.practice-section :focus-visible,
 .final-cta :focus-visible,
 .site-footer :focus-visible,
 .not-found :focus-visible {
@@ -555,6 +556,14 @@ p {
   padding-bottom: 14px;
 }
 
+.capabilities-section + .practice-section {
+  padding-top: 14px;
+}
+
+.practice-section + .quickstart-section {
+  padding-top: 14px;
+}
+
 .capabilities-section + .quickstart-section {
   padding-top: 14px;
 }
@@ -925,6 +934,219 @@ p {
   font-size: 12px;
 }
 
+.practice-section {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(174, 124, 255, 0.05), transparent 32%),
+    radial-gradient(circle at 8% 70%, rgba(39, 215, 255, 0.04), transparent 34%),
+    var(--bg);
+  padding-bottom: 14px;
+}
+
+.practice-intro {
+  max-width: 720px;
+  margin-bottom: 22px;
+}
+
+.practice-intro h2 {
+  margin-bottom: 10px;
+}
+
+.practice-tagline {
+  margin: 0 0 14px;
+  color: var(--cyan-bright);
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.practice-intro p:not(.practice-tagline) {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.practice-featured-card,
+.practice-card {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: linear-gradient(120deg, rgba(16, 28, 35, 0.93), rgba(8, 14, 19, 0.96));
+}
+
+.practice-featured-card {
+  padding: 24px 26px 22px;
+  margin-bottom: 14px;
+}
+
+.practice-featured-card h3,
+.practice-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.practice-kicker {
+  margin: 8px 0 10px;
+  color: var(--violet);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.practice-featured-card > p:not(.practice-kicker):not(.practice-workflow-rail),
+.practice-card > p:not(.practice-kicker):not(.practice-private-closing) {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.practice-workflow-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-bright);
+  border-radius: 8px;
+  background: #03080b;
+  color: var(--cyan-bright);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+.practice-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.practice-stats-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.practice-stat {
+  padding: 12px 12px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(6, 12, 16, 0.72);
+}
+
+.practice-stat-value {
+  display: block;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.practice-stat-label {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.practice-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.practice-card {
+  position: relative;
+  padding: 22px 22px 18px;
+}
+
+.practice-card-private {
+  padding-top: 54px;
+}
+
+.practice-private-icon {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  width: 28px;
+  height: 32px;
+  color: var(--violet);
+}
+
+.shield-body {
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  border-radius: 14px 14px 10px 10px;
+  clip-path: polygon(50% 0, 100% 12%, 100% 58%, 50% 100%, 0 58%, 0 12%);
+  background: rgba(174, 124, 255, 0.08);
+}
+
+.shield-lock {
+  position: absolute;
+  top: 10px;
+  left: 9px;
+  width: 10px;
+  height: 8px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.shield-lock::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 1px;
+  width: 4px;
+  height: 5px;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.practice-private-list {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.practice-private-list li + li {
+  margin-top: 4px;
+}
+
+.practice-private-closing {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.practice-share {
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.practice-share > p:first-child {
+  margin: 14px 0 4px;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.practice-share-note {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .quickstart-section {
   padding-block: 52px;
 }
@@ -1175,12 +1397,16 @@ p {
   .problem-card,
   .workflow-step,
   .capability-card,
-  .tool-chip {
+  .tool-chip,
+  .practice-featured-card,
+  .practice-card {
     transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   }
 
   .problem-card:hover,
-  .workflow-step:hover {
+  .workflow-step:hover,
+  .practice-featured-card:hover,
+  .practice-card:hover {
     border-color: var(--cyan-deep);
     transform: translateY(-2px);
   }
@@ -1307,8 +1533,14 @@ body.js .primary-nav.is-open {
   }
 
   .problem-grid,
-  .capability-grid {
+  .capability-grid,
+  .practice-secondary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .practice-stats,
+  .practice-stats-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .problem-card {
@@ -1459,8 +1691,24 @@ body.js .primary-nav.is-open {
     padding-bottom: 12px;
   }
 
+  .capabilities-section + .practice-section,
+  .practice-section + .quickstart-section,
   .capabilities-section + .quickstart-section {
     padding-top: 12px;
+  }
+
+  .practice-featured-card,
+  .practice-card {
+    padding: 18px 16px 16px;
+  }
+
+  .practice-stats,
+  .practice-stats-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-stat-value {
+    font-size: 20px;
   }
 
   .quickstart-card {

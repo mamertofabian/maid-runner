@@ -1,0 +1,336 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Add a MAID in practice section with evidence-backed dogfooding stats"
+type: feature
+created: "2026-08-03T23:30:20Z"
+supersedes:
+  - website-supplied-logo-png
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - static-site
+    - social-proof
+    - dogfooding
+  priority: medium
+description: |
+  Add a "MAID in practice" section between Capabilities and Quick start that
+  proves MAID is used on real software. Include a featured MAID Runner card
+  with validated stats from website/data/practice-stats.json, a secondary open-
+  source card for maid-validator-csharp, and an aggregate private-production
+  card without client names or fake logos. Keep numbers in JSON as the
+  canonical source; mirror them in HTML so the page works without JavaScript.
+
+  Preserve the completed mockup-aligned page, supplied PNG brand asset, social
+  card, dependency-free implementation, progressive-enhancement navigation,
+  canonical metadata, fallback route, and path-scoped GitHub Pages deployment
+  contract. Do not list maid-runner-mcp, vscode-maid, or maid-lsp.
+temptations:
+  - risk: "Do not invent coverage percentages or hardcode stats only in HTML."
+    instead: "Store validated counts in website/data/practice-stats.json, mirror them
+      in HTML, and assert JSON/HTML parity in the behavioral contract."
+  - risk: "Do not present private client logos or list ecosystem tools without public
+      manifests."
+    instead: "Use aggregate private-production language with a CSS shield icon, and
+      omit maid-runner-mcp, vscode-maid, and maid-lsp."
+  - risk: "Do not require JavaScript to render the practice section or its stats."
+    instead: "Keep semantic HTML and CSS-only layout so the section is readable with
+      JavaScript disabled."
+  - risk: "Do not regress the completed mockup redesign or brand asset contract."
+    instead: "Redeclare the complete static website contract and keep all existing
+      story, navigation, workflow, capability, quick-start, accessibility, fallback,
+      SEO, brand, and deployment checks."
+files:
+  scope:
+    - path: website/index.html
+      reason: "Homepage gains the MAID in practice section, nav anchor, and mirrored
+        practice stats while retaining the mockup-aligned page contract."
+    - path: website/styles.css
+      reason: "Practice-section layout, featured/secondary cards, workflow rail, stats,
+        shield icon, and focus rules are CSS-only and covered by source contract assertions."
+    - path: website/script.js
+      reason: "Existing progressive-enhancement navigation remains part of the superseded
+        website contract."
+    - path: website/404.html
+      reason: "Fallback brand surface remains part of the website contract."
+    - path: website/robots.txt
+      reason: "Crawler policy remains part of the canonical static deployment surface."
+    - path: website/sitemap.xml
+      reason: "Search-engine discovery metadata remains part of the canonical static
+        deployment surface."
+    - path: website/assets/logo.png
+      reason: "The supplied transparent PNG remains the authoritative production brand
+        asset."
+    - path: website/assets/social-card.png
+      reason: "The final social preview remains part of the website asset contract."
+    - path: website/data/practice-stats.json
+      reason: "Canonical evidence-backed stats for MAID Runner and the C# validator;
+        HTML mirrors these values without a runtime fetch."
+    - path: .github/workflows/deploy-website.yml
+      reason: "The existing Pages workflow remains part of the website deployment
+        contract."
+  delete:
+    - path: website/assets/logo.svg
+      reason: "Generated logo variant must not ship; the supplied PNG remains authoritative."
+    - path: website/assets/mockup-redesign.png
+      reason: "Disposable supplied visual reference is not a production website asset."
+    - path: website/assets/social-card-v2.png
+      reason: "Disposable supplied source artwork is represented by the production
+        social-card.png asset."
+  edit:
+    - path: tests/test_website_static_contract.py
+      artifacts:
+        - kind: test_function
+          name: test_homepage_matches_mockup_story_and_navigation
+          args: []
+          returns: None
+          source_scenario: "A visitor opens the MAID Runner homepage and scans the
+            product story."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The homepage exposes the mockup-aligned hero, primary actions,
+              navigation anchors including MAID in practice, validation panels, problem
+              cards, and all major page sections with semantic headings."
+        - kind: test_function
+          name: test_homepage_renders_workflow_capabilities_tools_and_quickstart
+          args: []
+          returns: None
+          source_scenario: "A visitor scrolls through the homepage to understand the
+            MAID loop and how to start."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The page renders seven plan-to-evidence steps, six capability
+              cards, tool compatibility labels, and the documented quick-start commands
+              without suggesting maid verify on an empty repository."
+        - kind: test_function
+          name: test_homepage_renders_maid_in_practice_section
+          args: []
+          returns: None
+          source_scenario: "A visitor looks for evidence that MAID is used on real
+            software before installing."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The MAID in practice section shows the featured MAID Runner
+              card with workflow diagram and JSON-mirrored stats, the C# validator
+              card, the private-production card, share CTA links, and omits ecosystem
+              tools without public manifests."
+        - kind: test_function
+          name: test_homepage_uses_final_local_brand_and_social_assets
+          args: []
+          returns: None
+          source_scenario: "A browser and social crawler load the homepage after the
+            supplied logo has replaced the generated mark."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Favicon, touch-icon, header/footer logo, and social metadata
+              point to local final assets; the supplied PNG has a valid signature;
+              every local HTML reference exists; and logo.svg plus all disposable
+              design inputs are absent and unreferenced."
+        - kind: test_function
+          name: test_mobile_navigation_covers_javascript_and_no_javascript_paths
+          args: []
+          returns: None
+          source_scenario: "A visitor uses the compact navigation on a small screen
+            with JavaScript enabled or disabled."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The script covers open/close, link dismissal, Escape dismissal,
+              and focus return while CSS keeps navigation visible and usable without
+              JavaScript."
+        - kind: test_function
+          name: test_dark_surface_accessibility_contract_is_declared
+          args: []
+          returns: None
+          source_scenario: "A visitor reads and navigates the dark mockup-aligned
+            page across desktop and mobile."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The stylesheet declares readable text tokens, visible focus
+              states on dark surfaces including the practice section, responsive rules,
+              and reduced-motion handling."
+        - kind: test_function
+          name: test_static_fallback_and_search_metadata_target_canonical_domain
+          args: []
+          returns: None
+          source_scenario: "A visitor follows a stale Pages URL or a crawler reads
+            deployment metadata."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "404.html provides a real recovery link and the supplied local
+              PNG brand asset, robots.txt points to the canonical sitemap, sitemap.xml
+              is valid XML, and all canonical locations target https://maidrunner.dev/."
+        - kind: test_function
+          name: test_pages_workflow_is_path_scoped_and_uploads_website_root
+          args: []
+          returns: None
+          source_scenario: "A website change lands on main or an operator manually
+            dispatches the Pages workflow."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.load
+          expected:
+            behavior: "The workflow triggers only for main website/workflow changes
+              or manual dispatch, uses least-privilege Pages permissions, uploads
+              website as the artifact root, and deploys through GitHub Pages with
+              immutable action SHAs."
+  read:
+    - README.md
+    - pyproject.toml
+validate:
+  - uv run python -m pytest -q tests/test_website_static_contract.py
+  - uv run maid validate 
+    manifests/website-maid-in-practice-section.manifest.yaml --mode behavioral 
+    --quiet
+  - uv run maid validate 
+    manifests/website-maid-in-practice-section.manifest.yaml --mode schema 
+    --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-03T23:41:11Z"
+  summary: "Added a MAID in practice website section with JSON-backed dogfooding stats for MAID Runner and the C# validator, an aggregate private-production card, and a GitHub showcase CTA, without listing ecosystem tools that lack public manifests."
+  rationale: "The landing page needed inspectable evidence that MAID is used on real software. Canonical counts live in website/data/practice-stats.json and are mirrored in static HTML so the section remains usable without JavaScript."
+  lessons:
+    - lesson_type: validation
+      summary: "Website social-proof stats should be stored in a committed JSON source and mirrored into HTML, with contract tests asserting parity, rather than inventing coverage percentages or relying on a runtime fetch."
+      tags:
+        - website
+        - static-site
+        - evidence
+      paths:
+        - website/data/practice-stats.json
+        - website/index.html
+        - tests/test_website_static_contract.py
+    - lesson_type: product-copy
+      summary: "Private production use should be described in aggregate language with a shield/lock treatment instead of fake client logos, and ecosystem tools without public manifests should stay off the featured list."
+      tags:
+        - website
+        - social-proof
+      paths:
+        - website/index.html
+        - website/styles.css
+  review_notes:
+    - source: implementation-review-subagent
+      severity: ready
+      summary: "Independent maid-implementation-reviewer returned Ready to merge with no blockers; advisories noted weak substring parity for single-digit C# manifest counts, Outcome capture, and planning_state still draft before this Outcome update."
+    - source: local-read-only-fallback
+      severity: ready
+      summary: "Local adversarial check confirmed changed files stay in scope, excluded ecosystem names are absent, brand/deployment contracts remain intact, focused website tests pass, and strict verify passed with only pre-existing E307 advisories."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Focused website contract tests passed: 8 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/website-maid-in-practice-section.manifest.yaml
+        - --mode
+        - behavioral
+      status: passed
+      summary: "Behavioral validation passed for website-maid-in-practice-section."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/website-maid-in-practice-section.manifest.yaml
+        - --mode
+        - schema
+      status: passed
+      summary: "Schema validation passed for website-maid-in-practice-section."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/website-maid-in-practice-section.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for website-maid-in-practice-section."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All active manifests validated: 484 manifests, 0 failures, 103 superseded."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All declared manifest validation commands passed: 218 commands, 0 failures."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed: 3698 passed, 5 skipped."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - .
+      status: passed
+      summary: "Ruff reported no issues."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - .
+      status: passed
+      summary: "Black reported all 472 files unchanged."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff verification passed all 9 stages with 0 blocking findings; remaining warnings are pre-existing E307 no-validator advisories."
