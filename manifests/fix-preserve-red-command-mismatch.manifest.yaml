@@ -1,0 +1,220 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reject preserved red evidence when plan-revise validate commands changed"
+type: fix
+created: "2026-08-03T13:04:53Z"
+metadata:
+  bug_reports: |
+    ~/.maid/bug-report/20260803-185955-maid-preserve-red-command-mismatch.md
+  tags:
+    - plan-lock
+    - red-evidence
+    - validation-trust
+    - fail-closed
+    - cli
+description: |
+  `maid plan revise --preserve-red-evidence` currently accepts a manifest whose
+  validate command strings changed, saves a new lock contract containing those
+  commands, and carries forward evidence captured from the old commands. The
+  command reports success even though immediate strict verification rejects the
+  saved lock with E707 RED_EVIDENCE_COMMAND_MISMATCH.
+
+  Fail before writing the revised lock when explicitly preserved evidence does
+  not match either the existing lock's validate-command snapshot or the current
+  manifest's validate commands. The refusal must explain that validate commands
+  changed and direct the caller to a fresh-evidence revision workflow. This
+  prevents an already E707-invalid lock from being laundered by changing the
+  manifest to match spliced evidence. Metadata-only revisions with identical
+  command multisets keep their existing successful behavior. E707 enforcement
+  remains unchanged. Malformed non-string command entries in either the locked
+  contract or evidence must fail closed with exit 2 rather than raising.
+
+  This is a behavioral tightening of the existing `cmd_plan_revise` contract,
+  with no public signature change, so it chain-merges with the prior plan-lock
+  manifests rather than superseding their public artifacts.
+temptations:
+  - risk: "Do not weaken or bypass E707 so the invalid revised lock verifies."
+    instead: "Reject the incompatible preserve request before `PlanLock.save` and
+      leave verifier enforcement unchanged."
+  - risk: "Do not compare only the prior and current manifest hashes or revision reason."
+    instead: "Compare the preserved evidence command multiset with the current validate
+      command multiset using the same command-string semantics as E707."
+  - risk: "Do not partially write or advance the lock before reporting the mismatch."
+    instead: "Detect the mismatch before saving and assert the existing lock bytes
+      remain unchanged."
+  - risk: "Do not validate preserved evidence only against the current manifest,
+      which could legitimize evidence already inconsistent with the locked contract."
+    instead: "Require the evidence command multiset to match both the existing lock
+      snapshot and the current manifest before revising."
+  - risk: "Do not pass untrusted lock or evidence command values directly into Counter."
+    instead: "Require every compared command entry to be a string and reject malformed
+      payloads before multiset construction."
+files:
+  edit:
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Rejects explicit preserved-evidence revisions whose evidence
+            command multiset differs from the current manifest validate commands,
+            reports an actionable fresh-evidence workflow, and leaves the lock unchanged;
+            matching metadata-only preservation remains supported."
+  create:
+    - path: tests/cli/test_plan_revise_preserve_command_mismatch.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock
+          description: "A locked red-evidence plan whose validate command is replaced
+            gets exit 2 and an actionable fresh-evidence diagnostic from explicit
+            preserve mode while the existing lock bytes and revision remain unchanged."
+        - kind: test_function
+          name:
+            test_preserve_red_evidence_accepts_reordered_validate_command_multiset
+          description: "Explicit preserve mode still succeeds and carries the original
+            evidence when the current validate commands are only reordered, matching
+            E707 multiset semantics rather than imposing list-order equality."
+        - kind: test_function
+          name:
+            test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock
+          description: "For both red and test-only-green evidence classes, explicit
+            preserve mode rejects an existing lock whose evidence commands mismatch
+            its locked contract even when the current manifest was changed to match
+            the spliced evidence; lock bytes and revision remain unchanged."
+        - kind: test_function
+          name:
+            test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock
+          description: "Malformed non-string command entries in either the locked
+            contract snapshot or red evidence produce exit 2 without an exception,
+            lock rewrite, or revision advance."
+  read:
+    - maid_runner/core/plan_lock.py
+    - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+    - manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+validate:
+  - uv run python -m pytest -q
+    tests/cli/test_plan_revise_preserve_command_mismatch.py
+outcome:
+  status: completed
+  completed_at: "2026-08-03T13:23:04Z"
+  summary: "Made explicit preserved-evidence plan revisions fail before saving when command evidence differs from either the locked contract or current manifest, including malformed payloads."
+  rationale: "The reported command-change mismatch was reproducible: plan revise reported success while creating an E707-invalid lock. Binding evidence to both historical and current command multisets prevents later verification failures and evidence laundering, while string validation keeps corrupted locks fail-closed and reordered equivalent commands remain supported."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "A command that rewrites tamper-evident state must enforce the verifier's trust boundary before saving: preserved evidence must match both the existing locked snapshot and the new contract, not only the destination state."
+      tags:
+        - plan-lock
+        - red-evidence
+        - fail-closed
+        - anti-gaming
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_revise_preserve_command_mismatch.py
+        - ~/.maid/bug-report/20260803-185955-maid-preserve-red-command-mismatch.md
+    - lesson_type: review-fix-loop
+      summary: "Independent review exposed an E707 laundering path and then malformed-payload crashes; sanctioned stash-backed plan revisions added genuine red coverage before each production fix, and convergence review confirmed both blockers closed."
+      tags:
+        - implementation-review
+        - plan-revision
+        - test-design
+        - validation-trust
+      paths:
+        - manifests/fix-preserve-red-command-mismatch.manifest.yaml
+        - .maid/plan-locks/fix-preserve-red-command-mismatch.lock.json
+        - tests/cli/test_plan_revise_preserve_command_mismatch.py
+  review_notes:
+    - source: maid-implementation-review-subagent-round-1
+      severity: P1
+      summary: "Needs changes: current-manifest-only comparison could launder an existing E707-invalid lock when the manifest was changed to match spliced red or test-only-green evidence."
+    - source: maid-implementation-review-subagent-round-2
+      severity: P2
+      summary: "Needs changes: malformed non-string commands in the locked contract or evidence reached Counter and raised TypeError instead of failing closed."
+    - source: maid-implementation-review-subagent-round-3
+      severity: ready
+      summary: "No blocking findings; confirmed dual historical/current binding, malformed-payload refusal, revision-4 lock integrity, and declared scope fidelity."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_plan_revise_preserve_command_mismatch.py
+        - tests/cli/test_plan_cmd_red_evidence.py
+        - tests/cli/test_plan_revise_test_only_green.py
+      status: passed
+      summary: "All 29 focused preserve, red-evidence, and test-only-green tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-preserve-red-command-mismatch.manifest.yaml
+        - --mode
+        - implementation
+        - --packet
+      status: passed
+      summary: "Implementation validation passed for the declared cmd_plan_revise contract and behavioral tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-preserve-red-command-mismatch.manifest.yaml
+      status: passed
+      summary: "The manifest-specific behavioral command passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --packet
+      status: passed
+      summary: "Repository validation passed: 381 active manifests passed, 0 failed, and 102 superseded manifests skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID tests passed all 218 commands, including the batched full pytest suite."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --plan-lock-scope
+        - task
+        - --since
+        - HEAD
+      status: passed
+      summary: "Task-scoped verify passed all 8 stages with 0 blocking findings; only existing E307 no-validator warnings remained."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_revise_preserve_command_mismatch.py
+      status: passed
+      summary: "Ruff passed for the changed Python files."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_revise_preserve_command_mismatch.py
+      status: passed
+      summary: "Black check passed for the changed Python files."
