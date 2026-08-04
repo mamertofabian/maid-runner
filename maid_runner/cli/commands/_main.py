@@ -397,6 +397,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         ),
     )
     p.add_argument(
+        "--fail-on-scope-only",
+        action="store_true",
+        help="Fail when file tracking finds production files declared only in files.scope",
+    )
+    p.add_argument(
         "--include-tests",
         action="store_true",
         help="Include changed test files in scope gates",
@@ -1308,7 +1313,7 @@ def _register_files_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--fail-on",
         action="append",
-        choices=["undeclared", "registered", "any"],
+        choices=["undeclared", "registered", "scope-only", "any"],
         default=None,
         help="Return 1 when the selected file-tracking status is present",
     )

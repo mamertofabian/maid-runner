@@ -578,11 +578,16 @@ def _verify_stage_details(stage) -> dict:
 
     file_tracking = getattr(stage, "_file_tracking", None)
     if file_tracking is not None:
-        return {
+        details = {
             "tracked": [e.path for e in file_tracking.tracked],
             "registered": [e.path for e in file_tracking.registered],
+            "scope_only": [e.path for e in file_tracking.scope_only],
             "undeclared": [e.path for e in file_tracking.undeclared],
         }
+        errors = getattr(stage, "_errors", ())
+        if errors:
+            details["errors"] = [_verify_error_to_dict(error) for error in errors]
+        return details
 
     tests = getattr(stage, "_tests", None)
     if tests is not None:
@@ -613,7 +618,7 @@ def _format_verify_stage_details(stage) -> str:
         return format_coherence_result(coherence)
 
     file_tracking = getattr(stage, "_file_tracking", None)
-    if file_tracking is not None and not stage.success:
+    if file_tracking is not None and (not stage.success or file_tracking.scope_only):
         return format_file_tracking(file_tracking)
 
     tests = getattr(stage, "_tests", None)
@@ -857,6 +862,7 @@ def format_file_tracking(
             {
                 "tracked": [e.path for e in report.tracked],
                 "registered": [e.path for e in report.registered],
+                "scope_only": [e.path for e in report.scope_only],
                 "undeclared": [e.path for e in report.undeclared],
             },
             indent=2,
@@ -875,6 +881,11 @@ def format_file_tracking(
         for e in report.registered:
             issues = ", ".join(e.issues) if e.issues else ""
             lines.append(f"  {e.path}" + (f" ({issues})" if issues else ""))
+
+    if report.scope_only:
+        lines.append(f"Scope-only ({len(report.scope_only)}):")
+        for e in report.scope_only:
+            lines.append(f"  {e.path}")
 
     if report.tracked:
         lines.append(f"Tracked ({len(report.tracked)}):")

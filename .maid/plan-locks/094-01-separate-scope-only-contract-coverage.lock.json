@@ -1,0 +1,964 @@
+{
+  "manifest_path": "manifests/094-01-separate-scope-only-contract-coverage.manifest.yaml",
+  "manifest_hash": "sha256-contract:1d054ff61dc5d61ed05ab08987f98c034ea2217cc0b89d3ab4f3a6b6f20df5dc",
+  "test_hashes": {
+    "tests/core/validation/test_scope_only_contract_coverage.py": "sha256-pyast:v2:72d8fa9940d0ea237b5f24ae65a7e83a87dc7563b42b7bd461b9dca5f059c9c1",
+    "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+    "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
+    "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+    "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:f624fa7b3e8e95f961d964e99916b80e2d823dc9b95891714510d0d870774bc1"
+  },
+  "created_at": "2026-08-04T00:25:57.293346+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:172cb0c328c6856ece8eb1d6d2ebeac6c0a3ff212c8c2452a0d2c1a7557c322b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_scope_only_contract_coverage.py": "sha256-pyast:v2:993da0562395cfcaeeadbf6e1327a3ce048ad8922fce5dc73704d99a53639306",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:f624fa7b3e8e95f961d964e99916b80e2d823dc9b95891714510d0d870774bc1"
+      },
+      "revised_at": "2026-08-04T00:26:10.480906+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/094-01-separate-scope-only-contract-coverage.manifest.yaml -> manifests/094-01-separate-scope-only-contract-coverage.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1d054ff61dc5d61ed05ab08987f98c034ea2217cc0b89d3ab4f3a6b6f20df5dc",
+      "prior_test_hashes": {
+        "tests/core/validation/test_scope_only_contract_coverage.py": "sha256-pyast:v2:993da0562395cfcaeeadbf6e1327a3ce048ad8922fce5dc73704d99a53639306",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:f624fa7b3e8e95f961d964e99916b80e2d823dc9b95891714510d0d870774bc1"
+      },
+      "revised_at": "2026-08-04T00:28:23.275761+00:00",
+      "reason": "Make the synthetic owner fixture non-stub so strict verify reaches the file-tracking stage without changing the approved scope-only behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-04T00:28:32.480254+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_scope_only_contract_coverage.py tests/core/test_manifest.py tests/core/test_types.py tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_verify_cmd.py tests/cli/test_validate_cmd.py tests/core/test_coverage_recommendation.py",
+        "exit_code": 1,
+        "output_tail": "    \n        exit_code = main([\"verify\", \"--no-changed-scope\"])\n    \n        assert exit_code == 0\n        output = capsys.readouterr().out\n        assert \"Verify: PASS\" in output\n        assert \"PASS file_tracking\" in output\n>       assert \"Scope-only\" in output\nE       AssertionError: assert 'Scope-only' in 'Verify: PASS\\n  Duration: 167ms\\n  PASS schema\\n  PASS behavioral\\n  PASS implementation\\n  PASS coherence\\n  PASS file_tracking\\n  PASS tests\\n'\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_verify_cmd.py:284: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_scope_only_contract_coverage.py::test_scope_only_inventory_is_not_artifact_tracked\nFAILED tests/core/validation/test_scope_only_contract_coverage.py::test_scope_only_cli_output_and_fail_gate_are_explicit\nFAILED tests/core/validation/test_scope_only_contract_coverage.py::test_verify_can_require_artifact_contracted_file_tracking\nFAILED tests/core/validation/test_scope_only_contract_coverage.py::test_risk_recommendation_treats_scope_only_as_contract_debt\nFAILED tests/core/validation/test_file_scope_gates.py::test_file_tracking_classifies_files_scope_as_scope_only_inventory\nFAILED tests/cli/test_files_cmd.py::TestCmdFiles::test_files_registered_gate_reports_scope_only_separately\nFAILED tests/cli/test_verify_cmd.py::test_verify_file_tracking_passes_for_scope_only_source_file\n7 failed, 316 passed in 8.93s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "README.md:attribute:documentation._files_scope_readme_documentation",
+      "README.md:attribute:documentation._files_scope_readme_documentation:kind=attribute",
+      "README.md:attribute:documentation._files_scope_readme_documentation:of=documentation",
+      "README.md:attribute:documentation._files_scope_readme_documentation:type=markdown",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:kind=attribute",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:of=documentation",
+      "docs/troubleshooting.md:attribute:documentation._files_scope_troubleshooting_documentation:type=markdown",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking:arg=hide_private:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking:arg=report:type=FileTrackingReport:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_file_tracking:returns=str",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/files.py:function:cmd_files",
+      "maid_runner/cli/commands/files.py:function:cmd_files:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/files.py:function:cmd_files:kind=function",
+      "maid_runner/cli/commands/files.py:function:cmd_files:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/cli/commands/verify.py:function:run_verify",
+      "maid_runner/cli/commands/verify.py:function:run_verify:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:run_verify:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:run_verify:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:run_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:run_verify:returns=VerificationResult",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.all_read_only_paths:returns=set[str]",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.all_tracked_paths:returns=set[str]",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:arg=path:type=str:default=None",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.file_mode_for:returns=Optional[FileMode]",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:arg=path:type=str:default=None",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.manifests_for_file:returns=list[Manifest]",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=deep:type=bool:default=False",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=limit:type=int:default=20",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=manifest_dir:type=str:default='manifests/'",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=respect_gitignore:type=bool:default=True",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:kind=function",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:returns=CoverageRecommendationReport",
+      "maid_runner/core/manifest.py:function:load_manifest",
+      "maid_runner/core/manifest.py:function:load_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:load_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:load_manifest:returns=Manifest",
+      "maid_runner/core/manifest.py:function:save_manifest",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:save_manifest:kind=function",
+      "maid_runner/core/manifest.py:function:save_manifest:returns=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:returns=list[ValidationError]",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:arg=schema_version:type=str:default='2'",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_schema:returns=list[str]",
+      "maid_runner/core/result.py:attribute:FileTrackingReport.scope_only",
+      "maid_runner/core/result.py:attribute:FileTrackingReport.scope_only:kind=attribute",
+      "maid_runner/core/result.py:attribute:FileTrackingReport.scope_only:of=FileTrackingReport",
+      "maid_runner/core/result.py:attribute:FileTrackingReport.scope_only:type=list[FileTrackingEntry]",
+      "maid_runner/core/result.py:attribute:FileTrackingStatus.SCOPE_ONLY",
+      "maid_runner/core/result.py:attribute:FileTrackingStatus.SCOPE_ONLY:kind=attribute",
+      "maid_runner/core/result.py:attribute:FileTrackingStatus.SCOPE_ONLY:of=FileTrackingStatus",
+      "maid_runner/core/result.py:attribute:FileTrackingStatus.SCOPE_ONLY:type=str",
+      "maid_runner/core/result.py:method:ValidationResult.to_dict",
+      "maid_runner/core/result.py:method:ValidationResult.to_dict:arg=self:type=ValidationResult:default=None",
+      "maid_runner/core/result.py:method:ValidationResult.to_dict:kind=method",
+      "maid_runner/core/result.py:method:ValidationResult.to_dict:of=ValidationResult",
+      "maid_runner/core/result.py:method:ValidationResult.to_dict:returns=dict",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:kind=attribute",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:of=FileMode",
+      "maid_runner/core/types.py:attribute:FileMode.SCOPE:type=str",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.all_referenced_paths:type=set[str]",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.all_writable_paths:type=set[str]",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:kind=attribute",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:of=Manifest",
+      "maid_runner/core/types.py:attribute:Manifest.files_scope:type=tuple[ScopeSpec, ...]",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:kind=attribute",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:of=ScopeSpec",
+      "maid_runner/core/types.py:attribute:ScopeSpec.path:type=str",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:kind=attribute",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:of=ScopeSpec",
+      "maid_runner/core/types.py:attribute:ScopeSpec.reason:type=str",
+      "maid_runner/core/types.py:class:ScopeSpec",
+      "maid_runner/core/types.py:class:ScopeSpec:kind=class",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:arg=self:type=ValidationEngine:default=None",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.run_file_tracking:returns=FileTrackingReport",
+      "maid_runner/core/worktree.py:function:validate_changed_scope",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=base_ref:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:arg=since:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:kind=function",
+      "maid_runner/core/worktree.py:function:validate_changed_scope:returns=list[ValidationError]",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:kind=function",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:returns=list[ValidationError]",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:of=MAID Manifest v2 schema",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:MAID Manifest v2 schema.ScopeSpec:type=object",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:kind=attribute",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:of=files",
+      "maid_runner/schemas/manifest.v2.schema.json:attribute:files.scope:type=array of ScopeSpec",
+      "tests/cli/test_files_cmd.py:test_files_registered_gate_reports_scope_only_separately",
+      "tests/cli/test_files_cmd.py:test_files_registered_gate_reports_scope_only_separately:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests",
+      "tests/cli/test_validate_cmd.py:test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_file_tracking_passes_for_scope_only_source_file",
+      "tests/cli/test_verify_cmd.py:test_verify_file_tracking_passes_for_scope_only_source_file:kind=test_function",
+      "tests/core/test_manifest.py:test_load_manifest_parses_scope_only_files",
+      "tests/core/test_manifest.py:test_load_manifest_parses_scope_only_files:kind=test_function",
+      "tests/core/test_manifest.py:test_save_manifest_preserves_scope_only_files",
+      "tests/core/test_manifest.py:test_save_manifest_preserves_scope_only_files:kind=test_function",
+      "tests/core/test_manifest.py:test_schema_accepts_scope_only_files_without_artifacts",
+      "tests/core/test_manifest.py:test_schema_accepts_scope_only_files_without_artifacts:kind=test_function",
+      "tests/core/test_manifest.py:test_scope_only_files_are_documented",
+      "tests/core/test_manifest.py:test_scope_only_files_are_documented:kind=test_function",
+      "tests/core/test_manifest.py:test_validate_manifest_paths_checks_scope_only_files",
+      "tests/core/test_manifest.py:test_validate_manifest_paths_checks_scope_only_files:kind=test_function",
+      "tests/core/test_types.py:test_file_mode_includes_scope_value",
+      "tests/core/test_types.py:test_file_mode_includes_scope_value:kind=test_function",
+      "tests/core/test_types.py:test_scope_only_paths_are_writable_referenced_but_not_file_specs",
+      "tests/core/test_types.py:test_scope_only_paths_are_writable_referenced_but_not_file_specs:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_changed_scope_allows_changed_svelte_file_in_files_scope",
+      "tests/core/validation/test_file_scope_gates.py:test_changed_scope_allows_changed_svelte_file_in_files_scope:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_file_tracking_classifies_files_scope_as_scope_only_inventory",
+      "tests/core/validation/test_file_scope_gates.py:test_file_tracking_classifies_files_scope_as_scope_only_inventory:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_manifest_chain_treats_scope_only_file_as_writable_not_read_only",
+      "tests/core/validation/test_file_scope_gates.py:test_manifest_chain_treats_scope_only_file_as_writable_not_read_only:kind=test_function",
+      "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope",
+      "tests/core/validation/test_file_scope_gates.py:test_worktree_scope_allows_changed_svelte_file_in_files_scope:kind=test_function",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_risk_recommendation_treats_scope_only_as_contract_debt",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_risk_recommendation_treats_scope_only_as_contract_debt:kind=test_function",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_scope_only_cli_output_and_fail_gate_are_explicit",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_scope_only_cli_output_and_fail_gate_are_explicit:kind=test_function",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_scope_only_inventory_is_not_artifact_tracked",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_scope_only_inventory_is_not_artifact_tracked:kind=test_function",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_verify_can_require_artifact_contracted_file_tracking",
+      "tests/core/validation/test_scope_only_contract_coverage.py:test_verify_can_require_artifact_contracted_file_tracking:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_scope_only_contract_coverage.py"
+      ],
+      "edit": [
+        "README.md",
+        "docs/troubleshooting.md",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/files.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/worktree.py",
+        "maid_runner/schemas/manifest.v2.schema.json",
+        "tests/cli/test_files_cmd.py",
+        "tests/cli/test_validate_cmd.py",
+        "tests/cli/test_verify_cmd.py",
+        "tests/core/test_manifest.py",
+        "tests/core/test_types.py",
+        "tests/core/validation/test_file_scope_gates.py"
+      ],
+      "read": [
+        "maid_runner/core/_validate_all.py",
+        "maid_runner/core/failure_packet.py",
+        "maid_runner/core/sarif.py",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "manifests/add-scope-only-file-section.manifest.yaml",
+        "manifests/fix-scope-only-file-tracking.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_file_tracking.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_scope_only_contract_coverage.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_inventory_is_not_artifact_tracked",
+              "source_scenario": "A supported production source file is declared only through files.scope.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidationEngine"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The report, ValidationResult serializer, and formatter expose the path only in scope_only, never tracked, registered, or undeclared."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_cli_output_and_fail_gate_are_explicit",
+              "source_scenario": "maid files inspects a project whose only non-artifact production declaration is files.scope.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_files"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "JSON contains a separate scope_only bucket, --fail-on scope-only exits 1, --fail-on any exits 1, and the parser accepts the new choice."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_can_require_artifact_contracted_file_tracking",
+              "source_scenario": "A valid tested manifest includes one legitimate scope-only production file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_verify"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Default verification passes and reports scope_only, while the library and CLI opt-in gate fail at file_tracking with structured E402 evidence and without reclassifying the file as registered."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_risk_recommendation_treats_scope_only_as_contract_debt",
+              "source_scenario": "risk-v1 ranks a supported production file declared only through files.scope.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "recommend_coverage"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file remains eligible with WRITABLE_NO_ARTIFACTS status and a complete-behavioral-contract recommendation."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/schemas/manifest.v2.schema.json",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "scope",
+              "description": "Optional writable scope-only declarations remain part of manifest schema v2.",
+              "of": "files",
+              "type": "array of ScopeSpec"
+            },
+            {
+              "kind": "attribute",
+              "name": "ScopeSpec",
+              "description": "Schema definition requiring path and reason for scope-only writable files.",
+              "of": "MAID Manifest v2 schema",
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/types.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ScopeSpec",
+              "description": "Scope-only writable file declaration with a path and rationale."
+            },
+            {
+              "kind": "attribute",
+              "name": "path",
+              "of": "ScopeSpec",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "of": "ScopeSpec",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "SCOPE",
+              "of": "FileMode",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "files_scope",
+              "of": "Manifest",
+              "type": "tuple[ScopeSpec, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "all_writable_paths",
+              "of": "Manifest",
+              "type": "set[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "all_referenced_paths",
+              "of": "Manifest",
+              "type": "set[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_schema",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "schema_version",
+                  "type": "str",
+                  "default": "'2'"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "validate_manifest_paths",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "load_manifest",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "Manifest"
+            },
+            {
+              "kind": "function",
+              "name": "save_manifest",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "manifests_for_file",
+              "of": "ManifestChain",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[Manifest]"
+            },
+            {
+              "kind": "method",
+              "name": "file_mode_for",
+              "of": "ManifestChain",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "Optional[FileMode]"
+            },
+            {
+              "kind": "method",
+              "name": "all_tracked_paths",
+              "of": "ManifestChain",
+              "returns": "set[str]"
+            },
+            {
+              "kind": "method",
+              "name": "all_read_only_paths",
+              "of": "ManifestChain",
+              "returns": "set[str]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/worktree.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_worktree_scope",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "validate_changed_scope",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "since",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/validate.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "run_file_tracking",
+              "description": "Reports files.scope through scope_only while preserving writable manifest-chain behavior.",
+              "of": "ValidationEngine",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "ValidationEngine"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                }
+              ],
+              "returns": "FileTrackingReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "SCOPE_ONLY",
+              "description": "File is writable through files.scope but has no artifact contract.",
+              "of": "FileTrackingStatus",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "scope_only",
+              "description": "Entries authorized through files.scope and intentionally separate from tracked artifacts.",
+              "of": "FileTrackingReport",
+              "type": "list[FileTrackingEntry]"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "description": "Serializes scope_only separately inside file_tracking results.",
+              "of": "ValidationResult",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "ValidationResult"
+                }
+              ],
+              "returns": "dict"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_files",
+              "description": "Supports explicit scope-only failure and includes scope-only in --fail-on any.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_file_tracking",
+              "description": "Renders scope-only paths separately in direct and verify text/JSON output.",
+              "args": [
+                {
+                  "name": "report",
+                  "type": "FileTrackingReport"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "hide_private",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Registers files --fail-on scope-only and verify --fail-on-scope-only.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Passes the explicit scope-only contract gate into verification.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "run_verify",
+              "description": "Library verification can opt into failing when file tracking contains scope-only production files.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/coverage_recommendation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "recommend_coverage",
+              "description": "Ranks scope-only production files as writable contract debt instead of excluding them as fully tracked.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "limit",
+                  "type": "int",
+                  "default": "20"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "deep",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "CoverageRecommendationReport"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_files_scope_readme_documentation",
+              "description": "Documents files.scope as write authorization reported separately from artifact-contracted tracking.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_files_scope_troubleshooting_documentation",
+              "description": "Explains legitimate scope-only use and explicit contract-coverage gates.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_manifest.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_schema_accepts_scope_only_files_without_artifacts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_load_manifest_parses_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_save_manifest_preserves_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_manifest_paths_checks_scope_only_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_files_are_documented"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_types.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_paths_are_writable_referenced_but_not_file_specs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_file_mode_includes_scope_value"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_file_scope_gates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_worktree_scope_allows_changed_svelte_file_in_files_scope"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_chain_treats_scope_only_file_as_writable_not_read_only"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_scope_allows_changed_svelte_file_in_files_scope"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_file_tracking_classifies_files_scope_as_scope_only_inventory",
+              "source_scenario": "A Svelte route is writable through files.scope but has no artifact contract.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ValidationEngine"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The route appears in FileTrackingReport.scope_only and not in tracked or registered."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_files_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_files_registered_gate_reports_scope_only_separately",
+              "source_scenario": "maid files sees a source file declared only through files.scope.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The registered gate passes, scope-only is visibly separate, and --fail-on any treats it as contract debt."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_file_tracking_passes_for_scope_only_source_file",
+              "source_scenario": "Default verify sees legitimate scope-only route wiring.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Default file tracking passes while rendering the route in the scope-only bucket."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_validate_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-scope-only-file-section.manifest.yaml",
+        "manifests/fix-scope-only-file-tracking.manifest.yaml",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "maid_runner/core/_validate_all.py",
+        "maid_runner/core/failure_packet.py",
+        "maid_runner/core/sarif.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_file_tracking.py",
+          "reason": "Private inventory classifier implements the public ValidationEngine.run_file_tracking behavior and is itself a legitimate no-public-artifact scope file."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_files_cmd.py",
+      "tests/cli/test_validate_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/core/test_coverage_recommendation.py",
+      "tests/core/test_manifest.py",
+      "tests/core/test_types.py",
+      "tests/core/validation/test_file_scope_gates.py",
+      "tests/core/validation/test_scope_only_contract_coverage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_scope_only_contract_coverage.py tests/core/test_manifest.py tests/core/test_types.py tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py tests/cli/test_verify_cmd.py tests/cli/test_validate_cmd.py tests/core/test_coverage_recommendation.py"
+    ]
+  }
+}

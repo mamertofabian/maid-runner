@@ -139,7 +139,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
 | `maid evaluate run <manifest>` | Report deterministic after-action run evidence; see `docs/run-evaluation.md` | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
-| `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
+| `maid files` | Show file tracking status | `--manifest-dir`, `--fail-on undeclared\|registered\|scope-only\|any`, `--quiet` |
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
 | `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
 | `maid schema` | Display manifest JSON Schema | |
@@ -366,7 +366,16 @@ When validating with manifest chains (default), MAID Runner reports file complia
 
 - **UNDECLARED**: Files not in any manifest (no audit trail)
 - **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
+- **SCOPE_ONLY**: Files writable through `files.scope` without an artifact contract
 - **TRACKED**: Files with full MAID compliance
+
+`files.scope` is write authorization, not proof of artifact coverage. Scope-only
+files remain valid for route wiring, configuration, generated derivatives, and
+other implementation surfaces without stable public artifacts, but they appear
+in their own inventory bucket. Use `maid files --fail-on scope-only` or
+`maid verify --fail-on-scope-only` when a repository or CI boundary requires
+every production file to have an artifact contract. `maid files --fail-on any`
+also includes scope-only files.
 
 During normal verification, repository-wide file tracking remains the default
 for `maid verify`. During incremental brownfield adoption, scope only the

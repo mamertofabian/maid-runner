@@ -54,9 +54,11 @@ def cmd_manifests(args: argparse.Namespace) -> int:
 def _has_requested_tracking_status(report, fail_on: list[str] | None) -> bool:
     statuses = set(fail_on or [])
     if "any" in statuses:
-        statuses.update({"undeclared", "registered"})
+        statuses.update({"undeclared", "registered", "scope-only"})
     statuses.discard("any")
 
-    return ("undeclared" in statuses and bool(report.undeclared)) or (
-        "registered" in statuses and bool(report.registered)
+    return (
+        ("undeclared" in statuses and bool(report.undeclared))
+        or ("registered" in statuses and bool(report.registered))
+        or ("scope-only" in statuses and bool(report.scope_only))
     )

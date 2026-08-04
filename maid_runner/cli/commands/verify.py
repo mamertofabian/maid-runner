@@ -66,6 +66,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
             file_tracking_scope=getattr(args, "file_tracking_scope", "repository"),
+            fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
@@ -172,6 +173,7 @@ def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:
 def run_verify(
     manifest_dir: str,
     project_root: Union[str, Path],
+    fail_on_scope_only: bool = False,
 ) -> VerificationResult:
     return _run_verify(
         manifest_dir=manifest_dir,
@@ -179,6 +181,7 @@ def run_verify(
         check_assertions=True,
         check_stubs=True,
         fail_on_warnings=True,
+        fail_on_scope_only=fail_on_scope_only,
     )
 
 
@@ -197,6 +200,7 @@ def _run_verify(
     since: str | None = None,
     base_ref: str | None = None,
     file_tracking_scope: str = "repository",
+    fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -228,6 +232,7 @@ def _run_verify(
             since=since,
             base_ref=base_ref,
             file_tracking_scope=file_tracking_scope,
+            fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
             require_plan_lock=require_plan_lock,
@@ -257,6 +262,7 @@ def _run_verify_cached(
     since: str | None = None,
     base_ref: str | None = None,
     file_tracking_scope: str = "repository",
+    fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -362,6 +368,7 @@ def _run_verify_cached(
                 manifest_dir,
                 engine,
                 scope=file_tracking_scope,
+                fail_on_scope_only=fail_on_scope_only,
                 since=since,
                 base_ref=base_ref,
             )
@@ -493,6 +500,7 @@ def _file_tracking_stage(
     engine,
     *,
     scope: str = "repository",
+    fail_on_scope_only: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
 ) -> VerificationStageResult:
@@ -528,11 +536,22 @@ def _file_tracking_stage(
                     _errors=(error,),
                 )
             report = filter_file_tracking_report(report, task_paths)
+        scope_error = None
+        if fail_on_scope_only and report.scope_only:
+            paths = ", ".join(entry.path for entry in report.scope_only)
+            scope_error = ValidationError(
+                code=ErrorCode.COHERENCE_BOUNDARY_VIOLATION,
+                message=f"File tracking gate failed (scope-only: {paths})",
+                severity=Severity.ERROR,
+            )
         return VerificationStageResult(
             name="file_tracking",
-            success=not report.undeclared and not report.registered,
+            success=(
+                not report.undeclared and not report.registered and scope_error is None
+            ),
             _duration_ms=_elapsed_ms(started),
             _file_tracking=report,
+            _errors=(scope_error,) if scope_error is not None else (),
         )
     except Exception as exc:
         return _error_stage("file_tracking", started, exc)

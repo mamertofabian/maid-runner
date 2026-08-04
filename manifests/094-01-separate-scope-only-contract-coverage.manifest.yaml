@@ -1,0 +1,483 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Separate files.scope write authorization from artifact-contracted file tracking"
+type: fix
+created: "2026-08-04T00:26:10Z"
+supersedes:
+  - add-scope-only-file-section
+  - fix-scope-only-file-tracking
+metadata:
+  readiness: implementation-ready
+  tags:
+    - files-scope
+    - file-tracking
+    - anti-gaming
+    - contract-coverage
+    - brownfield
+  priority: critical
+description: |
+  Evolve the existing scope-only file-tracking contract after cross-repository
+  audit evidence showed that `files.scope` can be used to make public protocol,
+  store, or generated-code changes appear fully tracked without declaring any
+  artifacts. The current implementation intentionally folds `FileMode.SCOPE`
+  into `FileTrackingStatus.TRACKED`; this manifest supersedes that behavior.
+
+  `files.scope` remains writable implementation scope and remains acceptable to
+  ordinary verification for legitimate route wiring, private implementation,
+  configuration, and generated derivatives. File tracking instead reports it
+  through a distinct `scope_only` bucket so callers can distinguish write
+  authorization from artifact coverage. `maid files --fail-on scope-only`,
+  `maid files --fail-on any`, and `maid verify --fail-on-scope-only` provide
+  explicit fail-closed adoption gates. Default `maid verify` remains compatible
+  with intentionally scope-only tasks but exposes the separate bucket in text
+  and JSON details. When the strict verify gate is selected, its file-tracking
+  stage carries the existing structured E402 boundary diagnostic so JSON,
+  failure-packet, and SARIF serializers do not report an unexplained failure.
+
+  The risk-v1 coverage recommender must treat scope-only production files as
+  `WRITABLE_NO_ARTIFACTS`, not fully tracked, so they remain visible as contract
+  debt. This is a status-model and policy change, not a language-specific
+  control-flow analyzer. A later bounded hardening slice may add collector-backed
+  advisory details for scope-only files with public artifacts; it is out of scope
+  here because public Svelte components can also be legitimate wiring targets.
+
+  Expected red phase: focused tests fail because scope-only files currently
+  appear in `tracked`, the CLI rejects the new fail options, verify has no strict
+  scope-only gate, and risk-v1 excludes scope-only files as fully tracked.
+temptations:
+  - risk: "Do not remove files.scope or make every scope-only route/configuration
+      file fail ordinary verify."
+    instead: "Preserve write authorization and default compatibility while separating
+      the reporting bucket and adding explicit strict gates."
+  - risk: "Do not keep scope-only entries in tracked and add only documentation warning
+      against misuse."
+    instead: "Change the machine-readable status, text/JSON output, CLI exit behavior,
+      and coverage recommendation classification."
+  - risk: "Do not guess from path names or build a broad AST rule to decide whether
+      a scope-only edit is legitimate."
+    instead: "Expose contract debt deterministically now and reserve collector-backed
+      advisory evidence for a separate bounded contract."
+  - risk: "Do not silently change the historical fix-scope-only-file-tracking promise
+      through chain merging."
+    instead: "Supersede that manifest explicitly and replace its tests with the complete
+      new status and gate behavior."
+files:
+  edit:
+    - path: maid_runner/schemas/manifest.v2.schema.json
+      artifacts:
+        - kind: attribute
+          name: scope
+          of: files
+          type: array of ScopeSpec
+          description: "Optional writable scope-only declarations remain part of manifest
+            schema v2."
+        - kind: attribute
+          name: ScopeSpec
+          of: MAID Manifest v2 schema
+          type: object
+          description: "Schema definition requiring path and reason for scope-only
+            writable files."
+    - path: maid_runner/core/types.py
+      artifacts:
+        - kind: class
+          name: ScopeSpec
+          description: "Scope-only writable file declaration with a path and rationale."
+        - kind: attribute
+          name: path
+          of: ScopeSpec
+          type: str
+        - kind: attribute
+          name: reason
+          of: ScopeSpec
+          type: str
+        - kind: attribute
+          name: SCOPE
+          of: FileMode
+          type: str
+        - kind: attribute
+          name: files_scope
+          of: Manifest
+          type: tuple[ScopeSpec, ...]
+        - kind: attribute
+          name: all_writable_paths
+          of: Manifest
+          type: set[str]
+        - kind: attribute
+          name: all_referenced_paths
+          of: Manifest
+          type: set[str]
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_schema
+          args:
+            - {name: data, type: dict}
+            - {name: schema_version, type: str, default: "'2'"}
+          returns: list[str]
+        - kind: function
+          name: validate_manifest_paths
+          args:
+            - {name: manifest, type: Manifest}
+            - {name: project_root, type: "Union[str, Path]"}
+          returns: list[ValidationError]
+        - kind: function
+          name: load_manifest
+          args:
+            - {name: path, type: "Union[str, Path]"}
+          returns: Manifest
+        - kind: function
+          name: save_manifest
+          args:
+            - {name: manifest, type: Manifest}
+            - {name: path, type: "Union[str, Path]"}
+          returns: None
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: manifests_for_file
+          of: ManifestChain
+          args:
+            - {name: path, type: str}
+          returns: list[Manifest]
+        - kind: method
+          name: file_mode_for
+          of: ManifestChain
+          args:
+            - {name: path, type: str}
+          returns: Optional[FileMode]
+        - kind: method
+          name: all_tracked_paths
+          of: ManifestChain
+          args: []
+          returns: set[str]
+        - kind: method
+          name: all_read_only_paths
+          of: ManifestChain
+          args: []
+          returns: set[str]
+    - path: maid_runner/core/worktree.py
+      artifacts:
+        - kind: function
+          name: validate_worktree_scope
+          args:
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: chain, type: ManifestChain}
+            - {name: include_tests, type: bool, default: "False"}
+          returns: list[ValidationError]
+        - kind: function
+          name: validate_changed_scope
+          args:
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: chain, type: ManifestChain}
+            - {name: since, type: "Optional[str]", default: "None"}
+            - {name: base_ref, type: "Optional[str]", default: "None"}
+            - {name: include_tests, type: bool, default: "False"}
+          returns: list[ValidationError]
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: run_file_tracking
+          of: ValidationEngine
+          args:
+            - {name: self, type: ValidationEngine}
+            - {name: chain, type: ManifestChain}
+          returns: FileTrackingReport
+          description: "Reports files.scope through scope_only while preserving writable
+            manifest-chain behavior."
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: SCOPE_ONLY
+          of: FileTrackingStatus
+          type: str
+          description: "File is writable through files.scope but has no artifact contract."
+        - kind: attribute
+          name: scope_only
+          of: FileTrackingReport
+          type: list[FileTrackingEntry]
+          description: "Entries authorized through files.scope and intentionally separate
+            from tracked artifacts."
+        - kind: method
+          name: to_dict
+          of: ValidationResult
+          args:
+            - {name: self, type: ValidationResult}
+          returns: dict
+          description: "Serializes scope_only separately inside file_tracking results."
+    - path: maid_runner/cli/commands/files.py
+      artifacts:
+        - kind: function
+          name: cmd_files
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Supports explicit scope-only failure and includes scope-only
+            in --fail-on any."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_file_tracking
+          args:
+            - {name: report, type: FileTrackingReport}
+            - {name: json_mode, type: bool, default: "False"}
+            - {name: hide_private, type: bool, default: "False"}
+          returns: str
+          description: "Renders scope-only paths separately in direct and verify text/JSON
+            output."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Registers files --fail-on scope-only and verify --fail-on-scope-only."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Passes the explicit scope-only contract gate into verification."
+        - kind: function
+          name: run_verify
+          args:
+            - {name: manifest_dir, type: str}
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: fail_on_scope_only, type: bool, default: "False"}
+          returns: VerificationResult
+          description: "Library verification can opt into failing when file tracking
+            contains scope-only production files."
+    - path: maid_runner/core/coverage_recommendation.py
+      artifacts:
+        - kind: function
+          name: recommend_coverage
+          args:
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: manifest_dir, type: str, default: "'manifests/'"}
+            - {name: limit, type: int, default: "20"}
+            - {name: exclude_patterns, type: "set[str] | None", default: "None"}
+            - {name: respect_gitignore, type: bool, default: "True"}
+            - {name: deep, type: bool, default: "False"}
+          returns: CoverageRecommendationReport
+          description: "Ranks scope-only production files as writable contract debt
+            instead of excluding them as fully tracked."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _files_scope_readme_documentation
+          of: documentation
+          type: markdown
+          description: "Documents files.scope as write authorization reported separately
+            from artifact-contracted tracking."
+    - path: docs/troubleshooting.md
+      artifacts:
+        - kind: attribute
+          name: _files_scope_troubleshooting_documentation
+          of: documentation
+          type: markdown
+          description: "Explains legitimate scope-only use and explicit contract-coverage
+            gates."
+    - path: tests/core/test_manifest.py
+      artifacts:
+        - {kind: test_function, name:
+            test_schema_accepts_scope_only_files_without_artifacts}
+        - {kind: test_function, name: test_load_manifest_parses_scope_only_files}
+        - {kind: test_function, name:
+            test_save_manifest_preserves_scope_only_files}
+        - {kind: test_function, name:
+            test_validate_manifest_paths_checks_scope_only_files}
+        - {kind: test_function, name: test_scope_only_files_are_documented}
+    - path: tests/core/test_types.py
+      artifacts:
+        - {kind: test_function, name:
+            test_scope_only_paths_are_writable_referenced_but_not_file_specs}
+        - {kind: test_function, name: test_file_mode_includes_scope_value}
+    - path: tests/core/validation/test_file_scope_gates.py
+      artifacts:
+        - {kind: test_function, name:
+            test_worktree_scope_allows_changed_svelte_file_in_files_scope}
+        - {kind: test_function, name:
+            test_manifest_chain_treats_scope_only_file_as_writable_not_read_only}
+        - {kind: test_function, name:
+            test_changed_scope_allows_changed_svelte_file_in_files_scope}
+        - kind: test_function
+          name:
+            test_file_tracking_classifies_files_scope_as_scope_only_inventory
+          source_scenario: "A Svelte route is writable through files.scope but has
+            no artifact contract."
+          actions:
+            - type: api_call
+              subject: {export: ValidationEngine}
+          expected:
+            behavior: "The route appears in FileTrackingReport.scope_only and not
+              in tracked or registered."
+    - path: tests/cli/test_files_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_files_registered_gate_reports_scope_only_separately
+          source_scenario: "maid files sees a source file declared only through files.scope."
+          actions:
+            - type: api_call
+              subject: {function: main}
+          expected:
+            behavior: "The registered gate passes, scope-only is visibly separate,
+              and --fail-on any treats it as contract debt."
+    - path: tests/cli/test_verify_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_file_tracking_passes_for_scope_only_source_file
+          source_scenario: "Default verify sees legitimate scope-only route wiring."
+          actions:
+            - type: api_call
+              subject: {function: main}
+          expected:
+            behavior: "Default file tracking passes while rendering the route in the
+              scope-only bucket."
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - {kind: test_function, name:
+            test_validate_worktree_scope_allows_scope_only_svelte_route_with_include_tests}
+  scope:
+    - path: maid_runner/core/_file_tracking.py
+      reason: "Private inventory classifier implements the public ValidationEngine.run_file_tracking
+        behavior and is itself a legitimate no-public-artifact scope file."
+  create:
+    - path: tests/core/validation/test_scope_only_contract_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_scope_only_inventory_is_not_artifact_tracked
+          source_scenario: "A supported production source file is declared only through
+            files.scope."
+          actions:
+            - type: api_call
+              subject: {export: ValidationEngine}
+          expected:
+            behavior: "The report, ValidationResult serializer, and formatter expose
+              the path only in scope_only, never tracked, registered, or undeclared."
+        - kind: test_function
+          name: test_scope_only_cli_output_and_fail_gate_are_explicit
+          source_scenario: "maid files inspects a project whose only non-artifact
+            production declaration is files.scope."
+          actions:
+            - type: api_call
+              subject: {function: cmd_files}
+          expected:
+            behavior: "JSON contains a separate scope_only bucket, --fail-on scope-only
+              exits 1, --fail-on any exits 1, and the parser accepts the new choice."
+        - kind: test_function
+          name: test_verify_can_require_artifact_contracted_file_tracking
+          source_scenario: "A valid tested manifest includes one legitimate scope-only
+            production file."
+          actions:
+            - type: api_call
+              subject: {function: run_verify}
+          expected:
+            behavior: "Default verification passes and reports scope_only, while the
+              library and CLI opt-in gate fail at file_tracking with structured E402
+              evidence and without reclassifying the file as registered."
+        - kind: test_function
+          name: test_risk_recommendation_treats_scope_only_as_contract_debt
+          source_scenario: "risk-v1 ranks a supported production file declared only
+            through files.scope."
+          actions:
+            - type: api_call
+              subject: {function: recommend_coverage}
+          expected:
+            behavior: "The file remains eligible with WRITABLE_NO_ARTIFACTS status
+              and a complete-behavioral-contract recommendation."
+  read:
+    - manifests/add-scope-only-file-section.manifest.yaml
+    - manifests/fix-scope-only-file-tracking.manifest.yaml
+    - manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml
+    - maid_runner/core/_validate_all.py
+    - maid_runner/core/failure_packet.py
+    - maid_runner/core/sarif.py
+validate:
+  - uv run python -m pytest -q
+    tests/core/validation/test_scope_only_contract_coverage.py
+    tests/core/test_manifest.py tests/core/test_types.py
+    tests/core/validation/test_file_scope_gates.py tests/cli/test_files_cmd.py
+    tests/cli/test_verify_cmd.py tests/cli/test_validate_cmd.py
+    tests/core/test_coverage_recommendation.py
+outcome:
+  status: completed
+  completed_at: "2026-08-04T08:35:17+08:00"
+  summary: >-
+    File tracking now distinguishes files.scope write authorization from
+    artifact-contracted tracking through a separate scope_only status. Direct
+    inventory and opt-in verify gates can fail on that debt, while default
+    verification preserves legitimate scope-only wiring and risk-v1 continues
+    to recommend artifact contracts for those production files.
+  rationale: >-
+    The implementation preserves files.scope as a writable manifest primitive
+    but removes its unconditional TRACKED classification. Text and JSON output,
+    CLI exit behavior, strict verification diagnostics, and coverage
+    recommendations now carry the distinction consistently without path-name or
+    language-specific heuristics.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-validate-hardening
+      - maid-evolver
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-boundary
+      summary: >-
+        Writable scope and artifact coverage are different claims. Keeping
+        files.scope valid while reporting scope_only separately closes the
+        misleading tracked-state gap without breaking route/configuration use.
+      tags: [files-scope, file-tracking, anti-gaming]
+      paths:
+        - maid_runner/core/_file_tracking.py
+        - maid_runner/core/result.py
+        - maid_runner/cli/commands/files.py
+    - lesson_type: test-design
+      summary: >-
+        Strict verify fixtures must pass earlier stub and warning gates before
+        they can prove later file-tracking behavior; the stash-backed revision
+        corrected a constant-return fixture while preserving honest red evidence.
+      tags: [strict-verify, red-evidence, fixture-design]
+      paths:
+        - tests/core/validation/test_scope_only_contract_coverage.py
+        - .maid/plan-locks/094-01-separate-scope-only-contract-coverage.lock.json
+  review_notes:
+    - source: independent-review-round-1
+      severity: ready
+      summary: >-
+        Found no blocking or advisory defects. Runtime checks confirmed task
+        filtering precedes the strict scope-only gate and failure-packet/SARIF
+        output each contains one structured E402; dedicated combination tests
+        remain a residual test-depth risk only.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_scope_only_contract_coverage.py, tests/core/test_manifest.py, tests/core/test_types.py, tests/core/validation/test_file_scope_gates.py, tests/cli/test_files_cmd.py, tests/cli/test_verify_cmd.py, tests/cli/test_validate_cmd.py, tests/core/test_coverage_recommendation.py]
+      status: passed
+      summary: All 323 focused and adjacent behavioral tests passed.
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: Full suite passed with 3702 tests and 5 expected skips.
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: Repository Ruff gate passed.
+    - command: [uv, run, black, --check, maid_runner, tests]
+      status: passed
+      summary: All 464 checked Python files were unchanged.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 380 active manifests passed; 105 superseded manifests skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 218 active manifest validation commands passed.
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD, --packet]
+      status: passed
+      summary: Final strict handoff verification passed with no blocking findings.

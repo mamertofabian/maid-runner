@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml",
-  "manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+  "manifest_hash": "sha256-contract:63ce7334e67b98fa592eea006aa52d2dc5b25d40569a7ed11237244d7b0b74ba",
   "test_hashes": {
-    "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
-    "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836",
-    "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d"
+    "tests/core/test_manifest_event_log.py": "sha256-pyast:v2:0fbf2d9d0c67b4c61697225fd132979c7da8d70e4d7900ee42a17dfab4235238",
+    "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec"
   },
   "created_at": "2026-06-17T03:00:03.061118+00:00",
-  "revision": 23,
+  "revision": 24,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:140eed0b7817ce7f44c1a7a42bf7945ac82a75dcf8adcdfbb92ec7eb2f2db9d2",
@@ -17,7 +17,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
       },
       "revised_at": "2026-06-17T03:00:18.976578+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/072-01-quiet-legacy-created-chain-warnings.manifest.yaml -> manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/072-01-quiet-legacy-created-chain-warnings.manifest.yaml -> manifests/072-01-quiet-legacy-created-chain-warnings.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:fc2d04ca8f2456fa9d85fd71ec4a0e912fa1e29a0c6c1373e7cb7685c40e038a",
@@ -27,7 +29,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
       },
       "revised_at": "2026-06-17T03:03:27.749836+00:00",
-      "reason": "Format behavioral tests after plan lock"
+      "reason": "Format behavioral tests after plan lock",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:fc2d04ca8f2456fa9d85fd71ec4a0e912fa1e29a0c6c1373e7cb7685c40e038a",
@@ -37,7 +41,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
       },
       "revised_at": "2026-06-17T03:13:19.923195+00:00",
-      "reason": "Capture implementation outcome after ready review"
+      "reason": "Capture implementation outcome after ready review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:8efa8d03a3a8f3abb1ae29fb8e4104c0645aa26f20f236adb93380e976f5757b",
@@ -47,7 +53,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:0eff875d9121a981ffea79c925e9d019bdeea94734929cf33637aae534456914"
       },
       "revised_at": "2026-06-17T03:42:31.669985+00:00",
-      "reason": "Rename legacy verify quietness test for clarity"
+      "reason": "Rename legacy verify quietness test for clarity",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -57,7 +65,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:f91f379742f56d6fd3ed48ca9c5c2a5a5a31ee2255255674b0b5b45b2160d9e9"
       },
       "revised_at": "2026-06-17T03:43:43.270108+00:00",
-      "reason": "Keep historical test artifact as non-collected compatibility shim"
+      "reason": "Keep historical test artifact as non-collected compatibility shim",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -67,7 +77,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:a36ab6882ac557becb00a37ebaed1924b4391cc7e7ecf74804643fb9a3ad505a"
       },
       "revised_at": "2026-06-17T03:45:12.136900+00:00",
-      "reason": "Apply repo-wide Black formatting before amended handoff"
+      "reason": "Apply repo-wide Black formatting before amended handoff",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -77,7 +89,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:a36ab6882ac557becb00a37ebaed1924b4391cc7e7ecf74804643fb9a3ad505a"
       },
       "revised_at": "2026-06-19T10:16:36.008277+00:00",
-      "reason": "Update lock hash after shared CLI behavioral test gained scope-only worktree coverage"
+      "reason": "Update lock hash after shared CLI behavioral test gained scope-only worktree coverage",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -87,7 +101,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:a36ab6882ac557becb00a37ebaed1924b4391cc7e7ecf74804643fb9a3ad505a"
       },
       "revised_at": "2026-06-25T04:07:17.316980+00:00",
-      "reason": "Add scope-only file-tracking verify regression to shared verify tests"
+      "reason": "Add scope-only file-tracking verify regression to shared verify tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -97,7 +113,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T13:14:08.307054+00:00",
-      "reason": "Refresh lock after Black formatting of shared validate command tests."
+      "reason": "Refresh lock after Black formatting of shared validate command tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -107,7 +125,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T22:40:22.308698+00:00",
-      "reason": "Refresh lock after fast-only E2E validate command coverage updated shared validate tests."
+      "reason": "Refresh lock after fast-only E2E validate command coverage updated shared validate tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -117,7 +137,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T22:51:14.861491+00:00",
-      "reason": "Refresh lock after selector-bearing browser E2E coverage updated shared validate tests."
+      "reason": "Refresh lock after selector-bearing browser E2E coverage updated shared validate tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -127,7 +149,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T23:05:54.410603+00:00",
-      "reason": "Refresh lock after Black formatting of shared validate command tests."
+      "reason": "Refresh lock after Black formatting of shared validate command tests.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -137,7 +161,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T23:25:00.693578+00:00",
-      "reason": "Refresh lock after shared validate command tests gained E2E fast-gate follow-up coverage."
+      "reason": "Refresh lock after shared validate command tests gained E2E fast-gate follow-up coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -147,7 +173,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T23:42:32.348135+00:00",
-      "reason": "Refresh lock after shared validate command tests gained final E2E wrapper coverage."
+      "reason": "Refresh lock after shared validate command tests gained final E2E wrapper coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -157,7 +185,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-25T23:59:30.111112+00:00",
-      "reason": "Refresh lock after shared validate command tests gained mixed-command E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained mixed-command E2E coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -167,7 +197,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T00:14:07.723444+00:00",
-      "reason": "Refresh lock after shared validate command tests gained pytest html report-path coverage."
+      "reason": "Refresh lock after shared validate command tests gained pytest html report-path coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -177,7 +209,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T00:31:36.292454+00:00",
-      "reason": "Refresh lock after shared validate command tests gained package call and e2e cwd coverage."
+      "reason": "Refresh lock after shared validate command tests gained package call and e2e cwd coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -187,7 +221,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T00:52:56.442655+00:00",
-      "reason": "Refresh lock after shared validate command tests gained scoped Playwright and output-file E2E path coverage."
+      "reason": "Refresh lock after shared validate command tests gained scoped Playwright and output-file E2E path coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -197,7 +233,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T01:08:01.813078+00:00",
-      "reason": "Refresh lock after shared validate command tests gained package-call E2E wrapper coverage."
+      "reason": "Refresh lock after shared validate command tests gained package-call E2E wrapper coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -207,7 +245,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T01:26:04.221785+00:00",
-      "reason": "Refresh lock after shared validate command tests gained bounded launcher wrapper and JS output directory E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained bounded launcher wrapper and JS output directory E2E coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -217,7 +257,9 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-06-26T01:40:18.361434+00:00",
-      "reason": "Refresh lock after shared validate command tests gained wrapper inner separator E2E coverage."
+      "reason": "Refresh lock after shared validate command tests gained wrapper inner separator E2E coverage.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
@@ -227,7 +269,41 @@
         "tests/cli/test_verify_cmd.py": "sha256:214baddf506e676db995e4648b6e006ff6594eca0d39346bb8dd19426a30a56e"
       },
       "revised_at": "2026-07-03T01:10:09.882475+00:00",
-      "reason": "Shared verify command test updated after E310 default-hook advisory handling moved out of verify."
+      "reason": "Shared verify command test updated after E310 default-hook advisory handling moved out of verify.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:150a07dd5308496710dba0a8e2ae80fbb40fc6c406da9bca1c93467da7dd3002",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256:4714952f0be14abcf358795fed558748120acdeea86f85e86595b87132e3c03d",
+        "tests/cli/test_validate_cmd.py": "sha256:03ffd455ccdc61affadf3b1ab1c5acf6c41170277672a30614c4729f15518836",
+        "tests/cli/test_verify_cmd.py": "sha256:261d9b4cd3187b6706c3ad0d834a0ed061dd3f9cda0b5dd4c979600eb6c5c59d"
+      },
+      "revised_at": "2026-08-04T00:36:28.307320+00:00",
+      "reason": "Refresh legacy shared-test hash after approved 094 scope-only verify output coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/chain.py",
+          "edit:tests/cli/test_validate_cmd.py",
+          "edit:tests/cli/test_verify_cmd.py",
+          "edit:tests/core/test_manifest_event_log.py",
+          "read:maid_runner/cli/commands/_format.py",
+          "read:maid_runner/cli/commands/_main.py",
+          "read:maid_runner/cli/commands/validate.py",
+          "read:maid_runner/cli/commands/verify.py",
+          "read:maid_runner/core/result.py",
+          "read:manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml",
+          "read:manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml",
+          "read:manifests/060-01-keep-created-chain-warnings-advisory-in-verify.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -254,6 +330,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/core/chain.py:method:ManifestChain.diagnostics",
@@ -289,6 +367,293 @@
       "tests/core/test_manifest_event_log.py:test_unclassifiable_created_still_emits_imprecise_timestamp_warning",
       "tests/core/test_manifest_event_log.py:test_unclassifiable_created_still_emits_imprecise_timestamp_warning:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/chain.py",
+        "tests/cli/test_validate_cmd.py",
+        "tests/cli/test_verify_cmd.py",
+        "tests/core/test_manifest_event_log.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/result.py",
+        "manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml",
+        "manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml",
+        "manifests/060-01-keep-created-chain-warnings-advisory-in-verify.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/chain.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "diagnostics",
+              "description": "Return normal chain diagnostics while omitting E118/E119 entries that come only from parseable pre-2026-06-03 legacy created values.",
+              "of": "ManifestChain",
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_manifest_event_log.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pre_policy_date_only_created_emits_no_imprecise_timestamp_warning",
+              "source_scenario": "An active unsequenced manifest has a parseable date-only created value before 2026-06-03.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_policy_offset_created_emits_no_imprecise_timestamp_warning",
+              "source_scenario": "An active unsequenced manifest has a parseable offset datetime created value before 2026-06-03T00:00:00Z, such as 2026-04-25T10:49:00+08:00.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy offset datetime manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_policy_microsecond_utc_created_emits_no_imprecise_timestamp_warning",
+              "source_scenario": "An active unsequenced manifest has a parseable fractional-second UTC created value before 2026-06-03T00:00:00Z, such as 2026-03-26T05:46:09.503497+00:00.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics returns no IMPRECISE_CREATED_TIMESTAMP warning for that legacy fractional-second UTC manifest."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_policy_date_only_created_still_emits_imprecise_timestamp_warning",
+              "source_scenario": "An active unsequenced manifest has a date-only created value on 2026-06-03 or later.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics reports IMPRECISE_CREATED_TIMESTAMP so future ambiguous metadata remains visible."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_offset_created_policy_boundary_uses_utc_instant",
+              "source_scenario": "Two active unsequenced manifests use offset datetimes around the policy instant: 2026-06-03T07:00:00+08:00 and 2026-06-03T08:00:00+08:00.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics treats 2026-06-03T07:00:00+08:00 as pre-policy legacy metadata and keeps it quiet, but reports IMPRECISE_CREATED_TIMESTAMP for 2026-06-03T08:00:00+08:00."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_policy_duplicate_created_emits_no_duplicate_unsequenced_warning",
+              "source_scenario": "Two active unsequenced manifests share the same parseable created value before 2026-06-03.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics returns no DUPLICATE_UNSEQUENCED_CREATED warning for that legacy duplicate group."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_policy_duplicate_offset_created_emits_no_duplicate_unsequenced_warning",
+              "source_scenario": "Two active unsequenced manifests share the same parseable offset datetime created value before 2026-06-03T00:00:00Z.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics returns no DUPLICATE_UNSEQUENCED_CREATED warning for that legacy offset duplicate group."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_policy_duplicate_created_still_emits_duplicate_unsequenced_warning",
+              "source_scenario": "Two active unsequenced manifests share the same created value on 2026-06-03 or later.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics reports DUPLICATE_UNSEQUENCED_CREATED and keeps the slug fallback explanation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unclassifiable_created_still_emits_imprecise_timestamp_warning",
+              "source_scenario": "An active unsequenced manifest has an imprecise created value that cannot be parsed or classified as pre-policy legacy metadata.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ManifestChain"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "diagnostics reports IMPRECISE_CREATED_TIMESTAMP instead of silently treating the value as grandfathered."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_validate_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_quiet_omits_pre_policy_created_chain_warnings",
+              "source_scenario": "A valid fixture project has only pre-policy E118/E119 candidates covering date-only, offset datetime, fractional-second UTC datetime, and duplicate legacy created groups.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main(['validate', '--quiet']) exits 0 and stdout contains no E118 or E119 lines for any grandfathered warning shape."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_quiet_keeps_policy_created_chain_warnings",
+              "source_scenario": "A valid fixture project has a post-policy date-only or duplicate unsequenced created value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main(['validate', '--quiet']) exits 0 and still prints the actionable E118/E119 warning."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_legacy_manifest_warning_is_quiet_by_default",
+              "source_scenario": "A verify fixture has a pre-policy created value plus an advisory missing-assertion warning.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main(['verify', '--no-changed-scope']) still passes and reports the real missing-assertion warning without printing an E118 legacy-created warning."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_created_timestamp_chain_warning_is_advisory_by_default",
+              "source_scenario": "A verify fixture has a post-policy date-only unsequenced created value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main(['verify', '--no-changed-scope']) passes by default and keeps the E118 advisory warning visible."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_duplicate_created_chain_warning_is_advisory_by_default",
+              "source_scenario": "A verify fixture has duplicate post-policy unsequenced created values.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "main(['verify', '--no-changed-scope']) passes by default and keeps the E119 advisory warning visible with the slug fallback message."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/058-01-enforce-manifest-created-timestamps.manifest.yaml",
+        "manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml",
+        "manifests/060-01-keep-created-chain-warnings-advisory-in-verify.manifest.yaml",
+        "maid_runner/core/result.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_validate_cmd.py",
       "tests/cli/test_verify_cmd.py",

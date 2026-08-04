@@ -146,7 +146,7 @@ class TestCmdFiles:
         captured = capsys.readouterr()
         assert "src/dep.py" in captured.out
 
-    def test_files_registered_gate_ignores_scope_only_source_file(
+    def test_files_registered_gate_reports_scope_only_separately(
         self, project_with_files, capsys
     ):
         from maid_runner.cli.commands._main import main
@@ -167,13 +167,18 @@ class TestCmdFiles:
         os.chdir(project_with_files)
         registered_exit_code = main(["files", "--fail-on", "registered"])
         registered_output = capsys.readouterr().out
+        scope_only_exit_code = main(["files", "--fail-on", "scope-only"])
+        scope_only_output = capsys.readouterr().out
         any_exit_code = main(["files", "--fail-on", "any"])
         any_output = capsys.readouterr().out
 
         assert registered_exit_code == 0
-        assert any_exit_code == 0
+        assert scope_only_exit_code == 1
+        assert any_exit_code == 1
         assert "src/routes/settings/+page.svelte" in registered_output
+        assert "src/routes/settings/+page.svelte" in scope_only_output
         assert "src/routes/settings/+page.svelte" in any_output
+        assert "Scope-only" in registered_output
         assert "Registered" not in registered_output
         assert "Registered" not in any_output
 
