@@ -35,6 +35,20 @@ class _StoreChangedScopeExplicit(argparse.Action):
         setattr(namespace, "changed_scope_explicit", True)
 
 
+class _StoreManifestDirExplicit(argparse.Action):
+    """Store --manifest-dir and record that the user passed it explicitly."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, values)
+        setattr(namespace, "manifest_dir_explicit", True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -110,7 +124,10 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         help="Validation mode to run",
     )
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--allow-empty",
@@ -252,7 +269,10 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
         "--manifest", default=None, help="Run validate commands for one manifest"
     )
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--fail-fast",
@@ -302,7 +322,10 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
 
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--allow-empty",
@@ -1623,6 +1646,15 @@ def main(argv: list[str] | None = None) -> int:
 
     handler = handlers[handler_name]
     try:
+        directory_wide = (
+            args.command == "verify"
+            or (args.command == "validate" and args.manifest_path is None)
+            or (args.command == "test" and args.manifest is None)
+        )
+        if directory_wide and not getattr(args, "manifest_dir_explicit", False):
+            from maid_runner.core.config import load_config
+
+            args.manifest_dir = load_config(".").manifest_dir
         return handler(args)
     except Exception as e:
         if getattr(args, "json", False):

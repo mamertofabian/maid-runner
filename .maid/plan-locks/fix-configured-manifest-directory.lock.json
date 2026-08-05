@@ -1,0 +1,260 @@
+{
+  "manifest_path": "manifests/fix-configured-manifest-directory.manifest.yaml",
+  "manifest_hash": "sha256-contract:56eabf99488fa30c2388fed2de351c75acfa2762a04dd2cbc5563da43fa67b94",
+  "test_hashes": {
+    "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+    "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+    "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_configured_manifest_directory.py": "sha256-pyast:v2:88c2b611e456d16dda758313682b1399fb2a3abd5dd070782a53c3f1056efd91"
+  },
+  "created_at": "2026-08-05T04:29:37.421422+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3a6f4dc76999f249134cf64db5291a23263d9457047e6937315712031a5beeda",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_configured_manifest_directory.py": "sha256-pyast:v2:a69bcf9417f7db3ed60c70bb1c41c879566b60791c065c6a5421256443b85b2a"
+      },
+      "revised_at": "2026-08-05T04:29:40.085742+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-configured-manifest-directory.manifest.yaml -> manifests/fix-configured-manifest-directory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-configured-manifest-directory.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-configured-manifest-directory.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f453d6b8ea046b18f1c1d33ae87ccd0b5966e7c67dee16ceaa06444600e3bca7",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_configured_manifest_directory.py": "sha256-pyast:v2:a69bcf9417f7db3ed60c70bb1c41c879566b60791c065c6a5421256443b85b2a"
+      },
+      "revised_at": "2026-08-05T04:30:44.679521+00:00",
+      "reason": "Correct the end-to-end fixture so configured discovery reaches a schema-valid manifest",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f453d6b8ea046b18f1c1d33ae87ccd0b5966e7c67dee16ceaa06444600e3bca7",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_configured_manifest_directory.py": "sha256-pyast:v2:b2a2ae53231f8316a6d0f5066ea61355b05ea751daf6d17b422702f62d9e7390"
+      },
+      "revised_at": "2026-08-05T04:31:31.916653+00:00",
+      "reason": "Run every declared CLI behavioral dependency in the manifest validation command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_configured_manifest_directory.py tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_configured_manifest_directory.py tests/cli/test_main.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deb791a61d7a4110d27f929ed333d758b1c9f89a1ccac2333d85b3062e6eb7d2",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_configured_manifest_directory.py": "sha256-pyast:v2:b2a2ae53231f8316a6d0f5066ea61355b05ea751daf6d17b422702f62d9e7390"
+      },
+      "revised_at": "2026-08-05T04:35:00.102084+00:00",
+      "reason": "Address review blockers for config error handling and single-manifest isolation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_configured_manifest_directory.py:test_invalid_config_returns_structured_error_for_directory_wide_commands",
+          "tests/cli/test_configured_manifest_directory.py:test_invalid_config_returns_structured_error_for_directory_wide_commands:kind=test_function",
+          "tests/cli/test_configured_manifest_directory.py:test_single_manifest_commands_do_not_load_irrelevant_config",
+          "tests/cli/test_configured_manifest_directory.py:test_single_manifest_commands_do_not_load_irrelevant_config:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-05T04:35:09.622206+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_configured_manifest_directory.py tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            },\n            \"suggestion\": \"Pass --allow-empty only when an empty manifest set is intentional.\"\n          }\n        ],\n        \"results\": [],\n        \"duration_ms\": 0.013919998309575021\n      }\n    }\n  ],\n  \"duration_ms\": 2.6995710031769704\n}\n=========================== short test summary info ============================\nFAILED tests/cli/test_configured_manifest_directory.py::test_validate_uses_configured_manifest_directory_end_to_end\nFAILED tests/cli/test_configured_manifest_directory.py::test_configured_manifest_directory_reaches_all_core_handlers[validate-maid_runner.cli.commands.validate-cmd_validate]\nFAILED tests/cli/test_configured_manifest_directory.py::test_configured_manifest_directory_reaches_all_core_handlers[test-maid_runner.cli.commands.test-cmd_test]\nFAILED tests/cli/test_configured_manifest_directory.py::test_configured_manifest_directory_reaches_all_core_handlers[verify-maid_runner.cli.commands.verify-cmd_verify]\nFAILED tests/cli/test_configured_manifest_directory.py::test_invalid_config_returns_structured_error_for_directory_wide_commands[validate]\nFAILED tests/cli/test_configured_manifest_directory.py::test_invalid_config_returns_structured_error_for_directory_wide_commands[test]\nFAILED tests/cli/test_configured_manifest_directory.py::test_invalid_config_returns_structured_error_for_directory_wide_commands[verify]\n7 failed, 234 passed in 7.66s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      "plan-revision.md"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "tests/cli/test_configured_manifest_directory.py:test_configured_manifest_directory_reaches_all_core_handlers",
+      "tests/cli/test_configured_manifest_directory.py:test_configured_manifest_directory_reaches_all_core_handlers:kind=test_function",
+      "tests/cli/test_configured_manifest_directory.py:test_explicit_manifest_directory_overrides_config_for_all_core_handlers",
+      "tests/cli/test_configured_manifest_directory.py:test_explicit_manifest_directory_overrides_config_for_all_core_handlers:kind=test_function",
+      "tests/cli/test_configured_manifest_directory.py:test_invalid_config_returns_structured_error_for_directory_wide_commands",
+      "tests/cli/test_configured_manifest_directory.py:test_invalid_config_returns_structured_error_for_directory_wide_commands:kind=test_function",
+      "tests/cli/test_configured_manifest_directory.py:test_single_manifest_commands_do_not_load_irrelevant_config",
+      "tests/cli/test_configured_manifest_directory.py:test_single_manifest_commands_do_not_load_irrelevant_config:kind=test_function",
+      "tests/cli/test_configured_manifest_directory.py:test_validate_uses_configured_manifest_directory_end_to_end",
+      "tests/cli/test_configured_manifest_directory.py:test_validate_uses_configured_manifest_directory_end_to_end:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_configured_manifest_directory.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/test.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/config.py",
+        "manifests/045-01-extract-cli-parser-registration.manifest.yaml",
+        "tests/cli/test_main.py",
+        "tests/cli/test_test_cmd.py",
+        "tests/cli/test_validate_cmd.py",
+        "tests/cli/test_verify_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_configured_manifest_directory.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_uses_configured_manifest_directory_end_to_end",
+              "description": "A root config pointing at a nested manifest directory lets directory-wide schema validation discover and validate that manifest without an explicit flag."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_configured_manifest_directory_reaches_all_core_handlers",
+              "description": "Validate, test, and verify each receive the configured manifest directory when their CLI option is omitted."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_manifest_directory_overrides_config_for_all_core_handlers",
+              "description": "An explicit --manifest-dir value wins over .maidrc.yaml for validate, test, and verify."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_config_returns_structured_error_for_directory_wide_commands",
+              "description": "Malformed root configuration returns exit 2 through the normal JSON CLI error boundary for directory-wide validate, test, and verify."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_single_manifest_commands_do_not_load_irrelevant_config",
+              "description": "Explicit-manifest validate and test dispatch successfully without reading malformed root configuration that those handler paths do not use."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Dispatches validate, test, and verify with .maidrc.yaml's manifest_dir when the option is omitted, while explicit CLI values retain precedence.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/config.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/test.py",
+        "maid_runner/cli/commands/verify.py",
+        "manifests/045-01-extract-cli-parser-registration.manifest.yaml",
+        "tests/cli/test_main.py",
+        "tests/cli/test_validate_cmd.py",
+        "tests/cli/test_test_cmd.py",
+        "tests/cli/test_verify_cmd.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_configured_manifest_directory.py",
+      "tests/cli/test_main.py",
+      "tests/cli/test_test_cmd.py",
+      "tests/cli/test_validate_cmd.py",
+      "tests/cli/test_verify_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_configured_manifest_directory.py tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py",
+      "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-configured-manifest-directory.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
