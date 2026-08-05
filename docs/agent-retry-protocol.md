@@ -12,8 +12,11 @@ self-contained failure packet. It is a loop contract for reference tools under
    uv run maid verify --packet .maid/last-failure-packet.json
    ```
 
-2. If the gate passes, stop. A passing packet-aware gate removes stale packet
-   state, so the loop must not replay an older packet.
+2. If the gate passes, stop. At a recognizable existing packet path, a passing
+   packet-aware gate replaces stale failure state with a version-1 marker whose
+   `exit_code: 0` and failure sections are empty. The loop must use the gate
+   result and packet `exit_code`; it must not use packet-file existence as a failure signal
+   or replay this cleared marker as an older failure.
 
 3. If the gate fails, read the packet from `.maid/last-failure-packet.json` or
    the configured packet path.
@@ -38,7 +41,8 @@ Failure packets use these eight top-level keys:
 
 - `packet_version`: integer schema version.
 - `command`: command argv list for the failed gate.
-- `exit_code`: failed gate exit code.
+- `exit_code`: gate exit code; failure packets use 1, while a successfully
+  cleared stale packet uses 0.
 - `project_root`: absolute project root path.
 - `manifest`: failed manifest entries, including path, goal, type, declared
   files, artifact lists, and validate commands.

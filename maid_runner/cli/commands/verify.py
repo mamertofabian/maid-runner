@@ -152,6 +152,7 @@ def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:
                 f"Failed to clear failure packet at {packet_path}: {exc}",
                 json_mode=False,
             )
+            return 2
         return exit_code
 
     try:

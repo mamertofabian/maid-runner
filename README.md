@@ -168,9 +168,14 @@ maid verify --packet
 ```
 
 Each packet-aware gate writes a failure packet only when the run fails with exit
-code 1. A passing packet-aware run writes no packet and removes any stale packet at that path, so agents cannot replay outdated failure state. Passing `--packet`
-without a path uses
-`.maid/last-failure-packet.json`.
+code 1. A passing run creates no packet at a missing path. If the path already
+contains a recognizable MAID packet, the gate safely clears it in place as a
+version-1 marker with `exit_code: 0` and empty `manifest`, `diagnostics`, and
+`test_output` sections. Consumers must use the gate result and packet
+`exit_code`; never infer failure from the packet path's existence. An unsafe
+pre-existing destination is preserved, and a passing gate exits 2 because its
+requested packet state could not be cleared. Passing `--packet` without a path
+uses `.maid/last-failure-packet.json`.
 
 On failure, read the packet before retrying. It includes the failed command,
 exit code, project root, failed manifest excerpts, diagnostics with

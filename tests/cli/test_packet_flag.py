@@ -8,6 +8,36 @@ from pathlib import Path
 import yaml
 
 
+def _write_stale_packet(path: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "packet_version": 1,
+                "command": ["maid", "validate", "--packet"],
+                "exit_code": 1,
+                "project_root": str(path.parent),
+                "manifest": [],
+                "diagnostics": [],
+                "test_output": [],
+                "environment": {
+                    "maid_version": "stale-test-packet",
+                    "python_version": "stale-test-packet",
+                },
+            }
+        )
+        + "\n"
+    )
+
+
+def _assert_packet_is_cleared(path: Path) -> None:
+    payload = json.loads(path.read_text())
+    assert payload["packet_version"] == 1
+    assert payload["exit_code"] == 0
+    assert payload["manifest"] == []
+    assert payload["diagnostics"] == []
+    assert payload["test_output"] == []
+
+
 def _write_project(root: Path, *, passing: bool, slug: str = "packet-task") -> Path:
     manifest_dir = root / "manifests"
     manifest_dir.mkdir()
@@ -153,7 +183,7 @@ def test_validate_packet_clears_stale_file_on_success(tmp_path, capsys):
     os.chdir(tmp_path)
     manifest_path = _write_project(tmp_path, passing=True)
     packet_path = tmp_path / "packet.json"
-    packet_path.write_text('{"stale": true}\n')
+    _write_stale_packet(packet_path)
 
     exit_code = main(
         [
@@ -168,7 +198,7 @@ def test_validate_packet_clears_stale_file_on_success(tmp_path, capsys):
     )
 
     assert exit_code == 0
-    assert packet_path.exists() is False
+    _assert_packet_is_cleared(packet_path)
     capsys.readouterr()
 
 
@@ -325,7 +355,7 @@ def test_validate_coherence_only_packet_clears_stale_file_on_success(
     os.chdir(tmp_path)
     _write_project(tmp_path, passing=True)
     packet_path = tmp_path / "coherence-packet.json"
-    packet_path.write_text('{"stale": true}\n')
+    _write_stale_packet(packet_path)
 
     def fake_run_coherence(manifest_dir, json_mode):
         return CoherenceResult(checks_run=["duplicate"])
@@ -345,7 +375,7 @@ def test_validate_coherence_only_packet_clears_stale_file_on_success(
     )
 
     assert exit_code == 0
-    assert packet_path.exists() is False
+    _assert_packet_is_cleared(packet_path)
     capsys.readouterr()
 
 
@@ -517,7 +547,7 @@ def test_cmd_verify_clears_stale_packet_on_success(tmp_path, monkeypatch, capsys
 
     os.chdir(tmp_path)
     packet_path = tmp_path / "verify-packet.json"
-    packet_path.write_text('{"stale": true}\n')
+    _write_stale_packet(packet_path)
 
     def fake_run_verify(**kwargs):
         return VerificationResult(
@@ -549,7 +579,7 @@ def test_cmd_verify_clears_stale_packet_on_success(tmp_path, monkeypatch, capsys
     )
 
     assert exit_code == 0
-    assert packet_path.exists() is False
+    _assert_packet_is_cleared(packet_path)
     capsys.readouterr()
 
 
