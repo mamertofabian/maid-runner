@@ -12,7 +12,18 @@ from maid_runner.core.chain import ManifestChain
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.types import Manifest
 
-_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
+_SOURCE_EXTENSIONS = {
+    ".cs",
+    ".cshtml",
+    ".js",
+    ".jsx",
+    ".py",
+    ".razor",
+    ".resx",
+    ".svelte",
+    ".ts",
+    ".tsx",
+}
 
 
 @dataclass(frozen=True)

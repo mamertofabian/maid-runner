@@ -1,0 +1,139 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make changed-scope and worktree-scope enforce committed .NET production files"
+type: fix
+created: "2026-08-05T02:13:20Z"
+metadata:
+  bug_report: 
+    ~/.maid/bug-report/20260801-174129-deckhand-verify-missed-committed-scope-drift.md
+  tags: [changed-scope, worktree-scope, dotnet, razor, validation-trust]
+  priority: critical
+description: |
+  `changed_files_since` already returns committed paths from the explicit task
+  baseline, but the shared scope filter discards every path whose suffix is not
+  in a narrow Python/JavaScript/Svelte allowlist. As a result, strict verify can
+  pass while changed C# services, Razor host files, and localization resources
+  are absent from every active manifest's writable scope.
+
+  Extend the existing production-path classification used by both changed-scope
+  and worktree-scope to include `.cs`, `.cshtml`, `.razor`, and `.resx`. These
+  are the concrete .NET production surfaces proven by the Deckhand report.
+  Committed, staged, unstaged, and untracked files with those suffixes must be
+  checked against active `files.create`, `files.edit`, `files.scope`, and
+  `files.delete` declarations. Test filtering and explicit baseline semantics
+  remain unchanged. This is a deliberately narrow syntactic classification;
+  it does not attempt language reachability or treat every repository file as
+  production source.
+temptations:
+  - risk: "Do not fix only `.cs` and leave the reported Razor and localization paths
+      invisible."
+    instead: "Cover `.cs`, `.cshtml`, `.razor`, and `.resx` together in one committed-baseline
+      regression."
+  - risk: "Do not remove production-path filtering and force manifests to own every
+      changed lockfile, document, or generated artifact."
+    instead: "Extend the bounded production suffix set with the exact .NET surfaces
+      demonstrated by the report."
+  - risk: "Do not test only dirty worktree files."
+    instead: "Commit the .NET file changes after a baseline and assert explicit-since
+      evaluation still reports every undeclared path."
+  - risk: "Do not special-case verify output while leaving shared scope policy inconsistent."
+    instead: "Change the core path classifier and exercise both changed-scope and
+      worktree-scope public behavior."
+files:
+  edit:
+    - path: maid_runner/core/worktree.py
+      artifacts:
+        - kind: function
+          name: evaluate_changed_scope
+          args:
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: chain, type: ManifestChain}
+            - {name: since, type: "Optional[str]", default: "None"}
+            - {name: base_ref, type: "Optional[str]", default: "None"}
+            - {name: include_tests, type: bool, default: "False"}
+            - {name: allow_clean_tree_skip, type: bool, default: "False"}
+          returns: ChangedScopeDecision
+          description: "Reports committed .cs, .cshtml, .razor, and .resx paths outside
+            active writable scope when evaluating an explicit task baseline."
+        - kind: function
+          name: validate_worktree_scope
+          args:
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: chain, type: ManifestChain}
+            - {name: include_tests, type: bool, default: "False"}
+          returns: "list[ValidationError]"
+          description: "Applies the same .NET production-path ownership policy to
+            staged, unstaged, and untracked worktree changes."
+  create:
+    - path: tests/core/test_changed_scope_dotnet_files.py
+      artifacts:
+        - kind: test_function
+          name: 
+            test_changed_scope_reports_committed_dotnet_production_files_since_explicit_baseline
+          description: "Committed .cs, .cshtml, .razor, and .resx files changed after
+            an explicit baseline each produce CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+            when undeclared."
+        - kind: test_function
+          name: 
+            test_changed_scope_allows_committed_dotnet_files_in_writable_scope
+          description: "The same committed .NET production suffixes pass when every
+            path is declared writable in the active manifest."
+        - kind: test_function
+          name: test_worktree_scope_reports_uncommitted_dotnet_production_files
+          description: "Uncommitted .NET production files use the same classifier
+            and each fail worktree scope when undeclared."
+  read:
+    - maid_runner/core/result.py
+    - manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml
+    - manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml
+    - tests/core/test_changed_scope.py
+validate:
+  - uv run python -m pytest -q tests/core/test_changed_scope_dotnet_files.py 
+    tests/core/test_changed_scope.py
+  - uv run maid validate 
+    manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode 
+    behavioral --quiet
+  - uv run maid validate 
+    manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode 
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-05T02:23:34Z'
+  summary: Changed-scope and worktree-scope now enforce manifest ownership for committed and uncommitted C#, Razor, and .NET resource production files.
+  rationale: The shared production-path classifier now includes the four suffixes demonstrated by the Deckhand incident, so both public scope gates apply their existing writable-scope policy without changing baseline, clean-tree, or test-filtering behavior.
+  lessons:
+  - lesson_type: validation-trust
+    summary: A scope gate can collect the correct Git paths yet still miss drift when its shared production-file classifier omits an ecosystem's source suffixes.
+    tags: [changed-scope, worktree-scope, dotnet, committed-drift]
+    paths: [maid_runner/core/worktree.py, tests/core/test_changed_scope_dotnet_files.py]
+  - lesson_type: test-design
+    summary: Scope regressions need an explicit committed-baseline case as well as dirty-worktree coverage because the two gates exercise distinct path collection routes.
+    tags: [git-baseline, regression-tests, files-scope]
+    paths: [tests/core/test_changed_scope_dotnet_files.py]
+  review_notes:
+  - source: independent-reviewer-dotnet_scope_review
+    severity: ready
+    summary: Reported no blocking or advisory findings; confirmed the narrow shared-classifier change preserves existing baseline, clean-tree, writable-scope, and test-filtering semantics.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_changed_scope_dotnet_files.py, tests/core/test_changed_scope.py]
+    status: passed
+    summary: Focused committed-baseline, writable-scope, worktree-scope, and existing changed-scope suite passed 13 tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3721 tests with 5 skipped.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed all 381 active manifests; 107 superseded manifests were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 220 active manifest commands passed.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Ruff passed repository-wide; Black check reported all 476 files unchanged.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD, --packet]
+    status: passed
+    summary: Strict nine-stage handoff verification passed with no blocking findings; only pre-existing E307 warnings remained.
