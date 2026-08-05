@@ -143,7 +143,7 @@ def _validate_removed_artifacts(
             continue
         target_key = _removed_artifact_merge_key(spec)
         for found in collection.artifacts:
-            if found.merge_key() == target_key:
+            if target_key in found._implementation_merge_keys():
                 errors.append(
                     ValidationError(
                         code=ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT,

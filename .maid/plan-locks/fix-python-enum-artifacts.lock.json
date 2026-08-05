@@ -1,0 +1,530 @@
+{
+  "manifest_path": "manifests/fix-python-enum-artifacts.manifest.yaml",
+  "manifest_hash": "sha256-contract:e36652a3ec787fa9a61691e7a02647da6000752b792b97d45ddab21269130a6b",
+  "test_hashes": {
+    "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+    "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+    "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e"
+  },
+  "created_at": "2026-08-05T10:35:41.873132+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:96af5579b3cc0b92f414573d02b41a6fd5020b216c488e9e0fadc4785e017c82",
+      "prior_test_hashes": {
+        "tests/validators/test_python.py": "sha256-pyast:v2:67c78a93aa7715752a1154f1471a3b3aad24ff50bb72fe79185e7f8afa2aecd1",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:cbcfe60a6ca0d7d9bd9a754fd950a7cb277a135078592abdd3d5b02ff8452fef"
+      },
+      "revised_at": "2026-08-05T10:35:42.848393+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-enum-artifacts.manifest.yaml -> manifests/fix-python-enum-artifacts.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1e4da5b16b5a910c318eea892a5536e349d3b81c20094b2870165e9c24ad7136",
+      "prior_test_hashes": {
+        "tests/validators/test_python.py": "sha256-pyast:v2:67c78a93aa7715752a1154f1471a3b3aad24ff50bb72fe79185e7f8afa2aecd1",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:cbcfe60a6ca0d7d9bd9a754fd950a7cb277a135078592abdd3d5b02ff8452fef"
+      },
+      "revised_at": "2026-08-05T10:37:51.261633+00:00",
+      "reason": "Evolve the pre-existing enum characterization from class-plus-members to the first-class enum contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_python.py:test_enum_class_with_members",
+          "tests/validators/test_python.py:test_enum_class_with_members:arg=validator:type=PythonValidator:default=None",
+          "tests/validators/test_python.py:test_enum_class_with_members:kind=test_function",
+          "tests/validators/test_python.py:test_enum_class_with_members:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/validators/test_python.py"
+        ],
+        "files_removed": [
+          "read:tests/validators/test_python.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8b7d644ba66ffc2214936f168e41eb83af889dbf1baa8e189a6cfc91ffde9333",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:cbcfe60a6ca0d7d9bd9a754fd950a7cb277a135078592abdd3d5b02ff8452fef",
+        "tests/validators/test_python.py": "sha256-pyast:v2:fc0a509ff8426ce03be3a72369088897165c8480295f961109a249d79cd4845c"
+      },
+      "revised_at": "2026-08-05T10:42:35.848038+00:00",
+      "reason": "Preserve historical Python enum class-and-member contracts through canonical-kind projection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=expected:type=list[ArtifactSpec]:default=None",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=file_path:type=str:default=None",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=found:type=list[FoundArtifact]:default=None",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=is_strict:type=bool:default=None",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:kind=function",
+          "maid_runner/core/_implementation_validation.py:function:compare_artifacts:returns=list[ValidationError]",
+          "maid_runner/validators/base.py:class:FoundArtifact",
+          "maid_runner/validators/base.py:class:FoundArtifact:kind=class",
+          "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid",
+          "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:returns=None",
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity",
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_collect_as_single_enum_artifacts",
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_collect_as_single_enum_artifacts:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_collect_as_single_enum_artifacts:returns=None"
+        ],
+        "files_added": [
+          "edit:maid_runner/core/_implementation_validation.py",
+          "edit:maid_runner/validators/base.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:28cef16a316579a9819bec491c5d802658a3c157a7b2a606afe4bf9f51d7e462",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:1fa6d90f05118aee03a866dc3c60c426745113b88fbd2d0c50a0e5660099ae17",
+        "tests/validators/test_python.py": "sha256-pyast:v2:e7d95241a1fad7b414771e54605df2878ba8916c8adb872d9fef307dbf6f2304"
+      },
+      "revised_at": "2026-08-05T10:43:09.748448+00:00",
+      "reason": "Add direct behavioral coverage for canonical-kind projection and its compatibility boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive",
+          "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd41e26fa311bb43f429603b47ffb949f2425dff35361fd73c4a14cd6d4a723b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:d2a1fda4cea0a723609cb69dc72e5e6f94f98ba3359895dc2f30d1105483199b",
+        "tests/validators/test_python.py": "sha256-pyast:v2:6528a8833d4a8f7815b5be6c729a7ebb9b841f974bc5399c12c7271152846571"
+      },
+      "revised_at": "2026-08-05T10:43:37.627071+00:00",
+      "reason": "Correct the non-stdlib enum test boundary without changing the contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd41e26fa311bb43f429603b47ffb949f2425dff35361fd73c4a14cd6d4a723b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:9af322a4fa00e3603249524249e7b67bfd93041760f65651e3625db992235553",
+        "tests/validators/test_python.py": "sha256-pyast:v2:6528a8833d4a8f7815b5be6c729a7ebb9b841f974bc5399c12c7271152846571"
+      },
+      "revised_at": "2026-08-05T10:45:22.045175+00:00",
+      "reason": "Keep canonical-kind metadata private and preserve FoundArtifact positional compatibility",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9b6e07fa796a954e18c2e2a14d3de4e72b951e5910ef29bee2c6a67a0043fee3",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:e44e986d034e6a7c55d02bd80d72c20c5402f7fc84340f63486e304a2ce91580",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e"
+      },
+      "revised_at": "2026-08-05T10:56:18.413904+00:00",
+      "reason": "Close reviewer-found false greens for rebinding, shadowing, and Python enum removal claims",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_removed_artifacts.py:function:_validate_removed_artifacts",
+          "maid_runner/core/_removed_artifacts.py:function:_validate_removed_artifacts:kind=function",
+          "maid_runner/core/supersession_audit.py:class:SupersessionAuditor",
+          "maid_runner/core/supersession_audit.py:class:SupersessionAuditor:kind=class",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings:returns=None",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings:returns=None",
+          "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit",
+          "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:returns=None",
+          "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311",
+          "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:kind=test_function",
+          "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/_removed_artifacts.py",
+          "edit:maid_runner/core/supersession_audit.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c2ffb1119c83f5e87670f6cd9f54da27d0ae6613d3d1b79dadac17deba479e78",
+      "prior_test_hashes": {
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:e8d95d34dab512feb7fe4736d5af8150be31a80d7041987cfac6db20882c3109",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e"
+      },
+      "revised_at": "2026-08-05T11:01:42.493149+00:00",
+      "reason": "Cover reviewer-reproduced match captures and definition-header enum rebinding",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-05T11:01:43.193525+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_python_enum_artifacts.py tests/validators/test_python.py tests/core/validation/test_behavioral_coverage.py",
+        "exit_code": 1,
+        "output_tail": "    \"\"\"\n            result = validator.collect_implementation_artifacts(source, \"test.py\")\n            color = _find(result.artifacts, \"Color\")\n            assert color is not None\n            assert color.kind == ArtifactKind.CLASS\n>           assert color._canonical_kind == ArtifactKind.ENUM\n                   ^^^^^^^^^^^^^^^^^^^^^\nE           AttributeError: 'FoundArtifact' object has no attribute '_canonical_kind'\n\ntests/validators/test_python.py:519: AttributeError\n=========================== short test summary info ============================\nFAILED tests/validators/test_python_enum_artifacts.py::test_python_stdlib_enum_subclasses_expose_canonical_enum_identity\nFAILED tests/validators/test_python_enum_artifacts.py::test_non_stdlib_enum_named_bases_remain_ordinary_classes\nFAILED tests/validators/test_python_enum_artifacts.py::test_canonical_enum_projection_is_contract_sensitive\nFAILED tests/validators/test_python_enum_artifacts.py::test_enum_detection_rejects_non_top_level_and_shadowed_bindings\nFAILED tests/validators/test_python_enum_artifacts.py::test_python_enum_manifest_validates_direct_and_module_qualified_member_usage\nFAILED tests/validators/test_python_enum_artifacts.py::test_removed_python_enum_still_present_reports_e311\nFAILED tests/validators/test_python_enum_artifacts.py::test_python_enum_removed_artifact_does_not_bypass_supersession_audit\nFAILED tests/validators/test_python.py::TestEnumClass::test_enum_class_with_members\n8 failed, 140 passed in 0.54s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=expected:type=list[ArtifactSpec]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=found:type=list[FoundArtifact]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=is_strict:type=bool:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:kind=function",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:returns=list[ValidationError]",
+      "maid_runner/core/_removed_artifacts.py:function:_validate_removed_artifacts",
+      "maid_runner/core/_removed_artifacts.py:function:_validate_removed_artifacts:kind=function",
+      "maid_runner/core/supersession_audit.py:class:SupersessionAuditor",
+      "maid_runner/core/supersession_audit.py:class:SupersessionAuditor:kind=class",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=tree:type=ast.AST:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:kind=function",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:returns=list[FoundArtifact]",
+      "maid_runner/validators/base.py:class:FoundArtifact",
+      "maid_runner/validators/base.py:class:FoundArtifact:kind=class",
+      "tests/validators/test_python.py:test_enum_class_with_members",
+      "tests/validators/test_python.py:test_enum_class_with_members:arg=validator:type=PythonValidator:default=None",
+      "tests/validators/test_python.py:test_enum_class_with_members:kind=test_function",
+      "tests/validators/test_python.py:test_enum_class_with_members:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive",
+      "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_canonical_enum_projection_is_contract_sensitive:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_detection_rejects_non_top_level_and_shadowed_bindings:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_enum_projection_rejects_later_same_name_rebindings:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid",
+      "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_legacy_python_enum_class_and_member_manifest_remains_valid:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_non_stdlib_enum_named_bases_remain_ordinary_classes",
+      "tests/validators/test_python_enum_artifacts.py:test_non_stdlib_enum_named_bases_remain_ordinary_classes:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_non_stdlib_enum_named_bases_remain_ordinary_classes:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_manifest_validates_direct_and_module_qualified_member_usage",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_manifest_validates_direct_and_module_qualified_member_usage:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_manifest_validates_direct_and_module_qualified_member_usage:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_manifest_validates_direct_and_module_qualified_member_usage:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_python_enum_removed_artifact_does_not_bypass_supersession_audit:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity",
+      "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_python_stdlib_enum_subclasses_expose_canonical_enum_identity:returns=None",
+      "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311",
+      "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:kind=test_function",
+      "tests/validators/test_python_enum_artifacts.py:test_removed_python_enum_still_present_reports_e311:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_python_enum_artifacts.py"
+      ],
+      "edit": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/validators/_python_implementation.py",
+        "maid_runner/validators/base.py",
+        "tests/validators/test_python.py"
+      ],
+      "read": [
+        "maid_runner/core/identity.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/validators/python.py",
+        "tests/core/validation/test_behavioral_coverage.py"
+      ],
+      "scope": [
+        "README.md",
+        "docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_python_enum_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_python_stdlib_enum_subclasses_expose_canonical_enum_identity",
+              "description": "Direct, imported-alias, module-qualified, and namespace-alias standard enum subclasses expose canonical enum identity while retaining legacy class and member artifacts.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_stdlib_enum_named_bases_remain_ordinary_classes",
+              "description": "Local or non-stdlib bases named Enum do not trigger enum classification or member suppression.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_canonical_enum_projection_is_contract_sensitive",
+              "description": "Strict comparison projects canonical enum identity for an enum contract while the same collected artifacts continue to satisfy a legacy class-and-member contract.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enum_projection_rejects_later_same_name_rebindings",
+              "description": "A later class or module assignment with the enum's name remains visible and prevents a strict enum contract from false-green validation.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_enum_detection_rejects_non_top_level_and_shadowed_bindings",
+              "description": "Conditional imports, loop and match capture shadowing, non-enum wildcard imports, and definition-header assignment expressions do not prove a direct standard-library enum base.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_enum_manifest_validates_direct_and_module_qualified_member_usage",
+              "description": "A kind enum manifest passes implementation and behavioral validation when tests use both direct-import and module-qualified enum members, with no member declarations.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_python_enum_class_and_member_manifest_remains_valid",
+              "description": "An existing strict snapshot that declares a Python enum as a class plus member attributes continues to validate.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_removed_python_enum_still_present_reports_e311",
+              "description": "A removed_artifacts enum claim reports E311 while the canonically identified Python enum remains in source.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_enum_removed_artifact_does_not_bypass_supersession_audit",
+              "description": "A false Python enum removal claim cannot exempt an artifact dropped by supersession.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/base.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "FoundArtifact",
+              "description": "Carry optional private canonical-kind metadata at the end of the dataclass field list so validators can project contracts without changing its public or positional compatibility surface."
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "collect_implementation_artifacts",
+              "description": "Mark direct standard-library Python enum subclasses with canonical ArtifactKind.ENUM identity while preserving legacy class and member artifacts and ordinary class collection.",
+              "args": [
+                {
+                  "name": "tree",
+                  "type": "ast.AST"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[FoundArtifact]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compare_artifacts",
+              "description": "Project canonical enum identities for enum contracts while leaving historical class-and-member contracts unchanged.",
+              "args": [
+                {
+                  "name": "expected",
+                  "type": "list[ArtifactSpec]"
+                },
+                {
+                  "name": "found",
+                  "type": "list[FoundArtifact]"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "is_strict",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_removed_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_validate_removed_artifacts",
+              "description": "Treat a canonical Python enum identity as still present when validating enum removal claims."
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/supersession_audit.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "SupersessionAuditor",
+              "description": "Fail closed when a superseding manifest claims that a canonically identified Python enum was removed while its class remains in source."
+            }
+          ]
+        },
+        {
+          "path": "tests/validators/test_python.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_enum_class_with_members",
+              "description": "Evolve the original Python enum characterization to retain its legacy class-and-member shape while exposing canonical enum identity.",
+              "args": [
+                {
+                  "name": "validator",
+                  "type": "PythonValidator"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/core/identity.py",
+        "tests/core/validation/test_behavioral_coverage.py"
+      ],
+      "scope": [
+        {
+          "path": "README.md",
+          "reason": "Document enum as a shared Python and TypeScript artifact kind rather than TypeScript-only."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document the bounded direct-stdlib-base Python enum recognition rule and single-artifact member semantics."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_behavioral_coverage.py",
+      "tests/validators/test_python.py",
+      "tests/validators/test_python_enum_artifacts.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_python_enum_artifacts.py tests/validators/test_python.py tests/core/validation/test_behavioral_coverage.py"
+    ]
+  }
+}

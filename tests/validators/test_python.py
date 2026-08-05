@@ -516,6 +516,7 @@ class Color(Enum):
         color = _find(result.artifacts, "Color")
         assert color is not None
         assert color.kind == ArtifactKind.CLASS
+        assert color._canonical_kind == ArtifactKind.ENUM
         assert "Enum" in color.bases
 
         red = _find(result.artifacts, "RED", of="Color")

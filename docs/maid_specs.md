@@ -455,7 +455,7 @@ still apply.
 
       * **Python** - Full support via Python AST (built-in)
         - File extensions: `.py`
-        - Artifact types: `class`, `function`, `attribute`
+        - Artifact types: `class`, `function`, `attribute`, `enum`
         - Features: Type hints, async/await, decorators, class inheritance
 
       * **TypeScript/JavaScript** - Production-ready support via tree-sitter
@@ -492,8 +492,18 @@ still apply.
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
     **Supported Artifact Types:**
-    - **Common (Python & TypeScript):** `class`, `function`, `attribute`
-    - **TypeScript-Specific:** `interface`, `type`, `enum`, `namespace`
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`
+    - **TypeScript-Specific:** `interface`, `type`, `namespace`
+
+    Python enum artifacts use a deliberately narrow syntactic boundary. A class
+    directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,
+    `Flag`, or `IntFlag` base validates as one `kind: enum` artifact when the
+    base comes from a direct `from enum import ...` or `import enum` statement,
+    including aliases. Its class-body member assignments belong to that enum
+    artifact and need not be declared separately. For backward compatibility,
+    historical snapshots that declare the same enum as a class plus member
+    attributes continue to validate. Indirect custom enum inheritance and
+    dynamic base expressions remain ordinary class contracts.
 
   * **Context-Aware Validation Modes**
     The structural validator operates in two modes based on the manifest's intent, providing a balance between strictness and flexibility:

@@ -39,6 +39,7 @@ class FoundArtifact:
     alias_of: Optional[str] = None
     reference_context: Optional[str] = None
     signature: Optional[str] = None
+    _canonical_kind: Optional[ArtifactKind] = None
 
     def __post_init__(self) -> None:
         _validate_artifact_signature(self.kind, self.signature)
@@ -61,6 +62,20 @@ class FoundArtifact:
         if self.kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE) and self.of:
             return f"{self.kind.value}:{self.of}.{self.name}"
         return f"{self.kind.value}:{self.name}"
+
+    def _implementation_merge_keys(self) -> tuple[str, ...]:
+        """Return legacy and canonical identities used for source-presence checks."""
+        legacy_key = self.merge_key()
+        if self._canonical_kind is None:
+            return (legacy_key,)
+        if (
+            self._canonical_kind in (ArtifactKind.METHOD, ArtifactKind.ATTRIBUTE)
+            and self.of
+        ):
+            canonical_key = f"{self._canonical_kind.value}:{self.of}.{self.name}"
+        else:
+            canonical_key = f"{self._canonical_kind.value}:{self.name}"
+        return (legacy_key, canonical_key)
 
     def contract_key(self) -> str:
         return _artifact_contract_key(self.merge_key(), self.signature)

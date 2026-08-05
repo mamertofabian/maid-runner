@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -204,6 +205,7 @@ def _compare_artifacts(
     type_matcher: _TypeMatcher,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
+    found = _project_canonical_artifacts(expected, found)
 
     found_by_key: dict[str, FoundArtifact] = {}
     found_by_contract_key: dict[str, FoundArtifact] = {}
@@ -265,6 +267,45 @@ def _compare_artifacts(
                 )
 
     return errors
+
+
+def _project_canonical_artifacts(
+    expected: list[ArtifactSpec],
+    found: list[FoundArtifact],
+) -> list[FoundArtifact]:
+    """Project canonical identities without changing legacy collector output."""
+    expected_keys = {(spec.kind, spec.name, spec.of) for spec in expected}
+    roots_by_name: dict[str, list[FoundArtifact]] = {}
+    for artifact in found:
+        if artifact.of is None:
+            roots_by_name.setdefault(artifact.name, []).append(artifact)
+    projected_roots = {
+        artifacts[0].name: artifacts[0]
+        for artifacts in roots_by_name.values()
+        if len(artifacts) == 1
+        and artifacts[0]._canonical_kind is not None
+        and (artifacts[0]._canonical_kind, artifacts[0].name, None) in expected_keys
+    }
+    if not projected_roots:
+        return found
+
+    projected: list[FoundArtifact] = []
+    for artifact in found:
+        if projected_roots.get(artifact.name) is artifact:
+            canonical_kind = artifact._canonical_kind
+            if canonical_kind is not None:
+                projected.append(replace(artifact, kind=canonical_kind))
+            if (artifact.kind, artifact.name, None) in expected_keys:
+                projected.append(artifact)
+            continue
+        if (
+            artifact.kind == ArtifactKind.ATTRIBUTE
+            and artifact.of in projected_roots
+            and (artifact.kind, artifact.name, artifact.of) not in expected_keys
+        ):
+            continue
+        projected.append(artifact)
+    return projected
 
 
 def _found_artifact_for_spec(

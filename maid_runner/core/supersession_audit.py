@@ -261,7 +261,7 @@ class SupersessionAuditor:
             return False
         target_key = _removed_spec_key(spec)
         for found in collection.artifacts:
-            if found.merge_key() == target_key:
+            if target_key in found._implementation_merge_keys():
                 return False
         return True
 

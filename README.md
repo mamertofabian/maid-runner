@@ -548,9 +548,15 @@ V1 JSON manifests are auto-converted when loaded.
 
 ### Artifact Kinds
 
-**Common:** `class`, `function`, `method`, `attribute`
+**Common:** `class`, `function`, `method`, `attribute`, `enum`
 
-**TypeScript-specific:** `interface`, `type`, `enum`, `namespace`
+**TypeScript-specific:** `interface`, `type`, `namespace`
+
+For Python, a direct subclass of a standard-library `enum.Enum`, `IntEnum`,
+`StrEnum`, `Flag`, or `IntFlag` base is represented by one `kind: enum`
+artifact. Direct imports and `import enum` aliases are supported; enum members
+are covered by the enum artifact and are not declared separately. Existing
+snapshots that represent Python enums as a class plus attributes remain valid.
 
 ### Angular TypeScript Boundary
 

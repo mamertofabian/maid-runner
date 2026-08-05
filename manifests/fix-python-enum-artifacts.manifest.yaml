@@ -1,0 +1,238 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make schema-v2 kind enum validate normal Python enum subclasses without breaking
+  historical class-and-member manifests"
+type: fix
+created: "2026-08-05T10:35:42Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  source_bug_report: 
+    /home/atomrem/.maid/bug-report/20260801-104557-python-enum-artifacts.md
+  tags:
+    - python
+    - validator
+    - enum
+    - artifact-contract
+  priority: high
+description: |
+  Python currently collects `enum.Enum` subclasses as `class` plus one
+  `attribute` per member, even though schema v2 exposes `kind: enum`. This makes
+  the documented artifact impossible to satisfy and forces users into public
+  alias workarounds.
+
+  Add a deliberately narrow AST rule at the implementation collector boundary:
+  recognize direct top-level imports from Python's standard `enum` module,
+  including import aliases and `import enum` namespace aliases, and classify
+  subclasses of Enum, IntEnum, StrEnum, Flag, and IntFlag with a canonical enum
+  identity. Preserve the existing class-and-member collection shape for backward
+  compatibility with historical snapshots. During implementation comparison,
+  project that canonical identity to one enum artifact only when the merged
+  manifest declares `kind: enum`; its member attributes are then covered by the
+  enum contract instead of reported as unexpected. Ordinary classes,
+  similarly named local bases, inherited custom enum bases, and arbitrary
+  dynamic base expressions remain unchanged rather than introducing broad
+  control-flow or inheritance interpretation.
+
+  Behavioral coverage continues to use public identity-aware references. A
+  direct or module-qualified access such as `EndpointProbeStatus.COMPATIBLE_OWNED`
+  covers the enum artifact through the existing root reference; no member
+  artifact declarations are required.
+temptations:
+  - risk: "Do not classify every class whose base text ends in Enum; a project-local
+      class named Enum is not proof of stdlib enum semantics."
+    instead: "Track only top-level imports from the standard enum module and match
+      direct or namespace-aliased known enum bases."
+  - risk: "Do not globally replace the established Python class-and-member collection
+      shape; active historical manifests intentionally snapshot that representation."
+    instead: "Retain the legacy shape with an explicit canonical kind, then project it
+      only when the expected contract declares a first-class enum."
+  - risk: "Do not build inheritance or control-flow analysis to recognize indirect
+      custom enum bases."
+    instead: "Keep the rule syntactic and document direct stdlib enum-base support;
+      leave indirect inheritance for a separately designed compiler/runtime-backed
+      enhancement."
+files:
+  edit:
+    - path: maid_runner/validators/base.py
+      artifacts:
+        - kind: class
+          name: FoundArtifact
+          description: "Carry optional private canonical-kind metadata at the end of the dataclass field list so validators can project contracts without changing its public or positional compatibility surface."
+    - path: maid_runner/validators/_python_implementation.py
+      artifacts:
+        - kind: function
+          name: collect_implementation_artifacts
+          args:
+            - name: tree
+              type: ast.AST
+            - name: file_path
+              type: str
+          returns: list[FoundArtifact]
+          description: "Mark direct standard-library Python enum subclasses with
+            canonical ArtifactKind.ENUM identity while preserving legacy class and
+            member artifacts and ordinary class collection."
+    - path: maid_runner/core/_implementation_validation.py
+      artifacts:
+        - kind: function
+          name: compare_artifacts
+          args:
+            - name: expected
+              type: list[ArtifactSpec]
+            - name: found
+              type: list[FoundArtifact]
+            - name: file_path
+              type: str
+            - name: is_strict
+              type: bool
+          returns: list[ValidationError]
+          description: "Project canonical enum identities for enum contracts while leaving historical class-and-member contracts unchanged."
+    - path: maid_runner/core/_removed_artifacts.py
+      artifacts:
+        - kind: function
+          name: _validate_removed_artifacts
+          description: "Treat a canonical Python enum identity as still present when validating enum removal claims."
+    - path: maid_runner/core/supersession_audit.py
+      artifacts:
+        - kind: class
+          name: SupersessionAuditor
+          description: "Fail closed when a superseding manifest claims that a canonically identified Python enum was removed while its class remains in source."
+    - path: tests/validators/test_python.py
+      artifacts:
+        - kind: test_function
+          name: test_enum_class_with_members
+          args:
+            - name: validator
+              type: PythonValidator
+          returns: None
+          description: "Evolve the original Python enum characterization to retain its legacy class-and-member shape while exposing canonical enum identity."
+  scope:
+    - path: README.md
+      reason: "Document enum as a shared Python and TypeScript artifact kind rather
+        than TypeScript-only."
+    - path: docs/maid_specs.md
+      reason: "Document the bounded direct-stdlib-base Python enum recognition rule
+        and single-artifact member semantics."
+  create:
+    - path: tests/validators/test_python_enum_artifacts.py
+      artifacts:
+        - kind: test_function
+          name: test_python_stdlib_enum_subclasses_expose_canonical_enum_identity
+          args: []
+          returns: None
+          description: "Direct, imported-alias, module-qualified, and namespace-alias
+            standard enum subclasses expose canonical enum identity while retaining
+            legacy class and member artifacts."
+        - kind: test_function
+          name: test_non_stdlib_enum_named_bases_remain_ordinary_classes
+          args: []
+          returns: None
+          description: "Local or non-stdlib bases named Enum do not trigger enum classification
+            or member suppression."
+        - kind: test_function
+          name: test_canonical_enum_projection_is_contract_sensitive
+          args: []
+          returns: None
+          description: "Strict comparison projects canonical enum identity for an enum contract while the same collected artifacts continue to satisfy a legacy class-and-member contract."
+        - kind: test_function
+          name: test_enum_projection_rejects_later_same_name_rebindings
+          args: []
+          returns: None
+          description: "A later class or module assignment with the enum's name remains visible and prevents a strict enum contract from false-green validation."
+        - kind: test_function
+          name: test_enum_detection_rejects_non_top_level_and_shadowed_bindings
+          args: []
+          returns: None
+          description: "Conditional imports, loop and match capture shadowing, non-enum wildcard imports, and definition-header assignment expressions do not prove a direct standard-library enum base."
+        - kind: test_function
+          name: 
+            test_python_enum_manifest_validates_direct_and_module_qualified_member_usage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A kind enum manifest passes implementation and behavioral
+            validation when tests use both direct-import and module-qualified enum
+            members, with no member declarations."
+        - kind: test_function
+          name: test_legacy_python_enum_class_and_member_manifest_remains_valid
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "An existing strict snapshot that declares a Python enum as a class plus member attributes continues to validate."
+        - kind: test_function
+          name: test_removed_python_enum_still_present_reports_e311
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A removed_artifacts enum claim reports E311 while the canonically identified Python enum remains in source."
+        - kind: test_function
+          name: test_python_enum_removed_artifact_does_not_bypass_supersession_audit
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A false Python enum removal claim cannot exempt an artifact dropped by supersession."
+  read:
+    - maid_runner/validators/python.py
+    - maid_runner/validators/_python_behavioral_references.py
+    - maid_runner/core/identity.py
+    - tests/core/validation/test_behavioral_coverage.py
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_enum_artifacts.py 
+    tests/validators/test_python.py 
+    tests/core/validation/test_behavioral_coverage.py
+outcome:
+  status: completed
+  completed_at: '2026-08-05T11:05:40Z'
+  summary: Python stdlib enum subclasses now satisfy first-class enum contracts while historical class-and-member snapshots and removal-integrity checks remain correct.
+  rationale: A private canonical identity preserves the established collector surface, and contract-aware projection exposes it only for enum declarations. Conservative import and rebinding tracking prevents false greens, while canonical merge keys keep E311 and supersession checks fail-closed.
+  lessons:
+  - lesson_type: backward-compatibility
+    summary: Changing a shared collector representation can invalidate many historical contracts; private canonical metadata plus expectation-aware projection preserves old snapshots while enabling a new contract kind.
+    tags: [python, enum, collector, compatibility, chain-merge]
+    paths: [maid_runner/validators/base.py, maid_runner/core/_implementation_validation.py]
+  - lesson_type: validation-trust
+    summary: Syntactic identity tracking must fail closed across same-name definitions, wildcard imports, control-flow bindings, match captures, and definition-header assignment expressions.
+    tags: [python-ast, shadowing, false-green, validator-hardening]
+    paths: [maid_runner/validators/_python_implementation.py, tests/validators/test_python_enum_artifacts.py]
+  - lesson_type: lifecycle-integrity
+    summary: Canonical artifact identities must participate in removal and supersession checks as well as ordinary implementation comparison.
+    tags: [removed-artifacts, supersession, e311, enum]
+    paths: [maid_runner/core/_removed_artifacts.py, maid_runner/core/supersession_audit.py]
+  review_notes:
+  - source: independent-reviewer-python_enum_review
+    severity: resolved
+    summary: Initial review found same-name rebinding, shadow tracking, and enum removal-integrity false greens; focused regressions were added and all findings were fixed.
+  - source: independent-reviewer-python_enum_review
+    severity: ready
+    summary: Final review reproduced the prior cases against the corrected code, found no blocking issues, and returned ready.
+  - source: independent-reviewer-python_enum_review
+    severity: residual-risk
+    summary: Artifact coverage recommendations currently exclude enum artifacts; this advisory is outside the implementation and behavioral validation contract fixed here.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/validators/test_python_enum_artifacts.py, tests/validators/test_python.py, tests/core/validation/test_behavioral_coverage.py, tests/core/test_implementation_validation.py, tests/core/test_removed_artifacts.py, tests/core/test_supersession_audit.py]
+    status: passed
+    summary: Focused enum, validation, removal, and supersession suite passed 213 tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3748 tests with 5 skipped.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: All 385 active manifests passed; 107 superseded manifests were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 224 active manifest commands passed.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Repository lint passed; Black reported all 480 files unchanged.
+  - command: [uv, run, maid, verify, --summary, --plan-lock-scope, task, --since, 6a559d3]
+    status: passed
+    summary: Task-scoped eight-stage verification passed with no blockers and only pre-existing E307 warnings.
