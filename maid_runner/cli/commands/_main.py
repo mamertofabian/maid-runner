@@ -521,7 +521,10 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         "--preserve-red-evidence",
         action="store_true",
         dest="preserve_red_evidence",
-        help="Keep existing valid red evidence during metadata-only revisions",
+        help=(
+            "Keep existing valid red, test-only-green, or legacy-baseline evidence "
+            "during metadata-only revisions"
+        ),
     )
     rp.add_argument(
         "--stash-implementation",

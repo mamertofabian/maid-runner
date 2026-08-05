@@ -483,6 +483,7 @@ def revise_plan_lock(
     reason: str,
     agent: Optional[AgentProvenance] = None,
     prior_contract: Optional[dict] = None,
+    preserve_legacy_baseline: bool = True,
 ) -> PlanLock:
     """Re-lock with current hashes, appending the prior hashes to history."""
     if not reason or not reason.strip():
@@ -501,6 +502,34 @@ def revise_plan_lock(
             else None
         ),
     )
+    legacy_baseline = None
+    if preserve_legacy_baseline and existing.legacy_baseline is not None:
+        if existing.red_evidence is not None:
+            raise ValueError(
+                "Cannot preserve a legacy baseline from a lock that also contains "
+                "red evidence"
+            )
+        lock_path = default_plan_lock_path(
+            Path(project_root), load_manifest(manifest_path).slug
+        )
+        if not _legacy_baseline_is_valid(existing.legacy_baseline, lock_path):
+            raise ValueError("Cannot preserve an invalid legacy baseline")
+        evidence_commands = existing.legacy_baseline.get("commands")
+        current_commands = new_contract.get("validate_commands")
+        if not isinstance(evidence_commands, list) or not isinstance(
+            current_commands, list
+        ):
+            raise ValueError("Cannot preserve a legacy baseline without command data")
+        command_strings = [
+            command.get("command")
+            for command in evidence_commands
+            if isinstance(command, dict)
+        ]
+        if Counter(command_strings) != Counter(current_commands):
+            raise ValueError(
+                "Cannot preserve legacy baseline because validate commands changed"
+            )
+        legacy_baseline = existing.legacy_baseline
     return PlanLock(
         manifest_path=fresh.manifest_path,
         manifest_hash=fresh.manifest_hash,
@@ -510,6 +539,7 @@ def revise_plan_lock(
         revisions=existing.revisions + (entry,),
         red_evidence=None,
         agent=existing.agent,
+        legacy_baseline=legacy_baseline,
     )
 
 
@@ -528,13 +558,22 @@ def revision_preserves_red_evidence(
     """
     if prior_contract is None:
         return False
-    preserves_red = _red_evidence_dict_is_valid(existing.red_evidence)
-    preserves_test_only_green = _test_only_green_payload_is_valid(existing.red_evidence)
-    if not preserves_red and not preserves_test_only_green:
+    if existing.red_evidence is not None and existing.legacy_baseline is not None:
         return False
-
     root = Path(project_root)
     manifest = load_manifest(manifest_path)
+    preserves_red = _red_evidence_dict_is_valid(existing.red_evidence)
+    preserves_test_only_green = _test_only_green_payload_is_valid(existing.red_evidence)
+    preserves_legacy_baseline = _legacy_baseline_is_valid(
+        existing.legacy_baseline,
+        default_plan_lock_path(root, manifest.slug),
+    )
+    if (
+        not preserves_red
+        and not preserves_test_only_green
+        and not preserves_legacy_baseline
+    ):
+        return False
     if preserves_test_only_green:
         from maid_runner.core._file_discovery import is_test_file
 

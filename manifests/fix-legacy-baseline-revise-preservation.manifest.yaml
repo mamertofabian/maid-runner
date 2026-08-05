@@ -1,0 +1,243 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Preserve valid legacy-baseline evidence across plan-lock revisions"
+type: fix
+created: "2026-08-04T23:59:15Z"
+metadata:
+  bug_report:
+    ~/.maid/bug-report/20260804-183928-codefrost-trulyhappy-legacy-baseline-revise.md
+  tags: [plan-lock, legacy-baseline, evidence-preservation, data-integrity]
+  priority: critical
+description: |
+  A valid legacy-baseline lock currently loses `legacy_baseline` whenever
+  `maid plan revise` reconstructs the lock. Plain or `--no-run` revision can
+  therefore exit successfully while turning a strict-gate-valid lock into a
+  lock with neither red evidence nor legacy evidence. The explicit
+  `--preserve-red-evidence` path also rejects legacy baselines because its
+  evidence classifier only inspects `red_evidence`.
+
+  Preserve `existing.legacy_baseline` whenever `revise_plan_lock` reconstructs
+  a lock. Treat a valid, command-bound legacy baseline as a preservable
+  evidence class for both automatic contract-preserving revisions and explicit
+  `--preserve-red-evidence`. Explicit preservation may refresh hashes for a
+  shared behavioral test changed by another manifest while retaining the
+  original audited baseline, provided the locked and current validate-command
+  contracts still match. Invalid or command-mismatched baselines fail closed
+  and leave the lock unchanged. When a non-preserving revision captures fresh
+  red evidence, it clears the legacy channel so the lock contains exactly one
+  accepted evidence class. Existing red and test-only-green behavior is
+  unchanged, and successful preservation is visible as legacy-baseline evidence
+  in CLI output.
+temptations:
+  - risk: "Do not recapture an already-green legacy implementation and relabel it
+      as red evidence."
+    instead: "Retain the original audited legacy_baseline payload byte-for-byte while
+      refreshing only current lock and test hashes."
+  - risk: "Do not accept any dictionary with kind: legacy_baseline."
+    instead: "Reuse the existing structural and command-contract validation before
+      explicit or automatic preservation."
+  - risk: "Do not silently succeed after dropping the only strict-gate evidence."
+    instead: "Carry legacy_baseline in the core reconstruction path and assert no-run
+      revisions remain strict-gate valid."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: revise_plan_lock
+          args:
+            - {name: existing, type: PlanLock}
+            - {name: manifest_path, type: Path}
+            - {name: project_root, type: Path}
+            - {name: reason, type: str}
+            - {name: agent, type: "Optional[AgentProvenance]", default: "None"}
+            - {name: prior_contract, type: "Optional[dict]", default: "None"}
+            - {name: preserve_legacy_baseline, type: bool, default: "True"}
+          returns: PlanLock
+          description: "Re-locks current hashes and revision history, retaining an
+            existing legacy_baseline only when requested and still valid for the
+            new command contract; fresh-evidence callers explicitly replace it."
+        - kind: function
+          name: revision_preserves_red_evidence
+          args:
+            - {name: existing, type: PlanLock}
+            - {name: manifest_path, type: Path}
+            - {name: project_root, type: Path}
+            - {name: prior_contract, type: "dict | None"}
+          returns: bool
+          description: "Recognizes a valid command-bound legacy baseline alongside
+            valid red and test-only-green evidence for unchanged-contract, unchanged-test
+            automatic preservation."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Accepts valid legacy-baseline evidence on explicit and automatic
+            preservation paths, validates its commands against locked and current
+            contracts, retains it in the revised lock, and reports the evidence class
+            visibly."
+        - kind: function
+          name: _preservable_evidence_class
+          args:
+            - {name: evidence, type: object}
+            - {name: legacy_baseline, type: object, default: "None"}
+            - {name: lock_path, type: "Path | None", default: "None"}
+          returns: "str | None"
+          description: "Returns red, test-only-green, or legacy-baseline only for
+            exclusive evidence accepted by the corresponding existing validator."
+        - kind: function
+          name: _cmd_plan_revise_test_only_green
+          description: "Fresh test-only-green evidence replaces any legacy baseline
+            so only one accepted evidence channel remains."
+        - kind: function
+          name: _cmd_plan_revise_with_stashed_implementation
+          description: "Fresh red evidence captured with implementation stashed
+            replaces any legacy baseline so only one accepted evidence channel remains."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The revise help text states that --preserve-red-evidence also accepts a valid legacy baseline."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _legacy_baseline_revision_preservation_specification
+          of: documentation
+          type: markdown section
+          description: "The plan-revision specification documents explicit and automatic legacy-baseline preservation, command binding, shared-test hash refresh, and fresh-red channel replacement."
+    - path: maid_runner/docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_legacy_baseline_revision_preservation_specification
+          of: documentation
+          type: markdown section
+          description: "The packaged MAID specification copy carries the same legacy-baseline revision contract as the canonical document."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: _migrate_promotion_lock
+          description: "Normal promotion replaces legacy evidence with fresh capture,
+            while no-run promotion preserves a baseline only if rewritten commands
+            remain bound and otherwise fails closed."
+  create:
+    - path: tests/cli/test_plan_revise_legacy_baseline.py
+      artifacts:
+        - kind: test_function
+          name: test_no_run_revise_retains_legacy_baseline
+          description: "A no-run core revision keeps the original legacy baseline
+            instead of producing a both-evidence-null lock."
+        - kind: test_function
+          name:
+            test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline
+          description: "Explicit preservation accepts a valid legacy baseline, refreshes
+            a changed shared behavioral-test hash, preserves the audited payload,
+            and reports legacy-baseline evidence."
+        - kind: test_function
+          name: test_plain_contract_preserving_revise_keeps_legacy_baseline
+          description: "Plain revise automatically recognizes a valid legacy baseline
+            when contract and tests are unchanged and leaves the revised lock strict-gate
+            valid."
+        - kind: test_function
+          name: test_explicit_preserve_rejects_invalid_legacy_baseline
+          description: "Malformed legacy evidence is rejected without changing the
+            saved lock."
+        - kind: test_function
+          name: test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence
+          description: "A non-preserving revision that captures genuine fresh red
+            evidence clears the legacy channel so strict enforcement sees exactly
+            one valid evidence class."
+        - kind: test_function
+          name: test_revise_help_documents_legacy_baseline_preservation
+          description: "The real parser help advertises valid legacy baselines as an accepted explicit preservation evidence class."
+        - kind: test_function
+          name: test_explicit_preserve_rejects_dual_evidence_channels
+          description: "A malformed lock containing both red and legacy evidence
+            is rejected unchanged instead of being preserved into an E705-invalid revision."
+        - kind: test_function
+          name: test_no_run_revise_rejects_legacy_command_mismatch
+          description: "No-run revision refuses a changed validate-command contract
+            and leaves the valid legacy lock unchanged."
+        - kind: test_function
+          name: test_core_fresh_evidence_transition_drops_legacy_baseline
+          description: "Core callers that will attach freshly captured evidence
+            can explicitly suppress legacy carry-forward."
+        - kind: test_function
+          name: test_legacy_preservation_docs_are_synced
+          description: "Canonical and packaged MAID specifications both document command-bound legacy preservation and exclusive fresh-evidence replacement."
+  read:
+    - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+    - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+    - tests/cli/test_plan_revise_auto_preserve.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_plan_revise_legacy_baseline.py
+    tests/cli/test_plan_revise_auto_preserve.py
+    tests/cli/test_plan_legacy_baseline_cmd.py
+  - uv run maid validate
+    manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode
+    behavioral --quiet
+  - uv run maid validate
+    manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-05T00:19:49Z'
+  summary: Valid legacy-baseline evidence now survives safe plan revisions, explicit shared-test hash refreshes, and no-run bookkeeping without being silently discarded or mixed with fresh evidence.
+  rationale: Core reconstruction validates preserved legacy evidence against the actual lock snapshot and new validate-command contract. Every caller chooses preservation or replacement explicitly, mixed evidence fails closed, and genuine fresh red or test-only-green capture clears the legacy channel.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Evidence preservation requires both provenance validation and an exclusive evidence-channel invariant; retaining two individually plausible evidence payloads can still produce an invalid lock.
+    tags: [plan-lock, legacy-baseline, red-evidence, fail-closed]
+    paths: [maid_runner/core/plan_lock.py, maid_runner/cli/commands/plan.py]
+  - lesson_type: architecture
+    summary: Changing a core reconstruction default requires auditing every caller that later attaches evidence, including stash, test-only, and manifest-promotion workflows.
+    tags: [callers, promotion, evidence-transition]
+    paths: [maid_runner/cli/commands/plan.py, maid_runner/cli/commands/manifest.py]
+  - lesson_type: distribution
+    summary: Canonical workflow documentation and its packaged copy must evolve together and be protected by shared behavioral anchors.
+    tags: [documentation, packaged-assets, synchronization]
+    paths: [docs/maid_specs.md, maid_runner/docs/maid_specs.md]
+  review_notes:
+  - source: independent-reviewer-legacy_baseline_review-round-1
+    severity: P1 fixed
+    summary: Found dual-channel locks, unchecked no-run command mismatch, and fresh-evidence callers retaining legacy state; all transitions were made explicit and fail-closed with regression coverage.
+  - source: independent-reviewer-legacy_baseline_review-round-1
+    severity: P2 fixed
+    summary: Found stale CLI help and canonical documentation; both were updated to describe valid legacy preservation and exclusive evidence replacement.
+  - source: independent-reviewer-legacy_baseline_review-round-2
+    severity: ready
+    summary: Confirmed all blocking findings closed, production callers intentional, command binding correct, and focused validation green; noted packaged documentation drift as an advisory.
+  - source: independent-reviewer-legacy_baseline_review-final
+    severity: ready
+    summary: Confirmed the packaged documentation and synchronization test closed the final advisory with no new blocking findings.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_plan_revise_legacy_baseline.py, tests/cli/test_plan_revise_auto_preserve.py, tests/cli/test_plan_legacy_baseline_cmd.py, tests/cli/test_manifest_promote_lock_cmd.py]
+    status: passed
+    summary: Focused legacy preservation, existing revision, migration, and promotion suite passed 46 tests.
+  - command: [uv, run, python, -m, pytest, -q, 'tests/cli/test_plan*.py', tests/core/test_plan_lock.py, 'tests/cli/test_manifest_promote*.py', tests/core/test_contract_scoped_manifest_hash.py]
+    status: passed
+    summary: Expanded plan-lock and promotion regression suite passed 165 tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full repository suite passed 3717 tests with 5 skipped before the final documentation synchronization assertion, which passed in the focused suite.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Repository validation passed all 380 active manifests with 107 superseded.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Ruff passed repository-wide; Black check reported all 475 files unchanged.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 218 active manifest command groups passed after the final review fixes and documentation synchronization.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD, --packet]
+    status: passed
+    summary: Strict nine-stage handoff verification passed with no blocking findings across both completed bug-fix contracts.

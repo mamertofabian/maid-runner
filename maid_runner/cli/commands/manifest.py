@@ -315,6 +315,7 @@ def _migrate_promotion_lock(
             project_root,
             reason,
             prior_contract=_load_locked_contract(lock_path),
+            preserve_legacy_baseline=no_run,
         )
         if not no_run:
             migrated = replace(

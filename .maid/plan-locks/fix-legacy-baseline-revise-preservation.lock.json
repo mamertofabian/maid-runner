@@ -1,0 +1,580 @@
+{
+  "manifest_path": "manifests/fix-legacy-baseline-revise-preservation.manifest.yaml",
+  "manifest_hash": "sha256-contract:2d190105a40ad3f7c3df0036e571d87b4a8996e54fe6441c28af9a8d35e0b5ae",
+  "test_hashes": {
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+    "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:5daeb0b5fdbc462472671b52c5d468ab614e98cb2145ccd4b5250debe2b5323a"
+  },
+  "created_at": "2026-08-04T23:58:58.180064+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:26ccaaeb0173aa6cfc130b42e405c405ba48c96063c65d28cbc46ddbb36d6e70",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:e4e3d5c9a913294372719d4ffd1664994280bb0260c9d7f3d23eadb2d9c3c5ef"
+      },
+      "revised_at": "2026-08-04T23:59:15.770030+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-legacy-baseline-revise-preservation.manifest.yaml -> manifests/fix-legacy-baseline-revise-preservation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-legacy-baseline-revise-preservation.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-legacy-baseline-revise-preservation.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6be5c622a0954e2d24025f95e83e1054b9812135079ea0b96e5d3e2d3dced87d",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:e4e3d5c9a913294372719d4ffd1664994280bb0260c9d7f3d23eadb2d9c3c5ef"
+      },
+      "revised_at": "2026-08-05T00:02:51.092787+00:00",
+      "reason": "Keep evidence channels exclusive when a later revision captures fresh red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3f6ceefc44049bf39cc4d4e0adc41abcd8389ecfdf4516b87c9b34ab3d9f8dcc",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:f09bc30ffbed60691174dc3ced47fadd40313b6ed4fc1f0d79c5b3b8b560474b"
+      },
+      "revised_at": "2026-08-05T00:04:52.894347+00:00",
+      "reason": "Align CLI help and public plan-revision documentation with legacy-baseline preservation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification",
+          "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:kind=attribute",
+          "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:of=documentation",
+          "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:type=markdown section",
+          "maid_runner/cli/commands/_main.py:function:build_parser",
+          "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+          "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_revise_help_documents_legacy_baseline_preservation",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_revise_help_documents_legacy_baseline_preservation:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:docs/maid_specs.md",
+          "edit:maid_runner/cli/commands/_main.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:23dceeb87ad91e1e04f771de873ba3299cc821d5d1299b9b251e8a7e55676e0f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:e1849143f60ec3ec227785a705a872af5016b792149564f07c7c0c3f5813d02f"
+      },
+      "revised_at": "2026-08-05T00:07:28.600411+00:00",
+      "reason": "Fail closed on dual-channel and command-mismatched legacy revisions and cover all fresh-evidence callers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/manifest.py:function:_migrate_promotion_lock",
+          "maid_runner/cli/commands/manifest.py:function:_migrate_promotion_lock:kind=function",
+          "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_test_only_green",
+          "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_test_only_green:kind=function",
+          "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_with_stashed_implementation",
+          "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_with_stashed_implementation:kind=function",
+          "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=preserve_legacy_baseline:type=bool:default=True",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_core_fresh_evidence_transition_drops_legacy_baseline",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_core_fresh_evidence_transition_drops_legacy_baseline:kind=test_function",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_dual_evidence_channels",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_dual_evidence_channels:kind=test_function",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_rejects_legacy_command_mismatch",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_rejects_legacy_command_mismatch:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/manifest.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d644446198d22ef04fdd8309520b3cf0777c011b785650a827f12c47a9eb3b92",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:f69cc12a4a7dc467b937263f446812f823bfed39931744da6af09a52abc38ac5"
+      },
+      "revised_at": "2026-08-05T00:10:45.357532+00:00",
+      "reason": "Normalize wrapped argparse help in the behavioral assertion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d644446198d22ef04fdd8309520b3cf0777c011b785650a827f12c47a9eb3b92",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:f8f3d003249424ccd898df4e6366df5416eeb2a537f57ac9a26eb87fd8ab11a5"
+      },
+      "revised_at": "2026-08-05T00:11:44.076490+00:00",
+      "reason": "Assert argparse's hyphen-aware wrapped legacy-baseline help text",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d644446198d22ef04fdd8309520b3cf0777c011b785650a827f12c47a9eb3b92",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:3830dbc9ddf454c1b609ba81772a4883dd816fbd2fec6828957039e1714a663a"
+      },
+      "revised_at": "2026-08-05T00:16:29.907793+00:00",
+      "reason": "Synchronize legacy-baseline revision guidance into the packaged specification copy",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification",
+          "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:kind=attribute",
+          "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:of=documentation",
+          "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:type=markdown section",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_legacy_preservation_docs_are_synced",
+          "tests/cli/test_plan_revise_legacy_baseline.py:test_legacy_preservation_docs_are_synced:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/docs/maid_specs.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2d190105a40ad3f7c3df0036e571d87b4a8996e54fe6441c28af9a8d35e0b5ae",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_revise_legacy_baseline.py": "sha256-pyast:v2:1e0b8c14a38aa7bf77daab1b4929058d13f5e614d443d70f52b3d28dbd2c0787"
+      },
+      "revised_at": "2026-08-05T00:17:37.881459+00:00",
+      "reason": "Normalize markdown wrapping in canonical and packaged documentation assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-05T00:17:56.494191+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_revise_legacy_baseline.py tests/cli/test_plan_revise_auto_preserve.py tests/cli/test_plan_legacy_baseline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            \"locks never preserve two evidence classes at once\",\n        )\n    \n        for relative_path in (\"docs/maid_specs.md\", \"maid_runner/docs/maid_specs.md\"):\n            text = \" \".join((root / relative_path).read_text(encoding=\"utf-8\").split())\n            for anchor in anchors:\n>               assert anchor in text\nE               AssertionError: assert 'metadata-only revision carries the' in '### **MAID: The Manifest-driven AI Development Methodology** **Version:** 1.3 **Date:** October 30, 2025 #### **Abstr... allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.'\n\ntests/cli/test_plan_revise_legacy_baseline.py:305: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_no_run_revise_retains_legacy_baseline\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_plain_contract_preserving_revise_keeps_legacy_baseline\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_revise_help_documents_legacy_baseline_preservation\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_explicit_preserve_rejects_dual_evidence_channels\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_no_run_revise_rejects_legacy_command_mismatch\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_core_fresh_evidence_transition_drops_legacy_baseline\nFAILED tests/cli/test_plan_revise_legacy_baseline.py::test_legacy_preservation_docs_are_synced\n8 failed, 27 passed in 17.02s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-packet-output-ownership.lock.json",
+      "README.md",
+      "docs/agent-retry-protocol.md",
+      "maid_runner/cli/commands/validate.py",
+      "maid_runner/cli/commands/verify.py",
+      "maid_runner/core/failure_packet.py",
+      "manifests/fix-packet-output-ownership.manifest.yaml",
+      "tests/cli/test_packet_flag.py",
+      "tests/cli/test_packet_output_ownership.py",
+      "tests/core/test_failure_packet.py",
+      "tests/test_packet_skill_guidance_docs.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._legacy_baseline_revision_preservation_specification:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/manifest.py:function:_migrate_promotion_lock",
+      "maid_runner/cli/commands/manifest.py:function:_migrate_promotion_lock:kind=function",
+      "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_test_only_green",
+      "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_test_only_green:kind=function",
+      "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_with_stashed_implementation",
+      "maid_runner/cli/commands/plan.py:function:_cmd_plan_revise_with_stashed_implementation:kind=function",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class:arg=evidence:type=object:default=None",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class:arg=legacy_baseline:type=object:default=None",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class:arg=lock_path:type=Path | None:default=None",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class:kind=function",
+      "maid_runner/cli/commands/plan.py:function:_preservable_evidence_class:returns=str | None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=agent:type=Optional[AgentProvenance]:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=preserve_legacy_baseline:type=bool:default=True",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=prior_contract:type=Optional[dict]:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:kind=function",
+      "maid_runner/core/plan_lock.py:function:revise_plan_lock:returns=PlanLock",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=prior_contract:type=dict | None:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:returns=bool",
+      "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification",
+      "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:kind=attribute",
+      "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:of=documentation",
+      "maid_runner/docs/maid_specs.md:attribute:documentation._distributed_legacy_baseline_revision_preservation_specification:type=markdown section",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_core_fresh_evidence_transition_drops_legacy_baseline",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_core_fresh_evidence_transition_drops_legacy_baseline:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_dual_evidence_channels",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_dual_evidence_channels:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_invalid_legacy_baseline",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_explicit_preserve_rejects_invalid_legacy_baseline:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_legacy_preservation_docs_are_synced",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_legacy_preservation_docs_are_synced:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_rejects_legacy_command_mismatch",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_rejects_legacy_command_mismatch:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_retains_legacy_baseline",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_no_run_revise_retains_legacy_baseline:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_contract_preserving_revise_keeps_legacy_baseline",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_plain_contract_preserving_revise_keeps_legacy_baseline:kind=test_function",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_revise_help_documents_legacy_baseline_preservation",
+      "tests/cli/test_plan_revise_legacy_baseline.py:test_revise_help_documents_legacy_baseline_preservation:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_revise_legacy_baseline.py"
+      ],
+      "edit": [
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "read": [
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+        "tests/cli/test_plan_legacy_baseline_cmd.py",
+        "tests/cli/test_plan_revise_auto_preserve.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_revise_legacy_baseline.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_no_run_revise_retains_legacy_baseline",
+              "description": "A no-run core revision keeps the original legacy baseline instead of producing a both-evidence-null lock."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline",
+              "description": "Explicit preservation accepts a valid legacy baseline, refreshes a changed shared behavioral-test hash, preserves the audited payload, and reports legacy-baseline evidence."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plain_contract_preserving_revise_keeps_legacy_baseline",
+              "description": "Plain revise automatically recognizes a valid legacy baseline when contract and tests are unchanged and leaves the revised lock strict-gate valid."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_preserve_rejects_invalid_legacy_baseline",
+              "description": "Malformed legacy evidence is rejected without changing the saved lock."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence",
+              "description": "A non-preserving revision that captures genuine fresh red evidence clears the legacy channel so strict enforcement sees exactly one valid evidence class."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_help_documents_legacy_baseline_preservation",
+              "description": "The real parser help advertises valid legacy baselines as an accepted explicit preservation evidence class."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_preserve_rejects_dual_evidence_channels",
+              "description": "A malformed lock containing both red and legacy evidence is rejected unchanged instead of being preserved into an E705-invalid revision."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_run_revise_rejects_legacy_command_mismatch",
+              "description": "No-run revision refuses a changed validate-command contract and leaves the valid legacy lock unchanged."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_core_fresh_evidence_transition_drops_legacy_baseline",
+              "description": "Core callers that will attach freshly captured evidence can explicitly suppress legacy carry-forward."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_preservation_docs_are_synced",
+              "description": "Canonical and packaged MAID specifications both document command-bound legacy preservation and exclusive fresh-evidence replacement."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "revise_plan_lock",
+              "description": "Re-locks current hashes and revision history, retaining an existing legacy_baseline only when requested and still valid for the new command contract; fresh-evidence callers explicitly replace it.",
+              "args": [
+                {
+                  "name": "existing",
+                  "type": "PlanLock"
+                },
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                },
+                {
+                  "name": "agent",
+                  "type": "Optional[AgentProvenance]",
+                  "default": "None"
+                },
+                {
+                  "name": "prior_contract",
+                  "type": "Optional[dict]",
+                  "default": "None"
+                },
+                {
+                  "name": "preserve_legacy_baseline",
+                  "type": "bool",
+                  "default": "True"
+                }
+              ],
+              "returns": "PlanLock"
+            },
+            {
+              "kind": "function",
+              "name": "revision_preserves_red_evidence",
+              "description": "Recognizes a valid command-bound legacy baseline alongside valid red and test-only-green evidence for unchanged-contract, unchanged-test automatic preservation.",
+              "args": [
+                {
+                  "name": "existing",
+                  "type": "PlanLock"
+                },
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "prior_contract",
+                  "type": "dict | None"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Accepts valid legacy-baseline evidence on explicit and automatic preservation paths, validates its commands against locked and current contracts, retains it in the revised lock, and reports the evidence class visibly.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "_preservable_evidence_class",
+              "description": "Returns red, test-only-green, or legacy-baseline only for exclusive evidence accepted by the corresponding existing validator.",
+              "args": [
+                {
+                  "name": "evidence",
+                  "type": "object"
+                },
+                {
+                  "name": "legacy_baseline",
+                  "type": "object",
+                  "default": "None"
+                },
+                {
+                  "name": "lock_path",
+                  "type": "Path | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "_cmd_plan_revise_test_only_green",
+              "description": "Fresh test-only-green evidence replaces any legacy baseline so only one accepted evidence channel remains."
+            },
+            {
+              "kind": "function",
+              "name": "_cmd_plan_revise_with_stashed_implementation",
+              "description": "Fresh red evidence captured with implementation stashed replaces any legacy baseline so only one accepted evidence channel remains."
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "The revise help text states that --preserve-red-evidence also accepts a valid legacy baseline.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_legacy_baseline_revision_preservation_specification",
+              "description": "The plan-revision specification documents explicit and automatic legacy-baseline preservation, command binding, shared-test hash refresh, and fresh-red channel replacement.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_legacy_baseline_revision_preservation_specification",
+              "description": "The packaged MAID specification copy carries the same legacy-baseline revision contract as the canonical document.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_migrate_promotion_lock",
+              "description": "Normal promotion replaces legacy evidence with fresh capture, while no-run promotion preserves a baseline only if rewritten commands remain bound and otherwise fails closed."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "tests/cli/test_plan_legacy_baseline_cmd.py",
+        "tests/cli/test_plan_revise_auto_preserve.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_legacy_baseline_cmd.py",
+      "tests/cli/test_plan_revise_auto_preserve.py",
+      "tests/cli/test_plan_revise_legacy_baseline.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_revise_legacy_baseline.py tests/cli/test_plan_revise_auto_preserve.py tests/cli/test_plan_legacy_baseline_cmd.py",
+      "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-legacy-baseline-revise-preservation.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

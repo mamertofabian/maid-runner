@@ -207,19 +207,28 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         )
         return 2
 
-    preserved_evidence_class = _preservable_evidence_class(existing.red_evidence)
+    preserved_evidence_class = _preservable_evidence_class(
+        existing.red_evidence,
+        existing.legacy_baseline,
+        ctx.lock_path,
+    )
     if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
             "--preserve-red-evidence requires existing valid red or "
-            "test-only-green evidence.",
+            "test-only-green evidence, or a valid legacy baseline.",
             json_mode=ctx.json_mode,
         )
         return 2
     if preserve_red_evidence:
         try:
             locked_contract = _load_locked_contract(ctx.lock_path)
+            preserved_evidence = (
+                existing.legacy_baseline
+                if preserved_evidence_class == "legacy-baseline"
+                else existing.red_evidence
+            )
             preserved_commands_match = _preserved_evidence_commands_match_manifest(
-                existing.red_evidence,
+                preserved_evidence,
                 ctx.manifest_path,
                 locked_contract,
             )
@@ -281,6 +290,9 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
             reason,
             agent=provenance.provenance,
             prior_contract=prior_contract,
+            preserve_legacy_baseline=bool(
+                preserve_red_evidence or auto_preserve or getattr(args, "no_run", False)
+            ),
         )
         if preserve_red_evidence or auto_preserve:
             revised = replace(revised, red_evidence=existing.red_evidence)
@@ -290,6 +302,7 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
                 red_evidence=capture_red_phase_evidence(
                     ctx.manifest_path, ctx.project_root
                 ).to_payload(),
+                legacy_baseline=None,
             )
     except _plan_input_errors() as exc:
         print_error(str(exc), json_mode=ctx.json_mode)
@@ -530,11 +543,22 @@ def _test_only_green_payload_is_valid(evidence: object) -> bool:
     )
 
 
-def _preservable_evidence_class(evidence: object) -> str | None:
+def _preservable_evidence_class(
+    evidence: object,
+    legacy_baseline: object = None,
+    lock_path: Path | None = None,
+) -> str | None:
+    if evidence is not None and legacy_baseline is not None:
+        return None
     if _red_evidence_payload_is_valid(evidence if isinstance(evidence, dict) else None):
         return "red"
     if _test_only_green_payload_is_valid(evidence):
         return "test-only-green"
+    if lock_path is not None:
+        from maid_runner.core.plan_lock import _legacy_baseline_is_valid
+
+        if _legacy_baseline_is_valid(legacy_baseline, lock_path):
+            return "legacy-baseline"
     return None
 
 
@@ -690,6 +714,7 @@ def _cmd_plan_revise_test_only_green(
             reason,
             agent=agent,
             prior_contract=_load_locked_contract(ctx.lock_path),
+            preserve_legacy_baseline=False,
         )
         captured = capture_red_phase_evidence(ctx.manifest_path, ctx.project_root)
         failing = [
@@ -920,6 +945,7 @@ def _cmd_plan_revise_with_stashed_implementation(
                 reason,
                 agent=agent,
                 prior_contract=_load_locked_contract(ctx.lock_path),
+                preserve_legacy_baseline=False,
             )
             evidence = capture_red_phase_evidence(
                 ctx.manifest_path, ctx.project_root

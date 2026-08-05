@@ -185,9 +185,12 @@ A structurally valid, command-snapshot-bound legacy baseline satisfies
 `--require-red-evidence` as an explicit brownfield exception. New or untracked
 manifests, ordinary `--no-run` locks, non-green commands, contract changes,
 mutated contract files, and malformed or command-mismatched legacy records
-continue to fail E704 or E705. A later plan revision does not carry the legacy
-baseline forward; new behavioral work requires a new manifest and genuine red
-evidence.
+continue to fail E704 or E705. A later metadata-only revision carries the
+legacy baseline forward only while its command contract remains unchanged.
+Explicit `--preserve-red-evidence` may refresh hashes for a shared behavioral
+test while retaining that audited baseline. A revision that captures genuine
+fresh red or test-only-green evidence replaces the legacy channel; locks never
+preserve two evidence classes at once.
 
 Intentional plan changes use
 `maid plan revise <manifest-path> --reason "<text>"`. The reason is required
@@ -233,11 +236,11 @@ stash dependency trees.
 
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
---preserve-red-evidence`. This preserves the existing valid red evidence while
-updating the manifest and behavioral test hashes. The option is rejected unless
-the existing lock already has valid red evidence or internally valid
-`test_only_green` evidence, and it cannot be combined with `--no-run`. It does
-not bypass E707: changing validate command strings while
+--preserve-red-evidence`. This preserves existing valid red evidence,
+internally valid `test_only_green` evidence, or a valid command-bound legacy
+baseline while updating the manifest and behavioral test hashes. The option is
+rejected for invalid, mixed, or command-mismatched evidence, and it cannot be
+combined with `--no-run`. It does not bypass E707: changing validate command strings while
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
 
