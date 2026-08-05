@@ -16,7 +16,7 @@ CONFIG_NAME = ".pre-commit-config.yaml"
 START_MARKER = "# BEGIN MAID RUNNER PRE-COMMIT"
 END_MARKER = "# END MAID RUNNER PRE-COMMIT"
 VERIFY_ENTRY = (
-    "maid verify --summary --advisory --require-plan-lock --require-red-evidence "
+    "maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence "
     "--fail-fast --no-changed-scope --file-tracking-scope task "
     "--plan-lock-scope task --since HEAD"
 )

@@ -29,7 +29,7 @@ _PRE_COMMIT_SECTION_START = "# BEGIN MAID RUNNER PRE-COMMIT"
 _PRE_COMMIT_SECTION_END = "# END MAID RUNNER PRE-COMMIT"
 _PRE_COMMIT_HOOK_ID = "maid-verify"
 _PRE_COMMIT_VERIFY_ARGS = (
-    "verify --summary --advisory --require-plan-lock --require-red-evidence "
+    "verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence "
     "--fail-fast --no-changed-scope --file-tracking-scope task "
     "--plan-lock-scope task --since HEAD"
 )

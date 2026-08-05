@@ -92,7 +92,7 @@ maid init --tool generic         # Generic MAID.md
 formatting, and other project configuration. The managed hook runs:
 
 ```bash
-maid verify --summary --advisory --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
+maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
 ```
 
 MAID provisions the project configuration but does not replace or activate Git
