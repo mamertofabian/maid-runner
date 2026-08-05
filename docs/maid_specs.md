@@ -156,16 +156,22 @@ control flow by parsing the wrapper source.
 
 Completed manifests that predate plan-lock adoption have a separate migration
 path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
-The manifest must be tracked and already present at Git HEAD. The command
-rejects every dirty path except the manifest, requires identical declared
-artifacts and file sections relative to HEAD, permits behavioral-test discovery
-only to grow, and requires every prior validate argv to remain exact, gain only
-appended behavioral-test paths discovered from the current command set, or be
-preserved exactly under `acceptance.tests` for an audited validate-to-acceptance
-cleanup. Acceptance-preserved commands are not run while capturing the green
-baseline; they remain explicit opt-in evidence outside default `maid test` and
-`maid verify` gates. Suffix extension is refused when the committed argv ends in
-an option token, because the path could be consumed as that option's value.
+The normal path compares a tracked manifest with its blob at Git HEAD. A
+manifest absent from HEAD may instead bootstrap its first commit from the Git
+index, but only when the manifest is staged, its worktree bytes match the staged
+blob exactly, every declared non-deletion path and discovered behavioral test
+already exists cleanly at HEAD, and every declared deletion is already absent
+there. An unstaged manifest or a staged implementation/test change is therefore
+not eligible. The command rejects every dirty path except the manifest,
+requires identical declared artifacts and file sections relative to its chosen
+manifest baseline, permits behavioral-test discovery only to grow, and requires
+every prior validate argv to remain exact, gain only appended behavioral-test
+paths discovered from the current command set, or be preserved exactly under
+`acceptance.tests` for an audited validate-to-acceptance cleanup.
+Acceptance-preserved commands are not run while capturing the green baseline;
+they remain explicit opt-in evidence outside default `maid test` and `maid
+verify` gates. Suffix extension is refused when the committed argv ends in an
+option token, because the path could be consumed as that option's value.
 Overlapping command prefixes are matched one-to-one, and additional validate
 commands are allowed. It then runs every current command and requires a green
 exit code of zero.
@@ -180,12 +186,14 @@ valid competing lock is likewise preserved for explicit operator review.
 
 The resulting lock keeps `red_evidence: null` and stores an independent
 `legacy_baseline` record containing the required reason, baseline commit and
-manifest hash, contract delta, bounded green command results, and capture time.
+manifest hash, explicit `baseline_manifest_source` (`head` or `index`), contract
+delta, bounded green command results, and capture time. Historical records
+without the source field are interpreted as `head` for compatibility.
 A structurally valid, command-snapshot-bound legacy baseline satisfies
 `--require-red-evidence` as an explicit brownfield exception. New or untracked
-manifests, ordinary `--no-run` locks, non-green commands, contract changes,
-mutated contract files, and malformed or command-mismatched legacy records
-continue to fail E704 or E705. A later metadata-only revision carries the
+and unstaged manifests, ordinary `--no-run` locks, non-green commands, contract
+changes, mutated contract files, and malformed or command-mismatched legacy
+records continue to fail E704 or E705. A later metadata-only revision carries the
 legacy baseline forward only while its command contract remains unchanged.
 Explicit `--preserve-red-evidence` may refresh hashes for a shared behavioral
 test while retaining that audited baseline. A revision that captures genuine

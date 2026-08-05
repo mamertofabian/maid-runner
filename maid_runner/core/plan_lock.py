@@ -144,6 +144,7 @@ class LegacyBaselineEvidence:
     contract_delta: ContractDelta
     commands: tuple[RedPhaseCommandEvidence, ...]
     captured_at: str
+    baseline_manifest_source: str = "head"
 
     def to_payload(self) -> dict:
         """Serialize legacy provenance without claiming historical red evidence."""
@@ -153,6 +154,7 @@ class LegacyBaselineEvidence:
             "reason": self.reason,
             "baseline_commit": self.baseline_commit,
             "baseline_manifest_hash": self.baseline_manifest_hash,
+            "baseline_manifest_source": self.baseline_manifest_source,
             "contract_delta": _contract_delta_to_payload(self.contract_delta),
             "captured_at": self.captured_at,
             "commands": [
@@ -750,7 +752,7 @@ def capture_red_phase_evidence(
 def capture_legacy_baseline_evidence(
     manifest_path: Path, project_root: Path, reason: str
 ) -> LegacyBaselineEvidence:
-    """Capture a green, contract-stable baseline for a tracked legacy manifest."""
+    """Capture a green, contract-stable baseline for a legacy manifest."""
     if not reason or not reason.strip():
         raise ValueError("Legacy-baseline migration requires a non-empty reason")
 
@@ -761,7 +763,25 @@ def capture_legacy_baseline_evidence(
     # git show resolves paths from the repository root regardless of cwd, so the
     # blob must be addressed by its repo-root path even though every comparison
     # below is project-relative.
-    baseline_bytes = _git_bytes(root, "show", f"HEAD:{_git_prefix(root)}{manifest_rel}")
+    repository_manifest_path = f"{_git_prefix(root)}{manifest_rel}"
+    head_manifest_spec = f"HEAD:{repository_manifest_path}"
+    if _git_object_exists(root, head_manifest_spec):
+        baseline_bytes = _git_bytes(root, "show", head_manifest_spec)
+        baseline_manifest_source = "head"
+    else:
+        index_manifest_spec = f":{repository_manifest_path}"
+        if not _git_object_exists(root, index_manifest_spec):
+            raise ValueError(
+                "A legacy-baseline manifest absent from HEAD must be staged in "
+                "the Git index"
+            )
+        baseline_bytes = _git_bytes(root, "show", index_manifest_spec)
+        if current_path.read_bytes() != baseline_bytes:
+            raise ValueError(
+                "A legacy-baseline manifest absent from HEAD must match the "
+                "staged index blob exactly"
+            )
+        baseline_manifest_source = "index"
     dirty_paths = _git_changed_paths(root)
     if dirty_paths - {manifest_rel}:
         raise ValueError(
@@ -771,6 +791,8 @@ def capture_legacy_baseline_evidence(
 
     current_manifest = load_manifest(current_path)
     current_contract = _manifest_contract(current_manifest, root)
+    if baseline_manifest_source == "index":
+        _require_first_commit_contract_at_head(current_manifest, current_contract, root)
     with tempfile.TemporaryDirectory(prefix="maid-legacy-baseline-") as temp_dir:
         baseline_path = Path(temp_dir) / current_path.name
         baseline_path.write_bytes(baseline_bytes)
@@ -869,6 +891,7 @@ def capture_legacy_baseline_evidence(
         contract_delta=delta,
         commands=tuple(commands),
         captured_at=_utc_now(),
+        baseline_manifest_source=baseline_manifest_source,
     )
 
 
@@ -1312,6 +1335,50 @@ def _git_bytes(project_root: Path, *args: str) -> bytes:
     return _git_result(project_root, *args, text=False).stdout
 
 
+def _git_object_exists(project_root: Path, object_spec: str) -> bool:
+    result = subprocess.run(
+        ["git", "cat-file", "-e", object_spec],
+        cwd=project_root,
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def _require_first_commit_contract_at_head(
+    manifest: Manifest, contract: dict, project_root: Path
+) -> None:
+    """Reject index bootstrap when declared brownfield code is not at HEAD."""
+    prefix = _git_prefix(project_root)
+    absent_paths = {spec.path for spec in manifest.all_file_specs if spec.is_absent}
+    absent_paths.update(spec.path for spec in manifest.files_delete)
+    required_paths = set(manifest.all_referenced_paths)
+    required_paths.update(_contract_string_set(contract, "test_files"))
+    required_paths -= absent_paths
+
+    missing = sorted(
+        path
+        for path in required_paths
+        if not _git_object_exists(project_root, f"HEAD:{prefix}{path}")
+    )
+    if missing:
+        raise ValueError(
+            "First-commit legacy-baseline contract path(s) must already exist at "
+            "HEAD: " + ", ".join(missing)
+        )
+
+    undeleted = sorted(
+        path
+        for path in absent_paths
+        if _git_object_exists(project_root, f"HEAD:{prefix}{path}")
+    )
+    if undeleted:
+        raise ValueError(
+            "First-commit legacy-baseline deletion path(s) must already be absent "
+            "at HEAD: " + ", ".join(undeleted)
+        )
+
+
 def _git_result(
     project_root: Path, *args: str, text: bool
 ) -> subprocess.CompletedProcess:
@@ -1679,12 +1746,15 @@ def _legacy_baseline_is_valid(evidence: object, lock_path: Path) -> bool:
     reason = evidence.get("reason")
     commit = evidence.get("baseline_commit")
     manifest_hash = evidence.get("baseline_manifest_hash")
+    manifest_source = evidence.get("baseline_manifest_source", "head")
     captured_at = evidence.get("captured_at")
     if not isinstance(reason, str) or not reason.strip():
         return False
     if not _is_hex_digest(commit, lengths={40, 64}):
         return False
     if not _is_hex_digest(manifest_hash, lengths={64}):
+        return False
+    if manifest_source not in {"head", "index"}:
         return False
     if not isinstance(captured_at, str) or not captured_at.strip():
         return False
