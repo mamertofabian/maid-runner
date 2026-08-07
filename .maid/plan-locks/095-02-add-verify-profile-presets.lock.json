@@ -2,13 +2,13 @@
   "manifest_path": "manifests/095-02-add-verify-profile-presets.manifest.yaml",
   "manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
   "test_hashes": {
-    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
     "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
     "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
-    "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+    "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:ee4235337ea473e9fe90c4dd4d2d7570922477a349717462608c2ca16a621717"
   },
   "created_at": "2026-08-07T04:15:19.885861+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1829db64444b104fbfa77575de5339affe72209b175f9f406320aa251570364a",
@@ -52,6 +52,46 @@
         "artifacts_removed": [
           "maid_runner/core/verify_profiles.py:function:verify_profile_names:returns=tuple[str, ...]"
         ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+      },
+      "revised_at": "2026-08-07T12:10:40.474545+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+      },
+      "revised_at": "2026-08-07T12:25:45.706889+00:00",
+      "reason": "095-04 migrates shared guidance and test expectations to gate-equivalent named verify profiles without changing the historical behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],

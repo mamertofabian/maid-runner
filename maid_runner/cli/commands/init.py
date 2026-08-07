@@ -28,11 +28,7 @@ _PRE_COMMIT_CONFIG = Path(".pre-commit-config.yaml")
 _PRE_COMMIT_SECTION_START = "# BEGIN MAID RUNNER PRE-COMMIT"
 _PRE_COMMIT_SECTION_END = "# END MAID RUNNER PRE-COMMIT"
 _PRE_COMMIT_HOOK_ID = "maid-verify"
-_PRE_COMMIT_VERIFY_ARGS = (
-    "verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence "
-    "--fail-fast --no-changed-scope --file-tracking-scope task "
-    "--plan-lock-scope task --since HEAD"
-)
+_PRE_COMMIT_VERIFY_ARGS = "verify --profile pre-commit --since HEAD"
 _GITIGNORE_PATH = Path(".gitignore")
 _GITIGNORE_SECTION_START = "# BEGIN MAID RUNNER GENERATED FILES"
 _GITIGNORE_SECTION_END = "# END MAID RUNNER GENERATED FILES"

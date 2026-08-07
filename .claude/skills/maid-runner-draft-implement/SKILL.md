@@ -109,7 +109,7 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
    implementation:
 
 ```bash
-uv run maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
+uv run maid verify --profile handoff --since <baseline>
 ```
 
 Prefer `--summary` for agent and human handoff because it keeps blocking

@@ -50,6 +50,10 @@ Confirm it works: `<maid> --version` and `<maid> plan --help` (the latter
 confirms plan-lock support, i.e. a current enough maid-runner). Use `<maid>` for
 every command below.
 
+Profile-bearing generated hooks and guidance require `maid-runner>=2.25.0`.
+If `<maid> --version` is older, update the runner before refreshing the payload;
+do not generate profile commands for a hook that resolves an older executable.
+
 ## Phase 2 — Survey current state
 
 ```bash
@@ -119,8 +123,8 @@ old flow (e.g. ending at `make check`, with no `maid plan lock` or
 
 - Read CLAUDE.md / AGENTS.md. If a hand-written MAID workflow omits plan-lock and
   the verify gate, update it: add the `maid plan lock` step (after approval,
-  before implementation) and the `maid verify --require-plan-lock
-  --require-red-evidence` handoff step, and state that the installed skills are
+  before implementation) and the `maid verify --profile handoff` handoff step,
+  and state that the installed skills are
   the authoritative workflow.
 - Keep edits minimal and faithful; preserve project-specific content. Do not
   touch the marker-delimited section (init owns it).
@@ -181,7 +185,7 @@ before promoting the selected draft when completed Outcomes exist →
 `maid plan lock` (red evidence) →
 `maid manifest promote manifests/drafts/<slug>.manifest.yaml` → implement →
 `maid validate --mode implementation` →
-`maid verify --summary --require-plan-lock --require-red-evidence` → review →
+`maid verify --profile handoff` → review →
 capture `outcome:` + `maid learn`. Optionally wire `maid verify` / SARIF into CI.
 Prefer `--summary` for agent and human handoff because it keeps blocking
 failures visible while deduplicating warning storms; rerun with raw text,

@@ -4,12 +4,12 @@
   "test_hashes": {
     "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
     "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
-    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
-    "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:79a088fc52610d7d144365fd0018f67653a1eee8ba9cc50dad5b5390cf8ee6ae",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:644a1b784b36f869de8a3987c9dd27e64f691f2be7215bf6dc34eb78b889836f",
     "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
   },
   "created_at": "2026-08-07T06:29:14.208718+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:326cc1139c53d7a4c275543bb24bf1293b8739b26c9cccc77484d220ec371c7e",
@@ -68,6 +68,27 @@
       },
       "revised_at": "2026-08-07T06:52:19.089495+00:00",
       "reason": "Implementation review A1/A2/A3: pin the AGENTS.md augment guard to the step 8 instruction rather than the file, and correct the manifest text describing the payload boundary shape and the test_init_pre_commit.py lock owner count",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:59ea66fa66fd510b554b2b78081119f44068d631955c77676fa17ba29f3c445a",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:79a088fc52610d7d144365fd0018f67653a1eee8ba9cc50dad5b5390cf8ee6ae",
+        "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
+      },
+      "revised_at": "2026-08-07T12:10:40.708550+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

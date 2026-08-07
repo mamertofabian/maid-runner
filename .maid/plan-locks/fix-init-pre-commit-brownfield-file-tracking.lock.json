@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml",
   "manifest_hash": "sha256-contract:1c70766c2754ff92965ea7f789eccc4d2a179cba8066b51875a4557a49cb361a",
   "test_hashes": {
-    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
     "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e"
   },
   "created_at": "2026-07-11T04:11:31.324237+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:025b21112e2c1b5f663f4c126d6bd8b3efece36c48838c5fa5d40ccfc5034932",
@@ -140,6 +140,24 @@
           "scope:README.md",
           "scope:maid_runner/cli/commands/init.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c70766c2754ff92965ea7f789eccc4d2a179cba8066b51875a4557a49cb361a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e"
+      },
+      "revised_at": "2026-08-07T12:10:41.377159+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-init-empty-pre-commit-hook.manifest.yaml",
   "manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
   "test_hashes": {
-    "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6",
-    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+    "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:41341e5dd515513bc1a085fc55bc9c97b566bde0016e92f21b94409ba78b7215",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
   },
   "created_at": "2026-08-05T06:38:40.094831+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:363647474a34691de9aa24892504a6acd472096626740dbc51328ce7786275fb",
@@ -62,6 +62,42 @@
         "files_removed": [
           "read:tests/cli/test_init_pre_commit.py"
         ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
+      "prior_test_hashes": {
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+      },
+      "revised_at": "2026-08-07T12:10:41.171606+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
+      "prior_test_hashes": {
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
+      },
+      "revised_at": "2026-08-07T12:25:45.435367+00:00",
+      "reason": "095-04 migrates shared guidance and test expectations to gate-equivalent named verify profiles without changing the historical behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
       }

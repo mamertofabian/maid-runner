@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/068-04-document-constraint-evidence-gates.manifest.yaml",
-  "manifest_hash": "sha256:3cc6e333c3949b228f205b506df078bcc7cda9c5ef9bdaa9a2bda8a6d7637c5b",
+  "manifest_hash": "sha256-contract:d230d91feca3880f46db95bbb1e2d36c3967d9250dab9215f023aafbc520168d",
   "test_hashes": {
-    "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
-    "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+    "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d",
+    "tests/test_constraint_evidence_docs.py": "sha256-pyast:v2:c825bde4c5cda27bb85c10d4b3662902c2f4d81b4a770d0adbf1f156a0aa3af3"
   },
   "created_at": "2026-06-16T02:36:39.360363+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:5f653dbec660e6d6241cfbdba0349cd81547fd4f43edf32ab88cbf2299813c77",
@@ -15,7 +15,9 @@
         "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
       },
       "revised_at": "2026-06-16T02:36:42.972665+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/068-04-document-constraint-evidence-gates.manifest.yaml -> manifests/068-04-document-constraint-evidence-gates.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-04-document-constraint-evidence-gates.manifest.yaml -> manifests/068-04-document-constraint-evidence-gates.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b63102e9cc17b19cd223e3cba7fe53071f2e261f1a6c427da89d93c01df73757",
@@ -24,7 +26,9 @@
         "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
       },
       "revised_at": "2026-06-16T02:40:32.178792+00:00",
-      "reason": "Include contextual outcome docs test in the 068-04 validate command so scoped test files are all exercised by maid test."
+      "reason": "Include contextual outcome docs test in the 068-04 validate command so scoped test files are all exercised by maid test.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:587cacaba74359114de9d9526d0ea26c01afa1a8f32016893b5e57b3e1999810",
@@ -33,7 +37,38 @@
         "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
       },
       "revised_at": "2026-06-16T02:49:44.135894+00:00",
-      "reason": "Capture implementation outcome after ready review while preserving the validated red-phase evidence."
+      "reason": "Capture implementation outcome after ready review while preserving the validated red-phase evidence.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:3cc6e333c3949b228f205b506df078bcc7cda9c5ef9bdaa9a2bda8a6d7637c5b",
+      "prior_test_hashes": {
+        "tests/test_manifest_outcome_docs.py": "sha256:9252f889f01f30558d76a59502d3bf1b2922841c374647de46fb9e907525f68c",
+        "tests/test_constraint_evidence_docs.py": "sha256:40d62526121acc3e7df34ba35fcc1e73a121bc71ee6b197d56a626677082aba6"
+      },
+      "revised_at": "2026-08-07T12:25:44.993584+00:00",
+      "reason": "095-04 migrates shared guidance and test expectations to gate-equivalent named verify profiles without changing the historical behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/test_constraint_evidence_docs.py",
+          "edit:.claude/skills/maid-implementation-review/SKILL.md",
+          "edit:.codex/skills/maid-implementation-review/SKILL.md",
+          "edit:README.md",
+          "edit:docs/maid_specs.md",
+          "edit:docs/troubleshooting.md",
+          "read:docs/draft-manifest-workflow.md",
+          "read:manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml",
+          "read:tests/test_constraint_evidence_docs.py",
+          "read:tests/test_manifest_outcome_docs.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -60,6 +95,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-implementation-review/SKILL.md:attribute:documentation._claude_review_constraint_evidence_guidance",
@@ -89,6 +126,152 @@
       "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712",
       "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "tests/test_constraint_evidence_docs.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "README.md",
+        "docs/maid_specs.md",
+        "docs/troubleshooting.md"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml",
+        "tests/test_constraint_evidence_docs.py",
+        "tests/test_manifest_outcome_docs.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_constraint_evidence_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_constraint_evidence_docs_describe_opt_in_gates",
+              "source_scenario": "The README and docs/maid_specs.md are rendered as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The docs describe --artifact-coverage and --knockout as opt-in Python-only verify gates, the quality dependency extra, and the knockout flags --knockout-limit and --knockout-allow-dirty."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_troubleshooting_covers_e710_through_e712",
+              "source_scenario": "docs/troubleshooting.md is rendered as repository markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Troubleshooting entries exist for E710, E711, and E712, including the git checkout recovery instruction for E712 restore failures."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_review_skill_payloads_quote_constraint_evidence_command",
+              "source_scenario": "The Claude and Codex maid-implementation-review skill payload sources are read.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both payload trees instruct review sessions to run `maid verify --artifact-coverage --knockout` for high-risk changes."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_constraint_evidence_readme_commands",
+              "description": "README command table and notes covering the opt-in --artifact-coverage and --knockout verify gates and the quality extra.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_constraint_evidence_spec_section",
+              "description": "Specification of the execution-coverage and knockout gates, their Python-only scope, and E710-E712 semantics.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_constraint_evidence_troubleshooting_entries",
+              "description": "Per-code troubleshooting entries for E710, E711, and E712 including the git checkout recovery instruction.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_review_constraint_evidence_guidance",
+              "description": "Claude review skill guidance quoting maid verify --artifact-coverage --knockout for high-risk changes.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_review_constraint_evidence_guidance",
+              "description": "Codex review skill guidance quoting maid verify --artifact-coverage --knockout for high-risk changes.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/068-00-behavioral-constraint-evidence.epic.yaml",
+        "docs/draft-manifest-workflow.md",
+        "tests/test_manifest_outcome_docs.py",
+        "tests/test_constraint_evidence_docs.py"
+      ]
+    },
     "test_files": [
       "tests/test_constraint_evidence_docs.py",
       "tests/test_manifest_outcome_docs.py"

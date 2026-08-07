@@ -2,10 +2,10 @@
   "manifest_path": "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
   "manifest_hash": "sha256-contract:9b5cce34067d8c7cbb234b7d500f3f0b9a284e8ac43742755c93213aa0994750",
   "test_hashes": {
-    "tests/test_review_convergence_guidance.py": "sha256:ce9f12c56bc43f0ef3b5e09c0b2dc90f79c71ef094f095ddee604112efa3c1fb"
+    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:1138cc11b2b0e2ab772ca321877bf3878ac3eaac5340d90aa0dbc3e994004ca6"
   },
   "created_at": "2026-07-18T08:33:13.246017+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:398914cdf9aef9044f34d066674a1cc093e69c263c5f9de6eee2618f7b16e3f3",
@@ -56,6 +56,23 @@
       },
       "revised_at": "2026-07-18T08:58:16.235508+00:00",
       "reason": "Batch review blockers: require verify baselines and persist advisory findings",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9b5cce34067d8c7cbb234b7d500f3f0b9a284e8ac43742755c93213aa0994750",
+      "prior_test_hashes": {
+        "tests/test_review_convergence_guidance.py": "sha256:ce9f12c56bc43f0ef3b5e09c0b2dc90f79c71ef094f095ddee604112efa3c1fb"
+      },
+      "revised_at": "2026-08-07T12:25:45.212396+00:00",
+      "reason": "095-04 migrates shared guidance and test expectations to gate-equivalent named verify profiles without changing the historical behavioral contract.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

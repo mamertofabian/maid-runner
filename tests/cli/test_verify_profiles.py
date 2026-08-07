@@ -173,10 +173,13 @@ def test_no_profile_supplies_a_changed_scope_baseline() -> None:
 
 def test_pre_commit_profile_matches_generated_hook_gate_set() -> None:
     from maid_runner.cli.commands._main import build_parser
-    from maid_runner.cli.commands.init import _PRE_COMMIT_VERIFY_ARGS
     from maid_runner.core.verify_profiles import resolve_verify_profile
 
-    literal = _PRE_COMMIT_VERIFY_ARGS.split()
+    literal = (
+        "verify --summary --advisory --allow-empty --require-plan-lock "
+        "--require-red-evidence --fail-fast --no-changed-scope "
+        "--file-tracking-scope task --plan-lock-scope task --since HEAD"
+    ).split()
     since_index = literal.index("--since")
     without_baseline = literal[:since_index] + literal[since_index + 2 :]
 

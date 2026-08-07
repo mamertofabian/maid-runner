@@ -252,18 +252,18 @@ gate.
 Where practical, run:
 
 ```bash
-maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
+maid verify --profile handoff --since <baseline>
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
 
 For high-risk changes where runtime evidence matters, the opt-in gate is
-`maid verify --artifact-coverage --knockout`; run it as
-`maid verify --artifact-coverage --knockout --since <baseline>`. This
+`maid verify --profile deep`; run it as
+`maid verify --profile deep --since <baseline>`. This
 Python-only review gate checks that declared artifacts are executed by tests
 and that breaking each declared function or method makes validation fail.
 
-The `maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>` command is the
+The `maid verify --profile handoff --since <baseline>` command is the
 implementation handoff gate for the approved plan lock and captured red-phase
 evidence. Treat E700-E706 plan-lock failures as blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.

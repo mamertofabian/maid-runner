@@ -25,30 +25,17 @@ FROZEN_PRE_MIGRATION_ENTRY = (
 )
 MIGRATED_ENTRY = "uv run maid verify --profile handoff --fail-fast --no-changed-scope"
 
-# The generated hook README documents is a different surface from this repo's own
-# commit gate, and it does not migrate until 095-04 sets the --profile version
-# floor. Pinned here so a consistency-motivated edit fails inside this contract
-# rather than in tests/cli/test_init_pre_commit.py, which six plan locks hash.
 FROZEN_GENERATED_HOOK_ENTRY = (
     "maid verify --summary --advisory --allow-empty --require-plan-lock "
     "--require-red-evidence --fail-fast --no-changed-scope "
     "--file-tracking-scope task --plan-lock-scope task --since HEAD"
 )
 
-# Frozen as a set rather than a count so a failure names the file that moved.
-# Twelve, not nine: user_skills ships to users via `maid skills install`.
-FROZEN_PAYLOAD_PATHS = {
-    "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
-    "maid_runner/claude/skills/maid-implementer/SKILL.md",
-    "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
-    "maid_runner/codex/skills/maid-implementer/SKILL.md",
-    "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+UNMATCHED_PAYLOAD_PATHS = {
     "maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md",
     "maid_runner/codex/skills/maid-runner-performance-optimization/agents/openai.yaml",
     "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md",
     "maid_runner/codex/skills/maid-validate-hardening/SKILL.md",
-    "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
-    "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
     "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml",
 }
 
@@ -138,43 +125,17 @@ def test_readme_documents_the_profile_option() -> None:
 
 
 def test_downstream_facing_call_sites_stay_on_literal_flags() -> None:
-    from maid_runner.cli.commands.init import _PRE_COMMIT_VERIFY_ARGS
-
-    for flag in (
-        "--summary",
-        "--advisory",
-        "--allow-empty",
-        "--require-plan-lock",
-        "--require-red-evidence",
-        "--fail-fast",
-        "--no-changed-scope",
-        "--file-tracking-scope task",
-        "--plan-lock-scope task",
-        "--since HEAD",
-    ):
-        assert flag in _PRE_COMMIT_VERIFY_ARGS
-
-    found = {
-        path.relative_to(ROOT).as_posix()
-        for root in (
-            ROOT / "maid_runner" / "claude",
-            ROOT / "maid_runner" / "codex",
-            ROOT / "maid_runner" / "user_skills",
-        )
-        for path in root.rglob("*")
-        if path.is_file() and "maid verify" in path.read_text(encoding="utf-8")
-    }
-
-    assert found == FROZEN_PAYLOAD_PATHS
-    for relative in sorted(found):
-        # Scoped to the migrated form rather than banning "--profile" outright,
-        # so an unrelated future mention cannot trip this boundary.
+    for relative in sorted(UNMATCHED_PAYLOAD_PATHS):
         text = (ROOT / relative).read_text(encoding="utf-8")
+        assert "maid verify" in text
         assert "maid verify --profile" not in text
 
 
 def test_readme_generated_hook_block_stays_on_literal_flags() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
+    # The v2.24 expansion remains visible next to the v2.25 profile form so the
+    # compatibility floor and the gates hidden behind the preset are auditable.
     assert FROZEN_GENERATED_HOOK_ENTRY in readme
-    assert "version floor" in readme
+    assert "maid verify --profile pre-commit --since HEAD" in readme
+    assert "maid-runner>=2.25.0" in readme

@@ -19,7 +19,7 @@ Execute code implementation against an approved MAID manifest. The manifest is t
   edit production files listed only in `files.read`; stop for plan revision and
   move intentional no-artifact wiring to `files.scope`.
 - Implementer sessions run validation gates with `--packet`; for example,
-  `maid validate --packet` and `maid verify --packet --since <baseline>`.
+  `maid validate --packet` and `maid verify --profile agent-retry --since <baseline>`.
 - strict gates are the default. Use `--legacy-gates` only as a bounded
   migration aid when comparing behavior against pre-flip defaults.
 - Run `maid validate --mode implementation` after implementation.
@@ -248,7 +248,7 @@ maid verify --summary --plan-lock-scope task --since <baseline>
 Run the final strict handoff gate once with the same explicit task baseline:
 
 ```bash
-maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
+maid verify --profile handoff --since <baseline>
 ```
 
 Apply ALL blocking fixes from one review round as a batch. If the contract or

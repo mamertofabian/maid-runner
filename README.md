@@ -91,13 +91,17 @@ maid init --tool generic         # Generic MAID.md
 formatting, and other project configuration. The managed hook runs:
 
 ```bash
-maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
+maid verify --profile pre-commit --since HEAD
 ```
 
-That stack is equivalent to `--profile pre-commit --since HEAD`. The generated
-hook stays on explicit flags until the release that sets the `--profile`
-version floor, so a repository pinned to an older MAID Runner cannot receive a
-hook its installed runner rejects.
+This generated command requires `maid-runner>=2.25.0`. A newer global init must
+not be mixed with a project hook that deliberately resolves an older runner;
+refresh the runner used by the hook before regenerating the configuration. The
+profile is gate-equivalent to the v2.24 expansion, retained for auditability:
+
+```bash
+maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
+```
 
 MAID provisions the project configuration but does not replace or activate Git
 hooks. For a standard pre-commit setup, run `pre-commit install`. If Git

@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:b9dcbaebb01de8df06fb41beb8e64cb2d5591884fc5fdbfb55cde898fe282d4e",
   "test_hashes": {
     "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
-    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
   },
   "created_at": "2026-07-11T01:23:49.347116+00:00",
-  "revision": 12,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:798e13b0b7afbe4fd716044068d141602736ebaa7c179c733d28cb384c449727",
@@ -246,6 +246,24 @@
         "files_added": [
           "scope:README.md"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b9dcbaebb01de8df06fb41beb8e64cb2d5591884fc5fdbfb55cde898fe282d4e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+      },
+      "revised_at": "2026-08-07T12:10:40.944475+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
