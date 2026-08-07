@@ -1,0 +1,63 @@
+schema: "2"
+goal: "Lower the MAID adoption floor by wiring existing guidance to entry points and naming the repeated flag stacks"
+type: feature
+created: "2026-08-07T00:00:00Z"
+metadata:
+  status: planning
+  tags:
+    - adoption
+    - developer-experience
+    - cli-guidance
+    - onboarding
+  priority: high
+description: |
+  MAID's ceiling is high and its floor is high with it. The progressive
+  disclosure content already exists — `maid howto` ships nine topics and
+  `maid howto quickstart` renders a numbered walkthrough — but no entry point
+  references it, so a newcomer meets 31 undifferentiated top-level commands,
+  a 917-line README whose Quick Start carries seven flags, and an init that
+  ends on a `core.hooksPath` caveat.
+
+  This epic treats that as a wiring problem, not a redesign:
+
+  - 095-01 wires the four newcomer surfaces (`maid --help`, `maid init`,
+    `maid howto` topic content, README Quick Start) to the guidance that
+    already exists. Text-only; no validation or parsing behavior changes.
+  - 095-02 (not yet drafted) adds named `maid verify --profile` presets so the
+    repeated flag stacks stop being incantations. The MAID-managed pre-commit
+    entry currently spells out ten flags, and `maid verify` exposes 31 visible
+    options.
+
+  Deliberately deferred, with reasons:
+
+  - Hiding tier-3 commands from `maid --help` via `argparse.SUPPRESS` plus a
+    `--help-all` flag. `tests/cli/test_main.py` pins 18 commands as present in
+    default help, including `benchmark` and `serve`, and that test is
+    referenced by 18 active manifests. 095-01 curates through an epilog
+    instead so the orientation win lands without a contract cascade.
+    Revisit as its own child once the cheaper wiring is in.
+  - A guided `maid quickstart` command that walks a user to a first passing
+    validate on a real file in their own repo. This is new behavior rather
+    than wiring, and it should follow the text changes so it can reuse the
+    trimmed first-win content instead of inventing a second copy.
+
+  The website homepage is the reference shape for the newcomer path, not an
+  invention: its contract already pins the flagless
+  install → init → howto quickstart sequence. The CLI and README are the
+  surfaces that drifted from it.
+
+  Epic marker decision: `manifests/drafts/README.md` documents
+  `# draft-kind: epic` and `# promotion: split-before-promote` markers for epic
+  drafts, but `tests/core/test_draft_epic_archive_inventory.py` gates marked
+  epics against a closed `LIVE_PLANNING_EPICS` set of three. Adding the markers
+  here without also editing that inventory test would fail it, and editing a
+  `tests/core/` contract is outside the wiring scope 095-01 was approved for.
+  This epic therefore ships unmarked, matching the existing
+  `092-00-coverage-priority-recommender.epic.yaml` precedent. Reconciling the
+  epic inventory contract for both 092-00 and 095-00 is recorded here as
+  follow-up work rather than left as silent drift.
+temptations:
+  - risk: "Do not treat this as a MAID simplification effort that removes capability."
+    instead: "Keep every command, flag, and topic available; change only which ones a newcomer meets first."
+  - risk: "Do not rewrite the agent-facing skill guidance to match the human-facing trims."
+    instead: "Agents consume MAID through the skills, which already curate the workflow; scope these children to the human CLI, README, and howto surfaces."

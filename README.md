@@ -45,17 +45,16 @@ kit usage, `maid validators` audit command, and support boundary.
 # Install
 pip install maid-runner  # or: uv pip install maid-runner
 
-# Initialize MAID in your project
+# Set up MAID in your project
 maid init
 
-# Interactive guide
-maid howto --section quickstart
-
-# Brownfield entry: prioritize coverage risk, then generate reviewed drafts per change
-maid bootstrap --rank --model risk-v1 --limit 20
-maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
-maid validate manifests/drafts/describe-the-change.manifest.yaml --mode schema --quiet
+# Walk the first-win path
+maid howto quickstart
 ```
+
+That is the whole starting path. `maid howto` opens the guided topics, and
+each topic ends by pointing at the next one. Adding MAID to a codebase that
+already exists starts at [Brownfield Onboarding](#brownfield-onboarding).
 
 ## Installation
 
@@ -145,7 +144,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid schema` | Display manifest JSON Schema | |
 | `maid audit supersessions` | Audit supersession artifact preservation | `--manifest-dir`, `--seal`, `--unseal`, `--lock`, `--json`, `--quiet` |
 | `maid init` | Initialize MAID in project | `--tool claude\|codex\|cursor\|windsurf\|generic\|auto` |
-| `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
+| `maid howto` | Interactive methodology guide | `--section quickstart\|create\|validate\|workflow\|commands\|brownfield\|snapshot\|migrate\|troubleshooting\|serve` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
@@ -445,6 +444,8 @@ staged, unstaged, and untracked files since the task baseline by default. Use
 command to run the same gate explicitly.
 
 ### Brownfield Onboarding
+
+Brownfield entry: prioritize coverage risk, then generate reviewed drafts per change.
 
 For existing projects, start with a ranked adoption pass instead of bulk
 snapshotting every file:

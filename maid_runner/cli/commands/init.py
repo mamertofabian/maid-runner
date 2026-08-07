@@ -187,6 +187,9 @@ def cmd_init(args: argparse.Namespace) -> int:
         "  If core.hooksPath is configured, keep its dispatcher and have it "
         "run the project pre-commit configuration."
     )
+    print()
+    print("Next steps:")
+    print("  maid howto quickstart")
     return 0
 
 

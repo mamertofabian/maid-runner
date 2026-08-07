@@ -52,12 +52,25 @@ class _StoreManifestDirExplicit(argparse.Action):
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
-        description="MAID Runner - Manifest-driven AI Development validator",
+        description=(
+            "MAID Runner - Manifest-driven AI Development validator\n\n"
+            "New to MAID? Run 'maid howto quickstart' for the first-win path."
+        ),
+        epilog=(
+            "Start here:\n"
+            "  maid init               Set up MAID in this project\n"
+            "  maid howto quickstart   Walk the first-win path\n"
+            "  maid validate           Check code against its manifests\n"
+            "  maid test               Run the commands a manifest declares\n"
+            "\n"
+            "Run 'maid howto' for the full guided topic list."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {_get_version()}"
     )
-    sub = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command", metavar="<command>")
 
     _register_validate_parser(sub)
     _register_validators_parser(sub)
