@@ -48,5 +48,5 @@ def test_review_skill_payloads_quote_constraint_evidence_command() -> None:
     for skill_path in (CLAUDE_REVIEW_SKILL, CODEX_REVIEW_SKILL):
         skill = _read(skill_path)
 
-        assert "`maid verify --artifact-coverage --knockout`" in skill
+        assert "`maid verify --profile deep`" in skill
         assert "high-risk changes" in skill

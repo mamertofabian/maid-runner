@@ -374,7 +374,7 @@ def test_build_failure_packet_keeps_manifest_path_when_manifest_cannot_load(tmp_
     ]
 
 
-def test_write_failure_packet_is_deterministic_and_clear_failure_packet_removes_stale_file(
+def test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet(
     tmp_path,
 ):
     manifest_path = _write_manifest(tmp_path, "add-gate")
@@ -395,5 +395,10 @@ def test_write_failure_packet_is_deterministic_and_clear_failure_packet_removes_
     assert first_bytes == second_bytes
     assert json.loads(first_bytes)["packet_version"] == 1
     assert clear_failure_packet(packet_path) is True
-    assert packet_path.exists() is False
-    assert clear_failure_packet(packet_path) is False
+    cleared = json.loads(packet_path.read_text())
+    assert cleared["packet_version"] == 1
+    assert cleared["exit_code"] == 0
+    assert cleared["manifest"] == []
+    assert cleared["diagnostics"] == []
+    assert cleared["test_output"] == []
+    assert clear_failure_packet(tmp_path / "missing-packet.json") is False

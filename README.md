@@ -45,17 +45,16 @@ kit usage, `maid validators` audit command, and support boundary.
 # Install
 pip install maid-runner  # or: uv pip install maid-runner
 
-# Initialize MAID in your project
+# Set up MAID in your project
 maid init
 
-# Interactive guide
-maid howto --section quickstart
-
-# Brownfield entry: prioritize coverage risk, then generate reviewed drafts per change
-maid bootstrap --rank --model risk-v1 --limit 20
-maid manifest from-diff --base-ref <parent-branch> --slug describe-the-change
-maid validate manifests/drafts/describe-the-change.manifest.yaml --mode schema --quiet
+# Walk the first-win path
+maid howto quickstart
 ```
+
+That is the whole starting path. `maid howto` opens the guided topics, and
+each topic ends by pointing at the next one. Adding MAID to a codebase that
+already exists starts at [Brownfield Onboarding](#brownfield-onboarding).
 
 ## Installation
 
@@ -92,7 +91,16 @@ maid init --tool generic         # Generic MAID.md
 formatting, and other project configuration. The managed hook runs:
 
 ```bash
-maid verify --summary --advisory --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
+maid verify --profile pre-commit --since HEAD
+```
+
+This generated command requires `maid-runner>=2.25.0`. A newer global init must
+not be mixed with a project hook that deliberately resolves an older runner;
+refresh the runner used by the hook before regenerating the configuration. The
+profile is gate-equivalent to the v2.24 expansion, retained for auditability:
+
+```bash
+maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
 ```
 
 MAID provisions the project configuration but does not replace or activate Git
@@ -124,7 +132,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid pgtap -- <psql arguments>` | Run a file-backed pgTAP script with MAID-safe red-phase exit semantics | Requires `-f`/`--file`; forces `ON_ERROR_STOP=1`; explicit pgTAP assertion failures exit 1 and infrastructure/setup failures exit 2 |
-| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--profile handoff\|pre-commit\|agent-retry\|deep`, `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--legacy-baseline --reason` (tracked legacy lock), `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -139,13 +147,13 @@ MAID Runner section in `AGENTS.md`.
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
 | `maid evaluate run <manifest>` | Report deterministic after-action run evidence; see `docs/run-evaluation.md` | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
-| `maid files` | Show file tracking status | `--manifest-dir`, `--quiet` |
+| `maid files` | Show file tracking status | `--manifest-dir`, `--fail-on undeclared\|registered\|scope-only\|any`, `--quiet` |
 | `maid graph` | Knowledge graph operations | `query`, `export`, `analyze` |
 | `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
 | `maid schema` | Display manifest JSON Schema | |
 | `maid audit supersessions` | Audit supersession artifact preservation | `--manifest-dir`, `--seal`, `--unseal`, `--lock`, `--json`, `--quiet` |
 | `maid init` | Initialize MAID in project | `--tool claude\|codex\|cursor\|windsurf\|generic\|auto` |
-| `maid howto` | Interactive methodology guide | `--section intro\|principles\|workflow\|quickstart\|patterns\|commands\|troubleshooting` |
+| `maid howto` | Interactive methodology guide | `--section quickstart\|create\|validate\|workflow\|commands\|brownfield\|snapshot\|migrate\|troubleshooting\|serve` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
 | `maid chain replay` | Preview effective artifacts at a point in time | `--until-seq N`, `--version-tag TAG`, `--json` |
@@ -168,9 +176,14 @@ maid verify --packet
 ```
 
 Each packet-aware gate writes a failure packet only when the run fails with exit
-code 1. A passing packet-aware run writes no packet and removes any stale packet at that path, so agents cannot replay outdated failure state. Passing `--packet`
-without a path uses
-`.maid/last-failure-packet.json`.
+code 1. A passing run creates no packet at a missing path. If the path already
+contains a recognizable MAID packet, the gate safely clears it in place as a
+version-1 marker with `exit_code: 0` and empty `manifest`, `diagnostics`, and
+`test_output` sections. Consumers must use the gate result and packet
+`exit_code`; never infer failure from the packet path's existence. An unsafe
+pre-existing destination is preserved, and a passing gate exits 2 because its
+requested packet state could not be cleared. Passing `--packet` without a path
+uses `.maid/last-failure-packet.json`.
 
 On failure, read the packet before retrying. It includes the failed command,
 exit code, project root, failed manifest excerpts, diagnostics with
@@ -271,6 +284,11 @@ maid verify --summary --advisory
 # Implementation handoff gate requiring the approved plan lock and red phase
 maid verify --require-plan-lock --require-red-evidence
 
+# The same gate by name; --profile handoff expands to
+# --summary --require-plan-lock --require-red-evidence, and the applied
+# profile and its flags are reported in the output
+maid verify --profile handoff
+
 # Opt-in Python-only constraint evidence gates for high-risk review
 maid validate --artifact-coverage manifests/add-auth.manifest.yaml
 maid verify --artifact-coverage --knockout
@@ -366,7 +384,16 @@ When validating with manifest chains (default), MAID Runner reports file complia
 
 - **UNDECLARED**: Files not in any manifest (no audit trail)
 - **REGISTERED**: Files tracked but incomplete (missing artifacts/tests)
+- **SCOPE_ONLY**: Files writable through `files.scope` without an artifact contract
 - **TRACKED**: Files with full MAID compliance
+
+`files.scope` is write authorization, not proof of artifact coverage. Scope-only
+files remain valid for route wiring, configuration, generated derivatives, and
+other implementation surfaces without stable public artifacts, but they appear
+in their own inventory bucket. Use `maid files --fail-on scope-only` or
+`maid verify --fail-on-scope-only` when a repository or CI boundary requires
+every production file to have an artifact contract. `maid files --fail-on any`
+also includes scope-only files.
 
 During normal verification, repository-wide file tracking remains the default
 for `maid verify`. During incremental brownfield adoption, scope only the
@@ -431,6 +458,8 @@ staged, unstaged, and untracked files since the task baseline by default. Use
 command to run the same gate explicitly.
 
 ### Brownfield Onboarding
+
+Brownfield entry: prioritize coverage risk, then generate reviewed drafts per change.
 
 For existing projects, start with a ranked adoption pass instead of bulk
 snapshotting every file:
@@ -534,9 +563,15 @@ V1 JSON manifests are auto-converted when loaded.
 
 ### Artifact Kinds
 
-**Common:** `class`, `function`, `method`, `attribute`
+**Common:** `class`, `function`, `method`, `attribute`, `enum`
 
-**TypeScript-specific:** `interface`, `type`, `enum`, `namespace`
+**TypeScript-specific:** `interface`, `type`, `namespace`
+
+For Python, a direct subclass of a standard-library `enum.Enum`, `IntEnum`,
+`StrEnum`, `Flag`, or `IntFlag` base is represented by one `kind: enum`
+artifact. Direct imports and `import enum` aliases are supported; enum members
+are covered by the enum artifact and are not declared separately. Existing
+snapshots that represent Python enums as a class plus attributes remain valid.
 
 ### Angular TypeScript Boundary
 

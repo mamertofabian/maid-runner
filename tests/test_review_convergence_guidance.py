@@ -64,8 +64,8 @@ def test_implementation_review_skill_carries_convergence_protocol() -> None:
         "MUST NOT trigger manifest or locked-test revision",
         "two full review rounds",
         "why it was not visible in round 1",
-        "maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>",
-        "maid verify --artifact-coverage --knockout --since <baseline>",
+        "maid verify --profile handoff --since <baseline>",
+        "maid verify --profile deep --since <baseline>",
     )
 
     for tool in TOOLS:
@@ -82,7 +82,7 @@ def test_implementer_skills_carry_iteration_recipe() -> None:
         "--test-only-green",
         "--stash-implementation",
         "--allow-sibling-dirty",
-        "maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>",
+        "maid verify --profile handoff --since <baseline>",
     )
 
     for tool in TOOLS:
@@ -113,7 +113,7 @@ def test_workflow_doc_and_packaged_copies_stay_in_sync(tmp_path: Path) -> None:
         "two full review rounds",
         "--plan-lock-scope task",
         "record them in the review packet for possible future draft manifests",
-        "maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>",
+        "maid verify --profile handoff --since <baseline>",
     ):
         assert phrase in workflow
 

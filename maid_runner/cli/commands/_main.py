@@ -35,15 +35,63 @@ class _StoreChangedScopeExplicit(argparse.Action):
         setattr(namespace, "changed_scope_explicit", True)
 
 
+class _StoreManifestDirExplicit(argparse.Action):
+    """Store --manifest-dir and record that the user passed it explicitly."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, values)
+        setattr(namespace, "manifest_dir_explicit", True)
+
+
+class _StoreExplicit(argparse.Action):
+    """Store a value and record that the user passed the option explicitly.
+
+    Every option a `maid verify --profile` preset can set uses this so profile
+    defaults apply only where the user stayed silent. Comparing against parser
+    defaults is not equivalent: an explicitly passed value can equal the
+    default, and treating those as the same silently overrides a deliberate
+    choice.
+    """
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: object,
+        option_string: str | None = None,
+    ) -> None:
+        setattr(namespace, self.dest, self.const if self.nargs == 0 else values)
+        setattr(namespace, f"{self.dest}_explicit", True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
-        description="MAID Runner - Manifest-driven AI Development validator",
+        description=(
+            "MAID Runner - Manifest-driven AI Development validator\n\n"
+            "New to MAID? Run 'maid howto quickstart' for the first-win path."
+        ),
+        epilog=(
+            "Start here:\n"
+            "  maid init               Set up MAID in this project\n"
+            "  maid howto quickstart   Walk the first-win path\n"
+            "  maid validate           Check code against its manifests\n"
+            "  maid test               Run the commands a manifest declares\n"
+            "\n"
+            "Run 'maid howto' for the full guided topic list."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {_get_version()}"
     )
-    sub = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command", metavar="<command>")
 
     _register_validate_parser(sub)
     _register_validators_parser(sub)
@@ -110,7 +158,10 @@ def _register_validate_parser(sub: argparse._SubParsersAction) -> None:
         help="Validation mode to run",
     )
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--allow-empty",
@@ -252,7 +303,10 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
         "--manifest", default=None, help="Run validate commands for one manifest"
     )
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--fail-fast",
@@ -299,27 +353,50 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
 
 def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.core.test_runner import _positive_jobs_arg
+    from maid_runner.core.verify_profiles import (
+        _DEFAULT_FAILURE_PACKET_PATH,
+        verify_profile_names,
+    )
 
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
     p.add_argument(
-        "--manifest-dir", default="manifests/", help="Directory of active manifests"
+        "--profile",
+        choices=verify_profile_names(),
+        default=None,
+        help=(
+            "Apply a named preset of verification flags; explicitly passed "
+            "flags always win, and no profile supplies a changed-scope baseline"
+        ),
+    )
+    p.add_argument(
+        "--manifest-dir",
+        action=_StoreManifestDirExplicit,
+        default="manifests/",
+        help="Directory of active manifests",
     )
     p.add_argument(
         "--allow-empty",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Allow verification when no active manifests are found",
     )
     verify_fast = p.add_mutually_exclusive_group()
     verify_fast.add_argument(
         "--fail-fast",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
         dest="fail_fast",
         default=True,
         help="Stop after the first failing verification stage",
     )
     verify_fast.add_argument(
         "--keep-going",
-        action="store_false",
+        action=_StoreExplicit,
+        nargs=0,
+        const=False,
         dest="fail_fast",
         help="Run remaining verification stages after a failure",
     )
@@ -353,7 +430,10 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--advisory",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Report verify strictness warnings without failing on warnings",
     )
     p.add_argument(
@@ -372,7 +452,8 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     verify_changed_scope.add_argument(
         "--no-changed-scope",
-        action="store_const",
+        action=_StoreExplicit,
+        nargs=0,
         const=False,
         dest="changed_scope",
         help="Disable the default changed-scope handoff gate",
@@ -389,12 +470,18 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--file-tracking-scope",
+        action=_StoreExplicit,
         choices=["repository", "task"],
         default="repository",
         help=(
             "Scope file tracking to the whole repository (default) or to "
             "paths changed from the explicit task baseline"
         ),
+    )
+    p.add_argument(
+        "--fail-on-scope-only",
+        action="store_true",
+        help="Fail when file tracking finds production files declared only in files.scope",
     )
     p.add_argument(
         "--include-tests",
@@ -409,16 +496,23 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--require-plan-lock",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Fail when active manifests are missing or violate plan locks",
     )
     p.add_argument(
         "--require-red-evidence",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Fail when plan locks lack valid red-phase evidence",
     )
     p.add_argument(
         "--plan-lock-scope",
+        action=_StoreExplicit,
         choices=["repository", "task"],
         default="repository",
         help=(
@@ -428,12 +522,18 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--artifact-coverage",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Run validate commands under coverage and require declared artifacts to execute",
     )
     p.add_argument(
         "--knockout",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Knock out declared Python artifacts and require validate commands to fail",
     )
     p.add_argument(
@@ -449,8 +549,9 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--packet",
+        action=_StoreExplicit,
         nargs="?",
-        const=".maid/last-failure-packet.json",
+        const=_DEFAULT_FAILURE_PACKET_PATH,
         default=None,
         help="Write a failure packet JSON file on verification failure",
     )
@@ -464,7 +565,10 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--summary",
-        action="store_true",
+        action=_StoreExplicit,
+        nargs=0,
+        const=True,
+        default=False,
         help="Print categorized, deduplicated verification output",
     )
 
@@ -516,7 +620,10 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         "--preserve-red-evidence",
         action="store_true",
         dest="preserve_red_evidence",
-        help="Keep existing valid red evidence during metadata-only revisions",
+        help=(
+            "Keep existing valid red, test-only-green, or legacy-baseline evidence "
+            "during metadata-only revisions"
+        ),
     )
     rp.add_argument(
         "--stash-implementation",
@@ -1308,7 +1415,7 @@ def _register_files_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--fail-on",
         action="append",
-        choices=["undeclared", "registered", "any"],
+        choices=["undeclared", "registered", "scope-only", "any"],
         default=None,
         help="Return 1 when the selected file-tracking status is present",
     )
@@ -1615,6 +1722,15 @@ def main(argv: list[str] | None = None) -> int:
 
     handler = handlers[handler_name]
     try:
+        directory_wide = (
+            args.command == "verify"
+            or (args.command == "validate" and args.manifest_path is None)
+            or (args.command == "test" and args.manifest is None)
+        )
+        if directory_wide and not getattr(args, "manifest_dir_explicit", False):
+            from maid_runner.core.config import load_config
+
+            args.manifest_dir = load_config(".").manifest_dir
         return handler(args)
     except Exception as e:
         if getattr(args, "json", False):

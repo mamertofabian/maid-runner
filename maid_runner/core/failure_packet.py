@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import platform
 import re
+import stat
 from pathlib import Path
 from typing import Union
 
@@ -28,6 +30,17 @@ from maid_runner.core.types import FileSpec, Manifest
 _OUTPUT_TAIL_LINES = 50
 _ARTIFACT_RE = re.compile(r"Artifact '([^']+)'")
 _FUNCTION_RE = re.compile(r"Function '([^']+)'")
+_PACKET_VERSION = 1
+_PACKET_KEYS = {
+    "packet_version",
+    "command",
+    "exit_code",
+    "project_root",
+    "manifest",
+    "diagnostics",
+    "test_output",
+    "environment",
+}
 
 
 def build_failure_packet(
@@ -46,7 +59,7 @@ def build_failure_packet(
     failed_manifest_paths = _failed_manifest_paths(validation, tests, diagnostics)
 
     return {
-        "packet_version": 1,
+        "packet_version": _PACKET_VERSION,
         "command": list(command),
         "exit_code": exit_code,
         "project_root": str(root),
@@ -61,19 +74,166 @@ def build_failure_packet(
 
 
 def write_failure_packet(packet: dict, path: Union[str, Path]) -> None:
+    if not _is_failure_packet_payload(packet):
+        raise ValueError("Refusing to write malformed MAID failure packet payload")
     packet_path = Path(path)
     packet_path.parent.mkdir(parents=True, exist_ok=True)
-    packet_path.write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n")
+    opened = _open_owned_packet(packet_path, create=True)
+    if opened is None:  # pragma: no cover - create=True always opens or raises
+        raise ValueError(f"Could not create failure packet destination {packet_path}")
+    fd, _existing = opened
+    try:
+        _write_packet_to_fd(fd, packet)
+        _require_path_still_matches_fd(packet_path, fd)
+    finally:
+        os.close(fd)
 
 
 def clear_failure_packet(path: Union[str, Path]) -> bool:
     packet_path = Path(path)
-    if not packet_path.exists():
+    opened = _open_owned_packet(packet_path, create=False)
+    if opened is None:
         return False
-    if not packet_path.is_file():
-        return False
-    packet_path.unlink()
-    return True
+    fd, existing = opened
+    try:
+        cleared = {
+            **existing,
+            "exit_code": 0,
+            "manifest": [],
+            "diagnostics": [],
+            "test_output": [],
+        }
+        _write_packet_to_fd(fd, cleared)
+        _require_path_still_matches_fd(packet_path, fd)
+        return True
+    finally:
+        os.close(fd)
+
+
+def _open_owned_packet(packet_path: Path, *, create: bool) -> tuple[int, dict] | None:
+    """Open one stable packet inode without following ownership across paths."""
+    flags = os.O_RDWR | getattr(os, "O_BINARY", 0)
+    for _attempt in range(3):
+        try:
+            path_stat = os.lstat(packet_path)
+        except FileNotFoundError:
+            if not create:
+                return None
+            try:
+                fd = os.open(packet_path, flags | os.O_CREAT | os.O_EXCL, 0o666)
+            except FileExistsError:
+                continue
+            try:
+                _require_path_still_matches_fd(packet_path, fd)
+                _require_single_link(packet_path, fd)
+                return fd, {}
+            except Exception:
+                os.close(fd)
+                raise
+
+        _require_regular_non_symlink(packet_path, path_stat)
+        try:
+            fd = os.open(packet_path, flags)
+        except FileNotFoundError:
+            continue
+        try:
+            _require_path_still_matches_fd(packet_path, fd)
+            _require_single_link(packet_path, fd)
+            payload = _read_packet_from_fd(packet_path, fd)
+            return fd, payload
+        except Exception:
+            os.close(fd)
+            raise
+
+    raise ValueError(
+        f"Refusing failure packet destination {packet_path}: path changed while opening"
+    )
+
+
+def _require_regular_non_symlink(packet_path: Path, path_stat: os.stat_result) -> None:
+    if stat.S_ISLNK(path_stat.st_mode):
+        raise ValueError(
+            f"Refusing failure packet destination {packet_path}: symbolic links "
+            "are not MAID-owned packet files"
+        )
+    if not stat.S_ISREG(path_stat.st_mode):
+        raise ValueError(
+            f"Refusing failure packet destination {packet_path}: existing path "
+            "is not a regular MAID failure packet file"
+        )
+
+
+def _require_single_link(packet_path: Path, fd: int) -> None:
+    if os.fstat(fd).st_nlink != 1:
+        raise ValueError(
+            f"Refusing failure packet destination {packet_path}: hard-linked files "
+            "are not MAID-owned packet files"
+        )
+
+
+def _require_path_still_matches_fd(packet_path: Path, fd: int) -> None:
+    try:
+        path_stat = os.lstat(packet_path)
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"Failure packet destination {packet_path} changed during failure packet "
+            "update"
+        ) from exc
+    fd_stat = os.fstat(fd)
+    if (
+        stat.S_ISLNK(path_stat.st_mode)
+        or path_stat.st_dev != fd_stat.st_dev
+        or path_stat.st_ino != fd_stat.st_ino
+    ):
+        raise ValueError(
+            f"Failure packet destination {packet_path} changed during failure packet "
+            "update"
+        )
+
+
+def _read_packet_from_fd(packet_path: Path, fd: int) -> dict:
+    os.lseek(fd, 0, os.SEEK_SET)
+    chunks: list[bytes] = []
+    while True:
+        chunk = os.read(fd, 65536)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    try:
+        payload = json.loads(b"".join(chunks).decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            f"Refusing failure packet destination {packet_path}: existing file "
+            "is not a MAID failure packet"
+        ) from exc
+    if not _is_failure_packet_payload(payload):
+        raise ValueError(
+            f"Refusing failure packet destination {packet_path}: existing file "
+            "is not a MAID failure packet"
+        )
+    return payload
+
+
+def _write_packet_to_fd(fd: int, packet: dict) -> None:
+    data = (json.dumps(packet, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    os.lseek(fd, 0, os.SEEK_SET)
+    os.ftruncate(fd, 0)
+    offset = 0
+    while offset < len(data):
+        written = os.write(fd, data[offset:])
+        if written <= 0:  # pragma: no cover - defensive OS boundary
+            raise OSError("failure packet write made no progress")
+        offset += written
+    os.ftruncate(fd, len(data))
+    os.fsync(fd)
+
+
+def _is_failure_packet_payload(payload: object) -> bool:
+    return (
+        isinstance(payload, dict)
+        and set(payload) == _PACKET_KEYS
+        and payload.get("packet_version") == _PACKET_VERSION
+    )
 
 
 def _failed_manifest_paths(

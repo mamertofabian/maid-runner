@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/add-init-pre-commit-verification.manifest.yaml",
-  "manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+  "manifest_hash": "sha256-contract:b9dcbaebb01de8df06fb41beb8e64cb2d5591884fc5fdbfb55cde898fe282d4e",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
-    "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+    "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
   },
   "created_at": "2026-07-11T01:23:49.347116+00:00",
-  "revision": 11,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:798e13b0b7afbe4fd716044068d141602736ebaa7c179c733d28cb384c449727",
@@ -230,6 +230,44 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:26ac852333ec1ae88b92725acf2f5d628d957c589b80985ebac4d855e0f50b52",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0",
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3"
+      },
+      "revised_at": "2026-08-05T06:41:07.198789+00:00",
+      "reason": "Accept the chain-merged allow-empty onboarding hook policy",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:README.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b9dcbaebb01de8df06fb41beb8e64cb2d5591884fc5fdbfb55cde898fe282d4e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+      },
+      "revised_at": "2026-08-07T12:10:40.944475+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -250,6 +288,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -358,6 +397,513 @@
         "manifests/079-01-version-init-instruction-payload.manifest.yaml",
         "manifests/snapshot-cli-commands-init.manifest.yaml",
         "tests/cli/test_init_cmd.py"
+      ],
+      "scope": [
+        "README.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_pre_commit.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_creates_managed_maid_verify_pre_commit_config",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A repository without pre-commit configuration runs maid init.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init creates valid YAML containing one marked local maid-verify hook with the canonical verify command and prints non-destructive activation guidance."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_appends_managed_hook_without_rewriting_existing_config",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A repository has formatted pre-commit YAML with comments, existing hooks, and a top-level key after repos.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init inserts the managed block inside repos while preserving every original byte in order and retaining all existing semantic configuration."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_force_refresh_is_byte_idempotent",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A freshly initialized repository runs maid init --force repeatedly.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The managed hook occurs once and the complete pre-commit config bytes remain unchanged after each refresh."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_force_refresh_replaces_only_stale_managed_block",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A prior MAID-managed marker block contains an older hook command surrounded by user-owned configuration.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Force init replaces only the marked block with the current hook and preserves every byte before and after it."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_unmanaged_maid_verify_conflict_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "An existing unmarked pre-commit hook already uses the maid-verify id with user-owned settings.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init exits nonzero, reports the reserved-id conflict, preserves the config bytes, and creates no MAID project files."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_invalid_pre_commit_config_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                },
+                {
+                  "name": "invalid",
+                  "type": "str"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The existing pre-commit file is invalid YAML or has a non-sequence repos value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init fails visibly without changing the config or creating manifests and .maidrc.yaml."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_malformed_managed_markers_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "markers",
+                  "type": "str"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The pre-commit file has unmatched or duplicated MAID-owned marker comments.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init exits nonzero before other writes and preserves the malformed user file for explicit reconciliation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_markers_that_do_not_own_the_reserved_hook",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "config_text",
+                  "type": "str"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Marker text appears in quoted YAML or standalone markers surround unrelated content while an unmanaged maid-verify hook exists elsewhere.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init rejects the ownership ambiguity without replacing text or creating duplicate reserved hooks."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_ambiguous_repos_sources_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "config_text",
+                  "type": "str"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The top-level repos value is duplicated or supplied through a YAML merge key.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init rejects the ambiguous source mapping instead of inserting into an ignored or shadowing repos sequence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_preserves_crlf_bytes_when_appending_managed_hook",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "An existing valid pre-commit configuration uses CRLF line endings.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init preserves every original byte and renders the inserted managed block with the existing CRLF convention."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_inserts_before_explicit_yaml_document_terminator",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A valid pre-commit YAML mapping has no repos key and ends with an explicit document terminator.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init inserts the managed repos sequence before the terminator and the completed output remains valid YAML with exactly one reserved hook."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_flow_style_config_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "config_text",
+                  "type": "str"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The valid YAML uses a flow-style top-level mapping or repos sequence that cannot contain the comment-marked managed block without reformatting user syntax.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init fails visibly with block-style conversion guidance, preserves the original bytes, and creates no MAID project files."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_rejects_pre_commit_config_symlinks_before_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "target_exists",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The project pre-commit config is a symbolic link to either an existing file or a missing target outside the repository.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init exits nonzero before other writes, preserves the symbolic link and any existing target bytes, and does not create a broken-link target."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_pre_commit_atomic_write_failure_preserves_repository",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The atomic replacement of an existing pre-commit configuration fails.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init exits nonzero, preserves the original config bytes, removes its temporary file, and creates no other MAID project files."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_pre_commit_dry_run_reports_action_without_writes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A repository previews initialization with an existing valid pre-commit config.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dry-run reports the managed config update while leaving all repository files unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_documents_init_managed_pre_commit_behavior",
+              "returns": "None",
+              "source_scenario": "A user reads the initialization documentation before adopting MAID.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "README documents the canonical verify command, safe merge ownership, standard activation command, and core.hooksPath/global-dispatcher boundary."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "description": "Initialize MAID project files and safely create, append, refresh, or report conflicts for the managed MAID verify entry in .pre-commit-config.yaml without activating or replacing Git hooks.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".pre-commit-config.yaml",
+        "manifests/snapshot-cli-commands-init.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "tests/cli/test_init_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "README.md",
+          "reason": "Document the user-visible init behavior and explicit Git hook activation boundary without introducing analyzer-visible code artifacts."
+        }
       ]
     },
     "test_files": [

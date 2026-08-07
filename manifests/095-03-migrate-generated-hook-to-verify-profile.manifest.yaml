@@ -1,0 +1,306 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Adopt the verify profiles in this repository's own commit gate and 
+  guidance surfaces, leaving downstream-facing generators on literal flags
+type: refactor
+created: '2026-08-07T06:29:15Z'
+metadata:
+  epic: 095-00-onboarding-entry-point-wiring
+  status: implementation-ready
+  tags:
+  - adoption
+  - developer-experience
+  - verification
+  - migration
+  priority: medium
+description: |
+  095-02 shipped `maid verify --profile` and deliberately migrated nothing.
+  This child adopts it only where adoption cannot reach another repository.
+
+  SCOPE CORRECTION FROM THE FIRST DRAFT
+
+  The first draft of this child migrated `_PRE_COMMIT_VERIFY_ARGS`
+  (`maid_runner/cli/commands/init.py:31-35`) and justified deferring the
+  distributed agent payloads on the grounds that payload text runs against
+  whatever maid-runner a downstream repository has installed. Plan review found
+  that reasoning self-contradictory, and it was: `_PRE_COMMIT_VERIFY_ARGS` is
+  generated *into* downstream repositories, so it carries the same version skew
+  and a worse failure mode. A repository that runs a newer `maid init --force`
+  while its hook resolves `maid` to a pinned older runner would get
+  `--profile pre-commit` written into its hook and then fail every commit with
+  `unrecognized arguments: --profile`. The repo's own onboarding guidance
+  documents exactly that pinned-dependency case
+  (`.claude/skills/maid-onboard/SKILL.md:40-47`, `:80-82`).
+
+  The generator therefore moves to 095-04 alongside the payloads and the
+  `INSTRUCTION_PAYLOAD_VERSION` floor decision, which is where the compatibility
+  question belongs. This child keeps only changes whose blast radius genuinely
+  ends at this repository.
+
+  WHAT THIS CHILD DOES
+
+  1. This repository's own commit gate, `.pre-commit-config.yaml:27`. Its entry
+     is `uv run maid verify ...`, so it always resolves to this repository's own
+     runner and carries no version skew. It becomes
+     `uv run maid verify --profile handoff --fail-fast --no-changed-scope`.
+
+     Equivalence was verified before drafting: the old five-flag stack and the
+     new form produce identical values across every option-backed verify dest.
+     The gain is modest (five tokens to four) and the point is not brevity but
+     dogfooding -- this repository runs the preset it ships before generating it
+     into anyone else's.
+
+     There is no sidecar divergence in this migration. 095-02 put
+     `--no-changed-scope` on `_StoreExplicit` (`_main.py:454-455`), so both the
+     frozen and migrated forms set `changed_scope_explicit`. The only sidecars
+     that differ are `summary_explicit`, `require_plan_lock_explicit`, and
+     `require_red_evidence_explicit`, none of which has any consumer in the
+     repository. The single assumption the first draft had to defend no longer
+     exists.
+
+  README HAS AN INTERNAL BOUNDARY
+
+  README documents two different things and only one of them migrates.
+  `README.md:88-100` documents the *generated* hook and carries the ten-flag
+  entry verbatim at `README.md:94`; it is pinned by
+  `tests/cli/test_init_pre_commit.py:415`, a file hashed by six plan locks.
+  That block, and the CI examples reached from `README.md:359-364`
+  (`docs/ci-cd-integration.md`), stay on literal flags until 095-04 moves the
+  generator.
+
+  Normalizing README for consistency would therefore break a six-lock test
+  while every gate this manifest declares stayed green, so
+  `tests/cli/test_init_pre_commit.py` is added to the validate command as
+  read-only regression coverage, and the boundary test pins the frozen entry
+  from this side rather than relying on another manifest's test.
+
+  That addition is not free: putting the file in this manifest's validate
+  command also puts it in this manifest's lock hashes, taking its owner count
+  from six to seven. 095-04 must therefore revise seven locks, including this
+  one. The regression coverage is worth that price, but the price is real.
+
+  The asymmetry must also be explained where a reader meets it: after this
+  child, README shows `--profile handoff` in the verify examples while
+  `README.md:94` still shows ten literal flags. One sentence in the
+  Commit-Time section stating that the generated hook stays on explicit flags
+  until the release that sets the `--profile` version floor turns an apparent
+  inconsistency into documented intent.
+
+  2. Guidance surfaces: `AGENTS.md` step 8, the README verify examples, and the
+     `maid howto` `workflow` and `commands` topics.
+
+  AUGMENT, DO NOT REPLACE
+
+  `tests/test_plan_lock_docs.py:119` asserts the literal
+  `maid verify --require-plan-lock --require-red-evidence` in the `workflow`
+  topic, and `:126-127` asserts `--require-plan-lock` / `--require-red-evidence`
+  in `commands`. `README.md:276` is exposed to the same assertion at
+  `test_plan_lock_docs.py:30`.
+
+  Guidance therefore presents the profile form *alongside* the explicit flags
+  rather than replacing them. This is not only cascade avoidance: readers need
+  to see what the profile expands to, and a doc that shows only
+  `--profile handoff` teaches the name while hiding the gates. Replacing would
+  additionally pull in two more plan locks
+  (`067-05-scope-plan-lock-enforcement-to-changed-manifests`,
+  `090-03-teach-agent-guidance-the-e708-code`) for no reader benefit.
+
+  Because guidance is augmented and `_PRE_COMMIT_VERIFY_ARGS` is untouched,
+  this child edits neither `tests/cli/test_init_pre_commit.py` nor
+  `tests/cli/test_verify_profiles.py`. The six-lock cascade the first draft
+  carried does not arise, and
+  `test_pre_commit_profile_matches_generated_hook_gate_set` stays meaningful
+  because the constant it compares against is unchanged.
+
+  095-02 SHIPPED --profile UNDOCUMENTED
+
+  The README verify options table (`README.md:126`) omits `--profile` entirely.
+  This child closes that gap while it is in the file.
+
+  THE DEFERRAL BOUNDARY IS PART OF THE CONTRACT
+
+  The boundary is pinned asymmetrically, deliberately.
+
+  `_PRE_COMMIT_VERIFY_ARGS` is pinned positively: the test asserts all ten
+  literal flags are still present, so both migration and degradation fail.
+
+  The twelve payload files are pinned by freezing their paths as a set (so a
+  failure names the file that moved) plus asserting the migrated form
+  `maid verify --profile` is absent from each. This catches migration to the
+  profile form, which is the realistic 095-04 event, but it does not catch a
+  payload quietly dropping a flag from its existing stack. Full positive
+  pinning was considered and rejected: the payload stacks are heterogeneous
+  (`--packet`, `--summary --plan-lock-scope task`, and the handoff stack all
+  appear), so pinning each would mean twelve separate literal expectations
+  maintained by hand, and their content is already guarded by the manifests
+  that own those files. The assertion is scoped to `maid verify --profile`
+  rather than a bare `--profile` ban so an unrelated future mention cannot
+  misfire.
+
+  The distributed surface is twelve files, not nine. The nine under
+  `maid_runner/claude/` and `maid_runner/codex/` are the repo-level payload;
+  `maid_runner/user_skills/` ships three more (`claude/maid-onboard/SKILL.md`,
+  `codex/maid-onboard/SKILL.md`, `codex/maid-onboard/agents/openai.yaml`) that
+  reach users through `maid skills install`. 095-04 must migrate twelve.
+
+  This test is deliberately an obstacle to 095-04: that child must edit this
+  file and re-lock with `maid plan revise --preserve-red-evidence` rather than
+  quietly weaken the boundary. 095-04 should delete these assertions as part of
+  moving the boundary, not relax them to make a diff pass.
+
+  RED PHASE SHAPE: DRIVERS AND GUARDS
+
+  This is a migration, so part of its value is proving nothing changed. The
+  drivers are the commit gate using the profile form and the guidance naming it.
+  The guards -- frozen gate-set equality, retained scope flags, and the deferral
+  boundary -- pass before and after by design. A guard that only passed after
+  would mean the migration changed behavior.
+
+  The driver/guard pair is what makes this sound: the driver alone would accept
+  a gate that drops flags, and the guard alone would accept doing nothing. The
+  driver asserts the exact token sequence rather than the absence of a few
+  flags, so a half-migrated entry cannot satisfy it.
+
+  OUT OF SCOPE
+
+  `_PRE_COMMIT_VERIFY_ARGS`, the nine distributed agent payload files, the
+  `INSTRUCTION_PAYLOAD_VERSION` advance, and `make sync-agent-payloads` (all
+  095-04). Any change to profile definitions or to what the gates do. New
+  profiles.
+temptations:
+- risk: Do not migrate _PRE_COMMIT_VERIFY_ARGS because it is the largest flag 
+    stack and the obvious target.
+  instead: Leave the generator to 095-04, which must decide the version floor; a
+    hook generated with --profile into a repo pinned to an older runner fails 
+    every commit.
+- risk: Do not replace the literal flags in AGENTS.md, the README, or the howto 
+    topics with the profile form.
+  instead: Present both, so readers see what the profile expands to and 
+    tests/test_plan_lock_docs.py keeps passing without pulling two more plan 
+    locks into scope.
+- risk: Do not pin the deferral boundary by asserting the string --profile is 
+    absent from the payload tree, which would misfire on any future unrelated 
+    mention.
+  instead: Pin _PRE_COMMIT_VERIFY_ARGS positively against all ten literal flags, and
+    pin the payload files by frozen path set plus absence of the migrated form `maid
+    verify --profile`.
+- risk: Do not write the commit-gate driver as a few absent flags; a 
+    half-migrated entry would pass.
+  instead: Assert the exact token sequence of the migrated entry, and pair it 
+    with the frozen gate-set equality check.
+- risk: Do not normalize README.md:94's generated-hook block to the profile form
+    for consistency with the migrated verify examples.
+  instead: Leave that block and the docs/ci-cd-integration.md examples on 
+    literal flags until 095-04, and add the sentence explaining why; 
+    tests/cli/test_init_pre_commit.py:415 pins it and is hashed by six plan 
+    locks.
+files:
+  create:
+  - path: tests/cli/test_verify_profile_adoption.py
+    artifacts:
+    - kind: test_function
+      name: test_repo_commit_gate_uses_the_handoff_profile
+    - kind: test_function
+      name: test_repo_commit_gate_applies_the_frozen_pre_migration_gates
+    - kind: test_function
+      name: test_repo_guidance_presents_both_the_profile_and_its_expansion
+    - kind: test_function
+      name: test_readme_documents_the_profile_option
+    - kind: test_function
+      name: test_downstream_facing_call_sites_stay_on_literal_flags
+    - kind: test_function
+      name: test_readme_generated_hook_block_stays_on_literal_flags
+  edit:
+  - path: maid_runner/cli/commands/howto.py
+    artifacts:
+    - kind: function
+      name: cmd_howto
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Workflow and commands topic content presenting the handoff 
+        profile alongside the explicit flags it expands to.
+  - path: AGENTS.md
+    artifacts:
+    - kind: attribute
+      name: _handoff_gate_profile_form
+      of: documentation
+      type: markdown section
+      description: Step 8 handoff instruction naming the profile alongside the 
+        explicit flag form.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _verify_profile_documentation
+      of: documentation
+      type: markdown section
+      description: Verify examples presenting the profile form and the CLI 
+        options table documenting --profile, which 095-02 shipped undocumented.
+  scope:
+  - path: .pre-commit-config.yaml
+    reason: Repository hook configuration has no analyzer-visible public 
+      artifact contract, matching the files.scope precedent in 
+      manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml.
+  - path: tests/test_pre_commit_config.py
+    reason: Pins this repository's maid-verify hook entry verbatim, so migrating
+      the entry requires editing it; its public surface is not contracted here.
+  read:
+  - maid_runner/core/verify_profiles.py
+  - maid_runner/cli/commands/init.py
+  - tests/test_plan_lock_docs.py
+  - tests/cli/test_verify_profiles.py
+  - tests/cli/test_init_pre_commit.py
+validate:
+- uv run python -m pytest tests/cli/test_verify_profile_adoption.py 
+  tests/test_pre_commit_config.py tests/test_plan_lock_docs.py 
+  tests/cli/test_verify_profiles.py tests/cli/test_init_pre_commit.py -v
+- uv run maid validate 
+  manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml --mode
+  schema --quiet
+outcome:
+  status: completed
+  summary: "Adopted the verify profiles in this repository's own commit gate and guidance surfaces, leaving every downstream-facing generator on literal flags."
+  rationale: "Migrated .pre-commit-config.yaml to --profile handoff after proving gate equivalence, augmented AGENTS.md, README and the howto workflow/commands topics with the profile form alongside its expansion, and documented --profile in the README options table. Plan review rejected the first draft's scope as self-contradictory and the generator moved to 095-04; that correction dissolved a six-lock cascade. Implementation review verified equivalence independently by namespace diff and a full A/B verify run, then found two declared guards weaker than the manifest described; both were reconciled."
+  lessons:
+  - lesson_type: contract-scope
+    summary: "A deferral rationale must be applied to every artifact it covers: deferring agent payload text for downstream version skew while migrating the generator that writes hooks into those same repositories was inconsistent, and the generator had the worse failure mode."
+    tags:
+    - scope
+    - migration
+    - compatibility
+    paths:
+    - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+  - lesson_type: test-quality
+    summary: "A guard asserting a substring appears in a file is vacuous when the file already contains that substring elsewhere; pin the specific line or block the rule governs, then verify the guard fails when the property is removed."
+    tags:
+    - test-design
+    - documentation-contract
+    paths:
+    - tests/cli/test_verify_profile_adoption.py
+    - AGENTS.md
+  - lesson_type: workflow
+    summary: "Enumerate lock owners for the file actually being edited: plan review mapped six owners of tests/cli/test_init_pre_commit.py, but the implementation edited tests/test_pre_commit_config.py, whose two owners surfaced only as E701 at verify time."
+    tags:
+    - plan-lock
+    - cascade
+    paths:
+    - tests/test_pre_commit_config.py
+  - lesson_type: workflow
+    summary: "Adding a file to a manifest's validate command also adds it to that manifest's lock hashes, widening the next child's revision set; here it took tests/cli/test_init_pre_commit.py from six owners to seven."
+    tags:
+    - plan-lock
+    - validate-commands
+    paths:
+    - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+  - lesson_type: documentation-contract
+    summary: "When one surface migrates and a neighbouring one deliberately does not, state the boundary where the reader meets it; README now explains that the generated hook stays on explicit flags until the --profile version floor ships."
+    tags:
+    - documentation
+    - readme
+    paths:
+    - README.md

@@ -24,8 +24,7 @@ def test_pre_commit_uses_single_fail_fast_maid_verify_gate() -> None:
         "id": "maid-verify",
         "name": "MAID verification (fail-fast handoff gates)",
         "entry": (
-            "uv run maid verify --summary --require-plan-lock "
-            "--require-red-evidence --fail-fast --no-changed-scope"
+            "uv run maid verify --profile handoff --fail-fast --no-changed-scope"
         ),
         "language": "system",
         "pass_filenames": False,

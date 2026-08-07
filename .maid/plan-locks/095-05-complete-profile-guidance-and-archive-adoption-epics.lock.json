@@ -1,0 +1,300 @@
+{
+  "manifest_path": "manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+  "manifest_hash": "sha256-contract:e18f3e76587fb4227b784c95b0636f7438ff9ffc58bac5eb259cc9a1973cc6ce",
+  "test_hashes": {
+    "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427",
+    "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:b84e48d8bd617e3f1586c39f8413b6ef18de6b8f26e998358d352aa535d91e5c",
+    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:023fc6db8410639c49ef06361b0b1a1089feb239afea2a47391f998b3e174975",
+    "tests/test_plan_lock_docs.py": "sha256-pyast:v2:4e3f57a8f83cb79ab722dc7ab4dda74a7fc61a8c9dae2c0e80d857fd8ef8acf2"
+  },
+  "created_at": "2026-08-07T13:17:29.919350+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:4ab9435b50a4b091bf0df777adacf1a2255729d5d0d4517d26c8ce421168e8e6",
+      "prior_test_hashes": {
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427",
+        "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:1138cc11b2b0e2ab772ca321877bf3878ac3eaac5340d90aa0dbc3e994004ca6"
+      },
+      "revised_at": "2026-08-07T13:17:35.166599+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml -> manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a904b7b5e341b402fc3bd10902b50de6bf878043f8e176b5409bd19bb1a69bcc",
+      "prior_test_hashes": {
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427",
+        "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:1138cc11b2b0e2ab772ca321877bf3878ac3eaac5340d90aa0dbc3e994004ca6"
+      },
+      "revised_at": "2026-08-07T13:18:53.316087+00:00",
+      "reason": "Focused validation exposed the shared workflow-convergence expectation that must migrate with the generated handoff guidance; add it to scope and require the exact handoff profile.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/test_review_convergence_guidance.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3e40cda0d4fb0af5db9d778ae88718d69882d20d3801613da00fe7c83f2f3cbb",
+      "prior_test_hashes": {
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427",
+        "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:b84e48d8bd617e3f1586c39f8413b6ef18de6b8f26e998358d352aa535d91e5c"
+      },
+      "revised_at": "2026-08-07T13:22:26.167375+00:00",
+      "reason": "Full-suite documentation contracts exposed raw packet and pre-profile handoff expectations omitted from the focused set; add both tests to scope and require the named profile forms.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/test_packet_skill_guidance_docs.py",
+          "scope:tests/test_plan_lock_docs.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/cli/test_095_epic_completion.py tests/core/test_draft_epic_archive_inventory.py tests/cli/test_howto_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_instruction_payload_version.py tests/test_agent_payload_distribution.py tests/test_review_convergence_guidance.py tests/test_packet_skill_guidance_docs.py tests/test_plan_lock_docs.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/cli/test_095_epic_completion.py tests/core/test_draft_epic_archive_inventory.py tests/cli/test_howto_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_instruction_payload_version.py tests/test_agent_payload_distribution.py tests/test_review_convergence_guidance.py -v"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-07T13:22:28.336288+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_095_epic_completion.py tests/core/test_draft_epic_archive_inventory.py tests/cli/test_howto_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_instruction_payload_version.py tests/test_agent_payload_distribution.py tests/test_review_convergence_guidance.py tests/test_packet_skill_guidance_docs.py tests/test_plan_lock_docs.py -v",
+        "exit_code": 1,
+        "output_tail": "capsys = <_pytest.capture.CaptureFixture object at 0x736528bbbf80>\n\n    def test_howto_workflow_mentions_plan_lock_commands(capsys) -> None:\n        assert cmd_howto(Namespace(topic=\"workflow\")) == 0\n        workflow = capsys.readouterr().out\n        assert \"maid plan lock\" in workflow\n        assert \"maid verify --profile handoff\" in workflow\n>       assert \"expands to: maid verify --summary --require-plan-lock\" in workflow\nE       AssertionError: assert 'expands to: maid verify --summary --require-plan-lock' in 'Complete MAID Workflow\\n======================\\n\\nPhase 1: Define goal and create manifest\\nPhase 2: Write behavioral tests\\n  - maid validate --mode behavioral\\n  - maid plan lock manifests/your-task.manifest.yaml\\nPhase 3: Implement code to pass tests\\n  - maid validate\\n  - maid test\\nPhase 4: Refactor while tests pass\\nPhase 5: Integration verification\\n  - maid validate (all manifests)\\n  - maid test (all test commands)\\n  - maid verify --require-plan-lock --require-red-evidence\\n    (or by name: maid verify --profile handoff)\\n\\nNext: maid howto commands\\n'\n\ntests/test_plan_lock_docs.py:120: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_095_epic_completion.py::test_howto_actionable_verify_commands_use_named_profiles\nFAILED tests/cli/test_095_epic_completion.py::test_init_distributed_workflow_uses_handoff_profile\nFAILED tests/cli/test_095_epic_completion.py::test_instruction_payload_version_advances_for_completed_guidance\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_consumed_epic_drafts_are_archived_pointers_to_promoted_children\nFAILED tests/test_review_convergence_guidance.py::test_workflow_doc_and_packaged_copies_stay_in_sync\nFAILED tests/test_packet_skill_guidance_docs.py::test_readme_and_howto_describe_packet_flag\nFAILED tests/test_plan_lock_docs.py::test_howto_workflow_mentions_plan_lock_commands\n========================= 7 failed, 39 passed in 0.68s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json",
+      ".maid/plan-locks/085-06-review-convergence-and-iteration-guidance.lock.json",
+      ".maid/plan-locks/095-04-migrate-generated-profile-payloads.lock.json",
+      "plan-revision.md"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml:attribute:manifest._archived_coverage_priority_recommender_epic",
+      "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml:attribute:manifest._archived_coverage_priority_recommender_epic:kind=attribute",
+      "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml:attribute:manifest._archived_coverage_priority_recommender_epic:of=manifest",
+      "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml:attribute:manifest._archived_coverage_priority_recommender_epic:type=draft epic",
+      "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml:attribute:manifest._archived_onboarding_entry_point_wiring_epic",
+      "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml:attribute:manifest._archived_onboarding_entry_point_wiring_epic:kind=attribute",
+      "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml:attribute:manifest._archived_onboarding_entry_point_wiring_epic:of=manifest",
+      "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml:attribute:manifest._archived_onboarding_entry_point_wiring_epic:type=draft epic",
+      "tests/cli/test_095_epic_completion.py:test_howto_actionable_verify_commands_use_named_profiles",
+      "tests/cli/test_095_epic_completion.py:test_howto_actionable_verify_commands_use_named_profiles:kind=test_function",
+      "tests/cli/test_095_epic_completion.py:test_init_distributed_workflow_uses_handoff_profile",
+      "tests/cli/test_095_epic_completion.py:test_init_distributed_workflow_uses_handoff_profile:kind=test_function",
+      "tests/cli/test_095_epic_completion.py:test_instruction_payload_version_advances_for_completed_guidance",
+      "tests/cli/test_095_epic_completion.py:test_instruction_payload_version_advances_for_completed_guidance:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_095_epic_completion.py"
+      ],
+      "edit": [
+        "maid_runner/instruction_payload.py",
+        "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml",
+        "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml"
+      ],
+      "read": [
+        "maid_runner/core/verify_profiles.py",
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "manifests/092-04-align-risk-v1-guidance.manifest.yaml",
+        "manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml",
+        "manifests/095-02-add-verify-profile-presets.manifest.yaml",
+        "manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml",
+        "manifests/095-04-migrate-generated-profile-payloads.manifest.yaml",
+        "manifests/drafts/README.md",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/cli/commands/howto.py",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "tests/core/test_draft_epic_archive_inventory.py",
+        "tests/test_packet_skill_guidance_docs.py",
+        "tests/test_plan_lock_docs.py",
+        "tests/test_review_convergence_guidance.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_095_epic_completion.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_howto_actionable_verify_commands_use_named_profiles"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_distributed_workflow_uses_handoff_profile"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_advances_for_completed_guidance"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped payload version advanced beyond 2026.08.07.1 because init-distributed workflow guidance changes.",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/092-00-coverage-priority-recommender.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_coverage_priority_recommender_epic",
+              "description": "Historical pointer for promoted child manifests 092-01 through 092-04.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_onboarding_entry_point_wiring_epic",
+              "description": "Historical pointer for promoted child manifests 095-01 through 095-05.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/verify_profiles.py",
+        "scripts/sync_claude_files.py",
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/drafts/README.md",
+        "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "manifests/092-04-align-risk-v1-guidance.manifest.yaml",
+        "manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml",
+        "manifests/095-02-add-verify-profile-presets.manifest.yaml",
+        "manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml",
+        "manifests/095-04-migrate-generated-profile-payloads.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "reason": "Make named profiles the actionable retry and handoff commands while retaining labelled literal expansion text; cmd_howto's signature is unchanged and already covered by 095-01."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Migrate the final strict handoff instruction in the canonical init-distributed workflow document."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Generated by make sync-agent-payloads from the canonical workflow document."
+        },
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "reason": "Register the fully consumed 092 and 095 epics and their exact child manifests in the existing archive inventory contract."
+        },
+        {
+          "path": "tests/test_review_convergence_guidance.py",
+          "reason": "Evolve the shared generated-workflow expectation from the literal handoff stack to the exact gate-equivalent handoff profile command."
+        },
+        {
+          "path": "tests/test_packet_skill_guidance_docs.py",
+          "reason": "Evolve only the howto retry expectation from the raw packet flag to the agent-retry profile while retaining packet reference documentation."
+        },
+        {
+          "path": "tests/test_plan_lock_docs.py",
+          "reason": "Evolve the howto workflow expectation to require the handoff profile and its labelled literal expansion."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_095_epic_completion.py",
+      "tests/cli/test_howto_cmd.py",
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/core/test_draft_epic_archive_inventory.py",
+      "tests/test_agent_payload_distribution.py",
+      "tests/test_init_draft_workflow_payload.py",
+      "tests/test_packet_skill_guidance_docs.py",
+      "tests/test_plan_lock_docs.py",
+      "tests/test_review_convergence_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_095_epic_completion.py tests/core/test_draft_epic_archive_inventory.py tests/cli/test_howto_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_instruction_payload_version.py tests/test_agent_payload_distribution.py tests/test_review_convergence_guidance.py tests/test_packet_skill_guidance_docs.py tests/test_plan_lock_docs.py -v",
+      "uv run maid validate manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

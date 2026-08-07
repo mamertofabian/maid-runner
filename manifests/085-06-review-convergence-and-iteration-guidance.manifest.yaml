@@ -1,3 +1,7 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: Teach the packaged MAID skills and workflow docs a convergent review protocol and a task-scoped iteration loop so autonomous runs stop paying four-to-seven review rounds and full-tree verify per fix
 type: feature

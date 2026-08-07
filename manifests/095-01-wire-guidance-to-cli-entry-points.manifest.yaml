@@ -1,0 +1,316 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Wire the existing maid howto guidance to the CLI entry points so newcomers
+  reach the quickstart path from --help, init, and the README
+type: feature
+created: '2026-08-07T01:21:13Z'
+metadata:
+  epic: 095-00-onboarding-entry-point-wiring
+  tags:
+  - adoption
+  - developer-experience
+  - cli-guidance
+  - onboarding
+  priority: high
+description: |
+  MAID already ships the progressive-disclosure content: `maid howto` exposes
+  nine topics and `maid howto quickstart` renders a numbered walkthrough. None
+  of the entry points point at it. This child wires the four newcomer-facing
+  surfaces to that existing guidance. It changes help and guidance text only;
+  no validation, parsing, or init file-writing behavior changes.
+
+  Surface 1 - `maid_runner/cli/commands/_main.py` `build_parser()`:
+  `add_subparsers` is called without a `metavar`, so argparse renders the
+  31-item `{validate,validators,test,...}` brace blob twice (usage line and
+  positional header) before any description. Pass `metavar: "<command>"` to
+  collapse both, and add an `epilog` carrying a curated "Start here" block that
+  names the core commands and points at `maid howto quickstart`. The parser
+  needs `formatter_class=argparse.RawDescriptionHelpFormatter` so the
+  description and epilog keep their line breaks.
+
+  Rationale for splitting the pointer across description and epilog: argparse
+  always renders `epilog` last, so a "Start here" block placed only there
+  lands below the 31-command list, which is the opposite of a newcomer's
+  reading order. `description` renders above the list. Put a one-line pointer
+  to `maid howto quickstart` in the description so it is the first thing read,
+  and keep the fuller "Start here:" command block in the epilog for the reader
+  who scrolls. The behavioral test pins the ordering, not the argparse
+  keyword, so the requirement is "a newcomer meets the pointer before the
+  command wall" rather than "use this specific parameter".
+
+  Rationale for keeping every command visible: `tests/cli/test_main.py`
+  `test_parser_help_lists_all_top_level_commands` pins 18 commands as present
+  in default help, including `benchmark` and `serve`, and that test is
+  referenced by 18 active manifests. Hiding tier-3 commands behind
+  `argparse.SUPPRESS` and a `--help-all` flag would require evolving a widely
+  pinned contract, so this child deliberately curates through the epilog
+  instead of suppressing. The brace-wall removal plus a "Start here" block
+  delivers the orientation win with no contract cascade. Suppression remains
+  available as separate, later work.
+
+  `formatter_class` is set on the top-level parser only. `add_parser` builds
+  subparsers from its own kwargs, so the raw-description formatter does not
+  propagate to the 31 subcommand help screens.
+
+  Surface 2 - `maid_runner/cli/commands/init.py` `cmd_init()`: the completion
+  block currently ends on the `core.hooksPath` dispatcher caveat, so the last
+  line a newcomer reads after a successful init is advanced Git hook
+  configuration. Append a "Next steps:" footer naming `maid howto quickstart`
+  after the existing Git hook guidance. Both hook lines are retained verbatim
+  because `tests/cli/test_init_pre_commit.py` asserts `core.hooksPath` in the
+  init output.
+
+  Surface 3 - `maid_runner/cli/commands/howto.py`: the `quickstart` topic is
+  the full seven-step lifecycle. Step 2 already reaches
+  `maid bootstrap --rank --model risk-v1 --limit 20`, and the topic ends on
+  plan lock plus `maid verify --require-plan-lock --require-red-evidence`. A
+  reader who finally finds the quickstart lands on tier-2 and tier-3 material
+  in the first screen. Three changes:
+
+  - Trim `quickstart` to a flagless first win: `maid init`, create a manifest,
+    write a behavioral test, `maid validate`, `maid test`. No flags, no
+    brownfield entry, no plan lock, no verify.
+  - Add a `brownfield` topic carrying the `maid bootstrap --rank` and
+    `maid manifest from-diff` guidance removed from `quickstart`, including
+    the exactly-one-baseline rule and the deterministic ranking semantics.
+
+    The 061-05 Outcome record states that the deterministic ordering must be
+    stated and asserted wherever `bootstrap --rank` is presented as onboarding
+    guidance, and 092-04 adds that guidance tests must assert every materially
+    distinct state rather than an umbrella phrase. The `brownfield` topic is a
+    new onboarding presentation of `--rank`, so it inherits both: it must name
+    the `risk-v1` and `legacy-v1` models and the pinned legacy ordering
+    (churn descending, inbound_refs descending, public_artifacts descending,
+    path ascending), and the behavioral test must assert them rather than
+    accepting the topic's mere existence.
+  - Add a trailing "Next: maid howto <topic>" line to every rendered topic so
+    the ten topics form a path instead of ten leaf nodes.
+
+    The chain is a contract, not decoration. It must be rooted at `quickstart`,
+    every topic emits exactly one `Next:` line, no topic links to itself or to
+    an unlisted topic, and following the links from `quickstart` must reach
+    every listed topic. A chain that satisfies the per-topic rule but splits
+    into disjoint cycles does not meet the contract.
+
+  Rationale for the chain design: declare the topology once in a private
+  `_NEXT_TOPIC` mapping and render the footer in `cmd_howto`, rather than
+  hardcoding a footer inside each `_TOPICS` string. Ten hand-maintained
+  footers drift; one mapping does not. `_TOPICS` content stays free of
+  navigation text, which keeps
+  `tests/test_packet_skill_guidance_docs.py` joining `_TOPICS.values()` intact.
+
+  Plan lock and verify guidance already lives in the existing `workflow`
+  topic and is not moved or duplicated.
+
+  Surface 4 - `README.md` Quick Start (lines 42-58): currently three commands
+  carrying seven flags, including the `risk-v1` model identifier, positioned
+  below "Why MAID Runner?", "Supported Languages", and "Validator Plugins".
+  Rewrite Quick Start to the same flagless first win the website already
+  pins, and fold the brownfield comment line into the existing
+  `### Brownfield Onboarding` section. Do not create a new section, and do not
+  relocate the brownfield commands, which already live under that heading.
+
+  The website homepage is the reference shape, not an invention: `tests/
+  test_website_static_contract.py` already pins its quickstart to
+  `pip install maid-runner`, `maid init`, `maid howto --section quickstart`
+  and asserts `maid verify` is absent from it. The README is the surface that
+  drifted from that contract.
+
+  Preserved contract strings: `tests/test_brownfield_onboarding_docs.py`
+  asserts five strings against the whole README, not against the Quick Start
+  section - "Brownfield entry", "maid bootstrap --rank", "maid manifest
+  from-diff", "reviewed drafts per change", and "Generated manifests land in
+  `manifests/drafts/`" (whitespace-normalized). Deleting any of the five breaks
+  the 061-05 contract.
+
+  Do not create a new brownfield section. `README.md` already has
+  `### Brownfield Onboarding`, which already carries three of the five pinned
+  strings. Only two are unique to Quick Start, and both sit on the single
+  comment line `README.md:54`. Fold that line's intent into the existing
+  section and delete it from Quick Start; do not relocate anything that already
+  lives under `### Brownfield Onboarding`. Duplicating a brownfield section
+  into a 917-line README would worsen the exact overload this child exists to
+  reduce.
+
+  Surface 4b - `README.md` CLI reference row for `maid howto` (line 148):
+  the row advertises `--section intro|principles|workflow|quickstart|patterns|
+  commands|troubleshooting`. Three of those topics do not exist (`intro`,
+  `principles`, `patterns`) and four real ones are missing (`create`,
+  `validate`, `snapshot`, `serve`). Adding `brownfield` without fixing the row
+  widens an already-wrong list, which is precisely the cross-surface drift the
+  061-05 Outcome warns about. Correct the row to the actual topic set
+  including `brownfield`.
+
+  Documentation standards: present tense, no temporal markers such as "NEW",
+  "now", or before/after comparisons.
+
+  Out of scope: `maid verify --profile` presets for its 31 visible options
+  (deferred to 095-02), suppressing tier-3 commands from help behind
+  `--help-all` (deferred; see the epic for the contract-cascade reason), a
+  guided `maid quickstart` command, any change to validation behavior, and any
+  change to which files `maid init` writes.
+temptations:
+- risk: Do not delete the brownfield commands from README.md, and do not add a 
+    second brownfield section next to the existing one.
+  instead: Fold the two phrases unique to Quick Start ("Brownfield entry" and 
+    "reviewed drafts per change", both on README.md:54) into the existing "### 
+    Brownfield Onboarding" section, and leave the three strings already living 
+    there untouched, so all five 061-05 assertions still pass.
+- risk: Do not present the new brownfield topic as a bare pointer to bootstrap 
+    --rank without its deterministic ranking semantics.
+  instead: Name risk-v1 and legacy-v1 and state the pinned legacy ordering 
+    (churn descending, inbound_refs descending, public_artifacts descending, 
+    path ascending), matching the existing commands topic and the 061-05 Outcome
+    lesson.
+- risk: Do not shorten top-level help by hiding commands with argparse.SUPPRESS 
+    or adding a --help-all flag.
+  instead: Collapse the brace walls with metavar and curate through the epilog, 
+    leaving all 31 commands listed so 
+    test_parser_help_lists_all_top_level_commands stays green.
+- risk: 'Do not hardcode a "Next: maid howto <topic>" footer inside each _TOPICS string.'
+  instead: Declare the topology once in a private _NEXT_TOPIC mapping and render
+    the footer in cmd_howto so _TOPICS content stays navigation-free.
+- risk: Do not drop the core.hooksPath lines from cmd_init while demoting them 
+    below the new footer.
+  instead: Keep both Git hook lines verbatim and add the Next steps block after 
+    them, so tests/cli/test_init_pre_commit.py continues to pass.
+files:
+  create:
+  - path: tests/cli/test_entry_point_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_top_level_help_replaces_command_wall_with_metavar
+    - kind: test_function
+      name: test_top_level_help_points_newcomers_at_quickstart
+    - kind: test_function
+      name: test_top_level_help_start_here_block_names_core_commands
+    - kind: test_function
+      name: test_top_level_help_still_lists_every_command
+    - kind: test_function
+      name: test_init_output_ends_with_quickstart_next_step
+    - kind: test_function
+      name: test_init_next_steps_follow_git_hook_guidance
+    - kind: test_function
+      name: test_howto_quickstart_omits_advanced_flags
+    - kind: test_function
+      name: test_howto_quickstart_covers_first_win_commands
+    - kind: test_function
+      name: test_howto_brownfield_topic_covers_rank_and_from_diff
+    - kind: test_function
+      name: test_howto_brownfield_topic_states_deterministic_ranking_semantics
+    - kind: test_function
+      name: test_howto_topic_list_includes_brownfield
+    - kind: test_function
+      name: test_howto_topics_chain_to_a_next_topic
+    - kind: test_function
+      name: test_readme_quick_start_presents_flagless_first_win
+    - kind: test_function
+      name: test_readme_retains_brownfield_entry_outside_quick_start
+    - kind: test_function
+      name: test_readme_howto_row_lists_actual_topics
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Top-level parser built with a <command> metavar and a Start 
+        here epilog pointing at maid howto quickstart.
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Init completion output extended with a Next steps footer 
+        naming maid howto quickstart after the existing Git hook guidance.
+  - path: maid_runner/cli/commands/howto.py
+    artifacts:
+    - kind: function
+      name: cmd_howto
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Howto rendering with a trimmed flagless quickstart, a new 
+        brownfield topic, and a Next topic footer rendered from the private 
+        _NEXT_TOPIC mapping.
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: _quick_start_first_win_section
+      of: documentation
+      type: markdown section
+      description: Quick Start rewritten to the flagless install, init, and 
+        howto quickstart path the website contract already pins, with the 
+        brownfield comment line folded into the existing "### Brownfield 
+        Onboarding" section rather than a new one, and the maid howto CLI 
+        reference row corrected to the actual topic set including brownfield.
+  read:
+  - tests/cli/test_main.py
+  - tests/cli/test_cli_help_text.py
+  - tests/cli/test_howto_cmd.py
+  - tests/cli/test_init_pre_commit.py
+  - tests/test_brownfield_onboarding_docs.py
+  - tests/test_packet_skill_guidance_docs.py
+  - tests/test_website_static_contract.py
+  - tests/test_agent_payload_distribution.py
+validate:
+- uv run python -m pytest tests/cli/test_entry_point_guidance.py 
+  tests/cli/test_main.py tests/cli/test_cli_help_text.py 
+  tests/cli/test_howto_cmd.py tests/cli/test_init_pre_commit.py 
+  tests/test_brownfield_onboarding_docs.py 
+  tests/test_packet_skill_guidance_docs.py tests/test_website_static_contract.py
+  tests/test_agent_payload_distribution.py -v
+- uv run maid validate 
+  manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml --mode schema
+  --quiet
+outcome:
+  status: completed
+  summary: "Wired the existing maid howto guidance to the CLI help, init, and README entry points so newcomers reach the first-win path."
+  rationale: "Collapsed the duplicated 31-item argparse brace wall with a <command> metavar, added a quickstart pointer above the command list and a Start here block below it, gave maid init a Next steps footer after the core.hooksPath caveat, trimmed the howto quickstart to a followable first-win loop, added a brownfield topic carrying the ranking and from-diff guidance, chained all ten topics from a single _NEXT_TOPIC mapping, and rewrote the README Quick Start to the flagless shape the website contract already pinned. Implementation review found two blocking user-facing defects that the passing behavioral tests did not catch; both were fixed and verified by executing the documented path in a scratch repository."
+  lessons:
+  - lesson_type: guidance-contract
+    summary: "A walkthrough test that asserts only command presence can pass while the walkthrough itself dead-ends; verify onboarding docs by executing them end to end, not by asserting substrings."
+    tags:
+    - documentation
+    - onboarding
+    - test-quality
+    paths:
+    - maid_runner/cli/commands/howto.py
+    - tests/cli/test_entry_point_guidance.py
+  - lesson_type: guidance-contract
+    summary: "Guidance text that promises navigation must be checked against the live CLI; a closing paragraph claiming each advanced concept has its own howto topic sent readers to exit 2."
+    tags:
+    - documentation
+    - onboarding
+    paths:
+    - maid_runner/cli/commands/howto.py
+  - lesson_type: contract-scope
+    summary: "Curating help output through description and epilog delivers the orientation win without argparse.SUPPRESS; suppressing commands would have required evolving tests/cli/test_main.py, which 18 active manifests reference."
+    tags:
+    - cli-guidance
+    - contract-cascade
+    paths:
+    - maid_runner/cli/commands/_main.py
+  - lesson_type: workflow
+    summary: "Adding an artifact declaration after plan lock mismatches the manifest hash; maid plan revise --preserve-red-evidence is the correct instrument because recapturing red evidence against a green implementation records exit 0 as not_red and destroys the genuine red phase."
+    tags:
+    - plan-lock
+    - red-evidence
+    paths:
+    - manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml
+  - lesson_type: documentation-contract
+    summary: "Before moving pinned documentation strings, check whether a destination section already exists; README.md already had a Brownfield Onboarding section, so the drafted move would have created a duplicate in the file whose length was the stated problem."
+    tags:
+    - documentation
+    - readme
+    paths:
+    - README.md

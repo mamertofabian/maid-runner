@@ -1,0 +1,207 @@
+{
+  "manifest_path": "manifests/fix-changed-scope-dotnet-production-files.manifest.yaml",
+  "manifest_hash": "sha256-contract:3b39d119ebdbba0ca491c5fd1760a9be673b03ee649c4bbe9b09d7c6d5c6a9dd",
+  "test_hashes": {
+    "tests/core/test_changed_scope.py": "sha256-pyast:v2:7878def5a1513f3f6534b4541e43e9cd3c02cf4a351dd5199bf07b40af5b5dbe",
+    "tests/core/test_changed_scope_dotnet_files.py": "sha256-pyast:v2:58121563db85b968dccf90a877ea2a7c040a1770cd90ce8aa7c436f43bede192"
+  },
+  "created_at": "2026-08-05T02:13:17.945035+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b44572709f55813a94f6a9b7a825ba87ef73528b0203f96566f38115ed5805c4",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope.py": "sha256-pyast:v2:7878def5a1513f3f6534b4541e43e9cd3c02cf4a351dd5199bf07b40af5b5dbe",
+        "tests/core/test_changed_scope_dotnet_files.py": "sha256-pyast:v2:58121563db85b968dccf90a877ea2a7c040a1770cd90ce8aa7c436f43bede192"
+      },
+      "revised_at": "2026-08-05T02:13:20.324311+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-changed-scope-dotnet-production-files.manifest.yaml -> manifests/fix-changed-scope-dotnet-production-files.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-changed-scope-dotnet-production-files.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-changed-scope-dotnet-production-files.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-05T02:13:22.639318+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_changed_scope_dotnet_files.py tests/core/test_changed_scope.py",
+        "exit_code": 1,
+        "output_tail": "        _commit_all(tmp_path, \"baseline manifest\")\n        _write_dotnet_files(tmp_path)\n    \n        errors = validate_worktree_scope(tmp_path, _chain(tmp_path))\n    \n>       assert _outside_scope_paths(errors) == set(DOTNET_PATHS)\nE       AssertionError: assert set() == {'Components/...onService.cs'}\nE         \nE         Extra items in the right set:\nE         'Pages/_Host.cshtml'\nE         'Components/App.razor'\nE         'Resources/Labels.resx'\nE         'Services/LocationService.cs'\nE         Use -v to get more diff\n\ntests/core/test_changed_scope_dotnet_files.py:150: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_changed_scope_dotnet_files.py::test_changed_scope_reports_committed_dotnet_production_files_since_explicit_baseline\nFAILED tests/core/test_changed_scope_dotnet_files.py::test_worktree_scope_reports_uncommitted_dotnet_production_files\n2 failed, 11 passed in 0.41s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=allow_clean_tree_skip:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=base_ref:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:arg=since:type=Optional[str]:default=None",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:kind=function",
+      "maid_runner/core/worktree.py:function:evaluate_changed_scope:returns=ChangedScopeDecision",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=include_tests:type=bool:default=False",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:kind=function",
+      "maid_runner/core/worktree.py:function:validate_worktree_scope:returns=list[ValidationError]",
+      "tests/core/test_changed_scope_dotnet_files.py:test_changed_scope_allows_committed_dotnet_files_in_writable_scope",
+      "tests/core/test_changed_scope_dotnet_files.py:test_changed_scope_allows_committed_dotnet_files_in_writable_scope:kind=test_function",
+      "tests/core/test_changed_scope_dotnet_files.py:test_changed_scope_reports_committed_dotnet_production_files_since_explicit_baseline",
+      "tests/core/test_changed_scope_dotnet_files.py:test_changed_scope_reports_committed_dotnet_production_files_since_explicit_baseline:kind=test_function",
+      "tests/core/test_changed_scope_dotnet_files.py:test_worktree_scope_reports_uncommitted_dotnet_production_files",
+      "tests/core/test_changed_scope_dotnet_files.py:test_worktree_scope_reports_uncommitted_dotnet_production_files:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_changed_scope_dotnet_files.py"
+      ],
+      "edit": [
+        "maid_runner/core/worktree.py"
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml",
+        "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+        "tests/core/test_changed_scope.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_changed_scope_dotnet_files.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_changed_scope_reports_committed_dotnet_production_files_since_explicit_baseline",
+              "description": "Committed .cs, .cshtml, .razor, and .resx files changed after an explicit baseline each produce CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE when undeclared."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_scope_allows_committed_dotnet_files_in_writable_scope",
+              "description": "The same committed .NET production suffixes pass when every path is declared writable in the active manifest."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worktree_scope_reports_uncommitted_dotnet_production_files",
+              "description": "Uncommitted .NET production files use the same classifier and each fail worktree scope when undeclared."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/worktree.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "evaluate_changed_scope",
+              "description": "Reports committed .cs, .cshtml, .razor, and .resx paths outside active writable scope when evaluating an explicit task baseline.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "since",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "Optional[str]",
+                  "default": "None"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "allow_clean_tree_skip",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "ChangedScopeDecision"
+            },
+            {
+              "kind": "function",
+              "name": "validate_worktree_scope",
+              "description": "Applies the same .NET production-path ownership policy to staged, unstaged, and untracked worktree changes.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/037-01-add-task-baseline-changed-scope-gate.manifest.yaml",
+        "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml",
+        "tests/core/test_changed_scope.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_changed_scope.py",
+      "tests/core/test_changed_scope_dotnet_files.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_changed_scope_dotnet_files.py tests/core/test_changed_scope.py",
+      "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-changed-scope-dotnet-production-files.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

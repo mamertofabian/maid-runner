@@ -291,7 +291,7 @@ Keep review rounds convergent and task-scoped:
 - During fix iteration, run
   `maid verify --summary --plan-lock-scope task --since <baseline>`. Run the
   full strict handoff verify once at the end with
-  `maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>`.
+  `maid verify --profile handoff --since <baseline>`.
 
 For revision evidence, a contract-preserving plain revise automatically
 preserves valid evidence. Use `--test-only-green` for test-only contracts. Use

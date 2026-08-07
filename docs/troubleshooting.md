@@ -94,7 +94,12 @@ remove unrelated local changes from the task branch. Use `files.scope` when the
 changed file is intentionally writable but has no stable public artifact
 contract, such as Svelte route wiring covered through behavioral tests instead
 of route-local state or private handlers. Use `maid files` to inspect file
-tracking status.
+tracking status. These files appear as `Scope-only`, not `Tracked`, because
+write authorization does not prove artifact coverage. Use
+`maid files --fail-on scope-only` for an inventory gate or
+`maid verify --fail-on-scope-only` for a strict verification boundary. The
+default verify gate continues to allow legitimate scope-only wiring while
+reporting it explicitly.
 
 ### 9. Changed-scope baseline is required (`E115`)
 

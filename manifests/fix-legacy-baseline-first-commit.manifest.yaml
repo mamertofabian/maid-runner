@@ -1,0 +1,177 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Allow a newly staged brownfield manifest to capture an auditable legacy baseline
+  when its entire declared implementation and behavioral-test contract already exists
+  cleanly at HEAD"
+type: fix
+created: "2026-08-05T07:00:14Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  source_bug_report:
+    /home/atomrem/.maid/bug-report/20260801-151321-deckhand-legacy-baseline-first-commit.md
+  tags:
+    - plan-lock
+    - legacy-migration
+    - brownfield
+    - anti-gaming
+  priority: high
+description: |
+  Break the first-commit deadlock between generated strict pre-commit hooks and
+  `maid plan lock --legacy-baseline` for brownfield implementation already in
+  HEAD. When the manifest itself is absent from HEAD, use its staged index blob
+  as the audited manifest baseline only if the worktree bytes match that blob,
+  no other project path is dirty, and every declared non-deletion path plus
+  every discovered behavioral test already exists at HEAD with clean bytes.
+
+  Record whether the baseline manifest came from HEAD or the index so the
+  stored hash is not misrepresented as a blob from the baseline commit. Old
+  evidence without the new field remains valid as an implicit HEAD source.
+  Existing tracked-manifest migration, command-strengthening, mutation, green
+  validation, atomic publication, and strict-gate behavior remain unchanged.
+temptations:
+  - risk: "Do not accept an arbitrary untracked worktree manifest as legacy evidence."
+    instead: "Require a Git index blob for a manifest absent from HEAD and require
+      the worktree bytes to match it exactly."
+  - risk: "Do not let the first-commit path grandfather implementation or tests that
+      are staged, untracked, ignored, or otherwise absent from HEAD."
+    instead: "Resolve every declared non-deletion path and discovered behavioral test
+      from HEAD before running validation, while retaining the existing dirty-path
+      guards."
+  - risk: "Do not label an index-derived manifest hash as though it came from the
+      baseline commit."
+    instead: "Persist an explicit baseline_manifest_source value and treat missing
+      values on historical locks as head for backward compatibility."
+files:
+  edit:
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: attribute
+          name: baseline_manifest_source
+          of: LegacyBaselineEvidence
+          type: str
+          description: "Identifies whether baseline_manifest_hash was captured from
+            the HEAD manifest blob or the staged index blob."
+        - kind: function
+          name: capture_legacy_baseline_evidence
+          args:
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: reason
+              type: str
+          returns: LegacyBaselineEvidence
+          description: "Capture legacy green evidence from a tracked HEAD manifest
+            or, for first-commit brownfield adoption, an identical staged manifest
+            whose declared implementation and behavioral tests already exist cleanly
+            at HEAD."
+    - path: docs/maid_specs.md
+      artifacts:
+        - kind: attribute
+          name: _legacy_baseline_first_commit_specification
+          of: documentation
+          type: markdown paragraph
+          description: "Documents the staged-manifest bootstrap path, explicit provenance,
+            and HEAD-only contract boundary."
+  create:
+    - path: tests/cli/test_plan_legacy_baseline_first_commit.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_staged_first_commit_manifest_records_index_provenance_and_satisfies_strict_gate
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A staged manifest absent from HEAD can lock completed clean
+            brownfield code and records index provenance without claiming red evidence."
+        - kind: test_function
+          name: test_first_commit_manifest_must_be_staged_and_match_the_worktree
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "An unstaged manifest and a staged manifest with later worktree
+            edits are both rejected."
+        - kind: test_function
+          name:
+            test_first_commit_manifest_rejects_declared_or_test_paths_absent_from_head
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Index provenance cannot grandfather a declared implementation
+            path or discovered behavioral test that is absent from HEAD."
+        - kind: test_function
+          name: test_historical_legacy_payload_without_source_remains_valid
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Locks created before baseline_manifest_source was introduced
+            retain their strict-gate validity as implicit HEAD provenance."
+  read:
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+    - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+validate:
+  - uv run python -m pytest -q
+    tests/cli/test_plan_legacy_baseline_first_commit.py
+    tests/cli/test_plan_legacy_baseline_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-08-05T15:17:16+08:00"
+  summary: "New brownfield manifests can now bootstrap an auditable legacy baseline from an exact staged index blob when their entire declared implementation and behavioral-test contract is already clean at HEAD."
+  rationale: "The bounded index path breaks the strict-hook first-commit deadlock without grandfathering uncommitted implementation: the manifest must be staged and byte-identical to the worktree, all non-deletion contract paths must resolve at HEAD, deletion paths must already be absent, and the existing dirty-tree, green-command, mutation, contract-delta, and atomic-publication guards remain in force."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "A brownfield evidence exception can safely cross a first-commit boundary only when index provenance is explicit and every implementation/test path is independently anchored to HEAD."
+      tags: [plan-lock, legacy-baseline, git-index, anti-gaming]
+      paths:
+        - maid_runner/core/plan_lock.py
+        - tests/cli/test_plan_legacy_baseline_first_commit.py
+    - lesson_type: workflow-integrity
+      summary: "Lint-only behavioral-test cleanup after plan lock still requires a sanctioned evidence-preserving revision; strict E701 enforcement correctly exposed the stale hash before handoff."
+      tags: [plan-revision, red-evidence, behavioral-tests, strict-verify]
+      paths:
+        - tests/cli/test_plan_legacy_baseline_first_commit.py
+        - .maid/plan-locks/fix-legacy-baseline-first-commit.lock.json
+  review_notes:
+    - source: independent-reviewer-legacy_first_commit_review
+      severity: ready
+      summary: "Found no substantive implementation defect; confirmed HEAD/index provenance, staged-blob equality, dirty-path and deletion semantics, historical compatibility, and repository-prefix handling match the locked contract."
+    - source: independent-reviewer-legacy_first_commit_review
+      severity: residual-risk
+      summary: "Direct Git-subdirectory, declared-deletion, and invalid-provenance regression cases remain advisory future hardening; existing helper coverage and inspection support the current implementation."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_plan_legacy_baseline_first_commit.py, tests/cli/test_plan_legacy_baseline_cmd.py]
+      status: passed
+      summary: "All 21 focused first-commit and legacy-baseline behavioral tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The full Python suite passed 3739 tests with 5 skipped."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "Repository validation passed all 384 active manifests; 107 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 224 active manifest commands passed."
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, "2746616"]
+      status: passed
+      summary: "Strict nine-stage handoff verification passed with zero blockers after revision 3 preserved the original red evidence."

@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml",
-  "manifest_hash": "sha256:c67a89be75ab9ad2dabab99f5e615887aa27905ea29a0629709b4bd6bd0b45d0",
+  "manifest_hash": "sha256-contract:580d9a43435b5f72259d76669ab69ceb7a6832f5981dd4d470ac6c8da454e1d0",
   "test_hashes": {
-    "tests/test_pre_commit_config.py": "sha256:c2508306548475b0b7bde25849fdb8c9d9bb7a1aca715a7edc4ec95a461ada3e"
+    "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
   },
   "created_at": "2026-07-11T00:11:23.959062+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:173ef5a1b09873454cfec2c1e0ea2453dff83e23920ed7e9320c0e1ab28fcf32",
@@ -57,6 +57,25 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:c67a89be75ab9ad2dabab99f5e615887aa27905ea29a0629709b4bd6bd0b45d0",
+      "prior_test_hashes": {
+        "tests/test_pre_commit_config.py": "sha256:c2508306548475b0b7bde25849fdb8c9d9bb7a1aca715a7edc4ec95a461ada3e"
+      },
+      "revised_at": "2026-08-07T06:31:03.637644+00:00",
+      "reason": "tests/test_pre_commit_config.py updated by 095-03: this repository's own commit gate now uses --profile handoff, which applies the identical gate set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.pre-commit-config.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -77,6 +96,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -90,7 +110,59 @@
         "tests/test_pre_commit_config.py"
       ],
       "edit": [],
-      "read": []
+      "read": [],
+      "scope": [
+        ".pre-commit-config.yaml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_pre_commit_config.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pre_commit_uses_single_fail_fast_maid_verify_gate",
+              "source_scenario": "The repository pre-commit configuration is loaded.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Exactly one MAID verification hook runs verify with summary, plan-lock, red-evidence, fail-fast, and no-changed-scope flags; legacy standalone maid validate and maid test hooks are absent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_commit_preserves_format_lint_and_sync_hooks",
+              "source_scenario": "The MAID hooks are consolidated into verify.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Black, Ruff, and conditional Claude payload synchronization hooks retain their existing entries and ordering around the MAID gate."
+              }
+            }
+          ]
+        }
+      ],
+      "scope": [
+        {
+          "path": ".pre-commit-config.yaml",
+          "reason": "Repository hook configuration has no analyzer-visible public artifact contract."
+        }
+      ]
     },
     "test_files": [
       "tests/test_pre_commit_config.py"

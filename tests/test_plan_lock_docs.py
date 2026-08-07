@@ -116,7 +116,8 @@ def test_howto_workflow_mentions_plan_lock_commands(capsys) -> None:
     assert cmd_howto(Namespace(topic="workflow")) == 0
     workflow = capsys.readouterr().out
     assert "maid plan lock" in workflow
-    assert "maid verify --require-plan-lock --require-red-evidence" in workflow
+    assert "maid verify --profile handoff" in workflow
+    assert "expands to: maid verify --summary --require-plan-lock" in workflow
 
     assert cmd_howto(Namespace(topic="commands")) == 0
     commands = capsys.readouterr().out

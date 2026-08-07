@@ -5,6 +5,7 @@ from maid_runner.cli.commands.howto import _TOPICS, cmd_howto
 
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
+RETRY_PROTOCOL = ROOT / "docs/agent-retry-protocol.md"
 CLAUDE_SKILL = ROOT / ".claude/skills/maid-implementer/SKILL.md"
 CLAUDE_DIST_SKILL = ROOT / "maid_runner/claude/skills/maid-implementer/SKILL.md"
 CODEX_SKILL = ROOT / ".codex/skills/maid-runner-draft-implement/SKILL.md"
@@ -29,16 +30,21 @@ def _read(path: Path) -> str:
 
 def test_readme_and_howto_describe_packet_flag() -> None:
     readme = _read(README)
+    retry_protocol = _read(RETRY_PROTOCOL)
     howto_text = "\n".join(_TOPICS.values())
 
     assert "maid validate --packet" in readme
     assert "maid verify --packet" in readme
     assert "writes a failure packet only when the run fails" in readme
-    assert "removes any stale packet at that path" in readme
+    assert "`exit_code: 0`" in readme
+    assert "never infer failure from the packet path's existence" in readme
     assert ".maid/last-failure-packet.json" in readme
 
+    assert "`exit_code: 0`" in retry_protocol
+    assert "must not use packet-file existence as a failure signal" in retry_protocol
+
     assert "maid validate --packet" in howto_text
-    assert "maid verify --packet" in howto_text
+    assert "maid verify --profile agent-retry --since <baseline>" in howto_text
     assert ".maid/last-failure-packet.json" in howto_text
     assert cmd_howto
 

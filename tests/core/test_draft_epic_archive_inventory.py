@@ -7,6 +7,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKLOG_PATH = REPO_ROOT / "docs" / "plans" / "maid-runner-self-improvement-backlog.md"
 
 CONSUMED_EPICS = {
+    "092-00-coverage-priority-recommender.epic.yaml": (
+        "092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
+        "092-02-add-validator-risk-analysis-hooks.manifest.yaml",
+        "092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "092-04-align-risk-v1-guidance.manifest.yaml",
+    ),
+    "095-00-onboarding-entry-point-wiring.epic.yaml": (
+        "095-01-wire-guidance-to-cli-entry-points.manifest.yaml",
+        "095-02-add-verify-profile-presets.manifest.yaml",
+        "095-03-migrate-generated-hook-to-verify-profile.manifest.yaml",
+        "095-04-migrate-generated-profile-payloads.manifest.yaml",
+        "095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+    ),
     "067-00-plan-lock-and-red-phase-evidence.epic.yaml": (
         "067-01-add-plan-lock-storage-and-cli.manifest.yaml",
         "067-02-capture-red-phase-evidence-on-lock.manifest.yaml",

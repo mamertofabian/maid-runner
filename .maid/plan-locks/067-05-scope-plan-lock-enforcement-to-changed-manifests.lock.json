@@ -2,14 +2,14 @@
   "manifest_path": "manifests/067-05-scope-plan-lock-enforcement-to-changed-manifests.manifest.yaml",
   "manifest_hash": "sha256-contract:0dcf872956cfe2077f302bfaa699b7c730d61bae1949d0352188f6d2fd6483fb",
   "test_hashes": {
-    "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
-    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:58be7dbcb78b6e1319153f5536518bce4a011439d38fcd7b1d9b0c8fca63c5b9",
-    "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:f8e1a784c5c3fd62fd414d977a1a8789ccbfaaf4c30d6c8390159aca9b6e685d",
-    "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
-    "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0"
+    "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:v2:d797dab9812564d693b1c5f3f4cecce4569b8a5407cb635213cb64482eb4486f",
+    "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:v2:236f28116c03bde9a9f78f62c8a3e2c8580529729126d0496a1b05e799c261fc",
+    "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:v2:248fcd6fc079d1bf4951f42260144d3e75e5fc67968a83e5e1bae070715066e3",
+    "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:v2:8ba07ccdb13063a2985562636e5d5d8b9ac0991ca03756adda16a78324efc416",
+    "tests/test_plan_lock_docs.py": "sha256-pyast:v2:4e3f57a8f83cb79ab722dc7ab4dda74a7fc61a8c9dae2c0e80d857fd8ef8acf2"
   },
   "created_at": "2026-06-10T23:05:23.305360+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:09a489e6f2373dfb9a6c8ec6097f70c1b809e24fda6678be21e9c4bb68f5b71d",
@@ -109,6 +109,27 @@
       },
       "revised_at": "2026-07-26T05:59:46.660589+00:00",
       "reason": "090-01 review fixes: severity-filtered exclusivity assertion; contract unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0dcf872956cfe2077f302bfaa699b7c730d61bae1949d0352188f6d2fd6483fb",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_scope_enforcement.py": "sha256-pyast:4ba20d0e7c449efeecf54a496867c65cc9451faac8bb0ece496a50392a324399",
+        "tests/cli/test_verify_plan_lock_scope_cmd.py": "sha256-pyast:58be7dbcb78b6e1319153f5536518bce4a011439d38fcd7b1d9b0c8fca63c5b9",
+        "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:f8e1a784c5c3fd62fd414d977a1a8789ccbfaaf4c30d6c8390159aca9b6e685d",
+        "tests/cli/test_verify_plan_lock_cmd.py": "sha256-pyast:238a094f19add29f6e438be6d6b100cecdbfdc0d4a3d9ff526c310e10ecb9e0e",
+        "tests/test_plan_lock_docs.py": "sha256-pyast:14d4cc68a063296208efb5adec56f8c9785eed17c652a7dd2fc80a5dc6b6ddf0"
+      },
+      "revised_at": "2026-08-07T13:28:23.266314+00:00",
+      "reason": "095-05 migrates shared howto documentation expectations to named verify profiles while preserving the historical plan-lock, E708 guidance, and onboarding contracts.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -281,6 +281,7 @@ def test_verify_file_tracking_passes_for_scope_only_source_file(tmp_path, capsys
     output = capsys.readouterr().out
     assert "Verify: PASS" in output
     assert "PASS file_tracking" in output
+    assert "Scope-only" in output
     assert "Registered" not in output
 
 

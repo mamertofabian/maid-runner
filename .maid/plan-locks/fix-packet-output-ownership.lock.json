@@ -1,0 +1,698 @@
+{
+  "manifest_path": "manifests/fix-packet-output-ownership.manifest.yaml",
+  "manifest_hash": "sha256-contract:5284cdf66473d54d78ddad3d4ad0b15a13ceb939c200c50eb8527fd561495ce2",
+  "test_hashes": {
+    "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+    "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+    "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
+    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:023fc6db8410639c49ef06361b0b1a1089feb239afea2a47391f998b3e174975"
+  },
+  "created_at": "2026-08-04T23:21:22.625748+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:87a91009ac82847bf8c4d12f171100d3a31507145cd73ac5807575929da045f2",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:0116f9ddb012e33c4b5473404080fd834a66d0eccdfcd261b7bf13e56b86324f",
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:8e6ca4733e2be2c55d96d55ca914d8b26e5adb6879f3bd139f6e81b9dcd26c45",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:aeaaa41d8232389a68dd7447e85b4f372c786de3548325afcbca220fb46597b5"
+      },
+      "revised_at": "2026-08-04T23:21:25.120189+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-packet-output-ownership.manifest.yaml -> manifests/fix-packet-output-ownership.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-packet-output-ownership.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-packet-output-ownership.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8c401b08bd6acc111b68eeb34c1820c176cd886166bf9c0ea526c46317910a92",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:0116f9ddb012e33c4b5473404080fd834a66d0eccdfcd261b7bf13e56b86324f",
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:8e6ca4733e2be2c55d96d55ca914d8b26e5adb6879f3bd139f6e81b9dcd26c45",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:aeaaa41d8232389a68dd7447e85b4f372c786de3548325afcbca220fb46597b5"
+      },
+      "revised_at": "2026-08-04T23:24:40.058728+00:00",
+      "reason": "Re-declare unchanged build_parser and main artifacts required by the superseded packet contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/_main.py:function:build_parser",
+          "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+          "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+          "maid_runner/cli/commands/_main.py:function:main",
+          "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+          "maid_runner/cli/commands/_main.py:function:main:kind=function",
+          "maid_runner/cli/commands/_main.py:function:main:returns=int"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/_main.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/cli/commands/_main.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:005877206c8187fce1914638aca91d0326ebf472eed5759318af887f5e60dd0a",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:0116f9ddb012e33c4b5473404080fd834a66d0eccdfcd261b7bf13e56b86324f",
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:8e6ca4733e2be2c55d96d55ca914d8b26e5adb6879f3bd139f6e81b9dcd26c45",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:aeaaa41d8232389a68dd7447e85b4f372c786de3548325afcbca220fb46597b5"
+      },
+      "revised_at": "2026-08-04T23:34:10.773150+00:00",
+      "reason": "Close review-found TOCTOU races with descriptor-bound packet mutation and logical clear",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_packet_output_ownership.py:test_clear_failure_packet_preserves_raced_path_replacement",
+          "tests/cli/test_packet_output_ownership.py:test_clear_failure_packet_preserves_raced_path_replacement:kind=test_function",
+          "tests/cli/test_packet_output_ownership.py:test_write_failure_packet_preserves_raced_path_replacement",
+          "tests/cli/test_packet_output_ownership.py:test_write_failure_packet_preserves_raced_path_replacement:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:80bad9432178082fe1ee801774c2b0112904df0238df2dcf56fc2483c1f13c20",
+      "prior_test_hashes": {
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:0116f9ddb012e33c4b5473404080fd834a66d0eccdfcd261b7bf13e56b86324f",
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83"
+      },
+      "revised_at": "2026-08-04T23:34:51.759952+00:00",
+      "reason": "Bring logical-clear core characterization into review-revised writable test scope",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_failure_packet.py:test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet",
+          "tests/core/test_failure_packet.py:test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_failure_packet.py"
+        ],
+        "files_removed": [
+          "read:tests/core/test_failure_packet.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:509229de78990c629ce867411892db2f5a6dbc11a8c3106e79a47adbd345b946",
+      "prior_test_hashes": {
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237"
+      },
+      "revised_at": "2026-08-04T23:43:54.041373+00:00",
+      "reason": "Document the descriptor-safe success marker after independent review found stale deletion guidance",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "README.md:attribute:documentation._failure_packet_cleared_marker_guidance",
+          "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:kind=attribute",
+          "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:of=documentation",
+          "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:type=markdown section",
+          "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract",
+          "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:kind=attribute",
+          "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:of=documentation",
+          "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:type=markdown section",
+          "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag",
+          "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:README.md",
+          "edit:docs/agent-retry-protocol.md",
+          "edit:tests/test_packet_skill_guidance_docs.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py tests/cli/test_packet_output_ownership.py tests/test_packet_skill_guidance_docs.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py tests/cli/test_packet_output_ownership.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9e1ed4daf4511a4cf8de951a9ba3c323c8def29083a567441b2bbaa81e14b501",
+      "prior_test_hashes": {
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326"
+      },
+      "revised_at": "2026-08-04T23:50:20.250014+00:00",
+      "reason": "Supersede the active 070-04 packet-guidance contract whose stale-deletion assertion this fix intentionally changes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:97a409337fca6c6bebec7f35f8d555be6118338d4265204fed814dc7dbba2096",
+      "prior_test_hashes": {
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326"
+      },
+      "revised_at": "2026-08-04T23:51:02.959908+00:00",
+      "reason": "Re-declare unchanged 070-04 guidance artifacts required by the superseding packet contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance",
+          ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:kind=attribute",
+          ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:of=skill",
+          ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:type=markdown section",
+          ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance",
+          ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:kind=attribute",
+          ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:of=skill",
+          ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:type=markdown section",
+          "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance",
+          "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:kind=attribute",
+          "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:of=skill",
+          "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:type=markdown section",
+          "maid_runner/cli/commands/howto.py:function:cmd_howto",
+          "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+          "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+          "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+          "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance",
+          "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:kind=attribute",
+          "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:of=skill",
+          "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:type=markdown section",
+          "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies",
+          "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies:kind=test_function",
+          "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries",
+          "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:.claude/skills/maid-implementer/SKILL.md",
+          "edit:.codex/skills/maid-runner-draft-implement/SKILL.md",
+          "edit:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "edit:maid_runner/cli/commands/howto.py",
+          "edit:maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5284cdf66473d54d78ddad3d4ad0b15a13ceb939c200c50eb8527fd561495ce2",
+      "prior_test_hashes": {
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326"
+      },
+      "revised_at": "2026-08-07T13:22:54.665925+00:00",
+      "reason": "095-05 evolves shared howto guidance from literal packet and handoff commands to gate-equivalent named profiles without changing the historical packet or plan-lock contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-04T23:51:05.193624+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py tests/cli/test_packet_output_ownership.py tests/test_packet_skill_guidance_docs.py",
+        "exit_code": 1,
+        "output_tail": "        assert \"maid validate --packet\" in readme\n        assert \"maid verify --packet\" in readme\n        assert \"writes a failure packet only when the run fails\" in readme\n>       assert \"`exit_code: 0`\" in readme\nE       AssertionError: assert '`exit_code: 0`' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/test_packet_skill_guidance_docs.py:39: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_failure_packet.py::test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet\nFAILED tests/cli/test_packet_flag.py::test_validate_packet_clears_stale_file_on_success\nFAILED tests/cli/test_packet_flag.py::test_validate_coherence_only_packet_clears_stale_file_on_success\nFAILED tests/cli/test_packet_flag.py::test_cmd_verify_clears_stale_packet_on_success\nFAILED tests/cli/test_packet_output_ownership.py::test_validate_packet_argument_order_preserves_manifest_destination\nFAILED tests/cli/test_packet_output_ownership.py::test_failing_validate_preserves_arbitrary_packet_destination\nFAILED tests/cli/test_packet_output_ownership.py::test_passing_verify_preserves_arbitrary_packet_destination\nFAILED tests/cli/test_packet_output_ownership.py::test_validate_packet_refuses_symlink_destination\nFAILED tests/cli/test_packet_output_ownership.py::test_write_failure_packet_preserves_raced_path_replacement\nFAILED tests/cli/test_packet_output_ownership.py::test_clear_failure_packet_preserves_raced_path_replacement\nFAILED tests/test_packet_skill_guidance_docs.py::test_readme_and_howto_describe_packet_flag\n11 failed, 21 passed in 0.61s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:of=skill",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill._implementer_packet_retry_guidance:type=markdown section",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:kind=attribute",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:of=skill",
+      ".codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._codex_draft_implement_packet_retry_guidance:type=markdown section",
+      "README.md:attribute:documentation._failure_packet_cleared_marker_guidance",
+      "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:kind=attribute",
+      "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:of=documentation",
+      "README.md:attribute:documentation._failure_packet_cleared_marker_guidance:type=markdown section",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:kind=attribute",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:of=documentation",
+      "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_success_marker_contract:type=markdown section",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementer/SKILL.md:attribute:skill._distributed_implementer_packet_retry_guidance:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:of=skill",
+      "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._distributed_codex_draft_implement_packet_retry_guidance:type=markdown section",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=command:type=list[str]:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=exit_code:type=int:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=test_results:type=BatchTestResult | None:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:arg=validation:type=BatchValidationResult | ValidationResult | VerificationResult:default=None",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:build_failure_packet:returns=dict",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:clear_failure_packet:returns=bool",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:arg=packet:type=dict:default=None",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:kind=function",
+      "maid_runner/core/failure_packet.py:function:write_failure_packet:returns=None",
+      "tests/cli/test_packet_flag.py:test_cmd_verify_clears_stale_packet_on_success",
+      "tests/cli/test_packet_flag.py:test_cmd_verify_clears_stale_packet_on_success:kind=test_function",
+      "tests/cli/test_packet_flag.py:test_validate_coherence_only_packet_clears_stale_file_on_success",
+      "tests/cli/test_packet_flag.py:test_validate_coherence_only_packet_clears_stale_file_on_success:kind=test_function",
+      "tests/cli/test_packet_flag.py:test_validate_packet_clears_stale_file_on_success",
+      "tests/cli/test_packet_flag.py:test_validate_packet_clears_stale_file_on_success:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_clear_failure_packet_preserves_raced_path_replacement",
+      "tests/cli/test_packet_output_ownership.py:test_clear_failure_packet_preserves_raced_path_replacement:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_failing_validate_preserves_arbitrary_packet_destination",
+      "tests/cli/test_packet_output_ownership.py:test_failing_validate_preserves_arbitrary_packet_destination:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_passing_verify_preserves_arbitrary_packet_destination",
+      "tests/cli/test_packet_output_ownership.py:test_passing_verify_preserves_arbitrary_packet_destination:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_validate_packet_argument_order_preserves_manifest_destination",
+      "tests/cli/test_packet_output_ownership.py:test_validate_packet_argument_order_preserves_manifest_destination:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_validate_packet_refuses_symlink_destination",
+      "tests/cli/test_packet_output_ownership.py:test_validate_packet_refuses_symlink_destination:kind=test_function",
+      "tests/cli/test_packet_output_ownership.py:test_write_failure_packet_preserves_raced_path_replacement",
+      "tests/cli/test_packet_output_ownership.py:test_write_failure_packet_preserves_raced_path_replacement:kind=test_function",
+      "tests/core/test_failure_packet.py:test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet",
+      "tests/core/test_failure_packet.py:test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet:kind=test_function",
+      "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies",
+      "tests/test_packet_skill_guidance_docs.py:test_packet_guidance_anchors_are_synced_to_distribution_copies:kind=test_function",
+      "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag",
+      "tests/test_packet_skill_guidance_docs.py:test_readme_and_howto_describe_packet_flag:kind=test_function",
+      "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries",
+      "tests/test_packet_skill_guidance_docs.py:test_skill_guidance_instructs_packet_driven_retries:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_packet_output_ownership.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "README.md",
+        "docs/agent-retry-protocol.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/howto.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+        "maid_runner/core/failure_packet.py",
+        "tests/cli/test_packet_flag.py",
+        "tests/core/test_failure_packet.py",
+        "tests/test_packet_skill_guidance_docs.py"
+      ],
+      "read": [],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_packet_output_ownership.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_packet_argument_order_preserves_manifest_destination",
+              "description": "The exact reported optional-argument mistake exits 2, preserves the manifest bytes, and reports that the destination is not a MAID failure packet."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_failing_validate_preserves_arbitrary_packet_destination",
+              "description": "A failing validation retains exit 1, preserves an arbitrary existing destination byte-for-byte, and visibly reports that packet writing was refused."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_passing_verify_preserves_arbitrary_packet_destination",
+              "description": "A passing allow-empty verify exits 2 rather than deleting an arbitrary packet destination and reports the refusal."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_packet_refuses_symlink_destination",
+              "description": "A packet destination symlink and its target remain unchanged and the passing command exits 2 with an ownership refusal."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_write_failure_packet_preserves_raced_path_replacement",
+              "description": "When the packet pathname is replaced after ownership validation, the descriptor-bound write cannot alter the replacement and reports the race."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_clear_failure_packet_preserves_raced_path_replacement",
+              "description": "When the packet pathname is replaced after ownership validation, logical clear mutates only the verified packet inode, preserves the replacement, and reports the race instead of unlinking by pathname."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/failure_packet.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_failure_packet",
+              "description": "Preserves the existing deterministic version-1 packet payload contract.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "exit_code",
+                  "type": "int"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "validation",
+                  "type": "BatchValidationResult | ValidationResult | VerificationResult"
+                },
+                {
+                  "name": "test_results",
+                  "type": "BatchTestResult | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "write_failure_packet",
+              "description": "Creates a missing packet or replaces a recognizable MAID packet, using exclusive creation or the already-verified file descriptor; refuses arbitrary files, directories, symlinks, hard links, and raced pathname replacements without modifying the colliding path.",
+              "args": [
+                {
+                  "name": "packet",
+                  "type": "dict"
+                },
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "clear_failure_packet",
+              "description": "Logically clears only a recognizable MAID packet through the verified file descriptor, returns False for a missing path, and refuses arbitrary files, directories, symlinks, hard links, and raced pathname replacements without modifying the colliding path.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_validate",
+              "description": "Preserves validation failure exit 1 on packet-write collision, but returns exit 2 after a passing run when an unsafe existing packet destination cannot be cleared.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Applies the same fail-closed packet-destination ownership and collision exit behavior as validate.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Preserves the existing validate and verify --packet parser contract.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Preserves CLI dispatch of parsed packet destinations to validate and verify.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_packet_flag.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_packet_clears_stale_file_on_success"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_coherence_only_packet_clears_stale_file_on_success"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cmd_verify_clears_stale_packet_on_success"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_failure_packet.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet",
+              "description": "Repeated writes remain deterministic, logical clear leaves a recognizable non-failure marker, and clearing a missing path returns False."
+            }
+          ]
+        },
+        {
+          "path": "tests/test_packet_skill_guidance_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_readme_and_howto_describe_packet_flag",
+              "description": "README packet guidance describes the safe cleared marker and requires consumers to use gate status and packet exit_code rather than file existence."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_skill_guidance_instructs_packet_driven_retries",
+              "description": "Preserves packet-driven retry guidance across Claude and Codex implementation skills."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_packet_guidance_anchors_are_synced_to_distribution_copies",
+              "description": "Preserves synchronized packet-guidance anchors in source and packaged skill copies."
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_failure_packet_cleared_marker_guidance",
+              "description": "Failure-packet guidance explains the retained exit_code 0 marker and forbids existence-based failure detection.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-retry-protocol.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_retry_success_marker_contract",
+              "description": "The retry protocol treats gate status and packet exit_code as authoritative and never replays a cleared marker as failure state.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_howto",
+              "description": "Preserves howto topic guidance for packet-aware validation and retries.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementer_packet_retry_guidance",
+              "description": "Preserves Claude implementer packet retry guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_implementer_packet_retry_guidance",
+              "description": "Preserves the packaged Claude implementer packet retry guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_draft_implement_packet_retry_guidance",
+              "description": "Preserves Codex draft-implement packet retry guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_draft_implement_packet_retry_guidance",
+              "description": "Preserves the packaged Codex draft-implement packet retry guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_packet_flag.py",
+      "tests/cli/test_packet_output_ownership.py",
+      "tests/core/test_failure_packet.py",
+      "tests/test_packet_skill_guidance_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_failure_packet.py tests/cli/test_packet_flag.py tests/cli/test_packet_output_ownership.py tests/test_packet_skill_guidance_docs.py",
+      "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -131,6 +131,7 @@ class ValidationError:
 class FileTrackingStatus(str, Enum):
     UNDECLARED = "undeclared"
     REGISTERED = "registered"
+    SCOPE_ONLY = "scope_only"
     TRACKED = "tracked"
 
 
@@ -153,6 +154,10 @@ class FileTrackingReport:
     @property
     def registered(self) -> list[FileTrackingEntry]:
         return [e for e in self.entries if e.status == FileTrackingStatus.REGISTERED]
+
+    @property
+    def scope_only(self) -> list[FileTrackingEntry]:
+        return [e for e in self.entries if e.status == FileTrackingStatus.SCOPE_ONLY]
 
     @property
     def tracked(self) -> list[FileTrackingEntry]:
@@ -183,6 +188,7 @@ class ValidationResult:
             d["file_tracking"] = {
                 "undeclared": [e.path for e in self.file_tracking.undeclared],
                 "registered": [e.path for e in self.file_tracking.registered],
+                "scope_only": [e.path for e in self.file_tracking.scope_only],
                 "tracked": [e.path for e in self.file_tracking.tracked],
             }
         if self.duration_ms is not None:

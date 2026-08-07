@@ -67,7 +67,7 @@ def _run_file_tracking(project_root: Path, chain: ManifestChain) -> FileTracking
                 entries.append(
                     FileTrackingEntry(
                         path=path,
-                        status=FileTrackingStatus.TRACKED,
+                        status=FileTrackingStatus.SCOPE_ONLY,
                         manifests=manifest_slugs,
                     )
                 )

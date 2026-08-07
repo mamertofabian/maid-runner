@@ -37,13 +37,28 @@ _ADVISORY_CHAIN_WARNING_CODES = frozenset(
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
+    json_mode = getattr(args, "json", False)
+    profile_report: str | None = None
     try:
+        from maid_runner.core.verify_profiles import apply_verify_profile
+
+        profile_report = apply_verify_profile(args)
+        if profile_report and not json_mode:
+            # Printed before any early return so a failing run still discloses
+            # which gates the profile set. In JSON mode the report is injected
+            # into the payload instead, to keep stdout a single document.
+            print(profile_report)
+
         advisory = getattr(args, "advisory", False)
         strict_preview = getattr(args, "strict_preview", False)
         if strict_preview and advisory:
             print_error(
-                "--strict-preview and --advisory request contradictory gate sets",
-                json_mode=getattr(args, "json", False),
+                _attribute_to_profile(
+                    "--strict-preview and --advisory request contradictory gate sets",
+                    report=profile_report,
+                    json_mode=json_mode,
+                ),
+                json_mode=json_mode,
             )
             return 2
         fail_on_warnings = (
@@ -66,6 +81,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             since=getattr(args, "since", None),
             base_ref=getattr(args, "base_ref", None),
             file_tracking_scope=getattr(args, "file_tracking_scope", "repository"),
+            fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
             require_plan_lock=getattr(args, "require_plan_lock", False),
@@ -83,10 +99,14 @@ def cmd_verify(args: argparse.Namespace) -> int:
             else format_verify_result
         )
         print(
-            _mark_strict_preview_output(
-                formatter(result, json_mode=getattr(args, "json", False)),
-                enabled=strict_preview,
-                json_mode=getattr(args, "json", False),
+            _mark_profile_output(
+                _mark_strict_preview_output(
+                    formatter(result, json_mode=json_mode),
+                    enabled=strict_preview,
+                    json_mode=json_mode,
+                ),
+                report=profile_report,
+                json_mode=json_mode,
             )
         )
         exit_code = 0 if _result_success(result) else 1
@@ -94,8 +114,28 @@ def cmd_verify(args: argparse.Namespace) -> int:
             return 2
         return _finalize_packet(args, exit_code, result)
     except Exception as exc:
-        print_error(str(exc), json_mode=getattr(args, "json", False))
+        print_error(
+            _attribute_to_profile(str(exc), report=profile_report, json_mode=json_mode),
+            json_mode=json_mode,
+        )
         return 2
+
+
+def _attribute_to_profile(
+    message: str,
+    *,
+    report: str | None,
+    json_mode: bool,
+) -> str:
+    """Attribute an error to the profile that set the flags involved.
+
+    Failures are the path where a reader most needs to know a flag came from a
+    profile rather than their own command line. Non-JSON runs already printed
+    the report before the gates, so only JSON needs it folded into the message.
+    """
+    if not report or not json_mode:
+        return message
+    return f"{message} ({report})"
 
 
 def _mark_strict_preview_output(
@@ -113,6 +153,22 @@ def _mark_strict_preview_output(
     if not output:
         return "[strict-preview]"
     return f"[strict-preview] {output}"
+
+
+def _mark_profile_output(
+    output: str,
+    *,
+    report: str | None,
+    json_mode: bool,
+) -> str:
+    if not report:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["profile"] = report
+        return json.dumps(payload, indent=2)
+    # Non-JSON runs already printed the report ahead of the gates.
+    return output
 
 
 def _write_sarif_report_if_requested(args, result: VerificationResult) -> bool:
@@ -151,6 +207,7 @@ def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:
                 f"Failed to clear failure packet at {packet_path}: {exc}",
                 json_mode=False,
             )
+            return 2
         return exit_code
 
     try:
@@ -172,6 +229,7 @@ def _finalize_packet(args, exit_code: int, result: VerificationResult) -> int:
 def run_verify(
     manifest_dir: str,
     project_root: Union[str, Path],
+    fail_on_scope_only: bool = False,
 ) -> VerificationResult:
     return _run_verify(
         manifest_dir=manifest_dir,
@@ -179,6 +237,7 @@ def run_verify(
         check_assertions=True,
         check_stubs=True,
         fail_on_warnings=True,
+        fail_on_scope_only=fail_on_scope_only,
     )
 
 
@@ -197,6 +256,7 @@ def _run_verify(
     since: str | None = None,
     base_ref: str | None = None,
     file_tracking_scope: str = "repository",
+    fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -228,6 +288,7 @@ def _run_verify(
             since=since,
             base_ref=base_ref,
             file_tracking_scope=file_tracking_scope,
+            fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
             require_plan_lock=require_plan_lock,
@@ -257,6 +318,7 @@ def _run_verify_cached(
     since: str | None = None,
     base_ref: str | None = None,
     file_tracking_scope: str = "repository",
+    fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
     require_plan_lock: bool = False,
@@ -362,6 +424,7 @@ def _run_verify_cached(
                 manifest_dir,
                 engine,
                 scope=file_tracking_scope,
+                fail_on_scope_only=fail_on_scope_only,
                 since=since,
                 base_ref=base_ref,
             )
@@ -493,6 +556,7 @@ def _file_tracking_stage(
     engine,
     *,
     scope: str = "repository",
+    fail_on_scope_only: bool = False,
     since: str | None = None,
     base_ref: str | None = None,
 ) -> VerificationStageResult:
@@ -528,11 +592,22 @@ def _file_tracking_stage(
                     _errors=(error,),
                 )
             report = filter_file_tracking_report(report, task_paths)
+        scope_error = None
+        if fail_on_scope_only and report.scope_only:
+            paths = ", ".join(entry.path for entry in report.scope_only)
+            scope_error = ValidationError(
+                code=ErrorCode.COHERENCE_BOUNDARY_VIOLATION,
+                message=f"File tracking gate failed (scope-only: {paths})",
+                severity=Severity.ERROR,
+            )
         return VerificationStageResult(
             name="file_tracking",
-            success=not report.undeclared and not report.registered,
+            success=(
+                not report.undeclared and not report.registered and scope_error is None
+            ),
             _duration_ms=_elapsed_ms(started),
             _file_tracking=report,
+            _errors=(scope_error,) if scope_error is not None else (),
         )
     except Exception as exc:
         return _error_stage("file_tracking", started, exc)

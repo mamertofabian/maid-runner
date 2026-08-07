@@ -47,7 +47,7 @@ general MAID skills:
 ## Packet-Driven Retry Gates
 
 For implementer retries, run validation gates with `--packet`; for example,
-`maid validate --packet` and `maid verify --packet --since <baseline>`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+`maid validate --packet` and `maid verify --profile agent-retry --since <baseline>`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
 
 Respect `next_action` exactly. Valid kinds include `edit-implementation`,
 `edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
@@ -141,7 +141,7 @@ rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
    implementation:
 
 ```bash
-uv run maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>
+uv run maid verify --profile handoff --since <baseline>
 ```
 
 Prefer `--summary` for agent and human handoff because it keeps blocking

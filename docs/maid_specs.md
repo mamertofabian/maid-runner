@@ -156,16 +156,22 @@ control flow by parsing the wrapper source.
 
 Completed manifests that predate plan-lock adoption have a separate migration
 path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
-The manifest must be tracked and already present at Git HEAD. The command
-rejects every dirty path except the manifest, requires identical declared
-artifacts and file sections relative to HEAD, permits behavioral-test discovery
-only to grow, and requires every prior validate argv to remain exact, gain only
-appended behavioral-test paths discovered from the current command set, or be
-preserved exactly under `acceptance.tests` for an audited validate-to-acceptance
-cleanup. Acceptance-preserved commands are not run while capturing the green
-baseline; they remain explicit opt-in evidence outside default `maid test` and
-`maid verify` gates. Suffix extension is refused when the committed argv ends in
-an option token, because the path could be consumed as that option's value.
+The normal path compares a tracked manifest with its blob at Git HEAD. A
+manifest absent from HEAD may instead bootstrap its first commit from the Git
+index, but only when the manifest is staged, its worktree bytes match the staged
+blob exactly, every declared non-deletion path and discovered behavioral test
+already exists cleanly at HEAD, and every declared deletion is already absent
+there. An unstaged manifest or a staged implementation/test change is therefore
+not eligible. The command rejects every dirty path except the manifest,
+requires identical declared artifacts and file sections relative to its chosen
+manifest baseline, permits behavioral-test discovery only to grow, and requires
+every prior validate argv to remain exact, gain only appended behavioral-test
+paths discovered from the current command set, or be preserved exactly under
+`acceptance.tests` for an audited validate-to-acceptance cleanup.
+Acceptance-preserved commands are not run while capturing the green baseline;
+they remain explicit opt-in evidence outside default `maid test` and `maid
+verify` gates. Suffix extension is refused when the committed argv ends in an
+option token, because the path could be consumed as that option's value.
 Overlapping command prefixes are matched one-to-one, and additional validate
 commands are allowed. It then runs every current command and requires a green
 exit code of zero.
@@ -180,14 +186,19 @@ valid competing lock is likewise preserved for explicit operator review.
 
 The resulting lock keeps `red_evidence: null` and stores an independent
 `legacy_baseline` record containing the required reason, baseline commit and
-manifest hash, contract delta, bounded green command results, and capture time.
+manifest hash, explicit `baseline_manifest_source` (`head` or `index`), contract
+delta, bounded green command results, and capture time. Historical records
+without the source field are interpreted as `head` for compatibility.
 A structurally valid, command-snapshot-bound legacy baseline satisfies
 `--require-red-evidence` as an explicit brownfield exception. New or untracked
-manifests, ordinary `--no-run` locks, non-green commands, contract changes,
-mutated contract files, and malformed or command-mismatched legacy records
-continue to fail E704 or E705. A later plan revision does not carry the legacy
-baseline forward; new behavioral work requires a new manifest and genuine red
-evidence.
+and unstaged manifests, ordinary `--no-run` locks, non-green commands, contract
+changes, mutated contract files, and malformed or command-mismatched legacy
+records continue to fail E704 or E705. A later metadata-only revision carries the
+legacy baseline forward only while its command contract remains unchanged.
+Explicit `--preserve-red-evidence` may refresh hashes for a shared behavioral
+test while retaining that audited baseline. A revision that captures genuine
+fresh red or test-only-green evidence replaces the legacy channel; locks never
+preserve two evidence classes at once.
 
 Intentional plan changes use
 `maid plan revise <manifest-path> --reason "<text>"`. The reason is required
@@ -233,11 +244,11 @@ stash dependency trees.
 
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
---preserve-red-evidence`. This preserves the existing valid red evidence while
-updating the manifest and behavioral test hashes. The option is rejected unless
-the existing lock already has valid red evidence or internally valid
-`test_only_green` evidence, and it cannot be combined with `--no-run`. It does
-not bypass E707: changing validate command strings while
+--preserve-red-evidence`. This preserves existing valid red evidence,
+internally valid `test_only_green` evidence, or a valid command-bound legacy
+baseline while updating the manifest and behavioral test hashes. The option is
+rejected for invalid, mixed, or command-mismatched evidence, and it cannot be
+combined with `--no-run`. It does not bypass E707: changing validate command strings while
 preserving old evidence remains detectable by the locked `validate_commands`
 snapshot.
 
@@ -444,7 +455,7 @@ still apply.
 
       * **Python** - Full support via Python AST (built-in)
         - File extensions: `.py`
-        - Artifact types: `class`, `function`, `attribute`
+        - Artifact types: `class`, `function`, `attribute`, `enum`
         - Features: Type hints, async/await, decorators, class inheritance
 
       * **TypeScript/JavaScript** - Production-ready support via tree-sitter
@@ -481,8 +492,18 @@ still apply.
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
     **Supported Artifact Types:**
-    - **Common (Python & TypeScript):** `class`, `function`, `attribute`
-    - **TypeScript-Specific:** `interface`, `type`, `enum`, `namespace`
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`
+    - **TypeScript-Specific:** `interface`, `type`, `namespace`
+
+    Python enum artifacts use a deliberately narrow syntactic boundary. A class
+    directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,
+    `Flag`, or `IntFlag` base validates as one `kind: enum` artifact when the
+    base comes from a direct `from enum import ...` or `import enum` statement,
+    including aliases. Its class-body member assignments belong to that enum
+    artifact and need not be declared separately. For backward compatibility,
+    historical snapshots that declare the same enum as a class plus member
+    attributes continue to validate. Indirect custom enum inheritance and
+    dynamic base expressions remain ordinary class contracts.
 
   * **Context-Aware Validation Modes**
     The structural validator operates in two modes based on the manifest's intent, providing a balance between strictness and flexibility:

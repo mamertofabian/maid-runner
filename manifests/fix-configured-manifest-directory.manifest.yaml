@@ -1,0 +1,140 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Honor the configured manifest directory in validate, test, and verify"
+type: fix
+created: "2026-08-05T04:29:39Z"
+metadata:
+  bug_report: 
+    ~/.maid/bug-report/20260801-195713-codefrost-monorepo-manifest-dir.md
+  tags: [cli, configuration, manifest-dir, monorepo]
+  priority: critical
+description: |
+  Directory-wide `maid validate`, `maid test`, and `maid verify` currently pass
+  argparse's hard-coded `manifests/` default directly to their handlers. This
+  bypasses the root `.maidrc.yaml` `manifest_dir` setting and makes the three
+  core workflow commands fail in configured monorepos unless every invocation
+  repeats `--manifest-dir`.
+
+  Resolve the configured directory at the public CLI dispatch boundary only
+  when the operator omitted `--manifest-dir`. Preserve the parser's established
+  default value and preserve explicit CLI precedence, including an explicit
+  `--manifest-dir manifests/`. Limiting the change to these three reported
+  directory-wide commands avoids silently changing unrelated command families.
+  Single-manifest validate/test forms must not load irrelevant configuration,
+  and configuration failures must retain the CLI's normal text/JSON exit-2
+  error boundary.
+temptations:
+  - risk: "Do not replace explicit --manifest-dir values with configuration."
+    instead: "Track whether the option was supplied and consult .maidrc.yaml only
+      when it was omitted."
+  - risk: "Do not change every command that happens to expose a manifest-dir option."
+    instead: "Apply the configured default only to validate, test, and verify, the
+      core commands named by the report."
+  - risk: "Do not duplicate config resolution independently inside three handlers."
+    instead: "Resolve once at the shared public main dispatch boundary before selecting
+      the handler."
+  - risk: "Do not prove the fix only by inspecting argparse state."
+    instead: "Include an end-to-end schema validation against a custom configured
+      directory plus dispatch tests for all three commands."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: main
+          args:
+            - {name: argv, type: "list[str] | None", default: "None"}
+          returns: int
+          description: "Dispatches validate, test, and verify with .maidrc.yaml's
+            manifest_dir when the option is omitted, while explicit CLI values retain
+            precedence."
+  create:
+    - path: tests/cli/test_configured_manifest_directory.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_uses_configured_manifest_directory_end_to_end
+          description: "A root config pointing at a nested manifest directory lets
+            directory-wide schema validation discover and validate that manifest without
+            an explicit flag."
+        - kind: test_function
+          name: test_configured_manifest_directory_reaches_all_core_handlers
+          description: "Validate, test, and verify each receive the configured manifest
+            directory when their CLI option is omitted."
+        - kind: test_function
+          name: 
+            test_explicit_manifest_directory_overrides_config_for_all_core_handlers
+          description: "An explicit --manifest-dir value wins over .maidrc.yaml for
+            validate, test, and verify."
+        - kind: test_function
+          name: test_invalid_config_returns_structured_error_for_directory_wide_commands
+          description: "Malformed root configuration returns exit 2 through the normal JSON CLI error boundary for directory-wide validate, test, and verify."
+        - kind: test_function
+          name: test_single_manifest_commands_do_not_load_irrelevant_config
+          description: "Explicit-manifest validate and test dispatch successfully without reading malformed root configuration that those handler paths do not use."
+  read:
+    - maid_runner/core/config.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/test.py
+    - maid_runner/cli/commands/verify.py
+    - manifests/045-01-extract-cli-parser-registration.manifest.yaml
+    - tests/cli/test_main.py
+    - tests/cli/test_validate_cmd.py
+    - tests/cli/test_test_cmd.py
+    - tests/cli/test_verify_cmd.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_configured_manifest_directory.py 
+    tests/cli/test_main.py tests/cli/test_validate_cmd.py tests/cli/test_test_cmd.py
+    tests/cli/test_verify_cmd.py
+  - uv run maid validate 
+    manifests/fix-configured-manifest-directory.manifest.yaml --mode behavioral 
+    --quiet
+  - uv run maid validate 
+    manifests/fix-configured-manifest-directory.manifest.yaml --mode schema 
+    --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-05T04:40:17Z'
+  summary: Directory-wide validate, test, and verify now honor .maidrc.yaml manifest_dir defaults while explicit CLI and single-manifest paths retain their prior precedence and isolation.
+  rationale: A custom argparse action records operator intent without changing established parser defaults, and shared dispatch resolves configuration only for directory-wide core commands inside the CLI's normal error boundary.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Configuration defaults need an explicit-option signal; comparing a parsed value with its conventional default cannot distinguish omission from an intentional override.
+    tags: [argparse, configuration, cli-precedence, manifest-dir]
+    paths: [maid_runner/cli/commands/_main.py]
+  - lesson_type: test-design
+    summary: Configured-default tests should cover end-to-end discovery, explicit override precedence, malformed configuration, and paths that must remain independent of configuration.
+    tags: [monorepo, error-boundary, compatibility, regression-tests]
+    paths: [tests/cli/test_configured_manifest_directory.py]
+  review_notes:
+  - source: independent-reviewer-manifest_dir_review-round-1
+    severity: P1 fixed
+    summary: Found configuration loading outside the CLI exception boundary; resolution moved inside the boundary and malformed JSON-mode behavior gained regression coverage.
+  - source: independent-reviewer-manifest_dir_review-round-1
+    severity: P2 fixed
+    summary: Found explicit-manifest validate/test paths unnecessarily loaded root config; directory-wide guards and isolation tests now preserve those paths.
+  - source: independent-reviewer-manifest_dir_review-round-2
+    severity: ready
+    summary: Confirmed both blockers closed with no remaining actionable findings; independent focused validation passed 241 tests.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_configured_manifest_directory.py, tests/cli/test_main.py, tests/cli/test_validate_cmd.py, tests/cli/test_test_cmd.py, tests/cli/test_verify_cmd.py]
+    status: passed
+    summary: Focused configured-directory and adjacent CLI regression suite passed 241 tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3733 tests with 5 skipped.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed all 382 active manifests; 107 superseded manifests were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 222 active manifest commands passed.
+  - command: [uv, run, ruff, check, maid_runner/cli/commands/_main.py, tests/cli/test_configured_manifest_directory.py]
+    status: passed
+    summary: Focused Ruff and Black checks passed for both changed Python files.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD, --packet]
+    status: passed
+    summary: Strict nine-stage handoff verification passed with no blocking findings; only pre-existing E307 warnings remained.

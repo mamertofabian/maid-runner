@@ -1,0 +1,434 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add named maid verify --profile presets so the repeated verification flag 
+  stacks become nameable instead of memorized
+type: feature
+created: '2026-08-07T04:15:30Z'
+metadata:
+  epic: 095-00-onboarding-entry-point-wiring
+  status: implementation-ready
+  tags:
+  - adoption
+  - developer-experience
+  - cli-guidance
+  - verification
+  priority: high
+description: |
+  Contract hardened from the 095-02 planning handoff draft. Behavioral tests
+  are written in `tests/cli/test_verify_profiles.py`, the red phase is
+  confirmed, and behavioral validation passes.
+
+  `maid verify` exposes 31 visible options, and the useful combinations are
+  not discoverable from that list. The evidence that they are memorized rather
+  than understood is in this repository:
+
+  - The MAID-managed pre-commit entry (`_PRE_COMMIT_VERIFY_ARGS`,
+    `maid_runner/cli/commands/init.py:31-35`) spells out ten flags.
+  - The distributed Claude and Codex payloads contain 33 `maid verify`
+    invocations across 9 files, clustering into a handful of repeated stacks:
+    7x `--summary --require-plan-lock --require-red-evidence --since <baseline>`
+    (the handoff stack `AGENTS.md` step 8 mandates), 3x
+    `--summary --plan-lock-scope task --since <baseline>`, 3x
+    `--require-plan-lock --require-red-evidence --since <baseline>`, 3x
+    `--packet --since <baseline>`, and 2x
+    `--artifact-coverage --knockout --since <baseline>`.
+
+  A flag stack that appears seven times verbatim is a concept without a name.
+  This child gives the recurring stacks names.
+
+  SCOPE DECISION: mechanism only, migration deferred.
+
+  This child adds the `--profile` mechanism and does NOT change any existing
+  call site. `_PRE_COMMIT_VERIFY_ARGS`, the agent payloads, `AGENTS.md`, and
+  the README keep spelling out their flags. Migrating them is real work with a
+  measured blast radius: 6 manifests pin `tests/cli/test_init_pre_commit.py`,
+  5 plan locks hash that file, and 9 payload files plus an
+  `INSTRUCTION_PAYLOAD_VERSION` advance and `make sync-agent-payloads` are
+  involved. The `fix-init-empty-pre-commit-hook` Outcome record states the
+  rule directly: when a shared generated command evolves, synchronize its
+  inherited behavioral constant, public documentation, and every owning plan
+  lock rather than bypassing historical integrity checks.
+
+  Mixing that migration into this child would land a mechanism bug and a
+  migration bug in the same review. The 062-03 Outcome lesson points the same
+  way: a convenience surface should append to existing behavior rather than
+  replace it, so adopters cannot accidentally change green/red. Migration
+  belongs in a follow-up child (095-03) once profile semantics are proven.
+
+  PROFILES TO SHIP
+
+  Only profiles with observed call-site evidence in this repository. No
+  invented profiles; a `ci` profile was considered and rejected because no
+  recurring CI-specific stack exists in the payloads or docs, and inventing
+  one would ship a name nobody uses.
+
+  - `handoff`: `--summary --require-plan-lock --require-red-evidence`
+    (7 observed occurrences; the `AGENTS.md` step 8 gate)
+  - `pre-commit`: `--summary --advisory --allow-empty --require-plan-lock
+    --require-red-evidence --fail-fast --no-changed-scope
+    --file-tracking-scope task --plan-lock-scope task`
+    (byte-equivalent to `_PRE_COMMIT_VERIFY_ARGS` minus its `--since HEAD`)
+  - `agent-retry`: `--summary --packet`
+    (3 observed occurrences; bounded agent retry loops)
+  - `deep`: `--summary --artifact-coverage --knockout`
+    (2 observed occurrences; opt-in high-risk evidence gates)
+
+  Disclosure: `--summary` in `agent-retry` and `deep` is an editorial addition,
+  not an observed flag. The recorded occurrences are `--packet --since` and
+  `--artifact-coverage --knockout --since`. `--summary` is added because
+  `AGENTS.md` step 8 prefers it for agent and human handoff and it is output
+  formatting only (`verify.py:81-85`), so it cannot change green/red. Every
+  other flag in every profile is observed.
+
+  COMPOSITION SEMANTICS
+
+  `--profile` sets defaults; explicitly passed flags win. Composition is
+  required, not optional: MAID never guesses a baseline, so every real handoff
+  invocation must be able to add `--since` or `--base-ref` to a profile.
+  A profile that rejected explicit flags would make `--profile handoff --since
+  HEAD` impossible and therefore useless.
+
+  The hard part of "explicitly passed flags win" is that argparse cannot
+  distinguish a flag left at its default from a flag explicitly passed with
+  the same value. Do not solve this by inspecting `sys.argv` or by comparing
+  against defaults. This repository already solved it: `_StoreChangedScopeExplicit`
+  (`maid_runner/cli/commands/_main.py:24`) and `_StoreManifestDirExplicit`
+  (`_main.py:38`) are custom `argparse.Action` classes that record explicit
+  passing alongside the value, and `cmd_verify` already consumes the resulting
+  `changed_scope_explicit` flag (`verify.py:65`). Extend that established
+  pattern to the flags a profile can set. This is the single most likely place
+  for the implementation to go wrong.
+
+  Contradictory combinations must still fail as they do today. `cmd_verify`
+  already rejects `--strict-preview` with `--advisory`
+  (`maid_runner/cli/commands/verify.py:43-48`); profile expansion must feed
+  that same check rather than bypass it, so `--profile pre-commit
+  --strict-preview` fails on the existing contradiction rather than silently
+  resolving it.
+
+  BASELINES ARE NEVER IMPLIED
+
+  No profile sets `--since`, `--base-ref`, or otherwise supplies a baseline.
+  The `pre-commit` profile deliberately stops short of `_PRE_COMMIT_VERIFY_ARGS`'s
+  trailing `--since HEAD` for exactly this reason. E115 behavior is unchanged:
+  a profile that needs changed-scope still requires an explicit baseline. The
+  061-02 Outcome lesson applies — baseline validation counts flag presence, not
+  truthiness — so profile-supplied defaults must not be mistaken for a
+  user-supplied baseline.
+
+  EXPANSION MUST BE OBSERVABLE
+
+  The stated constraint is that a profile must never silently change the
+  effective gate set. Therefore applying a profile is a reporting event, not
+  just an argument rewrite: verify output names the applied profile AND
+  enumerates the effective flags it contributed. Naming the profile alone is
+  not sufficient and must not satisfy the test — a reader of CI output has to
+  be able to see what `--profile handoff` meant on that run without consulting
+  the source. This is the property that makes profiles safer than the flag
+  stacks they replace, and it is what the behavioral tests must pin.
+
+  The reporting line must reflect what was actually applied, so a flag the
+  user overrode explicitly must not be reported as contributed by the profile.
+
+  Rendering rules the report must follow, because `pre-commit` carries every
+  hard case: a False-valued boolean renders as its negated option
+  (`changed_scope: False` renders `--no-changed-scope`, never
+  `--changed-scope`), and a valued option renders with its value
+  (`file_tracking_scope: "task"` renders `--file-tracking-scope task`).
+
+  JSON MODE
+
+  The report must not be printed as prose ahead of JSON output. `maid verify
+  --profile handoff --json` currently would emit a bare line before the JSON
+  document and corrupt every programmatic consumer. `verify.py` already
+  establishes the correct pattern: `_mark_strict_preview_output`
+  (`verify.py:102-116`) injects `strict_preview` into the JSON payload instead
+  of printing prose. Apply the equivalent for the profile report, and keep
+  stdout parseable as a single JSON document in `--json` mode, including on
+  the early-return error paths.
+
+  DEFAULTS MUST NOT BE SHARED MUTABLE STATE
+
+  `VerifyProfile.defaults` is declared as a `Mapping`, not a `dict`, and
+  resolution must not hand out a shared mutable object. `maid serve` is a
+  long-lived daemon process, so a caller mutating a resolved profile's
+  defaults would otherwise poison every later resolution in that process.
+
+  The `agent-retry` profile's packet path must reference the `--packet`
+  argparse `const` rather than duplicating the `.maid/last-failure-packet.json`
+  literal, so the two cannot drift.
+
+  RATIONALE FOR A SEPARATE MODULE
+
+  Profile definitions and resolution live in a new
+  `maid_runner/core/verify_profiles.py` rather than inside `verify.py` or the
+  parser. Resolution is a pure decision — name in, defaults out, no I/O — so
+  it is testable without a parser, a repository, or a git baseline, per the
+  repo testability rules. `verify.py` and `_main.py` stay mechanism.
+
+  PRECEDENT
+
+  `maid bootstrap --rank --model risk-v1|legacy-v1` already establishes a
+  named-selector flag with an explicit model registry, documented semantics,
+  and a compatibility default. `--profile` follows that shape.
+
+  BEHAVIORAL TESTS (tests/cli/test_verify_profiles.py, written and red)
+
+  Resolution:
+  - each shipped profile resolves to its exact documented flag set
+  - an unknown profile name exits non-zero at the parser and lists valid names
+  - resolve_verify_profile raises KeyError for an unknown name
+  - resolved defaults are isolated between resolutions, so a caller mutating
+    one resolution cannot poison a later one in a long-lived process
+  - resolution does not depend on the repository or cwd. Assert this as
+    observable behavior, not by mocking or introspecting for I/O calls:
+    chdir to a tmp_path with no git repository and no manifests directory,
+    reload the module so import-time work is in scope, and assert it still
+    returns the documented defaults. Per the repo testability rules, prefer
+    this over patching filesystem or subprocess modules.
+
+  Precedence:
+  - an explicitly passed flag overrides the same flag from a profile
+  - an explicit boolean whose value equals the parser default still wins
+    (--profile pre-commit --changed-scope keeps the gate the user asked for)
+  - an explicit valued option whose value equals the parser default still wins
+    (--profile pre-commit --file-tracking-scope repository stays repository)
+
+  The last two exist specifically to defeat the forbidden
+  compare-against-defaults shortcut, which is indistinguishable from the
+  correct implementation for any flag whose explicit value differs from its
+  default. They cover one boolean and one valued option so the implementer
+  must generalize the explicitness pattern rather than special-case
+  changed_scope because _StoreChangedScopeExplicit already exists.
+
+  Baselines:
+  - no profile supplies since, base_ref, or changed_scope_explicit, and
+    applying a profile leaves all three untouched, so profile defaults can
+    never be mistaken for a user-supplied baseline
+
+  Equivalence:
+  - --profile pre-commit expands to the same effective gate set as the literal
+    _PRE_COMMIT_VERIFY_ARGS flags minus --since, checked in both directions:
+    every dest the hook changes from parser defaults must be a profile key,
+    and every profile key must match the hook's parsed value. Explicitness
+    sidecars (dests ending in _explicit) are excluded from that diff because
+    they record how a value arrived rather than which gate runs, and are
+    absent from the defaults namespace by design.
+
+  Reporting:
+  - apply_verify_profile returns a report naming the profile and its flags
+  - the report renders negated and valued flags correctly
+  - a flag the user overrode is not reported as contributed by the profile
+  - cmd_verify prints the profile name and a contributed flag before the
+    early-return contradiction check
+  - --json output discloses the profile and a contributed flag in the payload
+  - --json output remains a single parseable document, including on early
+    return
+  - no profile requested produces no report
+
+  Contradiction:
+  - a profile combined with a contradictory explicit flag still fails on the
+    existing check
+
+  OUT OF SCOPE
+
+  Migrating `_PRE_COMMIT_VERIFY_ARGS`, the agent payloads, `AGENTS.md`, the
+  README, or `maid howto` content to use profiles (095-03). Any change to what
+  the underlying gates do. Any new gate. Profiles for `maid validate`.
+  User-defined or project-configured profiles in `.maidrc.yaml`.
+
+  `maid daemon verify` (`maid_runner/cli/commands/daemon.py:46-60`) is a second
+  verification surface and does not gain `--profile` in this child. The
+  divergence is deliberate: the daemon protocol takes structured params rather
+  than a flag string, so profile support there is a separate protocol decision
+  rather than an argument-defaulting change.
+temptations:
+- risk: Do not let a profile imply --since, --base-ref, or any other baseline to
+    make the handoff profile feel complete.
+  instead: Ship profiles that stop short of a baseline and keep the existing 
+    E115 requirement, counting flag presence rather than truthiness so profile 
+    defaults are never mistaken for a user-supplied baseline.
+- risk: Do not implement --profile as an argument rewrite that leaves no trace 
+    in the output.
+  instead: Treat applying a profile as a reporting event; name the applied 
+    profile and its contributed flags in verify output, and pin that with a 
+    behavioral test.
+- risk: Do not migrate _PRE_COMMIT_VERIFY_ARGS or the agent payloads to profiles
+    in this child, even though it is the obvious next step and makes the feature
+    look finished.
+  instead: Keep every existing call site spelling out flags and leave migration 
+    to 095-03, which must also advance INSTRUCTION_PAYLOAD_VERSION and revise 
+    the 5 plan locks hashing tests/cli/test_init_pre_commit.py.
+- risk: Do not invent profiles such as ci, strict, or quick because they sound 
+    useful.
+  instead: Ship only the four profiles with observed call-site evidence, and 
+    cite the occurrence counts in the module so a later reader can re-derive the
+    choice.
+- risk: Do not bypass the existing --strict-preview/--advisory contradiction 
+    check when expanding a profile.
+  instead: Feed profile-resolved values into the same validation cmd_verify 
+    already performs so contradictory combinations keep failing.
+files:
+  create:
+  - path: maid_runner/core/verify_profiles.py
+    artifacts:
+    - kind: class
+      name: VerifyProfile
+      description: Immutable resolved profile carrying its name and the verify 
+        defaults it contributes.
+    - kind: attribute
+      name: name
+      of: VerifyProfile
+      type: str
+    - kind: attribute
+      name: defaults
+      of: VerifyProfile
+      type: Mapping[str, bool | str]
+    - kind: function
+      name: verify_profile_names
+      args: []
+      returns: tuple[str, Ellipsis]
+      description: Deterministically ordered names of the shipped profiles, for
+        parser choices and error messages. Spelled tuple[str, Ellipsis] because that
+        is how the MAID artifact collector renders the source annotation
+        tuple[str, ...]; the source keeps the canonical spelling.
+    - kind: function
+      name: resolve_verify_profile
+      args:
+      - name: name
+        type: str
+      returns: VerifyProfile
+      description: Pure resolution of a profile name to its defaults; raises 
+        KeyError for an unknown name, performs no I/O, and returns defaults that
+        cannot be mutated into a later resolution.
+    - kind: function
+      name: apply_verify_profile
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: str | None
+      description: Applies the resolved profile's defaults to args for flags the
+        user did not pass explicitly, and returns the one-line report naming the
+        profile and the flags it actually contributed. Returns None when no 
+        profile was requested.
+  - path: tests/cli/test_verify_profiles.py
+    artifacts:
+    - kind: test_function
+      name: test_each_shipped_profile_resolves_to_its_documented_flags
+    - kind: test_function
+      name: test_unknown_profile_exits_non_zero_and_lists_valid_names
+    - kind: test_function
+      name: test_resolve_verify_profile_rejects_an_unknown_name
+    - kind: test_function
+      name: test_resolved_profile_defaults_are_isolated_between_resolutions
+    - kind: test_function
+      name: test_explicitly_passed_flag_overrides_profile_default
+    - kind: test_function
+      name: test_explicit_flag_matching_parser_default_still_wins
+    - kind: test_function
+      name: test_explicit_valued_option_matching_parser_default_still_wins
+    - kind: test_function
+      name: test_no_profile_supplies_a_changed_scope_baseline
+    - kind: test_function
+      name: test_pre_commit_profile_matches_generated_hook_gate_set
+    - kind: test_function
+      name: test_profile_with_contradictory_flag_still_fails
+    - kind: test_function
+      name: test_cmd_verify_reports_the_applied_profile_in_output
+    - kind: test_function
+      name: test_profile_report_does_not_corrupt_json_output
+    - kind: test_function
+      name: test_json_output_discloses_the_applied_profile_and_its_flags
+    - kind: test_function
+      name: test_apply_verify_profile_reports_the_profile_and_its_flags
+    - kind: test_function
+      name: test_report_renders_negated_and_valued_flags
+    - kind: test_function
+      name: test_no_profile_produces_no_report
+    - kind: test_function
+      name: test_profile_resolution_does_not_depend_on_repository_or_cwd
+  edit:
+  - path: maid_runner/cli/commands/verify.py
+    artifacts:
+    - kind: function
+      name: cmd_verify
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Applies a resolved profile as defaults beneath explicitly 
+        passed flags, reports the applied profile in output, and preserves the 
+        existing contradiction checks and baseline requirements.
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      args: []
+      returns: argparse.ArgumentParser
+      description: Verify subparser gains --profile with choices drawn from 
+        verify_profile_names() and explicit non-empty help text, which 
+        tests/cli/test_cli_help_text.py requires of every visible option.
+  read:
+  - maid_runner/cli/commands/init.py
+  - tests/cli/test_init_pre_commit.py
+  - tests/cli/test_verify_cmd.py
+  - tests/cli/test_cli_help_text.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/cli/test_verify_profiles.py 
+  tests/cli/test_verify_cmd.py tests/cli/test_cli_help_text.py 
+  tests/cli/test_init_pre_commit.py -v
+- uv run maid validate manifests/095-02-add-verify-profile-presets.manifest.yaml
+  --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Added named maid verify --profile presets (handoff, pre-commit, agent-retry, deep) as a mechanism-only change, with profile expansion disclosed in output."
+  rationale: "Shipped verify_profiles.py with pure resolution and a single apply seam, generalized the existing _StoreChangedScopeExplicit pattern into _StoreExplicit across every profile-settable verify option, and wired reporting into cmd_verify for text, JSON, and error paths. No existing call site was migrated. Three plan-review rounds found that the three properties the manifest argued hardest for were the three the tests did not enforce; implementation review then found two disclosure gaps, both closed. Behavior was verified by running the profiles in a scratch project, not only by tests."
+  lessons:
+  - lesson_type: test-quality
+    summary: "A contract test that only exercises flags whose explicit value differs from the parser default cannot distinguish correct explicitness tracking from a compare-against-defaults shortcut; pin at least one flag whose explicit value equals its default."
+    tags:
+    - cli
+    - argparse
+    - anti-gaming
+    paths:
+    - tests/cli/test_verify_profiles.py
+    - maid_runner/cli/commands/_main.py
+  - lesson_type: test-quality
+    summary: "Equivalence tests that diff two argparse namespaces must compare only dests backed by a real option; bookkeeping attributes are absent from the defaults namespace and turn a correct implementation red."
+    tags:
+    - argparse
+    - test-design
+    paths:
+    - tests/cli/test_verify_profiles.py
+  - lesson_type: contract-scope
+    summary: "Separating a mechanism child from its migration child was justified by measurement, not preference: migrating the generated pre-commit entry touches 6 manifests, 5 plan locks, 9 payload files, and an INSTRUCTION_PAYLOAD_VERSION advance."
+    tags:
+    - scope
+    - migration
+    paths:
+    - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - lesson_type: reference-correction
+    summary: "MAID can declare module-level public constants: 32 manifest entries use kind attribute with no of field. The constant here was kept private for import-direction reasons, not because declaring one is unsupported."
+    tags:
+    - manifest-authoring
+    - artifacts
+    paths:
+    - maid_runner/core/verify_profiles.py
+  - lesson_type: validator-gap
+    summary: "The Python implementation collector renders the canonical annotation tuple[str, ...] as tuple[str, Ellipsis] via str(node.value) at validators/_python_implementation.py:587-588, so manifests must use a spelling no developer would write; 20+ existing manifests carry the workaround."
+    tags:
+    - validator
+    - type-normalization
+    paths:
+    - maid_runner/validators/_python_implementation.py
+  - lesson_type: implementation-note
+    summary: "The manifest specified the profile referencing the argparse const; the implementation inverts the direction and has the parser import the module constant, which avoids a circular import while preserving the anti-drift intent."
+    tags:
+    - implementation-deviation
+    paths:
+    - maid_runner/cli/commands/_main.py

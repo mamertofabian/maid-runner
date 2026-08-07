@@ -1,0 +1,278 @@
+{
+  "manifest_path": "manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml",
+  "manifest_hash": "sha256-contract:59ea66fa66fd510b554b2b78081119f44068d631955c77676fa17ba29f3c445a",
+  "test_hashes": {
+    "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+    "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:644a1b784b36f869de8a3987c9dd27e64f691f2be7215bf6dc34eb78b889836f",
+    "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
+  },
+  "created_at": "2026-08-07T06:29:14.208718+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:326cc1139c53d7a4c275543bb24bf1293b8739b26c9cccc77484d220ec371c7e",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:95ab3830a2ef62f3cd2f5ee9ca4307ed1313907f5b81250b9290cd70b555d77e",
+        "tests/test_pre_commit_config.py": "sha256-pyast:v2:fce44ea429ceea5947e525735b8e93d31429ba9f18e1669191947da5472532d5"
+      },
+      "revised_at": "2026-08-07T06:29:15.487525+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml -> manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6c622e7b2e260bea561da5a9d85b7d898fbbd109f80510e8aa77740af39efa78",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:95ab3830a2ef62f3cd2f5ee9ca4307ed1313907f5b81250b9290cd70b555d77e",
+        "tests/test_pre_commit_config.py": "sha256-pyast:v2:fce44ea429ceea5947e525735b8e93d31429ba9f18e1669191947da5472532d5"
+      },
+      "revised_at": "2026-08-07T06:31:09.403456+00:00",
+      "reason": "tests/test_pre_commit_config.py edited during implementation as declared in files.scope; the migrated entry applies the identical gate set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6c622e7b2e260bea561da5a9d85b7d898fbbd109f80510e8aa77740af39efa78",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:95ab3830a2ef62f3cd2f5ee9ca4307ed1313907f5b81250b9290cd70b555d77e",
+        "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
+      },
+      "revised_at": "2026-08-07T06:52:19.089495+00:00",
+      "reason": "Implementation review A1/A2/A3: pin the AGENTS.md augment guard to the step 8 instruction rather than the file, and correct the manifest text describing the payload boundary shape and the test_init_pre_commit.py lock owner count",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:59ea66fa66fd510b554b2b78081119f44068d631955c77676fa17ba29f3c445a",
+      "prior_test_hashes": {
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:c86425b459c852f38e19dc8bbe9c7f76f0207210f14249a87e742bd2a8c4df19",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:79a088fc52610d7d144365fd0018f67653a1eee8ba9cc50dad5b5390cf8ee6ae",
+        "tests/test_pre_commit_config.py": "sha256-pyast:v2:42e2dc912037a4fb780f08ebc8fef164d5a08eb0e289b6521e06ccef926eb83b"
+      },
+      "revised_at": "2026-08-07T12:10:40.708550+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-07T06:29:16.468853+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_verify_profile_adoption.py tests/test_pre_commit_config.py tests/test_plan_lock_docs.py tests/cli/test_verify_profiles.py tests/cli/test_init_pre_commit.py -v",
+        "exit_code": 1,
+        "output_tail": ">       assert \"--profile handoff\" in readme\nE       assert '--profile handoff' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)\\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)\\n\\nA tool-agnostic validation framework and Python library for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with declarative YAML manifests, ensuring architectural integrity in AI-assisted development. Integrates with [ArchSpec](https://archspec.dev) for spec-to-code pipelines.\\n\\n**[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**\\n\\n> [Full AI Compiler workflow guide](docs/ai-compiler-workflow.md)\\n\\n## Why MAID Runner?\\n\\nLLMs generate code based on statistical likelihood, optimizing for \"plausibility\" rather than architectural soundness. Without intervention, this leads to \"AI Slop\" -- code that is syntactically valid but architecturally chaotic.\\n\\n**MAID Runner enforces three-stream validation:**\\n- **Acceptance (WHAT)**: Immutable tests from specifications define syste...\u2500\u2500 schemas/             # JSON Schema (v1, v2)\\n\u251c\u2500\u2500 examples/                # Example scripts\\n\u2514\u2500\u2500 .claude/                 # Claude Code configuration\\n```\\n\\n## Testing\\n\\n```bash\\nuv run python -m pytest tests/ -v                    # All tests\\nuv run python -m pytest tests/core/ -v               # Core tests\\nuv run python -m pytest tests/validators/ -v          # Validator tests\\nmaid test                                            # MAID validation commands\\n```\\n\\n## Requirements\\n\\n- Python 3.10+\\n- Core: `jsonschema`, `pyyaml`\\n- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS and Angular `.ts` support), `tree-sitter-svelte` (Svelte support)\\n- Dev: `black`, `ruff`, `mypy`, `pytest`\\n\\n## Contributing\\n\\nThis project dogfoods MAID methodology. All changes require:\\n1. A manifest in `manifests/`\\n2. Behavioral tests in `tests/`\\n3. Passing structural validation\\n4. Passing behavioral tests\\n\\nUse `manifests/drafts/` for mutable planned work that has not been promoted\\ninto the active manifest chain yet.\\n\\nSee [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_verify_profile_adoption.py:126: AssertionError\n___________ test_readme_generated_hook_block_stays_on_literal_flags ____________\n\n    def test_readme_generated_hook_block_stays_on_literal_flags() -> None:\n        readme = (ROOT / \"README.md\").read_text(encoding=\"utf-8\")\n    \n        assert FROZEN_GENERATED_HOOK_ENTRY in readme\n>       assert \"version floor\" in readme\nE       assert 'version floor' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)\\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)\\n\\nA tool-agnostic validation framework and Python library for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with declarative YAML manifests, ensuring architectural integrity in AI-assisted development. Integrates with [ArchSpec](https://archspec.dev) for spec-to-code pipelines.\\n\\n**[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**\\n\\n> [Full AI Compiler workflow guide](docs/ai-compiler-workflow.md)\\n\\n## Why MAID Runner?\\n\\nLLMs generate code based on statistical likelihood, optimizing for \"plausibility\" rather than architectural soundness. Without intervention, this leads to \"AI Slop\" -- code that is syntactically valid but architecturally chaotic.\\n\\n**MAID Runner enforces three-stream validation:**\\n- **Acceptance (WHAT)**: Immutable tests from specifications define syste...\u2500\u2500 schemas/             # JSON Schema (v1, v2)\\n\u251c\u2500\u2500 examples/                # Example scripts\\n\u2514\u2500\u2500 .claude/                 # Claude Code configuration\\n```\\n\\n## Testing\\n\\n```bash\\nuv run python -m pytest tests/ -v                    # All tests\\nuv run python -m pytest tests/core/ -v               # Core tests\\nuv run python -m pytest tests/validators/ -v          # Validator tests\\nmaid test                                            # MAID validation commands\\n```\\n\\n## Requirements\\n\\n- Python 3.10+\\n- Core: `jsonschema`, `pyyaml`\\n- Optional: `tree-sitter`, `tree-sitter-typescript` (TypeScript/JS and Angular `.ts` support), `tree-sitter-svelte` (Svelte support)\\n- Dev: `black`, `ruff`, `mypy`, `pytest`\\n\\n## Contributing\\n\\nThis project dogfoods MAID methodology. All changes require:\\n1. A manifest in `manifests/`\\n2. Behavioral tests in `tests/`\\n3. Passing structural validation\\n4. Passing behavioral tests\\n\\nUse `manifests/drafts/` for mutable planned work that has not been promoted\\ninto the active manifest chain yet.\\n\\nSee [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_verify_profile_adoption.py:173: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_profile_adoption.py::test_repo_commit_gate_uses_the_handoff_profile\nFAILED tests/cli/test_verify_profile_adoption.py::test_repo_guidance_presents_both_the_profile_and_its_expansion\nFAILED tests/cli/test_verify_profile_adoption.py::test_readme_documents_the_profile_option\nFAILED tests/cli/test_verify_profile_adoption.py::test_readme_generated_hook_block_stays_on_literal_flags\n========================= 4 failed, 55 passed in 0.64s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "AGENTS.md:attribute:documentation._handoff_gate_profile_form",
+      "AGENTS.md:attribute:documentation._handoff_gate_profile_form:kind=attribute",
+      "AGENTS.md:attribute:documentation._handoff_gate_profile_form:of=documentation",
+      "AGENTS.md:attribute:documentation._handoff_gate_profile_form:type=markdown section",
+      "README.md:attribute:documentation._verify_profile_documentation",
+      "README.md:attribute:documentation._verify_profile_documentation:kind=attribute",
+      "README.md:attribute:documentation._verify_profile_documentation:of=documentation",
+      "README.md:attribute:documentation._verify_profile_documentation:type=markdown section",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:kind=function",
+      "maid_runner/cli/commands/howto.py:function:cmd_howto:returns=int",
+      "tests/cli/test_verify_profile_adoption.py:test_downstream_facing_call_sites_stay_on_literal_flags",
+      "tests/cli/test_verify_profile_adoption.py:test_downstream_facing_call_sites_stay_on_literal_flags:kind=test_function",
+      "tests/cli/test_verify_profile_adoption.py:test_readme_documents_the_profile_option",
+      "tests/cli/test_verify_profile_adoption.py:test_readme_documents_the_profile_option:kind=test_function",
+      "tests/cli/test_verify_profile_adoption.py:test_readme_generated_hook_block_stays_on_literal_flags",
+      "tests/cli/test_verify_profile_adoption.py:test_readme_generated_hook_block_stays_on_literal_flags:kind=test_function",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates:kind=test_function",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_uses_the_handoff_profile",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_uses_the_handoff_profile:kind=test_function",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_guidance_presents_both_the_profile_and_its_expansion",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_guidance_presents_both_the_profile_and_its_expansion:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_verify_profile_adoption.py"
+      ],
+      "edit": [
+        "AGENTS.md",
+        "README.md",
+        "maid_runner/cli/commands/howto.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/core/verify_profiles.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_verify_profiles.py",
+        "tests/test_plan_lock_docs.py"
+      ],
+      "scope": [
+        ".pre-commit-config.yaml",
+        "tests/test_pre_commit_config.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_verify_profile_adoption.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repo_commit_gate_uses_the_handoff_profile"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_repo_commit_gate_applies_the_frozen_pre_migration_gates"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_repo_guidance_presents_both_the_profile_and_its_expansion"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_documents_the_profile_option"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_downstream_facing_call_sites_stay_on_literal_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_generated_hook_block_stays_on_literal_flags"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/howto.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_howto",
+              "description": "Workflow and commands topic content presenting the handoff profile alongside the explicit flags it expands to.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "AGENTS.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_handoff_gate_profile_form",
+              "description": "Step 8 handoff instruction naming the profile alongside the explicit flag form.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_verify_profile_documentation",
+              "description": "Verify examples presenting the profile form and the CLI options table documenting --profile, which 095-02 shipped undocumented.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/verify_profiles.py",
+        "maid_runner/cli/commands/init.py",
+        "tests/test_plan_lock_docs.py",
+        "tests/cli/test_verify_profiles.py",
+        "tests/cli/test_init_pre_commit.py"
+      ],
+      "scope": [
+        {
+          "path": ".pre-commit-config.yaml",
+          "reason": "Repository hook configuration has no analyzer-visible public artifact contract, matching the files.scope precedent in manifests/use-verify-for-pre-commit-maid-gate.manifest.yaml."
+        },
+        {
+          "path": "tests/test_pre_commit_config.py",
+          "reason": "Pins this repository's maid-verify hook entry verbatim, so migrating the entry requires editing it; its public surface is not contracted here."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_verify_profile_adoption.py",
+      "tests/cli/test_verify_profiles.py",
+      "tests/test_plan_lock_docs.py",
+      "tests/test_pre_commit_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_verify_profile_adoption.py tests/test_pre_commit_config.py tests/test_plan_lock_docs.py tests/cli/test_verify_profiles.py tests/cli/test_init_pre_commit.py -v",
+      "uv run maid validate manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

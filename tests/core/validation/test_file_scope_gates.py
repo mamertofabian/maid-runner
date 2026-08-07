@@ -188,7 +188,7 @@ validate:
     assert any("read" in issue.lower() for issue in dep_entries[0].issues)
 
 
-def test_file_tracking_classifies_files_scope_as_tracked_inventory(project):
+def test_file_tracking_classifies_files_scope_as_scope_only_inventory(project):
     write_manifest(
         project,
         "wire-route.manifest.yaml",
@@ -223,8 +223,9 @@ validate:
     ]
 
     assert len(route_entries) == 1
-    assert route_entries[0].status == FileTrackingStatus.TRACKED
-    assert route_entries[0] in report.tracked
+    assert route_entries[0].status == FileTrackingStatus.SCOPE_ONLY
+    assert route_entries[0] in report.scope_only
+    assert route_entries[0] not in report.tracked
     assert route_entries[0] not in report.registered
 
 

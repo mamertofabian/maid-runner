@@ -1,0 +1,294 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prevent failure-packet output from deleting or overwriting user-owned files"
+type: fix
+created: "2026-08-04T23:21:25Z"
+supersedes:
+  - 070-02-emit-failure-packets-from-validate-and-verify
+  - 070-04-update-skill-guidance-for-packets
+metadata:
+  bug_reports: |
+    ~/.maid/bug-report/20260801-174128-maid-packet-deletes-manifest.md
+  tags:
+    - failure-packets
+    - data-loss
+    - cli-safety
+    - fail-closed
+    - validation-trust
+  priority: critical
+description: |
+  Evolve the failure-packet contract so `maid validate --packet <path>` and
+  `maid verify --packet <path>` never treat an arbitrary pre-existing file as
+  disposable packet state. The reported argument-order mistake lets argparse
+  consume a manifest as the optional packet destination; successful validation
+  then unlinks the manifest. Failed runs can similarly overwrite an unrelated
+  file through the packet writer.
+
+  A pre-existing destination is MAID-owned only when it is a regular,
+  non-symlink JSON file with the exact version-1 failure-packet top-level key
+  set and `packet_version: 1`. Missing paths remain valid destinations.
+  Recognizable stale packets may still be replaced on failure or logically
+  cleared on success. Clearing writes an `exit_code: 0` non-failure marker
+  through the already-verified file descriptor instead of unlinking by path;
+  this prevents a concurrent pathname replacement from becoming a deletion
+  target. Existing packet replacement and missing-path creation are likewise
+  descriptor-bound, with missing files created exclusively. After mutation,
+  the path must still identify the opened inode or the operation fails visibly.
+  Every other existing path is preserved byte-for-byte. A passing
+  validate or verify run whose requested packet path cannot be safely cleared
+  reports the collision and exits 2 instead of reporting clean success. A
+  failing gate retains its underlying exit 1 while visibly reporting that the
+  requested sidecar could not be written, preserving the primary validation
+  result without destroying the colliding file.
+
+  This supersedes 070-02 and its 070-04 guidance contract because it
+  intentionally narrows their promise that every pre-existing packet-path file
+  is physically removed after success. A cleared marker is non-actionable and
+  can be safely replaced by a later failure packet.
+  Packet schema, normal packet serialization, default paths, diagnostic
+  content, and validation semantics without an ownership collision remain
+  unchanged. Public retry guidance documents that a successful packet-aware
+  gate may retain a recognizable version-1 marker with `exit_code: 0` and
+  empty failure sections. Consumers determine failure from the gate result and
+  packet `exit_code`, never from packet-path existence alone.
+temptations:
+  - risk: "Do not special-case only *.manifest.yaml paths or the exact reported argv
+      order."
+    instead: "Enforce ownership at the shared packet write/clear boundary so every
+      arbitrary existing destination is protected for validate and verify."
+  - risk: "Do not recognize any parseable JSON object as a MAID packet."
+    instead: "Require a non-symlink regular file with packet_version 1 and the exact
+      version-1 top-level key set before replacement or deletion."
+  - risk: "Do not silently preserve a collision while still reporting successful packet
+      cleanup."
+    instead: "Print an actionable refusal; return exit 2 when a passing gate cannot
+      clear the requested destination, and retain exit 1 for an already-failing gate."
+  - risk: "Do not validate ownership by pathname and then reopen or unlink that pathname."
+    instead: "Bind validation and mutation to one file descriptor, create missing paths exclusively, logically clear stale packets without unlinking, and verify the path still names the opened inode afterward."
+files:
+  edit:
+    - path: maid_runner/core/failure_packet.py
+      artifacts:
+        - kind: function
+          name: build_failure_packet
+          args:
+            - {name: command, type: "list[str]"}
+            - {name: exit_code, type: int}
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: validation, type: "BatchValidationResult | ValidationResult |
+                VerificationResult"}
+            - {name: test_results, type: "BatchTestResult | None", default: "None"}
+          returns: dict
+          description: "Preserves the existing deterministic version-1 packet payload
+            contract."
+        - kind: function
+          name: write_failure_packet
+          args:
+            - {name: packet, type: dict}
+            - {name: path, type: "Union[str, Path]"}
+          returns: None
+          description: "Creates a missing packet or replaces a recognizable MAID packet,
+            using exclusive creation or the already-verified file descriptor; refuses
+            arbitrary files, directories, symlinks, hard links, and raced pathname
+            replacements without modifying the colliding path."
+        - kind: function
+          name: clear_failure_packet
+          args:
+            - {name: path, type: "Union[str, Path]"}
+          returns: bool
+          description: "Logically clears only a recognizable MAID packet through
+            the verified file descriptor, returns False for a missing path, and
+            refuses arbitrary files, directories, symlinks, hard links, and raced
+            pathname replacements without modifying the colliding path."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: cmd_validate
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Preserves validation failure exit 1 on packet-write collision,
+            but returns exit 2 after a passing run when an unsafe existing packet
+            destination cannot be cleared."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Applies the same fail-closed packet-destination ownership
+            and collision exit behavior as validate."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Preserves the existing validate and verify --packet parser contract."
+        - kind: function
+          name: main
+          args:
+            - {name: argv, type: "list[str] | None", default: "None"}
+          returns: int
+          description: "Preserves CLI dispatch of parsed packet destinations to validate and verify."
+    - path: tests/cli/test_packet_flag.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_packet_clears_stale_file_on_success
+        - kind: test_function
+          name: test_validate_coherence_only_packet_clears_stale_file_on_success
+        - kind: test_function
+          name: test_cmd_verify_clears_stale_packet_on_success
+    - path: tests/core/test_failure_packet.py
+      artifacts:
+        - kind: test_function
+          name: test_write_failure_packet_is_deterministic_and_clear_failure_packet_invalidates_stale_packet
+          description: "Repeated writes remain deterministic, logical clear leaves a recognizable non-failure marker, and clearing a missing path returns False."
+    - path: tests/test_packet_skill_guidance_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_readme_and_howto_describe_packet_flag
+          description: "README packet guidance describes the safe cleared marker and requires consumers to use gate status and packet exit_code rather than file existence."
+        - kind: test_function
+          name: test_skill_guidance_instructs_packet_driven_retries
+          description: "Preserves packet-driven retry guidance across Claude and Codex implementation skills."
+        - kind: test_function
+          name: test_packet_guidance_anchors_are_synced_to_distribution_copies
+          description: "Preserves synchronized packet-guidance anchors in source and packaged skill copies."
+    - path: README.md
+      artifacts:
+        - kind: attribute
+          name: _failure_packet_cleared_marker_guidance
+          of: documentation
+          type: markdown section
+          description: "Failure-packet guidance explains the retained exit_code 0 marker and forbids existence-based failure detection."
+    - path: docs/agent-retry-protocol.md
+      artifacts:
+        - kind: attribute
+          name: _agent_retry_success_marker_contract
+          of: documentation
+          type: markdown section
+          description: "The retry protocol treats gate status and packet exit_code as authoritative and never replays a cleared marker as failure state."
+    - path: maid_runner/cli/commands/howto.py
+      artifacts:
+        - kind: function
+          name: cmd_howto
+          args:
+            - {name: args, type: argparse.Namespace}
+          returns: int
+          description: "Preserves howto topic guidance for packet-aware validation and retries."
+    - path: .claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _implementer_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Preserves Claude implementer packet retry guidance."
+    - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_implementer_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Preserves the packaged Claude implementer packet retry guidance."
+    - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _codex_draft_implement_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Preserves Codex draft-implement packet retry guidance."
+    - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+      artifacts:
+        - kind: attribute
+          name: _distributed_codex_draft_implement_packet_retry_guidance
+          of: skill
+          type: markdown section
+          description: "Preserves the packaged Codex draft-implement packet retry guidance."
+  create:
+    - path: tests/cli/test_packet_output_ownership.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_validate_packet_argument_order_preserves_manifest_destination
+          description: "The exact reported optional-argument mistake exits 2, preserves
+            the manifest bytes, and reports that the destination is not a MAID failure
+            packet."
+        - kind: test_function
+          name: test_failing_validate_preserves_arbitrary_packet_destination
+          description: "A failing validation retains exit 1, preserves an arbitrary
+            existing destination byte-for-byte, and visibly reports that packet writing
+            was refused."
+        - kind: test_function
+          name: test_passing_verify_preserves_arbitrary_packet_destination
+          description: "A passing allow-empty verify exits 2 rather than deleting
+            an arbitrary packet destination and reports the refusal."
+        - kind: test_function
+          name: test_validate_packet_refuses_symlink_destination
+          description: "A packet destination symlink and its target remain unchanged
+            and the passing command exits 2 with an ownership refusal."
+        - kind: test_function
+          name: test_write_failure_packet_preserves_raced_path_replacement
+          description: "When the packet pathname is replaced after ownership validation,
+            the descriptor-bound write cannot alter the replacement and reports the race."
+        - kind: test_function
+          name: test_clear_failure_packet_preserves_raced_path_replacement
+          description: "When the packet pathname is replaced after ownership validation,
+            logical clear mutates only the verified packet inode, preserves the replacement,
+            and reports the race instead of unlinking by pathname."
+validate:
+  - uv run python -m pytest -q tests/core/test_failure_packet.py
+    tests/cli/test_packet_flag.py tests/cli/test_packet_output_ownership.py
+    tests/test_packet_skill_guidance_docs.py
+  - uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml
+    --mode behavioral --quiet
+  - uv run maid validate manifests/fix-packet-output-ownership.manifest.yaml
+    --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-04T23:49:09Z'
+  summary: Failure-packet output now preserves arbitrary destinations, symlinks, hard links, and raced pathname replacements while retaining useful packet output for safe MAID-owned paths.
+  rationale: Ownership is established from the exact version-1 packet schema and bound to one verified file descriptor. Missing destinations use exclusive creation, stale packets are logically cleared with an exit_code 0 marker instead of unlinked, and unsafe success collisions fail visibly with exit 2.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Output cleanup must treat a user-supplied path as untrusted until ownership is proven, and validation plus mutation must remain bound to the same file descriptor to prevent pathname-swap races.
+    tags: [failure-packets, data-loss, toctou, file-ownership]
+    paths: [maid_runner/core/failure_packet.py, tests/cli/test_packet_output_ownership.py]
+  - lesson_type: documentation
+    summary: Safe logical cleanup changes the consumer contract; integrations must use command status and packet exit_code rather than treating packet-file existence as failure evidence.
+    tags: [failure-packets, retry-protocol, cleared-marker]
+    paths: [README.md, docs/agent-retry-protocol.md, tests/test_packet_skill_guidance_docs.py]
+  review_notes:
+  - source: independent-reviewer-packet_ownership_review-round-1
+    severity: P1 fixed
+    summary: Found a pathname validation followed by reopen or unlink TOCTOU window; mutation was redesigned around a verified descriptor with exclusive creation, logical clear, inode checks, and deterministic swap tests.
+  - source: independent-reviewer-packet_ownership_review-round-2
+    severity: P2 fixed
+    summary: Found public guidance still promised physical stale-packet deletion; README and retry protocol now document the retained exit_code 0 marker and forbid existence-based failure detection.
+  - source: independent-reviewer-packet_ownership_review-round-3
+    severity: ready
+    summary: Final review reported no blocking findings, confirmed both prior findings closed, and recorded only an interruption-recovery advisory that cannot overwrite a raced pathname replacement.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/test_packet_skill_guidance_docs.py, tests/core/test_failure_packet.py, tests/cli/test_packet_flag.py, tests/cli/test_packet_output_ownership.py]
+    status: passed
+    summary: Focused packet ownership, cleanup, CLI, and documentation suite passed 32 tests.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3708 tests with 5 skipped.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed all 380 active manifests; 106 superseded manifests were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 218 manifest validation commands passed.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Ruff passed across the repository; Black check also reported all 474 files unchanged.
+  - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --since, HEAD, --packet]
+    status: passed
+    summary: Strict nine-stage handoff verification passed with no blocking findings after superseding both the packet implementation and stale guidance contracts.

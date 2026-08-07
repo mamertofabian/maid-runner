@@ -1,0 +1,45 @@
+# archive-kind: consumed-draft-epic
+schema: '2'
+goal: Archive consumed onboarding entry-point wiring epic
+type: refactor
+created: '2026-08-07T00:00:00Z'
+metadata:
+  status: archived
+  tags:
+  - adoption
+  - developer-experience
+  - cli-guidance
+  - onboarding
+  - archive
+  priority: low
+description: |
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `095-01` through `095-05`.
+
+  Together the children wired newcomer guidance into CLI entry points, added
+  named verify profiles, migrated repository and generated guidance, declared
+  the v2.25 compatibility floor, and closed the remaining init-distributed
+  workflow gap. The file remains in `manifests/drafts/` only as a historical
+  pointer. Do not promote or implement this archived epic.
+
+  Package version bumping, tagging, and publication remain separate release
+  work and are not reopened by this archived planning record.
+files:
+  edit:
+  - path: manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_onboarding_entry_point_wiring_epic
+      of: manifest
+      type: draft epic
+      description: Historical pointer for promoted child manifests 095-01
+        through 095-05.
+  read:
+  - manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml
+  - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+  - manifests/095-04-migrate-generated-profile-payloads.manifest.yaml
+  - manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml
+validate:
+- uv run maid validate manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml
+  --mode schema --quiet

@@ -1,47 +1,39 @@
-schema: "2"
-goal: "Deliver an evidence-backed, deterministic brownfield coverage priority recommender while preserving legacy bootstrap ranking"
-type: feature
-created: "2026-07-31T00:00:00Z"
+# archive-kind: consumed-draft-epic
+schema: '2'
+goal: Archive consumed coverage priority recommender epic
+type: refactor
+created: '2026-07-31T00:00:00Z'
 metadata:
-  status: planning
+  status: archived
   tags:
-    - adoption
-    - bootstrap
-    - coverage-risk
-    - developer-experience
-  priority: high
+  - adoption
+  - bootstrap
+  - coverage-risk
+  - developer-experience
+  - archive
+  priority: low
 description: |
-  Split the second-generation brownfield recommender into implementation
-  children so the scoring contract is stable before plugin extensibility,
-  optional expensive evidence, and adoption-guidance alignment are added:
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `092-01` through `092-04`.
 
-  - 092-01 ships risk-v1, repository-wide indexes, explainable scoring, and CLI.
-  - 092-02 moves dependency and complexity collection behind optional validator
-    hooks without changing risk-v1 output.
-  - 092-03 adds project policy, cache, historical context, and opt-in deep
-    coverage evidence without changing the 100-point base weights.
-  - 092-04 aligns CLI how-to content and brownfield agent skills so risk-v1 is
-    the recommended migration-ordering model while legacy-v1 remains available.
-
-  Existing `maid bootstrap --rank` behavior remains `legacy-v1` and stays the
-  default for one release. No LLM participates in scoring.
-temptations:
-  - risk: "Do not replace or reinterpret the 061-04 raw ranking contract."
-    instead: "Keep legacy-v1 byte-compatible and add risk-v1 behind an explicit model selector."
-  - risk: "Do not ship a changing risk-v1 formula across the child manifests."
-    instead: "Pin the full 100-point scoring model in 092-01; later children may add evidence and policy but not redefine base weights."
-  - risk: "Do not represent missing analysis as zero risk."
-    instead: "Carry unknown evidence explicitly, contribute at least half the affected component cap, and lower confidence."
+  The file remains in `manifests/drafts/` only as a historical pointer for
+  agents and manifests that still read or mention the original roadmap path.
+  Do not promote or implement this archived epic.
 files:
   edit:
-    - path: manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
-      artifacts:
-        - kind: attribute
-          name: _coverage_priority_recommender_epic
-          of: manifest
-          type: draft epic
-          description: "Planning inventory for children 092-01 through 092-04."
+  - path: manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_coverage_priority_recommender_epic
+      of: manifest
+      type: draft epic
+      description: Historical pointer for promoted child manifests 092-01
+        through 092-04.
   read:
-    - manifests/061-04-rank-bootstrap-adoption-plan.manifest.yaml
+  - manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml
+  - manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml
+  - manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml
+  - manifests/092-04-align-risk-v1-guidance.manifest.yaml
 validate:
-  - uv run maid validate manifests/drafts/092-00-coverage-priority-recommender.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+  --mode schema --quiet

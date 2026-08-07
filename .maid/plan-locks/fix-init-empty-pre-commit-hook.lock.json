@@ -1,0 +1,245 @@
+{
+  "manifest_path": "manifests/fix-init-empty-pre-commit-hook.manifest.yaml",
+  "manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
+  "test_hashes": {
+    "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:41341e5dd515513bc1a085fc55bc9c97b566bde0016e92f21b94409ba78b7215",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
+  },
+  "created_at": "2026-08-05T06:38:40.094831+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:363647474a34691de9aa24892504a6acd472096626740dbc51328ce7786275fb",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:61759f86e5087ef4b586baf229142065f5d12009cc0af962c1321b94eb281220",
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6"
+      },
+      "revised_at": "2026-08-05T06:38:42.373465+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-init-empty-pre-commit-hook.manifest.yaml -> manifests/fix-init-empty-pre-commit-hook.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-init-empty-pre-commit-hook.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-init-empty-pre-commit-hook.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7c20c388544d40c313aa26a026db15ced4d4636056a07bc0f44a417fd76ff08f",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:61759f86e5087ef4b586baf229142065f5d12009cc0af962c1321b94eb281220",
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6"
+      },
+      "revised_at": "2026-08-05T06:40:34.730535+00:00",
+      "reason": "Synchronize inherited init tests and README with the allow-empty generated hook",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config",
+          "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config",
+          "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block",
+          "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates",
+          "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior",
+          "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_init_pre_commit.py",
+          "scope:README.md"
+        ],
+        "files_removed": [
+          "read:tests/cli/test_init_pre_commit.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
+      "prior_test_hashes": {
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037"
+      },
+      "revised_at": "2026-08-07T12:10:41.171606+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8bc3051ec1d001d31e9b0918faf055d5c3261d8a1a8efcb239678fd40b78ca11",
+      "prior_test_hashes": {
+        "tests/cli/test_init_empty_pre_commit_hook.py": "sha256-pyast:v2:2b16738fd927577570a89ffb23316a9ab921eac54501b7718ef8fd4133f0ffd6",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4"
+      },
+      "revised_at": "2026-08-07T12:25:45.435367+00:00",
+      "reason": "095-04 migrates shared guidance and test expectations to gate-equivalent named verify profiles without changing the historical behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-05T06:40:36.849747+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_empty_pre_commit_hook.py tests/cli/test_init_pre_commit.py",
+        "exit_code": 1,
+        "output_tail": "  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n____________ test_readme_documents_init_managed_pre_commit_behavior ____________\n\n    def test_readme_documents_init_managed_pre_commit_behavior() -> None:\n        readme = (ROOT / \"README.md\").read_text(encoding=\"utf-8\")\n    \n>       assert VERIFY_ENTRY in readme\nE       AssertionError: assert 'maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_init_pre_commit.py:416: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_empty_pre_commit_hook.py::test_generated_hook_passes_before_first_active_manifest\nFAILED tests/cli/test_init_empty_pre_commit_hook.py::test_force_refresh_adds_allow_empty_without_removing_strict_gates\nFAILED tests/cli/test_init_pre_commit.py::test_init_creates_managed_maid_verify_pre_commit_config\nFAILED tests/cli/test_init_pre_commit.py::test_init_managed_hook_tracks_only_head_commit_candidates\nFAILED tests/cli/test_init_pre_commit.py::test_init_appends_managed_hook_without_rewriting_existing_config\nFAILED tests/cli/test_init_pre_commit.py::test_init_force_refresh_replaces_only_stale_managed_block\nFAILED tests/cli/test_init_pre_commit.py::test_readme_documents_init_managed_pre_commit_behavior\n7 failed, 22 passed in 0.54s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      "plan-revision.md"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_init_empty_pre_commit_hook.py:test_force_refresh_adds_allow_empty_without_removing_strict_gates",
+      "tests/cli/test_init_empty_pre_commit_hook.py:test_force_refresh_adds_allow_empty_without_removing_strict_gates:kind=test_function",
+      "tests/cli/test_init_empty_pre_commit_hook.py:test_generated_hook_passes_before_first_active_manifest",
+      "tests/cli/test_init_empty_pre_commit_hook.py:test_generated_hook_passes_before_first_active_manifest:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config",
+      "tests/cli/test_init_pre_commit.py:test_init_appends_managed_hook_without_rewriting_existing_config:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config",
+      "tests/cli/test_init_pre_commit.py:test_init_creates_managed_maid_verify_pre_commit_config:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block",
+      "tests/cli/test_init_pre_commit.py:test_init_force_refresh_replaces_only_stale_managed_block:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates",
+      "tests/cli/test_init_pre_commit.py:test_init_managed_hook_tracks_only_head_commit_candidates:kind=test_function",
+      "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior",
+      "tests/cli/test_init_pre_commit.py:test_readme_documents_init_managed_pre_commit_behavior:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_empty_pre_commit_hook.py"
+      ],
+      "edit": [
+        "tests/cli/test_init_pre_commit.py"
+      ],
+      "read": [
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml"
+      ],
+      "scope": [
+        "README.md",
+        "maid_runner/cli/commands/init.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_empty_pre_commit_hook.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_generated_hook_passes_before_first_active_manifest",
+              "description": "A fresh initialized repository's generated verify entry contains --allow-empty and exits successfully while there are no active manifests."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_force_refresh_adds_allow_empty_without_removing_strict_gates",
+              "description": "Force refresh upgrades a stale managed hook with --allow-empty while retaining plan-lock, red-evidence, task-scope, and baseline arguments."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/cli/test_init_pre_commit.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_creates_managed_maid_verify_pre_commit_config",
+              "description": "Fresh init emits the complete allow-empty managed verify entry."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_managed_hook_tracks_only_head_commit_candidates",
+              "description": "The managed hook retains task-scoped HEAD candidate selection together with allow-empty bootstrap behavior."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_appends_managed_hook_without_rewriting_existing_config",
+              "description": "Appending the current allow-empty hook preserves unrelated pre-commit content."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_force_refresh_replaces_only_stale_managed_block",
+              "description": "Force refresh replaces only the stale managed block with the allow-empty entry."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_documents_init_managed_pre_commit_behavior",
+              "description": "README documents the same allow-empty entry generated by init."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Update the private managed-hook argument constant without changing public command signatures."
+        },
+        {
+          "path": "README.md",
+          "reason": "Keep the documented generated pre-commit command synchronized with init output."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_empty_pre_commit_hook.py",
+      "tests/cli/test_init_pre_commit.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_empty_pre_commit_hook.py tests/cli/test_init_pre_commit.py",
+      "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-init-empty-pre-commit-hook.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

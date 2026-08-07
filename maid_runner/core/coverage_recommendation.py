@@ -319,6 +319,8 @@ def _coverage_statuses(
             statuses[entry.path] = CoverageStatus.UNDECLARED
         elif entry.status is FileTrackingStatus.TRACKED:
             statuses[entry.path] = CoverageStatus.TRACKED
+        elif entry.status is FileTrackingStatus.SCOPE_ONLY:
+            statuses[entry.path] = CoverageStatus.WRITABLE_NO_ARTIFACTS
         elif entry.path in read_only:
             statuses[entry.path] = CoverageStatus.READ_ONLY
         else:

@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/fix-init-pre-commit-brownfield-file-tracking.manifest.yaml",
-  "manifest_hash": "sha256:a5b4c0079994830bda29130d50016b55f365db518830043e04bfc045ea06ecfb",
+  "manifest_hash": "sha256-contract:1c70766c2754ff92965ea7f789eccc4d2a179cba8066b51875a4557a49cb361a",
   "test_hashes": {
-    "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3",
-    "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0"
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e"
   },
   "created_at": "2026-07-11T04:11:31.324237+00:00",
-  "revision": 7,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:025b21112e2c1b5f663f4c126d6bd8b3efece36c48838c5fa5d40ccfc5034932",
@@ -123,6 +123,45 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:a5b4c0079994830bda29130d50016b55f365db518830043e04bfc045ea06ecfb",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256:7557babae03f04591e2e8dab224894a3b70c2ddbd4b6a4f3f955cbc8003dffd3",
+        "tests/cli/test_init_cmd.py": "sha256:94c2c38ca781862c8b9c966c7151692612a85ab679169800a0d8702737b9ceb0"
+      },
+      "revised_at": "2026-08-05T06:41:07.423208+00:00",
+      "reason": "Accept the chain-merged allow-empty onboarding hook policy",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:README.md",
+          "scope:maid_runner/cli/commands/init.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c70766c2754ff92965ea7f789eccc4d2a179cba8066b51875a4557a49cb361a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e"
+      },
+      "revised_at": "2026-08-07T12:10:41.377159+00:00",
+      "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -143,6 +182,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -160,6 +200,62 @@
       "read": [
         "manifests/add-init-pre-commit-verification.manifest.yaml",
         "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml"
+      ],
+      "scope": [
+        "README.md",
+        "maid_runner/cli/commands/init.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_init_pre_commit.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_managed_hook_tracks_only_head_commit_candidates",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A brownfield repository initializes MAID while historical source files remain outside manifest coverage.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The generated hook keeps errors and canonical contract gates blocking, reports warnings advisory-only, and selects task-scoped file tracking from HEAD so current commit candidates remain enforced without scanning untouched brownfield inventory."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-brownfield-task-scoped-file-tracking.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Update the private managed pre-commit entry constant without changing cmd_init's public signature."
+        },
+        {
+          "path": "README.md",
+          "reason": "Keep the documented generated hook command identical to the managed configuration."
+        }
       ]
     },
     "test_files": [
