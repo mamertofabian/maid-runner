@@ -24,7 +24,7 @@ repos:
       # Comprehensive MAID handoff gate; fail before tests on lock/scope errors
       - id: maid-verify
         name: MAID verification (fail-fast handoff gates)
-        entry: uv run maid verify --summary --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope
+        entry: uv run maid verify --profile handoff --fail-fast --no-changed-scope
         language: system
         pass_filenames: false
         always_run: true

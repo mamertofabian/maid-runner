@@ -81,6 +81,7 @@ _TOPICS = {
         "  - maid validate (all manifests)\n"
         "  - maid test (all test commands)\n"
         "  - maid verify --require-plan-lock --require-red-evidence\n"
+        "    (or by name: maid verify --profile handoff)\n"
     ),
     "commands": (
         "CLI Commands\n"
@@ -97,7 +98,11 @@ _TOPICS = {
         "  maid plan lock --no-run records red_evidence: null; pytest exit 1 "
         "is valid red, exits 2/3/4/5 are invalid, and exit 0 is not red.\n\n"
         "Run the implementation handoff gate with opt-in plan-lock enforcement:\n"
-        "  maid verify --require-plan-lock --require-red-evidence\n\n"
+        "  maid verify --require-plan-lock --require-red-evidence\n"
+        "  maid verify --profile handoff\n"
+        "  Named presets: handoff, pre-commit, agent-retry, deep. A profile sets\n"
+        "  defaults only where you did not pass a flag yourself, never supplies a\n"
+        "  changed-scope baseline, and reports which flags it contributed.\n\n"
         "Run validation gates with failure packets for agent retry loops:\n"
         "  maid validate --packet\n"
         "  maid verify --packet\n"

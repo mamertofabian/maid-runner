@@ -94,6 +94,11 @@ formatting, and other project configuration. The managed hook runs:
 maid verify --summary --advisory --allow-empty --require-plan-lock --require-red-evidence --fail-fast --no-changed-scope --file-tracking-scope task --plan-lock-scope task --since HEAD
 ```
 
+That stack is equivalent to `--profile pre-commit --since HEAD`. The generated
+hook stays on explicit flags until the release that sets the `--profile`
+version floor, so a repository pinned to an older MAID Runner cannot receive a
+hook its installed runner rejects.
+
 MAID provisions the project configuration but does not replace or activate Git
 hooks. For a standard pre-commit setup, run `pre-commit install`. If Git
 `core.hooksPath` points to a global hook directory, keep that dispatcher and
@@ -123,7 +128,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid validators` | List discovered validator records for auditability | `--json` |
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid pgtap -- <psql arguments>` | Run a file-backed pgTAP script with MAID-safe red-phase exit semantics | Requires `-f`/`--file`; forces `ON_ERROR_STOP=1`; explicit pgTAP assertion failures exit 1 and infrastructure/setup failures exit 2 |
-| `maid verify` | Run the combined done gate | `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid verify` | Run the combined done gate | `--profile handoff\|pre-commit\|agent-retry\|deep`, `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--legacy-baseline --reason` (tracked legacy lock), `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -274,6 +279,11 @@ maid verify --summary --advisory
 
 # Implementation handoff gate requiring the approved plan lock and red phase
 maid verify --require-plan-lock --require-red-evidence
+
+# The same gate by name; --profile handoff expands to
+# --summary --require-plan-lock --require-red-evidence, and the applied
+# profile and its flags are reported in the output
+maid verify --profile handoff
 
 # Opt-in Python-only constraint evidence gates for high-risk review
 maid validate --artifact-coverage manifests/add-auth.manifest.yaml

@@ -1,0 +1,225 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Migrate the generated pre-commit hook and actionable distributed guidance
+  to named verify profiles behind an explicit maid-runner 2.25 compatibility
+  floor
+type: refactor
+created: '2026-08-07T11:10:21Z'
+metadata:
+  epic: 095-00-onboarding-entry-point-wiring
+  status: planning
+  tags:
+  - adoption
+  - compatibility
+  - agent-payloads
+  - verification
+  priority: high
+description: |
+  095-02 added the `maid verify --profile` mechanism after the v2.24.0
+  release. 095-03 dogfoods `--profile handoff` inside this repository while
+  deliberately keeping every downstream-facing command on literal flags.
+  This child moves that compatibility boundary.
+
+  TWO FLOORS, WITH DIFFERENT JOBS
+
+  The command floor is `maid-runner>=2.25.0`, the first release that can contain
+  the profile implementation. The instruction-payload floor is the current
+  pre-change `INSTRUCTION_PAYLOAD_VERSION`, `2026.07.31.1`; this child must
+  advance it so `maid init --check` reports pre-migration guidance as stale.
+  These are not interchangeable. The date-stamped payload version detects stale
+  installed text. It does not make an older CLI understand `--profile`.
+
+  The generated hook therefore becomes version-gated rather than changing
+  unconditionally. With a runner version below 2.25.0, init must continue to
+  write the frozen ten-flag command. At 2.25.0 or newer, it writes
+  `verify --profile pre-commit --since HEAD`. Both branches must produce the
+  same effective verify namespace and gate set. The comparison excludes only
+  profile-reporting metadata; it may not exclude gate-governing values.
+
+  Version comparison must use parsed release versions, not string ordering.
+  Prerelease `2.25.0rc1` is below the stable floor unless the release workflow
+  deliberately revises this contract. Do not implement a shell retry such as
+  `profile-command || literal-command`: a genuine verification failure would
+  run twice and could be mistaken for an argument-compatibility fallback.
+
+  MIXED-VERSION LIMIT
+
+  A 2.25+ init can still be invoked from a different environment than the
+  executable later resolved by a system-language pre-commit hook. This child
+  does not pretend the payload-version bump or the generator's own version gate
+  solves that. The supported contract is explicit: a profile-bearing generated
+  hook requires the hook's resolved runner to be 2.25.0 or newer. README and
+  maid-onboard guidance must say so, and maid-onboard must verify the detected
+  `<maid> --version` meets that floor before refreshing the payload. Running a
+  newer global init into a project whose hook deliberately resolves an older
+  runner is an unsupported mixed-version operation and must be described as a
+  hard incompatibility, not silently claimed as safe. A future portable
+  launcher-identity resolver is out of scope.
+
+  PAYLOAD INVENTORY: TWELVE AUDITED, SEVEN ACTIONABLE
+
+  095-03 found twelve packaged files containing `maid verify`. That is the
+  audit inventory, not a reason to mechanically rewrite twelve files. Five are
+  descriptions, profiling examples, or command stacks with no equivalent
+  profile and must stay literal. Seven canonical guidance files contain
+  actionable stacks that have exact presets; their generated/package copies
+  are refreshed with `make sync-agent-payloads`.
+
+  Exact migrations:
+
+  - `--summary --require-plan-lock --require-red-evidence` becomes
+    `--profile handoff`; an explicit `--since <baseline>` remains explicit.
+  - `--packet` becomes `--profile agent-retry`; an explicit baseline remains.
+  - `--artifact-coverage --knockout` becomes `--profile deep`; an explicit
+    baseline remains.
+  - The generated ten-flag stack becomes `--profile pre-commit --since HEAD`
+    only at the command floor.
+
+  The task-scoped inner loop `--summary --plan-lock-scope task`, generic
+  `--summary`, `--keep-going`, `--json`, and prose that merely names
+  `maid verify` stay literal because no shipped profile is gate-equivalent.
+  Tests must classify every invocation in the twelve-file packaged inventory;
+  they may not assert that every mention contains `--profile`.
+
+  SOURCE OF TRUTH AND GENERATED COPIES
+
+  Edit `.claude/` and `.codex/` canonical sources, then run
+  `make sync-agent-payloads`. Never hand-edit `maid_runner/claude/`,
+  `maid_runner/codex/`, or `maid_runner/user_skills/` as independent sources.
+  Parity tests must cover the seven actionable files and the complete
+  twelve-file audit inventory. The existing 095-03 boundary test is replaced,
+  not weakened: it must positively assert the new generator form at and above
+  the floor, the old literal form below it, and the expected profile mapping in
+  each actionable payload.
+
+  LOCK CASCADE
+
+  `tests/cli/test_init_pre_commit.py` is currently hashed by seven plan locks,
+  including 095-03. Before implementation, enumerate the live owners again.
+  Revise affected locks through `maid plan revise --preserve-red-evidence`
+  where eligible. Do not recreate red evidence after changing the generator or
+  rewrite an older manifest merely to avoid an E701 failure.
+
+  OUT OF SCOPE
+
+  New profiles, changes to profile gate definitions, baseline inference,
+  retry-on-failure compatibility fallbacks, CI examples whose stacks have no
+  exact profile, and a general launcher/dependency resolver. Package release
+  publication and the eventual version bump are separate release work; this
+  child defines and tests the 2.25.0 activation floor without publishing.
+temptations:
+- risk: Do not treat the INSTRUCTION_PAYLOAD_VERSION bump as proof that an old
+    runner can parse --profile.
+  instead: Gate generated profile commands on the parsed 2.25.0 runner floor,
+    bump the payload version separately, and test both compatibility branches.
+- risk: Do not use `profile-command || literal-command` as a compatibility
+    fallback.
+  instead: Select the command before writing the hook so a real verification
+    failure is returned once and cannot be masked by a second run.
+- risk: Do not replace every `maid verify` mention in the twelve-file audit
+    inventory.
+  instead: Migrate only stacks exactly represented by handoff, pre-commit,
+    agent-retry, or deep; positively retain unmatched stacks.
+- risk: Do not edit packaged payload copies independently or forget the user
+    maid-onboard copies.
+  instead: Edit canonical sources, run make sync-agent-payloads, and assert
+    byte-for-byte source/package parity across both distribution paths.
+- risk: Do not relax or delete the 095-03 boundary test merely because it was
+    designed to obstruct this migration.
+  instead: Replace the frozen deferral assertions with positive below-floor,
+    at-floor, equivalence, inventory, and profile-mapping assertions, then
+    revise every affected lock with preserved red evidence.
+files:
+  create:
+  - path: tests/cli/test_verify_profile_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_generated_hook_retains_literal_flags_below_profile_floor
+    - kind: test_function
+      name: test_generated_hook_uses_pre_commit_profile_at_profile_floor
+    - kind: test_function
+      name: test_generated_hook_profile_is_gate_equivalent_to_frozen_flags
+    - kind: test_function
+      name: test_actionable_payload_commands_use_gate_equivalent_profiles
+    - kind: test_function
+      name: test_unmatched_payload_commands_stay_literal
+    - kind: test_function
+      name: test_verify_payload_inventory_and_generated_copies_are_synchronized
+    - kind: test_function
+      name: test_instruction_payload_version_advances_for_profile_guidance
+    - kind: test_function
+      name: test_profile_guidance_declares_the_2_25_runner_floor
+  edit:
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped payload version advanced beyond 2026.07.31.1
+        because init-distributed verify guidance changes.
+  scope:
+  - path: maid_runner/cli/commands/init.py
+    reason: Select the frozen literal pre-commit command below the parsed 2.25.0
+      floor and the pre-commit profile form at or above it without changing
+      unrelated init behavior.
+  - path: tests/cli/test_init_pre_commit.py
+    reason: Replace the literal-only generated-hook contract with explicit
+      below-floor, at-floor, and README expectations.
+  - path: tests/cli/test_verify_profile_adoption.py
+    reason: Move the 095-03 deferral boundary forward by replacing the negative
+      generator/payload assertions with positive 095-04 ownership references.
+  - path: README.md
+    reason: Document the profile-bearing generated hook, its 2.25.0 runner
+      floor, and the retained literal compatibility branch.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    reason: Migrate exact handoff and deep verification stacks.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    reason: Mirror the Claude implementation-review migrations.
+  - path: .claude/skills/maid-implementer/SKILL.md
+    reason: Migrate exact agent-retry and handoff stacks while retaining the
+      unmatched task-scoped inner-loop command.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    reason: Mirror the Claude implementer migrations.
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Migrate exact agent-retry and handoff stacks while retaining the
+      unmatched task-scoped inner-loop command.
+  - path: .claude/skills/maid-onboard/SKILL.md
+    reason: Enforce the 2.25.0 floor before refreshing and migrate exact
+      handoff guidance.
+  - path: .codex/skills/maid-onboard/SKILL.md
+    reason: Mirror the Claude onboard floor and handoff guidance.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+    reason: Generated by make sync-agent-payloads from the canonical source.
+  read:
+  - pyproject.toml
+  - maid_runner/__init__.py
+  - maid_runner/core/verify_profiles.py
+  - scripts/sync_claude_files.py
+  - tests/test_agent_payload_distribution.py
+  - tests/cli/test_init_instruction_payload_version.py
+  - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+validate:
+- uv run python -m pytest tests/cli/test_verify_profile_distribution.py
+  tests/cli/test_verify_profile_adoption.py tests/cli/test_init_pre_commit.py
+  tests/cli/test_init_instruction_payload_version.py
+  tests/test_agent_payload_distribution.py -v
+- uv run maid validate
+  manifests/drafts/095-04-migrate-generated-profile-payloads.manifest.yaml
+  --mode schema --quiet
