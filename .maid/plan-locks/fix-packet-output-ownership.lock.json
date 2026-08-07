@@ -5,10 +5,10 @@
     "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
     "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
     "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
-    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326"
+    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:023fc6db8410639c49ef06361b0b1a1089feb239afea2a47391f998b3e174975"
   },
   "created_at": "2026-08-04T23:21:22.625748+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:87a91009ac82847bf8c4d12f171100d3a31507145cd73ac5807575929da045f2",
@@ -220,6 +220,26 @@
           "edit:maid_runner/cli/commands/howto.py",
           "edit:maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5284cdf66473d54d78ddad3d4ad0b15a13ceb939c200c50eb8527fd561495ce2",
+      "prior_test_hashes": {
+        "tests/cli/test_packet_output_ownership.py": "sha256-pyast:v2:f3d64a8507311c01797801d95ed3c4654410b73c4449004f399dc8aeb9f14152",
+        "tests/cli/test_packet_flag.py": "sha256-pyast:v2:31896822649f2525b8ff09f5fd3abaea002f2a5ac3ee80c0700d618c9619ac83",
+        "tests/core/test_failure_packet.py": "sha256-pyast:v2:bab44b72e075b16f1dd37b00359401c1a3b6ddce5d5a14d60d282c7f8b7ec237",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326"
+      },
+      "revised_at": "2026-08-07T13:22:54.665925+00:00",
+      "reason": "095-05 evolves shared howto guidance from literal packet and handoff commands to gate-equivalent named profiles without changing the historical packet or plan-lock contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

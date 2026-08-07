@@ -113,7 +113,7 @@ def test_workflow_doc_and_packaged_copies_stay_in_sync(tmp_path: Path) -> None:
         "two full review rounds",
         "--plan-lock-scope task",
         "record them in the review packet for possible future draft manifests",
-        "maid verify --summary --require-plan-lock --require-red-evidence --since <baseline>",
+        "maid verify --profile handoff --since <baseline>",
     ):
         assert phrase in workflow
 

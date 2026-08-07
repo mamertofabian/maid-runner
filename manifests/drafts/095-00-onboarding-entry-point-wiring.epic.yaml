@@ -1,63 +1,45 @@
-schema: "2"
-goal: "Lower the MAID adoption floor by wiring existing guidance to entry points and naming the repeated flag stacks"
-type: feature
-created: "2026-08-07T00:00:00Z"
+# archive-kind: consumed-draft-epic
+schema: '2'
+goal: Archive consumed onboarding entry-point wiring epic
+type: refactor
+created: '2026-08-07T00:00:00Z'
 metadata:
-  status: planning
+  status: archived
   tags:
-    - adoption
-    - developer-experience
-    - cli-guidance
-    - onboarding
-  priority: high
+  - adoption
+  - developer-experience
+  - cli-guidance
+  - onboarding
+  - archive
+  priority: low
 description: |
-  MAID's ceiling is high and its floor is high with it. The progressive
-  disclosure content already exists — `maid howto` ships nine topics and
-  `maid howto quickstart` renders a numbered walkthrough — but no entry point
-  references it, so a newcomer meets 31 undifferentiated top-level commands,
-  a 917-line README whose Quick Start carries seven flags, and an init that
-  ends on a `core.hooksPath` caveat.
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `095-01` through `095-05`.
 
-  This epic treats that as a wiring problem, not a redesign:
+  Together the children wired newcomer guidance into CLI entry points, added
+  named verify profiles, migrated repository and generated guidance, declared
+  the v2.25 compatibility floor, and closed the remaining init-distributed
+  workflow gap. The file remains in `manifests/drafts/` only as a historical
+  pointer. Do not promote or implement this archived epic.
 
-  - 095-01 wires the four newcomer surfaces (`maid --help`, `maid init`,
-    `maid howto` topic content, README Quick Start) to the guidance that
-    already exists. Text-only; no validation or parsing behavior changes.
-  - 095-02 (not yet drafted) adds named `maid verify --profile` presets so the
-    repeated flag stacks stop being incantations. The MAID-managed pre-commit
-    entry currently spells out ten flags, and `maid verify` exposes 31 visible
-    options.
-
-  Deliberately deferred, with reasons:
-
-  - Hiding tier-3 commands from `maid --help` via `argparse.SUPPRESS` plus a
-    `--help-all` flag. `tests/cli/test_main.py` pins 18 commands as present in
-    default help, including `benchmark` and `serve`, and that test is
-    referenced by 18 active manifests. 095-01 curates through an epilog
-    instead so the orientation win lands without a contract cascade.
-    Revisit as its own child once the cheaper wiring is in.
-  - A guided `maid quickstart` command that walks a user to a first passing
-    validate on a real file in their own repo. This is new behavior rather
-    than wiring, and it should follow the text changes so it can reuse the
-    trimmed first-win content instead of inventing a second copy.
-
-  The website homepage is the reference shape for the newcomer path, not an
-  invention: its contract already pins the flagless
-  install → init → howto quickstart sequence. The CLI and README are the
-  surfaces that drifted from it.
-
-  Epic marker decision: `manifests/drafts/README.md` documents
-  `# draft-kind: epic` and `# promotion: split-before-promote` markers for epic
-  drafts, but `tests/core/test_draft_epic_archive_inventory.py` gates marked
-  epics against a closed `LIVE_PLANNING_EPICS` set of three. Adding the markers
-  here without also editing that inventory test would fail it, and editing a
-  `tests/core/` contract is outside the wiring scope 095-01 was approved for.
-  This epic therefore ships unmarked, matching the existing
-  `092-00-coverage-priority-recommender.epic.yaml` precedent. Reconciling the
-  epic inventory contract for both 092-00 and 095-00 is recorded here as
-  follow-up work rather than left as silent drift.
-temptations:
-  - risk: "Do not treat this as a MAID simplification effort that removes capability."
-    instead: "Keep every command, flag, and topic available; change only which ones a newcomer meets first."
-  - risk: "Do not rewrite the agent-facing skill guidance to match the human-facing trims."
-    instead: "Agents consume MAID through the skills, which already curate the workflow; scope these children to the human CLI, README, and howto surfaces."
+  Package version bumping, tagging, and publication remain separate release
+  work and are not reopened by this archived planning record.
+files:
+  edit:
+  - path: manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_onboarding_entry_point_wiring_epic
+      of: manifest
+      type: draft epic
+      description: Historical pointer for promoted child manifests 095-01
+        through 095-05.
+  read:
+  - manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml
+  - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+  - manifests/095-04-migrate-generated-profile-payloads.manifest.yaml
+  - manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml
+validate:
+- uv run maid validate manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml
+  --mode schema --quiet

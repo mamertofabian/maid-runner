@@ -44,7 +44,7 @@ def test_readme_and_howto_describe_packet_flag() -> None:
     assert "must not use packet-file existence as a failure signal" in retry_protocol
 
     assert "maid validate --packet" in howto_text
-    assert "maid verify --packet" in howto_text
+    assert "maid verify --profile agent-retry --since <baseline>" in howto_text
     assert ".maid/last-failure-packet.json" in howto_text
     assert cmd_howto
 

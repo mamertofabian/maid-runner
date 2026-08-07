@@ -1,0 +1,235 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Complete named verify-profile adoption in init-distributed human guidance 
+  and archive the consumed 092 and 095 adoption epics
+type: refactor
+created: '2026-08-07T13:17:35Z'
+metadata:
+  epic: 095-00-onboarding-entry-point-wiring
+  tags:
+  - adoption
+  - cli-guidance
+  - generated-docs
+  - draft-inventory
+  - planning-hygiene
+  priority: high
+description: |
+  Children 095-01 through 095-04 delivered newcomer entry-point wiring, named
+  verify profiles, repository adoption, and generated hook/agent-payload
+  migration. A final repository audit found two active human-guidance surfaces
+  outside 095-04's twelve-file agent-payload inventory: `maid howto` still
+  presents raw packet commands as the bounded-retry instruction, and the
+  workflow document copied by `maid init` still presents the literal handoff
+  stack as the final command.
+
+  Complete the named-profile path without hiding how profiles expand. The
+  actionable howto retry command becomes
+  `maid verify --profile agent-retry --since <baseline>`. Handoff guidance
+  presents `--profile handoff` as the command and retains the literal
+  `--summary --require-plan-lock --require-red-evidence` stack only as a
+  labelled expansion. The init-distributed workflow uses
+  `maid verify --profile handoff --since <baseline>`. Because that generated
+  document changes, advance `INSTRUCTION_PAYLOAD_VERSION` beyond
+  `2026.08.07.1` so existing installations report the workflow payload stale.
+
+  Close the planning inventory at the same boundary. The unmarked 092 and 095
+  epic drafts are both fully consumed, and 095 explicitly recorded their
+  marker/inventory reconciliation as follow-up work. Preserve both stable paths
+  as `# archive-kind: consumed-draft-epic` pointers, set their status to
+  archived, list every promoted child, and register both in the existing
+  consumed-epic inventory contract. Do not delete historical epic paths.
+
+  Outcome evidence digestion: the refreshed Outcome index reported recurring
+  plan-lock, documentation, agent-skill, and planning-hygiene lessons. The
+  relevant 095-04 lessons require auditing source and distributed inventories
+  separately, freezing exact actionable commands, and preserving historical
+  red evidence when shared tests change. This child therefore covers the CLI
+  output, source/package/installed workflow parity, payload version, and archive
+  pointers behaviorally. The stale enrichment digest was rejected and plain
+  deterministic insights were used instead.
+
+  Release version bumping, tagging, publishing, and changing the documented
+  `maid-runner>=2.25.0` floor remain release work. Reference documentation that
+  explains individual flags or shows a profile's labelled expansion is not an
+  actionable incantation and remains literal.
+temptations:
+- risk: Do not claim all generated guidance is migrated after scanning only 
+    agent payload directories.
+  instead: Exercise the source, packaged, and freshly installed workflow 
+    document, plus the live maid howto output.
+- risk: Do not remove literal flag expansions that explain profile behavior.
+  instead: Make the named profile the actionable command and retain literal 
+    flags only as explicitly labelled expansion/reference text.
+- risk: Do not hand-edit maid_runner/docs independently from the canonical docs 
+    source.
+  instead: Edit docs/draft-manifest-workflow.md, run make sync-agent-payloads, 
+    and assert byte-for-byte source/package/installed parity.
+- risk: Do not change init-distributed guidance without invalidating stale 
+    payload detection.
+  instead: Advance INSTRUCTION_PAYLOAD_VERSION and test it against the 095-04 
+    version.
+- risk: Do not delete consumed epic drafts or leave 092 invisible to the formal 
+    inventory merely because the original files lacked draft markers.
+  instead: Preserve both paths as archived pointers and register their complete 
+    child lists in CONSUMED_EPICS.
+files:
+  create:
+  - path: tests/cli/test_095_epic_completion.py
+    artifacts:
+    - kind: test_function
+      name: test_howto_actionable_verify_commands_use_named_profiles
+    - kind: test_function
+      name: test_init_distributed_workflow_uses_handoff_profile
+    - kind: test_function
+      name: test_instruction_payload_version_advances_for_completed_guidance
+  edit:
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped payload version advanced beyond 2026.08.07.1 
+        because init-distributed workflow guidance changes.
+  - path: manifests/drafts/092-00-coverage-priority-recommender.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_coverage_priority_recommender_epic
+      of: manifest
+      type: draft epic
+      description: Historical pointer for promoted child manifests 092-01 
+        through 092-04.
+  - path: manifests/drafts/095-00-onboarding-entry-point-wiring.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_onboarding_entry_point_wiring_epic
+      of: manifest
+      type: draft epic
+      description: Historical pointer for promoted child manifests 095-01 
+        through 095-05.
+  scope:
+  - path: maid_runner/cli/commands/howto.py
+    reason: Make named profiles the actionable retry and handoff commands while 
+      retaining labelled literal expansion text; cmd_howto's signature is 
+      unchanged and already covered by 095-01.
+  - path: docs/draft-manifest-workflow.md
+    reason: Migrate the final strict handoff instruction in the canonical 
+      init-distributed workflow document.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Generated by make sync-agent-payloads from the canonical workflow 
+      document.
+  - path: tests/core/test_draft_epic_archive_inventory.py
+    reason: Register the fully consumed 092 and 095 epics and their exact child
+      manifests in the existing archive inventory contract.
+  - path: tests/test_review_convergence_guidance.py
+    reason: Evolve the shared generated-workflow expectation from the literal
+      handoff stack to the exact gate-equivalent handoff profile command.
+  - path: tests/test_packet_skill_guidance_docs.py
+    reason: Evolve only the howto retry expectation from the raw packet flag to
+      the agent-retry profile while retaining packet reference documentation.
+  - path: tests/test_plan_lock_docs.py
+    reason: Evolve the howto workflow expectation to require the handoff
+      profile and its labelled literal expansion.
+  read:
+  - maid_runner/core/verify_profiles.py
+  - scripts/sync_claude_files.py
+  - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+  - manifests/drafts/README.md
+  - manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml
+  - manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml
+  - manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml
+  - manifests/092-04-align-risk-v1-guidance.manifest.yaml
+  - manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml
+  - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - manifests/095-03-migrate-generated-hook-to-verify-profile.manifest.yaml
+  - manifests/095-04-migrate-generated-profile-payloads.manifest.yaml
+validate:
+- uv run python -m pytest tests/cli/test_095_epic_completion.py 
+  tests/core/test_draft_epic_archive_inventory.py tests/cli/test_howto_cmd.py 
+  tests/test_init_draft_workflow_payload.py 
+  tests/cli/test_init_instruction_payload_version.py
+  tests/test_agent_payload_distribution.py
+  tests/test_review_convergence_guidance.py
+  tests/test_packet_skill_guidance_docs.py tests/test_plan_lock_docs.py -v
+- uv run maid validate
+  manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml
+  --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Completed named-profile adoption across live howto and init-distributed workflow guidance, then archived the fully consumed 092 and 095 epics as exact promoted-child pointers."
+  rationale: "Actionable bounded-retry and handoff commands now lead with the agent-retry and handoff profiles while retaining literal flags only as labelled expansion text. The canonical, packaged, and freshly installed workflow document use the handoff profile byte-for-byte, and INSTRUCTION_PAYLOAD_VERSION advanced to 2026.08.07.2. Both formerly unmarked consumed epics are registered archive pointers rather than invisible planning records. Validation passed with 46 focused tests, 3,796 full-suite tests plus 5 skips, 228/228 MAID commands, zero repository manifest failures, Ruff, Black, both archive schemas, and all eight handoff gates. Independent read-only review returned ready with no blockers and one residual P2 archive-exactness advisory."
+  lessons:
+  - lesson_type: documentation
+    summary: "An agent-payload inventory is not a complete distributed-guidance inventory: docs copied by maid init and live maid howto output are separate user-facing surfaces that require their own behavioral checks."
+    tags:
+    - generated-docs
+    - payload-sync
+    - onboarding
+    paths:
+    - docs/draft-manifest-workflow.md
+    - maid_runner/docs/draft-manifest-workflow.md
+    - maid_runner/cli/commands/howto.py
+  - lesson_type: workflow
+    summary: "Focused tests missed three shared howto expectations and indirect historical lock owners; full-suite and strict handoff verification remain necessary to expose validation-chain ownership beyond direct maid manifests output."
+    tags:
+    - plan-lock
+    - full-suite
+    - handoff
+    paths:
+    - tests/test_packet_skill_guidance_docs.py
+    - tests/test_plan_lock_docs.py
+    - tests/test_review_convergence_guidance.py
+  - lesson_type: compatibility
+    summary: "Changing an init-distributed workflow document requires an instruction payload bump even when runtime code is unchanged; the separately documented 2.25 executable floor still belongs to release delivery rather than epic closure."
+    tags:
+    - instruction-payload
+    - version-floor
+    - release-boundary
+    paths:
+    - maid_runner/instruction_payload.py
+  - lesson_type: test-design
+    summary: "Consumed-epic tests should eventually compare archive files.read paths for exact equality, not only prove that all registered children are present, so future extra stale pointers cannot pass unnoticed."
+    tags:
+    - archive-inventory
+    - advisory
+    - exactness
+    paths:
+    - tests/core/test_draft_epic_archive_inventory.py
+  review_notes:
+  - source: independent-review-subagent-review_095_05
+    severity: P2 advisory
+    summary: "The current 092 and 095 child-pointer sets are exact, but the shared archive test does not reject future extra files.read entries; record for future hardening without reopening this green locked contract."
+  - source: independent-review-subagent-review_095_05
+    severity: ready
+    summary: "No blocking findings; independently confirmed focused tests, implementation validation, archive schemas, distributed-doc parity, exact current child sets, and lock integrity."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: "3,796 tests passed and 5 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "All 228 declared manifest commands passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - handoff
+    - --no-changed-scope
+    status: passed
+    summary: "All eight handoff stages passed; only known E307 warnings remained."

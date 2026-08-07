@@ -7,13 +7,13 @@
     "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
     "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
     "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:v2:56ae826bc331d4932a0c7576c3c7de20836532e4ba8aa778fa4513cf58681fa4",
-    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326",
+    "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:023fc6db8410639c49ef06361b0b1a1089feb239afea2a47391f998b3e174975",
     "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3",
     "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
     "tests/cli/test_entry_point_guidance.py": "sha256-pyast:v2:124876a1a91f49ad74753872d119b26ccd60c606f4681b97eb811f5900211ef3"
   },
   "created_at": "2026-08-07T01:21:06.453931+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:e67321d2bd8c0f73bbde2b0ecf9296a6f7f4cdf74364a3671dde2dd76e331f8d",
@@ -87,6 +87,31 @@
       },
       "revised_at": "2026-08-07T12:10:40.222379+00:00",
       "reason": "095-04 replaces the generated hook with a gate-equivalent verify profile and evolves shared behavioral coverage; preserve the original red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e4161c134b951da60d4a9939b333551dd674c80cd384e97dedada2fc192b1d63",
+      "prior_test_hashes": {
+        "tests/cli/test_main.py": "sha256-pyast:v2:e051431d599093ad8bbeebea0dcb39266bc0b2de31064230d6450c0e0dde3d02",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:v2:56ae826bc331d4932a0c7576c3c7de20836532e4ba8aa778fa4513cf58681fa4",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:52c74bf4f0ea03f6844605864a6bae34c551fa1d5b11c75fd4575729d5e55326",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+        "tests/cli/test_entry_point_guidance.py": "sha256-pyast:v2:124876a1a91f49ad74753872d119b26ccd60c606f4681b97eb811f5900211ef3"
+      },
+      "revised_at": "2026-08-07T13:28:23.826770+00:00",
+      "reason": "095-05 migrates shared howto documentation expectations to named verify profiles while preserving the historical plan-lock, E708 guidance, and onboarding contracts.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

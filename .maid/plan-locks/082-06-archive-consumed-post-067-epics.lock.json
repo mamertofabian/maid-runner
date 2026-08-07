@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
-  "manifest_hash": "sha256:a0cbba4a67e1e2000881117d07c7dafdbe6255abf032d2d52bd323096b0b7207",
+  "manifest_hash": "sha256-contract:d69c53c0d836275d8b6a87abc1b6e875ba654c6211c704da02d1869be207cbf1",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256:30370312daaa28ea056229f109fed11590eddf246e2cc46f9b0658a238da2bde"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 12,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -183,6 +183,23 @@
         "files_added": [
           "scope:docs/plans/maid-runner-self-improvement-backlog.md"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:a0cbba4a67e1e2000881117d07c7dafdbe6255abf032d2d52bd323096b0b7207",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256:30370312daaa28ea056229f109fed11590eddf246e2cc46f9b0658a238da2bde"
+      },
+      "revised_at": "2026-08-07T13:19:29.793037+00:00",
+      "reason": "095-05 evolves shared archive inventory and generated-workflow expectations to include consumed 092/095 epics and the gate-equivalent handoff profile without changing the historical contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
