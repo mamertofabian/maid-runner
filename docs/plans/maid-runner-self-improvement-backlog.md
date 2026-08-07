@@ -1,8 +1,9 @@
 # MAID Runner Self-Improvement Backlog
 
-Audit date: 2026-07-02. Tree: `main` at v2.19.1 (`e5e24ca`), clean worktree.
-Takeover update: 2026-07-03 on `release/v2.next` after `082-01`..`082-06`
-landed. Themes 1-5 and 8 are complete; Themes 6, 7, 9, and 10 remain.
+Initial audit: 2026-07-02 on v2.19.1. Current refresh: 2026-08-08 on
+`release/v2.next` at v2.25.0 (`3056009`), clean worktree. The July evidence is
+retained below for history; the refresh section and routed backlog are
+authoritative for next work.
 
 ## Purpose
 
@@ -20,6 +21,97 @@ loop). This backlog plans only; every code change below still requires its own
 draft manifest, behavioral tests, red phase, plan lock, and implementation
 review.
 
+## 2026-08-08 Refresh
+
+Current health is strong: `maid validate --quiet` passed, all 228 deduplicated
+`maid test --json` commands passed, and `maid verify --profile handoff` passed
+all eight applicable stages in 166 seconds (clean-tree `changed_scope` skipped)
+with only two known non-blocking E307 warnings. The remaining opportunities are
+therefore bounded trust, lifecycle, and planning-hygiene gaps rather than a
+general regression.
+
+### R1. Reconcile strict-delta with the real strict-default dogfood gate
+
+- **Priority / lane:** P0, validation trust.
+- **Evidence:** Current `uv run maid validate --strict-delta --json` passes with
+  `strict_delta: []` across 498 manifests. The parked
+  `feat/062-04-strict-default-flip` branch records the opposite result after
+  making the same strict gates default: broad E710 artifact-execution failures
+  and E900 validate-command failures. Its `plan-revision.md` explicitly blocks
+  Outcome and release. The current branch still contains the clean delta, and
+  the parked branch still contains the failed flipped-default evidence.
+- **Why it matters:** Migration tooling currently provides false confidence:
+  an empty delta does not prove that the future default run will pass.
+- **Owner:** `maid-validate-hardening`, then `maid-evolver` for the existing
+  062 contracts.
+- **Closure shape:** Add a 062 follow-up child that first pins the mismatch as a
+  behavioral reproduction, determines whether strict-delta omits a gate,
+  changes gate composition, or invokes commands under different defaults, and
+  makes an empty delta equivalent to a passing flipped-default dogfood run.
+  Do not resume or merge 062-04 until both checks agree and pass.
+- **Acceptance:** the reproduction fails before the fix; strict-delta contains
+  every newly failing E710/E900 identity; an empty delta implies default-flip
+  validate and verify pass; legacy/default semantics remain unchanged before
+  the flip.
+
+### R2. Make stale theme-map errors staleness-first
+
+- **Priority / lane:** P1, developer experience with validation-trust impact.
+- **Evidence:** After `maid learn` refreshed 211 Outcomes, the stale
+  `.maid/outcomes-digest.json` was correctly reported stale, but
+  `maid insights --theme-map .maid/outcomes-digest.json` exited 2 with
+  `unknown lesson_type 'plan-lock-maintenance'`. In
+  `maid_runner/cli/commands/insights.py`, full theme-map validation runs before
+  `digest_is_stale`, so stale source vocabulary can mask the actionable
+  refresh instruction. Plain `maid insights` succeeds.
+- **Why it matters:** Planner and self-improvement skills deliberately fall
+  back on stale digests; a misleading integrity error makes normal staleness
+  look like corrupted current Outcome data.
+- **Owner:** `maid-evolver` for the active theme-map contract.
+- **Closure shape:** Check digest fingerprint staleness before validating
+  current-index lesson identities unless the user explicitly allows a stale
+  digest; retain full fail-closed validation for fresh or explicitly allowed
+  digests.
+- **Acceptance:** a stale digest with obsolete lesson types reports only the
+  staleness remedy; a fresh fabricated digest still fails identity validation;
+  `--allow-stale-digest` still validates before applying the map.
+
+### R3. Archive consumed or rejected planning epics
+
+- **Priority / lane:** P1, MAID workflow.
+- **Evidence:** Exactly three draft epics still say `status: planning`:
+  062, 064, and 085. All seven 085 children are promoted and carry completed
+  Outcomes, so 085 is consumed. The daemon's 064-01 default-routing experiment
+  failed its benchmark gate and 064-05 was abandoned; the delivered cache,
+  protocol, transports, and client children have completed Outcomes. Only 062
+  remains legitimately open because R1 and 062-04 are unresolved.
+- **Why it matters:** Stale planning records repeatedly cause takeover agents
+  to reopen completed work and make the draft inventory untrustworthy.
+- **Owner:** `maid-evolver`.
+- **Closure shape:** Archive 085 as consumed. Close 064 as
+  infrastructure-delivered/default-routing-rejected unless a fresh benchmark
+  shows a material win; do not revive archived 064 children without that data.
+- **Acceptance:** only 062 remains planning; archive pointers list their
+  completed or rejected children and schema validation passes.
+
+### R4. Refresh specialist backlogs against v2.25
+
+- **Priority / lane:** P2, documentation and portfolio hygiene.
+- **Evidence:** The cleanup backlog still describes a May 31 tree, and the
+  hardening backlog still describes a May 29 threat model. Both predate plan
+  locks, knockout evidence, scope hooks, strict preview/delta, coverage-risk
+  recommendations, verify profiles, and the July/August bug-fix wave.
+- **Owner:** `maid-runner-cleanup-and-refactor` and
+  `maid-validate-hardening` respectively.
+- **Acceptance:** every previously open item is re-probed on v2.25, closed
+  items cite their manifest, and only current reproductions remain prioritized.
+
+The former batching probe is closed: compatible pytest and Vitest batching is
+covered by `batch-compatible-maid-test-command-groups`,
+`038-19-extract-test-command-batching`, and focused pnpm/Vitest batching tests;
+parallel independent command groups landed in 046-01. No new batching draft is
+warranted without a fresh downstream reproduction.
+
 ## What Landed Since 2026-06-10 (context for takeover)
 
 All of the following are implemented, promoted under `manifests/`, and covered
@@ -29,7 +121,9 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 - **061 manifest authoring & brownfield onboarding** (consumed/archived):
   `maid manifest from-diff`, validate-command suggestion, bootstrap adoption
   ranking, brownfield onboarding docs.
-- **062 strict-by-default validation gates**: **not started** — see Theme 6.
+- **062 strict-by-default validation gates**: preview, delta, pytest-config
+  hardening, and migration inventory landed; the default flip remains blocked
+  by R1 — see Theme 6 and the 2026-08-08 refresh.
 - **063 validator plugin distribution** (consumed/archived): entry-point
   discovery, `maid validators` listing, conformance kit, authoring docs.
 - **064 daemon-first agent validation** (partially open): daemon-resident
@@ -290,6 +384,10 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 ### 6. Execute epic 062: strict-by-default validation gates
 
 - **Primary lane:** Validation trust (roadmap execution).
+- **2026-08-08 status:** Partially completed. Children 062-01, 062-02,
+  062-03, and 062-05 are promoted with completed Outcomes. The remaining
+  062-04 flip is blocked by R1: strict-delta is empty while the parked flipped
+  default branch fails its dogfood gate.
 - **Evidence (tier 2):** `manifests/drafts/062-00` and children 062-01..04 are
   fully drafted and untouched since June 10 — the only June 10 epic with zero
   children landed. The July 1 verify-warnings confusion is live evidence of
@@ -313,6 +411,9 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 ### 7. Close the daemon epic 064 with a benchmark-gated decision
 
 - **Primary lane:** Performance.
+- **2026-08-08 status:** Still open as planning hygiene. No later evidence
+  reverses the failed 064-01 benchmark; absent a fresh measured win, archive
+  the epic as infrastructure-delivered/default-routing-rejected.
 - **Evidence (tier 2):** 064-02/03/04/06 landed; 064-01 was archived after
   failing its benchmark gate (`0f8651c`); 064-05 was archived as an
   abandoned-draft-manifest because it depended on 064-01. The 064-00 epic still
@@ -359,6 +460,7 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 ### 9. Refresh the stale specialist backlogs
 
 - **Primary lane:** Documentation.
+- **2026-08-08 status:** Still open and now more stale; see R4.
 - **Evidence (tier 1):** `docs/plans/maid-validate-hardening-backlog.md`
   last touched 2026-05-29 and `docs/plans/maid-runner-cleanup-refactor-backlog.md`
   2026-05-31 — both predate plan locks, knockout gates, scope hooks, retry
@@ -375,6 +477,8 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 ### 10. Verify multi-command test batching for same-runner commands
 
 - **Primary lane:** Performance.
+- **2026-08-08 status:** Closed by the existing compatible pytest/Vitest
+  batching contracts and tests plus 046-01 parallel command-group execution.
 - **Evidence (tier 3, stale-but-plausible):**
   `~/.maid/bug-report/20260625-200358-erindelle-maid-test-playwright-batching.md`
   had two halves: slow E2E in the fast gate (fixed by `b38e963`,
@@ -394,12 +498,14 @@ Priority order for the next agent (rationale: false-green/false-fail trust
 issues first, then correctness of daily workflow, then roadmap execution,
 then hygiene):
 
-1. Theme 6 — execute 062-01..04; revalidate stale drafts before promotion
-   (`maid-runner-draft-implement`).
-2. Theme 7 — benchmark-gated 064-00 epic closure
-   (`maid-runner-performance-optimization`).
-3. Theme 9 — refresh hardening + cleanup backlogs (markdown-only).
-4. Theme 10 — batching probe (performance, probe first).
+1. R1 — reconcile strict-delta with the flipped-default dogfood gate before
+   resuming 062-04 (`maid-validate-hardening`, then `maid-evolver`).
+2. R2 — make theme-map rejection staleness-first while preserving fresh-map
+   integrity checks (`maid-evolver`).
+3. R3 — archive consumed 085 and close 064 honestly against its failed
+   benchmark (`maid-evolver`; performance re-probe only if default routing is
+   reconsidered).
+4. R4 — refresh hardening and cleanup specialist backlogs against v2.25.
 
 Completed:
 
@@ -409,19 +515,20 @@ Completed:
 - Theme 4 — completed by `082-04`.
 - Theme 5 — completed by `082-05`.
 - Theme 8 — completed by `082-06`; consumed epics 067/077/081/084 are archived.
+- Theme 10 — compatible batching and parallel command groups are implemented
+  and covered; no current reproduction remains.
 
-Sequencing note: Themes 1-5 were prerequisites for flipping strict defaults
-(062-04), and they are now complete. Execute 062 in child order; do not treat
-the old 062-04 hold as still active.
+Sequencing note: do not resume the parked 062-04 implementation merely because
+its migration prerequisites shipped. R1 is a current release blocker: reconcile
+the empty strict-delta with the failing flipped-default dogfood evidence first.
 
 ## Specialist Follow-Ups
 
-- `maid-validate-hardening` should refresh its stale specialist backlog
-  (Theme 9) before proposing more hardening work. Its previously routed
-  Themes 2-5 are complete.
-- `maid-runner-performance-optimization` owns Themes 7 and 10; the epic 064
-  rule stands — no new daemon default-routing or batching change without
-  before/after benchmark evidence in the Outcome.
+- `maid-validate-hardening` owns R1 and should refresh its stale specialist
+  backlog while investigating the strict-delta/default-flip mismatch.
+- `maid-runner-performance-optimization` should only reopen daemon default
+  routing if a fresh benchmark can overturn 064-01's negative result. The old
+  batching probe is closed.
 - `maid-runner-cleanup-and-refactor` has no confirmed current findings from
   this audit; its next audit should start from a fresh code scan plus its
   refreshed backlog, not from this document.
@@ -443,11 +550,12 @@ Created and completed:
 
 Remaining manifest work:
 
-- Existing drafts 062-01..04 (revalidate before promotion) — do not renumber
-  them.
-- 064-00 epic closure decision. Do not revive 064-05 as a live child; it is an
-  archived abandoned draft. Create a new child only if the benchmark probe
-  justifies default-routing work.
+- Add a bounded 062 follow-up child for R1 after the hardening owner identifies
+  the exact mismatch; do not broaden 062-04 itself before that reproduction is
+  pinned.
+- Add a narrow R2 fix draft evolving the active theme-map contract.
+- Archive the consumed 085 epic and close 064 against its recorded benchmark
+  decision. Do not revive 064-05 as a live child.
 
 Every candidate must follow the full lifecycle: draft → behavioral tests →
 red phase → `maid validate --mode behavioral` → plan review → `maid plan lock`
@@ -474,6 +582,24 @@ red phase → `maid validate --mode behavioral` → plan review → `maid plan l
   first; editor/LSP integration — still lower priority than trust items.
 
 ## Verification Notes
+
+Commands run on 2026-08-08 against `release/v2.next` @ `3056009` (v2.25.0),
+clean tree:
+
+- `uv run maid validate --quiet` — exit 0, silent.
+- `uv run maid test --json` — 228/228 commands passed; the main batched pytest
+  command completed in about 110 seconds.
+- `uv run maid verify --profile handoff` — PASS; 8 stages passed, clean-tree
+  `changed_scope` skipped, 2 unique non-blocking E307 warnings, 166 seconds.
+- `uv run maid validate --strict-delta --json` — PASS across 498 manifests;
+  `strict_delta: []`.
+- `uv run maid learn` — indexed 211 Outcomes. The enrichment digest was stale;
+  plain `uv run maid insights` succeeded with 190 completed records.
+- `uv run maid insights --theme-map .maid/outcomes-digest.json` — exit 2 with
+  `unknown lesson_type 'plan-lock-maintenance'` after the digest had already
+  been identified as stale, confirming R2's error-precedence gap.
+- Schema validation passed for the planning epics 062, 064, and 085 and for the
+  existing 062-04 draft.
 
 Commands run on 2026-07-02 against `main` @ `e5e24ca` (v2.19.1), clean tree:
 
