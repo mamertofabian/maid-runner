@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable, Union
 
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.diagnostic_policy import warning_is_advisory
 from maid_runner.core.result import (
     BatchValidationResult,
     ErrorCode,
@@ -223,7 +224,10 @@ def _validate_active_manifests(
 
 
 def _has_warning(errors: list[ValidationError]) -> bool:
-    return any(error.severity == Severity.WARNING for error in errors)
+    return any(
+        error.severity == Severity.WARNING and not warning_is_advisory(error)
+        for error in errors
+    )
 
 
 def _file_tracking_gate_error(

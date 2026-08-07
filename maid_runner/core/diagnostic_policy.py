@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from maid_runner.core.result import Severity
+from maid_runner.core.result import ErrorCode, Severity, ValidationError
 
 # Closed, documented set of non-code file extensions where "no validator" is
 # expected inventory information rather than a warning about unvalidated source.
@@ -36,6 +36,11 @@ _RECOGNIZED_NON_CODE_FILENAMES = frozenset(
 
 _VALIDATOR_AUDIT_COMMAND = "maid validators"
 _VALIDATOR_PLUGIN_GUIDE = "docs/validator-plugin-authoring.md"
+
+
+def warning_is_advisory(warning: ValidationError) -> bool:
+    """Return whether a warning is advisory under strict validation."""
+    return warning.code == ErrorCode.VALIDATOR_NOT_AVAILABLE
 
 
 def no_validator_severity(path: str) -> Severity:

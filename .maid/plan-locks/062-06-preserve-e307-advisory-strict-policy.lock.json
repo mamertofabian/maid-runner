@@ -1,0 +1,225 @@
+{
+  "manifest_path": "manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+  "manifest_hash": "sha256-contract:9257453cf86c167f428d43c1829c4668af63efabb6f3b3bd878917126bc16708",
+  "test_hashes": {
+    "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+    "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+    "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:7319d262dd39223e8d2f8fbb661193296e23ec27b5d98c115d7b50482c2d7b10"
+  },
+  "created_at": "2026-08-07T22:53:36.338193+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7ee177d52f9369525b2b9ac196f891194d92af8c50496a483e6f6669b14ee536",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:da0df9ca45b98f8213f2c624cd70a783664c81c46263e085e7660e794e851fae"
+      },
+      "revised_at": "2026-08-07T22:53:39.920975+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-06-preserve-e307-advisory-strict-policy.manifest.yaml -> manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9257453cf86c167f428d43c1829c4668af63efabb6f3b3bd878917126bc16708",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:da0df9ca45b98f8213f2c624cd70a783664c81c46263e085e7660e794e851fae"
+      },
+      "revised_at": "2026-08-07T22:54:50.846756+00:00",
+      "reason": "Correct masked behavioral-test defects: use the actual E310 enum member and assert E307 through the formatter's diagnostics structure",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9257453cf86c167f428d43c1829c4668af63efabb6f3b3bd878917126bc16708",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:da0df9ca45b98f8213f2c624cd70a783664c81c46263e085e7660e794e851fae"
+      },
+      "revised_at": "2026-08-07T22:55:19.081063+00:00",
+      "reason": "Correct masked test defects by using ErrorCode.STUB_FUNCTION_DETECTED and the strict-preview validation.warnings JSON path",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-07T22:55:22.392492+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_strict_delta_advisory_warnings.py tests/cli/test_strict_preview.py tests/cli/test_strict_delta_cmd.py -v",
+        "exit_code": 1,
+        "output_tail": "        payload = json.loads(capsys.readouterr().out)\n        assert exit_code == 0, payload\n        assert payload[\"success\"] is True\n>       assert [entry[\"code\"] for entry in payload[\"strict_delta\"]] == [\"E710\"]\nE       AssertionError: assert [] == ['E710']\nE         \nE         Right contains one more item: 'E710'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'E710',\nE         - ]\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_strict_delta_advisory_warnings.py:89: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_strict_delta_advisory_warnings.py::test_warning_is_advisory_only_for_e307\nFAILED tests/cli/test_strict_delta_advisory_warnings.py::test_validate_strict_preview_keeps_e307_visible_without_failing\nFAILED tests/cli/test_strict_delta_advisory_warnings.py::test_strict_delta_runs_artifact_coverage_despite_e307\n========================= 3 failed, 16 passed in 1.60s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/diagnostic_policy.py:function:warning_is_advisory",
+      "maid_runner/core/diagnostic_policy.py:function:warning_is_advisory:arg=warning:type=ValidationError:default=None",
+      "maid_runner/core/diagnostic_policy.py:function:warning_is_advisory:kind=function",
+      "maid_runner/core/diagnostic_policy.py:function:warning_is_advisory:returns=bool",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_strict_delta_runs_artifact_coverage_despite_e307",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_strict_delta_runs_artifact_coverage_despite_e307:kind=test_function",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_validate_strict_preview_keeps_e307_visible_without_failing",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_validate_strict_preview_keeps_e307_visible_without_failing:kind=test_function",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_validate_strict_preview_still_fails_on_e310",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_validate_strict_preview_still_fails_on_e310:kind=test_function",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_warning_is_advisory_only_for_e307",
+      "tests/cli/test_strict_delta_advisory_warnings.py:test_warning_is_advisory_only_for_e307:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_strict_delta_advisory_warnings.py"
+      ],
+      "edit": [
+        "maid_runner/core/diagnostic_policy.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/result.py",
+        "manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml",
+        "manifests/062-03-report-strict-migration-delta.manifest.yaml",
+        "manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml",
+        "tests/cli/test_strict_delta_cmd.py",
+        "tests/cli/test_strict_preview.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/core/_validate_all.py",
+        "maid_runner/core/validate.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_strict_delta_advisory_warnings.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_warning_is_advisory_only_for_e307",
+              "description": "The shared policy recognizes E307 and rejects E310 so the exemption is exact and fail-closed."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_strict_preview_keeps_e307_visible_without_failing",
+              "description": "A strict-preview fixture with a declared unsupported source file exits zero while retaining its E307 warning in JSON output."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_strict_delta_runs_artifact_coverage_despite_e307",
+              "description": "Directory-wide validation with advisory E307 plus an unexecuted Python artifact reports E710 in strict_delta, reproducing the repository batch path and proving E307 no longer suppresses the strict-side coverage fitness function."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_strict_preview_still_fails_on_e310",
+              "description": "A real stub warning remains blocking under strict-preview, proving the E307 exemption does not weaken other strict warnings."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/diagnostic_policy.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "warning_is_advisory",
+              "description": "Return true only for warning diagnostics whose stable error code is advisory under strict validation; initially E307 VALIDATOR_NOT_AVAILABLE.",
+              "args": [
+                {
+                  "name": "warning",
+                  "type": "ValidationError"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/artifact_coverage.py",
+        "tests/cli/test_strict_preview.py",
+        "tests/cli/test_strict_delta_cmd.py",
+        "manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml",
+        "manifests/062-03-report-strict-migration-delta.manifest.yaml",
+        "manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Apply the advisory-warning policy to CLI exit classification and strict-delta orchestration without changing cmd_validate's public signature."
+        },
+        {
+          "path": "maid_runner/core/validate.py",
+          "reason": "Apply the centralized advisory-warning decision to single-manifest strict success without changing ValidationEngine's public signature."
+        },
+        {
+          "path": "maid_runner/core/_validate_all.py",
+          "reason": "Apply the same policy to batch strict success so advisory E307 cannot mark the strict batch failed before artifact coverage."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_strict_delta_advisory_warnings.py",
+      "tests/cli/test_strict_delta_cmd.py",
+      "tests/cli/test_strict_preview.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_strict_delta_advisory_warnings.py tests/cli/test_strict_preview.py tests/cli/test_strict_delta_cmd.py -v",
+      "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

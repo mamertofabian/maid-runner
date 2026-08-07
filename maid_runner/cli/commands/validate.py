@@ -15,6 +15,7 @@ from maid_runner.cli.commands._format import (
     format_validation_result,
     print_error,
 )
+from maid_runner.core.diagnostic_policy import warning_is_advisory
 
 if TYPE_CHECKING:
     from maid_runner.coherence.result import CoherenceResult
@@ -77,7 +78,9 @@ def cmd_validate(args: argparse.Namespace) -> int:
                     args.manifest_path,
                     Path("."),
                 )
-            quiet = args.quiet and not (fail_on_warnings and result.warnings)
+            quiet = args.quiet and not _warnings_are_blocking(
+                result.warnings, fail_on_warnings=fail_on_warnings
+            )
             output = format_validation_result(
                 result,
                 json_mode=args.json,
@@ -792,9 +795,21 @@ def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:
 def _has_warning_failure(batch, *, fail_on_warnings: bool) -> bool:
     if not fail_on_warnings:
         return False
-    if any(result.warnings for result in batch.results):
+    if any(
+        _warnings_are_blocking(result.warnings, fail_on_warnings=True)
+        for result in batch.results
+    ):
         return True
-    return any(error.severity.value == "warning" for error in batch.chain_errors)
+    return _warnings_are_blocking(batch.chain_errors, fail_on_warnings=True)
+
+
+def _warnings_are_blocking(warnings, *, fail_on_warnings: bool) -> bool:
+    if not fail_on_warnings:
+        return False
+    return any(
+        warning.severity.value == "warning" and not warning_is_advisory(warning)
+        for warning in warnings
+    )
 
 
 def _run_watch(args: argparse.Namespace) -> int:
@@ -896,7 +911,9 @@ def _run_validation_pass(args: argparse.Namespace) -> None:
                 _apply_worktree_scope_to_result(result, args)
             if result.success and getattr(args, "changed_scope", False):
                 _apply_changed_scope_to_result(result, args)
-            quiet = args.quiet and not (fail_on_warnings and result.warnings)
+            quiet = args.quiet and not _warnings_are_blocking(
+                result.warnings, fail_on_warnings=fail_on_warnings
+            )
             output = format_validation_result(result, json_mode=args.json, quiet=quiet)
             if output:
                 print(output)

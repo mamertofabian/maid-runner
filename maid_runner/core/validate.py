@@ -44,6 +44,7 @@ from maid_runner.core.chain import (
     _exit_manifest_chain_cache_scope,
     _get_cached_manifest_chain_with_factory,
 )
+from maid_runner.core.diagnostic_policy import warning_is_advisory
 from maid_runner.core.module_paths import clear_reexport_resolution_cache
 from maid_runner.core.ts_module_paths import (
     clear_ts_resolution_cache,
@@ -238,7 +239,12 @@ class ValidationEngine:
         actual_errors = [e for e in errors if e.severity == Severity.ERROR]
         actual_warnings = [e for e in errors if e.severity == Severity.WARNING]
         informational = [e for e in errors if e.severity == Severity.INFO]
-        success = len(actual_errors) == 0 and not (fail_on_warnings and actual_warnings)
+        blocking_warnings = [
+            warning for warning in actual_warnings if not warning_is_advisory(warning)
+        ]
+        success = len(actual_errors) == 0 and not (
+            fail_on_warnings and blocking_warnings
+        )
 
         return ValidationResult(
             success=success,
@@ -281,7 +287,11 @@ class ValidationEngine:
                 plugin_diagnostics = self._registry.plugin_diagnostics()
                 if plugin_diagnostics:
                     result.chain_errors.extend(plugin_diagnostics)
-                    if fail_on_warnings:
+                    if fail_on_warnings and any(
+                        diagnostic.severity == Severity.WARNING
+                        and not warning_is_advisory(diagnostic)
+                        for diagnostic in plugin_diagnostics
+                    ):
                         result.failed += 1
             return result
         finally:
