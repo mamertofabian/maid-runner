@@ -37,13 +37,28 @@ _ADVISORY_CHAIN_WARNING_CODES = frozenset(
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
+    json_mode = getattr(args, "json", False)
+    profile_report: str | None = None
     try:
+        from maid_runner.core.verify_profiles import apply_verify_profile
+
+        profile_report = apply_verify_profile(args)
+        if profile_report and not json_mode:
+            # Printed before any early return so a failing run still discloses
+            # which gates the profile set. In JSON mode the report is injected
+            # into the payload instead, to keep stdout a single document.
+            print(profile_report)
+
         advisory = getattr(args, "advisory", False)
         strict_preview = getattr(args, "strict_preview", False)
         if strict_preview and advisory:
             print_error(
-                "--strict-preview and --advisory request contradictory gate sets",
-                json_mode=getattr(args, "json", False),
+                _attribute_to_profile(
+                    "--strict-preview and --advisory request contradictory gate sets",
+                    report=profile_report,
+                    json_mode=json_mode,
+                ),
+                json_mode=json_mode,
             )
             return 2
         fail_on_warnings = (
@@ -84,10 +99,14 @@ def cmd_verify(args: argparse.Namespace) -> int:
             else format_verify_result
         )
         print(
-            _mark_strict_preview_output(
-                formatter(result, json_mode=getattr(args, "json", False)),
-                enabled=strict_preview,
-                json_mode=getattr(args, "json", False),
+            _mark_profile_output(
+                _mark_strict_preview_output(
+                    formatter(result, json_mode=json_mode),
+                    enabled=strict_preview,
+                    json_mode=json_mode,
+                ),
+                report=profile_report,
+                json_mode=json_mode,
             )
         )
         exit_code = 0 if _result_success(result) else 1
@@ -95,8 +114,28 @@ def cmd_verify(args: argparse.Namespace) -> int:
             return 2
         return _finalize_packet(args, exit_code, result)
     except Exception as exc:
-        print_error(str(exc), json_mode=getattr(args, "json", False))
+        print_error(
+            _attribute_to_profile(str(exc), report=profile_report, json_mode=json_mode),
+            json_mode=json_mode,
+        )
         return 2
+
+
+def _attribute_to_profile(
+    message: str,
+    *,
+    report: str | None,
+    json_mode: bool,
+) -> str:
+    """Attribute an error to the profile that set the flags involved.
+
+    Failures are the path where a reader most needs to know a flag came from a
+    profile rather than their own command line. Non-JSON runs already printed
+    the report before the gates, so only JSON needs it folded into the message.
+    """
+    if not report or not json_mode:
+        return message
+    return f"{message} ({report})"
 
 
 def _mark_strict_preview_output(
@@ -114,6 +153,22 @@ def _mark_strict_preview_output(
     if not output:
         return "[strict-preview]"
     return f"[strict-preview] {output}"
+
+
+def _mark_profile_output(
+    output: str,
+    *,
+    report: str | None,
+    json_mode: bool,
+) -> str:
+    if not report:
+        return output
+    if json_mode:
+        payload = json.loads(output) if output else {}
+        payload["profile"] = report
+        return json.dumps(payload, indent=2)
+    # Non-JSON runs already printed the report ahead of the gates.
+    return output
 
 
 def _write_sarif_report_if_requested(args, result: VerificationResult) -> bool:

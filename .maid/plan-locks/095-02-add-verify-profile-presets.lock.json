@@ -1,0 +1,344 @@
+{
+  "manifest_path": "manifests/095-02-add-verify-profile-presets.manifest.yaml",
+  "manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
+  "test_hashes": {
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+    "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+  },
+  "created_at": "2026-08-07T04:15:19.885861+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1829db64444b104fbfa77575de5339affe72209b175f9f406320aa251570364a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+      },
+      "revised_at": "2026-08-07T04:15:31.033100+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/095-02-add-verify-profile-presets.manifest.yaml -> manifests/095-02-add-verify-profile-presets.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/095-02-add-verify-profile-presets.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/095-02-add-verify-profile-presets.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:32dc7a34ccd2f8a4a0241f974d9c4bd5dec3b4d7b0e96185379162c476fcf4e5",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:a78d256c518fe2da2dfb93c18699c793fcf4ce094efd97d53f1a38ea7b174037",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:b9312f7abc48814eaf90941292dac3c849ae9f9706344571226e0359dbd9f718"
+      },
+      "revised_at": "2026-08-07T04:20:20.762099+00:00",
+      "reason": "Match the MAID collector rendering of tuple[str, ...] as tuple[str, Ellipsis] for verify_profile_names (implementation validation E302)",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/verify_profiles.py:function:verify_profile_names:returns=tuple[str, Ellipsis]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/verify_profiles.py:function:verify_profile_names:returns=tuple[str, ...]"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-07T04:15:34.617187+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_verify_profiles.py tests/cli/test_verify_cmd.py tests/cli/test_cli_help_text.py tests/cli/test_init_pre_commit.py -v",
+        "exit_code": 1,
+        "output_tail": "<frozen importlib._bootstrap>:1324: ModuleNotFoundError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_profiles.py::test_each_shipped_profile_resolves_to_its_documented_flags\nFAILED tests/cli/test_verify_profiles.py::test_unknown_profile_exits_non_zero_and_lists_valid_names\nFAILED tests/cli/test_verify_profiles.py::test_resolve_verify_profile_rejects_an_unknown_name\nFAILED tests/cli/test_verify_profiles.py::test_resolved_profile_defaults_are_isolated_between_resolutions\nFAILED tests/cli/test_verify_profiles.py::test_explicitly_passed_flag_overrides_profile_default\nFAILED tests/cli/test_verify_profiles.py::test_explicit_flag_matching_parser_default_still_wins\nFAILED tests/cli/test_verify_profiles.py::test_explicit_valued_option_matching_parser_default_still_wins\nFAILED tests/cli/test_verify_profiles.py::test_no_profile_supplies_a_changed_scope_baseline\nFAILED tests/cli/test_verify_profiles.py::test_pre_commit_profile_matches_generated_hook_gate_set\nFAILED tests/cli/test_verify_profiles.py::test_profile_with_contradictory_flag_still_fails\nFAILED tests/cli/test_verify_profiles.py::test_cmd_verify_reports_the_applied_profile_in_output\nFAILED tests/cli/test_verify_profiles.py::test_profile_report_does_not_corrupt_json_output\nFAILED tests/cli/test_verify_profiles.py::test_json_output_discloses_the_applied_profile_and_its_flags\nFAILED tests/cli/test_verify_profiles.py::test_apply_verify_profile_reports_the_profile_and_its_flags\nFAILED tests/cli/test_verify_profiles.py::test_report_renders_negated_and_valued_flags\nFAILED tests/cli/test_verify_profiles.py::test_no_profile_produces_no_report\nFAILED tests/cli/test_verify_profiles.py::test_profile_resolution_does_not_depend_on_repository_or_cwd\n======================== 17 failed, 65 passed in 3.23s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/095-02-add-verify-profile-presets.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.defaults",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.defaults:kind=attribute",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.defaults:of=VerifyProfile",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.defaults:type=Mapping[str, bool | str]",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.name",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.name:kind=attribute",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.name:of=VerifyProfile",
+      "maid_runner/core/verify_profiles.py:attribute:VerifyProfile.name:type=str",
+      "maid_runner/core/verify_profiles.py:class:VerifyProfile",
+      "maid_runner/core/verify_profiles.py:class:VerifyProfile:kind=class",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:kind=function",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:returns=str | None",
+      "maid_runner/core/verify_profiles.py:function:resolve_verify_profile",
+      "maid_runner/core/verify_profiles.py:function:resolve_verify_profile:arg=name:type=str:default=None",
+      "maid_runner/core/verify_profiles.py:function:resolve_verify_profile:kind=function",
+      "maid_runner/core/verify_profiles.py:function:resolve_verify_profile:returns=VerifyProfile",
+      "maid_runner/core/verify_profiles.py:function:verify_profile_names",
+      "maid_runner/core/verify_profiles.py:function:verify_profile_names:kind=function",
+      "maid_runner/core/verify_profiles.py:function:verify_profile_names:returns=tuple[str, Ellipsis]",
+      "tests/cli/test_verify_profiles.py:test_apply_verify_profile_reports_the_profile_and_its_flags",
+      "tests/cli/test_verify_profiles.py:test_apply_verify_profile_reports_the_profile_and_its_flags:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_cmd_verify_reports_the_applied_profile_in_output",
+      "tests/cli/test_verify_profiles.py:test_cmd_verify_reports_the_applied_profile_in_output:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_each_shipped_profile_resolves_to_its_documented_flags",
+      "tests/cli/test_verify_profiles.py:test_each_shipped_profile_resolves_to_its_documented_flags:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_explicit_flag_matching_parser_default_still_wins",
+      "tests/cli/test_verify_profiles.py:test_explicit_flag_matching_parser_default_still_wins:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_explicit_valued_option_matching_parser_default_still_wins",
+      "tests/cli/test_verify_profiles.py:test_explicit_valued_option_matching_parser_default_still_wins:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_explicitly_passed_flag_overrides_profile_default",
+      "tests/cli/test_verify_profiles.py:test_explicitly_passed_flag_overrides_profile_default:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_json_output_discloses_the_applied_profile_and_its_flags",
+      "tests/cli/test_verify_profiles.py:test_json_output_discloses_the_applied_profile_and_its_flags:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_no_profile_produces_no_report",
+      "tests/cli/test_verify_profiles.py:test_no_profile_produces_no_report:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_no_profile_supplies_a_changed_scope_baseline",
+      "tests/cli/test_verify_profiles.py:test_no_profile_supplies_a_changed_scope_baseline:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_pre_commit_profile_matches_generated_hook_gate_set",
+      "tests/cli/test_verify_profiles.py:test_pre_commit_profile_matches_generated_hook_gate_set:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_profile_report_does_not_corrupt_json_output",
+      "tests/cli/test_verify_profiles.py:test_profile_report_does_not_corrupt_json_output:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_profile_resolution_does_not_depend_on_repository_or_cwd",
+      "tests/cli/test_verify_profiles.py:test_profile_resolution_does_not_depend_on_repository_or_cwd:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_profile_with_contradictory_flag_still_fails",
+      "tests/cli/test_verify_profiles.py:test_profile_with_contradictory_flag_still_fails:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_report_renders_negated_and_valued_flags",
+      "tests/cli/test_verify_profiles.py:test_report_renders_negated_and_valued_flags:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_resolve_verify_profile_rejects_an_unknown_name",
+      "tests/cli/test_verify_profiles.py:test_resolve_verify_profile_rejects_an_unknown_name:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_resolved_profile_defaults_are_isolated_between_resolutions",
+      "tests/cli/test_verify_profiles.py:test_resolved_profile_defaults_are_isolated_between_resolutions:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_unknown_profile_exits_non_zero_and_lists_valid_names",
+      "tests/cli/test_verify_profiles.py:test_unknown_profile_exits_non_zero_and_lists_valid_names:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/verify_profiles.py",
+        "tests/cli/test_verify_profiles.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/cli/commands/init.py",
+        "tests/cli/test_cli_help_text.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_verify_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/verify_profiles.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "VerifyProfile",
+              "description": "Immutable resolved profile carrying its name and the verify defaults it contributes."
+            },
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "VerifyProfile",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "defaults",
+              "of": "VerifyProfile",
+              "type": "Mapping[str, bool | str]"
+            },
+            {
+              "kind": "function",
+              "name": "verify_profile_names",
+              "description": "Deterministically ordered names of the shipped profiles, for parser choices and error messages. Spelled tuple[str, Ellipsis] because that is how the MAID artifact collector renders the source annotation tuple[str, ...]; the source keeps the canonical spelling.",
+              "returns": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "resolve_verify_profile",
+              "description": "Pure resolution of a profile name to its defaults; raises KeyError for an unknown name, performs no I/O, and returns defaults that cannot be mutated into a later resolution.",
+              "args": [
+                {
+                  "name": "name",
+                  "type": "str"
+                }
+              ],
+              "returns": "VerifyProfile"
+            },
+            {
+              "kind": "function",
+              "name": "apply_verify_profile",
+              "description": "Applies the resolved profile's defaults to args for flags the user did not pass explicitly, and returns the one-line report naming the profile and the flags it actually contributed. Returns None when no profile was requested.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "str | None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_profiles.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_each_shipped_profile_resolves_to_its_documented_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unknown_profile_exits_non_zero_and_lists_valid_names"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolve_verify_profile_rejects_an_unknown_name"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolved_profile_defaults_are_isolated_between_resolutions"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicitly_passed_flag_overrides_profile_default"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_flag_matching_parser_default_still_wins"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_valued_option_matching_parser_default_still_wins"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_profile_supplies_a_changed_scope_baseline"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pre_commit_profile_matches_generated_hook_gate_set"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_profile_with_contradictory_flag_still_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cmd_verify_reports_the_applied_profile_in_output"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_profile_report_does_not_corrupt_json_output"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_json_output_discloses_the_applied_profile_and_its_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_verify_profile_reports_the_profile_and_its_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_report_renders_negated_and_valued_flags"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_profile_produces_no_report"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_profile_resolution_does_not_depend_on_repository_or_cwd"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Applies a resolved profile as defaults beneath explicitly passed flags, reports the applied profile in output, and preserves the existing contradiction checks and baseline requirements.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Verify subparser gains --profile with choices drawn from verify_profile_names() and explicit non-empty help text, which tests/cli/test_cli_help_text.py requires of every visible option.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/init.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_verify_cmd.py",
+        "tests/cli/test_cli_help_text.py",
+        "AGENTS.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_cli_help_text.py",
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/cli/test_verify_profiles.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_verify_profiles.py tests/cli/test_verify_cmd.py tests/cli/test_cli_help_text.py tests/cli/test_init_pre_commit.py -v",
+      "uv run maid validate manifests/095-02-add-verify-profile-presets.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
