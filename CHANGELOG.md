@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.25.0] - 2026-08-07
+
+### Added
+- **Named verify profiles** — Added `maid verify --profile` presets for handoff, pre-commit, agent-retry, and deep verification. Profiles apply only defaults the operator did not set, disclose their effective expansion in text and JSON output, and never guess a changed-scope baseline. Generated hooks and distributed guidance now use the presets behind the explicit `maid-runner>=2.25.0` executable floor.
+- **Onboarding entry-point guidance** — Connected CLI help, `maid init`, `maid howto`, and the README to a shorter first-win path, including a curated start block, init next steps, followable quickstart and brownfield topics, named-profile examples, and synchronized generated workflow payloads.
+- **Python enum artifact contracts** — Added first-class implementation support for Python standard-library enum subclasses while preserving historical class/member snapshots, canonical removal identities, conservative import and rebinding analysis, and fail-closed supersession behavior.
+
+### Changed
+- **Website onboarding evidence** — Redesigned the static site around the supplied branding, improved responsive mobile layout and GitHub presentation, and added a MAID-in-practice section backed by repository-generated evidence.
+
+### Fixed
+- **Preserved red-evidence integrity** — Refused plan-lock revisions when preserved command evidence differs from either the historical lock or current manifest, including malformed evidence payloads, preventing E707-invalid locks and evidence laundering.
+- **Failure packet output ownership** — Preserved arbitrary destinations, symlinks, hard links, and raced pathname replacements by binding ownership checks and mutation to one verified descriptor; safe stale packets now become explicit exit-code-zero markers instead of being unlinked.
+- **Configured manifest directories** — Made directory-wide validate, test, and verify honor `.maidrc.yaml` manifest-directory defaults while preserving explicit path precedence, single-manifest isolation, and normal CLI error handling.
+- **Empty generated hooks** — Allowed MAID-managed verification hooks to pass in the intentional zero-active-manifest state immediately after init without weakening strict gates once manifests exist.
+- **Legacy baseline workflows** — Supported first-commit repositories and preserved valid legacy-baseline evidence during sanctioned plan revisions without fabricating historical commits or weakening provenance checks.
+- **Scope-only contract coverage** — Distinguished writable `files.scope` authorization from artifact-contracted tracking through an explicit `scope_only` status, with strict opt-in enforcement and advisory coverage recommendations.
+- **.NET changed-scope tracking** — Enforced manifest ownership for committed and uncommitted C#, Razor, and .NET resource production files in both changed-scope and worktree-scope gates.
+
 ## [2.24.0] - 2026-08-02
 
 ### Added
@@ -1227,6 +1246,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.25.0]: https://github.com/mamertofabian/maid-runner/compare/v2.24.0...v2.25.0
 [2.24.0]: https://github.com/mamertofabian/maid-runner/compare/v2.23.2...v2.24.0
 [2.23.2]: https://github.com/mamertofabian/maid-runner/compare/v2.23.1...v2.23.2
 [2.23.1]: https://github.com/mamertofabian/maid-runner/compare/v2.23.0...v2.23.1
