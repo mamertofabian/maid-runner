@@ -8,13 +8,18 @@ from importlib import resources
 from pathlib import Path
 
 from maid_runner.cli.commands._format import print_error
-from maid_runner.core.skill_install import install_onboard_skill
+from maid_runner.core.skill_install import (
+    install_onboard_skill,
+    uninstall_onboard_skill,
+)
 
 
 def cmd_skills(args: argparse.Namespace) -> int:
     subcommand = getattr(args, "skills_command", None)
     if subcommand == "install":
         return _cmd_skills_install(args)
+    if subcommand == "uninstall":
+        return _cmd_skills_uninstall(args)
 
     print_error("Unknown or missing skills subcommand")
     return 2
@@ -53,6 +58,23 @@ def _cmd_skills_install(args: argparse.Namespace) -> int:
     print(f"{summary} under {target_root}")
     for relative in written:
         print(f"  {relative}")
+    return 0
+
+
+def _cmd_skills_uninstall(args: argparse.Namespace) -> int:
+    target_root = _resolve_target_root(args)
+    payload_root = _packaged_user_skills_root()
+    dry_run = bool(getattr(args, "dry_run", False))
+    report = uninstall_onboard_skill(target_root, payload_root, dry_run)
+
+    if not report.removed and not report.preserved:
+        print(f"No installed maid-onboard skills found under {target_root}")
+        return 0
+    verb = "Would remove" if dry_run else "Removed"
+    for relative in report.removed:
+        print(f"{verb}: {relative}")
+    for relative in report.preserved:
+        print(f"Preserved modified or redirected skill: {relative}")
     return 0
 
 

@@ -1,0 +1,749 @@
+{
+  "manifest_path": "manifests/add-owned-payload-uninstall.manifest.yaml",
+  "manifest_hash": "sha256-contract:c403a38d76e315743ccb21daf1531bdf8ef618085648d19809425d431062752f",
+  "test_hashes": {
+    "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+    "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+    "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff"
+  },
+  "created_at": "2026-08-08T10:37:53.520287+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a31df09e4e0f6f5341c010c0aecd2c2295c33ee1e769e5754d3530f6e0390e29",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:1942ae347a5c6254f6f83b0bffbaa6c31f43fd6c5a245a54c8a3226418e67a68"
+      },
+      "revised_at": "2026-08-08T10:38:00.404293+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-owned-payload-uninstall.manifest.yaml -> manifests/add-owned-payload-uninstall.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c9fd0c5ada4317b0729d2851bc62306b76c82778537becc8352384ba8eba6e3e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:1942ae347a5c6254f6f83b0bffbaa6c31f43fd6c5a245a54c8a3226418e67a68"
+      },
+      "revised_at": "2026-08-08T10:42:27.264828+00:00",
+      "reason": "Normalize variadic tuple type spelling to the Python collector's tuple[str, Ellipsis] representation; runtime and behavioral contract are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=tools:type=tuple[str, Ellipsis]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=tools:type=tuple[str, ...]:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aed1042eff85c19aa077fa239f85147b1ba9fa8eccaa896dab3d5d2f4727045e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:1942ae347a5c6254f6f83b0bffbaa6c31f43fd6c5a245a54c8a3226418e67a68"
+      },
+      "revised_at": "2026-08-08T10:55:30.775933+00:00",
+      "reason": "Independent implementation review exposed agent-root dot traversal, user-skill symlink-parent deletion, plan/apply revalidation, and unrelated empty hook-category preservation gaps; tighten the behavioral contract before fixing the implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=capsys:type=pytest.CaptureFixture:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:kind=test_function",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6da2d567280a289c22c4b4d2cedb73d87370f69d514e3c8a6cc8fdcc0cf2c29f",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:9caa2f93c0be5819a18f6aa48f862e68551b78171f8d7bae156c3adc6cac4c1d"
+      },
+      "revised_at": "2026-08-08T11:03:10.473808+00:00",
+      "reason": "Round-two independent review found source/snapshot binding, per-operation revalidation, unsafe platform fallback, and permission-mode gaps; extend the locked concurrency and fail-closed contract before the final implementation fixes.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:972b3a2d26db5d6b2eccbf97dd088019d39b9832ee9877ffe6ea5e3eb2f5c336",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:29f2242a13b7e64b19dd2ea5bd0a079a0d9b50656f1e204ee5dd24795a521f40"
+      },
+      "revised_at": "2026-08-08T11:06:30.799649+00:00",
+      "reason": "Final review identified an interleaving between source-byte comparison and snapshot rereads; require single-read stat-stable source snapshots and capture the precise race as red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6fb47c93ae2a7b0c4ce5b356322c6ecddf82a808d8c8d8cdf99435d6e6655355",
+      "prior_test_hashes": {
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:ab8e74883b7e3bfba5194a97a2e8ae91f6c87b47ed56ef00289cd6a68e67d54d",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:63e7269233a3843a92c34bcf41c776f72712f0ce7364f6747783cd81473fcf9f"
+      },
+      "revised_at": "2026-08-08T11:08:42.875187+00:00",
+      "reason": "Apply the final source-binding rule to wholesale scaffold deletions and capture a scaffold edit between comparison and snapshot as red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T11:08:45.215432+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_skills_install.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_pre_commit.py tests/cli/test_init_payload_portability.py",
+        "exit_code": 1,
+        "output_tail": "  Updated: AGENTS.md\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n\nNext steps:\n  maid howto quickstart\n=========================== short test summary info ============================\nFAILED tests/cli/test_uninstall_cmd.py::test_uninstall_onboard_skill_removes_only_owned_user_level_skills\nFAILED tests/cli/test_uninstall_cmd.py::test_uninstall_onboard_skill_preserves_modified_user_level_copy\nFAILED tests/cli/test_uninstall_cmd.py::test_uninstall_onboard_skill_removes_owned_links_without_following_targets\nFAILED tests/cli/test_uninstall_cmd.py::test_skills_uninstall_dry_run_is_non_mutating_and_repeatable\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_removes_all_owned_agent_payloads_and_guidance\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_removes_shared_scaffold_but_preserves_project_data\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_preserves_modified_generated_files_and_reports_them\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_selected_tool_boundaries_are_isolated\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_rejects_malformed_markers_before_any_removal\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation\nFAILED tests/cli/test_uninstall_cmd.py::test_init_uninstall_revalidates_plan_before_applying_mutations\n12 failed, 46 passed in 1.43s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=dry_run:type=bool:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=project_root:type=Path:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=tools:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:kind=function",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:returns=UninstallReport",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=dry_run:type=bool:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=payload_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=target_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:kind=function",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:returns=UninstallReport",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.missing",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.missing:kind=attribute",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.missing:of=UninstallReport",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.missing:type=list[str]",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.preserved",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.preserved:kind=attribute",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.preserved:of=UninstallReport",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.preserved:type=list[str]",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.removed",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.removed:kind=attribute",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.removed:of=UninstallReport",
+      "maid_runner/core/uninstall.py:attribute:UninstallReport.removed:type=list[str]",
+      "maid_runner/core/uninstall.py:class:UninstallReport",
+      "maid_runner/core/uninstall.py:class:UninstallReport:kind=class",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_preserves_modified_generated_files_and_reports_them",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_preserves_modified_generated_files_and_reports_them:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_preserves_modified_generated_files_and_reports_them:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_preserves_modified_generated_files_and_reports_them:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_preserves_modified_generated_files_and_reports_them:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_malformed_markers_before_any_removal:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_all_owned_agent_payloads_and_guidance",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_all_owned_agent_payloads_and_guidance:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_all_owned_agent_payloads_and_guidance:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_all_owned_agent_payloads_and_guidance:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_all_owned_agent_payloads_and_guidance:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_shared_scaffold_but_preserves_project_data",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_shared_scaffold_but_preserves_project_data:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_shared_scaffold_but_preserves_project_data:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_shared_scaffold_but_preserves_project_data:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_removes_shared_scaffold_but_preserves_project_data:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_revalidates_plan_before_applying_mutations:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_selected_tool_boundaries_are_isolated",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_selected_tool_boundaries_are_isolated:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_selected_tool_boundaries_are_isolated:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_selected_tool_boundaries_are_isolated:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_init_uninstall_selected_tool_boundaries_are_isolated:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_skills_uninstall_dry_run_is_non_mutating_and_repeatable",
+      "tests/cli/test_uninstall_cmd.py:test_skills_uninstall_dry_run_is_non_mutating_and_repeatable:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_skills_uninstall_dry_run_is_non_mutating_and_repeatable:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_skills_uninstall_dry_run_is_non_mutating_and_repeatable:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_skills_uninstall_dry_run_is_non_mutating_and_repeatable:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_preserves_modified_user_level_copy",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_preserves_modified_user_level_copy:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_preserves_modified_user_level_copy:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_preserves_modified_user_level_copy:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_only_owned_user_level_skills",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_only_owned_user_level_skills:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_only_owned_user_level_skills:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_only_owned_user_level_skills:returns=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_owned_links_without_following_targets",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_owned_links_without_following_targets:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_owned_links_without_following_targets:kind=test_function",
+      "tests/cli/test_uninstall_cmd.py:test_uninstall_onboard_skill_removes_owned_links_without_following_targets:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/uninstall.py",
+        "tests/cli/test_uninstall_cmd.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/core/skill_install.py"
+      ],
+      "read": [
+        "maid_runner/claude/manifest.json",
+        "maid_runner/claude/settings.json",
+        "maid_runner/codex/manifest.json",
+        "maid_runner/cursor/manifest.json",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/manifests/drafts/README.md",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/add-skills-install-command.manifest.yaml",
+        "manifests/fix-init-payload-portability.manifest.yaml",
+        "tests/cli/test_init_hook_payloads.py",
+        "tests/cli/test_init_payload_portability.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_skills_install.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/skills.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/uninstall.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "UninstallReport",
+              "description": "Typed stable report returned by both uninstall mechanisms."
+            },
+            {
+              "kind": "attribute",
+              "name": "removed",
+              "description": "Paths selected for removal; dry-run and execution return the same deterministic list.",
+              "of": "UninstallReport",
+              "type": "list[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "preserved",
+              "description": "Owned-looking paths preserved because they were modified or unsafe to remove.",
+              "of": "UninstallReport",
+              "type": "list[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "missing",
+              "description": "Expected owned paths already absent at report time.",
+              "of": "UninstallReport",
+              "type": "list[str]"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_uninstall_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_uninstall_onboard_skill_removes_only_owned_user_level_skills",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "User-level maid-onboard is installed beside an unrelated custom Codex skill.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "uninstall_onboard_skill"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Preview and execution typed reports are equal with exact removed, preserved, and missing fields; both owned directories are removed, and the custom skill remains byte-identical."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_uninstall_onboard_skill_preserves_modified_user_level_copy",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "One installed user-level maid-onboard copy was locally customized after installation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "uninstall_onboard_skill"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Preview and execution reports are equal; the unchanged copy is removed while the customized copy is preserved and reported."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_uninstall_onboard_skill_removes_owned_links_without_following_targets",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "User-level maid-onboard was installed with --link, then one installed file was redirected to a local external target.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "uninstall_onboard_skill"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Uninstall removes canonical installer-created links without deleting or modifying packaged targets, but preserves and reports redirected skills and skills reached through symlinked agent or skills parents; a change after comparison aborts, and platforms without safe descriptor-relative removal fail closed, leaving every target intact."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_skills_uninstall_dry_run_is_non_mutating_and_repeatable",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A user previews, performs, and repeats user-level skill uninstall through the CLI.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dry-run lists removals without mutation, execution removes them, and a repeat succeeds with an explicit nothing-installed message."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_removes_all_owned_agent_payloads_and_guidance",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Claude, Codex, and Cursor payloads coexist with custom skills, merged user settings, a sibling command in the MAID hook entry, unrelated empty entry and category containers, and surrounding guidance text before dry-run and execution.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "uninstall_init_payload"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Agent dry-run is non-mutating and returns exactly the execution report; all manifest-owned payloads and exact MAID leaves are removed while every custom file, sibling command, user setting, and unrelated empty entry or category container remains."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_removes_shared_scaffold_but_preserves_project_data",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Generic init created shared scaffold beside user pre-commit rules, ignore rules, an active manifest, and a custom draft.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Unmodified generated scaffold and marked blocks are removed while all user project data, unrelated configuration, and original file permission modes remain."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_preserves_modified_generated_files_and_reports_them",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The user modified files originally generated wholesale by init.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "uninstall_init_payload"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dry-run and execution reports are equal; modified files remain and appear in the stable preserved list."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_selected_tool_boundaries_are_isolated",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Fresh repositories containing Claude, Codex, Cursor, and shared scaffold each receive one of the four Claude, Codex, Cursor, or generic selectors.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every agent selector removes only its matching payload and preserves both sibling agents and shared scaffold; generic removes only shared scaffold and preserves all agents."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_rejects_malformed_markers_before_any_removal",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Fresh fully initialized repositories independently have malformed MAID markers in CLAUDE.md, AGENTS.md, .gitignore, or pre-commit configuration before uninstall begins.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every malformed marker surface makes uninstall exit non-zero before writes; selected agent payloads and shared scaffold remain intact."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Installed agent manifests are invalid JSON, have wrongly typed distributable data, or contain parent-traversing, non-normalized, absolute, or agent-root-dot owned paths.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every unsafe manifest fails before writes; agent roots, custom files, owned payloads, manifest files, and outside files remain intact."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Either an agent root or a parent directory between it and owned skill targets was replaced with a symlink to an outside tree.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Uninstall rejects both unsafe boundaries before writes and leaves each symlink and outside payload untouched; the test skips only when the platform cannot create symlinks."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_revalidates_plan_before_applying_mutations",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Concurrent edits affect managed-marker and wholesale scaffold sources before or during snapshot construction, after complete batch validation, and immediately before one operation; safe descriptor-relative mutation is also unavailable.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Single-read stat-stable source snapshots and per-operation revalidation abort before deleting or overwriting changed data, preserve installed manifests and outside targets, and fail closed instead of using a pathname fallback when safe mutation primitives are unavailable."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/skill_install.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "uninstall_onboard_skill",
+              "description": "Remove only user-level Claude and Codex maid-onboard directories that match the packaged payload, preserving modified, redirected, and unrelated skills and succeeding when absent.",
+              "args": [
+                {
+                  "name": "target_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "payload_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "dry_run",
+                  "type": "bool"
+                }
+              ],
+              "returns": "UninstallReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "uninstall_init_payload",
+              "description": "Preflight and remove only safe manifest-owned agent payloads, exact merged MAID hook leaves, marked blocks, and unmodified shared scaffold for the selected tools.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "tools",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "dry_run",
+                  "type": "bool"
+                }
+              ],
+              "returns": "UninstallReport"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-skills-install-command.manifest.yaml",
+        "manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-init-payload-portability.manifest.yaml",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/claude/settings.json",
+        "maid_runner/codex/manifest.json",
+        "maid_runner/cursor/manifest.json",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/manifests/drafts/README.md",
+        "tests/cli/test_init_hook_payloads.py",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_init_payload_portability.py",
+        "tests/cli/test_skills_install.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/skills.py",
+          "reason": "Extend the existing cmd_skills dispatcher with uninstall reporting without changing its public signature."
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register uninstall flags and subcommands in the centralized argparse composition root; no stable parser-helper API changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_hook_payloads.py",
+      "tests/cli/test_init_payload_portability.py",
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_skills_install.py",
+      "tests/cli/test_uninstall_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_skills_install.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_pre_commit.py tests/cli/test_init_payload_portability.py"
+    ]
+  }
+}

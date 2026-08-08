@@ -141,6 +141,20 @@ def _register_skills_parser(sub: argparse._SubParsersAction) -> None:
         dest="target_root",
         help="Override the install base directory (default: user home)",
     )
+    uninstall = ssub.add_parser(
+        "uninstall", help="Remove unchanged user-level maid-onboard skills"
+    )
+    uninstall.add_argument(
+        "--target-root",
+        default=None,
+        dest="target_root",
+        help="Override the uninstall base directory (default: user home)",
+    )
+    uninstall.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview owned skills without removing them",
+    )
 
 
 def _register_validators_parser(sub: argparse._SubParsersAction) -> None:
@@ -1439,6 +1453,11 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
         "--check",
         action="store_true",
         help="Check whether installed MAID init instruction payloads are current",
+    )
+    p.add_argument(
+        "--uninstall",
+        action="store_true",
+        help="Remove MAID-owned init payloads while preserving project data",
     )
     p.add_argument(
         "--json", action="store_true", help="Print init or check result as JSON"
