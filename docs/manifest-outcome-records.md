@@ -197,6 +197,33 @@ text, paths, error codes, or enrichment hypotheses. Imported feedback remains
 advisory evidence and must be reproduced against the current MAID Runner tree
 before it can become implementation work.
 
+### Local Feedback Intake
+
+Reviewers can validate and aggregate one or more local version-1 bundles into
+an advisory intake report:
+
+```bash
+maid feedback aggregate first-feedback.json second-feedback.json \
+  --output maid-feedback-intake.json
+```
+
+`maid feedback aggregate` fails the whole operation before writing output when
+any bundle has malformed JSON, duplicate or unexpected keys, an unsupported
+schema version, unsorted or unbounded status values, or a feedback ID that does
+not match its exact lesson content. Supplying the same logical bundle more than
+once does not inflate the report.
+
+Each aggregate exposes `bundle_count` and `reported_source_count`. The latter
+is a sum of already-anonymous source counts from distinct bundles; it is
+reported source evidence, not unique repositories, because the export privacy
+boundary deliberately carries no repository identity. The report also keeps
+sorted status unions while omitting input paths and source identity.
+
+Aggregation is advisory and local-only. It does not submit data, create issues,
+create manifests, change validation policy, or confirm that a reported problem
+still exists. Inspect authored summaries and reproduce candidates against the
+current MAID Runner tree before routing them into improvement work.
+
 ## Advisory Enrichment Artifacts
 
 `maid enrich` provides deterministic support for optional Outcome enrichment.

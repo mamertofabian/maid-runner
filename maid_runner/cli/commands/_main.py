@@ -1074,6 +1074,26 @@ def _register_feedback_parser(sub: argparse._SubParsersAction) -> None:
         help="Replace an existing local output file",
     )
     export.add_argument("--json", action="store_true", help="Print result as JSON")
+    aggregate = fsub.add_parser(
+        "aggregate",
+        help="Validate and aggregate local feedback bundles",
+    )
+    aggregate.add_argument(
+        "inputs",
+        nargs="+",
+        help="Local version-1 feedback bundle paths",
+    )
+    aggregate.add_argument(
+        "--output",
+        required=True,
+        help="Local JSON intake report path",
+    )
+    aggregate.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing local report file",
+    )
+    aggregate.add_argument("--json", action="store_true", help="Print result as JSON")
 
 
 def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:

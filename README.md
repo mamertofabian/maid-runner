@@ -145,6 +145,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
 | `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
 | `maid feedback export` | Write explicitly marked Outcome lessons to a local-only MAID Runner feedback bundle | `--index`, `--output`, `--manifest-dir`, `--project-root`, `--allow-stale-index`, `--force`, `--json` |
+| `maid feedback aggregate` | Validate and aggregate local MAID Runner feedback bundles into an advisory intake report | `<bundle>...`, `--output`, `--force`, `--json` |
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
 | `maid evaluate run <manifest>` | Report deterministic after-action run evidence; see `docs/run-evaluation.md` | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
