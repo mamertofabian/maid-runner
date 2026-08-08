@@ -20,6 +20,11 @@ CONSUMED_EPICS = {
         "095-04-migrate-generated-profile-payloads.manifest.yaml",
         "095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
     ),
+    "097-00-cross-repository-maid-feedback.epic.yaml": (
+        "097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+    ),
     "067-00-plan-lock-and-red-phase-evidence.epic.yaml": (
         "067-01-add-plan-lock-storage-and-cli.manifest.yaml",
         "067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
@@ -78,7 +83,15 @@ LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
     "096-00-bound-directory-artifact-coverage.epic.yaml",
-    "097-00-cross-repository-maid-feedback.epic.yaml",
+}
+
+ARCHIVE_BOUNDARY_PHRASES = {
+    "097-00-cross-repository-maid-feedback.epic.yaml": (
+        "privacy-bounded",
+        "local-only",
+        "no network transport",
+        "advisory evidence",
+    ),
 }
 
 
@@ -103,9 +116,16 @@ def test_consumed_epic_drafts_are_archived_pointers_to_promoted_children():
         )
 
         read_paths = set(manifest["files"]["read"])
-        for child_manifest_name in child_manifest_names:
-            child_path = f"manifests/{child_manifest_name}"
-            assert child_path in read_paths
+        expected_child_paths = {
+            f"manifests/{child_manifest_name}"
+            for child_manifest_name in child_manifest_names
+        }
+        assert read_paths == expected_child_paths
+
+        for phrase in ARCHIVE_BOUNDARY_PHRASES.get(name, ()):
+            assert phrase in text.lower()
+
+        for child_path in expected_child_paths:
             assert (REPO_ROOT / child_path).exists()
 
 

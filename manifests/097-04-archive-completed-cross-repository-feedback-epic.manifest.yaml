@@ -1,0 +1,202 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Archive the fully consumed cross-repository MAID feedback epic as a stable
+  historical pointer and remove it from live planning inventory
+type: refactor
+created: '2026-08-08T22:55:25Z'
+metadata:
+  epic: 097-00-cross-repository-maid-feedback
+  tags:
+  - outcome-records
+  - feedback
+  - draft-inventory
+  - planning-hygiene
+  - manifest-lifecycle
+  priority: high
+description: |
+  Children 097-01, 097-02, and 097-03 now have completed Outcomes and together
+  deliver every implementation child named by the split-before-promote roadmap:
+  privacy-bounded local export, fail-closed local aggregation, and governed
+  reproduction/routing into MAID Runner self-improvement. The roadmap must no
+  longer present itself as live planning work.
+
+  Preserve `manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml`
+  at its stable path as a concise `# archive-kind: consumed-draft-epic` pointer.
+  Set `metadata.status: archived`, retain the privacy and no-transport boundary,
+  list the three promoted child manifests in `files.read`, and state that the
+  archived epic must not be promoted or implemented. Network submission,
+  telemetry, automatic issue creation, and automatic self-modification remain
+  separate future specifications rather than implied follow-ups.
+
+  Evolve the shared archive inventory test so 097 appears in `CONSUMED_EPICS`
+  with exactly its three children and disappears from `LIVE_PLANNING_EPICS`.
+  That shared test is already hashed by the 082-06, 095-05, and 097-01 plan
+  locks. Each currently carries valid red evidence with unchanged validation
+  commands, so after implementation reconcile those historical contracts with
+  `maid plan revise <manifest> --reason <reason> --preserve-red-evidence`.
+  If preservation is rejected because evidence or commands no longer match,
+  stop for a plan revision rather than hand-editing lock JSON or weakening the
+  assertions.
+
+  Outcome evidence informed this narrow closure: prior planning-hygiene lessons
+  require stable archive pointers instead of deletion, exact promoted-child
+  inventories, and synchronized historical locks when shared tests evolve.
+  The refreshed Outcome index was used through plain deterministic insights;
+  stale enrichment narrative was not read.
+
+  Out of scope: changes to the three completed child manifests or Outcomes,
+  feedback CLI behavior, feedback schemas, remote transport, release versioning,
+  tagging, publishing, and cleanup of unrelated live or historical epics.
+temptations:
+- risk: Do not delete the 097 epic file after all children complete.
+  instead: Preserve its stable path as an archived pointer with exact links to
+    097-01 through 097-03.
+- risk: Do not leave 097 in live planning inventory after changing only its
+    prose or status.
+  instead: Replace the draft marker, set archived status, register the exact
+    child list in CONSUMED_EPICS, and remove 097 from LIVE_PLANNING_EPICS.
+- risk: Do not treat the completed local feedback loop as authorization for
+    remote submission or automatic self-modification.
+  instead: Retain the no-transport and advisory-only boundary in the archive
+    pointer and leave expansion to a separate specification.
+- risk: Do not hand-edit or ignore historical plan locks after changing their
+    shared behavioral test.
+  instead: After the archive test passes, use maid plan revise
+    --preserve-red-evidence for 082-06, 095-05, and 097-01 while their existing
+    evidence and validation commands remain valid; stop if preservation rejects
+    any lock.
+files:
+  edit:
+  - path: manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_cross_repository_maid_feedback_epic
+      of: manifest
+      type: draft epic
+      description: Historical consumed-epic pointer to completed child manifests
+        097-01, 097-02, and 097-03 that preserves the no-transport and
+        advisory-only boundary.
+  - path: tests/core/test_draft_epic_archive_inventory.py
+    artifacts:
+    - kind: test_function
+      name: test_consumed_epic_drafts_are_archived_pointers_to_promoted_children
+      args: []
+      returns: None
+      description: Every consumed epic has exactly its registered promoted-child
+        read pointers, and archived 097 also preserves explicit privacy-bounded,
+        local-only, no-network-transport, and advisory-evidence semantics.
+    - kind: test_function
+      name: test_only_unconsumed_epics_remain_live_planning_inventory
+      args: []
+      returns: None
+      description: The explicit live-planning set excludes the consumed 097
+        roadmap while preserving genuinely unfinished epics.
+  read:
+  - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+  - manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml
+  - manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml
+  - manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml
+  - manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml
+  - manifests/drafts/README.md
+  - docs/maid_specs.md
+  - maid_runner/cli/commands/plan.py
+  - .maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json
+  - .maid/plan-locks/095-05-complete-profile-guidance-and-archive-adoption-epics.lock.json
+  - .maid/plan-locks/097-01-export-local-maid-feedback-bundle.lock.json
+validate:
+- uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py
+- uv run maid validate
+  manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml --mode schema
+  --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-09T07:16:00+08:00'
+  summary: Archived the fully consumed 097 cross-repository feedback roadmap as
+    a stable pointer to its three completed children, preserved its privacy and
+    no-transport boundaries, and removed it from live planning inventory.
+  rationale: The three implementation children now cover local privacy-bounded
+    export, fail-closed aggregation, and governed reproduction and routing. The
+    closure keeps the original epic path discoverable without presenting it as
+    unfinished work, strengthens every consumed-epic pointer to an exact child
+    inventory, and reconciles all historical owners of the shared behavioral
+    test through supported red-evidence preservation.
+  lessons:
+  - lesson_type: test-design
+    summary: Consumed-epic archive tests should compare files.read against the
+      exact registered child set and pin material safety boundaries; subset-only
+      checks allow stale pointers or dropped privacy promises to pass.
+    tags:
+    - archive-inventory
+    - privacy
+    - exactness
+    - maid-runner-feedback
+    paths:
+    - tests/core/test_draft_epic_archive_inventory.py
+    - manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+  - lesson_type: contract-discipline
+    summary: When a shared behavioral test changes without changing historical
+      contracts or validation commands, revise each owning lock through
+      --preserve-red-evidence only after MAID confirms preservable red evidence
+      and command equality; never hand-edit or bypass the lock gate.
+    tags:
+    - plan-lock
+    - red-evidence
+    - planning-hygiene
+    - maid-runner-feedback
+    paths:
+    - .maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json
+    - .maid/plan-locks/095-05-complete-profile-guidance-and-archive-adoption-epics.lock.json
+    - .maid/plan-locks/097-01-export-local-maid-feedback-bundle.lock.json
+  review_notes:
+  - source: independent-review-subagent-review_097_04_implementation
+    severity: ready
+    summary: No actionable findings; independently confirmed exact child
+      inventory, preserved privacy and authority boundaries, valid historical
+      lock revisions, focused tests, implementation validation, and task-scoped
+      verification. Residual phrase-based boundary coverage is proportionate for
+      an archive pointer.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/097-04-archive-completed-cross-repository-feedback-epic.manifest.yaml
+    status: passed
+    summary: Both declared validation commands passed; the focused inventory
+      suite reported 3 passed tests and the archived epic schema was valid.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: Repository validation passed 397 active manifests with zero
+      failures; 109 superseded manifests were skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - coherence
+    status: passed
+    summary: All coherence checks passed with zero errors; 405 existing
+      advisory warnings remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --plan-lock-scope
+    - task
+    - --since
+    - HEAD
+    status: passed
+    summary: All eight task-scoped verification stages passed with zero
+      blocking findings and two deduplicated non-code-validator warnings.
