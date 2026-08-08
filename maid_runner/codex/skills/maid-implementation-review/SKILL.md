@@ -210,6 +210,20 @@ insights or the index is unavailable, capture proceeds with the agent's
 best-fit lesson_type and the unavailable vocabulary evidence should be noted
 as advisory context only.
 
+### MAID Runner Feedback Candidates
+
+Adding the exact, case-sensitive `maid-runner-feedback` tag must be an explicit
+per-lesson decision. Use it only for an individual lesson about generalizable
+MAID Runner behavior, validation, CLI behavior, packaging, or MAID workflow.
+The reviewer must not infer candidacy from lesson text, paths, error codes, or
+other tags, and must not blanket-mark every MAID-adjacent lesson.
+
+Do not mark application-specific findings or summaries containing secrets,
+credentials, personal data, or proprietary details. Inspect the authored
+Outcome summary before adding the marker and edit or omit unsafe details at the
+source. The marker makes the lesson a local export candidate; it is not consent
+to upload, submit, or publish the lesson.
+
 ### Manifest Outcome Record Check
 
 After the review verdict is ready, check related completed Outcome records to
