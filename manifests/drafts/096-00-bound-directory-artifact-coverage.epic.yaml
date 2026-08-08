@@ -1,0 +1,61 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Bound directory-wide artifact-coverage execution without weakening per-manifest runtime evidence"
+type: refactor
+created: "2026-08-08T07:23:53+08:00"
+metadata:
+  status: planning
+  priority: high
+  tags:
+    - performance
+    - artifact-coverage
+    - strict-delta
+    - validation-trust
+description: |
+  Directory-wide artifact coverage currently calls run_artifact_coverage once
+  for every active manifest with Python targets. Each call launches that
+  manifest's pytest-shaped validate commands independently. On the current 390
+  active manifests, 316 have coverage targets and contribute 338 pytest command
+  occurrences. Fifty-four are exact duplicates, including twenty copies of
+  `pytest tests/ -v`. After 062-06 repaired the warning prerequisite, the real
+  strict-delta run remained in coverage subprocesses after six minutes.
+
+  Close the amplification incrementally. The first child groups only identical
+  normalized command tuples, executes each once with the union of the declaring
+  manifests' target files, and maps the shared runtime evidence back into
+  deterministic per-manifest reports. Different command arguments remain
+  separate. Future children require fresh measurements after 096-01; do not
+  assume compatible-command batching, cross-invocation caching, or parallelism
+  is still necessary.
+
+  Planned child order:
+
+  1. `096-01-deduplicate-identical-artifact-coverage-commands` - remove exact
+     duplicate subprocesses while preserving E307/E710/E900 behavior and
+     per-manifest result ordering.
+temptations:
+  - risk: "Do not skip artifact coverage for broad or repeated test commands to make strict-delta finish."
+    instead: "Execute each exact command group once and retain runtime evidence for every declared target."
+  - risk: "Do not share one aggregate pass/fail result across manifests."
+    instead: "Evaluate the shared execution data against each manifest's original targets and return separate reports in chain order."
+  - risk: "Do not batch commands with different pytest options in the first child."
+    instead: "Key groups by the exact normalized pytest argument tuple; require fresh evidence and a new child before widening compatibility."
+  - risk: "Do not add a process-global or disk cache."
+    instead: "Keep all grouping and execution data bounded to one directory-wide CLI invocation."
+files:
+  create:
+    - path: manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _bounded_directory_artifact_coverage_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for measured, fail-closed directory-wide artifact-coverage speedups."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/cli/commands/verify.py
+validate:
+  - uv run maid validate manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml --mode schema --quiet

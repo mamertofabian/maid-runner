@@ -6,6 +6,7 @@ import ast
 import json
 import sys
 import tempfile
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -105,6 +106,202 @@ def run_artifact_coverage(
         findings=tuple(findings),
         errors=tuple(command_errors + report_errors + execution_errors),
     )
+
+
+def run_artifact_coverage_batch(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+) -> dict[str, ArtifactCoverageReport]:
+    """Run shared pytest commands once and return per-manifest reports."""
+    ordered_manifests = list(manifests)
+    if not coverage_is_available():
+        return {
+            manifest.source_path: _coverage_unavailable_report()
+            for manifest in ordered_manifests
+        }
+
+    root = Path(project_root)
+    targets_by_manifest = {
+        manifest.source_path: _coverage_targets(manifest, root)
+        for manifest in ordered_manifests
+    }
+    commands_by_manifest: dict[str, list[tuple[tuple[str, ...], tuple[str, ...]]]] = {}
+    target_files_by_command: dict[tuple[str, ...], set[str]] = {}
+
+    for manifest in ordered_manifests:
+        targets = targets_by_manifest[manifest.source_path]
+        command_entries: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+        if targets:
+            target_files = {
+                str((root / file_path).resolve()) for file_path, _artifact in targets
+            }
+            for command in manifest.validate_commands:
+                pytest_args = _pytest_args(command)
+                if pytest_args is None:
+                    continue
+                command_entries.append((pytest_args, command))
+                target_files_by_command.setdefault(pytest_args, set()).update(
+                    target_files
+                )
+        commands_by_manifest[manifest.source_path] = command_entries
+
+    command_runs = {
+        pytest_args: _run_shared_coverage_command(
+            pytest_args,
+            target_files=target_files,
+            root=root,
+        )
+        for pytest_args, target_files in target_files_by_command.items()
+    }
+
+    reports: dict[str, ArtifactCoverageReport] = {}
+    for manifest in ordered_manifests:
+        manifest_path = manifest.source_path
+        targets = targets_by_manifest[manifest_path]
+        command_entries = commands_by_manifest[manifest_path]
+        if not targets:
+            reports[manifest_path] = ArtifactCoverageReport(findings=(), errors=())
+            continue
+        if not command_entries:
+            reports[manifest_path] = run_artifact_coverage(manifest, root)
+            continue
+
+        command_errors: list[ValidationError] = []
+        report_errors: list[ValidationError] = []
+        execution_data: dict[str, _CoverageFileExecution] = {}
+        for pytest_args, original_command in command_entries:
+            command_run = command_runs[pytest_args]
+            if command_run.returncode != 0:
+                command_errors.append(
+                    _coverage_command_error(
+                        original_command,
+                        stdout=command_run.stdout,
+                        stderr=command_run.stderr,
+                    )
+                )
+            if command_run.report_errors and not report_errors:
+                report_errors.extend(command_run.report_errors)
+            _merge_execution_data(execution_data, command_run.execution_data)
+
+        if report_errors:
+            execution_data = {}
+        findings, execution_errors = _evaluate_targets(
+            root,
+            targets,
+            execution_data,
+        )
+        reports[manifest_path] = ArtifactCoverageReport(
+            findings=tuple(findings),
+            errors=tuple(command_errors + report_errors + execution_errors),
+        )
+    return reports
+
+
+def _coverage_unavailable_report() -> ArtifactCoverageReport:
+    return ArtifactCoverageReport(
+        findings=(),
+        errors=(
+            ValidationError(
+                code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
+                message=(
+                    "Artifact coverage requires coverage.py from the quality "
+                    "extra; install maid-runner[quality]."
+                ),
+                severity=no_validator_severity("coverage.py"),
+            ),
+        ),
+    )
+
+
+@dataclass(frozen=True)
+class _SharedCoverageCommandRun:
+    returncode: int
+    stdout: str
+    stderr: str
+    execution_data: dict[str, "_CoverageFileExecution"]
+    report_errors: tuple[ValidationError, ...]
+
+
+def _run_shared_coverage_command(
+    pytest_args: tuple[str, ...],
+    *,
+    target_files: set[str],
+    root: Path,
+) -> _SharedCoverageCommandRun:
+    import subprocess
+
+    with tempfile.TemporaryDirectory(prefix="maid-artifact-coverage-batch-") as tmp:
+        tmp_path = Path(tmp)
+        data_file = tmp_path / ".coverage"
+        call_file = tmp_path / "calls.json"
+        runner = _coverage_runner_script(tmp_path)
+        target_file = tmp_path / "target_files.json"
+        target_file.write_text(json.dumps(sorted(target_files)))
+        proc = subprocess.run(
+            (
+                sys.executable,
+                "-m",
+                "coverage",
+                "run",
+                "--data-file",
+                str(data_file),
+                str(runner),
+                str(call_file),
+                str(target_file),
+                *pytest_args,
+            ),
+            cwd=root,
+            capture_output=True,
+            text=True,
+            env=_test_command_environment(),
+            timeout=300,
+        )
+        coverage_json = tmp_path / "coverage.json"
+        report_errors = _write_coverage_json(data_file, coverage_json)
+        execution_data = (
+            _load_execution_data(coverage_json, call_file) if not report_errors else {}
+        )
+        return _SharedCoverageCommandRun(
+            returncode=proc.returncode,
+            stdout=proc.stdout,
+            stderr=proc.stderr,
+            execution_data=execution_data,
+            report_errors=tuple(report_errors),
+        )
+
+
+def _coverage_command_error(
+    command: tuple[str, ...],
+    *,
+    stdout: str,
+    stderr: str,
+) -> ValidationError:
+    return ValidationError(
+        code=ErrorCode.INTERNAL_ERROR,
+        message=f"Artifact coverage validate command failed: {' '.join(command)}",
+        suggestion=(stderr or stdout).strip()[-500:] or None,
+    )
+
+
+def _merge_execution_data(
+    destination: dict[str, "_CoverageFileExecution"],
+    source: dict[str, "_CoverageFileExecution"],
+) -> None:
+    # The single-manifest runner appends line coverage across commands while
+    # each command overwrites calls.json. Preserve that behavior so one-line
+    # artifacts receive the same result from the batch and legacy paths.
+    for execution in destination.values():
+        execution.called_qualnames.clear()
+    for file_path, execution in source.items():
+        existing = destination.get(file_path)
+        if existing is None:
+            destination[file_path] = _CoverageFileExecution(
+                executed_lines=set(execution.executed_lines),
+                called_qualnames=set(execution.called_qualnames),
+            )
+            continue
+        existing.executed_lines.update(execution.executed_lines)
+        existing.called_qualnames.update(execution.called_qualnames)
 
 
 def _coverage_targets(manifest: Manifest, root: Path) -> list[tuple[str, ArtifactSpec]]:

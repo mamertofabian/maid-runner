@@ -63,12 +63,21 @@ CONSUMED_EPICS = {
         "084-06-add-run-review-enrichment-pipeline.manifest.yaml",
         "084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
     ),
+    "085-00-plan-lock-ceremony-reduction.epic.yaml": (
+        "085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+        "085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml",
+        "085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "085-05-stash-implementation-session-robustness.manifest.yaml",
+        "085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+        "085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+    ),
 }
 
 LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
-    "085-00-plan-lock-ceremony-reduction.epic.yaml",
+    "096-00-bound-directory-artifact-coverage.epic.yaml",
 }
 
 

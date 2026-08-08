@@ -79,19 +79,21 @@ general regression.
 ### R3. Archive consumed or rejected planning epics
 
 - **Priority / lane:** P1, MAID workflow.
-- **Evidence:** Exactly three draft epics still say `status: planning`:
-  062, 064, and 085. All seven 085 children are promoted and carry completed
-  Outcomes, so 085 is consumed. The daemon's 064-01 default-routing experiment
+- **Evidence:** Before this pass, four draft epics said `status: planning`:
+  062, 064, 085, and the newly opened 096 performance roadmap. All seven 085
+  children are promoted and carry completed Outcomes, so 085 is consumed. The
+  daemon's 064-01 default-routing experiment
   failed its benchmark gate and 064-05 was abandoned; the delivered cache,
   protocol, transports, and client children have completed Outcomes. Only 062
-  remains legitimately open because R1 and 062-04 are unresolved.
+  remains legitimately open because R1 and 062-04 are unresolved. The 096
+  roadmap remains live pending fresh post-096-01 artifact-coverage measurements.
 - **Why it matters:** Stale planning records repeatedly cause takeover agents
   to reopen completed work and make the draft inventory untrustworthy.
 - **Owner:** `maid-evolver`.
 - **Closure shape:** Archive 085 as consumed. Close 064 as
   infrastructure-delivered/default-routing-rejected unless a fresh benchmark
   shows a material win; do not revive archived 064 children without that data.
-- **Acceptance:** only 062 remains planning; archive pointers list their
+- **Acceptance:** only 062 and 096 remain planning; archive pointers list their
   completed or rejected children and schema validation passes.
 
 ### R4. Refresh specialist backlogs against v2.25
@@ -453,7 +455,7 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
 - **Owner:** `maid-evolver` (completed; active `files.read` references were
   checked before rewriting, per the 043-03 lesson).
 - **Acceptance criteria:** every fully-consumed epic under `manifests/drafts/`
-  is an archive pointer; only 062 and 064 remain `planning`; schema-mode
+  is an archive pointer; only 062, 064, and 096 remain `planning`; schema-mode
   validation passes; next new draft wave starts at **082** to avoid collisions.
 - **Size/risk:** small / low.
 

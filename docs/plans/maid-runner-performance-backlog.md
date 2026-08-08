@@ -94,6 +94,27 @@ cached path to reuse the chain across these commands. The counterfactual probe
 shows the validate-shaped portion can fall from roughly 166s to roughly 16s
 without weakening validation or changing the declared command set.
 
+## Post-062-06 Strict-Delta Artifact-Coverage Probe
+
+Measured on 2026-08-08 after `062-06` repaired E307 warning classification and
+allowed strict-delta to reach its artifact-coverage fitness function.
+
+| Probe | Result | Evidence |
+| --- | --- | --- |
+| `uv run maid validate --strict-delta --json` | Stopped after 6 minutes | The command was still executing per-manifest coverage subprocesses and had reached `python -m coverage run ... tests/ -v`; before 062-06 the same command returned a false-clean empty delta in about five seconds without running coverage. |
+| Active manifest inventory | 390 active; 316 with Python coverage targets | Directory-wide artifact coverage invokes `run_artifact_coverage` independently for every target-bearing manifest. |
+| Pytest-shaped coverage commands | 338 occurrences; 284 exact command tuples | 54 subprocess executions are exact duplicates before considering overlapping test targets. |
+| Broadest exact duplicate | `pytest tests/ -v` appears 20 times | The current implementation can execute the entire repository suite under coverage twenty times in one strict-delta run. |
+| Two manifests sharing `pytest tests/core/test_test_runner.py -v` | 9.83s total; 5.07s and 5.05s separately | One exact-command execution is roughly half the observed pair cost, establishing a measurable first-slice win without grouping different pytest options. |
+
+The first safe optimization is exact-command deduplication, not general pytest
+batching. For manifests that declare the same normalized pytest command, run it
+once with the union of their target files, then evaluate and return a separate
+`ArtifactCoverageReport` for each manifest in deterministic chain order. A
+failed shared command must still produce E900 for every manifest that declares
+that command. Commands with different argument tuples remain separate in this
+slice, and the single-manifest API remains unchanged.
+
 Immediate workaround: `uv run maid test --jobs 8 --json` reduces wall time to
 1:33.64 in the current checkout, but it does this by running multiple external
 `uv run maid validate` subprocesses concurrently. It uses similar total CPU
@@ -368,6 +389,46 @@ Closure shape:
 Status: implemented as
 `manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml`.
 
+### 7. Directory-wide artifact coverage reruns identical pytest commands per manifest
+
+Files and functions:
+
+- `maid_runner/cli/commands/validate.py::_run_artifact_coverage_by_manifest`
+- `maid_runner/core/artifact_coverage.py::run_artifact_coverage`
+- `maid_runner/core/artifact_coverage.py::_run_coverage_commands`
+- `maid_runner/cli/commands/verify.py::_artifact_coverage_stage`
+
+Evidence:
+
+- 316 active manifests currently have Python artifact-coverage targets.
+- Their validate sections contain 338 pytest-shaped command occurrences but
+  only 284 exact command tuples.
+- `pytest tests/ -v` alone appears on 20 target-bearing manifests, so one
+  directory-wide strict-delta can launch the full suite under coverage twenty
+  times.
+- Two manifests sharing the small
+  `pytest tests/core/test_test_runner.py -v` command took 9.83s sequentially;
+  either individual run took about 5.06s.
+- The real repository strict-delta probe remained inside coverage subprocesses
+  after six minutes and was stopped rather than allowed an unbounded run.
+
+Closure shape:
+
+- Add a directory-wide batch API that groups only identical normalized pytest
+  command tuples and executes each group once with the union of its declared
+  target files.
+- Evaluate the shared runtime evidence against each manifest's original target
+  set and return per-manifest reports in manifest-chain order.
+- Preserve E900 command-failure attribution for every declaring manifest,
+  E710 findings and locations, missing-coverage E307 behavior, and deterministic
+  JSON ordering.
+- Keep different pytest arguments separate. Broader compatible-command batching
+  requires its own measurements and contract.
+- Preserve `run_artifact_coverage` as the single-manifest path.
+
+Status: implemented as
+`manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml`.
+
 ## Speculative Ideas
 
 - Opt-in parallel validation can help only after the caching work above. Running
@@ -394,8 +455,9 @@ Completed:
 
 Next draft:
 
-- None pending from the current performance backlog. Re-benchmark before
-  planning another optimization slice.
+- None pending. Re-measure directory-wide strict-delta after 096-01 before
+  deciding whether compatible-command batching or another bounded child is
+  warranted.
 
 Future draft candidates:
 

@@ -356,14 +356,10 @@ def _run_artifact_coverage_for_manifest_dir(manifest_dir: str, project_root: Pat
 
 def _run_artifact_coverage_by_manifest(manifest_dir: str, project_root: Path):
     from maid_runner.core.chain import get_cached_manifest_chain
+    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
-    return {
-        manifest.source_path: _run_artifact_coverage_for_manifest_path(
-            manifest.source_path, project_root
-        )
-        for manifest in chain.active_manifests()
-    }
+    return run_artifact_coverage_batch(chain.active_manifests(), project_root)
 
 
 def _merge_artifact_coverage_reports(reports):
