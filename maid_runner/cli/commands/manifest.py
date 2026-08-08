@@ -32,7 +32,7 @@ def cmd_manifest(args: argparse.Namespace) -> int:
     return 2
 
 
-def _dump_manifest_yaml(data: dict) -> str:
+def _dump_manifest_yaml(data: dict, *, leading_marker: str | None = None) -> str:
     """Render manifest YAML with human-reviewable string styles.
 
     Multiline strings (descriptions, summaries) render as literal block
@@ -62,6 +62,8 @@ def _dump_manifest_yaml(data: dict) -> str:
         allow_unicode=True,
         width=4096,
     )
+    if leading_marker is not None:
+        rendered = f"{leading_marker}\n{rendered}"
     return prepend_manifest_header(rendered)
 
 
@@ -136,7 +138,10 @@ def _cmd_create(args: argparse.Namespace) -> int:
             print_error(f"Manifest already exists: {output_path}")
             return 2
 
-        output_path.write_text(_dump_manifest_yaml(data))
+        leading_marker = (
+            "# draft-kind: implementation" if "drafts" in output_dir.parts else None
+        )
+        output_path.write_text(_dump_manifest_yaml(data, leading_marker=leading_marker))
         if args.json:
             print(json.dumps({"path": str(output_path)}, indent=2))
         else:

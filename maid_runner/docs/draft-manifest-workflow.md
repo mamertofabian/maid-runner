@@ -22,6 +22,12 @@ manifest chain.
   for context.
 - `manifests/*.manifest.yaml`: promoted, active MAID contracts.
 
+Every child implementation draft must begin with
+`# draft-kind: implementation`. The marker makes its inactive lifecycle
+explicit and prevents root validation from treating the file as a hidden active
+contract. `maid manifest create --output-dir manifests/drafts` adds this marker
+automatically; hand-authored drafts must include it as their first line.
+
 Normal validation and test execution should target promoted manifests in
 `manifests/`. Draft validation is focused on plan quality before promotion.
 Early inventory drafts may reference planned test files that do not exist yet;

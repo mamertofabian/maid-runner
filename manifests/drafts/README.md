@@ -12,6 +12,13 @@ The canonical workflow guide is
 Outcome capture guidance is documented in
 [`docs/manifest-outcome-records.md`](../../docs/manifest-outcome-records.md).
 
+Child implementation drafts must begin with the following marker so normal
+validation recognizes them as intentional inactive planning inventory:
+
+```yaml
+# draft-kind: implementation
+```
+
 Drafts marked with the following comments are epic planning drafts:
 
 ```yaml
