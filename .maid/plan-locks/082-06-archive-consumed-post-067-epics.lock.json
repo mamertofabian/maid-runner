@@ -2,10 +2,10 @@
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
   "manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:8312933e78a674f599c1e024af7b9132af13ca7ea7ba62525c0696417f9175f4"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:079d373a9fdbbaaa3134158ed8e02d47bfb3c25970638d86a2b59b5ef53edd6b"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 16,
+  "revision": 17,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -267,6 +267,23 @@
       },
       "revised_at": "2026-08-08T01:39:54.627769+00:00",
       "reason": "Prove archived 085 marker, do-not-promote instruction, and seven exact child pointers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:8312933e78a674f599c1e024af7b9132af13ca7ea7ba62525c0696417f9175f4"
+      },
+      "revised_at": "2026-08-08T11:37:55.739806+00:00",
+      "reason": "Refresh shared live-epic inventory test after adding planning epic 097",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

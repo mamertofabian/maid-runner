@@ -1,0 +1,399 @@
+{
+  "manifest_path": "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+  "manifest_hash": "sha256-contract:22106fdd70bb2bc6af21601d7775d7fe79f11bcd0848bf1d1d0d4c65de7293a1",
+  "test_hashes": {
+    "tests/test_exact_model_provenance_docs.py": "sha256-pyast:v2:c01b44dd4b74034d9b11adf6712272cd4e385487d8240ba06a14f9f3078a3315",
+    "tests/core/test_feedback_export.py": "sha256-pyast:v2:a93094233db2e823c73300f8037059a43b8cf5a838f1888be78309267f1b06a6",
+    "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:079d373a9fdbbaaa3134158ed8e02d47bfb3c25970638d86a2b59b5ef53edd6b"
+  },
+  "created_at": "2026-08-08T11:37:06.941245+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:22106fdd70bb2bc6af21601d7775d7fe79f11bcd0848bf1d1d0d4c65de7293a1",
+      "prior_test_hashes": {
+        "tests/test_exact_model_provenance_docs.py": "sha256-pyast:v2:c01b44dd4b74034d9b11adf6712272cd4e385487d8240ba06a14f9f3078a3315",
+        "tests/core/test_feedback_export.py": "sha256-pyast:v2:ed9440ee27941fe587758299f0bdff772eef6f97e43eda0aa6c579a009962195",
+        "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:079d373a9fdbbaaa3134158ed8e02d47bfb3c25970638d86a2b59b5ef53edd6b"
+      },
+      "revised_at": "2026-08-08T11:37:46.924162+00:00",
+      "reason": "Recover validated plan lock and original red evidence after temporary worktree cleanup",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T11:37:47.457226+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_feedback_export.py tests/cli/test_feedback_cmd.py tests/core/test_draft_epic_archive_inventory.py tests/test_exact_model_provenance_docs.py",
+        "exit_code": 1,
+        "output_tail": ">       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...ge.epic.yaml'} == {'062-00-stri...ck.epic.yaml'}\nE         \nE         Extra items in the right set:\nE         '097-00-cross-repository-maid-feedback.epic.yaml'\nE         Use -v to get more diff\n\ntests/core/test_draft_epic_archive_inventory.py:122: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_feedback_export.py::test_build_feedback_bundle_selects_only_exactly_marked_lessons\nFAILED tests/core/test_feedback_export.py::test_build_feedback_bundle_deduplicates_sources_and_unions_evidence\nFAILED tests/core/test_feedback_export.py::test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite\nFAILED tests/core/test_feedback_export.py::test_write_feedback_bundle_emits_stable_empty_bundle\nFAILED tests/cli/test_feedback_cmd.py::test_feedback_parser_registers_local_export_without_submission\nFAILED tests/cli/test_feedback_cmd.py::test_feedback_export_writes_bundle_and_requires_authored_text_review\nFAILED tests/cli/test_feedback_cmd.py::test_feedback_export_rejects_stale_index_unless_explicitly_allowed\nFAILED tests/cli/test_feedback_cmd.py::test_feedback_export_preserves_existing_output_unless_force_is_explicit\nFAILED tests/cli/test_feedback_cmd.py::test_feedback_export_rejects_missing_or_malformed_index\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n10 failed, 4 passed in 0.33s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback:kind=function",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback:returns=int",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.exported_with_version",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.exported_with_version:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.exported_with_version:of=FeedbackBundle",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.exported_with_version:type=str",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.records",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.records:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.records:of=FeedbackBundle",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.records:type=tuple[FeedbackRecord, ...]",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.schema_version",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.schema_version:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.schema_version:of=FeedbackBundle",
+      "maid_runner/core/feedback.py:attribute:FeedbackBundle.schema_version:type=str",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.feedback_id",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.feedback_id:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.feedback_id:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.feedback_id:type=str",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.lesson_type",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.lesson_type:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.lesson_type:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.lesson_type:type=str",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.outcome_statuses",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.outcome_statuses:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.outcome_statuses:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.outcome_statuses:type=tuple[str, ...]",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.review_severities",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.review_severities:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.review_severities:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.review_severities:type=tuple[str, ...]",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.source_count",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.source_count:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.source_count:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.source_count:type=int",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.summary",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.summary:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.summary:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.summary:type=str",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.validation_statuses",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.validation_statuses:kind=attribute",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.validation_statuses:of=FeedbackRecord",
+      "maid_runner/core/feedback.py:attribute:FeedbackRecord.validation_statuses:type=tuple[str, ...]",
+      "maid_runner/core/feedback.py:class:FeedbackBundle",
+      "maid_runner/core/feedback.py:class:FeedbackBundle:kind=class",
+      "maid_runner/core/feedback.py:class:FeedbackRecord",
+      "maid_runner/core/feedback.py:class:FeedbackRecord:kind=class",
+      "maid_runner/core/feedback.py:function:build_feedback_bundle",
+      "maid_runner/core/feedback.py:function:build_feedback_bundle:arg=index:type=OutcomeIndex:default=None",
+      "maid_runner/core/feedback.py:function:build_feedback_bundle:arg=runner_version:type=str:default=None",
+      "maid_runner/core/feedback.py:function:build_feedback_bundle:kind=function",
+      "maid_runner/core/feedback.py:function:build_feedback_bundle:returns=FeedbackBundle",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle:arg=bundle:type=FeedbackBundle:default=None",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle:arg=overwrite:type=bool:default=False",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle:kind=function",
+      "maid_runner/core/feedback.py:function:write_feedback_bundle:returns=None",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_preserves_existing_output_unless_force_is_explicit",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_preserves_existing_output_unless_force_is_explicit:kind=test_function",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_preserves_existing_output_unless_force_is_explicit:returns=None",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_missing_or_malformed_index",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_missing_or_malformed_index:kind=test_function",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_missing_or_malformed_index:returns=None",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_stale_index_unless_explicitly_allowed",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_stale_index_unless_explicitly_allowed:kind=test_function",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_rejects_stale_index_unless_explicitly_allowed:returns=None",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_writes_bundle_and_requires_authored_text_review",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_writes_bundle_and_requires_authored_text_review:kind=test_function",
+      "tests/cli/test_feedback_cmd.py:test_feedback_export_writes_bundle_and_requires_authored_text_review:returns=None",
+      "tests/cli/test_feedback_cmd.py:test_feedback_parser_registers_local_export_without_submission",
+      "tests/cli/test_feedback_cmd.py:test_feedback_parser_registers_local_export_without_submission:kind=test_function",
+      "tests/cli/test_feedback_cmd.py:test_feedback_parser_registers_local_export_without_submission:returns=None",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_deduplicates_sources_and_unions_evidence",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_deduplicates_sources_and_unions_evidence:kind=test_function",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_deduplicates_sources_and_unions_evidence:returns=None",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_selects_only_exactly_marked_lessons",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_selects_only_exactly_marked_lessons:kind=test_function",
+      "tests/core/test_feedback_export.py:test_build_feedback_bundle_selects_only_exactly_marked_lessons:returns=None",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_emits_stable_empty_bundle",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_emits_stable_empty_bundle:kind=test_function",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_emits_stable_empty_bundle:returns=None",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite:kind=test_function",
+      "tests/core/test_feedback_export.py:test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/feedback.py",
+        "maid_runner/core/feedback.py",
+        "tests/cli/test_feedback_cmd.py",
+        "tests/core/test_feedback_export.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/__version__.py",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/core/types.py",
+        "manifests/047-03-add-maid-learn-outcome-index.manifest.yaml",
+        "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+        "manifests/071-02-add-dpo-export.manifest.yaml",
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "tests/test_exact_model_provenance_docs.py"
+      ],
+      "scope": [
+        "README.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "tests/core/test_draft_epic_archive_inventory.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/feedback.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "FeedbackRecord",
+              "description": "Frozen, source-anonymous exact-lesson aggregate."
+            },
+            {
+              "kind": "attribute",
+              "name": "feedback_id",
+              "of": "FeedbackRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "lesson_type",
+              "of": "FeedbackRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "summary",
+              "of": "FeedbackRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "source_count",
+              "of": "FeedbackRecord",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "outcome_statuses",
+              "of": "FeedbackRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "validation_statuses",
+              "description": "Generic values only; unknown free-form values collapse to `other`.",
+              "of": "FeedbackRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "review_severities",
+              "description": "Generic values only; unknown free-form values collapse to `other`.",
+              "of": "FeedbackRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "class",
+              "name": "FeedbackBundle",
+              "description": "Versioned deterministic local export of explicitly selected lessons."
+            },
+            {
+              "kind": "attribute",
+              "name": "schema_version",
+              "of": "FeedbackBundle",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "exported_with_version",
+              "of": "FeedbackBundle",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "records",
+              "of": "FeedbackBundle",
+              "type": "tuple[FeedbackRecord, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "build_feedback_bundle",
+              "description": "Select exact tagged lessons, deduplicate exact content across distinct manifests, and return bounded evidence aggregates.",
+              "args": [
+                {
+                  "name": "index",
+                  "type": "OutcomeIndex"
+                },
+                {
+                  "name": "runner_version",
+                  "type": "str"
+                }
+              ],
+              "returns": "FeedbackBundle"
+            },
+            {
+              "kind": "function",
+              "name": "write_feedback_bundle",
+              "description": "Write stable JSON, create parent directories, and preserve existing output by default.",
+              "args": [
+                {
+                  "name": "bundle",
+                  "type": "FeedbackBundle"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "overwrite",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/feedback.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_feedback",
+              "description": "Handle local export, fail-closed checks, result rendering, and the authored-text review notice.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_feedback_export.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_build_feedback_bundle_selects_only_exactly_marked_lessons",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_build_feedback_bundle_deduplicates_sources_and_unions_evidence",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_write_feedback_bundle_emits_stable_empty_bundle",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_feedback_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_feedback_parser_registers_local_export_without_submission",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_export_writes_bundle_and_requires_authored_text_review",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_export_rejects_stale_index_unless_explicitly_allowed",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_export_preserves_existing_output_unless_force_is_explicit",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_export_rejects_missing_or_malformed_index",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "manifests/047-03-add-maid-learn-outcome-index.manifest.yaml",
+        "manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml",
+        "manifests/071-02-add-dpo-export.manifest.yaml",
+        "maid_runner/__version__.py",
+        "maid_runner/core/outcomes.py",
+        "maid_runner/core/types.py",
+        "maid_runner/cli/commands/insights.py",
+        "tests/test_exact_model_provenance_docs.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register and dispatch the feedback export command."
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "reason": "Document candidate tagging, bundle omissions, inspection, and local-only behavior."
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "reason": "Keep the packaged Outcome workflow document synchronized."
+        },
+        {
+          "path": "README.md",
+          "reason": "List the local-only CLI command."
+        },
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "reason": "Register the 097 roadmap as a live planning epic."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_feedback_cmd.py",
+      "tests/core/test_draft_epic_archive_inventory.py",
+      "tests/core/test_feedback_export.py",
+      "tests/test_exact_model_provenance_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_feedback_export.py tests/cli/test_feedback_cmd.py tests/core/test_draft_epic_archive_inventory.py tests/test_exact_model_provenance_docs.py"
+    ]
+  }
+}

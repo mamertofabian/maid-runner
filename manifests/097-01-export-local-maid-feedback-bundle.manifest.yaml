@@ -1,0 +1,246 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Export explicitly marked downstream Outcome lessons as a deterministic, privacy-bounded local MAID Runner feedback bundle"
+type: feature
+created: "2026-08-08T10:38:27Z"
+metadata:
+  epic: 097-00-cross-repository-maid-feedback
+  priority: high
+  tags:
+    - outcome-records
+    - feedback
+    - cli
+    - privacy
+    - self-improvement
+description: |
+  Add the first local-only bridge between downstream Outcome records and MAID
+  Runner self-improvement. `maid feedback export` consumes an existing Outcome
+  index and selects only lessons carrying the exact case-sensitive
+  `maid-runner-feedback` tag.
+
+  The version-1 bundle contains the exporting Runner version and exact-content
+  aggregates with a stable ID, lesson type, user-authored summary, distinct
+  source count, Outcome statuses, validation statuses, and review severities.
+  It omits repository and manifest identity, paths, artifacts, commands,
+  evidence prose, timestamps, provenance, fingerprints, and lesson tags.
+  Because validation statuses and review severities are free-form upstream,
+  only documented generic values survive; unknown values collapse to `other`.
+
+  Authored lesson summaries cannot be assumed anonymous, so every successful
+  export visibly requires inspection before sharing. Export writes only to the
+  local filesystem, preserves existing output unless `--force` is explicit,
+  and rejects stale indexes unless `--allow-stale-index` is explicit. Network
+  submission, ingestion, automatic tagging, summary rewriting, and automatic
+  backlog mutation remain out of scope.
+temptations:
+  - risk: "Do not infer candidates from generic lesson types, summaries, paths, error codes, or model output."
+    instead: "Select only lessons containing the exact case-sensitive `maid-runner-feedback` tag and pin positive and negative cases."
+  - risk: "Do not serialize the Outcome index and remove only obvious identity keys."
+    instead: "Build records from an explicit field allowlist and normalize arbitrary status and severity strings before serialization."
+  - risk: "Do not claim user-authored summaries are sanitized or suppress the review notice in JSON mode."
+    instead: "Preserve the selected summary verbatim and emit a machine-readable and human-readable inspection notice."
+  - risk: "Do not overwrite output or bypass stale-index detection implicitly."
+    instead: "Fail loudly unless `--force` or `--allow-stale-index` is explicit."
+  - risk: "Do not add submission, telemetry, issue creation, or automatic self-improvement mutation."
+    instead: "Keep this child local-only and defer governed transport and intake to separate contracts."
+files:
+  create:
+    - path: maid_runner/core/feedback.py
+      artifacts:
+        - kind: class
+          name: FeedbackRecord
+          description: "Frozen, source-anonymous exact-lesson aggregate."
+        - kind: attribute
+          name: feedback_id
+          of: FeedbackRecord
+          type: str
+        - kind: attribute
+          name: lesson_type
+          of: FeedbackRecord
+          type: str
+        - kind: attribute
+          name: summary
+          of: FeedbackRecord
+          type: str
+        - kind: attribute
+          name: source_count
+          of: FeedbackRecord
+          type: int
+        - kind: attribute
+          name: outcome_statuses
+          of: FeedbackRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: validation_statuses
+          of: FeedbackRecord
+          type: tuple[str, ...]
+          description: "Generic values only; unknown free-form values collapse to `other`."
+        - kind: attribute
+          name: review_severities
+          of: FeedbackRecord
+          type: tuple[str, ...]
+          description: "Generic values only; unknown free-form values collapse to `other`."
+        - kind: class
+          name: FeedbackBundle
+          description: "Versioned deterministic local export of explicitly selected lessons."
+        - kind: attribute
+          name: schema_version
+          of: FeedbackBundle
+          type: str
+        - kind: attribute
+          name: exported_with_version
+          of: FeedbackBundle
+          type: str
+        - kind: attribute
+          name: records
+          of: FeedbackBundle
+          type: tuple[FeedbackRecord, ...]
+        - kind: function
+          name: build_feedback_bundle
+          args:
+            - name: index
+              type: OutcomeIndex
+            - name: runner_version
+              type: str
+          returns: FeedbackBundle
+          description: "Select exact tagged lessons, deduplicate exact content across distinct manifests, and return bounded evidence aggregates."
+        - kind: function
+          name: write_feedback_bundle
+          args:
+            - name: bundle
+              type: FeedbackBundle
+            - name: output_path
+              type: Union[str, Path]
+            - name: overwrite
+              type: bool
+              default: "False"
+          returns: None
+          description: "Write stable JSON, create parent directories, and preserve existing output by default."
+    - path: maid_runner/cli/commands/feedback.py
+      artifacts:
+        - kind: function
+          name: cmd_feedback
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Handle local export, fail-closed checks, result rendering, and the authored-text review notice."
+    - path: tests/core/test_feedback_export.py
+      artifacts:
+        - kind: test_function
+          name: test_build_feedback_bundle_selects_only_exactly_marked_lessons
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_build_feedback_bundle_deduplicates_sources_and_unions_evidence
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_write_feedback_bundle_omits_repository_identifiers_and_refuses_overwrite
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_write_feedback_bundle_emits_stable_empty_bundle
+          args: []
+          returns: None
+    - path: tests/cli/test_feedback_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_feedback_parser_registers_local_export_without_submission
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_feedback_export_writes_bundle_and_requires_authored_text_review
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_feedback_export_rejects_stale_index_unless_explicitly_allowed
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_feedback_export_preserves_existing_output_unless_force_is_explicit
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_feedback_export_rejects_missing_or_malformed_index
+          args: []
+          returns: None
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Register and dispatch the feedback export command."
+    - path: docs/manifest-outcome-records.md
+      reason: "Document candidate tagging, bundle omissions, inspection, and local-only behavior."
+    - path: maid_runner/docs/manifest-outcome-records.md
+      reason: "Keep the packaged Outcome workflow document synchronized."
+    - path: README.md
+      reason: "List the local-only CLI command."
+    - path: tests/core/test_draft_epic_archive_inventory.py
+      reason: "Register the 097 roadmap as a live planning epic."
+  read:
+    - manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+    - manifests/047-03-add-maid-learn-outcome-index.manifest.yaml
+    - manifests/047-05-add-maid-insights-outcome-aggregation.manifest.yaml
+    - manifests/071-02-add-dpo-export.manifest.yaml
+    - maid_runner/__version__.py
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/types.py
+    - maid_runner/cli/commands/insights.py
+    - tests/test_exact_model_provenance_docs.py
+validate:
+  - uv run python -m pytest -q tests/core/test_feedback_export.py tests/cli/test_feedback_cmd.py tests/core/test_draft_epic_archive_inventory.py tests/test_exact_model_provenance_docs.py
+outcome:
+  status: completed
+  completed_at: "2026-08-08T11:05:20Z"
+  summary: "Added local-only `maid feedback export` with exact tagging, deterministic source-anonymous JSON, fail-closed index/output handling, and required inspection before voluntary sharing."
+  rationale: "This provides the first bridge from any MAID-enabled repository toward MAID Runner improvement without telemetry, network submission, or automatic mutation."
+  lessons:
+    - lesson_type: privacy
+      summary: "A structural export allowlist is insufficient when an allowed upstream field is free-form; generic status and severity vocabularies must normalize unknown values before serialization."
+      tags:
+        - maid-runner-feedback
+        - privacy-boundary
+        - outcome-export
+      paths:
+        - maid_runner/core/feedback.py
+        - tests/core/test_feedback_export.py
+    - lesson_type: test-design
+      summary: "Privacy tests should seed sensitive values through every exported field category and assert absence from the complete serialized payload."
+      tags:
+        - privacy-testing
+        - behavioral-contract
+      paths:
+        - tests/core/test_feedback_export.py
+    - lesson_type: workflow
+      summary: "Adding a live epic to a shared exact-inventory test can invalidate older locks; refresh them through sanctioned revision while preserving valid red evidence."
+      tags:
+        - plan-lock
+        - shared-tests
+      paths:
+        - tests/core/test_draft_epic_archive_inventory.py
+  review_notes:
+    - source: independent-implementation-review
+      severity: ready
+      summary: "Initial read-only review found the implementation aligned with the contract."
+    - source: final-privacy-self-review
+      severity: blocking-fixed
+      summary: "Self-review found arbitrary statuses and severities could cross the allowlist; a red privacy case and bounded-value fix closed it."
+    - source: independent-privacy-re-review
+      severity: ready
+      summary: "Fresh read-only review confirmed the leak was closed and found no remaining issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_feedback_export.py, tests/cli/test_feedback_cmd.py, tests/core/test_draft_epic_archive_inventory.py, tests/test_exact_model_provenance_docs.py]
+      status: passed
+      summary: "All 14 focused tests passed."
+    - command: [uv, run, maid, validate, manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against the locked contract."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "Repository audit passed all 393 active manifests; none failed."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 408c31754340eead8eb2ad3f4bb0411f51d53f81]
+      status: failed-unrelated
+      summary: "Eight handoff stages passed; the test stage remained blocked by seven untouched failures reproduced at the exact base commit."

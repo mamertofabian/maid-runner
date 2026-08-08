@@ -78,6 +78,7 @@ LIVE_PLANNING_EPICS = {
     "062-00-strict-by-default-validation-gates.epic.yaml",
     "064-00-daemon-first-agent-validation.epic.yaml",
     "096-00-bound-directory-artifact-coverage.epic.yaml",
+    "097-00-cross-repository-maid-feedback.epic.yaml",
 }
 
 

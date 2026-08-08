@@ -107,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_learn_parser(sub)
     _register_recall_parser(sub)
     _register_insights_parser(sub)
+    _register_feedback_parser(sub)
     _register_enrich_parser(sub)
     _register_evaluate_parser(sub)
     _register_benchmark_parser(sub)
@@ -1032,6 +1033,49 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--json", action="store_true", help="Print insights as JSON")
 
 
+def _register_feedback_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "feedback",
+        help="Export explicit Outcome lessons for MAID Runner feedback",
+    )
+    fsub = p.add_subparsers(dest="feedback_command")
+    export = fsub.add_parser(
+        "export",
+        help="Write a privacy-bounded local feedback bundle",
+    )
+    export.add_argument(
+        "--index",
+        default=".maid/outcomes.json",
+        help="Outcome index containing explicitly marked lessons",
+    )
+    export.add_argument(
+        "--output",
+        required=True,
+        help="Local JSON feedback bundle path",
+    )
+    export.add_argument(
+        "--manifest-dir",
+        default=None,
+        help="Manifest directory used for staleness checks",
+    )
+    export.add_argument(
+        "--project-root",
+        default=None,
+        help="Project root used to resolve manifest-relative paths",
+    )
+    export.add_argument(
+        "--allow-stale-index",
+        action="store_true",
+        help="Export from the index even when source manifests changed",
+    )
+    export.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing local output file",
+    )
+    export.add_argument("--json", action="store_true", help="Print result as JSON")
+
+
 def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser(
         "enrich",
@@ -1648,6 +1692,7 @@ def main(argv: list[str] | None = None) -> int:
         "learn": "_cmd_learn",
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
+        "feedback": "_cmd_feedback",
         "enrich": "_cmd_enrich",
         "evaluate": "_cmd_evaluate",
         "benchmark": "_cmd_benchmark",
@@ -1687,6 +1732,7 @@ def main(argv: list[str] | None = None) -> int:
         learn as learn_mod,
         recall as recall_mod,
         insights as insights_mod,
+        feedback as feedback_mod,
         enrich as enrich_mod,
         evaluate as evaluate_mod,
         benchmark as benchmark_mod,
@@ -1720,6 +1766,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
+        "_cmd_feedback": feedback_mod.cmd_feedback,
         "_cmd_enrich": enrich_mod.cmd_enrich,
         "_cmd_evaluate": evaluate_mod.cmd_evaluate,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,

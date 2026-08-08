@@ -158,6 +158,45 @@ refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
 `.maid/outcomes.json` is generated and ignored; do not commit it. If
 `maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
 
+## Local MAID Runner Feedback Export
+
+A repository may mark an individual Outcome lesson as a candidate for MAID
+Runner's own improvement process by adding the exact, case-sensitive
+`maid-runner-feedback` tag:
+
+```yaml
+outcome:
+  status: completed
+  summary: "Implementation completed after review."
+  lessons:
+    - lesson_type: validation-gap
+      summary: "E707 cannot represent the legitimate wrapper command used here."
+      tags:
+        - maid-runner-feedback
+```
+
+After refreshing the local Outcome index, export marked lessons to a local JSON
+bundle:
+
+```bash
+maid learn
+maid feedback export --output maid-feedback.json
+```
+
+Export is deterministic and local-only. It does not upload data or create an
+issue. The bundle omits repository roots, manifest identities, paths,
+artifacts, commands, review prose, timestamps, agent provenance, and lesson
+tags. It retains the lesson type and the user-authored summary because those
+are the feedback itself, so structural omission does not make the bundle
+anonymous. Inspect and edit the source Outcome summary when necessary before
+sharing the exported file.
+
+The marker identifies a candidate; it is not consent to submit or publish it.
+Unmarked lessons stay local, and MAID does not infer candidates from their
+text, paths, error codes, or enrichment hypotheses. Imported feedback remains
+advisory evidence and must be reproduced against the current MAID Runner tree
+before it can become implementation work.
+
 ## Advisory Enrichment Artifacts
 
 `maid enrich` provides deterministic support for optional Outcome enrichment.

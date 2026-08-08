@@ -1,0 +1,82 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Let MAID-enabled repositories contribute explicit, privacy-bounded Outcome lessons to MAID Runner's governed self-improvement loop"
+type: feature
+created: "2026-08-08T18:05:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  tags:
+    - outcome-records
+    - feedback
+    - self-improvement
+    - privacy
+    - developer-experience
+description: |
+  MAID already preserves reviewed Outcome lessons and aggregates them within a
+  repository, but there is no deterministic bridge from a downstream
+  repository to MAID Runner's own improvement process. This roadmap adds that
+  bridge without hidden telemetry or automatic self-modification.
+
+  The local repository remains the authority over what becomes a feedback
+  candidate. A lesson is eligible only when its explicit tags contain the
+  reserved `maid-runner-feedback` marker. The first child exports those
+  candidates into a structurally minimized, local JSON bundle that omits
+  repository roots, manifest identities, paths, artifacts, commands, review
+  prose, timestamps, agent provenance, and arbitrary non-selector tags. The
+  lesson summary remains user-authored text and therefore cannot be guaranteed
+  anonymous; the CLI must tell the user to inspect it before sharing.
+
+  Planned child order:
+
+  1. `097-01-export-local-maid-feedback-bundle` - select explicitly tagged
+     Outcome lessons and write a stable local-only feedback bundle with no
+     network transport.
+  2. `097-02-validate-and-aggregate-maid-feedback-bundles` - in a separate
+     contract, read one or more versioned bundles, validate them fail-closed,
+     deduplicate exact lesson evidence across repositories, and produce a
+     deterministic intake report without restoring source identities.
+  3. `097-03-route-confirmed-feedback-into-self-improvement` - teach the
+     self-improvement workflow and distributed Outcome-capture guidance how to
+     mark appropriate candidates, review aggregated evidence, reproduce it on
+     the current MAID Runner tree, and route confirmed findings to specialist
+     planning lanes.
+
+  Network submission is deliberately not a planned implementation child.
+  Adding `maid feedback submit`, background upload, or automatic issue creation
+  requires a separate privacy/security specification covering consent,
+  destination ownership, authentication, retention, deletion, licensing,
+  abuse handling, and service availability. Imported feedback remains
+  advisory evidence: it cannot create manifests, change validation policy, or
+  modify code automatically.
+temptations:
+  - risk: "Do not classify every Outcome lesson as MAID Runner feedback using keywords, paths, model inference, or loose tags."
+    instead: "Require the exact `maid-runner-feedback` lesson tag and leave every unmarked lesson local."
+  - risk: "Do not call a local export anonymous while retaining source manifest slugs, paths, commands, tags, timestamps, or provenance."
+    instead: "Use a dedicated minimized bundle schema and test serialized output against repository-identifying source fields."
+  - risk: "Do not treat exporting a file as consent to upload it."
+    instead: "Keep the 097 children local-only; require a separate reviewed specification before adding any transport."
+  - risk: "Do not turn repeated downstream reports directly into code changes or validator exceptions."
+    instead: "Aggregate and rank reports as advisory evidence, then reproduce each candidate on the current tree before self-improvement planning."
+  - risk: "Do not combine bundle export, cross-repository aggregation, skill distribution, and remote submission in one implementation manifest."
+    instead: "Promote implementation-sized children in order and review each privacy boundary independently."
+files:
+  create:
+    - path: manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _cross_repository_maid_feedback_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for explicit local export, deterministic aggregation, and governed MAID Runner self-improvement intake."
+  read:
+    - maid_runner/docs/manifest-outcome-records.md
+    - maid_runner/core/outcomes.py
+    - maid_runner/core/outcome_insights.py
+    - maid_runner/core/incidents.py
+    - manifests/drafts/047-00-maid-manifest-outcome-learning.epic.yaml
+    - manifests/drafts/071-00-gaming-incident-flywheel.epic.yaml
+    - manifests/083-07-add-improvement-hypotheses-channel.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml --mode schema --quiet
