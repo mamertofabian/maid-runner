@@ -1,0 +1,346 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Make strict-preview and strict-delta measure the defaults that nested MAID
+  validations will actually receive after the strict-default flip
+type: fix
+created: '2026-08-09T14:31:45Z'
+metadata:
+  epic: 062-00-strict-by-default-validation-gates
+  tags:
+  - validation-trust
+  - hardening
+  - strict-defaults
+  - cross-repository-feedback
+  priority: high
+description: |
+  Close the release-blocking blind spot recorded by the parked 062-04
+  strict-default branch. Artifact-coverage validate commands run in child
+  processes, and those commands can invoke MAID again. Today the outer
+  strict-preview evaluation enables strict gates, but a nested `maid validate`
+  still receives the legacy defaults. Consequently `--strict-delta` can report
+  no migration debt even though the real default flip makes the same dogfood
+  test fail with E310 and turns its outer coverage result into E900.
+
+  Propagate a private, one-way strict-preview execution context only to test
+  subprocesses launched for the strict artifact-coverage evaluation. Nested
+  MAID validate calls must interpret that context as the strict validation
+  policy: assertion checks, stub checks, and blocking warning policy. Because
+  that nested call is already executing inside the outer runtime-coverage
+  boundary, it must not recursively start artifact coverage on the same test
+  command. Plain validation and explicit
+  `--artifact-coverage` without strict preview retain legacy nested defaults.
+  The strict-delta default side also remains legacy; only its strict side uses
+  the propagated context, so its established default-result exit semantics do
+  not change.
+
+  The context is internal runner plumbing, not a public CLI flag or a legacy
+  bypass. It may only make a nested run stricter. The generated coverage runner
+  activates a process-local context around `pytest.main`; it does not trust or
+  mutate environment variables. The context prevents recursive coverage
+  re-entry and must be restored after each coverage run. This preserves
+  the 062-04 decision that there is no environment escape hatch while making
+  preview evidence representative of the actual flip.
+
+  Outcome evidence applied: 062-02 requires strict-preview to reuse the exact
+  future gate set, 062-03 requires strict-delta to stay structured and keep its
+  exit code tied to the default side, and 068-01 establishes runtime-backed
+  artifact coverage. The stale enrichment digest was rejected and plain
+  `maid insights` was used; its recurring validation-trust and artifact-
+  coverage lessons reinforce a public CLI reproduction instead of a new static
+  analyzer or a private-helper-only test.
+temptations:
+- risk: Flip global validate defaults or revive the whole parked 062-04 branch
+    in this bounded fix.
+  instead: Propagate the existing strict-preview profile only across the strict
+    artifact-coverage subprocess boundary and leave the release flip parked.
+- risk: Mutate os.environ around coverage execution, allowing context to leak
+    into later default runs or concurrent work.
+  instead: Have the generated coverage runner activate a process-local
+    ContextVar around pytest and restore it after every strict coverage call.
+- risk: Let a nested validation recursively launch artifact coverage for the
+    test command whose coverage process is already running.
+  instead: Treat the inherited marker as both strict validation policy and an
+    active coverage boundary, enforcing strict structural gates without
+    re-entering artifact coverage.
+- risk: Prove the fix by importing private environment or context helpers in
+    tests.
+  instead: Exercise public `maid validate` behavior with a fixture whose
+    coverage test invokes nested MAID validation and assert JSON diagnostics and
+    exit semantics.
+- risk: Let strict-delta's new strict-side E900 alter its process exit code.
+  instead: Preserve the 062-03 contract by asserting the command exits from the
+    successful legacy default side while reporting E900 only in strict_delta.
+files:
+  edit:
+  - path: maid_runner/cli/commands/validate.py
+    artifacts:
+    - kind: function
+      name: cmd_validate
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Treat an inherited private strict-preview execution context
+        as strict assertion, stub, and warning policy without recursively
+        re-entering artifact coverage, and propagate that context only while
+        running strict artifact coverage, including the strict side of
+        strict-delta.
+  scope:
+  - path: maid_runner/core/_test_command_execution.py
+    reason: Hold the scoped private strict-validation ContextVar used by the
+      parent command plus a ref-counted process-wide child-runner boundary so
+      pytest worker threads inherit strict policy without contaminating
+      concurrent parent coverage launches or trusting environment values.
+  - path: maid_runner/core/artifact_coverage.py
+    reason: Activate the strict-validation ContextVar inside the generated
+      runtime coverage runner around pytest, where nested MAID calls execute.
+  - path: docs/plans/maid-runner-self-improvement-backlog.md
+    reason: Record closure evidence for the ranked R1 strict-default
+      reconciliation item after implementation and review.
+  create:
+  - path: tests/cli/test_nested_strict_preview.py
+    artifacts:
+    - kind: test_function
+      name: test_strict_preview_propagates_strict_defaults_to_nested_validation
+      args: []
+      returns: None
+      source_scenario: An outer manifest's coverage test invokes default `maid
+        validate` on an inner manifest whose declared function is a stub.
+      actions:
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --artifact-coverage --json
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --strict-preview --json
+      expected:
+        behavior: Plain artifact coverage succeeds because the nested call keeps
+          legacy defaults; strict-preview fails with top-level
+          strict_preview=true and E900 because the nested call inherits strict
+          stub checking; a second plain coverage run succeeds, proving strict
+          context is restored and does not leak after preview execution.
+    - kind: test_function
+      name:
+        test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side
+      args: []
+      returns: None
+      source_scenario: The same nested-validation fixture is compared through
+        strict-delta with explicit default-side artifact coverage.
+      actions:
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --artifact-coverage --strict-delta --json
+      expected:
+        behavior: The command exits zero from the successful legacy default
+          side, while strict_delta contains an E900 artifact-coverage command
+          failure attributable to the outer manifest and caused by the nested
+          strict E310 failure.
+    - kind: test_function
+      name: test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes
+      args: []
+      returns: None
+      source_scenario: An outer strict-preview coverage test invokes a clean
+        nested MAID validation that explicitly requests artifact coverage,
+        strict-preview, or strict-delta; a fixture counter fails immediately if
+        the same test command is entered twice.
+      actions:
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --strict-preview --json
+      expected:
+        behavior: Every explicit nested coverage-producing mode completes
+          successfully with exactly one execution of the outer test, proving
+          the inherited strict marker is an active non-reentrant coverage
+          boundary while structural strictness remains enabled.
+    - kind: test_function
+      name: test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage
+      args: []
+      returns: None
+      source_scenario: A top-level caller creates a matching file-and-token pair
+        under the former private environment marker names and explicitly
+        requests artifact coverage for a function its test never executes.
+      actions:
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --artifact-coverage --json
+      expected:
+        behavior: Caller-controlled environment values are ignored; explicit
+          artifact coverage runs and fails with E710 instead of being silently
+          bypassed.
+    - kind: test_function
+      name: test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread
+      args: []
+      returns: None
+      source_scenario: An outer strict-preview coverage test launches a nested
+        MAID validation with explicit artifact coverage from a worker thread;
+        a fixture counter fails if coverage recursively re-enters the test.
+      actions:
+      - type: api_call
+        subject:
+          command: maid validate manifests/outer.manifest.yaml --mode schema
+            --no-chain --strict-preview --json
+      expected:
+        behavior: The worker-thread nested validation inherits strict policy,
+          suppresses recursive artifact coverage, exits successfully, and the
+          outer test command executes exactly once.
+  read:
+  - maid_runner/core/strict_delta.py
+  - tests/cli/test_strict_preview.py
+  - tests/cli/test_strict_delta_cmd.py
+  - manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml
+  - manifests/062-03-report-strict-migration-delta.manifest.yaml
+  - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_nested_strict_preview.py
+- uv run python -m pytest -q tests/cli/test_strict_preview.py
+  tests/cli/test_strict_delta_cmd.py
+outcome:
+  status: completed
+  completed_at: '2026-08-09T23:43:10+08:00'
+  summary: Strict-preview and strict-delta now carry strict structural policy
+    into nested MAID validations executed by runtime artifact-coverage tests,
+    exposing the previously false-empty E900 migration delta without changing
+    legacy default-side exit semantics.
+  rationale: |
+    The mismatch was a process-boundary problem, not a missing validator gate:
+    strict policy existed in the parent command, while the generated coverage
+    runner invoked pytest in a child interpreter where nested MAID calls saw
+    legacy defaults. The final design passes an internal strict bit to MAID's
+    generated runner and activates a task-local plus child-process-wide runtime
+    boundary around pytest. This reaches worker-thread nested calls, prevents
+    explicit coverage modes from recursively re-entering their own test command,
+    keeps concurrent parent calls isolated, and trusts no caller-controlled
+    environment value.
+  lessons:
+  - lesson_type: validation-hardening
+    summary: Strict migration previews that execute behavioral commands in a
+      child interpreter must propagate policy at the runtime runner boundary;
+      parent-only flags can otherwise produce a false-empty migration delta.
+    tags:
+    - strict-defaults
+    - artifact-coverage
+    - maid-runner-feedback
+    paths:
+    - maid_runner/cli/commands/validate.py
+    - maid_runner/core/artifact_coverage.py
+    - tests/cli/test_nested_strict_preview.py
+  - lesson_type: security
+    summary: Internal environment markers are not trustworthy provenance for
+      suppressing validation gates; even random file-and-token capabilities
+      remain forgeable by the invoking user. Process-local runner state avoids
+      turning private plumbing into a validation escape hatch.
+    tags:
+    - validation-trust
+    - anti-gaming
+    paths:
+    - maid_runner/core/_test_command_execution.py
+    - tests/cli/test_nested_strict_preview.py
+  - lesson_type: concurrency
+    summary: ContextVar state does not propagate automatically into new worker
+      threads. A child runner that hosts pytest needs a balanced process-wide
+      boundary for nested thread calls while retaining task-local state in the
+      parent to avoid cross-call contamination.
+    tags:
+    - runtime-boundary
+    - thread-safety
+    paths:
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/core/artifact_coverage.py
+  - lesson_type: workflow
+    summary: Independent review successively exposed recursion, environment
+      forgery, capability lifecycle, and worker-thread gaps that green focused
+      tests initially missed; each blocker received a sanctioned plan revision
+      and a public behavioral regression before the final ready verdict.
+    tags:
+    - implementation-review
+    - plan-revision
+    paths:
+    - .maid/plan-locks/098-03-propagate-strict-preview-to-nested-validation.lock.json
+    - tests/cli/test_nested_strict_preview.py
+  review_notes:
+  - source: implementation-review-review_098_03
+    severity: blocking-fixed
+    summary: Found that explicit nested artifact-coverage, strict-preview, and
+      strict-delta calls could recursively re-enter coverage; fixed with a
+      non-reentrant boundary and counter-backed tests for all three modes.
+  - source: implementation-review-rereview_098_03
+    severity: blocking-fixed
+    summary: Found that a raw environment marker could suppress top-level
+      explicit coverage; the environment-based design was rejected.
+  - source: implementation-review-final_review_098_03
+    severity: blocking-fixed
+    summary: Demonstrated that a file-and-token capability was still forgeable
+      and had setup-leak risk; replaced it with generated-runner runtime state.
+  - source: implementation-review-runtime_review_098_03
+    severity: blocking-fixed
+    summary: Found that ContextVar alone did not reach worker threads; added a
+      balanced child-process-wide depth and threaded public reproduction.
+  - source: implementation-review-thread_review_098_03
+    severity: info
+    summary: Final independent review found no blockers, verified ref-count and
+      exception cleanup, parent-thread isolation, worker-thread visibility,
+      single/directory parity, and strict-delta semantics; verdict was ready.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_nested_strict_preview.py
+    - tests/cli/test_strict_preview.py
+    - tests/cli/test_strict_delta_cmd.py
+    status: passed
+    summary: Twenty focused tests passed, covering implicit nested strict
+      failure, E900 delta attribution, context restoration, all explicit nested
+      coverage modes, forged environment input, and worker-thread propagation.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+    - tests/cli/test_artifact_coverage_cmd.py
+    status: passed
+    summary: Twenty-six artifact-coverage single, batch, deterministic failure,
+      and CLI tests passed with the generated runner argv change.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: Full repository suite passed 3,870 tests with 5 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: All 402 active manifests passed; 109 superseded manifests skipped
+      and none failed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 235 deduplicated manifest command groups passed.

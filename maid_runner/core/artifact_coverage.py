@@ -11,7 +11,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from maid_runner.core._test_command_execution import _test_command_environment
+from maid_runner.core._test_command_execution import (
+    _strict_validation_test_active,
+    _test_command_environment,
+)
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
@@ -243,6 +246,7 @@ def _run_shared_coverage_command(
         tmp_path = Path(tmp)
         data_file = tmp_path / ".coverage"
         call_file = tmp_path / "calls.json"
+        strict_validation = _strict_validation_test_active()
         runner = _coverage_runner_script(tmp_path)
         target_file = tmp_path / "target_files.json"
         target_file.write_text(json.dumps(sorted(target_files)))
@@ -257,6 +261,7 @@ def _run_shared_coverage_command(
                 str(runner),
                 str(call_file),
                 str(target_file),
+                "1" if strict_validation else "0",
                 *pytest_args,
             ),
             cwd=root,
@@ -344,6 +349,7 @@ def _run_coverage_commands(
 
     errors: list[ValidationError] = []
     env = _test_command_environment()
+    strict_validation = _strict_validation_test_active()
     runner = _coverage_runner_script(data_file.parent)
     target_file = _coverage_target_file(manifest, root, data_file.parent)
     for command in manifest.validate_commands:
@@ -362,6 +368,7 @@ def _run_coverage_commands(
                 str(runner),
                 str(call_file),
                 str(target_file),
+                "1" if strict_validation else "0",
                 *pytest_args,
             ),
             cwd=root,
@@ -407,7 +414,8 @@ from pathlib import Path
 
 call_output = Path(sys.argv[1])
 target_files = set(json.loads(Path(sys.argv[2]).read_text()))
-pytest_args = sys.argv[3:]
+strict_validation = sys.argv[3] == "1"
+pytest_args = sys.argv[4:]
 calls: set[tuple[str, str, str, int]] = set()
 exit_code = 1
 
@@ -435,8 +443,12 @@ threading.setprofile(profile_calls)
 try:
     sys.path.insert(0, str(Path.cwd()))
     import pytest
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_environment,
+    )
 
-    exit_code = pytest.main(pytest_args)
+    with _strict_validation_test_environment(strict_validation, process_wide=True):
+        exit_code = pytest.main(pytest_args)
 finally:
     sys.setprofile(None)
     threading.setprofile(None)

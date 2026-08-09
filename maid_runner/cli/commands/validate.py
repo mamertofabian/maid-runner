@@ -45,6 +45,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
+    from maid_runner.core._test_command_execution import _inherited_strict_validation
 
     mode = ValidationMode(args.mode)
     engine = ValidationEngine(project_root=".")
@@ -52,7 +53,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
     strict_preview = getattr(args, "strict_preview", False)
     artifact_coverage_requested = (
         getattr(args, "artifact_coverage", False) or strict_preview
-    )
+    ) and not _inherited_strict_validation()
 
     try:
         if args.manifest_path:
@@ -77,6 +78,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_path(
                     args.manifest_path,
                     Path("."),
+                    strict_context=strict_preview,
                 )
             quiet = args.quiet and not _warnings_are_blocking(
                 result.warnings, fail_on_warnings=fail_on_warnings
@@ -160,6 +162,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 artifact_coverage_report = _run_artifact_coverage_for_manifest_dir(
                     args.manifest_dir,
                     Path("."),
+                    strict_context=strict_preview,
                 )
             output = format_batch_result(
                 batch,
@@ -335,17 +338,35 @@ def run_validate_commands_for_result(
     return run_manifest_tests(manifest_path, fail_fast=fail_fast)
 
 
-def _run_artifact_coverage_for_manifest_path(manifest_path: str, project_root: Path):
+def _run_artifact_coverage_for_manifest_path(
+    manifest_path: str,
+    project_root: Path,
+    *,
+    strict_context: bool = False,
+):
     from maid_runner.core.artifact_coverage import run_artifact_coverage
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_environment,
+    )
     from maid_runner.core.manifest import load_manifest
 
-    return run_artifact_coverage(load_manifest(manifest_path), project_root)
+    with _strict_validation_test_environment(strict_context):
+        return run_artifact_coverage(load_manifest(manifest_path), project_root)
 
 
-def _run_artifact_coverage_for_manifest_dir(manifest_dir: str, project_root: Path):
+def _run_artifact_coverage_for_manifest_dir(
+    manifest_dir: str,
+    project_root: Path,
+    *,
+    strict_context: bool = False,
+):
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
 
-    reports = _run_artifact_coverage_by_manifest(manifest_dir, project_root).values()
+    reports = _run_artifact_coverage_by_manifest(
+        manifest_dir,
+        project_root,
+        strict_context=strict_context,
+    ).values()
     findings = []
     errors = []
     for report in reports:
@@ -354,12 +375,21 @@ def _run_artifact_coverage_for_manifest_dir(manifest_dir: str, project_root: Pat
     return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
 
 
-def _run_artifact_coverage_by_manifest(manifest_dir: str, project_root: Path):
+def _run_artifact_coverage_by_manifest(
+    manifest_dir: str,
+    project_root: Path,
+    *,
+    strict_context: bool = False,
+):
     from maid_runner.core.chain import get_cached_manifest_chain
     from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_environment,
+    )
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
-    return run_artifact_coverage_batch(chain.active_manifests(), project_root)
+    with _strict_validation_test_environment(strict_context):
+        return run_artifact_coverage_batch(chain.active_manifests(), project_root)
 
 
 def _merge_artifact_coverage_reports(reports):
@@ -396,6 +426,7 @@ def _append_artifact_coverage_output(
 
 
 def _run_strict_delta(args: argparse.Namespace) -> int:
+    from maid_runner.core._test_command_execution import _inherited_strict_validation
     from maid_runner.core.strict_delta import compute_strict_delta
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -410,6 +441,7 @@ def _run_strict_delta(args: argparse.Namespace) -> int:
     strict_check_assertions, strict_check_stubs, strict_fail_on_warnings = (
         _strict_options(strict_args)
     )
+    coverage_boundary_active = _inherited_strict_validation()
 
     try:
         if args.manifest_path:
@@ -441,7 +473,11 @@ def _run_strict_delta(args: argparse.Namespace) -> int:
 
             default_coverage_report = None
             default_coverage = None
-            if default_result.success and getattr(args, "artifact_coverage", False):
+            if (
+                default_result.success
+                and getattr(args, "artifact_coverage", False)
+                and not coverage_boundary_active
+            ):
                 default_coverage_report = _run_artifact_coverage_for_manifest_path(
                     args.manifest_path,
                     Path("."),
@@ -451,10 +487,11 @@ def _run_strict_delta(args: argparse.Namespace) -> int:
                 }
 
             strict_coverage = None
-            if strict_result.success:
+            if strict_result.success and not coverage_boundary_active:
                 strict_coverage_report = _run_artifact_coverage_for_manifest_path(
                     args.manifest_path,
                     Path("."),
+                    strict_context=True,
                 )
                 strict_coverage = {strict_result.manifest_path: strict_coverage_report}
 
@@ -529,7 +566,11 @@ def _run_strict_delta(args: argparse.Namespace) -> int:
 
         default_coverage_report = None
         default_coverage = None
-        if default_batch.success and getattr(args, "artifact_coverage", False):
+        if (
+            default_batch.success
+            and getattr(args, "artifact_coverage", False)
+            and not coverage_boundary_active
+        ):
             default_coverage = _run_artifact_coverage_by_manifest(
                 args.manifest_dir,
                 Path("."),
@@ -539,10 +580,11 @@ def _run_strict_delta(args: argparse.Namespace) -> int:
             )
 
         strict_coverage = None
-        if strict_batch.success:
+        if strict_batch.success and not coverage_boundary_active:
             strict_coverage = _run_artifact_coverage_by_manifest(
                 args.manifest_dir,
                 Path("."),
+                strict_context=True,
             )
 
         report = compute_strict_delta(
@@ -781,7 +823,13 @@ def _format_validation_with_coherence_json(
 
 
 def _strict_options(args: argparse.Namespace) -> tuple[bool, bool, bool]:
-    strict = getattr(args, "strict", False) or getattr(args, "strict_preview", False)
+    from maid_runner.core._test_command_execution import _inherited_strict_validation
+
+    strict = (
+        getattr(args, "strict", False)
+        or getattr(args, "strict_preview", False)
+        or _inherited_strict_validation()
+    )
     check_assertions = getattr(args, "check_assertions", False) or strict
     check_stubs = getattr(args, "check_stubs", False) or strict
     fail_on_warnings = getattr(args, "fail_on_warnings", False) or strict

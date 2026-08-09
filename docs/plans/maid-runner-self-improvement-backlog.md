@@ -35,6 +35,9 @@ general regression.
 ### R1. Reconcile strict-delta with the real strict-default dogfood gate
 
 - **Priority / lane:** P0, validation trust.
+- **2026-08-09 status:** Root mismatch fixed by
+  `098-03-propagate-strict-preview-to-nested-validation`; final flipped-branch
+  dogfood remains required before 062-04 can resume.
 - **Evidence:** Current `uv run maid validate --strict-delta --json` passes with
   `strict_delta: []` across 498 manifests. The parked
   `feat/062-04-strict-default-flip` branch records the opposite result after
@@ -55,6 +58,18 @@ general regression.
   every newly failing E710/E900 identity; an empty delta implies default-flip
   validate and verify pass; legacy/default semantics remain unchanged before
   the flip.
+- **Closure evidence:** The bounded reproduction proved that strict-preview
+  artifact coverage ran tests in a child interpreter where nested default
+  `maid validate` calls silently returned to legacy policy. The promoted
+  098-03 child now activates strict policy inside MAID's generated runtime
+  coverage runner, reports the nested stub failure as strict-only E900, keeps
+  strict-delta's legacy default-side exit code, and prevents recursive coverage
+  for explicit nested artifact-coverage, strict-preview, and strict-delta calls.
+  Review-driven regressions also prove caller-forged environment values cannot
+  suppress coverage and worker-thread nested validation retains the boundary.
+  Remaining R1 work is no longer root-cause discovery: rebase 062-04 onto this
+  child and run its full default-flipped validate and verify dogfood gates,
+  routing any genuinely new mismatch through another bounded child.
 
 ### R2. Make stale theme-map errors staleness-first
 
@@ -561,15 +576,20 @@ Completed:
   and covered; no current reproduction remains.
 - R5 — completed by `098-01` and `098-02`; dependency discovery is read-only,
   repeated summary guidance is grouped, and per-manifest diagnostics remain.
+- R1 root-cause child — `098-03` fixes nested strict-policy propagation and
+  non-reentrant coverage; the overall release gate remains open only for the
+  rebased 062-04 full validate/verify confirmation.
 
-Sequencing note: do not resume the parked 062-04 implementation merely because
-its migration prerequisites shipped. R1 is a current release blocker: reconcile
-the empty strict-delta with the failing flipped-default dogfood evidence first.
+Sequencing note: resume the parked 062-04 implementation only by rebasing it on
+098-03 and rerunning the full default-flipped validate and verify dogfood gates.
+R1 remains a release blocker until those gates agree with strict-delta; the
+previously unidentified nested-default mismatch is now fixed.
 
 ## Specialist Follow-Ups
 
-- `maid-validate-hardening` owns R1 and should refresh its stale specialist
-  backlog while investigating the strict-delta/default-flip mismatch.
+- `maid-validate-hardening` still owns R1, but its next action is the rebased
+  062-04 validate/verify confirmation rather than another open-ended mismatch
+  investigation.
 - `maid-runner-performance-optimization` should only reopen daemon default
   routing if a fresh benchmark can overturn 064-01's negative result. The old
   batching probe is closed.
@@ -595,12 +615,14 @@ Created and completed:
 - `082-06-archive-consumed-post-067-epics` (Theme 8; completed).
 - `098-01-surface-shared-test-plan-lock-dependents` (R5 discovery; completed).
 - `098-02-group-shared-test-plan-lock-summary` (R5 summary guidance; completed).
+- `098-03-propagate-strict-preview-to-nested-validation` (R1 root mismatch;
+  completed).
 
 Remaining manifest work:
 
-- Add a bounded 062 follow-up child for R1 after the hardening owner identifies
-  the exact mismatch; do not broaden 062-04 itself before that reproduction is
-  pinned.
+- Rebase the parked 062-04 child on 098-03 and run the full default-flipped
+  validate/verify dogfood gates. Add another bounded 062 follow-up only if that
+  run identifies a distinct mismatch.
 - Add a narrow R2 fix draft evolving the active theme-map contract.
 - Archive the consumed 085 epic and close 064 against its recorded benchmark
   decision. Do not revive 064-05 as a live child.
