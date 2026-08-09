@@ -1,0 +1,198 @@
+{
+  "manifest_path": "manifests/add-google-analytics.manifest.yaml",
+  "manifest_hash": "sha256-contract:20cd1ff465d8191f4b6c32af27aa2f3db81912394a606c6a9ce88e10f7b615b1",
+  "test_hashes": {
+    "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
+  },
+  "created_at": "2026-08-09T12:16:59.916550+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c6883c9fb249fff1fc98f4a4f4d5069db4c7d3af47e08541be0e825e621034ec",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:44557b87c6e6f015f44466acc9f8c09d835d08b0dea3eba7e0f30236e484d36e"
+      },
+      "revised_at": "2026-08-09T12:17:05.582627+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-google-analytics.manifest.yaml -> manifests/add-google-analytics.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/add-google-analytics.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/add-google-analytics.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:851deb18966898fade68c2863a2bde683f6f35e9489529c49a27071ee2b56eb6",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:44557b87c6e6f015f44466acc9f8c09d835d08b0dea3eba7e0f30236e484d36e"
+      },
+      "revised_at": "2026-08-09T12:26:06.774280+00:00",
+      "reason": "Move analytics behavioral coverage into a dedicated test file so existing website plan locks remain immutable",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag",
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/test_website_static_contract.py:test_every_html_page_loads_configured_google_analytics_tag",
+          "tests/test_website_static_contract.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+          "tests/test_website_static_contract.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None"
+        ],
+        "files_added": [
+          "create:tests/test_website_google_analytics.py"
+        ],
+        "files_removed": [
+          "edit:tests/test_website_static_contract.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/test_website_google_analytics.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/test_website_static_contract.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7028ca59e9efec6f7b6592e9acb7a08e81d776054d6fa05f07afb62dff9b9604",
+      "prior_test_hashes": {
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:f1aafb5083b9568eb2f9cac720be89f8fa11bbb92e41733e0ea5b65b474ceb2f"
+      },
+      "revised_at": "2026-08-09T12:31:41.486206+00:00",
+      "reason": "Tighten reviewed analytics coverage to recurse through deployed HTML and enforce exact placement inside each document head",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c8ca3ec6aa2069f68e0bc110ea51a4cb8aba0949d7b3d7fc36fc2b1e3870e0ec",
+      "prior_test_hashes": {
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
+      },
+      "revised_at": "2026-08-09T12:36:46.670846+00:00",
+      "reason": "Record completed Outcome and review evidence after ready implementation verdict",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-09T12:31:43.213321+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_google_analytics.py",
+        "exit_code": 1,
+        "output_tail": "            head = document.split(\"<head>\", 1)[1].split(\"</head>\", 1)[0]\n            expected_tokens = (\n                f'<script async src=\"https://www.googletagmanager.com/gtag/js?id={measurement_id}\"></script>',\n                \"window.dataLayer = window.dataLayer || [];\",\n                \"function gtag(){dataLayer.push(arguments);}\",\n                \"gtag('js', new Date());\",\n                f\"gtag('config', '{measurement_id}');\",\n            )\n    \n            for token in expected_tokens:\n>               assert document.count(token) == 1, page.relative_to(WEBSITE)\nE               AssertionError: PosixPath('404.html')\nE               assert 0 == 1\nE                +  where 0 = <built-in method count of str object at 0x13513c40>('<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-B6F335E4MM\"></script>')\nE                +    where <built-in method count of str object at 0x13513c40> = '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...n-primary\" href=\"/\">Return home <span aria-hidden=\"true\">\u2192</span></a>\\n      </div>\\n    </main>\\n  </body>\\n</html>\\n'.count\n\ntests/test_website_google_analytics.py:25: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_google_analytics.py::test_every_html_page_loads_configured_google_analytics_tag\n1 failed in 0.02s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_google_analytics.py"
+      ],
+      "edit": [],
+      "read": [
+        ".github/workflows/deploy-website.yml",
+        "manifests/website-maid-in-practice-section.manifest.yaml"
+      ],
+      "scope": [
+        "website/404.html",
+        "website/index.html"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_google_analytics.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_every_html_page_loads_configured_google_analytics_tag",
+              "returns": "None",
+              "source_scenario": "A visitor loads any HTML page published by the MAID Runner GitHub Pages site.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every shipped HTML page loads gtag.js asynchronously and initializes Google Analytics exactly once inside its head with measurement ID G-B6F335E4MM."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/website-maid-in-practice-section.manifest.yaml",
+        ".github/workflows/deploy-website.yml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "The homepage head gains the supplied Google Analytics loader and initialization snippet."
+        },
+        {
+          "path": "website/404.html",
+          "reason": "The fallback page uses the same measurement ID so missing-route visits are included."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_google_analytics.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_google_analytics.py",
+      "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/add-google-analytics.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

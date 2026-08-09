@@ -1,0 +1,150 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Add Google Analytics measurement to every MAID Runner website page"
+type: feature
+created: "2026-08-09T12:17:05Z"
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - analytics
+    - github-pages
+  priority: high
+description: |
+  Add the supplied Google tag to every HTML document deployed from website/
+  using measurement ID G-B6F335E4MM. Keep the integration dependency-free and
+  place the async loader and inline initialization in each document head so
+  GitHub Pages can deploy the static files directly from main.
+temptations:
+  - risk: "Do not instrument only the homepage and silently omit fallback traffic."
+    instead: "Recursively scan every shipped HTML document in the behavioral test
+      and require the exact tag in each document head."
+  - risk: "Do not substitute a different measurement ID or defer configuration to
+      an undeclared runtime value."
+    instead: "Pin G-B6F335E4MM in both the loader URL and gtag config call, with exact
+      assertions."
+files:
+  scope:
+    - path: website/index.html
+      reason: "The homepage head gains the supplied Google Analytics loader and initialization
+        snippet."
+    - path: website/404.html
+      reason: "The fallback page uses the same measurement ID so missing-route visits
+        are included."
+  create:
+    - path: tests/test_website_google_analytics.py
+      artifacts:
+        - kind: test_function
+          name: test_every_html_page_loads_configured_google_analytics_tag
+          args: []
+          returns: None
+          source_scenario: "A visitor loads any HTML page published by the MAID Runner
+            GitHub Pages site."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Every shipped HTML page loads gtag.js asynchronously and initializes
+              Google Analytics exactly once inside its head with measurement ID G-B6F335E4MM."
+  read:
+    - manifests/website-maid-in-practice-section.manifest.yaml
+    - .github/workflows/deploy-website.yml
+validate:
+  - uv run python -m pytest -q tests/test_website_google_analytics.py
+  - uv run maid validate manifests/add-google-analytics.manifest.yaml --mode 
+    behavioral --quiet
+  - uv run maid validate manifests/add-google-analytics.manifest.yaml --mode 
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-09T12:35:54Z"
+  summary: "Added the supplied Google Analytics tag with measurement ID G-B6F335E4MM to every deployed MAID Runner HTML page, including the 404 fallback."
+  rationale: "The static GitHub Pages site needed immediate analytics without adding a build step; direct head instrumentation preserves the dependency-free deployment while a recursive behavioral contract prevents missing or duplicated tags."
+  lessons:
+    - lesson_type: test-design
+      summary: "Additive behavior for an already locked surface should use a dedicated behavioral test file when modifying a shared test file would invalidate earlier immutable plan locks; recursively discover deployed pages and assert both exact cardinality and required document placement."
+      tags:
+        - website
+        - analytics
+        - plan-lock
+        - behavioral-testing
+      paths:
+        - tests/test_website_google_analytics.py
+        - website/index.html
+        - website/404.html
+  review_notes:
+    - source: independent-reviewer-subagent-round-1
+      severity: needs-changes
+      summary: "Review found that top-level-only discovery missed future nested pages and whole-document assertions did not enforce placement inside head; both findings were fixed through a stash-backed plan revision."
+    - source: independent-reviewer-subagent-round-2
+      severity: ready
+      summary: "Re-review found no actionable issues, confirmed recursive discovery and exact head placement, and retained only the policy-level privacy/consent advisory for third-party analytics."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_website_google_analytics.py
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Focused analytics and existing website contracts passed: 9 tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/add-google-analytics.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for add-google-analytics."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All active manifests validated with no failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All declared manifest commands passed: 230 commands, 0 failures."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --since
+        - main
+        - --summary
+      status: passed
+      summary: "Strict handoff verification passed all 9 stages with 0 blockers; only pre-existing E307 no-validator warnings remained."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - tests/test_website_google_analytics.py
+      status: passed
+      summary: "Ruff reported no issues in the new behavioral test."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - tests/test_website_google_analytics.py
+      status: passed
+      summary: "Black reported the new behavioral test unchanged."
