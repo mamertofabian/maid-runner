@@ -30,8 +30,10 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
     assert '<a class="skip-link" href="#main-content">' in homepage
     assert '<main id="main-content" tabindex="-1">' in homepage
     assert '<link rel="canonical" href="https://maidrunner.dev/">' in homepage
-    assert "Make AI coding" in homepage
-    assert "follow the plan" in homepage
+    assert "Don't just trust AI code" in homepage
+    assert "Verify it." in homepage
+    assert "machine-checkable contract" in homepage
+    assert "under Claude, Codex, Cursor, or any agent" in homepage
     assert "Install MAID Runner" in homepage
     assert "Read the docs" in homepage
     assert "manifest.yaml" in homepage
@@ -78,6 +80,27 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
         "Scope expansion",
     ):
         assert label in homepage
+
+
+def test_homepage_leads_with_core_strengths() -> None:
+    homepage = _read(HOMEPAGE)
+
+    # The page leads with what makes MAID different, not a single "follow the
+    # plan" note: it governs the artifacts agents produce, across any harness.
+    assert "Governs the artifacts your agents produce" in homepage
+    assert "not just the prompts they follow" in homepage
+
+    for strength in (
+        "Machine-checkable contracts",
+        "Tamper-evident planning",
+        "Portable across agents",
+        "Evidence-backed handoff",
+    ):
+        assert strength in homepage
+
+    # The superseded single-note headline must not linger in the hero or the
+    # social/search metadata.
+    assert "Make AI coding follow the plan" not in homepage
 
 
 def test_homepage_renders_workflow_capabilities_tools_and_quickstart() -> None:

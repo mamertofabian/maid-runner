@@ -39,6 +39,22 @@ description: |
   The copy is deliberately limited to capabilities documented by README.md:
   plan locks, red-phase evidence, declared scope, structural/behavioral/
   implementation validation, independent review, and Outcome learning.
+
+  2026-08-09 reposition: the hero and social/search metadata previously reduced
+  MAID Runner to "make AI coding follow the plan". This revision leads the page
+  with MAID's differentiated strengths -- machine-checkable (AST-level)
+  contracts, tamper-evident planning backed by genuine red-phase evidence,
+  governance of the artifacts agents produce across any harness (Claude, Codex,
+  Cursor, or others), and evidence-backed handoff rather than self-reported
+  completion -- via a new hero headline, subhead, and a "core strengths"
+  positioning band, while preserving the existing information architecture,
+  workflow rail, capability grid, tools, MAID-in-practice section, and
+  accessibility contract. The shared behavioral test file is also pinned by the
+  active website-maid-in-practice-section and 095-01 plan locks; those
+  dependents are reconciled with maid plan revise --preserve-red-evidence
+  because their concerns (the practice section and the quickstart guidance) are
+  unchanged by this hero reposition. The practice test remains owned by its
+  website-maid-in-practice-section contract and is not redeclared here.
 temptations:
   - risk: "Do not preserve the old landing page's visual system or leave its three-stream hero as the dominant story."
     instead: "Build the page hierarchy around the supplied mockup and assert its hero, seven workflow steps, capability grid, tools, quick start, and CTA in the behavioral contract."
@@ -48,8 +64,8 @@ temptations:
     instead: "Use semantic HTML, CSS-drawn panels/icons, local assets, and the small existing navigation enhancement with a visible no-JavaScript fallback."
   - risk: "Do not invent product promises or unsafe first-run commands."
     instead: "Keep claims and commands grounded in README.md, link to the documented quickstart, and omit maid verify from the empty-repository quick-start terminal."
-  - risk: "Do not trade the visual redesign for inaccessible contrast, focus states, overflow, or fallback behavior."
-    instead: "Test the dark-surface text tokens, focus selectors, reduced-motion rule, responsive navigation selectors, 404 recovery, and local asset graph before handoff."
+  - risk: "Do not let the hero and metadata reduce MAID Runner to a single 'make AI follow the plan' promise, and do not trade the visual redesign for inaccessible contrast, focus states, overflow, or fallback behavior."
+    instead: "Lead the page with MAID's machine-checkable contracts, tamper-evident planning with red evidence, artifact governance across any agent, and evidence-backed handoff; assert those strengths in the behavioral contract; and test the dark-surface tokens, focus selectors, reduced-motion rule, responsive navigation, 404 recovery, and local asset graph before handoff."
 files:
   scope:
     - path: website/index.html
@@ -157,6 +173,17 @@ files:
                 function: yaml.load
           expected:
             behavior: "The workflow triggers only for main website/workflow changes or manual dispatch, uses least-privilege Pages permissions, uploads website as the artifact root, and deploys through GitHub Pages with immutable action SHAs."
+        - kind: test_function
+          name: test_homepage_leads_with_core_strengths
+          args: []
+          returns: None
+          source_scenario: "A visitor scans the top of the homepage to understand what MAID Runner actually enforces, not just that it 'follows the plan'."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The page leads with MAID's differentiated strengths -- machine-checkable contracts, tamper-evident planning, portability across agents, and evidence-backed handoff -- frames MAID as governing the artifacts agents produce, and no longer reduces the story to a single follow-the-plan headline in the hero or the social/search metadata."
   read:
     - README.md
     - pyproject.toml
@@ -166,10 +193,28 @@ validate:
   - uv run maid validate manifests/website-static-landing-page.manifest.yaml --mode schema --quiet
 outcome:
   status: completed
-  completed_at: "2026-08-02T15:31:40Z"
-  summary: "Replaced the first website design with a responsive dark MAID Runner landing page aligned to the supplied mockup, promoted the supplied logo and social card into production assets, and removed the three disposable design inputs."
-  rationale: "The finished static site keeps the mockup's information architecture while remaining dependency-free, progressively enhanced, locally deployable from website/, and grounded in the repository's documented MAID workflow."
+  completed_at: "2026-08-09T14:20:00Z"
+  summary: "Repositioned the landing hero and social/search metadata to lead with MAID's four core strengths -- machine-checkable contracts, tamper-evident planning with red evidence, artifact governance across any agent, and evidence-backed handoff -- via a new headline, subhead, and a core-strengths band, on top of the existing mockup-aligned dark redesign and MAID-in-practice dogfooding section."
+  rationale: "The prior hero and metadata reduced MAID Runner to 'make AI coding follow the plan', underselling its differentiated value. The reposition keeps the full information architecture, workflow rail, capability grid, tools, practice section, accessibility contract, and deployment boundary intact while leading with what MAID actually enforces. A new behavioral test (test_homepage_leads_with_core_strengths) pins the strengths story and forbids the superseded single-note headline, and the shared behavioral test file's other plan-lock dependents were reconciled with maid plan dependents plus preserve-red-evidence revises."
   lessons:
+    - lesson_type: workflow
+      summary: "Editing a behavioral test file shared by several plan locks trips E701 on every pinning lock; maid plan dependents lists them, and when the shared change does not affect a dependent's own contract, maid plan revise --preserve-red-evidence is the sanctioned reconciliation."
+      tags:
+        - plan-lock
+        - shared-test
+        - red-evidence
+      paths:
+        - tests/test_website_static_contract.py
+        - manifests/website-maid-in-practice-section.manifest.yaml
+        - manifests/095-01-wire-guidance-to-cli-entry-points.manifest.yaml
+    - lesson_type: contract-scope
+      summary: "The MAID-in-practice test is owned by website-maid-in-practice-section, not this manifest; a shared test that looks 'undeclared' in one manifest may simply be declared in a co-active chain-merged manifest, so verify ownership before redeclaring it."
+      tags:
+        - manifest-authoring
+        - chain-merge
+      paths:
+        - manifests/website-static-landing-page.manifest.yaml
+        - manifests/website-maid-in-practice-section.manifest.yaml
     - lesson_type: test-design
       summary: "A static-site redesign needs behavioral assertions for the visual story, asset graph, responsive navigation, fallback route, metadata, and deployment boundary so a screenshot match does not silently break site contracts."
       tags:
@@ -207,56 +252,39 @@ outcome:
         - -q
         - tests/test_website_static_contract.py
       status: passed
-      summary: "Focused website contract tests passed: 7 passed."
+      summary: "Focused website contract tests passed: 9 passed (adds test_homepage_leads_with_core_strengths)."
     - command:
         - uv
         - run
         - maid
         - validate
+        - --quiet
       status: passed
-      summary: "All active manifests validated: 380 manifests, 0 failures."
-    - command:
-        - uv
-        - run
-        - maid
-        - test
-      status: passed
-      summary: "All declared manifest validation commands passed: 218 commands, 0 failures."
-    - command:
-        - uv
-        - run
-        - python
-        - -m
-        - pytest
-        - tests/
-        - -q
-      status: passed
-      summary: "Full pytest suite passed: 3691 passed, 5 skipped."
-    - command:
-        - uv
-        - run
-        - ruff
-        - check
-        - .
-      status: passed
-      summary: "Ruff reported no issues."
-    - command:
-        - uv
-        - run
-        - black
-        - --check
-        - .
-      status: passed
-      summary: "Black reported all 471 files unchanged."
+      summary: "All active manifests validated with no failures."
     - command:
         - uv
         - run
         - maid
         - verify
-        - --summary
-        - --require-plan-lock
-        - --require-red-evidence
+        - --profile
+        - handoff
         - --since
         - HEAD
       status: passed
-      summary: "Strict handoff verification passed all 9 stages with 0 blocking findings; remaining warnings are pre-existing validator-coverage advisories."
+      summary: "Strict handoff verification passed all 9 stages (schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, tests) with 0 blocking findings; the tests stage ran the full batched suite green. Only pre-existing E307 no-validator advisories remain. Plan-lock stage confirms the reconciled website-static-landing-page, website-maid-in-practice-section, and 095-01 locks."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Ruff reported no issues on the touched test module."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Black reported the touched test module unchanged."
