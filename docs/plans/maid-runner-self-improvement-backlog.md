@@ -1,9 +1,11 @@
 # MAID Runner Self-Improvement Backlog
 
-Initial audit: 2026-07-02 on v2.19.1. Current refresh: 2026-08-08 on
-`release/v2.next` at v2.25.0 (`3056009`), clean worktree. The July evidence is
-retained below for history; the refresh section and routed backlog are
-authoritative for next work.
+Initial audit: 2026-07-02 on v2.19.1. Baseline refresh: 2026-08-08 on
+`release/v2.next` at v2.25.0 (`3056009`). Cross-repository feedback trial:
+2026-08-09 on the same branch at v2.25.0 (`b00843d`), with a clean worktree
+before this documentation update. The July evidence is retained below for
+history; the refresh section and routed backlog are authoritative for next
+work.
 
 ## Purpose
 
@@ -108,6 +110,38 @@ general regression.
 - **Acceptance:** every previously open item is re-probed on v2.25, closed
   items cite their manifest, and only current reproductions remain prioritized.
 
+### R5. Surface shared-test plan-lock dependents and recovery commands
+
+- **Priority / lane:** P2, developer experience and MAID workflow.
+- **Evidence:** A privacy-bounded `maid feedback export` from an isolated copy
+  of the completed `maid-validator-csharp` Outcome for
+  `distinguish-csharp-overloads` produced feedback ID
+  `b19b5f29aa8cf3c17196a5d8f75d01449f57144c1a7a435cb4a14776c9ffdb7f`.
+  `maid feedback aggregate` retained one advisory workflow record while
+  omitting repository identity and paths. The source repository was not
+  changed because no downstream Outcome had yet opted into export.
+- **Current reproduction:** In a scratch v2.25 project, two active locked
+  manifests both referenced `tests/test_shared.py`. Adding one assertion made
+  both `maid plan status` commands exit 1 as `TAMPERED`; repository verify
+  emitted one E701 per manifest. `maid manifests tests/test_shared.py`
+  reported no references because that query indexes writable paths, not
+  read-only behavioral dependencies.
+- **Why it matters:** Per-manifest evidence must remain independent, but a
+  shared full-suite test can invalidate many otherwise unchanged locks. Agents
+  currently discover and repair the fan-out manually, which encourages missed
+  historical locks or ad hoc hash edits.
+- **Owner:** `maid-evolver` for the active plan-lock and summary-output
+  contracts.
+- **Closure shape:** Add a read-only shared-test dependency view and group E701
+  summary guidance by changed test path. Report every affected active manifest
+  and an exact per-lock `maid plan revise` recovery command; do not mutate
+  locks automatically, infer that evidence is preservable, or include
+  superseded manifests.
+- **Acceptance:** a two-lock shared-test fixture reports both dependents and
+  both recovery commands; a superseded lock is excluded; JSON/SARIF retain
+  per-manifest diagnostics; no command revises evidence without an explicit
+  operator invocation and the existing preservation checks.
+
 The former batching probe is closed: compatible pytest and Vitest batching is
 covered by `batch-compatible-maid-test-command-groups`,
 `038-19-extract-test-command-batching`, and focused pnpm/Vitest batching tests;
@@ -189,6 +223,9 @@ via `maid learn`; 082-01..06 added six more manifest Outcomes):
   and 5 closed the identified dogfood false positives/noise policy issues.
 - `uv run maid learn` + `uv run maid insights`: 102 Outcome records indexed;
   top tags `outcome-records` (22), `anti-gaming` (17).
+- Cross-repository feedback trial on 2026-08-09: one explicitly selected
+  `maid-validator-csharp` workflow lesson exported and aggregated locally, then
+  reproduced against v2.25 as two E701 failures from one shared test edit (R5).
 - Fifteen bug reports under `~/.maid/bug-report/` dated 2026-06-14 through
   2026-07-01, cross-checked against fix commits (dates verified with
   `git log`). The two still-open items from the initial audit were closed by
@@ -508,6 +545,8 @@ then hygiene):
    benchmark (`maid-evolver`; performance re-probe only if default routing is
    reconsidered).
 4. R4 — refresh hardening and cleanup specialist backlogs against v2.25.
+5. R5 — add a read-only shared-test lock-dependency view and grouped E701
+   recovery guidance without automatic lock mutation (`maid-evolver`).
 
 Completed:
 
@@ -538,6 +577,9 @@ the empty strict-delta with the failing flipped-default dogfood evidence first.
   bug-report → narrow-fix → regression-test loop working; keep routing
   language-validator edge cases through it rather than building broader static
   analysis (see Validator Hardening Constraints in `AGENTS.md`).
+- `maid-evolver` owns R5 because it extends active plan-lock and verify-summary
+  behavior. Keep the first slice read-only; batch lock revision needs a
+  separate trust review if it is ever proposed.
 
 ## Draft Manifest Candidates
 
@@ -558,6 +600,10 @@ Remaining manifest work:
 - Add a narrow R2 fix draft evolving the active theme-map contract.
 - Archive the consumed 085 epic and close 064 against its recorded benchmark
   decision. Do not revive 064-05 as a live child.
+- Add a narrow R5 developer-experience draft after choosing whether the public
+  entry point is a new plan subcommand or an extension of an existing query.
+  Pin dependency discovery and grouped guidance only; automatic multi-lock
+  revision is explicitly out of scope.
 
 Every candidate must follow the full lifecycle: draft → behavioral tests →
 red phase → `maid validate --mode behavioral` → plan review → `maid plan lock`
@@ -584,6 +630,21 @@ red phase → `maid validate --mode behavioral` → plan review → `maid plan l
   first; editor/LSP integration — still lower priority than trust items.
 
 ## Verification Notes
+
+Commands run on 2026-08-09 for the cross-repository feedback trial:
+
+- `maid learn` over an isolated copy of one completed
+  `maid-validator-csharp` Outcome — indexed 1 record.
+- `maid feedback export` — exported 1 explicitly marked workflow lesson and
+  emitted the required inspection notice.
+- `maid feedback aggregate` — accepted 1 unique bundle and produced 1 advisory
+  record with `reported_source_count: 1`.
+- Scratch shared-test reproduction: both `maid plan status` invocations exited
+  1 with the same test mismatch; `maid verify --summary --require-plan-lock
+  --no-changed-scope --keep-going` exited 1 with two E701 diagnostics.
+- `maid manifests tests/test_shared.py` returned no references, confirming the
+  current writable-only query cannot discover read-only shared behavioral
+  dependencies.
 
 Commands run on 2026-08-08 against `release/v2.next` @ `3056009` (v2.25.0),
 clean tree:
