@@ -5,8 +5,9 @@
 # What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: Bind plan-lock and validated-tree evidence to the git commit that actually
-  reaches the target branch, so a passing verify cannot be silently decoupled from
-  the bytes that ship.
+  reaches the target branch, and emit a portable provenance record a harness or CI
+  can consume, so a passing verify cannot be silently decoupled from the bytes that
+  ship.
 type: feature
 created: '2026-08-09T21:45:00Z'
 metadata:
@@ -75,11 +76,28 @@ description: |
   check git already gives for free and would miss exactly the squash/amend cases
   that motivate the feature.
 
+  PORTABLE PROVENANCE OUTPUT (embeddability)
+
+  The point is not only an internal check: the attestation must be emitted as a
+  portable, machine-readable provenance record that any harness (RunWield,
+  Codex, Claude Code) or CI can consume as MAID's proof-of-conformance without
+  MAID owning the worktree or orchestration. The record binds three facts a
+  consumer can re-verify independently -- the contract identity (manifest /
+  plan-lock hash), the delivered commit (SHA), and the validation result
+  (pass/fail plus the covered-file hashes it checked). This is the concrete form
+  of "MAID as the verification substrate a harness embeds": the harness proves
+  `manifest X -> implementation commit Y -> validation result Z` by reading and
+  recomputing this record, not by trusting a self-asserted "passed" flag. The
+  record is recomputable from public inputs (manifest hash, git SHA, covered-file
+  blobs); it is not a signed/notarized credential (that stays OUT below).
+
   SCOPE BOUNDARIES (first slice)
 
   IN: a derived delivery attestation for plan-locked manifests' covered files;
   a verify surface that checks a delivered ref against that attestation using
-  git blob hashes; a dedicated error code for a delivered-mismatch and for a
+  git blob hashes; a portable, machine-readable provenance record binding
+  contract-hash -> delivered SHA -> validation result that a consumer can
+  recompute; a dedicated error code for a delivered-mismatch and for a
   missing attestation; text and single-document `--json` output.
 
   OUT (later children or explicitly rejected): binding files a manifest only
@@ -107,6 +125,10 @@ description: |
   - a missing or manifest-mismatched attestation fails closed (no silent pass);
   - a delivered ref that only adds files outside the covered set still passes
     (only the covered set is bound) -- confirm this is the intended boundary;
+  - the emitted provenance record is self-describing and independently
+    recomputable: a consumer that re-reads the record and recomputes the covered
+    hashes at the delivered SHA reaches the same pass/fail without rerunning MAID
+    or reading any MAID-private state;
   - the pure attestation-compare function is deterministic and does not depend
     on cwd; assert as observable behavior with a tmp git repo, not by mocking.
 
@@ -135,6 +157,12 @@ description: |
   - Error-code identity and repair recipe in the diagnostics registry (E7xx).
   - Portability of the content hash across platforms (reuse the 093-01
     portable-python-plan-lock-hash approach rather than raw git line endings).
+  - Provenance record format: is the consumable record the same file as the
+    internal attestation or a separate export (e.g. `--provenance-out` / stdout
+    `--json`)? What stable, versioned schema does a harness depend on, and does
+    it live under `.maid/` or on stdout? Keep it recomputable from public inputs
+    (manifest hash, git SHA, covered-file blobs) so no MAID-private state is
+    required to re-verify, and version it so consumers can pin a shape.
 
   ADVERSARIAL SELF-REVIEW (planning agent)
 
@@ -190,6 +218,13 @@ files:
         stored attestation and returns a structured result identifying every
         mismatched or missing covered file; raises/fails closed on a missing or
         manifest-mismatched attestation. Exact signature finalized during hardening.
+    - kind: function
+      name: render_provenance_record
+      description: Pure serialization of the attestation plus its verification
+        result into the portable, versioned provenance record (contract-hash ->
+        delivered SHA -> validation result) that a harness or CI consumes and can
+        independently recompute. No I/O; deterministic. Exact schema finalized
+        during contract hardening.
   - path: tests/core/test_delivery_attestation.py
     artifacts:
     - kind: test_function
@@ -204,6 +239,8 @@ files:
       name: test_missing_or_mismatched_attestation_fails_closed
     - kind: test_function
       name: test_ref_adding_only_uncovered_files_still_passes
+    - kind: test_function
+      name: test_provenance_record_is_independently_recomputable
     - kind: test_function
       name: test_attestation_compare_is_deterministic_and_cwd_independent
   edit:
