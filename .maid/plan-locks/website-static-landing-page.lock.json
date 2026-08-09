@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/website-static-landing-page.manifest.yaml",
-  "manifest_hash": "sha256-contract:1c7b76a2cc28eb38415de40159210579f3016a05a606320628f2de7b18132627",
+  "manifest_hash": "sha256-contract:b80c77b08d4bc1b0198e9c1da583da5e2d1dcffd3bd27fe2158fada2427b593c",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:6de1e125d69789fc72ae0b3e6609872315b0472629813984aafd1c3d0e81bb19"
   },
   "created_at": "2026-08-02T14:56:44.525264+00:00",
-  "revision": 4,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:e6f94b95acdc9d865665f9ba08671effd9541822a416a27b521ef84a13395800",
@@ -57,16 +57,61 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c7b76a2cc28eb38415de40159210579f3016a05a606320628f2de7b18132627",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:fbe2a9754c5dadbf796f262bcf43324da8063c3c0d3398fe46539520f277497c"
+      },
+      "revised_at": "2026-08-09T14:04:06.948974+00:00",
+      "reason": "Reposition landing hero and metadata to lead with MAID's four core strengths (machine-checkable contracts, tamper-evident planning with red evidence, artifact governance across any agent, evidence-backed handoff); declare the pre-existing MAID-in-practice test and re-lock the drifted plan",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths",
+          "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:kind=test_function",
+          "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:returns=None",
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section",
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:kind=test_function",
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:be441106599bae11a6985f9a676bbfac09c50ab6012eab71202acb43225f03de",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:6de1e125d69789fc72ae0b3e6609872315b0472629813984aafd1c3d0e81bb19"
+      },
+      "revised_at": "2026-08-09T14:11:33.124221+00:00",
+      "reason": "Remove redundant practice-test declaration (owned by website-maid-in-practice-section); correct description; keep genuine red evidence from the reposition",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section",
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:kind=test_function",
+          "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:returns=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-08-02T14:56:46.041172+00:00",
+    "captured_at": "2026-08-09T14:04:10.706218+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/test_website_static_contract.py",
         "exit_code": 1,
-        "output_tail": "    \n        for token in (\n            \"--bg:\",\n            \"--surface:\",\n            \"--text:\",\n            \"--text-muted:\",\n            \"--cyan:\",\n            \"--green:\",\n            \"--focus:\",\n        ):\n>           assert token in stylesheet\nE           AssertionError: assert '--bg:' in ':root {\\n  --ink: #08111f;\\n  --ink-deep: #050a14;\\n  --ink-soft: #101c31;\\n  --paper: #f4f1ea;\\n  --paper-bright: #f...0.01ms !important;\\n    animation-duration: 0.01ms !important;\\n    animation-iteration-count: 1 !important;\\n  }\\n}\\n'\n\ntests/test_website_static_contract.py:159: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_matches_mockup_story_and_navigation\nFAILED tests/test_website_static_contract.py::test_homepage_renders_workflow_capabilities_tools_and_quickstart\nFAILED tests/test_website_static_contract.py::test_homepage_uses_final_local_brand_and_social_assets\nFAILED tests/test_website_static_contract.py::test_dark_surface_accessibility_contract_is_declared\n4 failed, 3 passed in 0.04s",
+        "output_tail": "        assert '<link rel=\"canonical\" href=\"https://maidrunner.dev/\">' in homepage\n>       assert \"Don't just trust AI code\" in homepage\nE       assert \"Don't just trust AI code\" in '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...</a>\\n        </nav>\\n      </div>\\n    </footer>\\n\\n    <script src=\"script.js\" defer></script>\\n  </body>\\n</html>\\n'\n\ntests/test_website_static_contract.py:33: AssertionError\n___________________ test_homepage_leads_with_core_strengths ____________________\n\n    def test_homepage_leads_with_core_strengths() -> None:\n        homepage = _read(HOMEPAGE)\n    \n        # The page leads with what makes MAID different, not a single \"follow the\n        # plan\" note: it governs the artifacts agents produce, across any harness.\n>       assert \"Governs the artifacts your agents produce\" in homepage\nE       assert 'Governs the artifacts your agents produce' in '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...</a>\\n        </nav>\\n      </div>\\n    </footer>\\n\\n    <script src=\"script.js\" defer></script>\\n  </body>\\n</html>\\n'\n\ntests/test_website_static_contract.py:90: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_matches_mockup_story_and_navigation\nFAILED tests/test_website_static_contract.py::test_homepage_leads_with_core_strengths\n2 failed, 7 passed in 0.05s",
         "classification": "red"
       },
       {
@@ -90,6 +135,9 @@
       "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared",
       "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:kind=test_function",
       "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:returns=None",
       "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation",
       "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:kind=test_function",
       "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:returns=None",
@@ -258,6 +306,23 @@
               ],
               "expected": {
                 "behavior": "The workflow triggers only for main website/workflow changes or manual dispatch, uses least-privilege Pages permissions, uploads website as the artifact root, and deploys through GitHub Pages with immutable action SHAs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_leads_with_core_strengths",
+              "returns": "None",
+              "source_scenario": "A visitor scans the top of the homepage to understand what MAID Runner actually enforces, not just that it 'follows the plan'.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page leads with MAID's differentiated strengths -- machine-checkable contracts, tamper-evident planning, portability across agents, and evidence-backed handoff -- frames MAID as governing the artifacts agents produce, and no longer reduces the story to a single follow-the-plan headline in the hero or the social/search metadata."
               }
             }
           ]
