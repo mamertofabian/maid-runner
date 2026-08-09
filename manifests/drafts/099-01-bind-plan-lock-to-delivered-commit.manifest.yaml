@@ -1,0 +1,264 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Bind plan-lock and validated-tree evidence to the git commit that actually
+  reaches the target branch, and emit a portable provenance record a harness or CI
+  can consume, so a passing verify cannot be silently decoupled from the bytes that
+  ship.
+type: feature
+created: '2026-08-09T21:45:00Z'
+metadata:
+  status: planning
+  origin: runwield-comparison-analysis-2026-08-09
+  tags:
+  - validation-trust
+  - tamper-evidence
+  - plan-lock
+  - git-integration
+  - anti-gaming
+  priority: high
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  The contract-hardening agent writes the behavioral tests, confirms the red
+  phase, runs behavioral validation, plan-review, and (after approval) plan
+  lock + promote. Do not lock or implement from this file as-is.
+
+  ORIGIN
+
+  This draft comes from the 2026-08-09 RunWield comparison analysis. RunWield's
+  one concrete mechanism that MAID currently lacks is a Git delivery proof:
+  it verifies that the *validated* commit actually reached its destination
+  branch. MAID's tamper-evidence today proves the plan was not changed
+  (plan lock) and that red evidence existed before implementation, but nothing
+  binds the validated file bytes to the commit that ends up on the target
+  branch. A squash, rebase, amend, partial merge, or post-review edit can drop
+  or mutate a covered file after every gate went green, and no MAID gate
+  notices. This is "plan-compatible slop" one layer down: green gates,
+  different code shipped. This child closes that gap for the covered-file set.
+
+  THE GUARANTEE (first slice)
+
+  Extend MAID tamper-evidence from "the plan was not changed" to "the validated
+  artifact is the delivered artifact." Concretely, for the files a plan-locked
+  active manifest declares as covered (create/edit/scope writable paths), MAID
+  can prove that a delivered git ref contains those files with the exact content
+  that was present when the plan lock's red evidence was captured, or fail
+  closed.
+
+  MECHANISM (deterministic, no static analysis)
+
+  This is git plumbing plus content hashing. It must not drift into semantic or
+  LLM review, and it must not become control-flow modeling (see the Validator
+  Hardening Constraints in AGENTS.md).
+
+  1. A delivery attestation records, per plan-locked manifest, the covered file
+     paths and their git blob content hashes at the validated commit (the
+     handoff commit whose tree the red-evidence run described). The attestation
+     is derived, not hand-authored, and is anchored to a commit rather than a
+     dirty working tree so it names a reproducible state.
+  2. `maid verify --delivered <ref>` (name is an open question below) recomputes
+     the covered-file blob hashes at <ref> and asserts they match the
+     attestation. Content hashes, never commit SHAs: a squash or rebase that
+     preserves the covered bytes still passes; a covered file mutated or dropped
+     in delivery fails with a dedicated error code.
+  3. Fail closed. A missing, unreadable, or manifest-mismatched attestation
+     aborts non-zero rather than passing silently, mirroring plan-lock and E115
+     posture. A delivered ref that cannot be resolved is an error, not a skip.
+
+  WHY CONTENT-HASH, NOT ANCESTRY
+
+  Git already answers "is this SHA an ancestor of the branch." The value here is
+  binding the validated *files* to what shipped, independent of how history was
+  rewritten. Reducing this to "the SHA is on the branch" would reimplement a
+  check git already gives for free and would miss exactly the squash/amend cases
+  that motivate the feature.
+
+  PORTABLE PROVENANCE OUTPUT (embeddability)
+
+  The point is not only an internal check: the attestation must be emitted as a
+  portable, machine-readable provenance record that any harness (RunWield,
+  Codex, Claude Code) or CI can consume as MAID's proof-of-conformance without
+  MAID owning the worktree or orchestration. The record binds three facts a
+  consumer can re-verify independently -- the contract identity (manifest /
+  plan-lock hash), the delivered commit (SHA), and the validation result
+  (pass/fail plus the covered-file hashes it checked). This is the concrete form
+  of "MAID as the verification substrate a harness embeds": the harness proves
+  `manifest X -> implementation commit Y -> validation result Z` by reading and
+  recomputing this record, not by trusting a self-asserted "passed" flag. The
+  record is recomputable from public inputs (manifest hash, git SHA, covered-file
+  blobs); it is not a signed/notarized credential (that stays OUT below).
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: a derived delivery attestation for plan-locked manifests' covered files;
+  a verify surface that checks a delivered ref against that attestation using
+  git blob hashes; a portable, machine-readable provenance record binding
+  contract-hash -> delivered SHA -> validation result that a consumer can
+  recompute; a dedicated error code for a delivered-mismatch and for a
+  missing attestation; text and single-document `--json` output.
+
+  OUT (later children or explicitly rejected): binding files a manifest only
+  reads; policing files outside any covered set; reimplementing merge or diff
+  resolution; any semantic/LLM comparison; auto-remediation of a mismatch;
+  a server/daemon protocol surface for delivery proof; signing/notarizing the
+  attestation with external keys.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import the new attestation/verify functions inside the test
+  bodies (module-scope import of a missing symbol yields pytest exit 2, which is
+  invalid red, not red). Red is: the delivered-verification function or the
+  `--delivered` surface does not exist yet, so the tests fail on a real
+  assertion / AttributeError raised from within the test function.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a delivered ref containing the exact validated covered-file blobs passes;
+  - a delivered ref where one covered file's bytes changed fails with the
+    dedicated delivered-mismatch error code;
+  - a delivered ref missing a covered file fails closed;
+  - a squash/rebase delivered ref that preserves covered bytes still passes
+    (proves content-hash, not commit-hash, semantics);
+  - a missing or manifest-mismatched attestation fails closed (no silent pass);
+  - a delivered ref that only adds files outside the covered set still passes
+    (only the covered set is bound) -- confirm this is the intended boundary;
+  - the emitted provenance record is self-describing and independently
+    recomputable: a consumer that re-reads the record and recomputes the covered
+    hashes at the delivered SHA reaches the same pass/fail without rerunning MAID
+    or reading any MAID-private state;
+  - the pure attestation-compare function is deterministic and does not depend
+    on cwd; assert as observable behavior with a tmp git repo, not by mocking.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest <new delivery-attestation test module> -v
+  - uv run maid validate manifests/drafts/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (decide in contract hardening / plan review)
+
+  - Surface: `maid verify --delivered <ref>` flag vs a first-class
+    `maid plan attest` / `maid verify delivered` subcommand. A flag keeps it in
+    the existing verify gate ordering; a subcommand keeps verify's arg surface
+    smaller. Prefer the smallest surface that still runs inside handoff.
+  - Attested set: all plan-locked active manifests, or only those in the task
+    baseline (`--since` / `--base-ref`)? Task-scoped is cheaper and matches the
+    changed-scope gate, but a repository-wide attestation catches drift in
+    manifests outside the current task.
+  - Storage: where the attestation lives (`.maid/...`), whether it is committed
+    or generated-and-ignored like `.maid/outcomes.json`, and how it is produced
+    (an explicit `maid` command at handoff vs a byproduct of the passing verify
+    run). It must anchor to a committed handoff SHA, so decide whether the
+    validated state must be committed before attestation.
+  - Intentional post-verify reformat (e.g. a merge that reformats a covered
+    file) must fail closed by design; confirm no "close enough" tolerance.
+  - Error-code identity and repair recipe in the diagnostics registry (E7xx).
+  - Portability of the content hash across platforms (reuse the 093-01
+    portable-python-plan-lock-hash approach rather than raw git line endings).
+  - Provenance record format: is the consumable record the same file as the
+    internal attestation or a separate export (e.g. `--provenance-out` / stdout
+    `--json`)? What stable, versioned schema does a harness depend on, and does
+    it live under `.maid/` or on stdout? Keep it recomputable from public inputs
+    (manifest hash, git SHA, covered-file blobs) so no MAID-private state is
+    required to re-verify, and version it so consumers can pin a shape.
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Gaming path: an agent points `--delivered` at the pre-merge validated commit
+    itself, so the check is trivially satisfied and proves nothing about what
+    shipped. Mitigation: the hardening agent must decide whether `<ref>` is
+    constrained (e.g. must be an ancestor-containing branch tip / merge commit)
+    or whether that is left to the operator with a documented caveat. Flag as a
+    named temptation.
+  - Gaming path: covered set is trivially small because a manifest declared its
+    real edits under `files.read`. This reuses the known files.read-vs-scope
+    hazard; the attestation must bind the writable/scope set the plan lock
+    already governs, not a self-narrowed set.
+  - Over-reach risk: the feature starts diffing unrelated files or reproducing
+    merge semantics. Bound it to covered-file content equality against a ref.
+  - Fail-open risk: a missing attestation is the most likely silent pass;
+    tests must pin fail-closed on missing/unreadable/mismatched attestation.
+temptations:
+- risk: Do not reduce delivery proof to a git-ancestry check ("the validated SHA
+    is on the branch") because that is easy and git already answers it.
+  instead: Bind the covered-file blob content hashes so a squash, rebase, amend,
+    or partial merge that changed the shipped bytes is caught even when history
+    was rewritten.
+- risk: Do not fall back to a semantic or LLM comparison of the delivered code
+    against the plan when the hashes differ.
+  instead: Keep the check deterministic git plumbing plus content hashing, and
+    fail closed on any covered-file mismatch, deferring intent judgment to review.
+- risk: Do not let a missing, unreadable, or manifest-mismatched attestation pass
+    silently to keep verify green on repos that never generated one.
+  instead: Fail closed exactly like plan-lock and E115, with a dedicated error
+    code and a repair recipe that explains how to generate the attestation.
+- risk: Do not let the operator point --delivered at the pre-merge validated
+    commit and call the guarantee satisfied.
+  instead: Decide and document whether <ref> is constrained to a branch tip or
+    merge commit, and pin a test that the pre-merge trick does not prove delivery.
+- risk: Do not bind a self-narrowed covered set (e.g. real edits hidden under
+    files.read) so the attestation is trivially small.
+  instead: Bind the writable/scope set the plan lock already governs, reusing the
+    existing scope contract rather than trusting a re-declared subset.
+files:
+  create:
+  - path: maid_runner/core/delivery_attestation.py
+    artifacts:
+    - kind: function
+      name: compute_delivery_attestation
+      description: Pure derivation of the covered-file path -> content-hash map for
+        the plan-locked manifests at a given validated tree; no I/O beyond reading
+        the resolved file contents/blobs, deterministic, portable hashing. Exact
+        signature finalized during contract hardening.
+    - kind: function
+      name: verify_delivered_attestation
+      description: Compares a delivered ref's covered-file content hashes against a
+        stored attestation and returns a structured result identifying every
+        mismatched or missing covered file; raises/fails closed on a missing or
+        manifest-mismatched attestation. Exact signature finalized during hardening.
+    - kind: function
+      name: render_provenance_record
+      description: Pure serialization of the attestation plus its verification
+        result into the portable, versioned provenance record (contract-hash ->
+        delivered SHA -> validation result) that a harness or CI consumes and can
+        independently recompute. No I/O; deterministic. Exact schema finalized
+        during contract hardening.
+  - path: tests/core/test_delivery_attestation.py
+    artifacts:
+    - kind: test_function
+      name: test_delivered_ref_with_matching_covered_bytes_passes
+    - kind: test_function
+      name: test_delivered_ref_with_mutated_covered_file_fails
+    - kind: test_function
+      name: test_delivered_ref_missing_covered_file_fails_closed
+    - kind: test_function
+      name: test_squash_or_rebase_preserving_covered_bytes_still_passes
+    - kind: test_function
+      name: test_missing_or_mismatched_attestation_fails_closed
+    - kind: test_function
+      name: test_ref_adding_only_uncovered_files_still_passes
+    - kind: test_function
+      name: test_provenance_record_is_independently_recomputable
+    - kind: test_function
+      name: test_attestation_compare_is_deterministic_and_cwd_independent
+  edit:
+  - path: maid_runner/cli/commands/verify.py
+    artifacts:
+    - kind: function
+      name: cmd_verify
+      description: Gains a delivered-ref verification path that runs the pure
+        attestation comparison and reports a delivered-mismatch as a blocking,
+        error-coded finding in text and single-document JSON. Wiring only; the
+        decision logic stays in delivery_attestation.py. Exact surface (flag vs
+        subcommand) decided in plan review.
+  read:
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/types.py
+  - maid_runner/cli/commands/_main.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_delivery_attestation.py -v
+- uv run maid validate manifests/drafts/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml
+  --mode schema --quiet

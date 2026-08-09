@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/website-maid-in-practice-section.manifest.yaml",
-  "manifest_hash": "sha256-contract:677d9ca2c5827821f86689a70184a2dd00f175b258b104d654b05e22cd7633f6",
+  "manifest_hash": "sha256-contract:b64131d096d82cecf10f5f2ab21db49fc8e5c7a3f25a028962cf5558f0da9190",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3"
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:6de1e125d69789fc72ae0b3e6609872315b0472629813984aafd1c3d0e81bb19"
   },
   "created_at": "2026-08-03T23:30:14.720084+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:5d551390dcc6a9abedc61f40f0a48eaafce7b0c03a4d928f1cc4dd9719077855",
@@ -28,6 +28,23 @@
           "uv run maid validate manifests/drafts/website-maid-in-practice-section.manifest.yaml --mode behavioral --quiet",
           "uv run maid validate manifests/drafts/website-maid-in-practice-section.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:677d9ca2c5827821f86689a70184a2dd00f175b258b104d654b05e22cd7633f6",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:80bad341f54834ec2cd18392480477b2202cb398d9784ca0b55c04522df750d3"
+      },
+      "revised_at": "2026-08-09T14:11:33.355774+00:00",
+      "reason": "Accept approved shared-test change from hero reposition; practice-section concern unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

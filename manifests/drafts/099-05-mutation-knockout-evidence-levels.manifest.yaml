@@ -1,0 +1,194 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Generalize the knockout gate into a small family of runtime-backed
+  evidence-strength levels a high-risk manifest can require, proving its tests
+  actually constrain its declared implementation.
+type: feature
+created: '2026-08-09T23:50:00Z'
+metadata:
+  status: planning
+  origin: sdd-landscape-analysis-2026-08-09
+  tags:
+  - constraint-evidence
+  - knockout
+  - mutation
+  - anti-gaming
+  - verification
+  priority: medium
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  The contract-hardening agent writes the behavioral tests, confirms the red
+  phase, runs behavioral validation, plan-review, and (after approval) plan
+  lock + promote. Do not lock or implement from this file as-is.
+
+  ORIGIN
+
+  From the 2026-08-09 spec-driven-development landscape review. MAID's existing
+  knockout gate (068, `maid_runner/core/knockout.py`) replaces a declared
+  implementation with NotImplementedError and requires the tests to fail; the
+  docs correctly say this is "not full mutation testing." Stryker-style mutation
+  systematically alters operators, returns, and conditions and checks whether
+  the tests detect the injected defect. This child takes the concept but stays
+  bounded: a small, deterministic set of additional mutation operators applied
+  only to declared artifacts, as an opt-in evidence-strength level.
+
+  WHY THIS FITS THE HARDENING CONSTRAINTS (it is preferred, not merely allowed)
+
+  This is runtime-backed evidence: mutate a declared artifact, run the manifest's
+  tests, and a surviving mutant (tests still green) is a blocking finding. The
+  Validator Hardening Constraints in AGENTS.md explicitly prefer runtime-backed
+  evidence and instrumentation over static analyzers. There is no control/data-
+  flow modeling here; it reuses the existing knockout harness.
+
+  WHAT (first slice)
+
+  A manifest can declare an evidence-strength level (exact shape is an open
+  question; e.g. `evidence.strength: [knockout, return-mutations,
+  boundary-mutations]`, or opt-in via the 099-02 assurance tier). Beyond the
+  existing knockout, add one or two bounded, deterministic operators applied
+  ONLY to the manifest's declared implementation artifacts:
+  - return-mutations: replace a declared function's return with a degenerate
+    value (None / 0 / "" / negated) and require a declared test to fail;
+  - boundary-mutations: flip a comparison/boundary operator (`<`<->`<=`,
+    `==`<->`!=`) inside a declared artifact and require a declared test to fail.
+  A surviving mutant means the tests do not constrain that behavior; it is
+  reported as a blocking, error-coded finding with a repair recipe. Text and
+  single-document `--json` output. The operator set is fixed and documented.
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: an opt-in evidence-strength declaration; one or two bounded, deterministic
+  mutation operators beyond knockout applied only to declared implementation
+  artifacts; surviving-mutant reporting as an error-coded finding; reuse of the
+  knockout harness; text and JSON output; Python-first.
+
+  OUT (later children or explicitly rejected): whole-codebase or unbounded
+  mutation; adopting a full mutation framework (Stryker / mutmut) as a runtime
+  dependency; mutating test code or undeclared code; making any strength level a
+  default that slows every verify; non-Python languages beyond a documented
+  boundary; equivalence-mutant analysis or any static reasoning about mutants.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import the mutation-evidence functions inside the test bodies.
+  Red is: the additional operators / the strength gate do not exist yet, so the
+  tests fail on a real assertion / AttributeError raised from within the test
+  function.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a declared function whose tests pin its return has no surviving return-mutant
+    (the return-mutation level passes);
+  - a declared function whose tests do not constrain its return has a surviving
+    return-mutant reported as a blocking, error-coded finding;
+  - a boundary-mutation is caught by a test that pins the boundary and survives
+    when no test pins it;
+  - mutations apply only to declared implementation artifacts: undeclared code
+    and test code are never mutated (asserted as observable behavior);
+  - the strength level is opt-in: a manifest that does not declare it is
+    unaffected, and default verify timing is unchanged;
+  - determinism: the same manifest yields the same surviving-mutant set across
+    repeated runs (fixed operator set, order, and timeout; no flaky mutants);
+  - the existing knockout behavior is unchanged (regression).
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest <new mutation-evidence test module> tests/core/test_knockout.py -v
+  - uv run maid validate manifests/drafts/099-05-mutation-knockout-evidence-levels.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (decide in contract hardening / plan review)
+
+  - Declaration shape: a manifest `evidence.strength` list vs a verify flag
+    family (`--return-mutations`) vs binding to the 099-02 assurance tier so only
+    high-risk manifests pay the cost. Prefer opt-in and composable with profiles.
+  - Operator set: ship just return-mutations first, or return + boundary? Keep
+    the set small, fixed, and documented; expand only with evidence.
+  - Mutation mechanism: AST rewrite of the declared artifact then run tests
+    (reuse the knockout harness) -- confirm it can target a single declared
+    artifact deterministically and restore the source cleanly on every path,
+    including timeouts and test crashes.
+  - Cost control: per-artifact timeout and a cap on mutants per artifact so a
+    strength level cannot make verify unbounded; where does the budget live?
+  - Error-code identity and repair recipe in the diagnostics registry for a
+    surviving mutant.
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Scope-creep hazard: this becomes full mutation testing. Defense: a fixed,
+    documented, tiny operator set scoped to declared artifacts only; a framework
+    dependency is out.
+  - Cost/flake hazard: mutation runs are slow or non-deterministic. Defense:
+    opt-in, per-artifact timeout and mutant cap, fixed operator order, and a
+    determinism test; never a default.
+  - Fail-open hazard: a surviving mutant is treated as advisory. Defense: a
+    survivor is a blocking, error-coded finding -- the tests demonstrably fail to
+    constrain the behavior, which is exactly the signal to surface loudly.
+  - Blast-radius hazard: mutating undeclared or test code. Defense: mutate only
+    declared implementation artifacts; pin a test that nothing else is touched,
+    and that the source is restored on every path.
+temptations:
+- risk: Do not turn this into full or unbounded mutation testing, or pull in a
+    mutation framework (Stryker / mutmut) as a runtime dependency.
+  instead: Ship a fixed, tiny, documented operator set scoped to declared
+    artifacts, reusing the existing knockout harness.
+- risk: Do not mutate test code or undeclared source, which would make the gate
+    slow, noisy, and unrelated to the contract.
+  instead: Mutate only the manifest's declared implementation artifacts, and pin
+    a test that undeclared code and test code are never touched.
+- risk: Do not let a surviving mutant pass as an advisory so verify stays green.
+  instead: Report a survivor as a blocking, error-coded finding with a repair
+    recipe, because it proves the tests do not constrain the behavior.
+- risk: Do not make any strength level a default that slows every verify run.
+  instead: Keep strength levels opt-in per manifest and composable with the
+    099-02 assurance tier, so only high-risk changes pay the cost.
+- risk: Do not leave mutated source behind or produce flaky results on timeouts
+    or test crashes.
+  instead: Restore the declared artifact on every code path, bound each mutant
+    with a timeout and cap, and pin a determinism test for the surviving set.
+files:
+  create:
+  - path: maid_runner/core/mutation_evidence.py
+    artifacts:
+    - kind: function
+      name: apply_declared_artifact_mutation
+      description: Deterministically applies one bounded mutation operator
+        (return or boundary) to a single declared implementation artifact and
+        restores the source on every path; the mutation mechanism, not the
+        decision. Exact signature finalized during contract hardening.
+    - kind: function
+      name: collect_surviving_mutants
+      description: Runs the manifest's declared tests against each bounded mutant
+        of its declared artifacts and returns the deterministic set of survivors
+        (mutants the tests failed to catch), bounded by a per-artifact timeout and
+        cap. Exact signature finalized during hardening.
+  - path: tests/core/test_mutation_evidence.py
+    artifacts:
+    - kind: test_function
+      name: test_pinned_return_has_no_surviving_return_mutant
+    - kind: test_function
+      name: test_unconstrained_return_surviving_mutant_is_blocking_finding
+    - kind: test_function
+      name: test_boundary_mutation_caught_when_pinned_survives_when_not
+    - kind: test_function
+      name: test_mutation_touches_only_declared_artifacts
+    - kind: test_function
+      name: test_strength_level_is_opt_in_and_default_verify_unchanged
+    - kind: test_function
+      name: test_surviving_mutant_set_is_deterministic
+    - kind: test_function
+      name: test_existing_knockout_behavior_is_unchanged
+  read:
+  - maid_runner/core/knockout.py
+  - maid_runner/core/artifact_coverage.py
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/core/change_assessment.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_mutation_evidence.py tests/core/test_knockout.py
+  -v
+- uv run maid validate manifests/drafts/099-05-mutation-knockout-evidence-levels.manifest.yaml
+  --mode schema --quiet

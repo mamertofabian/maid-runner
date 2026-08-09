@@ -1,0 +1,227 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Render a structured, human-scannable and machine-readable manifest review
+  digest (maid review) that composes existing MAID data so a human or editor can
+  approve a contract at a glance, without shipping an interactive UI.
+type: feature
+created: '2026-08-09T23:05:00Z'
+metadata:
+  status: planning
+  origin: runwield-comparison-analysis-2026-08-09
+  tags:
+  - developer-experience
+  - manifest-review
+  - adoption
+  - cli-guidance
+  - plan-lock
+  priority: medium
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  The contract-hardening agent writes the behavioral tests, confirms the red
+  phase, runs behavioral validation, plan-review, and (after approval) plan
+  lock + promote. Do not lock or implement from this file as-is.
+
+  ORIGIN
+
+  From the 2026-08-09 RunWield comparison follow-up. RunWield's Plannotator
+  gives a human a browser plan-review with inline comments and an approve
+  action; MAID's plan review is agent/CLI-oriented and the manifest reads like
+  YAML a developer must manage. The scored gap is "human planning UX". The
+  temptation is to answer it with a UI -- but a browser app is a harness/editor
+  concern, and building one inside maid-runner drifts it toward being a harness,
+  which the same analysis warns against. So this child builds the review DIGEST
+  (the content a UI would render), not a UI.
+
+  WHAT (first slice)
+
+  `maid review <manifest>` (name is an open question) renders one pre-approval
+  view composing data MAID already has:
+  - goal;
+  - file-operation counts by kind (create / edit / delete / scope / read);
+  - declared public artifacts, and where a prior contract exists the
+    added/removed/changed public-API set from the contract-delta MAID already
+    computes;
+  - behavioral tests declared for the change;
+  - temptations / forbidden shortcuts;
+  - validation commands;
+  - plan-lock status (unlocked / locked / red-evidence recorded / tampered);
+  - when available, the recommended assurance tier from 099-02.
+  Output is human-readable text plus a single-document `--json`. It is strictly
+  read-only.
+
+  COMPOSE, DO NOT RECOMPUTE
+
+  Every field comes from an existing source: plan status / plan-lock read,
+  contract-delta, artifact collection, and the 099-02 risk recommendation. Do
+  not build a parallel manifest model or a second risk model. The digest must
+  not be able to disagree with what the gates actually enforce, so it reads the
+  same sources they do.
+
+  READ-ONLY, NO APPROVE SIDE EFFECT
+
+  Review renders; it never locks, revises, promotes, or writes any state.
+  "Approve & Lock" stays the explicit, separate `maid plan lock`. The digest is
+  what an editor or harness renders to offer an approve button; maid-runner does
+  not own that button, and the review command must not become an auto-approve
+  surface.
+
+  NOT A UI
+
+  No web server, browser app, TUI, or interactive prompt. `--json` is how a UI
+  or harness consumes the digest. A static `--format html` render is an open
+  question and, if pursued, belongs in a later child so this one cannot creep
+  into a UI product.
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: a read-only `maid review` surface and a pure digest builder that composes
+  existing plan-status, contract-delta, artifact, and risk sources; text and
+  single-document `--json` output for one manifest.
+
+  OUT (later children or explicitly rejected): any interactive UI, web server,
+  browser app, or TUI; any approval, lock, revise, promote, or write side
+  effect; a new or parallel risk model; recomputing artifacts or contract-delta
+  that existing services already provide; reviewing more than one manifest
+  (batch / epic / whole-chain review is a later child); an HTML render.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import the digest builder / invoke `maid review` inside the
+  test bodies. Red is: the command and the builder do not exist yet, so the CLI
+  test hits an argparse error and the unit test hits an AttributeError raised
+  inside the test function (not a module-scope import failure, which is invalid
+  red).
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a manifest renders a digest containing its goal, file-operation counts by
+    kind, declared public artifacts, behavioral tests, temptations, and
+    validation commands;
+  - review is read-only: running it creates or modifies no plan lock and leaves
+    the manifest byte-identical, asserted as observable no-write, not by mocking;
+  - `--json` is a single parseable document carrying the same fields as the text
+    digest;
+  - the pure digest builder is deterministic for a fixed manifest and has no
+    cwd dependence for the manifest-only fields;
+  - the digest reports plan-lock status (unlocked / locked / red-evidence /
+    tampered) sourced from the existing plan-lock read, not recomputed;
+  - the public-API changes shown come from the existing contract-delta source
+    and match it;
+  - if the risk tier is included, it is shown as advisory context and running
+    review never gates or exits non-zero on the tier.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest <new review test module> tests/cli/test_cli_help_text.py -v
+  - uv run maid validate manifests/drafts/099-03-render-manifest-review-digest.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (decide in contract hardening / plan review)
+
+  - Command name/placement: `maid review <manifest>` vs `maid manifest review`
+    vs `maid plan review`. Note `maid-plan-review` is already an agent SKILL and
+    `plan` is a busy namespace; avoid a name that implies the agent review or an
+    approval action.
+  - Output formats: text and `--json` are core. Is a static `--format html`
+    render in scope, or deferred to its own child to prevent UI creep? Prefer
+    deferring HTML.
+  - Depends on 099-02 for the assurance tier; order 099-02 first and make the
+    tier optional so review works without it.
+  - Target: does review render draft manifests (pre-lock preview), active/locked
+    manifests (pre-approval), or both? Pin the inputs available for each.
+  - Contract-delta reuse: confirm the existing contract-delta surface exposes the
+    added/removed/changed public-API set in a form the digest can consume
+    directly, rather than re-parsing the chain.
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Primary hazard: scope creep into a UI. Bound the child to a digest plus
+    `--json`; a server, browser, or TUI is a separate product owned by the
+    harness or editor, not maid-runner.
+  - Duplication hazard: re-deriving artifacts, contract-delta, or risk in a
+    parallel model creates a second source of truth that can drift from the
+    gates. Compose existing services only.
+  - Hidden-mutation hazard: a "review" that writes cache or lock state would
+    break read-only and could become an auto-approve gaming surface. Pin a
+    no-write test.
+  - False-approval hazard: the digest is decision support, not a gate. Locking
+    stays explicit; make that boundary visible in the output.
+temptations:
+- risk: Do not ship an interactive UI, web server, browser app, or TUI inside
+    maid-runner to answer the review-UX gap.
+  instead: Emit a read-only digest in text and single-document JSON that any
+    editor, harness, or CI can render, keeping MAID tool-agnostic and off the
+    harness layer.
+- risk: Do not recompute artifacts, contract deltas, or a risk score in a
+    parallel model built just for the digest.
+  instead: Compose the existing plan-status, contract-delta, artifact-collection,
+    and 099-02 risk sources so the digest cannot drift from what the gates
+    enforce.
+- risk: Do not let maid review lock, revise, promote, or write any state as a
+    side effect of rendering the digest.
+  instead: Keep it strictly read-only, leave Approve-and-Lock to the explicit
+    separate maid plan lock, and pin a test that review writes nothing.
+- risk: Do not present the digest or a risk tier as an approval decision or a
+    gate that can fail the command.
+  instead: Render it as decision support that names the plan-lock status and the
+    recommended assurance tier without gating, and say so in the output.
+- risk: Do not expand review to batches, epics, or a whole chain in this child
+    because it looks convenient.
+  instead: Scope to a single manifest and defer batch or epic review to a later
+    child once the single-manifest digest and its consumers are proven.
+files:
+  create:
+  - path: maid_runner/core/manifest_review.py
+    artifacts:
+    - kind: function
+      name: build_manifest_review_digest
+      description: Pure builder that composes a structured review digest from a
+        manifest plus optional plan-lock status, contract-delta, and risk-tier
+        inputs; no I/O beyond the inputs it is given, deterministic. Exact
+        signature and the digest dataclass finalized during contract hardening.
+  - path: maid_runner/cli/commands/review.py
+    artifacts:
+    - kind: function
+      name: cmd_review
+      description: Read-only CLI surface that gathers the existing
+        plan-status/contract-delta/risk inputs, prints the digest in text and
+        single-document JSON, and never mutates state. Surface name/placement
+        decided in plan review.
+  - path: tests/cli/test_review_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_review_digest_shows_goal_file_counts_artifacts_and_tests
+    - kind: test_function
+      name: test_review_is_read_only_and_writes_no_lock_or_manifest_change
+    - kind: test_function
+      name: test_review_json_is_single_document_with_same_fields
+    - kind: test_function
+      name: test_review_digest_builder_is_deterministic
+    - kind: test_function
+      name: test_review_reports_plan_lock_status_from_existing_source
+    - kind: test_function
+      name: test_review_public_api_changes_match_contract_delta
+    - kind: test_function
+      name: test_review_shows_risk_tier_as_advisory_without_gating
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: Adds the review subparser (name TBD in plan review) with
+        explicit non-empty help text, which tests/cli/test_cli_help_text.py
+        requires of every visible option.
+  read:
+  - maid_runner/core/plan_lock.py
+  - maid_runner/cli/commands/plan.py
+  - maid_runner/core/change_assessment.py
+  - tests/cli/test_cli_help_text.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/cli/test_review_cmd.py tests/cli/test_cli_help_text.py
+  -v
+- uv run maid validate manifests/drafts/099-03-render-manifest-review-digest.manifest.yaml
+  --mode schema --quiet
