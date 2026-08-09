@@ -88,6 +88,18 @@ class ContractDelta:
 
 
 @dataclass(frozen=True)
+class PlanLockDependent:
+    """One active manifest lock that pins a queried behavioral test."""
+
+    manifest_slug: str
+    manifest_path: str
+    lock_path: str
+    test_path: str
+    test_hash_matches: bool
+    recovery_command: str
+
+
+@dataclass(frozen=True)
 class PlanLockRevision:
     """One immutable revision history entry."""
 
@@ -263,6 +275,57 @@ class PlanLock:
 def default_plan_lock_path(project_root: Path, manifest_slug: str) -> Path:
     """Return `.maid/plan-locks/<manifest-slug>.lock.json` under the root."""
     return Path(project_root) / ".maid" / "plan-locks" / f"{manifest_slug}.lock.json"
+
+
+def find_plan_lock_dependents(
+    chain: ManifestChain,
+    project_root: Path,
+    test_path: str | Path,
+) -> tuple[PlanLockDependent, ...]:
+    """Return active readable locks that pin one in-project behavioral test."""
+    root = Path(project_root).resolve()
+    requested = Path(test_path)
+    full_test_path = requested if requested.is_absolute() else root / requested
+    try:
+        relative_test_path = full_test_path.resolve().relative_to(root).as_posix()
+    except ValueError as exc:
+        raise ValueError(
+            f"Plan-lock dependency path is outside project root: {test_path}"
+        ) from exc
+
+    dependents: list[PlanLockDependent] = []
+    for manifest in chain.active_manifests():
+        lock_path = default_plan_lock_path(root, manifest.slug)
+        if not lock_path.exists():
+            continue
+        lock = PlanLock.load(lock_path)
+        locked_hash = lock.test_hashes.get(relative_test_path)
+        if locked_hash is None:
+            continue
+        manifest_path = _project_relative_path(Path(manifest.source_path), root)
+        relative_lock_path = _project_relative_path(lock_path, root)
+        project_root_option = ""
+        recovery_manifest_path = manifest_path
+        if root != Path.cwd().resolve():
+            project_root_option = f"--project-root {shlex.quote(str(root))} "
+            recovery_manifest_path = str(root / manifest_path)
+        recovery_command = (
+            f"maid plan revise {shlex.quote(recovery_manifest_path)} "
+            f"{project_root_option}"
+            '--reason "accept approved shared-test change" '
+            "--preserve-red-evidence"
+        )
+        dependents.append(
+            PlanLockDependent(
+                manifest_slug=manifest.slug,
+                manifest_path=manifest_path,
+                lock_path=relative_lock_path,
+                test_path=relative_test_path,
+                test_hash_matches=test_hash_matches(locked_hash, full_test_path),
+                recovery_command=recovery_command,
+            )
+        )
+    return tuple(dependents)
 
 
 def compute_manifest_contract_hash(manifest_path: Path) -> str:
@@ -1581,6 +1644,11 @@ def _test_hash_errors(
                     manifest,
                     project_root,
                     detail=f"behavioral test changed after lock: {rel}",
+                    suggestion=(
+                        f"Run `maid plan dependents {shlex.quote(rel)}` to inspect "
+                        "every active lock that pins this behavioral test before "
+                        "revising evidence."
+                    ),
                 )
             )
     return errors
@@ -1819,6 +1887,7 @@ def _lock_error(
     project_root: Path,
     *,
     detail: str | None = None,
+    suggestion: str | None = None,
 ) -> ValidationError:
     messages = {
         ErrorCode.PLAN_LOCK_MISSING: "PLAN_LOCK_MISSING: manifest has no plan lock",
@@ -1850,6 +1919,7 @@ def _lock_error(
         code=code,
         message=message,
         location=Location(file=_manifest_location(manifest, project_root)),
+        suggestion=suggestion,
     )
 
 

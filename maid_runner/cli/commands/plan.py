@@ -26,11 +26,78 @@ def cmd_plan(args: argparse.Namespace) -> int:
         return cmd_plan_revise(args)
     if sub == "status":
         return cmd_plan_status(args)
+    if sub == "dependents":
+        return cmd_plan_dependents(args)
     print_error(
         f"Unknown plan subcommand: {sub}",
         json_mode=getattr(args, "json", False),
     )
     return 2
+
+
+def cmd_plan_dependents(args: argparse.Namespace) -> int:
+    """Report active plan locks that pin one behavioral test."""
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.plan_lock import (
+        _PlanLockLoadError,
+        find_plan_lock_dependents,
+    )
+
+    root = Path(getattr(args, "project_root", ".")).resolve()
+    manifest_dir = Path(getattr(args, "manifest_dir", "manifests/"))
+    if not manifest_dir.is_absolute():
+        manifest_dir = root / manifest_dir
+    json_mode = bool(getattr(args, "json", False))
+    try:
+        dependents = find_plan_lock_dependents(
+            ManifestChain(manifest_dir, root),
+            root,
+            args.test_path,
+        )
+        requested = Path(args.test_path)
+        full_test_path = requested if requested.is_absolute() else root / requested
+        normalized_test_path = full_test_path.resolve().relative_to(root).as_posix()
+    except _PlanLockLoadError as exc:
+        print_error(
+            f"Active plan lock cannot be loaded: {exc}",
+            json_mode=json_mode,
+        )
+        return 2
+    except (OSError, ValueError) as exc:
+        print_error(str(exc), json_mode=json_mode)
+        return 2
+
+    if json_mode:
+        print(
+            json.dumps(
+                {
+                    "test_path": normalized_test_path,
+                    "dependents": [
+                        {
+                            "manifest_slug": dependent.manifest_slug,
+                            "manifest_path": dependent.manifest_path,
+                            "lock_path": dependent.lock_path,
+                            "test_path": dependent.test_path,
+                            "test_hash_matches": dependent.test_hash_matches,
+                            "recovery_command": dependent.recovery_command,
+                        }
+                        for dependent in dependents
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+    noun = "lock" if len(dependents) == 1 else "locks"
+    print(f"{len(dependents)} active plan {noun} pin '{normalized_test_path}'")
+    for dependent in dependents:
+        state = "match" if dependent.test_hash_matches else "MISMATCH"
+        print(f"  {dependent.manifest_slug}: {state}")
+        print(f"    Manifest: {dependent.manifest_path}")
+        print(f"    Lock: {dependent.lock_path}")
+        print(f"    Recovery: {dependent.recovery_command}")
+    return 0
 
 
 def cmd_plan_lock(args: argparse.Namespace) -> int:

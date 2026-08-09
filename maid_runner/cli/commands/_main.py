@@ -681,6 +681,26 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         dest="project_root",
         help="Project root containing the manifest",
     )
+    dp = psub.add_parser(
+        "dependents",
+        help="List active plan locks that pin a behavioral test",
+    )
+    dp.add_argument("test_path", help="Behavioral test path to inspect")
+    dp.add_argument(
+        "--manifest-dir",
+        default="manifests/",
+        dest="manifest_dir",
+        help="Directory of active manifests",
+    )
+    dp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing manifests and plan locks",
+    )
+    dp.add_argument(
+        "--json", action="store_true", help="Print plan-lock dependencies as JSON"
+    )
 
 
 def _register_pgtap_parser(sub: argparse._SubParsersAction) -> None:

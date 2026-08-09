@@ -1,0 +1,463 @@
+{
+  "manifest_path": "manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml",
+  "manifest_hash": "sha256-contract:6c27780a9e2f5bd9268d68db61d991a4397d3e0d8e4ce0b6f69f39c6150de2b1",
+  "test_hashes": {
+    "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:b5d2013eff09b743415bd868356653d2bf6a896bad951657bf3f4805a3e18994"
+  },
+  "created_at": "2026-08-09T12:43:07.522057+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e9eacb722e90f0a15018f5a51c652e9de3c70e9788314368cf526aa10660ffe6",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:6e11f7d751a594ddbbf48d66df71fbf8207bf209ee64f4c7c9b045e889fe881e"
+      },
+      "revised_at": "2026-08-09T12:43:08.974296+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml -> manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:93b857fd4b44b91fb41eb29259e1bbc599c44f4b10ab2d8c72dcdd7e13148dd1",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:6e11f7d751a594ddbbf48d66df71fbf8207bf209ee64f4c7c9b045e889fe881e"
+      },
+      "revised_at": "2026-08-09T13:03:40.170255+00:00",
+      "reason": "Align malformed-lock coverage with the established JSON error contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:93b857fd4b44b91fb41eb29259e1bbc599c44f4b10ab2d8c72dcdd7e13148dd1",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:af0341a501cc6c897e6dda3a7e11d96e438551f6ef56709c643017cd7b2d903c"
+      },
+      "revised_at": "2026-08-09T13:04:17.964429+00:00",
+      "reason": "Use MAID's canonical Ellipsis spelling for variadic tuple return metadata",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:returns=tuple[PlanLockDependent, Ellipsis]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:returns=tuple[PlanLockDependent, ...]"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:275bc71092d3f87baac0f782a457bea33f1e8dadb31a679e72de9da5d8c56276",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:af0341a501cc6c897e6dda3a7e11d96e438551f6ef56709c643017cd7b2d903c"
+      },
+      "revised_at": "2026-08-09T13:16:17.662201+00:00",
+      "reason": "Ensure recovery commands preserve a non-default project root",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root",
+          "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root:kind=test_function",
+          "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6c27780a9e2f5bd9268d68db61d991a4397d3e0d8e4ce0b6f69f39c6150de2b1",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_dependents_cmd.py": "sha256-pyast:v2:0a06875626f35a169a67f591cc48c54516deebd4ec6e7e285504c94068bd89ee"
+      },
+      "revised_at": "2026-08-09T13:19:14.673219+00:00",
+      "reason": "Execute cross-directory recovery command in behavioral coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-09T13:19:16.982529+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_dependents_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            \"lock that pins this behavioral test before revising evidence.\"\n        }\nE       AssertionError: assert {None} == {'Run `maid p...ng evidence.'}\nE         \nE         Extra items in the left set:\nE         None\nE         Extra items in the right set:\nE         'Run `maid plan dependents tests/test_shared.py` to inspect every active lock that pins this behavioral test before revising evidence.'\nE         Use -v to get more diff\n\ntests/cli/test_plan_dependents_cmd.py:326: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_json_excludes_superseded_locks\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_rejects_out_of_project_paths\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_empty_query_succeeds_without_recovery_commands\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_recovery_command_preserves_non_default_project_root\nFAILED tests/cli/test_plan_dependents_cmd.py::test_plan_dependents_fails_loudly_on_unreadable_active_lock\nFAILED tests/cli/test_plan_dependents_cmd.py::test_e701_suggests_querying_all_shared_test_dependents\n7 failed in 0.75s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_dependents",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_dependents:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_dependents:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_dependents:returns=int",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.lock_path",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.lock_path:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.lock_path:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.lock_path:type=str",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_path",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_path:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_path:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_path:type=str",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_slug",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_slug:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_slug:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.manifest_slug:type=str",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.recovery_command",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.recovery_command:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.recovery_command:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.recovery_command:type=str",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_hash_matches",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_hash_matches:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_hash_matches:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_hash_matches:type=bool",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_path",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_path:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_path:of=PlanLockDependent",
+      "maid_runner/core/plan_lock.py:attribute:PlanLockDependent.test_path:type=str",
+      "maid_runner/core/plan_lock.py:class:PlanLockDependent",
+      "maid_runner/core/plan_lock.py:class:PlanLockDependent:kind=class",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:arg=test_path:type=str | Path:default=None",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:kind=function",
+      "maid_runner/core/plan_lock.py:function:find_plan_lock_dependents:returns=tuple[PlanLockDependent, Ellipsis]",
+      "tests/cli/test_plan_dependents_cmd.py:test_e701_suggests_querying_all_shared_test_dependents",
+      "tests/cli/test_plan_dependents_cmd.py:test_e701_suggests_querying_all_shared_test_dependents:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_e701_suggests_querying_all_shared_test_dependents:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_empty_query_succeeds_without_recovery_commands",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_empty_query_succeeds_without_recovery_commands:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_empty_query_succeeds_without_recovery_commands:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_fails_loudly_on_unreadable_active_lock",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_fails_loudly_on_unreadable_active_lock:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_fails_loudly_on_unreadable_active_lock:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_json_excludes_superseded_locks",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_json_excludes_superseded_locks:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_json_excludes_superseded_locks:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_recovery_command_preserves_non_default_project_root:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_rejects_out_of_project_paths",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_rejects_out_of_project_paths:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_rejects_out_of_project_paths:returns=None",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command:kind=test_function",
+      "tests/cli/test_plan_dependents_cmd.py:test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_dependents_cmd.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "docs/plans/maid-runner-self-improvement-backlog.md",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/result.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/add-verify-summary-output.manifest.yaml"
+      ],
+      "scope": [
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_dependents_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command",
+              "returns": "None",
+              "source_scenario": "Two active manifests have readable plan locks that both pin one shared behavioral test whose content has changed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits successfully and reports both active manifests, both lock paths, mismatch state, and one explicit preserve-red-evidence revise command per manifest without changing either lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_json_excludes_superseded_locks",
+              "returns": "None",
+              "source_scenario": "A superseded manifest and one active manifest both have historical locks that pin the queried test.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "JSON contains only the active dependent with exact manifest, lock, test-path, hash-state, and recovery-command fields; the superseded lock is absent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_rejects_out_of_project_paths",
+              "returns": "None",
+              "source_scenario": "The query names an absolute or parent-relative test path outside the configured project root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "find_plan_lock_dependents"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dependency discovery raises a clear ValueError rather than reading or reporting locks for an escaped path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_empty_query_succeeds_without_recovery_commands",
+              "returns": "None",
+              "source_scenario": "No active plan lock pins the requested in-project path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits successfully with a visible zero-dependent result and emits no revise command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_recovery_command_preserves_non_default_project_root",
+              "returns": "None",
+              "source_scenario": "The dependency query runs outside the target repository and selects it with an explicit non-default project root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every recovery command preserves the resolved project root so the printed command is executable from the caller's current working directory."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_dependents_fails_loudly_on_unreadable_active_lock",
+              "returns": "None",
+              "source_scenario": "An active manifest's lock file is malformed while another active lock also pins the requested test.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits 2, writes no partial JSON report, and identifies the unreadable active lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_e701_suggests_querying_all_shared_test_dependents",
+              "returns": "None",
+              "source_scenario": "Plan-lock enforcement detects a changed test that is pinned by multiple active manifests.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every E701 diagnostic for that test carries the same `maid plan dependents <test-path>` suggestion so verify output leads to the complete read-only dependency view before revision."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "PlanLockDependent",
+              "description": "Immutable public record describing one active manifest lock that pins the queried behavioral test."
+            },
+            {
+              "kind": "attribute",
+              "name": "manifest_slug",
+              "of": "PlanLockDependent",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "manifest_path",
+              "of": "PlanLockDependent",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "lock_path",
+              "of": "PlanLockDependent",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "test_path",
+              "of": "PlanLockDependent",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "test_hash_matches",
+              "of": "PlanLockDependent",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "recovery_command",
+              "of": "PlanLockDependent",
+              "type": "str"
+            },
+            {
+              "kind": "function",
+              "name": "find_plan_lock_dependents",
+              "description": "Resolve one in-project test path and return every active readable lock that pins it, failing loudly on an unreadable active lock that must be inspected.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str | Path"
+                }
+              ],
+              "returns": "tuple[PlanLockDependent, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan",
+              "description": "Dispatches the additive dependents subcommand alongside lock, revise, and status.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "cmd_plan_dependents",
+              "description": "Render the shared-test plan-lock dependency report as deterministic text or JSON without changing locks.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/result.py",
+        "maid_runner/cli/commands/_format.py",
+        "manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml",
+        "manifests/add-verify-summary-output.manifest.yaml",
+        "docs/plans/maid-runner-self-improvement-backlog.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the additive `plan dependents` parser, test-path argument, manifest-dir/project-root options, and JSON flag without changing unrelated parser behavior."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document the read-only shared-test dependency query and its explicit per-lock recovery boundary."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_dependents_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_dependents_cmd.py",
+      "uv run maid validate manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}
