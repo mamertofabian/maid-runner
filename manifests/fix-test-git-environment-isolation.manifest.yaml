@@ -1,0 +1,125 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prevent inherited Git hook repository pointers from escaping pytest temporary
+  repositories and mutating the caller's worktree"
+type: fix
+created: "2026-08-09T16:17:03Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  source_bug_report:
+    /home/atomrem/.maid/bug-report/20260809-225324-maid-runner-worktree-test-git-env-isolation.md
+  tags:
+    - git
+    - pytest
+    - test-isolation
+    - worktree-safety
+  priority: critical
+description: |
+  Add a session-wide pytest safety boundary that removes inherited Git repository
+  pointer variables before any test runs. Git exports these variables while invoking
+  hooks, and Git subprocesses honor them ahead of cwd, so temporary-repository tests
+  can otherwise write commits, refs, objects, and index entries into the worktree
+  that invoked the hook.
+
+  The fixture restores the caller's environment when an embedded pytest session
+  finishes. It removes only variables that redirect repository storage or worktree
+  resolution; unrelated Git configuration and identity variables remain available.
+  A focused behavioral test runs under hook-like sentinel values and requires all
+  repository pointers to be absent inside the test session.
+temptations:
+  - risk: "Do not patch each existing temporary-repository helper independently and
+      leave future helpers exposed."
+    instead: "Enforce the invariant once in the root autouse pytest configuration
+      and cover it with a hook-like regression command."
+  - risk: "Do not remove every GIT_* variable, including harmless configuration and
+      test identity controls."
+    instead: "Remove only repository, worktree, index, common-directory, prefix, and
+      object-directory pointers known to redirect Git operations."
+  - risk: "Do not prove the fix by pointing a red-phase Git command at the real repository
+      or another valuable worktree."
+    instead: "Use inert sentinel values and assert the environment boundary directly
+      before exercising the existing temporary-repository tests after implementation."
+files:
+  create:
+    - path: tests/test_git_environment_isolation.py
+      artifacts:
+        - kind: test_function
+          name: test_git_repository_pointers_are_removed_from_test_environment
+          args: []
+          returns: None
+          description: "A pytest session started with hook-exported Git repository
+            pointers cannot expose those pointers to test Git subprocesses."
+  scope:
+    - path: tests/conftest.py
+      reason: "Add session-wide autouse test-harness wiring that sanitizes inherited
+        Git repository pointers without defining a production API."
+  read:
+    - tests/cli/test_plan_legacy_baseline_first_commit.py
+    - tests/core/test_changed_scope_dotnet_files.py
+    - tests/core/test_plan_lock_git_subdirectory.py
+validate:
+  - env GIT_DIR=/tmp/maid-test-ambient.git
+    GIT_WORK_TREE=/tmp/maid-test-ambient-worktree
+    GIT_INDEX_FILE=/tmp/maid-test-ambient.index
+    GIT_COMMON_DIR=/tmp/maid-test-ambient-common
+    GIT_PREFIX=maid-test-ambient-prefix
+    GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects uv run python -m pytest
+    -q tests/test_git_environment_isolation.py
+    tests/cli/test_plan_legacy_baseline_first_commit.py
+    tests/core/test_changed_scope_dotnet_files.py
+    tests/core/test_plan_lock_git_subdirectory.py
+outcome:
+  status: completed
+  completed_at: "2026-08-10T00:28:24+08:00"
+  summary: "Pytest now removes inherited Git repository pointers for the full test session, preventing temporary-repository helpers from mutating the worktree that invoked a Git hook."
+  rationale: "A root session-autouse fixture closes the escape path once for existing and future test Git subprocesses while preserving unrelated Git configuration and restoring the caller's exact pointer values when an embedded pytest session finishes."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills:
+      - maid-runner-self-improvement
+      - maid-planner
+      - maid-evolver
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: workflow-integrity
+      summary: "Git test helpers isolated only by cwd are unsafe inside hooks because inherited repository pointers take precedence; sanitize repository-location variables at the test-session boundary."
+      tags: [git-hooks, test-isolation, worktrees, maid-runner-feedback]
+      paths: [tests/conftest.py, tests/test_git_environment_isolation.py]
+    - lesson_type: test-design
+      summary: "A destructive-environment regression can be proven safely with inert sentinel pointers plus a full hostile-environment suite, without targeting valuable repository metadata."
+      tags: [regression-tests, environment-isolation, safety]
+      paths: [tests/test_git_environment_isolation.py]
+  review_notes:
+    - source: independent-reviewer-git_env_isolation_review
+      severity: ready
+      summary: "Found no actionable defects and confirmed the six variables close the reported caller-worktree mutation path."
+    - source: independent-reviewer-git_env_isolation_review
+      severity: residual-risk
+      summary: "Exact teardown restoration after embedded pytest.main() is not directly tested, and collection-time plugin Git commands would precede session fixture setup; neither affects the reported test-helper execution path."
+  validation:
+    - command: [env, GIT_DIR=/tmp/maid-test-ambient.git, GIT_WORK_TREE=/tmp/maid-test-ambient-worktree, GIT_INDEX_FILE=/tmp/maid-test-ambient.index, GIT_COMMON_DIR=/tmp/maid-test-ambient-common, GIT_PREFIX=maid-test-ambient-prefix, GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects, uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The full hostile-environment Python suite passed 3872 tests with 5 skipped, and Git HEAD remained 084486a."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "Repository validation passed 403 active manifests with zero failures; 109 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 236 active manifest commands passed."
+    - command: [uv, run, ruff, check, tests/conftest.py, tests/test_git_environment_isolation.py]
+      status: passed
+      summary: "Focused Ruff and Black checks passed for both changed Python files."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, HEAD]
+      status: passed
+      summary: "All nine handoff stages passed with zero blockers; only pre-existing E307 no-validator warnings remained."
