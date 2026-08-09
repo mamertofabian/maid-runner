@@ -1,0 +1,337 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Group repeated shared-test E701 recovery guidance in verify summaries
+  while preserving every per-manifest diagnostic
+type: feature
+created: '2026-08-09T13:38:53Z'
+metadata:
+  tags:
+  - plan-lock
+  - verify-summary
+  - developer-experience
+  - cross-repository-feedback
+  priority: medium
+description: |
+  Complete the bounded second half of self-improvement backlog item R5 after
+  `maid plan dependents` made shared-test lock ownership discoverable. A single
+  shared test edit can produce one E701 per active manifest. Raw text, JSON,
+  SARIF, and blocking summary details must retain those independent diagnostics,
+  but repeating the same dependency-query suggestion under every manifest makes
+  the concise handoff view noisy.
+
+  Add a structured recovery grouping to `VerifySummary`. Group only E701
+  findings that carry the same non-empty suggestion, using the suggestion as an
+  opaque structured key rather than parsing rendered messages or test paths.
+  Preserve first-seen order and collect the contributing manifest paths. The
+  summary text renders one recovery entry per shared-test query after the
+  blocking section, while the JSON summary exposes the same group explicitly.
+  Default verify text, raw JSON, and SARIF remain unchanged and retain every
+  per-manifest E701 diagnostic and suggestion.
+
+  This is an additive chain merge over the active verify-summary contract. It
+  adds recovery metadata and presentation behavior without changing validation
+  policy, E701 generation, stage success, exit codes, or plan locks.
+temptations:
+- risk: Deduplicate E701 diagnostics themselves to make the summary shorter.
+  instead: Keep every manifest failure in blocking details, raw JSON, and SARIF;
+    deduplicate only the repeated recovery suggestion into an additional group.
+- risk: Parse the E701 message or rendered command to recover a test path.
+  instead: Treat the structured ValidationError suggestion as an opaque grouping
+    key and carry the original suggestion through unchanged.
+- risk: Group every diagnostic that happens to share suggestion text.
+  instead: Restrict recovery grouping to E701 so unrelated repair guidance keeps
+    its existing per-diagnostic placement.
+- risk: Change verify success, stage selection, or exit codes while adding the
+    presentation.
+  instead: Build recovery groups from the completed VerificationResult and
+    render them without modifying any stage object or gate decision.
+- risk: Prove preservation only through summary text assertions.
+  instead: Assert raw summary JSON blocking records and SARIF still contain both
+    per-manifest E701 diagnostics and their suggestions.
+files:
+  edit:
+  - path: maid_runner/core/verify_summary.py
+    artifacts:
+    - kind: class
+      name: VerifyRecoveryGroup
+      description: Immutable group of repeated E701 recovery guidance with the
+        contributing active manifest paths in first-seen order.
+    - kind: attribute
+      name: code
+      of: VerifyRecoveryGroup
+      type: str
+    - kind: attribute
+      name: suggestion
+      of: VerifyRecoveryGroup
+      type: str
+    - kind: attribute
+      name: manifest_paths
+      of: VerifyRecoveryGroup
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: count
+      of: VerifyRecoveryGroup
+      type: int
+    - kind: attribute
+      name: recovery_groups
+      of: VerifySummary
+      type: tuple[VerifyRecoveryGroup, Ellipsis]
+    - kind: function
+      name: build_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      returns: VerifySummary
+      description: Preserve existing stage and warning categorization while
+        additionally grouping repeated structured E701 suggestions and their
+        contributing manifest paths.
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_verify_summary
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Render grouped E701 recovery once in summary text or JSON
+        while leaving every blocking diagnostic and non-summary output intact.
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document grouped summary recovery as a presentation-only companion
+      to the read-only plan-dependents query.
+  - path: docs/plans/maid-runner-self-improvement-backlog.md
+    reason: Mark R5 complete with the two promoted child contracts and retain
+      the remaining ranked backlog accurately.
+  create:
+  - path: tests/cli/test_verify_summary_plan_lock_recovery.py
+    artifacts:
+    - kind: test_function
+      name:
+        test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics
+      args: []
+      returns: None
+      source_scenario: Two failed active-manifest validation results carry E701
+        diagnostics with the same plan-dependents suggestion.
+      actions:
+      - type: api_call
+        subject:
+          function: format_verify_summary
+      expected:
+        behavior: Summary text retains both manifest failures and both E701
+          messages but renders one recovery group naming both manifests and the
+          unchanged dependency-query suggestion once.
+    - kind: test_function
+      name: test_summary_keeps_distinct_shared_test_recovery_groups_separate
+      args: []
+      returns: None
+      source_scenario: E701 diagnostics refer to two different shared tests and
+        therefore carry different dependency-query suggestions.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: Two VerifyRecoveryGroup values remain in first-seen order and
+          each contains only its contributing manifest paths.
+    - kind: test_function
+      name: test_summary_json_and_sarif_keep_each_e701_diagnostic
+      args: []
+      returns: None
+      source_scenario: A shared test produces two per-manifest E701 diagnostics
+        and one grouped recovery instruction.
+      actions:
+      - type: api_call
+        subject:
+          function: format_verify_summary
+      expected:
+        behavior: Summary JSON exposes one recovery group while its blocking
+          stage and the SARIF report each retain two E701 records with their
+          original manifest locations and suggestions.
+    - kind: test_function
+      name: test_summary_does_not_group_non_e701_suggestions
+      args: []
+      returns: None
+      source_scenario: Two non-E701 validation failures share identical repair
+        suggestion text.
+      actions:
+      - type: api_call
+        subject:
+          function: build_verify_summary
+      expected:
+        behavior: recovery_groups stays empty and ordinary diagnostic rendering
+          continues to show each non-E701 suggestion.
+    - kind: test_function
+      name:
+        test_summary_keeps_single_e701_suggestion_inline_without_recovery_section
+      args: []
+      returns: None
+      source_scenario: Only one active manifest emits an E701 suggestion for a
+        behavioral test.
+      actions:
+      - type: api_call
+        subject:
+          function: format_verify_summary
+      expected:
+        behavior: No recovery group is created and the existing inline E701
+          suggestion remains visible once, avoiding a noisier singleton section.
+  read:
+  - maid_runner/core/result.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/sarif.py
+  - tests/core/test_verify_summary.py
+  - tests/cli/test_verify_summary_cmd.py
+  - manifests/add-verify-summary-output.manifest.yaml
+  - manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml
+  - manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_verify_summary_plan_lock_recovery.py
+- uv run python -m pytest -q tests/core/test_verify_summary.py
+  tests/cli/test_verify_summary_cmd.py
+  tests/cli/test_verify_summary_blocking_label.py
+outcome:
+  status: completed
+  completed_at: '2026-08-09T13:51:42Z'
+  summary: Grouped repeated E701 shared-test recovery suggestions in verify
+    summaries while retaining every per-manifest diagnostic in blocking details,
+    summary JSON, raw output, and SARIF.
+  rationale: |
+    The read-only plan-dependents query closed dependency discovery, but the
+    handoff summary still repeated the same query suggestion under each affected
+    manifest. Grouping only repeated structured E701 suggestions at the
+    presentation layer removes that noise without weakening independent lock
+    evidence, parsing rendered messages, or changing gate semantics. Singleton
+    E701 and non-E701 suggestions retain their established inline behavior.
+  lessons:
+  - lesson_type: cli-output
+    summary: Repeated repair guidance can be deduplicated safely when the
+      summary adds a separate structured group while preserving every underlying
+      diagnostic, location, count, and machine-readable result.
+    tags:
+    - verify-summary
+    - plan-lock
+    paths:
+    - maid_runner/core/verify_summary.py
+    - maid_runner/cli/commands/_format.py
+  - lesson_type: test-design
+    summary: A grouped-guidance fixture must make every expected group genuinely
+      repeated; otherwise it contradicts the separately required singleton
+      behavior and cannot define an implementable contract.
+    tags:
+    - behavioral-tests
+    - plan-revision
+    paths:
+    - tests/cli/test_verify_summary_plan_lock_recovery.py
+  - lesson_type: backward-compatibility
+    summary: Additive fields on public result dataclasses should be trailing and
+      defaulted so existing positional and keyword construction remains valid.
+    tags:
+    - public-api
+    - dataclasses
+    paths:
+    - maid_runner/core/verify_summary.py
+  review_notes:
+  - source: implementation-review-subagent-review_098_02
+    severity: ready
+    summary: Independent review found no blocking or advisory findings; scope,
+      revision-3 lock evidence, structured grouping, diagnostic preservation,
+      and compatibility were consistent with the approved contract.
+  - source: implementation-review-subagent-review_098_02
+    severity: residual-risk
+    summary: Tests construct VerificationResult fixtures rather than running a
+      complete scratch repository with multiple tampered locks, while direct
+      producer/formatter inspection and the full repository suite reduce risk.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_verify_summary_plan_lock_recovery.py
+    status: passed
+    summary: All five grouped, distinct, JSON/SARIF, non-E701, and singleton
+      recovery scenarios passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_verify_summary_plan_lock_recovery.py
+    - tests/core/test_verify_summary.py
+    - tests/cli/test_verify_summary_cmd.py
+    - tests/cli/test_verify_summary_blocking_label.py
+    - tests/core/test_sarif.py
+    status: passed
+    summary: Focused summary, formatter, and SARIF regression scope passed 28
+      tests before the final compatibility-only adjustment; the post-adjustment
+      summary scope passed 20 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: Implementation validation passed against plan-lock revision 3.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml
+    status: passed
+    summary: Both manifest-declared behavioral commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --summary
+    - --plan-lock-scope
+    - task
+    - --since
+    - f47820d
+    - --packet
+    status: passed
+    summary: The task-scoped eight-stage inner-loop gate passed with zero
+      blockers.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed 401 active manifests with 109
+      superseded manifests skipped and no failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 235 repository manifest test commands passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full Python suite passed 3865 tests with 5 skipped.

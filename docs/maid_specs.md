@@ -141,6 +141,14 @@ Unreadable active locks and paths outside the project fail the whole query
 instead of producing a partial dependency report. E701 diagnostics point to
 this query using the structured changed-test path.
 
+When two or more active manifests emit the same E701 dependency-query
+suggestion, `maid verify --summary` keeps every manifest failure visible but
+moves the repeated suggestion into one `RECOVERY` group naming all contributing
+manifest paths. Summary JSON exposes the same group under
+`findings.recovery`. Default verify text, raw JSON, and SARIF retain every
+per-manifest E701 suggestion. A single E701 remains inline without creating a
+singleton recovery section.
+
 ##### **Repository-Owned Django Test Wrappers**
 
 Command-integrity checks recognize standard Django entry points by default. A

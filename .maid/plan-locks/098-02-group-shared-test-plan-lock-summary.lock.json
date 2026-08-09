@@ -1,0 +1,349 @@
+{
+  "manifest_path": "manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml",
+  "manifest_hash": "sha256-contract:4cf1c80a768b7e05a3591a0dc6f953c73598deed5b2bdf1c4e918a0ec1c5b9e8",
+  "test_hashes": {
+    "tests/core/test_verify_summary.py": "sha256-pyast:v2:5ed549a1e217b03be0e348049670cd23dd961f7a5c07c645e5144a4401507def",
+    "tests/cli/test_verify_summary_cmd.py": "sha256-pyast:v2:9d1990c8a01ebedda7efb622023ce2c3e6d97728dd98cbed3cec06e245cd3ed6",
+    "tests/cli/test_verify_summary_plan_lock_recovery.py": "sha256-pyast:v2:9217edfc7cf89afca6ca6d4b9d54d02a67862cb68772a4320908cb02651d1172",
+    "tests/cli/test_verify_summary_blocking_label.py": "sha256-pyast:v2:c0b685377cbb3b43b1de32e7a73beab3936c8aed52cfd59d5a67e2ce2c6676bd"
+  },
+  "created_at": "2026-08-09T13:38:47.607130+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c485d4c19a60e952aa86b85dffde1be2ff91cfa06bf275a9011aec18e26f9170",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256-pyast:v2:5ed549a1e217b03be0e348049670cd23dd961f7a5c07c645e5144a4401507def",
+        "tests/cli/test_verify_summary_cmd.py": "sha256-pyast:v2:9d1990c8a01ebedda7efb622023ce2c3e6d97728dd98cbed3cec06e245cd3ed6",
+        "tests/cli/test_verify_summary_plan_lock_recovery.py": "sha256-pyast:v2:73af67396caa4d3a11ec23a738bf6da931732a13c28bfb13cfeda3c9446feeb8",
+        "tests/cli/test_verify_summary_blocking_label.py": "sha256-pyast:v2:c0b685377cbb3b43b1de32e7a73beab3936c8aed52cfd59d5a67e2ce2c6676bd"
+      },
+      "revised_at": "2026-08-09T13:38:53.767656+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/098-02-group-shared-test-plan-lock-summary.manifest.yaml -> manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4cf1c80a768b7e05a3591a0dc6f953c73598deed5b2bdf1c4e918a0ec1c5b9e8",
+      "prior_test_hashes": {
+        "tests/core/test_verify_summary.py": "sha256-pyast:v2:5ed549a1e217b03be0e348049670cd23dd961f7a5c07c645e5144a4401507def",
+        "tests/cli/test_verify_summary_cmd.py": "sha256-pyast:v2:9d1990c8a01ebedda7efb622023ce2c3e6d97728dd98cbed3cec06e245cd3ed6",
+        "tests/cli/test_verify_summary_plan_lock_recovery.py": "sha256-pyast:v2:73af67396caa4d3a11ec23a738bf6da931732a13c28bfb13cfeda3c9446feeb8",
+        "tests/cli/test_verify_summary_blocking_label.py": "sha256-pyast:v2:c0b685377cbb3b43b1de32e7a73beab3936c8aed52cfd59d5a67e2ce2c6676bd"
+      },
+      "revised_at": "2026-08-09T13:42:43.749856+00:00",
+      "reason": "Make both distinct recovery fixtures represent repeated E701 guidance",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-09T13:42:44.515144+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_summary_plan_lock_recovery.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner.cli.commands._format import format_verify_summary\n        from maid_runner.core.verify_summary import build_verify_summary\n    \n        result = _verify_result(_failure(\"alpha\"))\n    \n        summary = build_verify_summary(result)\n        output = format_verify_summary(result)\n    \n>       assert summary.recovery_groups == ()\n               ^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'VerifySummary' object has no attribute 'recovery_groups'\n\ntests/cli/test_verify_summary_plan_lock_recovery.py:206: AttributeError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_summary_plan_lock_recovery.py::test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics\nFAILED tests/cli/test_verify_summary_plan_lock_recovery.py::test_summary_keeps_distinct_shared_test_recovery_groups_separate\nFAILED tests/cli/test_verify_summary_plan_lock_recovery.py::test_summary_json_and_sarif_keep_each_e701_diagnostic\nFAILED tests/cli/test_verify_summary_plan_lock_recovery.py::test_summary_does_not_group_non_e701_suggestions\nFAILED tests/cli/test_verify_summary_plan_lock_recovery.py::test_summary_keeps_single_e701_suggestion_inline_without_recovery_section\n5 failed in 0.16s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_verify_summary.py tests/cli/test_verify_summary_cmd.py tests/cli/test_verify_summary_blocking_label.py",
+        "exit_code": 0,
+        "output_tail": "...............                                                          [100%]\n15 passed in 0.26s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_summary:returns=str",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.code",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.code:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.code:of=VerifyRecoveryGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.code:type=str",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.count",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.count:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.count:of=VerifyRecoveryGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.count:type=int",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.manifest_paths",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.manifest_paths:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.manifest_paths:of=VerifyRecoveryGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.manifest_paths:type=tuple[str, Ellipsis]",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.suggestion",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.suggestion:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.suggestion:of=VerifyRecoveryGroup",
+      "maid_runner/core/verify_summary.py:attribute:VerifyRecoveryGroup.suggestion:type=str",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.recovery_groups",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.recovery_groups:kind=attribute",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.recovery_groups:of=VerifySummary",
+      "maid_runner/core/verify_summary.py:attribute:VerifySummary.recovery_groups:type=tuple[VerifyRecoveryGroup, Ellipsis]",
+      "maid_runner/core/verify_summary.py:class:VerifyRecoveryGroup",
+      "maid_runner/core/verify_summary.py:class:VerifyRecoveryGroup:kind=class",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:arg=result:type=VerificationResult:default=None",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:kind=function",
+      "maid_runner/core/verify_summary.py:function:build_verify_summary:returns=VerifySummary",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_does_not_group_non_e701_suggestions",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_does_not_group_non_e701_suggestions:kind=test_function",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_does_not_group_non_e701_suggestions:returns=None",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics:kind=test_function",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics:returns=None",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_json_and_sarif_keep_each_e701_diagnostic",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_json_and_sarif_keep_each_e701_diagnostic:kind=test_function",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_json_and_sarif_keep_each_e701_diagnostic:returns=None",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_distinct_shared_test_recovery_groups_separate",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_distinct_shared_test_recovery_groups_separate:kind=test_function",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_distinct_shared_test_recovery_groups_separate:returns=None",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_single_e701_suggestion_inline_without_recovery_section",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_single_e701_suggestion_inline_without_recovery_section:kind=test_function",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py:test_summary_keeps_single_e701_suggestion_inline_without_recovery_section:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_verify_summary_plan_lock_recovery.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/verify_summary.py"
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/sarif.py",
+        "manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml",
+        "manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml",
+        "manifests/add-verify-summary-output.manifest.yaml",
+        "tests/cli/test_verify_summary_cmd.py",
+        "tests/core/test_verify_summary.py"
+      ],
+      "scope": [
+        "docs/maid_specs.md",
+        "docs/plans/maid-runner-self-improvement-backlog.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_verify_summary_plan_lock_recovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_summary_groups_shared_test_recovery_once_and_preserves_manifest_diagnostics",
+              "returns": "None",
+              "source_scenario": "Two failed active-manifest validation results carry E701 diagnostics with the same plan-dependents suggestion.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "format_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Summary text retains both manifest failures and both E701 messages but renders one recovery group naming both manifests and the unchanged dependency-query suggestion once."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_summary_keeps_distinct_shared_test_recovery_groups_separate",
+              "returns": "None",
+              "source_scenario": "E701 diagnostics refer to two different shared tests and therefore carry different dependency-query suggestions.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Two VerifyRecoveryGroup values remain in first-seen order and each contains only its contributing manifest paths."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_summary_json_and_sarif_keep_each_e701_diagnostic",
+              "returns": "None",
+              "source_scenario": "A shared test produces two per-manifest E701 diagnostics and one grouped recovery instruction.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "format_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Summary JSON exposes one recovery group while its blocking stage and the SARIF report each retain two E701 records with their original manifest locations and suggestions."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_summary_does_not_group_non_e701_suggestions",
+              "returns": "None",
+              "source_scenario": "Two non-E701 validation failures share identical repair suggestion text.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "build_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "recovery_groups stays empty and ordinary diagnostic rendering continues to show each non-E701 suggestion."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_summary_keeps_single_e701_suggestion_inline_without_recovery_section",
+              "returns": "None",
+              "source_scenario": "Only one active manifest emits an E701 suggestion for a behavioral test.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "format_verify_summary"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No recovery group is created and the existing inline E701 suggestion remains visible once, avoiding a noisier singleton section."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/verify_summary.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "VerifyRecoveryGroup",
+              "description": "Immutable group of repeated E701 recovery guidance with the contributing active manifest paths in first-seen order."
+            },
+            {
+              "kind": "attribute",
+              "name": "code",
+              "of": "VerifyRecoveryGroup",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "suggestion",
+              "of": "VerifyRecoveryGroup",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "manifest_paths",
+              "of": "VerifyRecoveryGroup",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "count",
+              "of": "VerifyRecoveryGroup",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "recovery_groups",
+              "of": "VerifySummary",
+              "type": "tuple[VerifyRecoveryGroup, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "build_verify_summary",
+              "description": "Preserve existing stage and warning categorization while additionally grouping repeated structured E701 suggestions and their contributing manifest paths.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                }
+              ],
+              "returns": "VerifySummary"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_verify_summary",
+              "description": "Render grouped E701 recovery once in summary text or JSON while leaving every blocking diagnostic and non-summary output intact.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/sarif.py",
+        "tests/core/test_verify_summary.py",
+        "tests/cli/test_verify_summary_cmd.py",
+        "manifests/add-verify-summary-output.manifest.yaml",
+        "manifests/090-02-collect-nested-report-findings-in-summary.manifest.yaml",
+        "manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document grouped summary recovery as a presentation-only companion to the read-only plan-dependents query."
+        },
+        {
+          "path": "docs/plans/maid-runner-self-improvement-backlog.md",
+          "reason": "Mark R5 complete with the two promoted child contracts and retain the remaining ranked backlog accurately."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_summary_blocking_label.py",
+      "tests/cli/test_verify_summary_cmd.py",
+      "tests/cli/test_verify_summary_plan_lock_recovery.py",
+      "tests/core/test_verify_summary.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_summary_plan_lock_recovery.py",
+      "uv run python -m pytest -q tests/core/test_verify_summary.py tests/cli/test_verify_summary_cmd.py tests/cli/test_verify_summary_blocking_label.py"
+    ]
+  }
+}

@@ -112,6 +112,9 @@ general regression.
 
 ### R5. Surface shared-test plan-lock dependents and recovery commands
 
+- **Status:** Completed by
+  `manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml` and
+  `manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml`.
 - **Priority / lane:** P2, developer experience and MAID workflow.
 - **Evidence:** A privacy-bounded `maid feedback export` from an isolated copy
   of the completed `maid-validator-csharp` Outcome for
@@ -545,8 +548,6 @@ then hygiene):
    benchmark (`maid-evolver`; performance re-probe only if default routing is
    reconsidered).
 4. R4 — refresh hardening and cleanup specialist backlogs against v2.25.
-5. R5 — add a read-only shared-test lock-dependency view and grouped E701
-   recovery guidance without automatic lock mutation (`maid-evolver`).
 
 Completed:
 
@@ -558,6 +559,8 @@ Completed:
 - Theme 8 — completed by `082-06`; consumed epics 067/077/081/084 are archived.
 - Theme 10 — compatible batching and parallel command groups are implemented
   and covered; no current reproduction remains.
+- R5 — completed by `098-01` and `098-02`; dependency discovery is read-only,
+  repeated summary guidance is grouped, and per-manifest diagnostics remain.
 
 Sequencing note: do not resume the parked 062-04 implementation merely because
 its migration prerequisites shipped. R1 is a current release blocker: reconcile
@@ -577,9 +580,8 @@ the empty strict-delta with the failing flipped-default dogfood evidence first.
   bug-report → narrow-fix → regression-test loop working; keep routing
   language-validator edge cases through it rather than building broader static
   analysis (see Validator Hardening Constraints in `AGENTS.md`).
-- `maid-evolver` owns R5 because it extends active plan-lock and verify-summary
-  behavior. Keep the first slice read-only; batch lock revision needs a
-  separate trust review if it is ever proposed.
+- R5 is complete. Any future batch lock-revision proposal remains a separate
+  validation-trust review and must not infer that evidence is preservable.
 
 ## Draft Manifest Candidates
 
@@ -591,6 +593,8 @@ Created and completed:
 - `082-04-exempt-documented-default-hooks-from-e310` (Theme 4; completed).
 - `082-05-proportionate-e307-no-validator-policy` (Theme 5; completed).
 - `082-06-archive-consumed-post-067-epics` (Theme 8; completed).
+- `098-01-surface-shared-test-plan-lock-dependents` (R5 discovery; completed).
+- `098-02-group-shared-test-plan-lock-summary` (R5 summary guidance; completed).
 
 Remaining manifest work:
 
@@ -600,10 +604,6 @@ Remaining manifest work:
 - Add a narrow R2 fix draft evolving the active theme-map contract.
 - Archive the consumed 085 epic and close 064 against its recorded benchmark
   decision. Do not revive 064-05 as a live child.
-- Add a narrow R5 developer-experience draft after choosing whether the public
-  entry point is a new plan subcommand or an extension of an existing query.
-  Pin dependency discovery and grouped guidance only; automatic multi-lock
-  revision is explicitly out of scope.
 
 Every candidate must follow the full lifecycle: draft → behavioral tests →
 red phase → `maid validate --mode behavioral` → plan review → `maid plan lock`

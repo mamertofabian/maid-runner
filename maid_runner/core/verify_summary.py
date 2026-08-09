@@ -21,6 +21,16 @@ class VerifyWarningGroup:
 
 
 @dataclass(frozen=True)
+class VerifyRecoveryGroup:
+    """Repeated E701 recovery guidance with contributing manifest paths."""
+
+    code: str
+    suggestion: str
+    manifest_paths: tuple[str, ...]
+    count: int
+
+
+@dataclass(frozen=True)
 class VerifySummary:
     success: bool
     blocking_stages: tuple[str, ...]
@@ -31,6 +41,7 @@ class VerifySummary:
     info_groups: tuple[VerifyWarningGroup, ...]
     raw_warning_count: int
     raw_info_count: int
+    recovery_groups: tuple[VerifyRecoveryGroup, ...] = ()
 
 
 def build_verify_summary(result: VerificationResult) -> VerifySummary:
@@ -71,6 +82,7 @@ def build_verify_summary(result: VerificationResult) -> VerifySummary:
         )
         for code in ordered_info_codes
     )
+    recovery_groups = _build_recovery_groups(result)
 
     return VerifySummary(
         success=all(stage.success for stage in result.stages),
@@ -94,9 +106,60 @@ def build_verify_summary(result: VerificationResult) -> VerifySummary:
         ),
         warning_groups=warning_groups,
         info_groups=info_groups,
+        recovery_groups=recovery_groups,
         raw_warning_count=sum(warning_counts.values()),
         raw_info_count=sum(info_counts.values()),
     )
+
+
+def _build_recovery_groups(
+    result: VerificationResult,
+) -> tuple[VerifyRecoveryGroup, ...]:
+    counts: dict[tuple[str, str], int] = {}
+    manifest_paths: dict[tuple[str, str], list[str]] = {}
+    ordered_keys: list[tuple[str, str]] = []
+
+    for validation in _iter_manifest_validations(result):
+        manifest_path = getattr(validation, "manifest_path", None)
+        if not manifest_path:
+            continue
+        for error in getattr(validation, "errors", ()):
+            code = _error_code(error)
+            suggestion = getattr(error, "suggestion", None)
+            if code != "E701" or not suggestion:
+                continue
+            key = (code, str(suggestion))
+            if key not in counts:
+                ordered_keys.append(key)
+                counts[key] = 0
+                manifest_paths[key] = []
+            counts[key] += 1
+            rendered_manifest_path = str(manifest_path)
+            if rendered_manifest_path not in manifest_paths[key]:
+                manifest_paths[key].append(rendered_manifest_path)
+
+    return tuple(
+        VerifyRecoveryGroup(
+            code=code,
+            suggestion=suggestion,
+            manifest_paths=tuple(manifest_paths[(code, suggestion)]),
+            count=counts[(code, suggestion)],
+        )
+        for code, suggestion in ordered_keys
+        if counts[(code, suggestion)] > 1
+    )
+
+
+def _iter_manifest_validations(result: VerificationResult):
+    for stage in result.stages:
+        validation = getattr(stage, "_validation", None)
+        if validation is None:
+            continue
+        nested = getattr(validation, "results", None)
+        if nested is not None:
+            yield from nested
+        elif getattr(validation, "manifest_path", None):
+            yield validation
 
 
 def _iter_validation_warnings(result: VerificationResult):

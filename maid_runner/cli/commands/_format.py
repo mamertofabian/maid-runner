@@ -351,6 +351,15 @@ def format_verify_summary(
                     }
                     for group in summary.info_groups
                 ],
+                "recovery": [
+                    {
+                        "code": group.code,
+                        "suggestion": group.suggestion,
+                        "manifest_paths": list(group.manifest_paths),
+                        "count": group.count,
+                    }
+                    for group in summary.recovery_groups
+                ],
             },
             "warning_blocking_stages": list(summary.warning_blocking_stages),
             "passed_stages": list(summary.passed_stages),
@@ -385,11 +394,32 @@ def format_verify_summary(
     if blocking_stages:
         lines.append("")
         lines.append(f"BLOCKING ({len(blocking_stages)}):")
+        grouped_recovery_suggestions = frozenset(
+            group.suggestion for group in summary.recovery_groups
+        )
         for stage in blocking_stages:
             lines.append(f"  FAIL {stage.name}")
-            details = _format_verify_summary_stage_details(stage)
+            details = _format_verify_summary_stage_details(
+                stage,
+                grouped_recovery_suggestions=grouped_recovery_suggestions,
+            )
             if details:
                 lines.extend(f"    {line}" for line in details.splitlines())
+
+    if summary.recovery_groups:
+        lines.append("")
+        noun = "group" if len(summary.recovery_groups) == 1 else "groups"
+        lines.append(f"RECOVERY ({len(summary.recovery_groups)} {noun}):")
+        for group in summary.recovery_groups:
+            manifest_noun = (
+                "manifest" if len(group.manifest_paths) == 1 else "manifests"
+            )
+            lines.append(
+                f"  {group.code} x{group.count} across "
+                f"{len(group.manifest_paths)} {manifest_noun}"
+            )
+            lines.append(f"    Manifests: {', '.join(group.manifest_paths)}")
+            lines.append(f"    Suggestion: {group.suggestion}")
 
     if summary.passed_stages:
         lines.append("")
@@ -499,13 +529,18 @@ def _format_artifact_coverage_report(report) -> str:
     return "\n".join(lines)
 
 
-def _format_validation_error_lines(error, *, indent: str) -> list[str]:
+def _format_validation_error_lines(
+    error,
+    *,
+    indent: str,
+    include_suggestion: bool = True,
+) -> list[str]:
     lines = [f"{indent}{_format_validation_error_summary(error)}"]
     location = _format_validation_error_location(error)
     if location:
         lines.append(f"{indent}  Location: {location}")
     suggestion = getattr(error, "suggestion", None)
-    if suggestion:
+    if suggestion and include_suggestion:
         lines.append(f"{indent}  Suggestion: {suggestion}")
     return lines
 
@@ -638,12 +673,19 @@ def _format_verify_stage_details(stage) -> str:
     return ""
 
 
-def _format_verify_summary_stage_details(stage) -> str:
+def _format_verify_summary_stage_details(
+    stage,
+    *,
+    grouped_recovery_suggestions: frozenset[str] = frozenset(),
+) -> str:
     validation = getattr(stage, "_validation", None)
     if validation is not None and (
         not stage.success or _validation_has_warnings(validation)
     ):
-        return _format_verify_summary_validation_details(validation)
+        return _format_verify_summary_validation_details(
+            validation,
+            grouped_recovery_suggestions=grouped_recovery_suggestions,
+        )
 
     return _format_verify_stage_details(stage)
 
@@ -699,16 +741,47 @@ def _format_verify_error(error) -> str:
     return str(error)
 
 
+def _format_verify_summary_error(
+    error,
+    *,
+    grouped_recovery_suggestions: frozenset[str],
+) -> str:
+    if not (hasattr(error, "code") and hasattr(error, "message")):
+        return str(error)
+    code = getattr(getattr(error, "code", None), "value", None)
+    suggestion = getattr(error, "suggestion", None)
+    include_suggestion = not (
+        code == "E701" and suggestion in grouped_recovery_suggestions
+    )
+    return "\n".join(
+        _format_validation_error_lines(
+            error,
+            indent="",
+            include_suggestion=include_suggestion,
+        )
+    )
+
+
 def _format_verify_validation_details(validation) -> str:
     if isinstance(validation, BatchValidationResult):
         return _format_verify_batch_validation_details(validation)
     return _format_verify_single_validation_details(validation)
 
 
-def _format_verify_summary_validation_details(validation) -> str:
+def _format_verify_summary_validation_details(
+    validation,
+    *,
+    grouped_recovery_suggestions: frozenset[str] = frozenset(),
+) -> str:
     if isinstance(validation, BatchValidationResult):
-        return _format_verify_summary_batch_validation_details(validation)
-    return _format_verify_summary_single_validation_details(validation)
+        return _format_verify_summary_batch_validation_details(
+            validation,
+            grouped_recovery_suggestions=grouped_recovery_suggestions,
+        )
+    return _format_verify_summary_single_validation_details(
+        validation,
+        grouped_recovery_suggestions=grouped_recovery_suggestions,
+    )
 
 
 def _format_verify_batch_validation_details(result: BatchValidationResult) -> str:
@@ -727,6 +800,8 @@ def _format_verify_batch_validation_details(result: BatchValidationResult) -> st
 
 def _format_verify_summary_batch_validation_details(
     result: BatchValidationResult,
+    *,
+    grouped_recovery_suggestions: frozenset[str] = frozenset(),
 ) -> str:
     lines = []
     warning_count = 0
@@ -753,7 +828,11 @@ def _format_verify_summary_batch_validation_details(
             lines.append(f"FAIL {validation.manifest_slug}")
             for error in errors:
                 lines.extend(
-                    f"  {line}" for line in _format_verify_error(error).splitlines()
+                    f"  {line}"
+                    for line in _format_verify_summary_error(
+                        error,
+                        grouped_recovery_suggestions=grouped_recovery_suggestions,
+                    ).splitlines()
                 )
         elif not validation.success and not validation_warning_count:
             lines.append(f"FAIL {validation.manifest_slug}")
@@ -783,11 +862,20 @@ def _format_verify_single_validation_details(validation) -> str:
     return "\n".join(f"  {line}" for line in lines)
 
 
-def _format_verify_summary_single_validation_details(validation) -> str:
+def _format_verify_summary_single_validation_details(
+    validation,
+    *,
+    grouped_recovery_suggestions: frozenset[str] = frozenset(),
+) -> str:
     lines = []
     for error in getattr(validation, "errors", ()):
         if not _is_warning(error):
-            lines.extend(_format_verify_error(error).splitlines())
+            lines.extend(
+                _format_verify_summary_error(
+                    error,
+                    grouped_recovery_suggestions=grouped_recovery_suggestions,
+                ).splitlines()
+            )
 
     warning_count = _validation_warning_count(validation)
     if warning_count:
