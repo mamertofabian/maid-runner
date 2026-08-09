@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import sys
 import tempfile
 from collections.abc import Sequence
@@ -14,6 +15,14 @@ from maid_runner.core._test_command_execution import _test_command_environment
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
+
+
+_PYTEST_SUMMARY_DURATION = re.compile(
+    r"(?m)^(?P<prefix>(?:=+[ \t]*)?(?:\d+[ \t]+(?:failed|passed|skipped|"
+    r"xfailed|xpassed|deselected|error|errors|warning|warnings)"
+    r"(?:,[ \t]*)?)+[ \t]+in[ \t]+)\d+(?:\.\d+)?s"
+    r"(?P<suffix>[ \t]*=+)?(?P<trailing>[ \t]*\r?)$"
+)
 
 
 @dataclass(frozen=True)
@@ -276,10 +285,14 @@ def _coverage_command_error(
     stdout: str,
     stderr: str,
 ) -> ValidationError:
+    diagnostic_output = _PYTEST_SUMMARY_DURATION.sub(
+        r"\g<prefix><duration>\g<suffix>\g<trailing>",
+        (stderr or stdout).strip(),
+    )
     return ValidationError(
         code=ErrorCode.INTERNAL_ERROR,
         message=f"Artifact coverage validate command failed: {' '.join(command)}",
-        suggestion=(stderr or stdout).strip()[-500:] or None,
+        suggestion=diagnostic_output[-500:] or None,
     )
 
 
@@ -359,13 +372,10 @@ def _run_coverage_commands(
         )
         if proc.returncode != 0:
             errors.append(
-                ValidationError(
-                    code=ErrorCode.INTERNAL_ERROR,
-                    message=(
-                        "Artifact coverage validate command failed: "
-                        f"{' '.join(command)}"
-                    ),
-                    suggestion=(proc.stderr or proc.stdout).strip()[-500:] or None,
+                _coverage_command_error(
+                    command,
+                    stdout=proc.stdout,
+                    stderr=proc.stderr,
                 )
             )
     return errors

@@ -1,0 +1,189 @@
+{
+  "manifest_path": "manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml",
+  "manifest_hash": "sha256-contract:ca5bf60eb3cf80c4cf4b5ba00040a6dd1c1795cbbd862104998dc15db3d47186",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:84b9381cb1d416b974154efe311f928c57e2a3f1fc65e0ee50b9075c522b4750"
+  },
+  "created_at": "2026-08-09T07:50:22.040184+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c6c5ff266b1da36b8d07cdd1170c66eeffbb3ce65f4c0c9ea6b439d197105b86",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:5021fcda523000807f9ce0fb613a69c24eaee282373d20fc7560a2a9b90b6fb6"
+      },
+      "revised_at": "2026-08-09T07:50:35.879176+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-artifact-coverage-failure-output-determinism.manifest.yaml -> manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:089facceab282dfa3cce839972219056ae9c2e80f80eb7dc007a2bec8042b1dc",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:5021fcda523000807f9ce0fb613a69c24eaee282373d20fc7560a2a9b90b6fb6"
+      },
+      "revised_at": "2026-08-09T08:03:08.716746+00:00",
+      "reason": "Independent review required verbose-summary parity and preservation of traceback text that resembles an outcome duration",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4b6f7553cd5f71643c896f82e508dbcd3ec2b98d8304ceec0c4457829745414a",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:03be913882da951b665c8cd945788b0a2b2698829e5ab5b549f95b542234d2fe"
+      },
+      "revised_at": "2026-08-09T08:03:55.508369+00:00",
+      "reason": "Correct the strengthened failure fixture to execute its declared beta artifact before raising the preserved duration-like traceback message",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4b6f7553cd5f71643c896f82e508dbcd3ec2b98d8304ceec0c4457829745414a",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:f5b055d4ba17f455e711ccaf991c3489e3186f5afb58fba77e95705658847a2e"
+      },
+      "revised_at": "2026-08-09T08:07:15.324876+00:00",
+      "reason": "Independent re-review found that regex whitespace classes could cross lines; add a cross-line preservation sentinel and require horizontal-only summary separators",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-09T08:07:20.850415+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_batch.py",
+        "exit_code": 1,
+        "output_tail": "        }\n    \n        batched = {\n            path: report.to_dict()\n            for path, report in run_artifact_coverage_batch(manifests, tmp_path).items()\n        }\n    \n>       assert batched == independent\nE       AssertionError: assert {'/tmp/pytest...cess': False}} == {'/tmp/pytest...cess': False}}\nE         \nE         Differing items:\nE         {'/tmp/pytest-of-atomrem/pytest-198/test_failure_reports_ignore_vo0/manifests/alpha.manifest.yaml': {'errors': [{'code...t_kind': 'function', 'artifact_name': 'alpha', 'executed': True, 'file_path': 'src/alpha.py', ...}], 'success': False}} != {'/tmp/pytest-of-atomrem/pytest-198/test_failure_reports_ignore_vo0/manifests/alpha.manifest.yaml': {'errors': [{'code...t_kind': 'function', 'artifact_name': 'alpha', 'executed': True, 'file_path': 'src/alpha.py', ...}], 'success': False}}\nE         {'/tmp/pytest-of-atomrem/pytest-198/test_failure_reports_ignore_vo0/manifest...\nE         \nE         ...Full output truncated (2 lines hidden), use '-vv' to show\n\ntests/core/test_artifact_coverage_failure_determinism.py:54: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_failure_determinism.py::test_failure_reports_ignore_volatile_pytest_elapsed_duration\n1 failed, 8 passed in 5.35s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-init-uninstall-legacy-precommit-markers.lock.json",
+      "maid_runner/cli/commands/init.py",
+      "manifests/fix-init-uninstall-legacy-precommit-markers.manifest.yaml",
+      "tests/cli/test_legacy_pre_commit_markers.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_ignore_volatile_pytest_elapsed_duration",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_ignore_volatile_pytest_elapsed_duration:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_ignore_volatile_pytest_elapsed_duration:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_ignore_volatile_pytest_elapsed_duration:kind=test_function",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_ignore_volatile_pytest_elapsed_duration:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_failure_determinism.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "tests/core/test_artifact_coverage_batch.py"
+      ],
+      "scope": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_failure_determinism.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_failure_reports_ignore_volatile_pytest_elapsed_duration",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Equivalent failing artifact-coverage commands emit different elapsed durations in decorated verbose pytest summaries during two independent runs and one shared batch run, while the traceback and captured output contain substantive single-line and cross-line duration-like text.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_artifact_coverage"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_artifact_coverage_batch"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Complete serialized per-manifest reports remain equal, every manifest receives E900, summary decoration plus substantive single-line and cross-line duration text remain intact, and only the volatile pytest summary elapsed duration is replaced."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "tests/core/test_artifact_coverage_batch.py",
+        "maid_runner/core/result.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Normalize volatile pytest summary duration text at the private E900 diagnostic boundary without changing public artifact signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_failure_determinism.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_batch.py"
+    ]
+  }
+}

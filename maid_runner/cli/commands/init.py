@@ -485,13 +485,25 @@ def _plan_marker_cleanup(
         text = original.decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise ValueError(f"cannot read managed markers in {label}: {exc}") from exc
-    starts = _standalone_marker_matches(text, start_marker)
-    ends = _standalone_marker_matches(text, end_marker)
+    is_pre_commit_block = (
+        relative == _PRE_COMMIT_CONFIG
+        and start_marker == _PRE_COMMIT_SECTION_START
+        and end_marker == _PRE_COMMIT_SECTION_END
+    )
+    if is_pre_commit_block:
+        starts, ends = _pre_commit_marker_matches(text)
+    else:
+        starts = _standalone_marker_matches(text, start_marker)
+        ends = _standalone_marker_matches(text, end_marker)
+    if is_pre_commit_block and _has_unrecognized_pre_commit_markers(text, starts, ends):
+        raise ValueError(f"{label} has malformed MAID managed markers")
     if not starts and not ends:
         missing.append(f"{label}#maid-managed-block")
         return
     if len(starts) != 1 or len(ends) != 1 or starts[0].start() > ends[0].start():
         raise ValueError(f"{label} has malformed MAID managed markers")
+    if is_pre_commit_block:
+        _assert_pre_commit_marker_ownership(text, path, starts[0], ends[0])
     start, end = _managed_marker_span(text, starts[0], ends[0])
     updated = text[:start] + text[end:]
     operations.append(
@@ -790,8 +802,11 @@ def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
         raise ValueError(f"cannot read {path}: {exc}") from exc
 
     newline = _pre_commit_newline(text)
-    start_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_START)
-    end_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_END)
+    start_matches, end_matches = _pre_commit_marker_matches(text)
+    if _has_unrecognized_pre_commit_markers(text, start_matches, end_matches):
+        raise ValueError(
+            f"{path} has malformed MAID managed markers; reconcile them manually"
+        )
     if (len(start_matches), len(end_matches)) not in {(0, 0), (1, 1)}:
         raise ValueError(
             f"{path} has malformed MAID managed markers; reconcile them manually"
@@ -806,14 +821,10 @@ def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
     data, root = _parse_pre_commit_config(text, path)
     hook_count = _maid_verify_hook_count(data)
     if managed:
-        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
-        block_data, _ = _parse_pre_commit_config(
-            "repos:" + newline + text[start:end], path
+        _assert_pre_commit_marker_ownership(
+            text, path, start_matches[0], end_matches[0]
         )
-        if _maid_verify_hook_count(block_data) != 1 or hook_count != 1:
-            raise ValueError(
-                f"{path} managed block must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
-            )
+        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
         updated_text = _replace_managed_pre_commit_block(
             text, start, end, newline, _maid_verify_entry(path.parent)
         )
@@ -967,6 +978,44 @@ def _pre_commit_newline(text: str) -> str:
 
 def _standalone_marker_matches(text: str, marker: str) -> list[re.Match[str]]:
     return list(re.finditer(rf"(?m)^{re.escape(marker)}\r?$", text))
+
+
+def _pre_commit_marker_matches(
+    text: str,
+) -> tuple[list[re.Match[str]], list[re.Match[str]]]:
+    starts = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_START)
+    starts.extend(
+        re.finditer(rf"(?m)^  {re.escape(_PRE_COMMIT_SECTION_START)}\r?$", text)
+    )
+    starts.sort(key=lambda match: match.start())
+    return starts, _standalone_marker_matches(text, _PRE_COMMIT_SECTION_END)
+
+
+def _has_unrecognized_pre_commit_markers(
+    text: str,
+    starts: list[re.Match[str]],
+    ends: list[re.Match[str]],
+) -> bool:
+    return text.count(_PRE_COMMIT_SECTION_START) != len(starts) or text.count(
+        _PRE_COMMIT_SECTION_END
+    ) != len(ends)
+
+
+def _assert_pre_commit_marker_ownership(
+    text: str,
+    path: Path,
+    start_match: re.Match[str],
+    end_match: re.Match[str],
+) -> None:
+    data, _ = _parse_pre_commit_config(text, path)
+    start, end = _managed_marker_span(text, start_match, end_match)
+    block_data, _ = _parse_pre_commit_config(
+        "repos:" + _pre_commit_newline(text) + text[start:end], path
+    )
+    if _maid_verify_hook_count(block_data) != 1 or _maid_verify_hook_count(data) != 1:
+        raise ValueError(
+            f"{path} managed block must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
+        )
 
 
 def _managed_marker_span(

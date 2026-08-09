@@ -1,0 +1,344 @@
+{
+  "manifest_path": "manifests/fix-init-uninstall-legacy-precommit-markers.manifest.yaml",
+  "manifest_hash": "sha256-contract:95e27441e553b47f85bc32d694c35cb18c415770e67d9f3531399a4b24485d48",
+  "test_hashes": {
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+    "tests/cli/test_legacy_pre_commit_markers.py": "sha256-pyast:v2:c25bb46b34e97c406d55c0dfbea975db6a9b45c9722e00b43e1c4a9ca48ef22f"
+  },
+  "created_at": "2026-08-08T23:16:08.202157+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ca4262a04d6ea94dfb40d4b0ec143db283ebea80da546fa09ed8ca96ba6b7f78",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bb1c8baca61c65f4f0686d1c5cc446fb8c185236f634ae79dab49483d6b5cc84",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:59edb12db4bafa1a75492a420c35f9a782b85c12aea663596d2a83e2d001e4cc"
+      },
+      "revised_at": "2026-08-08T23:16:14.291414+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-init-uninstall-legacy-precommit-markers.manifest.yaml -> manifests/fix-init-uninstall-legacy-precommit-markers.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b1b1e82677f66c2c626c53ab00947027710662fcaadfd48d14d295f7b5ed5fe",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bb1c8baca61c65f4f0686d1c5cc446fb8c185236f634ae79dab49483d6b5cc84",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:59edb12db4bafa1a75492a420c35f9a782b85c12aea663596d2a83e2d001e4cc"
+      },
+      "revised_at": "2026-08-08T23:30:10.588393+00:00",
+      "reason": "Independent review required dedicated regression-test ownership and a true force-first legacy normalization scenario",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:kind=test_function",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:returns=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:kind=test_function",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:returns=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:kind=test_function",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:returns=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:kind=test_function",
+          "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_init_pre_commit.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers",
+          "tests/cli/test_init_pre_commit.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:returns=None",
+          "tests/cli/test_init_pre_commit.py:test_init_force_normalizes_legacy_generated_pre_commit_markers",
+          "tests/cli/test_init_pre_commit.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_init_pre_commit.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:kind=test_function",
+          "tests/cli/test_init_pre_commit.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:returns=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:kind=test_function",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:returns=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:kind=test_function",
+          "tests/cli/test_uninstall_cmd.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:returns=None"
+        ],
+        "files_added": [
+          "create:tests/cli/test_legacy_pre_commit_markers.py"
+        ],
+        "files_removed": [
+          "edit:tests/cli/test_init_pre_commit.py",
+          "edit:tests/cli/test_uninstall_cmd.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_cmd.py tests/cli/test_init_pre_commit.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_init_pre_commit.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f3ee2f7b309f2024dca09b2f295285dd8abff0e2f0c6d7cf85ee11d9edb3ecf0",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/cli/test_legacy_pre_commit_markers.py": "sha256-pyast:v2:4a221d3dedb4c5dd8e74b305e7d0b20460901e5f096575f7bb6421e5774a5739"
+      },
+      "revised_at": "2026-08-08T23:40:55.770106+00:00",
+      "reason": "Round-two review exposed quoted and fully unsupported marker pairs being treated as absent during uninstall",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dad3b672f74ece2c99cd054f0ca0cc4e64110eb4cd75eeac7b96d020f54c3cca",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/cli/test_legacy_pre_commit_markers.py": "sha256-pyast:v2:87dbf5335276e40eb7036af19da7ebc168ec8bff8b30c7c9c3b3edc041afdb4a"
+      },
+      "revised_at": "2026-08-08T23:50:41.045881+00:00",
+      "reason": "Final review exposed mixed valid and malformed marker copies bypassing fail-closed ownership checks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T23:50:42.563321+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_cmd.py tests/cli/test_init_pre_commit.py",
+        "exit_code": 1,
+        "output_tail": "  Created: .pre-commit-config.yaml\n  Created: .gitignore\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n\nNext steps:\n  maid howto quickstart\nRemoved: .gitignore#maid-managed-block\nRemoved: .maidrc.yaml\nRemoved: docs/draft-manifest-workflow.md\nRemoved: docs/manifest-outcome-records.md\nRemoved: manifests/drafts/README.md\n----------------------------- Captured stderr call -----------------------------\nPre-commit configuration conflict: .pre-commit-config.yaml contains an unmanaged maid-verify hook; remove it or adopt the MAID managed markers\n=========================== short test summary info ============================\nFAILED tests/cli/test_legacy_pre_commit_markers.py::test_init_force_normalizes_legacy_generated_pre_commit_markers\nFAILED tests/cli/test_legacy_pre_commit_markers.py::test_init_uninstall_accepts_legacy_generated_pre_commit_markers\nFAILED tests/cli/test_legacy_pre_commit_markers.py::test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook\nFAILED tests/cli/test_legacy_pre_commit_markers.py::test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers\n4 failed, 39 passed in 1.36s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:kind=test_function",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers:returns=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:kind=test_function",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_force_normalizes_legacy_generated_pre_commit_markers:returns=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:kind=test_function",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_accepts_legacy_generated_pre_commit_markers:returns=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:kind=test_function",
+      "tests/cli/test_legacy_pre_commit_markers.py:test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_legacy_pre_commit_markers.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/add-owned-payload-uninstall.manifest.yaml",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_uninstall_cmd.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/init.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_legacy_pre_commit_markers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_accepts_legacy_generated_pre_commit_markers",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A brownfield repository contains the exact pre-commit marker asymmetry generated by historical MAID onboarding, plus unrelated hooks, skills, active manifests, and drafts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dry-run succeeds without changing bytes, execution removes only MAID-owned payload and the legacy managed block, all user-owned sentinels remain byte-identical, and a repeated uninstall succeeds idempotently."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_rejects_legacy_marker_block_without_reserved_hook",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "The historical marker indentation surrounds a block that does not own the reserved maid-verify hook.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Dry-run uninstall fails before mutation, reports the ownership conflict, and preserves the complete pre-commit file and generated scaffold byte-for-byte."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_force_normalizes_legacy_generated_pre_commit_markers",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A repository initialized by historical MAID has the exact two-space opening marker and column-zero closing marker around its single reserved hook.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Force init succeeds, emits one canonical column-zero managed block with the current hook, preserves surrounding user YAML bytes, and a second force refresh is byte-idempotent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_and_uninstall_reject_nonhistorical_indented_pre_commit_markers",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Pre-commit markers use unsupported indentation, occur as quoted YAML values, or mix those malformed copies with one otherwise valid canonical or historical pair.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Force init and executing uninstall both fail closed before changing the pre-commit file or removing generated scaffold."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-owned-payload-uninstall.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_uninstall_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Add narrow private recognition for the exact legacy pre-commit marker pair without changing any public artifact signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_legacy_pre_commit_markers.py",
+      "tests/cli/test_uninstall_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_cmd.py tests/cli/test_init_pre_commit.py"
+    ]
+  }
+}
