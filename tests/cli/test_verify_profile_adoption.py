@@ -85,9 +85,14 @@ def test_repo_commit_gate_uses_the_handoff_profile() -> None:
 
 
 def test_repo_commit_gate_applies_the_frozen_pre_migration_gates() -> None:
-    assert _effective_gates(_maid_verify_entry()) == _effective_gates(
-        FROZEN_PRE_MIGRATION_ENTRY
-    )
+    migrated = _effective_gates(_maid_verify_entry())
+    frozen = _effective_gates(FROZEN_PRE_MIGRATION_ENTRY)
+
+    assert migrated["test_scope"] == "task"
+    assert frozen["test_scope"] == "repository"
+    assert {key: value for key, value in migrated.items() if key != "test_scope"} == {
+        key: value for key, value in frozen.items() if key != "test_scope"
+    }
 
 
 def test_repo_guidance_presents_both_the_profile_and_its_expansion(

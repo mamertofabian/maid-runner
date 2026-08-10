@@ -511,6 +511,16 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Run the verify tests stage with this many test command workers",
     )
     p.add_argument(
+        "--test-scope",
+        action=_StoreExplicit,
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Run validation commands from every active manifest (default) or "
+            "only active manifests changed from the explicit task baseline"
+        ),
+    )
+    p.add_argument(
         "--require-plan-lock",
         action=_StoreExplicit,
         nargs=0,

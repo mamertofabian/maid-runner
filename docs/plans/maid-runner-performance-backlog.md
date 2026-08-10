@@ -564,6 +564,34 @@ in its own pytest configuration, which needs no MAID change. That interaction
 with MAID's pytest-addopts validation (044) is **unverified** and would need
 checking before it is recommended.
 
+## 121-01 implementation result (2026-08-10)
+
+The explicit task-scoped handoff tests stage reduced the exact handoff gate from
+237.62 seconds to 23.10 seconds on this checkout, a roughly 10.3x improvement.
+Its final focused behavioral suite ran 85 tests in 5.04 seconds. Schema, behavioral,
+implementation, coherence, worktree/changed-scope, plan-lock, and red-evidence
+gates remain unchanged; only tests-stage command selection is narrowed.
+
+Task selection remains fail-closed. If an explicit task baseline cannot be
+resolved, verify runs the full repository test inventory and reports a visible
+E708 `tests-stage selection widened` warning. Deep verification and explicit
+`--test-scope repository` runs also retain the full repository test inventory.
+
+## 121-02 experiment result (2026-08-10)
+
+Broad pytest subprocess sharding was implemented and then rejected before
+handoff because it changed the repository gate result. Round-robin sharding
+finished in 84.35 seconds but failed three pytest workers. Contiguous sharding
+finished in 105.24 seconds but still failed two shards. Isolated reproduction
+showed that TypeScript resolver tests depend on process-local state established
+by other test files; the same targets therefore fail when moved into an
+otherwise complete isolated shard.
+
+The optimization was removed rather than trading false failures for speed. A
+future retry must first make test files independently runnable or prove
+runner-native fixture/session equivalence. The safe 121-01 task-scoped handoff
+optimization remains in place.
+
 ## Suggested Acceptance Criteria
 
 - Tower Recall strict behavioral validation reduces bridge request cumulative
