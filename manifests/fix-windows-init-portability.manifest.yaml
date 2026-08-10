@@ -1,0 +1,174 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make maid init complete on native Windows without weakening POSIX atomic-write
+  permission preservation"
+type: fix
+created: "2026-08-10T02:41:30Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  reported_error: "module 'os' has no attribute 'fchmod'"
+  tags:
+    - cli
+    - init
+    - windows
+    - portability
+    - github-actions
+  priority: high
+description: |
+  `maid init` currently reaches `_write_pre_commit_config_atomically` for the
+  managed pre-commit configuration and generated-file ignore block. That writer
+  unconditionally calls `os.fchmod`, which CPython does not expose on Windows,
+  so both an installed `maid` entry point and `uv tool run --from maid-runner`
+  abort before the repository scaffold is created.
+
+  Preserve the established public `cmd_init(args: argparse.Namespace) -> int`
+  contract from `add-init-pre-commit-verification`; this is a behavioral
+  compatibility fix, not a signature change or supersession. The implementation
+  may narrowly adapt the private atomic writer so descriptor-mode preservation
+  runs where the operating system provides it and the same atomic write still
+  completes where it does not. POSIX must retain the existing `fchmod` call and
+  mode-preservation semantics.
+
+  Add a dedicated regression module instead of editing shared init tests that
+  are hashed by several existing plan locks. The regression simulates the
+  Windows `os` capability surface on POSIX by removing `os.fchmod`, exercises
+  init through the public CLI `main`, and requires the complete generic scaffold
+  and managed files to be written successfully. A second test pins a native
+  `windows-latest` GitHub Actions job that installs the project and executes the
+  regression module, closing the Linux-only CI gap that allowed this defect.
+  Because `maid-test.yml` is also a public `workflow_call` surface, the job must
+  be guarded to run only for `mamertofabian/maid-runner`; downstream callers
+  check out their own repository and must not be required to contain this
+  project-specific test path or development dependency group.
+
+  The Windows CI slice is focused rather than converting the existing Bash-based
+  reusable job into a cross-platform matrix. Broader native-Windows certification,
+  including the intentionally fail-closed descriptor-relative uninstall path,
+  is out of scope; this contract fixes and continuously exercises the reported
+  `maid init` failure.
+
+  Outcome evidence from `fix-init-payload-portability` reinforces keeping the
+  new test isolated and asserting consuming-repository behavior through the CLI.
+  The `064-04-add-windows-daemon-transport` history confirms that Windows is an
+  intended runtime rather than a documented unsupported platform. No recalled
+  lesson authorizes broadening this fix into unrelated POSIX API replacement.
+temptations:
+  - risk: "Do not skip descriptor permission preservation on POSIX merely to make
+      the Windows simulation green."
+    instead: "Guard only the unavailable capability and retain a focused test that
+      observes fchmod being called when present."
+  - risk: "Do not catch AttributeError around the entire init command and risk hiding
+      unrelated programming defects."
+    instead: "Perform an explicit capability check at the narrow atomic-write permission
+      operation."
+  - risk: "Do not claim Windows coverage from a monkeypatched Linux test alone."
+    instead: "Add a focused windows-latest CI job that installs dependencies and runs
+      the init portability regression."
+  - risk: "Do not rewrite the existing Bash-heavy reusable test job into a cross-platform
+      matrix in this bug fix."
+    instead: "Keep the existing Ubuntu job unchanged and add an independent Windows
+      init portability job."
+  - risk: "Do not make downstream workflow_call consumers execute maid-runner's project-specific
+      Windows regression."
+    instead: "Guard the Windows job at job level so it runs only when github.repository
+      is mamertofabian/maid-runner."
+files:
+  create:
+    - path: tests/cli/test_init_windows_portability.py
+      artifacts:
+        - kind: test_function
+          name: test_init_completes_without_descriptor_chmod
+          args: []
+          returns: None
+          description: "Generic init succeeds and writes the complete managed scaffold
+            when os.fchmod is unavailable, matching native Windows."
+        - kind: test_function
+          name: test_init_preserves_descriptor_mode_when_fchmod_is_available
+          args: []
+          returns: None
+          description: "The atomic writer still invokes descriptor chmod on platforms
+            that provide it."
+        - kind: test_function
+          name: test_windows_ci_runs_init_portability_regression
+          args: []
+          returns: None
+          description: "GitHub Actions contains a native Windows job that runs this
+            focused regression module only for the maid-runner repository, preserving
+            downstream workflow_call consumers."
+  scope:
+    - path: maid_runner/cli/commands/init.py
+      reason: "Make the existing private atomic writer conditional on descriptor-chmod
+        capability without changing cmd_init's public signature or other init behavior."
+    - path: .github/workflows/maid-test.yml
+      reason: "Add an independent maid-runner-only native-Windows job for the focused
+        init portability regression without altering the reusable Ubuntu job or downstream
+        workflow_call behavior."
+  read:
+    - manifests/add-init-pre-commit-verification.manifest.yaml
+    - manifests/fix-init-payload-portability.manifest.yaml
+    - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+    - tests/cli/test_init_pre_commit.py
+    - tests/cli/test_init_payload_portability.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_windows_portability.py
+    tests/cli/test_init_payload_portability.py tests/cli/test_init_pre_commit.py
+outcome:
+  status: completed
+  completed_at: "2026-08-10T11:04:54+08:00"
+  summary: "maid init now completes when os.fchmod is unavailable while retaining descriptor-mode preservation on POSIX, and a maid-runner-only Windows CI job continuously exercises the regression without breaking reusable-workflow callers."
+  rationale: "A narrow capability check preserves the existing atomic writer and descriptor cleanup on every platform. The separate guarded Windows job supplies real-platform evidence while keeping the Bash-based reusable Ubuntu job and downstream workflow_call behavior unchanged."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: compatibility
+      summary: "Optional POSIX os capabilities must be checked at the narrow operation boundary; broad exception handling would hide unrelated init defects, while skipping the operation everywhere would weaken POSIX mode preservation."
+      tags: [windows, posix, atomic-write, maid-runner-feedback]
+      paths: [maid_runner/cli/commands/init.py, tests/cli/test_init_windows_portability.py]
+    - lesson_type: workflow
+      summary: "Repository-specific jobs added to a public workflow_call workflow need a job-level repository guard, because called workflows check out the caller repository and cannot assume maid-runner-specific tests or dependency groups."
+      tags: [github-actions, workflow-call, downstream-safety, maid-runner-feedback]
+      paths: [.github/workflows/maid-test.yml, tests/cli/test_init_windows_portability.py]
+  review_notes:
+    - source: windows_init_review
+      severity: P1 fixed
+      summary: "The first independent review found that the Windows job would run for downstream workflow_call consumers; revision 4 added and behaviorally pinned a maid-runner-only job guard."
+    - source: windows_init_review
+      severity: ready
+      summary: "Independent re-review found no remaining actionable issues and confirmed the narrow fchmod capability check, downstream workflow safety, and contract fidelity."
+    - source: windows_init_review
+      severity: residual-risk
+      summary: "Native Windows execution awaits the first remote CI run; local Linux coverage simulates the missing os.fchmod capability surface."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_windows_portability.py, tests/cli/test_init_payload_portability.py, tests/cli/test_init_pre_commit.py]
+      status: passed
+      summary: "All 35 focused Windows portability, init payload, and pre-commit tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The full Python suite passed 3890 tests with 5 skipped after installing the repository-declared Node and docs dependency groups."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 406 active manifests validated with zero failures; 109 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --json]
+      status: passed
+      summary: "All 238 active manifest commands passed on the evidence rerun; an earlier 237/238 transient result did not reproduce."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 41a3a5a5d4f9d0a9d534e23d0c6f297e965b98e4]
+      status: passed
+      summary: "All nine handoff stages passed with zero blockers before review; only existing E307 no-validator warnings remained."
+    - command: [uv, run, ruff, check, maid_runner/cli/commands/init.py, tests/cli/test_init_windows_portability.py]
+      status: passed
+      summary: "Focused Ruff and Black checks passed."

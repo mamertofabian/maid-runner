@@ -1074,7 +1074,9 @@ def _write_pre_commit_config_atomically(path: Path, content: bytes) -> None:
     )
     temporary_path = Path(temporary_name)
     try:
-        os.fchmod(descriptor, mode)
+        descriptor_chmod = getattr(os, "fchmod", None)
+        if descriptor_chmod is not None:
+            descriptor_chmod(descriptor, mode)
         with os.fdopen(descriptor, "wb") as temporary:
             descriptor = -1
             temporary.write(content)
