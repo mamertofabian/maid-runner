@@ -1,0 +1,222 @@
+{
+  "manifest_path": "manifests/fix-stash-revise-import-obstruction.manifest.yaml",
+  "manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:146e555680a6cda74148bffd8baf501aef87282c13290fc9f9880b51241bbf92"
+  },
+  "created_at": "2026-08-10T04:22:46.169302+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b9f911ce4db7996e3314938493b092b932385c5d122cb143f31b2481e3fe342f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:3fffa83c64ad23fa2a676c70800cb9fa343fce072f916f9ef988c6e032b0643f",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:a0fc45aba658a36c247ac1cf7b52e2e97440f0fc4412df8d371718f550c9472f"
+      },
+      "revised_at": "2026-08-10T04:22:48.874938+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-stash-revise-import-obstruction.manifest.yaml -> manifests/fix-stash-revise-import-obstruction.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e018c7bc748a1620c403c8afa9a918678fcebdb3338bc30d98a7c33381aaaa0d",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:3fffa83c64ad23fa2a676c70800cb9fa343fce072f916f9ef988c6e032b0643f",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:a0fc45aba658a36c247ac1cf7b52e2e97440f0fc4412df8d371718f550c9472f"
+      },
+      "revised_at": "2026-08-10T04:25:28.724997+00:00",
+      "reason": "Remove an existing test module from files.read because MAID correctly treats read-declared test paths as behavioral targets; the dedicated regression test remains the complete unchanged contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_plan_cmd_stash_implementation.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:380ecfef98b89e19b388c4b0b5c812ae0c419fc328a478d9d7c5bbd24fe1c93b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:a0fc45aba658a36c247ac1cf7b52e2e97440f0fc4412df8d371718f550c9472f"
+      },
+      "revised_at": "2026-08-10T04:51:37.746033+00:00",
+      "reason": "Implementation review found that restoration recapture dropped the only stash before mutation guards, so add exact content and permission-mode recovery coverage while retaining the approved import-obstruction behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:06f5ab2164c58ef14ae07150aa2c8201332f981fb5db8524f18a62c2b6f713d0"
+      },
+      "revised_at": "2026-08-10T04:52:08.014497+00:00",
+      "reason": "Correct the restoration-mutation test fixture to import the temporary project package from its project root so restored recapture reaches the intended content and mode mutations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:874043e02ae1b96727823f8ece16bcf76d586c07df4e7832212070ff037f6a09"
+      },
+      "revised_at": "2026-08-10T04:58:13.704641+00:00",
+      "reason": "Implementation rereview proved Git stash does not preserve full POSIX permission modes, so strengthen the locked recovery test with a pre-stash 0600 implementation mode",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T04:58:18.261565+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_import_obstruction.py",
+        "exit_code": 1,
+        "output_tail": "- env STASH_MUTATION=mode python tests/restoration_runner.py: exit 2, classification invalid\n- python -m pytest -q tests/test_frontend.py: exit 1, classification red\nF                                                                        [100%]\n=================================== FAILURES ===================================\n_______________________ test_frontend_review_regression ________________________\n\n    def test_frontend_review_regression():\n>       assert False, \"review-found frontend gap\"\nE       AssertionError: review-found frontend gap\nE       assert False\n\ntests/test_frontend.py:2: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_frontend.py::test_frontend_review_regression - AssertionErr...\n1 failed in 0.01s\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it[content]\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it[mode]\n3 failed, 1 passed in 4.39s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it:kind=test_function",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+        "manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction",
+              "source_scenario": "A reviewed full-stack contract imports a newly implemented Python class at module collection time, the stashed backend command exits 2, and an independent frontend command exits 1.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision succeeds after runtime recapture proves the formerly invalid backend command is valid with the exact implementation restored; the lock preserves both captures, the implementation is restored, and no stash remains."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve",
+              "source_scenario": "A mixed red/invalid contract includes an invalid command whose exit 2 is unrelated to the hidden implementation and remains invalid after restoration.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision remains fail-closed: it exits 1, leaves the old lock unchanged, restores implementation exactly, and leaves no stash entry."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it",
+              "source_scenario": "A command is invalid while implementation is hidden, then mutates the restored implementation's content or permission mode during the causal recapture.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision refuses without changing the lock, reconstructs the exact pre-command implementation content and mode from the retained stash, and leaves no temporary stash entry."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml",
+        "manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Orchestrate exact-stash restoration and runtime recapture for mixed red/invalid hidden-state evidence without changing public CLI signatures."
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "reason": "Validate the explicit recovery evidence shape while preserving ordinary exit-code classification and red-evidence rules."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_cmd_stash_import_obstruction.py"
+    ]
+  }
+}

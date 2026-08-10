@@ -1725,6 +1725,8 @@ def _red_evidence_command_mismatch_detail(
 def _red_evidence_is_valid(evidence: dict) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
         return False
+    if evidence.get("mode") == "stash_restoration":
+        return _stash_restoration_red_evidence_is_valid(evidence)
     commands = evidence.get("commands")
     if not isinstance(commands, list):
         return False
@@ -1734,6 +1736,48 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _stash_restoration_red_evidence_is_valid(evidence: dict) -> bool:
+    """Validate mixed red evidence proven by an exact-stash restoration run."""
+    commands = evidence.get("commands")
+    restored_commands = evidence.get("restored_commands")
+    if not isinstance(commands, list) or not isinstance(restored_commands, list):
+        return False
+    if not commands or len(commands) != len(restored_commands):
+        return False
+    if not isinstance(evidence.get("restored_captured_at"), str):
+        return False
+    if not all(
+        _red_command_payload_is_consistent(command)
+        for command in (*commands, *restored_commands)
+    ):
+        return False
+
+    classifications = [command["classification"] for command in commands]
+    if "red" not in classifications or "invalid" not in classifications:
+        return False
+    if any(command["classification"] == "invalid" for command in restored_commands):
+        return False
+    return all(
+        command["command"] == restored_command["command"]
+        for command, restored_command in zip(commands, restored_commands)
+    )
+
+
+def _red_command_payload_is_consistent(command: object) -> bool:
+    """Return whether serialized command evidence matches exit classification."""
+    if not isinstance(command, dict):
+        return False
+    command_text = command.get("command")
+    exit_code = command.get("exit_code")
+    return (
+        isinstance(command_text, str)
+        and bool(command_text)
+        and isinstance(exit_code, int)
+        and command.get("classification") == classify_red_exit_code(exit_code)
+        and isinstance(command.get("output_tail"), str)
+    )
 
 
 def _contract_writable_paths(contract: dict) -> set[str]:

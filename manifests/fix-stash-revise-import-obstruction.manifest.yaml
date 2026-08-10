@@ -1,0 +1,202 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Let stash-backed plan revision distinguish stash-induced import obstruction
+  from unrelated invalid validation"
+type: fix
+created: "2026-08-10T04:22:48Z"
+metadata:
+  bug_reports: |
+    ~/.maid/bug-report/20260810-120350-life-dashboard-stash-implementation-import-classification.md
+  tags:
+    - plan-lock
+    - red-evidence
+    - stash-implementation
+    - runtime-evidence
+description: |
+  Fix `maid plan revise --stash-implementation` for full-stack revisions where
+  hiding a dirty declared implementation path removes a newly imported public
+  artifact. A pytest command can then exit 2 during collection even while a
+  separate validation command supplies genuine behavioral red (exit 1).
+
+  Preserve exit 2 as invalid evidence everywhere by default. In the bounded
+  stash-backed recovery path only, restore the exact implementation stash and
+  recapture validation when the hidden-state run contains both red and invalid
+  commands. Accept the revision only when each command that was invalid while
+  stashed becomes a valid red or green test result after restoration. Persist
+  both captures so later plan-lock validation can audit why the otherwise
+  invalid hidden-state command was accepted.
+
+  This is an additive evolution of the existing stash-backed revision
+  contracts. It does not parse traceback text, synthesize import shells, change
+  ordinary exit-code classification, or relax failures that remain invalid
+  after the implementation is restored.
+temptations:
+  - risk: "Do not globally classify pytest exit 2 as behavioral red or accept any
+      evidence set merely because another command exited 1."
+    instead: "Keep ordinary invalid classification unchanged and require a restoration
+      recapture that resolves every hidden-state invalid command."
+  - risk: "Do not infer causality by parsing Python ImportError text or statically
+      synthesizing artifact shells."
+    instead: "Use the exact Git stash restoration plus a second runtime capture as
+      the causal check across languages and runners."
+  - risk: "Do not discard invalid commands from stored evidence or relabel their original
+      exit codes."
+    instead: "Persist the hidden-state commands and the restoration commands under
+      an explicit recovery mode, then validate both command sets."
+  - risk: "Do not save the revised lock or lose the implementation stash when restoration
+      validation remains invalid or mutates contract files."
+    instead: "Retain the existing hash guards and fail-closed restoration behavior
+      before writing the lock."
+files:
+  scope:
+    - path: maid_runner/cli/commands/plan.py
+      reason: "Orchestrate exact-stash restoration and runtime recapture for mixed
+        red/invalid hidden-state evidence without changing public CLI signatures."
+    - path: maid_runner/core/plan_lock.py
+      reason: "Validate the explicit recovery evidence shape while preserving ordinary
+        exit-code classification and red-evidence rules."
+  create:
+    - path: tests/cli/test_plan_cmd_stash_import_obstruction.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction
+          source_scenario: "A reviewed full-stack contract imports a newly implemented
+            Python class at module collection time, the stashed backend command exits
+            2, and an independent frontend command exits 1."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: "Revision succeeds after runtime recapture proves the formerly
+              invalid backend command is valid with the exact implementation restored;
+              the lock preserves both captures, the implementation is restored, and
+              no stash remains."
+        - kind: test_function
+          name:
+            test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve
+          source_scenario: "A mixed red/invalid contract includes an invalid command
+            whose exit 2 is unrelated to the hidden implementation and remains invalid
+            after restoration."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: "Revision remains fail-closed: it exits 1, leaves the old lock
+              unchanged, restores implementation exactly, and leaves no stash entry."
+        - kind: test_function
+          name:
+            test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it
+          source_scenario: "A command is invalid while implementation is hidden,
+            then mutates the restored implementation's content or permission mode
+            during the causal recapture."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_plan_revise
+          expected:
+            behavior: "Revision refuses without changing the lock, reconstructs
+              the exact pre-command implementation content and mode from the retained
+              stash, and leaves no temporary stash entry."
+  read:
+    - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+    - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+    - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+validate:
+  - uv run python -m pytest -q
+    tests/cli/test_plan_cmd_stash_import_obstruction.py
+outcome:
+  status: completed
+  completed_at: "2026-08-10T05:02:27Z"
+  summary: |
+    Added an auditable stash-restoration evidence mode for review-driven plan
+    revisions. Mixed red/invalid hidden-state runs are accepted only when an
+    exact-stash restoration recapture makes every command valid, while the
+    original and restored command evidence remain persisted and command-bound.
+  rationale: |
+    Exit 2 remains invalid in ordinary red-phase capture. The bounded recovery
+    path proves causality at runtime instead of parsing tracebacks: it retains
+    the exact stash, restores full regular-file modes that Git does not retain,
+    recaptures validation, rejects persistent invalid commands or target
+    mutation, and reconstructs the user's original uncommitted implementation
+    before returning from any rejected recovery.
+  lessons:
+    - lesson_type: validation-trust
+      summary: "A validator-created invalid state can be accepted safely only when a second runtime observation proves the exact hidden dependency caused it and both observations remain auditable."
+      tags:
+        - plan-lock
+        - red-evidence
+        - anti-gaming
+        - maid-runner-feedback
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - maid_runner/core/plan_lock.py
+        - tests/cli/test_plan_cmd_stash_import_obstruction.py
+    - lesson_type: test-design
+      summary: "Git-backed recovery tests must cover metadata Git does not preserve, such as full POSIX modes, and must prove user work survives validator mutation rather than checking only stash cleanup."
+      tags:
+        - git
+        - recovery
+        - behavioral-tests
+        - maid-runner-feedback
+      paths:
+        - maid_runner/cli/commands/plan.py
+        - tests/cli/test_plan_cmd_stash_import_obstruction.py
+  review_notes:
+    - source: independent-reviewer-round-1
+      severity: P1-fixed
+      summary: "Found the recovery stash was dropped before restored validation, making detected target mutation unrecoverable; fixed by retaining and reapplying the exact stash."
+    - source: independent-reviewer-round-2
+      severity: P1-fixed
+      summary: "Proved Git stash loses non-executable POSIX mode changes such as 0600; fixed by capturing modes before stashing and restoring them after every apply."
+    - source: independent-reviewer-round-3
+      severity: ready
+      summary: "Found no blockers; recorded advisory gaps for ignored targets, non-empty-directory replacement recovery, and direct deleted/symlink tests."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full suite passed before the final narrow mode-preservation follow-up: 3903 passed and 5 skipped; focused post-follow-up coverage passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID test sweep passed all 239 commands before review follow-ups."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - b3f270d6b49e6b77f5d417aed6c643572bf36cef
+      status: failed
+      summary: "Schema, behavioral, and implementation passed; artifact coverage hit the known hard-coded 300-second repository-wide instrumentation timeout."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --since
+        - b3f270d6b49e6b77f5d417aed6c643572bf36cef
+      status: passed
+      summary: "Strict fallback passed all 9 stages with zero blocking findings."
