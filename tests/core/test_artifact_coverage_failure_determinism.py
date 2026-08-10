@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import re
-import subprocess
 from pathlib import Path
-
-import pytest
 
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
@@ -12,7 +9,6 @@ from maid_runner.core.result import ErrorCode
 
 def test_failure_reports_ignore_volatile_pytest_elapsed_duration(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import (
         run_artifact_coverage,
@@ -20,35 +16,33 @@ def test_failure_reports_ignore_volatile_pytest_elapsed_duration(
     )
 
     manifests = [load_manifest(path) for path in _write_failing_project(tmp_path)]
-    real_run = subprocess.run
-    elapsed = iter(("0.01s", "0.02s", "0.03s"))
-
-    def run_with_distinct_elapsed_durations(command, *args, **kwargs):
-        result = real_run(command, *args, **kwargs)
-        normalized = tuple(str(part) for part in command)
-        if "coverage" not in normalized or "run" not in normalized:
-            return result
-        stdout = re.sub(
-            r"(?m)(^=+[^\n]*\bin )\d+(?:\.\d+)?s(?=\s*=+\s*$)",
-            rf"\g<1>{next(elapsed)}",
-            result.stdout,
+    outputs = [
+        (
+            "tests/test_targets.py::test_beta FAILED\n"
+            "1 failed\nin 12.34s\n"
+            "RuntimeError: downstream reported 1 failed in 12.34s\n"
+            f"================ 1 failed, 1 passed in {elapsed} ================\n"
         )
-        return subprocess.CompletedProcess(
-            result.args,
-            result.returncode,
-            stdout=stdout,
-            stderr=result.stderr,
-        )
+        for elapsed in ("0.01s", "0.02s", "0.03s")
+    ]
+    executor = _FailureExecutor(tmp_path, outputs)
 
-    monkeypatch.setattr(subprocess, "run", run_with_distinct_elapsed_durations)
     independent = {
-        manifest.source_path: run_artifact_coverage(manifest, tmp_path).to_dict()
+        manifest.source_path: run_artifact_coverage(
+            manifest,
+            tmp_path,
+            executor=executor,
+        ).to_dict()
         for manifest in manifests
     }
 
     batched = {
         path: report.to_dict()
-        for path, report in run_artifact_coverage_batch(manifests, tmp_path).items()
+        for path, report in run_artifact_coverage_batch(
+            manifests,
+            tmp_path,
+            executor=executor,
+        ).items()
     }
 
     assert batched == independent
@@ -68,36 +62,25 @@ def test_failure_reports_ignore_volatile_pytest_elapsed_duration(
 
 def test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage
 
     manifest = load_manifest(_write_failing_project(tmp_path)[0])
-    real_run = subprocess.run
     oversized_assertion = "rendered-prefix-" + ("x" * 1_000) + "-rendered-suffix"
     indented_source = '    >       assert "appears to be a stub" in suggestion'
     indented_caret = "            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    def run_with_unbounded_ci_assertion_line(command, *args, **kwargs):
-        result = real_run(command, *args, **kwargs)
-        normalized = tuple(str(part) for part in command)
-        if "coverage" not in normalized or "run" not in normalized:
-            return result
-        stdout = (
-            result.stdout
-            + f"\n{indented_source}\n{indented_caret}\n"
-            + f"E       assert expected in {oversized_assertion}\n"
-        )
-        return subprocess.CompletedProcess(
-            result.args,
-            result.returncode,
-            stdout=stdout,
-            stderr=result.stderr,
-        )
-
-    monkeypatch.setattr(subprocess, "run", run_with_unbounded_ci_assertion_line)
-
-    report = run_artifact_coverage(manifest, tmp_path).to_dict()
+    report = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=_FailureExecutor(
+            tmp_path,
+            [
+                f"pytest failure output\n{indented_source}\n{indented_caret}\n"
+                f"E       assert expected in {oversized_assertion}\n"
+            ],
+        ),
+    ).to_dict()
 
     assert [error["code"] for error in report["errors"]] == [
         ErrorCode.INTERNAL_ERROR.value
@@ -117,56 +100,74 @@ def test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines(
         + ordinary_suffix
     )
 
-    def run_with_ordinary_long_line(command, *args, **kwargs):
-        result = real_run(command, *args, **kwargs)
-        normalized = tuple(str(part) for part in command)
-        if "coverage" not in normalized or "run" not in normalized:
-            return result
-        return subprocess.CompletedProcess(
-            result.args,
-            result.returncode,
-            stdout=result.stdout + f"\n{ordinary_long_line}\n",
-            stderr=result.stderr,
-        )
-
-    monkeypatch.setattr(subprocess, "run", run_with_ordinary_long_line)
-
-    ordinary_report = run_artifact_coverage(manifest, tmp_path).to_dict()
+    ordinary_report = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=_FailureExecutor(
+            tmp_path,
+            [f"pytest failure output\n{ordinary_long_line}\n"],
+        ),
+    ).to_dict()
     ordinary_suggestion = ordinary_report["errors"][0]["suggestion"]
     assert len(ordinary_suggestion) <= 500
     assert ordinary_long_line in ordinary_suggestion
 
     long_exception = "E       VeryLongError: " + ("z" * 220)
 
-    def run_with_long_exception_before_assertion(command, *args, **kwargs):
-        result = real_run(command, *args, **kwargs)
-        normalized = tuple(str(part) for part in command)
-        if "coverage" not in normalized or "run" not in normalized:
-            return result
-        stdout = (
-            result.stdout
-            + f"\n{long_exception}\n{indented_source}\n{indented_caret}\n"
-            + f"E       assert expected in {oversized_assertion}\n"
-        )
-        return subprocess.CompletedProcess(
-            result.args,
-            result.returncode,
-            stdout=stdout,
-            stderr=result.stderr,
-        )
-
-    monkeypatch.setattr(
-        subprocess,
-        "run",
-        run_with_long_exception_before_assertion,
-    )
-
-    long_exception_report = run_artifact_coverage(manifest, tmp_path).to_dict()
+    long_exception_report = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=_FailureExecutor(
+            tmp_path,
+            [
+                f"pytest failure output\n{long_exception}\n"
+                f"{indented_source}\n{indented_caret}\n"
+                f"E       assert expected in {oversized_assertion}\n"
+            ],
+        ),
+    ).to_dict()
     long_exception_suggestion = long_exception_report["errors"][0]["suggestion"]
     assert len(long_exception_suggestion) <= 500
     assert f"{indented_source}\n{indented_caret}" in long_exception_suggestion
     assert "rendered-prefix-" in long_exception_suggestion
     assert "-rendered-suffix" in long_exception_suggestion
+
+
+class _FailureExecutor:
+    def __init__(self, root: Path, outputs: list[str]) -> None:
+        from maid_runner.core._runtime_command_executor import (
+            RuntimeFileExecution,
+        )
+
+        self._outputs = iter(outputs)
+        self._execution_data = {
+            str((root / "src/alpha.py").resolve()): RuntimeFileExecution(
+                executed_lines=frozenset({2}),
+                called_qualnames=frozenset({"alpha"}),
+            ),
+            str((root / "src/beta.py").resolve()): RuntimeFileExecution(
+                executed_lines=frozenset({2}),
+                called_qualnames=frozenset({"beta"}),
+            ),
+        }
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        from maid_runner.core._runtime_command_executor import RuntimeCommandRecord
+
+        return RuntimeCommandRecord(
+            command=command,
+            returncode=1,
+            stdout=next(self._outputs),
+            stderr="",
+            execution_data=self._execution_data,
+            report_errors=(),
+        )
 
 
 def _write_failing_project(root: Path) -> tuple[Path, Path]:

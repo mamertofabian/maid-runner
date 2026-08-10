@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml",
   "manifest_hash": "sha256-contract:ca5bf60eb3cf80c4cf4b5ba00040a6dd1c1795cbbd862104998dc15db3d47186",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
-    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05"
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485"
   },
   "created_at": "2026-08-09T07:50:22.040184+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:c6c5ff266b1da36b8d07cdd1170c66eeffbb3ce65f4c0c9ea6b439d197105b86",
@@ -106,6 +106,24 @@
       },
       "revised_at": "2026-08-10T14:39:17.783839+00:00",
       "reason": "accept reviewed CI diagnostic boundary regressions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca5bf60eb3cf80c4cf4b5ba00040a6dd1c1795cbbd862104998dc15db3d47186",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05"
+      },
+      "revised_at": "2026-08-10T23:47:20.526975+00:00",
+      "reason": "accept approved 121-04 shared-test performance refactor",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

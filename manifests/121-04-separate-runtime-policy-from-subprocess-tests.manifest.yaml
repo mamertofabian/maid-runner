@@ -1,10 +1,13 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: "2"
 goal: "Make runtime-evidence policy tests fast by injecting an owned executor boundary"
 type: refactor
-created: "2026-08-10T16:41:00+08:00"
+created: "2026-08-10T22:44:59Z"
 metadata:
-  status: planning
   priority: high
   epic: 121-00-fast-verification-roadmap
   tags:
@@ -161,35 +164,169 @@ files:
         - kind: test_function
           name: test_fake_runtime_executor_preserves_single_manifest_report
           args: []
+          returns: None
         - kind: test_function
           name: test_runtime_record_change_invalidates_evaluated_execution
           args: []
+          returns: None
+        - kind: test_function
+          name: test_real_runtime_executor_preserves_timeout_exception
+          args: []
+          returns: None
     - path: tests/core/test_artifact_coverage_batch.py
       artifacts:
         - kind: test_function
           name: test_policy_matrix_uses_owned_fake_without_spawning_pytest
           args: []
+          returns: None
         - kind: test_function
           name: test_real_and_fake_executor_reports_are_equivalent
           args: []
+          returns: None
         - kind: test_function
           name: test_batch_executor_call_count_matches_unique_command_count
           args: []
+          returns: None
     - path: tests/cli/test_nested_strict_preview.py
       artifacts:
         - kind: test_function
           name: test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses
           args: []
+          returns: None
         - kind: test_function
           name: test_real_nested_strict_preview_adapter_still_propagates_once
           args: []
+          returns: None
+  scope:
+    - path: tests/core/test_artifact_coverage_failure_determinism.py
+      reason: "Replace repeated real subprocess stimulus with owned runtime records while retaining bounded failure-adapter coverage in the batch suite."
+    - path: tests/core/test_artifact_coverage_timeout_config.py
+      reason: "Assert timeout policy through the injected executor and retain one direct real-adapter TimeoutExpired contract."
   read:
     - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
     - manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
     - maid_runner/cli/commands/validate.py
-    - tests/core/test_artifact_coverage_failure_determinism.py
-    - tests/core/test_artifact_coverage_timeout_config.py
     - docs/plans/full-and-deep-verification-performance-redesign.md
 validate:
   - uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py tests/cli/test_nested_strict_preview.py
-  - uv run maid validate manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-10T23:30:00Z"
+  summary: >-
+    Extracted immutable, normalized runtime-command records behind an injected
+    executor boundary, retained the real coverage/pytest adapter as the
+    production default, and converted repeated policy tests to deterministic
+    owned fakes. The focused contract fell from 55.51 seconds to 5.58 seconds
+    (about 90 percent faster), while the measured full maid test fell from the
+    225.79-second latest baseline to 192.57 seconds (about 15 percent) despite
+    both runs retaining the known live-121-epic inventory failure.
+  rationale: >-
+    Artifact attribution, E710/E900 mapping, timeout configuration, strict
+    boundary restoration, and exact-command grouping are deterministic policy;
+    repeatedly launching coverage and pytest added no new evidence. The final
+    design evaluates owned records in fast policy matrices and keeps bounded
+    real adapter cases for success equivalence, one-line call evidence, command
+    failure, TimeoutExpired propagation, and nested strict propagation. Runtime
+    paths are resolved against the project root and line/call evidence is merged
+    into one immutable value per normalized source path.
+  lessons:
+    - lesson_type: performance
+      summary: >-
+        Moving deterministic artifact-coverage policy behind an injected owned
+        executor reduced its focused suite by about 90 percent without caching
+        pass/fail results or removing real subprocess adapter evidence.
+      tags:
+        - artifact-coverage
+        - testability
+        - subprocess-boundary
+        - performance
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage.py
+        - tests/core/test_artifact_coverage_batch.py
+    - lesson_type: test-design
+      summary: >-
+        Real/fake equivalence must inspect a one-line artifact's owned execution
+        record directly: final report equality alone can hide split relative
+        line keys and absolute call-trace keys or missing call evidence.
+      tags:
+        - one-line-artifacts
+        - runtime-evidence
+        - implementation-review
+        - path-normalization
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - tests/core/test_artifact_coverage_batch.py
+    - lesson_type: validation-trust
+      summary: >-
+        Abstract Protocol bodies and dataclass/value-class construction cannot
+        honestly satisfy the current E710 class-body model; executing an
+        abstract ellipsis solely for coverage would game the gate, so the
+        limitation was reported instead of weakening the contract.
+      tags:
+        - artifact-coverage
+        - protocol
+        - dataclass
+        - fail-closed
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - tests/core/test_artifact_coverage.py
+  review_notes:
+    - source: independent-implementation-review-round-1
+      severity: P2-fixed
+      summary: >-
+        Review found split relative/absolute evidence keys and shallow
+        RuntimeFileExecution immutability. Revision 4 normalized both evidence
+        sources, added defensive frozenset coercion, and strengthened the real
+        one-line adapter and ownership-isolation tests.
+    - source: independent-implementation-re-review
+      severity: ready
+      summary: >-
+        Fresh re-review found no remaining issues and confirmed multi-command
+        final-call semantics, failure and timeout behavior, strict-boundary
+        fidelity, scope compliance, and retained real adapter coverage.
+    - source: strict-deep-follow-up-review
+      severity: ready
+      summary: >-
+        The final reviewer confirmed @abstractmethod is the correct Protocol
+        contract, does not weaken ordinary E310 enforcement, and that the four
+        new E710 findings are validator representation limits rather than
+        focused behavior gaps.
+    - source: assessed-deep-gate
+      severity: warning
+      summary: >-
+        The exact deep gate passed schema, behavioral, and implementation, then
+        stopped at repository-wide historical artifact debt after 1,552.90
+        seconds. The Protocol-specific limitation is recorded in
+        ~/.maid/bug-report/20260811-073000-maid-runner-protocol-artifact-coverage.md.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/test_artifact_coverage_failure_determinism.py, tests/core/test_artifact_coverage_timeout_config.py, tests/cli/test_nested_strict_preview.py]
+      status: passed
+      summary: "All 46 focused policy and bounded real-adapter tests passed in 5.58 seconds versus the 55.51-second baseline."
+    - command: [uv, run, maid, validate, manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against approved plan-lock revision 4."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 528 manifests validated: 417 passed, 111 superseded, and none failed in 5.01 seconds."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: failed
+      summary: >-
+        3,995 tests passed and 5 skipped in 147.16 seconds; the sole failure was
+        the pre-existing planning-inventory assertion for the live 121-00 epic.
+    - command: [uv, run, maid, test]
+      status: failed
+      summary: >-
+        247 of 248 command groups passed in 192.57 seconds; the only failure was
+        the same pre-existing live-121-epic inventory assertion. This is about
+        15 percent faster than the 225.79-second latest baseline.
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 5c71725]
+      status: failed
+      summary: >-
+        Schema, behavioral, and implementation passed. Artifact coverage then
+        stopped on 1,693 repository-wide findings plus the known inventory E900
+        after 1,552.90 seconds, about 15 percent below the 1,827.5-second
+        historical deep baseline; knockout and normal tests did not run.

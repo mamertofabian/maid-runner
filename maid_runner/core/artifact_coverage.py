@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import ast
-import json
 import re
-import sys
-import tempfile
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from maid_runner.core._test_command_execution import (
-    _strict_validation_test_active,
-    _test_command_environment,
+from maid_runner.core._runtime_command_executor import (
+    RuntimeCommandExecutor,
+    RuntimeFileExecution,
+    SubprocessRuntimeCommandExecutor,
 )
 from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
@@ -75,21 +73,12 @@ def coverage_is_available() -> bool:
 def run_artifact_coverage(
     manifest: Manifest,
     project_root: Path,
+    executor: RuntimeCommandExecutor | None = None,
 ) -> ArtifactCoverageReport:
-    if not coverage_is_available():
-        return ArtifactCoverageReport(
-            findings=(),
-            errors=(
-                ValidationError(
-                    code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
-                    message=(
-                        "Artifact coverage requires coverage.py from the quality "
-                        "extra; install maid-runner[quality]."
-                    ),
-                    severity=no_validator_severity("coverage.py"),
-                ),
-            ),
-        )
+    if executor is None:
+        if not coverage_is_available():
+            return _coverage_unavailable_report()
+        executor = SubprocessRuntimeCommandExecutor()
 
     root = Path(project_root)
     timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
@@ -97,22 +86,36 @@ def run_artifact_coverage(
     if not coverage_targets:
         return ArtifactCoverageReport(findings=(), errors=())
 
-    with tempfile.TemporaryDirectory(prefix="maid-artifact-coverage-") as tmp:
-        tmp_path = Path(tmp)
-        data_file = tmp_path / ".coverage"
-        call_file = tmp_path / "calls.json"
-        command_errors = _run_coverage_commands(
-            manifest,
+    target_files = {
+        str((root / file_path).resolve()) for file_path, _artifact in coverage_targets
+    }
+    command_errors: list[ValidationError] = []
+    report_errors: list[ValidationError] = []
+    execution_data: dict[str, RuntimeFileExecution] = {}
+    for original_command in manifest.validate_commands:
+        pytest_args = _pytest_args(original_command)
+        if pytest_args is None:
+            continue
+        command_run = executor.execute(
+            pytest_args,
+            target_files,
             root,
-            data_file,
-            call_file,
             timeout_seconds,
         )
-        coverage_json = tmp_path / "coverage.json"
-        report_errors = _write_coverage_json(data_file, coverage_json)
-        execution_data = (
-            _load_execution_data(coverage_json, call_file) if not report_errors else {}
-        )
+        if command_run.returncode != 0:
+            command_errors.append(
+                _coverage_command_error(
+                    original_command,
+                    stdout=command_run.stdout,
+                    stderr=command_run.stderr,
+                )
+            )
+        if command_run.report_errors and not report_errors:
+            report_errors.extend(command_run.report_errors)
+        _merge_execution_data(execution_data, command_run.execution_data)
+
+    if report_errors:
+        execution_data = {}
 
     findings, execution_errors = _evaluate_targets(
         root, coverage_targets, execution_data
@@ -126,14 +129,17 @@ def run_artifact_coverage(
 def run_artifact_coverage_batch(
     manifests: Sequence[Manifest],
     project_root: Path,
+    executor: RuntimeCommandExecutor | None = None,
 ) -> dict[str, ArtifactCoverageReport]:
     """Run shared pytest commands once and return per-manifest reports."""
     ordered_manifests = list(manifests)
-    if not coverage_is_available():
-        return {
-            manifest.source_path: _coverage_unavailable_report()
-            for manifest in ordered_manifests
-        }
+    if executor is None:
+        if not coverage_is_available():
+            return {
+                manifest.source_path: _coverage_unavailable_report()
+                for manifest in ordered_manifests
+            }
+        executor = SubprocessRuntimeCommandExecutor()
 
     root = Path(project_root)
     timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
@@ -162,11 +168,11 @@ def run_artifact_coverage_batch(
         commands_by_manifest[manifest.source_path] = command_entries
 
     command_runs = {
-        pytest_args: _run_shared_coverage_command(
+        pytest_args: executor.execute(
             pytest_args,
-            target_files=target_files,
-            root=root,
-            timeout_seconds=timeout_seconds,
+            target_files,
+            root,
+            timeout_seconds,
         )
         for pytest_args, target_files in target_files_by_command.items()
     }
@@ -180,12 +186,16 @@ def run_artifact_coverage_batch(
             reports[manifest_path] = ArtifactCoverageReport(findings=(), errors=())
             continue
         if not command_entries:
-            reports[manifest_path] = run_artifact_coverage(manifest, root)
+            reports[manifest_path] = run_artifact_coverage(
+                manifest,
+                root,
+                executor=executor,
+            )
             continue
 
         command_errors: list[ValidationError] = []
         report_errors: list[ValidationError] = []
-        execution_data: dict[str, _CoverageFileExecution] = {}
+        execution_data: dict[str, RuntimeFileExecution] = {}
         for pytest_args, original_command in command_entries:
             command_run = command_runs[pytest_args]
             if command_run.returncode != 0:
@@ -228,66 +238,6 @@ def _coverage_unavailable_report() -> ArtifactCoverageReport:
             ),
         ),
     )
-
-
-@dataclass(frozen=True)
-class _SharedCoverageCommandRun:
-    returncode: int
-    stdout: str
-    stderr: str
-    execution_data: dict[str, "_CoverageFileExecution"]
-    report_errors: tuple[ValidationError, ...]
-
-
-def _run_shared_coverage_command(
-    pytest_args: tuple[str, ...],
-    *,
-    target_files: set[str],
-    root: Path,
-    timeout_seconds: float,
-) -> _SharedCoverageCommandRun:
-    import subprocess
-
-    with tempfile.TemporaryDirectory(prefix="maid-artifact-coverage-batch-") as tmp:
-        tmp_path = Path(tmp)
-        data_file = tmp_path / ".coverage"
-        call_file = tmp_path / "calls.json"
-        strict_validation = _strict_validation_test_active()
-        runner = _coverage_runner_script(tmp_path)
-        target_file = tmp_path / "target_files.json"
-        target_file.write_text(json.dumps(sorted(target_files)))
-        proc = subprocess.run(
-            (
-                sys.executable,
-                "-m",
-                "coverage",
-                "run",
-                "--data-file",
-                str(data_file),
-                str(runner),
-                str(call_file),
-                str(target_file),
-                "1" if strict_validation else "0",
-                *pytest_args,
-            ),
-            cwd=root,
-            capture_output=True,
-            text=True,
-            env=_test_command_environment(),
-            timeout=timeout_seconds,
-        )
-        coverage_json = tmp_path / "coverage.json"
-        report_errors = _write_coverage_json(data_file, coverage_json)
-        execution_data = (
-            _load_execution_data(coverage_json, call_file) if not report_errors else {}
-        )
-        return _SharedCoverageCommandRun(
-            returncode=proc.returncode,
-            stdout=proc.stdout,
-            stderr=proc.stderr,
-            execution_data=execution_data,
-            report_errors=tuple(report_errors),
-        )
 
 
 def _coverage_command_error(
@@ -387,24 +337,29 @@ def _actionable_diagnostic_line(lines: list[str]) -> str | None:
 
 
 def _merge_execution_data(
-    destination: dict[str, "_CoverageFileExecution"],
-    source: dict[str, "_CoverageFileExecution"],
+    destination: dict[str, RuntimeFileExecution],
+    source: Mapping[str, RuntimeFileExecution],
 ) -> None:
     # The single-manifest runner appends line coverage across commands while
     # each command overwrites calls.json. Preserve that behavior so one-line
     # artifacts receive the same result from the batch and legacy paths.
-    for execution in destination.values():
-        execution.called_qualnames.clear()
+    for file_path, execution in tuple(destination.items()):
+        destination[file_path] = RuntimeFileExecution(
+            executed_lines=execution.executed_lines,
+            called_qualnames=frozenset(),
+        )
     for file_path, execution in source.items():
         existing = destination.get(file_path)
         if existing is None:
-            destination[file_path] = _CoverageFileExecution(
-                executed_lines=set(execution.executed_lines),
-                called_qualnames=set(execution.called_qualnames),
+            destination[file_path] = RuntimeFileExecution(
+                executed_lines=frozenset(execution.executed_lines),
+                called_qualnames=frozenset(execution.called_qualnames),
             )
             continue
-        existing.executed_lines.update(execution.executed_lines)
-        existing.called_qualnames.update(execution.called_qualnames)
+        destination[file_path] = RuntimeFileExecution(
+            executed_lines=existing.executed_lines | execution.executed_lines,
+            called_qualnames=(existing.called_qualnames | execution.called_qualnames),
+        )
 
 
 def _coverage_targets(manifest: Manifest, root: Path) -> list[tuple[str, ArtifactSpec]]:
@@ -422,132 +377,6 @@ def _coverage_targets(manifest: Manifest, root: Path) -> list[tuple[str, Artifac
             ):
                 targets.append((file_spec.path, artifact))
     return targets
-
-
-def _run_coverage_commands(
-    manifest: Manifest,
-    root: Path,
-    data_file: Path,
-    call_file: Path,
-    timeout_seconds: float,
-) -> list[ValidationError]:
-    import subprocess
-
-    errors: list[ValidationError] = []
-    env = _test_command_environment()
-    strict_validation = _strict_validation_test_active()
-    runner = _coverage_runner_script(data_file.parent)
-    target_file = _coverage_target_file(manifest, root, data_file.parent)
-    for command in manifest.validate_commands:
-        pytest_args = _pytest_args(command)
-        if pytest_args is None:
-            continue
-        proc = subprocess.run(
-            (
-                sys.executable,
-                "-m",
-                "coverage",
-                "run",
-                "--append",
-                "--data-file",
-                str(data_file),
-                str(runner),
-                str(call_file),
-                str(target_file),
-                "1" if strict_validation else "0",
-                *pytest_args,
-            ),
-            cwd=root,
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=timeout_seconds,
-        )
-        if proc.returncode != 0:
-            errors.append(
-                _coverage_command_error(
-                    command,
-                    stdout=proc.stdout,
-                    stderr=proc.stderr,
-                )
-            )
-    return errors
-
-
-def _coverage_target_file(manifest: Manifest, root: Path, tmp_path: Path) -> Path:
-    target_file = tmp_path / "target_files.json"
-    target_file.write_text(
-        json.dumps(
-            sorted(
-                str((root / file_path).resolve())
-                for file_path, _artifact in _coverage_targets(manifest, root)
-            )
-        )
-    )
-    return target_file
-
-
-def _coverage_runner_script(tmp_path: Path) -> Path:
-    runner = tmp_path / "artifact_coverage_runner.py"
-    runner.write_text(
-        """
-from __future__ import annotations
-
-import json
-import sys
-import threading
-from pathlib import Path
-
-call_output = Path(sys.argv[1])
-target_files = set(json.loads(Path(sys.argv[2]).read_text()))
-strict_validation = sys.argv[3] == "1"
-pytest_args = sys.argv[4:]
-calls: set[tuple[str, str, str, int]] = set()
-exit_code = 1
-
-
-def profile_calls(frame, event, arg):
-    if event == "call":
-        code = frame.f_code
-        filename = code.co_filename
-        if filename not in target_files:
-            return profile_calls
-        calls.add(
-            (
-                filename,
-                code.co_name,
-                getattr(code, "co_qualname", code.co_name),
-                code.co_firstlineno,
-            )
-        )
-    return profile_calls
-
-
-sys.setprofile(profile_calls)
-threading.setprofile(profile_calls)
-
-try:
-    sys.path.insert(0, str(Path.cwd()))
-    import pytest
-    from maid_runner.core._test_command_execution import (
-        _strict_validation_test_environment,
-    )
-
-    with _strict_validation_test_environment(strict_validation, process_wide=True):
-        exit_code = pytest.main(pytest_args)
-finally:
-    sys.setprofile(None)
-    threading.setprofile(None)
-    payload = [
-        {"file": file, "name": name, "qualname": qualname, "firstlineno": firstlineno}
-        for file, name, qualname, firstlineno in sorted(calls)
-    ]
-    call_output.write_text(json.dumps(payload))
-
-raise SystemExit(exit_code)
-""".lstrip()
-    )
-    return runner
 
 
 def _pytest_args(command: tuple[str, ...]) -> tuple[str, ...] | None:
@@ -568,63 +397,15 @@ def _pytest_args(command: tuple[str, ...]) -> tuple[str, ...] | None:
     return None
 
 
-def _write_coverage_json(data_file: Path, output_file: Path) -> list[ValidationError]:
-    try:
-        import coverage
-
-        cov = coverage.Coverage(data_file=str(data_file))
-        cov.load()
-        cov.json_report(outfile=str(output_file))
-    except Exception as exc:
-        return [
-            ValidationError(
-                code=ErrorCode.INTERNAL_ERROR,
-                message=f"Artifact coverage report could not be generated: {exc}",
-            )
-        ]
-    return []
-
-
-@dataclass(frozen=True)
-class _CoverageFileExecution:
-    executed_lines: set[int]
-    called_qualnames: set[str]
-
-
-def _load_execution_data(
-    report_path: Path,
-    call_path: Path,
-) -> dict[str, _CoverageFileExecution]:
-    data = json.loads(report_path.read_text())
-    result: dict[str, _CoverageFileExecution] = {}
-    for file_path, file_data in data.get("files", {}).items():
-        result[file_path] = _CoverageFileExecution(
-            executed_lines=set(file_data.get("executed_lines", [])),
-            called_qualnames=set(),
-        )
-    if call_path.exists():
-        for call in json.loads(call_path.read_text() or "[]"):
-            file_path = call["file"]
-            existing = result.get(file_path)
-            if existing is None:
-                existing = _CoverageFileExecution(
-                    executed_lines=set(),
-                    called_qualnames=set(),
-                )
-            existing.called_qualnames.add(call["qualname"])
-            result[file_path] = existing
-    return result
-
-
 def _evaluate_targets(
     root: Path,
     targets: list[tuple[str, ArtifactSpec]],
-    execution_data_by_file: dict[str, _CoverageFileExecution],
+    execution_data_by_file: Mapping[str, RuntimeFileExecution],
 ) -> tuple[list[ArtifactCoverageFinding], list[ValidationError]]:
     findings: list[ArtifactCoverageFinding] = []
     errors: list[ValidationError] = []
     ast_cache: dict[str, _ArtifactLineIndex] = {}
-    executed_cache: dict[str, _CoverageFileExecution] = {}
+    executed_cache: dict[str, RuntimeFileExecution] = {}
     class_method_executed: dict[tuple[str, str], bool] = {}
 
     for file_path, artifact in targets:
@@ -779,7 +560,7 @@ def _body_lines(
 
 def _span_executed(
     span: _ArtifactLineSpan | None,
-    execution_data: _CoverageFileExecution,
+    execution_data: RuntimeFileExecution,
 ) -> bool:
     if span is None:
         return False
@@ -791,11 +572,12 @@ def _span_executed(
 
 def _execution_data_for_file(
     file_path: str,
-    execution_data_by_file: dict[str, _CoverageFileExecution],
-) -> _CoverageFileExecution:
+    execution_data_by_file: Mapping[str, RuntimeFileExecution],
+) -> RuntimeFileExecution:
     target = Path(file_path)
     target_resolved = target.resolve()
-    matched = _CoverageFileExecution(executed_lines=set(), called_qualnames=set())
+    executed_lines: set[int] = set()
+    called_qualnames: set[str] = set()
     for covered_path, execution_data in execution_data_by_file.items():
         covered = Path(covered_path)
         is_match = False
@@ -809,6 +591,9 @@ def _execution_data_for_file(
         if not is_match and covered.as_posix().endswith(target.as_posix()):
             is_match = True
         if is_match:
-            matched.executed_lines.update(execution_data.executed_lines)
-            matched.called_qualnames.update(execution_data.called_qualnames)
-    return matched
+            executed_lines.update(execution_data.executed_lines)
+            called_qualnames.update(execution_data.called_qualnames)
+    return RuntimeFileExecution(
+        executed_lines=frozenset(executed_lines),
+        called_qualnames=frozenset(called_qualnames),
+    )
