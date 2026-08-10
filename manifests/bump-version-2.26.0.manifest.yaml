@@ -1,0 +1,177 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prepare maid-runner 2.26.0 release metadata and changelog
+type: feature
+created: '2026-08-10T11:37:37Z'
+supersedes:
+- bump-version-2.25.0
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  status: implementation-ready
+  tags:
+  - release
+  - version
+  - changelog
+  priority: high
+description: |
+  Bump maid-runner from the published 2.25.0 release to 2.26.0 and synchronize
+  package metadata, editable lock metadata, changelog, roadmap version/date
+  references, and the shared release-metadata behavioral contract.
+
+  This is a SemVer minor release because the post-v2.25.0 branch adds
+  backward-compatible public workflows for ownership-safe payload uninstall,
+  privacy-bounded cross-repository feedback, shared-test plan-lock recovery,
+  Git delivery attestations, change assessment, first-party bootstrap
+  installers, and faster task-scoped handoff verification. It also improves
+  validation performance and diagnostics, Windows portability, the public
+  website, and several fail-closed recovery paths.
+
+  Prior release Outcomes require the package, editable lock, changelog,
+  roadmap, runtime metadata, compare link, built artifacts, and independent
+  review evidence to stay synchronized. The contract therefore pins every
+  release mirror and behaviorally names the complete user-visible release
+  inventory instead of trusting commit subjects alone.
+
+  This task prepares local release metadata only. Do not tag, publish, push,
+  merge to main, create a GitHub release, or otherwise perform external release
+  actions.
+temptations:
+- risk: Do not update only pyproject.toml while leaving the editable lock, roadmap, runtime assertions, or changelog stale.
+  instead: Update every 2.26.0 release mirror together and regenerate uv.lock through uv.
+- risk: Do not derive the changelog only from merge titles or omit fail-closed safety properties.
+  instead: Reconcile every post-v2.25.0 commit with its completed manifest Outcome and summarize observable behavior and safety boundaries.
+- risk: Do not omit or mistype the new changelog comparison link.
+  instead: Add and behaviorally assert the exact v2.25.0...v2.26.0 compare URL.
+- risk: Do not publish, tag, push, merge, or create a GitHub release merely because local release preparation is green.
+  instead: Stop at commit-ready after build, metadata checks, independent review, Outcome capture, and final handoff verification.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject and be regenerated through uv.
+  - path: CHANGELOG.md
+    reason: Release notes document the complete 2.26.0 behavior, date, safety boundaries, and comparison link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the prepared CLI version and release date.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_current_version
+      of: TestPublicAPIImports
+      args:
+      - name: self
+        type: TestPublicAPIImports
+      returns: None
+      description: Runtime version, package metadata, editable lock metadata, changelog heading/content/compare link, and roadmap all report 2.26.0.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.25.0.manifest.yaml
+  - manifests/add-owned-payload-uninstall.manifest.yaml
+  - manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml
+  - manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml
+  - manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml
+  - manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml
+  - manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml
+  - manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml
+  - manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml
+  - manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml
+  - manifests/fix-windows-init-portability.manifest.yaml
+  - manifests/configure-artifact-coverage-timeout.manifest.yaml
+  - manifests/fix-stash-revise-import-obstruction.manifest.yaml
+  - manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml
+  - manifests/add-bootstrap-installers.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: '2026-08-10T20:26:53+08:00'
+  summary: Prepared maid-runner 2.26.0 by synchronizing package and editable
+    lock metadata, runtime release assertions, the August 10 changelog and
+    comparison link, roadmap references, historical shared-test locks, and
+    built distribution metadata.
+  rationale: The post-v2.25.0 branch adds backward-compatible public workflows
+    for payload uninstall, cross-repository feedback, shared-test recovery,
+    delivery attestations, change assessment, bootstrap installation, and
+    faster handoff verification, making a SemVer minor release appropriate.
+    The focused contract, repository handoff profile, full manifest test gate,
+    package build, metadata check, and independent review passed. The assessed
+    deep profile also ran to completion and exposed only the repository's
+    pre-existing E710 artifact-coverage debt, which remains explicit rather
+    than being weakened or hidden.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: Release preparation remains auditable when pyproject, uv.lock,
+      runtime metadata, changelog inventory/date/link, roadmap, behavioral
+      assertions, wheel, and source distribution all identify the same release.
+    tags:
+    - release
+    - version
+    - changelog
+    - packaging
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: validation-trust
+    summary: A release handoff can pass every normal gate while an assessed
+      deep run exposes historical repository-wide artifact-execution debt; the
+      failed stage and its E710 scope must remain visible in release evidence.
+    tags:
+    - release
+    - artifact-coverage
+    - fail-loud
+    paths:
+    - manifests/bump-version-2.26.0.manifest.yaml
+  review_notes:
+  - source: independent-implementation-reviewer-release_review
+    severity: ready
+    summary: Independent read-only review found no blocking findings and
+      confirmed changelog completeness, SemVer choice, version/date/link
+      mirrors, built metadata, scope fidelity, inventory repair, and sanctioned
+      lock revisions.
+  - source: independent-implementation-reviewer-release_review
+    severity: advisory
+    summary: Release-note name assertions search the complete changelog rather
+      than isolating the 2.26.0 section; retain as future contract hardening and
+      do not revise the approved release contract for this P2 advisory.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py]
+    status: passed
+    summary: All 29 focused release metadata and public API tests passed.
+  - command: [uv, run, maid, validate, manifests/bump-version-2.26.0.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed against the promoted locked contract.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed 413 active manifests with 111 superseded and no failures.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 244 repository manifest commands passed with locked Python and Node dependencies installed.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, v2.25.0]
+    status: failed
+    summary: The exact assessed deep gate passed schema, behavioral, and implementation, then failed artifact coverage on 1,680 pre-existing E710 unexecuted-artifact findings.
+  - command: [uv, run, maid, verify, --profile, handoff, --since, v2.25.0]
+    status: passed
+    summary: The nine-stage handoff safety floor passed with no blockers and only expected E307 no-validator warnings.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Ruff reported no issues.
+  - command: [uv, run, black, --check, .]
+    status: passed
+    summary: Black would leave all 515 files unchanged.
+  - command: [make, build]
+    status: passed
+    summary: Built maid_runner-2.26.0.tar.gz and maid_runner-2.26.0-py3-none-any.whl.
+  - command: [uv, run, twine, check, dist/maid_runner-2.26.0.tar.gz, dist/maid_runner-2.26.0-py3-none-any.whl]
+    status: passed
+    summary: Twine metadata validation passed for both 2.26.0 artifacts.

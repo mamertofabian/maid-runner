@@ -303,8 +303,87 @@ def _coverage_command_error(
     return ValidationError(
         code=ErrorCode.INTERNAL_ERROR,
         message=f"Artifact coverage validate command failed: {' '.join(command)}",
-        suggestion=diagnostic_output[-500:] or None,
+        suggestion=_bounded_diagnostic_suggestion(diagnostic_output),
     )
+
+
+def _bounded_diagnostic_suggestion(output: str) -> str | None:
+    suggestion_limit = 500
+    if len(output) <= suggestion_limit:
+        return output or None
+
+    truncation_marker = "...<truncated>..."
+    pathological_line_limit = 200
+    compacted_lines: list[str] = []
+    for line in output.splitlines(keepends=True):
+        raw_content = line.rstrip("\r\n")
+        line_ending = line[len(raw_content) :]
+        content = raw_content
+        if len(content) > suggestion_limit:
+            retained = pathological_line_limit - len(truncation_marker)
+            prefix_length = (retained * 7) // 10
+            suffix_length = retained - prefix_length
+            content = (
+                content[:prefix_length] + truncation_marker + content[-suffix_length:]
+            )
+        compacted_lines.append(content + line_ending)
+
+    tail_start, tail = _whole_line_tail(compacted_lines, suggestion_limit)
+    if tail_start == 0:
+        return tail or None
+
+    separator = "...<diagnostic truncated>...\n"
+    context_line = _actionable_diagnostic_line(compacted_lines)
+    if context_line is None:
+        _, bounded_tail = _whole_line_tail(
+            compacted_lines,
+            suggestion_limit - len(separator),
+        )
+        if not bounded_tail:
+            return tail or None
+        return (separator + bounded_tail) or None
+
+    if context_line in tail:
+        return tail or None
+
+    minimum_tail_budget = 320
+    maximum_context_size = suggestion_limit - len(separator) - minimum_tail_budget
+    if len(context_line) > maximum_context_size:
+        return tail or None
+
+    remaining = suggestion_limit - len(context_line) - len(separator)
+    _, bounded_tail = _whole_line_tail(compacted_lines, remaining)
+    if not bounded_tail:
+        return tail or None
+    return (context_line + separator + bounded_tail) or None
+
+
+def _whole_line_tail(lines: list[str], limit: int) -> tuple[int, str]:
+    start = len(lines)
+    size = 0
+    for index in range(len(lines) - 1, -1, -1):
+        line_size = len(lines[index])
+        if size + line_size > limit:
+            break
+        start = index
+        size += line_size
+    return start, "".join(lines[start:])
+
+
+def _actionable_diagnostic_line(lines: list[str]) -> str | None:
+    for prefixes in (('"message":',), ('"suggestion":',)):
+        for line in reversed(lines):
+            if line.lstrip().startswith(prefixes):
+                return line
+    for line in reversed(lines):
+        content = re.sub(r"^E[ \t]+", "", line.lstrip())
+        if re.match(r"^[A-Za-z_][\w.]*?(?:Error|Exception):", content):
+            return line
+    for prefixes in (("> ",), ("E ",), ("FAILED ", "ERROR ")):
+        for line in reversed(lines):
+            if line.lstrip().startswith(prefixes):
+                return line
+    return None
 
 
 def _merge_execution_data(

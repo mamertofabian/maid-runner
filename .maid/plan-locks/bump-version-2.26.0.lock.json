@@ -1,0 +1,147 @@
+{
+  "manifest_path": "manifests/bump-version-2.26.0.manifest.yaml",
+  "manifest_hash": "sha256-contract:4ebfecbb4c35ad3e39d236bfdb0ba5824e120d1bdf9b3ac9e3e2180a80060e25",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:2c5e85fe25a25a5c0cda8baa421c517543e81cb25d9b490a3997d8dde47793d4"
+  },
+  "created_at": "2026-08-10T11:37:37.238696+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:8b105a916a04d89db8fdf8d907623e26ef9ecf9ebc2a309b11a8b7969281da40",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:2c5e85fe25a25a5c0cda8baa421c517543e81cb25d9b490a3997d8dde47793d4"
+      },
+      "revised_at": "2026-08-10T11:37:37.839942+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.26.0.manifest.yaml -> manifests/bump-version-2.26.0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T11:37:38.188981+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.26.0\"\nE       AssertionError: assert '2.25.0' == '2.26.0'\nE         \nE         - 2.26.0\nE         ?    ^\nE         + 2.25.0\nE         ?    ^\n\ntests/integration/test_library_api.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 27 passed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+        "manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml",
+        "manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml",
+        "manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml",
+        "manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "manifests/add-bootstrap-installers.manifest.yaml",
+        "manifests/add-owned-payload-uninstall.manifest.yaml",
+        "manifests/bump-version-2.25.0.manifest.yaml",
+        "manifests/configure-artifact-coverage-timeout.manifest.yaml",
+        "manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml",
+        "manifests/fix-stash-revise-import-obstruction.manifest.yaml",
+        "manifests/fix-windows-init-portability.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading/content/compare link, and roadmap all report 2.26.0.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.25.0.manifest.yaml",
+        "manifests/add-owned-payload-uninstall.manifest.yaml",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+        "manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml",
+        "manifests/098-02-group-shared-test-plan-lock-summary.manifest.yaml",
+        "manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml",
+        "manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml",
+        "manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml",
+        "manifests/fix-windows-init-portability.manifest.yaml",
+        "manifests/configure-artifact-coverage-timeout.manifest.yaml",
+        "manifests/fix-stash-revise-import-obstruction.manifest.yaml",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "manifests/add-bootstrap-installers.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the complete 2.26.0 behavior, date, safety boundaries, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the prepared CLI version and release date."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}

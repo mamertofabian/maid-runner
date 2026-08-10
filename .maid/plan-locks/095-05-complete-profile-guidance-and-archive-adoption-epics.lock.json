@@ -3,7 +3,7 @@
   "manifest_hash": "sha256-contract:e18f3e76587fb4227b784c95b0636f7438ff9ffc58bac5eb259cc9a1973cc6ce",
   "test_hashes": {
     "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a",
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0",
     "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
     "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
     "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
@@ -13,7 +13,7 @@
     "tests/test_plan_lock_docs.py": "sha256-pyast:v2:4e3f57a8f83cb79ab722dc7ab4dda74a7fc61a8c9dae2c0e80d857fd8ef8acf2"
   },
   "created_at": "2026-08-07T13:17:29.919350+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:4ab9435b50a4b091bf0df777adacf1a2255729d5d0d4517d26c8ce421168e8e6",
@@ -237,6 +237,31 @@
       },
       "revised_at": "2026-08-10T06:16:31.861050+00:00",
       "reason": "accept approved shared-test change for 121 live epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e18f3e76587fb4227b784c95b0636f7438ff9ffc58bac5eb259cc9a1973cc6ce",
+      "prior_test_hashes": {
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a",
+        "tests/cli/test_howto_cmd.py": "sha256-pyast:v2:c4108d6059fdc46b29067d77796d487f324fda49f5f25c4346a16c190899b962",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8",
+        "tests/test_packet_skill_guidance_docs.py": "sha256-pyast:v2:023fc6db8410639c49ef06361b0b1a1089feb239afea2a47391f998b3e174975",
+        "tests/test_plan_lock_docs.py": "sha256-pyast:v2:4e3f57a8f83cb79ab722dc7ab4dda74a7fc61a8c9dae2c0e80d857fd8ef8acf2"
+      },
+      "revised_at": "2026-08-10T11:47:38.186423+00:00",
+      "reason": "accept approved archived-121 shared inventory test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

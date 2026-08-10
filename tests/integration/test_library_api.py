@@ -40,37 +40,42 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.25.0"
-        assert re.search(r'^version = "2\.25\.0"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.26.0"
+        assert re.search(r'^version = "2\.26\.0"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.25\.0"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.26\.0"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.25.0] - 2026-08-07" in changelog_text
+        assert "## [2.26.0] - 2026-08-10" in changelog_text
         assert (
-            "[2.25.0]: https://github.com/mamertofabian/maid-runner/compare/v2.24.0...v2.25.0"
+            "[2.26.0]: https://github.com/mamertofabian/maid-runner/compare/v2.25.0...v2.26.0"
             in changelog_text
         )
         for release_note in (
-            "Named verify profiles",
-            "Onboarding entry-point guidance",
-            "Python enum artifact contracts",
-            "Website onboarding evidence",
-            "Preserved red-evidence integrity",
-            "Failure packet output ownership",
-            "Configured manifest directories",
-            "Empty generated hooks",
-            "Legacy baseline workflows",
-            "Scope-only contract coverage",
-            ".NET changed-scope tracking",
+            "First-party bootstrap installers",
+            "Ownership-safe payload uninstall",
+            "Cross-repository feedback workflow",
+            "Shared-test plan-lock recovery",
+            "Delivery attestations",
+            "Change assessment",
+            "Artifact-coverage efficiency",
+            "Task-scoped handoff performance",
+            "Website positioning",
+            "Advisory strict validation policy",
+            "Actionable inactive-manifest repair",
+            "Deterministic coverage diagnostics",
+            "Git test isolation",
+            "Windows init portability",
+            "Stash-backed plan revision recovery",
+            "Manifest promotion formatting",
         ):
             assert release_note in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.25.0" in roadmap_text
-        assert "**Last Updated:** 2026-08-07" in roadmap_text
-        assert "The local CLI reports `maid 2.25.0`." in roadmap_text
+        assert "**Current Version:** 2.26.0" in roadmap_text
+        assert "**Last Updated:** 2026-08-10" in roadmap_text
+        assert "The local CLI reports `maid 2.26.0`." in roadmap_text
 
     def test_release_metadata_is_2_21_0(self):
         """Preserve the active v2.21.0 contract until this draft is promoted."""

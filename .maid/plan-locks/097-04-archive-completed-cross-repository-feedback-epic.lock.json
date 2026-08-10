@@ -2,10 +2,10 @@
   "manifest_path": "manifests/097-04-archive-completed-cross-repository-feedback-epic.manifest.yaml",
   "manifest_hash": "sha256-contract:07f643883b9d5ed269ee4ca6e0dfb754b52ab5e19ce18f0911d1ed4d740c3684",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
   },
   "created_at": "2026-08-08T22:55:24.597999+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:f313d6dd52fe90b1b205a8e2362b14871fe4aa1108acfad07f29882fc6b98c00",
@@ -31,6 +31,23 @@
       },
       "revised_at": "2026-08-10T06:16:32.324416+00:00",
       "reason": "accept approved shared-test change for 121 live epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07f643883b9d5ed269ee4ca6e0dfb754b52ab5e19ce18f0911d1ed4d740c3684",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:38.678468+00:00",
+      "reason": "accept approved archived-121 shared inventory test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

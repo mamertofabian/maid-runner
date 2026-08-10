@@ -5,10 +5,10 @@
     "tests/test_exact_model_provenance_docs.py": "sha256-pyast:v2:c01b44dd4b74034d9b11adf6712272cd4e385487d8240ba06a14f9f3078a3315",
     "tests/core/test_feedback_export.py": "sha256-pyast:v2:a93094233db2e823c73300f8037059a43b8cf5a838f1888be78309267f1b06a6",
     "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
   },
   "created_at": "2026-08-08T11:37:06.941245+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:22106fdd70bb2bc6af21601d7775d7fe79f11bcd0848bf1d1d0d4c65de7293a1",
@@ -60,6 +60,26 @@
       },
       "revised_at": "2026-08-10T06:16:32.101944+00:00",
       "reason": "accept approved shared-test change for 121 live epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:22106fdd70bb2bc6af21601d7775d7fe79f11bcd0848bf1d1d0d4c65de7293a1",
+      "prior_test_hashes": {
+        "tests/test_exact_model_provenance_docs.py": "sha256-pyast:v2:c01b44dd4b74034d9b11adf6712272cd4e385487d8240ba06a14f9f3078a3315",
+        "tests/core/test_feedback_export.py": "sha256-pyast:v2:a93094233db2e823c73300f8037059a43b8cf5a838f1888be78309267f1b06a6",
+        "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:38.440727+00:00",
+      "reason": "accept approved archived-121 shared inventory test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

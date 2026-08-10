@@ -1,0 +1,111 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Preserve actionable artifact-coverage failure context when CI emits untruncated pytest assertion lines
+type: fix
+created: "2026-08-10T13:28:42Z"
+metadata:
+  priority: high
+  tags: [artifact-coverage, diagnostics, ci, release-blocker]
+description: |
+  Extend the deterministic artifact-coverage failure-report contract for pytest's
+  CI rendering mode. With CI=true, pytest can emit an unbounded single assertion
+  line. Retaining only the final 500 raw characters then lets that one line evict
+  the actionable assertion source and nested validation failure that precede it.
+
+  Keep the existing 500-character serialized suggestion bound and duration
+  normalization. Compact only genuinely pathological individual diagnostic
+  lines, retaining both their prefix and suffix, and reserve bounded space for
+  one whole actionable failure-context line when the raw tail would evict it.
+  Normal traceback, assertion, summary, and nested validation lines remain
+  byte-for-byte unchanged.
+  This is an additive chain merge over the current deterministic-output contract.
+temptations:
+- risk: Increase or remove the established 500-character diagnostic bound.
+  instead: Compact only pathological individual lines and retain a whole actionable context line before applying the same bound.
+- risk: Remove CI from the artifact-coverage subprocess environment.
+  instead: Preserve the caller's real test environment and make diagnostic handling robust to its output.
+- risk: Special-case the exact nested strict-preview assertion text.
+  instead: Handle any oversized diagnostic line while preserving surrounding context deterministically.
+files:
+  edit:
+  - path: tests/core/test_artifact_coverage_failure_determinism.py
+    artifacts:
+    - kind: test_function
+      name: test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: A failing public artifact-coverage run receives pytest CI output whose actionable assertion source is followed by one oversized rendered assertion line.
+      actions:
+      - type: api_call
+        subject: {export: run_artifact_coverage}
+      expected:
+        behavior: The serialized E900 suggestion remains at most 500 characters, retains the actionable assertion source and its indented caret plus both ends of the oversized line even after a long earlier exception, preserves an ordinary final diagnostic line up to the bound byte-for-byte without replacing it with a marker, and preserves deterministic duration normalization.
+  scope:
+  - path: maid_runner/core/artifact_coverage.py
+    reason: Compact pathological individual subprocess-output lines and retain one whole actionable context line at the existing private bounded E900 diagnostic boundary.
+  read:
+  - manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml
+  - tests/cli/test_nested_strict_preview.py
+validate:
+- uv run python -m pytest -q tests/core/test_artifact_coverage_failure_determinism.py tests/cli/test_nested_strict_preview.py
+outcome:
+  status: completed
+  completed_at: '2026-08-10T22:38:27+08:00'
+  summary: >-
+    Preserved actionable nested-validation failure context in bounded artifact-
+    coverage E900 suggestions under pytest's CI rendering while keeping ordinary
+    diagnostic lines byte-for-byte intact and the existing 500-character limit.
+  rationale: >-
+    The diagnostic boundary now compacts only pathological individual lines,
+    selects a whole-line tail, and reserves space for a short high-signal failure
+    line only when doing so cannot evict the useful tail. Near-limit ordinary
+    lines and tails following unusually long exception lines remain intact.
+  lessons:
+  - lesson_type: validation-trust
+    summary: >-
+      CI=true changes pytest failure rendering without implying a timeout. Bounded
+      diagnostics should preserve whole semantic lines and treat only truly
+      pathological lines specially instead of blindly slicing raw characters.
+    tags: [artifact-coverage, ci, diagnostics, maid-runner-feedback]
+    paths:
+    - maid_runner/core/artifact_coverage.py
+  - lesson_type: test-design
+    summary: >-
+      Public-path fixtures covering indentation, caret alignment, near-limit
+      ordinary tails, long earlier exceptions, and both ends of an oversized line
+      exposed budget failures that substring-only assertions missed.
+    tags: [regression-coverage, boundary-testing, review]
+    paths:
+    - tests/core/test_artifact_coverage_failure_determinism.py
+  review_notes:
+  - source: independent-reviewer-ci-diagnostic-review
+    severity: ready
+    summary: >-
+      Final read-only review found no actionable issues after two revision rounds
+      closed ordinary-line corruption, near-limit tail loss, and long-context
+      eviction. Scope and locked-contract fidelity were confirmed intact.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_failure_determinism.py, tests/cli/test_nested_strict_preview.py]
+    status: passed
+    summary: All 7 focused deterministic-output and nested-validation tests passed.
+  - command: [CI=true, uv, run, python, -m, pytest, -q, tests/cli/test_nested_strict_preview.py]
+    status: passed
+    summary: All 5 nested strict-preview tests passed in the exact CI rendering mode.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: All 415 active manifests passed; 111 superseded manifests were skipped and none failed.
+  - command: [CI=true, uv, run, maid, test]
+    status: passed
+    summary: All 246 manifest-declared commands passed under CI rendering mode.
+  - command: [uv, run, ruff, check, maid_runner/core/artifact_coverage.py, tests/core/test_artifact_coverage_failure_determinism.py]
+    status: passed
+    summary: Focused lint passed.
+  - command: [uv, run, black, --check, maid_runner/core/artifact_coverage.py, tests/core/test_artifact_coverage_failure_determinism.py]
+    status: passed
+    summary: Focused formatting check passed.
