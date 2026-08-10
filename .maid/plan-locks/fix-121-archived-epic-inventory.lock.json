@@ -1,0 +1,95 @@
+{
+  "manifest_path": "manifests/fix-121-archived-epic-inventory.manifest.yaml",
+  "manifest_hash": "sha256-contract:ca34cb864f3c21229e8501b48a1e1f92784db08b2286b7156c70b1414f81257a",
+  "test_hashes": {
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+  },
+  "created_at": "2026-08-10T11:47:05.618635+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a4939256e6c13c7f448718b28c52f4244b546ba3f84911ff1b4b1a74da3fbbec",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:06.022825+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-121-archived-epic-inventory.manifest.yaml -> manifests/fix-121-archived-epic-inventory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca34cb864f3c21229e8501b48a1e1f92784db08b2286b7156c70b1414f81257a",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:38.903115+00:00",
+      "reason": "accept approved archived-121 inventory implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T11:47:06.214931+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+        "exit_code": 1,
+        "output_tail": "        live_planning_names = set()\n    \n        for path in (REPO_ROOT / \"manifests\" / \"drafts\").glob(\"*.epic.yaml\"):\n            text = path.read_text(encoding=\"utf-8\")\n            if text.startswith(\"# draft-kind: epic\\n\"):\n                manifest = yaml.safe_load(text)\n                if manifest[\"metadata\"][\"status\"] == \"planning\":\n                    live_planning_names.add(path.name)\n    \n>       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...ge.epic.yaml'} == {'062-00-stri...ap.epic.yaml'}\nE         \nE         Extra items in the right set:\nE         '121-00-fast-verification-roadmap.epic.yaml'\nE         Use -v to get more diff\n\ntests/core/test_draft_epic_archive_inventory.py:143: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n1 failed, 2 passed in 0.06s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/fix-121-live-epic-inventory.manifest.yaml"
+      ],
+      "scope": [
+        "tests/core/test_draft_epic_archive_inventory.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "manifests/fix-121-live-epic-inventory.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "reason": "Remove one archived roadmap filename from the exact live planning inventory constant without changing test functions or production APIs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_draft_epic_archive_inventory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py"
+    ]
+  }
+}
