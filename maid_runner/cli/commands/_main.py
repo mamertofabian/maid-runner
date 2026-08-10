@@ -98,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_test_parser(sub)
     _register_pgtap_parser(sub)
     _register_verify_parser(sub)
+    _register_assess_parser(sub)
     _register_plan_parser(sub)
     _register_task_parser(sub)
     _register_hook_parser(sub)
@@ -600,6 +601,29 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         metavar="PATH",
         help="Portable delivery-attestation JSON consumed by --delivered",
+    )
+
+
+def _register_assess_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "assess",
+        help="Recommend a verify profile from deterministic change signals",
+    )
+    p.add_argument(
+        "--since",
+        default=None,
+        help="Assess changes since this explicit commit or ref",
+    )
+    p.add_argument(
+        "--base-ref",
+        default=None,
+        dest="base_ref",
+        help="Assess changes since the merge base with this explicit ref",
+    )
+    p.add_argument(
+        "--json",
+        action="store_true",
+        help="Print one machine-readable assessment document",
     )
 
 
@@ -1738,6 +1762,7 @@ def main(argv: list[str] | None = None) -> int:
         "test": "_cmd_test",
         "pgtap": "_cmd_pgtap",
         "verify": "_cmd_verify",
+        "assess": "_cmd_assess",
         "plan": "_cmd_plan",
         "task": "_cmd_task",
         "hook": "_cmd_hook",
@@ -1779,6 +1804,7 @@ def main(argv: list[str] | None = None) -> int:
         test as test_mod,
         pgtap as pgtap_mod,
         verify as verify_mod,
+        assess as assess_mod,
         plan as plan_mod,
         task as task_mod,
         hook as hook_mod,
@@ -1812,6 +1838,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_test": test_mod.cmd_test,
         "_cmd_pgtap": pgtap_mod.cmd_pgtap,
         "_cmd_verify": verify_mod.cmd_verify,
+        "_cmd_assess": assess_mod.cmd_assess,
         "_cmd_plan": plan_mod.cmd_plan,
         "_cmd_task": task_mod.cmd_task,
         "_cmd_hook": hook_mod.cmd_hook,

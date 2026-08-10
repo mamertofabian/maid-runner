@@ -1,0 +1,451 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add a deterministic change assessment that recommends a verify profile 
+  (ceremony tier) from blast-radius signals, so trivial changes are not forced 
+  through the same handoff ceremony as high-risk ones.
+type: feature
+created: '2026-08-10T01:11:24Z'
+metadata:
+  status: implementation-ready
+  origin: runwield-comparison-analysis-2026-08-09
+  tags:
+  - developer-experience
+  - verification
+  - verify-profiles
+  - risk-scaling
+  - anti-gaming
+  priority: medium
+description: |
+  Contract hardened from the planning handoff. Behavioral coverage lives in
+  `tests/cli/test_assess_cmd.py`; the red phase is the missing
+  `maid_runner.core.change_assessment` module and missing `assess` parser
+  surface. The command is standalone because it recommends a verify profile
+  without changing verify's parser, defaults, or gate semantics.
+
+  ORIGIN
+
+  From the 2026-08-09 RunWield comparison analysis. RunWield scales its ceremony
+  to intent (trivial fix vs migration). MAID applies one disciplined lifecycle
+  regardless of blast radius. This matters for cost, not just ergonomics: the
+  17h Codex /goal run analysis (memory: project_goal_run_bottleneck) found the
+  dominant cost was model-turn count from review/revision ceremony, not maid
+  command runtime (~3%). Scaling ceremony to blast radius attacks the single
+  largest documented cost. This child adds the recommendation layer; it does not
+  change what any gate does.
+
+  THE FEATURE (first slice)
+
+  `maid assess` inspects a change against a baseline
+  (`--since` / `--base-ref`, same baseline discipline as verify) and recommends
+  one of the existing `maid verify --profile` presets from 095-02, plus, at the
+  top tier, a note that a human gate is expected. It prints the exact
+  `maid verify --profile <name> --since <baseline>` command to run. Output is a
+  recommendation; it is advisory and never lowers or sets an enforcement gate.
+
+  DERIVED FROM DETERMINISTIC SIGNALS, NEVER SELF-DECLARED
+
+  The tier MUST come from signals MAID already computes, not from an agent
+  asserting "this is low risk." That distinction is the whole safety story: a
+  self-declared tier is the biggest gaming escape hatch MAID could ship. Reuse
+  the changed-scope collection and the existing risk-v1 blast-radius model
+  (`maid bootstrap --rank --model risk-v1`, 092 coverage recommender) rather
+  than inventing a new risk model. Candidate signals, all cheap and syntactic or
+  already-collected -- NO new static analysis or control-flow modeling (see the
+  Validator Hardening Constraints in AGENTS.md):
+  - number and kind of changed files (existing diff/changed-scope plumbing);
+  - whether any changed path matches high-blast-radius patterns
+    (auth/security, schema/migrations, MAID manifests, CI/build, public API);
+  - artifact kinds touched, from the existing collectors;
+  - existing risk-v1 coverage/risk score for the touched files.
+
+  MAPPING (contract-hardened)
+  - LOW: one or two isolated, non-sensitive files with no public-artifact delta
+    and no risk-v1 elevation -> `handoff`.
+  - MEDIUM: three to seven ordinary files or a medium risk-v1 signal ->
+    `handoff`.
+  - HIGH: sensitive paths or large blast radius -> `deep`
+    (`handoff` + artifact-coverage + knockout).
+  - CRITICAL: auth/schema/manifest/security + wide radius -> `deep` plus an
+    explicit "human gate expected" note.
+
+  The existing preset inventory has no lighter monotonic handoff profile:
+  `pre-commit` is advisory and task-scoped, while `agent-retry` adds packet
+  output. Inventing a new profile here would change verify behavior and violate
+  this child's advisory-only boundary. LOW and MEDIUM therefore both recommend
+  `handoff`; the ceremony difference is HIGH/CRITICAL selecting `deep`.
+
+  risk-v1 is reused as evidence, not reimplemented: signal collection runs the
+  existing repository-wide `recommend_coverage` once and retains priorities
+  for changed paths that risk-v1 considers candidates. Fully tracked paths can
+  be absent from that candidate set, so deterministic file count, public
+  artifact deltas, and conservative sensitive-path categories remain explicit
+  signals rather than being misrepresented as zero risk.
+
+  ADVISORY ONLY -- IT CANNOT WEAKEN A GATE
+
+  `maid assess` prints a recommendation and exits; it does not run verify, does
+  not set verify defaults, and cannot cause a weaker profile to run. Choosing to
+  run a lighter profile than recommended stays a human/operator decision and is
+  visible in verify's own profile disclosure (095-02). This keeps the feature a
+  convenience surface over existing profiles, never a way to talk MAID out of a
+  gate.
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: a pure recommendation function mapping a signal summary to a profile
+  name + tier + rationale; a `maid assess` surface that gathers signals from the
+  existing changed-scope/risk machinery and prints the recommendation and the
+  exact verify command; text and single-document `--json` output.
+
+  OUT (later or rejected): any change to what a gate does; any new gate; letting
+  assess run or configure verify; a bespoke risk model separate from risk-v1;
+  user-defined tiers in project config; assessment for `maid validate`;
+  a daemon/protocol surface.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import the recommend function / invoke the `assess` surface
+  inside the test bodies. Red is: `maid assess` and the recommend function do
+  not exist yet, so the CLI test hits an argparse error and the unit test hits
+  an AttributeError raised inside the test function (not a module-scope import
+  failure, which would be invalid red).
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a small single-file non-sensitive change recommends the low/medium tier;
+  - a change touching an auth/security/schema/manifest path recommends a higher
+    tier than an equally sized non-sensitive change;
+  - a large multi-file change recommends a higher tier than a one-file change;
+  - the pure recommend function is deterministic: identical signal summaries map
+    to identical recommendations, tested directly with synthetic signals and no
+    repo/cwd dependence;
+  - assess output never contains a directive that lowers or sets an enforcement
+    flag; it only names a profile to run and prints the verify command;
+  - `--json` output is a single parseable document, including on the
+    no-baseline error path (E115 discipline is unchanged -- assess still needs a
+    baseline and does not guess one).
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest <new change-assessment test module> tests/cli/test_cli_help_text.py -v
+  - uv run maid validate manifests/drafts/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml --mode schema --quiet
+
+  MACHINE-READABLE OUTPUT
+
+  JSON is a single object containing tier, profile, rationale, human-gate
+  expectation, deterministic signal summary, and the exact verify argv/command.
+  It remains advisory data: there is no input tier/profile and no execution or
+  configuration side effect.
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Primary hazard: the tier becomes an input an agent can set to justify less
+    ceremony. Defense: derive it from deterministic signals only, and keep the
+    output advisory so it can never reduce enforcement. Tests must pin both.
+  - Reinvention hazard: a new risk model diverges from risk-v1 and the two give
+    different answers for the same change. Defense: reuse risk-v1; do not add a
+    parallel model.
+  - Constraints hazard: signal gathering creeps toward control-flow/reachability
+    analysis. Defense: signals stay path/kind/count based or reuse existing
+    collectors; if a signal needs real control-flow modeling, stop and propose a
+    design direction first (AGENTS.md Validator Hardening Constraints).
+  - Baseline hazard: assess quietly assumes a baseline and mis-scores. Defense:
+    keep E115 discipline -- no guessed baseline, fail closed without one.
+temptations:
+- risk: Do not let the assessed tier be self-declared or otherwise settable by 
+    the agent to justify running less ceremony.
+  instead: Derive the tier only from deterministic signals MAID already computes
+    (changed scope, path patterns, artifact kinds, risk-v1), and pin a test that
+    the recommendation is a function of signals, not of a caller-supplied tier.
+- risk: Do not let `maid assess` run verify, set verify defaults, or otherwise 
+    lower or select an enforcement gate.
+  instead: Keep assess advisory -- print a recommended profile and the exact 
+    verify command, exit, and pin a test that its output cannot weaken a gate.
+- risk: Do not invent a new blast-radius/risk model separate from risk-v1.
+  instead: Reuse the existing risk-v1 coverage recommender and changed-scope 
+    collection so assess and bootstrap agree on the same change.
+- risk: Do not grow signal gathering into control-flow or reachability analysis 
+    to make the tiers "smarter".
+  instead: Keep signals path/kind/count based or reuse existing collectors, and 
+    stop to propose a design direction if a signal needs real control-flow 
+    modeling.
+- risk: Do not let assess guess a baseline to feel convenient.
+  instead: Keep the existing E115 discipline -- require an explicit baseline and
+    fail closed without one, counting flag presence rather than truthiness.
+files:
+  create:
+  - path: maid_runner/core/change_assessment.py
+    artifacts:
+    - kind: class
+      name: AssessmentTier
+      bases:
+      - str
+      - Enum
+    - kind: attribute
+      name: LOW
+      of: AssessmentTier
+      type: str
+    - kind: attribute
+      name: MEDIUM
+      of: AssessmentTier
+      type: str
+    - kind: attribute
+      name: HIGH
+      of: AssessmentTier
+      type: str
+    - kind: attribute
+      name: CRITICAL
+      of: AssessmentTier
+      type: str
+    - kind: class
+      name: ChangeSignalSummary
+    - kind: attribute
+      name: changed_paths
+      of: ChangeSignalSummary
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: sensitive_paths
+      of: ChangeSignalSummary
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: public_artifact_changes
+      of: ChangeSignalSummary
+      type: int
+    - kind: attribute
+      name: risk_priorities
+      of: ChangeSignalSummary
+      type: tuple[str, Ellipsis]
+    - kind: class
+      name: VerifyProfileRecommendation
+    - kind: attribute
+      name: tier
+      of: VerifyProfileRecommendation
+      type: AssessmentTier
+    - kind: attribute
+      name: profile
+      of: VerifyProfileRecommendation
+      type: str
+    - kind: attribute
+      name: rationale
+      of: VerifyProfileRecommendation
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: human_gate_expected
+      of: VerifyProfileRecommendation
+      type: bool
+    - kind: function
+      name: recommend_verify_profile
+      args:
+      - name: signals
+        type: ChangeSignalSummary
+      returns: VerifyProfileRecommendation
+      description: Pure mapping from a deterministic change-signal summary to a 
+        recommended profile name, tier, and rationale; no I/O, no repo/cwd 
+        dependence, deterministic.
+    - kind: function
+      name: assess_change_signals
+      args:
+      - name: project_root
+        type: Path
+      - name: baseline
+        type: DiffScopeBaseline
+      - name: manifest_dir
+        type: str
+        default: manifests/
+      returns: ChangeSignalSummary
+      description: Gathers the change-signal summary for a baseline by reusing 
+        the existing diff-scope collection and one repository-wide risk-v1 
+        report; the only I/O-bearing seam, kept separate from the pure recommend
+        function.
+  - path: maid_runner/cli/commands/assess.py
+    artifacts:
+    - kind: function
+      name: cmd_assess
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: CLI surface that gathers signals, prints the recommended 
+        profile and the exact `maid verify --profile <name> --since <baseline>` 
+        command in text and single-document JSON, keeps E115 baseline 
+        discipline, and never runs or configures verify. Surface name/placement 
+        decided in plan review.
+  - path: tests/cli/test_assess_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_small_non_sensitive_change_recommends_a_light_tier
+    - kind: test_function
+      name: test_sensitive_path_change_recommends_a_higher_tier
+    - kind: test_function
+      name: test_larger_blast_radius_recommends_a_higher_tier
+    - kind: test_function
+      name: test_recommendation_is_deterministic_for_identical_signals
+    - kind: test_function
+      name: test_assess_output_cannot_lower_or_set_an_enforcement_gate
+    - kind: test_function
+      name: test_assess_requires_a_baseline_and_json_is_single_document
+    - kind: test_function
+      name: test_assess_is_registered_and_documented
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: Adds the assess subparser (name TBD in plan review) with 
+        explicit non-empty help text, which tests/cli/test_cli_help_text.py 
+        requires of every visible option, and the same baseline flags verify 
+        uses.
+  scope:
+  - path: README.md
+    reason: Add the required top-level CLI reference row and one advisory usage 
+      example.
+  read:
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/coverage_recommendation.py
+  - maid_runner/core/config.py
+  - maid_runner/core/verify_profiles.py
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/cli/commands/bootstrap.py
+  - tests/cli/test_cli_help_text.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/cli/test_assess_cmd.py 
+  tests/cli/test_cli_help_text.py -v
+- uv run maid validate 
+  manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml
+  --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T01:53:03Z'
+  summary: Added a deterministic, advisory `maid assess` command that derives
+    change signals from explicit diff scope and the existing risk-v1 recommender,
+    then recommends the existing handoff or deep verify profile without running
+    or configuring verification.
+  rationale: |
+    The assessment keeps enforcement separate from recommendation: callers
+    provide only an explicit baseline, while MAID derives changed paths, public
+    artifact deltas, bounded sensitive-path categories, and available risk-v1
+    priorities. LOW/MEDIUM changes recommend handoff, HIGH changes recommend
+    deep, and only wide auth/schema/migration/manifest/security changes add the
+    CRITICAL human-gate expectation. Text and JSON expose the exact follow-up
+    argv so the recommendation is auditable but cannot weaken a gate.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-implement-draft
+    - maid-plan-review
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: test-design
+    summary: Syntactic risk categories need positive and negative coverage through
+      the real signal-collection seam; synthetic summaries alone can hide filename
+      false negatives and documentation false positives.
+    tags:
+    - behavioral-tests
+    - risk-scaling
+    - anti-gaming
+    paths:
+    - maid_runner/core/change_assessment.py
+    - tests/cli/test_assess_cmd.py
+  - lesson_type: input-hardening
+    summary: Explicit CLI baseline presence must use `is None` semantics and
+      validate empty values separately, so two supplied flags cannot evade
+      exclusivity through falsey strings.
+    tags:
+    - cli
+    - fail-closed
+    - baseline
+    paths:
+    - maid_runner/cli/commands/assess.py
+    - tests/cli/test_assess_cmd.py
+  - lesson_type: architecture
+    summary: Evidence that selects deep verification is broader than evidence
+      that justifies a human gate; preserving that category distinction prevents
+      wide CI/build or public-API changes from being mislabeled CRITICAL.
+    tags:
+    - verify-profiles
+    - policy
+    - developer-experience
+    paths:
+    - maid_runner/core/change_assessment.py
+  review_notes:
+  - source: implementation-review-assessment_review
+    severity: P1/P2 fixed
+    summary: Found narrow sensitive-path matching and truthiness-based baseline
+      exclusivity; both were closed through stash-backed plan revision 3.
+  - source: implementation-review-assessment_rereview
+    severity: P1/P2 fixed
+    summary: Found compound/acronym and rooted CI/build gaps, an unanchored
+      workflow false positive, and over-broad CRITICAL selection; closed through
+      stash-backed plan revision 4.
+  - source: implementation-review-assessment_final_review
+    severity: P2 fixed
+    summary: Found remaining build-script, CI filename, and authorization-alias
+      gaps plus documentation overclassification; closed through stash-backed
+      plan revision 5.
+  - source: implementation-review-assessment_closure_review
+    severity: ready
+    summary: Final independent review found no blocking issues; residual risk is
+      limited to bounded syntactic naming coverage, which should be evolved by a
+      future contract rather than expanded into control-flow analysis.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_assess_cmd.py
+    - tests/cli/test_cli_help_text.py
+    - -v
+    status: passed
+    summary: All 8 focused assessment and help-text tests passed after revision 5.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Declared artifacts and signatures matched the implementation.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 405 active manifests passed, 0 failed, and 109 historical superseded manifests were skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 238 declared commands passed after the final review fixes.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full suite passed 3887 tests with 5 skipped after the final review fixes.
+  - command:
+    - uv
+    - run
+    - ruff
+    - check
+    - .
+    status: passed
+    summary: No lint findings.

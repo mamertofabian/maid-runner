@@ -133,6 +133,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid pgtap -- <psql arguments>` | Run a file-backed pgTAP script with MAID-safe red-phase exit semantics | Requires `-f`/`--file`; forces `ON_ERROR_STOP=1`; explicit pgTAP assertion failures exit 1 and infrastructure/setup failures exit 2 |
 | `maid verify` | Run the combined done gate | `--profile handoff\|pre-commit\|agent-retry\|deep`, `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid assess` | Recommend an advisory verify profile from deterministic change signals | `--since`, `--base-ref`, `--json` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--legacy-baseline --reason` (tracked legacy lock), `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -290,6 +291,7 @@ maid verify --require-plan-lock --require-red-evidence
 # --summary --require-plan-lock --require-red-evidence, and the applied
 # profile and its flags are reported in the output
 maid verify --profile handoff
+maid assess --base-ref origin/main
 
 # Opt-in Python-only constraint evidence gates for high-risk review
 maid validate --artifact-coverage manifests/add-auth.manifest.yaml

@@ -1,0 +1,475 @@
+{
+  "manifest_path": "manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml",
+  "manifest_hash": "sha256-contract:15da14a9925df10927b635c204ca38f69056872aefb4336dcc486d687b9df583",
+  "test_hashes": {
+    "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:d1cc23cad55517e57ca2f3d0903acdffb85206b9a05e9be969cdbba9fd67b02a"
+  },
+  "created_at": "2026-08-10T01:11:16.953789+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:294c38fd7907b339bc7a39203e8d80472f016366c304fb1eba8cdf1811a9a2c5",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2725381cf5836a4a7039771e7ab7e255b0256f9bc4330dd1c66e618f9a33da78"
+      },
+      "revised_at": "2026-08-10T01:11:24.525774+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml -> manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:15da14a9925df10927b635c204ca38f69056872aefb4336dcc486d687b9df583",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2725381cf5836a4a7039771e7ab7e255b0256f9bc4330dd1c66e618f9a33da78"
+      },
+      "revised_at": "2026-08-10T01:30:42.102821+00:00",
+      "reason": "Tighten review-driven sensitive-path classification and explicit baseline-presence behavior",
+      "agent": {
+        "model": "GPT-5",
+        "provider": "OpenAI",
+        "client": "Codex",
+        "skills": [
+          "maid-implement-draft",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:15da14a9925df10927b635c204ca38f69056872aefb4336dcc486d687b9df583",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:1aaf4b1c4dd80bee40b62fc13e3967c02b4cd556d41e4d195105c17b3b727dcb"
+      },
+      "revised_at": "2026-08-10T01:36:29.644323+00:00",
+      "reason": "Pin compound auth, rooted CI/build, negative workflow-path, and human-gate category boundaries",
+      "agent": {
+        "model": "GPT-5",
+        "provider": "OpenAI",
+        "client": "Codex",
+        "skills": [
+          "maid-implement-draft",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:15da14a9925df10927b635c204ca38f69056872aefb4336dcc486d687b9df583",
+      "prior_test_hashes": {
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:ad477b57c8a2936423a7255a95db7ed8c7c06776419621ff4e09a75866007e55"
+      },
+      "revised_at": "2026-08-10T01:42:26.388665+00:00",
+      "reason": "Pin common build scripts, CI filenames, authorization aliases, and documentation exclusions",
+      "agent": {
+        "model": "GPT-5",
+        "provider": "OpenAI",
+        "client": "Codex",
+        "skills": [
+          "maid-implement-draft",
+          "maid-implementation-review"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T01:42:28.296561+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_assess_cmd.py tests/cli/test_cli_help_text.py -v",
+        "exit_code": 1,
+        "output_tail": "\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: argument <command>: invalid choice: 'assess' (choose from validate, validators, test, pgtap, verify, plan, task, hook, snapshot, snapshot-system, bootstrap, learn, recall, insights, feedback, enrich, evaluate, benchmark, incident, daemon, skills, manifest, manifests, files, init, graph, coherence, schema, howto, chain, serve, audit)\n=========================== short test summary info ============================\nFAILED tests/cli/test_assess_cmd.py::test_small_non_sensitive_change_recommends_a_light_tier\nFAILED tests/cli/test_assess_cmd.py::test_sensitive_path_change_recommends_a_higher_tier\nFAILED tests/cli/test_assess_cmd.py::test_larger_blast_radius_recommends_a_higher_tier\nFAILED tests/cli/test_assess_cmd.py::test_recommendation_is_deterministic_for_identical_signals\nFAILED tests/cli/test_assess_cmd.py::test_assess_output_cannot_lower_or_set_an_enforcement_gate\nFAILED tests/cli/test_assess_cmd.py::test_assess_requires_a_baseline_and_json_is_single_document\nFAILED tests/cli/test_assess_cmd.py::test_assess_is_registered_and_documented\n========================= 7 failed, 1 passed in 0.39s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "GPT-5",
+    "provider": "OpenAI",
+    "client": "Codex",
+    "skills": [
+      "maid-implement-draft",
+      "maid-plan-review"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:kind=function",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:returns=int",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.CRITICAL",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.CRITICAL:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.CRITICAL:of=AssessmentTier",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.CRITICAL:type=str",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.HIGH",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.HIGH:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.HIGH:of=AssessmentTier",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.HIGH:type=str",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.LOW",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.LOW:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.LOW:of=AssessmentTier",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.LOW:type=str",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.MEDIUM",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.MEDIUM:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.MEDIUM:of=AssessmentTier",
+      "maid_runner/core/change_assessment.py:attribute:AssessmentTier.MEDIUM:type=str",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.changed_paths",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.changed_paths:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.changed_paths:of=ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.changed_paths:type=tuple[str, Ellipsis]",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.public_artifact_changes",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.public_artifact_changes:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.public_artifact_changes:of=ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.public_artifact_changes:type=int",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.risk_priorities",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.risk_priorities:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.risk_priorities:of=ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.risk_priorities:type=tuple[str, Ellipsis]",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.sensitive_paths",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.sensitive_paths:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.sensitive_paths:of=ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:attribute:ChangeSignalSummary.sensitive_paths:type=tuple[str, Ellipsis]",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.human_gate_expected",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.human_gate_expected:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.human_gate_expected:of=VerifyProfileRecommendation",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.human_gate_expected:type=bool",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.profile",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.profile:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.profile:of=VerifyProfileRecommendation",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.profile:type=str",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.rationale",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.rationale:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.rationale:of=VerifyProfileRecommendation",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.rationale:type=tuple[str, Ellipsis]",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.tier",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.tier:kind=attribute",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.tier:of=VerifyProfileRecommendation",
+      "maid_runner/core/change_assessment.py:attribute:VerifyProfileRecommendation.tier:type=AssessmentTier",
+      "maid_runner/core/change_assessment.py:class:AssessmentTier",
+      "maid_runner/core/change_assessment.py:class:AssessmentTier:base=Enum",
+      "maid_runner/core/change_assessment.py:class:AssessmentTier:base=str",
+      "maid_runner/core/change_assessment.py:class:AssessmentTier:kind=class",
+      "maid_runner/core/change_assessment.py:class:ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:class:ChangeSignalSummary:kind=class",
+      "maid_runner/core/change_assessment.py:class:VerifyProfileRecommendation",
+      "maid_runner/core/change_assessment.py:class:VerifyProfileRecommendation:kind=class",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=baseline:type=DiffScopeBaseline:default=None",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=manifest_dir:type=str:default=manifests/",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=project_root:type=Path:default=None",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:kind=function",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:returns=ChangeSignalSummary",
+      "maid_runner/core/change_assessment.py:function:recommend_verify_profile",
+      "maid_runner/core/change_assessment.py:function:recommend_verify_profile:arg=signals:type=ChangeSignalSummary:default=None",
+      "maid_runner/core/change_assessment.py:function:recommend_verify_profile:kind=function",
+      "maid_runner/core/change_assessment.py:function:recommend_verify_profile:returns=VerifyProfileRecommendation",
+      "tests/cli/test_assess_cmd.py:test_assess_is_registered_and_documented",
+      "tests/cli/test_assess_cmd.py:test_assess_is_registered_and_documented:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_assess_output_cannot_lower_or_set_an_enforcement_gate",
+      "tests/cli/test_assess_cmd.py:test_assess_output_cannot_lower_or_set_an_enforcement_gate:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_assess_requires_a_baseline_and_json_is_single_document",
+      "tests/cli/test_assess_cmd.py:test_assess_requires_a_baseline_and_json_is_single_document:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_larger_blast_radius_recommends_a_higher_tier",
+      "tests/cli/test_assess_cmd.py:test_larger_blast_radius_recommends_a_higher_tier:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_recommendation_is_deterministic_for_identical_signals",
+      "tests/cli/test_assess_cmd.py:test_recommendation_is_deterministic_for_identical_signals:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_sensitive_path_change_recommends_a_higher_tier",
+      "tests/cli/test_assess_cmd.py:test_sensitive_path_change_recommends_a_higher_tier:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_small_non_sensitive_change_recommends_a_light_tier",
+      "tests/cli/test_assess_cmd.py:test_small_non_sensitive_change_recommends_a_light_tier:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/change_assessment.py",
+        "tests/cli/test_assess_cmd.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/cli/commands/bootstrap.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/verify_profiles.py",
+        "tests/cli/test_cli_help_text.py"
+      ],
+      "scope": [
+        "README.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/change_assessment.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "AssessmentTier",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "attribute",
+              "name": "LOW",
+              "of": "AssessmentTier",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "MEDIUM",
+              "of": "AssessmentTier",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "HIGH",
+              "of": "AssessmentTier",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "CRITICAL",
+              "of": "AssessmentTier",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "ChangeSignalSummary"
+            },
+            {
+              "kind": "attribute",
+              "name": "changed_paths",
+              "of": "ChangeSignalSummary",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "sensitive_paths",
+              "of": "ChangeSignalSummary",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "public_artifact_changes",
+              "of": "ChangeSignalSummary",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "risk_priorities",
+              "of": "ChangeSignalSummary",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "class",
+              "name": "VerifyProfileRecommendation"
+            },
+            {
+              "kind": "attribute",
+              "name": "tier",
+              "of": "VerifyProfileRecommendation",
+              "type": "AssessmentTier"
+            },
+            {
+              "kind": "attribute",
+              "name": "profile",
+              "of": "VerifyProfileRecommendation",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "rationale",
+              "of": "VerifyProfileRecommendation",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "human_gate_expected",
+              "of": "VerifyProfileRecommendation",
+              "type": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "recommend_verify_profile",
+              "description": "Pure mapping from a deterministic change-signal summary to a recommended profile name, tier, and rationale; no I/O, no repo/cwd dependence, deterministic.",
+              "args": [
+                {
+                  "name": "signals",
+                  "type": "ChangeSignalSummary"
+                }
+              ],
+              "returns": "VerifyProfileRecommendation"
+            },
+            {
+              "kind": "function",
+              "name": "assess_change_signals",
+              "description": "Gathers the change-signal summary for a baseline by reusing the existing diff-scope collection and one repository-wide risk-v1 report; the only I/O-bearing seam, kept separate from the pure recommend function.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "baseline",
+                  "type": "DiffScopeBaseline"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "manifests/"
+                }
+              ],
+              "returns": "ChangeSignalSummary"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/assess.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_assess",
+              "description": "CLI surface that gathers signals, prints the recommended profile and the exact `maid verify --profile <name> --since <baseline>` command in text and single-document JSON, keeps E115 baseline discipline, and never runs or configures verify. Surface name/placement decided in plan review.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_assess_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_small_non_sensitive_change_recommends_a_light_tier"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_sensitive_path_change_recommends_a_higher_tier"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_larger_blast_radius_recommends_a_higher_tier"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recommendation_is_deterministic_for_identical_signals"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_output_cannot_lower_or_set_an_enforcement_gate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_requires_a_baseline_and_json_is_single_document"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_is_registered_and_documented"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Adds the assess subparser (name TBD in plan review) with explicit non-empty help text, which tests/cli/test_cli_help_text.py requires of every visible option, and the same baseline flags verify uses."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/verify_profiles.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/cli/commands/bootstrap.py",
+        "tests/cli/test_cli_help_text.py",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "README.md",
+          "reason": "Add the required top-level CLI reference row and one advisory usage example."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_assess_cmd.py",
+      "tests/cli/test_cli_help_text.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_assess_cmd.py tests/cli/test_cli_help_text.py -v",
+      "uv run maid validate manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}
