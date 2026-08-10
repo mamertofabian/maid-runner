@@ -1,0 +1,160 @@
+{
+  "manifest_path": "manifests/fix-ci-artifact-coverage-diagnostic-truncation.manifest.yaml",
+  "manifest_hash": "sha256-contract:4bf3b2199a2da53fb2b4502a068b37d751deb4d035b7d47e9086187ab6e6e02c",
+  "test_hashes": {
+    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05"
+  },
+  "created_at": "2026-08-10T13:28:13.097449+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:202690b4d566d03134619719e98c6194d47e83e03bee408b5ef245985a439306",
+      "prior_test_hashes": {
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:ea626d2327ad75b13a10b96053b9aa4e4c9d1ba346cb820e85a09f3ba413833a"
+      },
+      "revised_at": "2026-08-10T13:28:42.470704+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-ci-artifact-coverage-diagnostic-truncation.manifest.yaml -> manifests/fix-ci-artifact-coverage-diagnostic-truncation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c84c963afc24ee3c0ea3c0462195ae709e98a8b258f267087e0a799e0caeccdb",
+      "prior_test_hashes": {
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:ea626d2327ad75b13a10b96053b9aa4e4c9d1ba346cb820e85a09f3ba413833a"
+      },
+      "revised_at": "2026-08-10T14:17:59.247699+00:00",
+      "reason": "address review: preserve ordinary diagnostic lines byte-for-byte",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c4cd0575e506ec5d41e4d245443ff5f506e10d24c8471388621926d9dd3149ee",
+      "prior_test_hashes": {
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:4c5faf67e1fb0e36a5757f82a54102bc3ad178ff3c18a7425f36f35f004f277d"
+      },
+      "revised_at": "2026-08-10T14:32:39.635501+00:00",
+      "reason": "address review: preserve near-limit tails and prevent long context eviction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T14:33:03.627879+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_failure_determinism.py tests/cli/test_nested_strict_preview.py",
+        "exit_code": 1,
+        "output_tail": "                stdout=stdout,\n                stderr=result.stderr,\n            )\n    \n        monkeypatch.setattr(subprocess, \"run\", run_with_unbounded_ci_assertion_line)\n    \n        report = run_artifact_coverage(manifest, tmp_path).to_dict()\n    \n        assert [error[\"code\"] for error in report[\"errors\"]] == [\n            ErrorCode.INTERNAL_ERROR.value\n        ]\n        suggestion = report[\"errors\"][0][\"suggestion\"]\n        assert len(suggestion) <= 500\n>       assert 'assert \"appears to be a stub\" in suggestion' in suggestion\nE       assert 'assert \"appears to be a stub\" in suggestion' in 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-rendered-suffix'\n\ntests/core/test_artifact_coverage_failure_determinism.py:107: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_failure_determinism.py::test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines\n1 failed, 6 passed in 23.72s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-artifact-coverage-failure-output-determinism.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines:kind=test_function",
+      "tests/core/test_artifact_coverage_failure_determinism.py:test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/test_artifact_coverage_failure_determinism.py"
+      ],
+      "read": [
+        "manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml",
+        "tests/cli/test_nested_strict_preview.py"
+      ],
+      "scope": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/test_artifact_coverage_failure_determinism.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A failing public artifact-coverage run receives pytest CI output whose actionable assertion source is followed by one oversized rendered assertion line.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_artifact_coverage"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The serialized E900 suggestion remains at most 500 characters, retains the actionable assertion source and its indented caret plus both ends of the oversized line even after a long earlier exception, preserves an ordinary final diagnostic line up to the bound byte-for-byte without replacing it with a marker, and preserves deterministic duration normalization."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/fix-artifact-coverage-failure-output-determinism.manifest.yaml",
+        "tests/cli/test_nested_strict_preview.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Compact pathological individual subprocess-output lines and retain one whole actionable context line at the existing private bounded E900 diagnostic boundary."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_nested_strict_preview.py",
+      "tests/core/test_artifact_coverage_failure_determinism.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_failure_determinism.py tests/cli/test_nested_strict_preview.py"
+    ]
+  }
+}

@@ -66,6 +66,109 @@ def test_failure_reports_ignore_volatile_pytest_elapsed_duration(
         )
 
 
+def test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from maid_runner.core.artifact_coverage import run_artifact_coverage
+
+    manifest = load_manifest(_write_failing_project(tmp_path)[0])
+    real_run = subprocess.run
+    oversized_assertion = "rendered-prefix-" + ("x" * 1_000) + "-rendered-suffix"
+    indented_source = '    >       assert "appears to be a stub" in suggestion'
+    indented_caret = "            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+
+    def run_with_unbounded_ci_assertion_line(command, *args, **kwargs):
+        result = real_run(command, *args, **kwargs)
+        normalized = tuple(str(part) for part in command)
+        if "coverage" not in normalized or "run" not in normalized:
+            return result
+        stdout = (
+            result.stdout
+            + f"\n{indented_source}\n{indented_caret}\n"
+            + f"E       assert expected in {oversized_assertion}\n"
+        )
+        return subprocess.CompletedProcess(
+            result.args,
+            result.returncode,
+            stdout=stdout,
+            stderr=result.stderr,
+        )
+
+    monkeypatch.setattr(subprocess, "run", run_with_unbounded_ci_assertion_line)
+
+    report = run_artifact_coverage(manifest, tmp_path).to_dict()
+
+    assert [error["code"] for error in report["errors"]] == [
+        ErrorCode.INTERNAL_ERROR.value
+    ]
+    suggestion = report["errors"][0]["suggestion"]
+    assert len(suggestion) <= 500
+    assert 'assert "appears to be a stub" in suggestion' in suggestion
+    assert f"{indented_source}\n{indented_caret}" in suggestion
+    assert "rendered-prefix-" in suggestion
+    assert "-rendered-suffix" in suggestion
+
+    ordinary_prefix = "    ordinary-long-context-"
+    ordinary_suffix = "-ordinary-end"
+    ordinary_long_line = (
+        ordinary_prefix
+        + ("y" * (477 - len(ordinary_prefix) - len(ordinary_suffix)))
+        + ordinary_suffix
+    )
+
+    def run_with_ordinary_long_line(command, *args, **kwargs):
+        result = real_run(command, *args, **kwargs)
+        normalized = tuple(str(part) for part in command)
+        if "coverage" not in normalized or "run" not in normalized:
+            return result
+        return subprocess.CompletedProcess(
+            result.args,
+            result.returncode,
+            stdout=result.stdout + f"\n{ordinary_long_line}\n",
+            stderr=result.stderr,
+        )
+
+    monkeypatch.setattr(subprocess, "run", run_with_ordinary_long_line)
+
+    ordinary_report = run_artifact_coverage(manifest, tmp_path).to_dict()
+    ordinary_suggestion = ordinary_report["errors"][0]["suggestion"]
+    assert len(ordinary_suggestion) <= 500
+    assert ordinary_long_line in ordinary_suggestion
+
+    long_exception = "E       VeryLongError: " + ("z" * 220)
+
+    def run_with_long_exception_before_assertion(command, *args, **kwargs):
+        result = real_run(command, *args, **kwargs)
+        normalized = tuple(str(part) for part in command)
+        if "coverage" not in normalized or "run" not in normalized:
+            return result
+        stdout = (
+            result.stdout
+            + f"\n{long_exception}\n{indented_source}\n{indented_caret}\n"
+            + f"E       assert expected in {oversized_assertion}\n"
+        )
+        return subprocess.CompletedProcess(
+            result.args,
+            result.returncode,
+            stdout=stdout,
+            stderr=result.stderr,
+        )
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        run_with_long_exception_before_assertion,
+    )
+
+    long_exception_report = run_artifact_coverage(manifest, tmp_path).to_dict()
+    long_exception_suggestion = long_exception_report["errors"][0]["suggestion"]
+    assert len(long_exception_suggestion) <= 500
+    assert f"{indented_source}\n{indented_caret}" in long_exception_suggestion
+    assert "rendered-prefix-" in long_exception_suggestion
+    assert "-rendered-suffix" in long_exception_suggestion
+
+
 def _write_failing_project(root: Path) -> tuple[Path, Path]:
     (root / "src").mkdir()
     (root / "tests").mkdir()
