@@ -1,0 +1,207 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Require mutation-caused differential evidence and use focused nodes only as positive knockout proof"
+type: refactor
+created: "2026-08-10T17:12:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - validation-hardening
+    - runtime-evidence
+description: |
+  Current knockout treats any nonzero validate command as mutation detection,
+  including an unrelated pre-existing failure. Strengthen the gate while
+  reducing work: runtime contexts may propose nodes that executed the artifact,
+  but a focused run counts only after the same controlled serial execution shape proves
+  unmutated green, mutant red, then restored green. It is positive differential
+  proof, not evidence that any other node is irrelevant.
+
+  When the focused candidate passes, is flaky/incomplete, has fixture/order or
+  collection ambiguity, observes a subprocess without contexts, or cannot be
+  restored green, execute the original command baseline and mutant forms. A
+  baseline-failing original command is a blocking harness diagnostic, never
+  mutation detection. Source/AST inspection, collection hooks, fixtures,
+  ordering, and subprocess observers are adversarially tested to prove they
+  reach the exact fallback when focused evidence is inconclusive.
+
+  This intentionally strengthens the detection semantics pinned by 068-02 and
+  wired by 068-03, so contract hardening must use `maid-evolver`. It is not a
+  performance-equivalence child and may not turn an unsupported/inconclusive
+  case into success.
+
+  Although 121-11 groups duplicate identities for planning, this child still
+  executes every declaration in its own controlled mutation lifecycle. Restore
+  target bytes before the next declaration and preserve the legacy serial
+  command-side-effect order; never hold one mutant open across two declaration
+  sequences. Runtime sharing remains blocked until the isolated child-snapshot
+  design in 121-13/14.
+temptations:
+  - risk: "Do not treat baseline non-execution as proof that a test cannot observe source mutation."
+    instead: "Use selected nodes only to establish positive green-red-green proof; otherwise run the original command."
+  - risk: "Do not count a pre-existing or flaky command failure as mutation detection."
+    instead: "Require unmutated green and restored green around every accepted mutant-red transition."
+  - risk: "Do not silently ignore collection, fixture/order, source-reading, or subprocess observers."
+    instead: "Exercise adversarial fixtures and route every unproven dependency shape to exact-command differential fallback."
+  - risk: "Do not report a focused failure without the detecting node and phase."
+    instead: "Attach immutable differential proof and deterministic diagnostics to each result."
+  - risk: "Do not build a custom AST/control-flow model to guess which tests can observe a mutation."
+    instead: "Use pytest/runtime differential evidence for positive proof and the original command as the universal fail-closed fallback."
+files:
+  create:
+    - path: tests/core/test_knockout_differential_detection.py
+      artifacts:
+        - kind: test_function
+          name: test_executing_node_green_red_green_is_positive_detection_proof
+          args: []
+          description: "Scenario: an executing node is stable green; action: mutate then restore; expected: the green-red-green node proof detects the mutant."
+        - kind: test_function
+          name: test_focused_candidate_that_stays_green_runs_original_command
+          args: []
+          description: "Scenario: attributed nodes do not fail; action: run focused candidate; expected: the original command still executes before any non-detection result."
+        - kind: test_function
+          name: test_source_or_ast_inspection_detector_is_found_by_exact_fallback
+          args: []
+          description: "Scenario: a non-executing node inspects source/AST; action: mutate the body; expected: exact fallback discovers its mutation-caused failure."
+        - kind: test_function
+          name: test_fixture_or_order_dependent_candidate_is_inconclusive_and_falls_back
+          args: []
+          description: "Scenario: focused selection changes fixture/order outcomes; action: compare controls; expected: no focused proof is accepted and the exact command runs."
+        - kind: test_function
+          name: test_collection_time_detector_is_found_by_exact_fallback
+          args: []
+          description: "Scenario: collection inspects the source; action: mutate before collection; expected: exact fallback attributes the collection transition."
+        - kind: test_function
+          name: test_subprocess_observer_without_context_is_found_by_exact_fallback
+          args: []
+          description: "Scenario: a child process observes the file without in-process contexts; action: mutate; expected: exact fallback detects the transition."
+        - kind: test_function
+          name: test_baseline_failing_original_command_is_harness_failure_not_detection
+          args: []
+          description: "Scenario: the original command already fails; action: run knockout; expected: nonzero gate output carries E712 instead of a false detected result."
+        - kind: test_function
+          name: test_mutant_red_without_restored_green_is_inconclusive_and_falls_back
+          args: []
+          description: "Scenario: the post-restore control is red; action: attempt focused proof; expected: proof is rejected and a deterministic harness diagnostic/fallback is used."
+        - kind: test_function
+          name: test_proven_focused_detector_avoids_broad_original_command
+          args: []
+          description: "Scenario: stable focused proof exists; action: execute knockout; expected: the broad command call count stays zero without skipping any inconclusive case."
+        - kind: test_function
+          name: test_differential_and_legacy_honest_fixture_gate_quality_is_monotonic
+          args: []
+          description: "Scenario: honest and unrelated-failure fixtures; action: compare old/new decisions; expected: honest detection remains and unrelated failure no longer satisfies the gate."
+        - kind: test_function
+          name: test_duplicate_spec_declarations_restore_target_before_next_legacy_side_effect_sequence
+          args: []
+          description: "Scenario: the first declaration writes project state; action: execute both declarations; expected: target restore/reapply points, side-effect order, and reports match separate legacy declaration runs."
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: class
+          name: KnockoutCommandExecutor
+          description: "Owned exact-command boundary with an explicit per-declaration execution lifecycle."
+        - kind: method
+          name: execute
+          of: KnockoutCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+            - name: manifest_slug
+              type: str
+          returns: TestRunResult
+        - kind: class
+          name: KnockoutDifferentialProof
+          description: "Immutable green-mutant-red-restored-green evidence or exact-fallback diagnostic."
+        - kind: attribute
+          name: identity
+          of: KnockoutDifferentialProof
+          type: KnockoutArtifactIdentity
+        - kind: attribute
+          name: command
+          of: KnockoutDifferentialProof
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: baseline_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: mutant_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: restored_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: detecting_nodeids
+          of: KnockoutDifferentialProof
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: used_exact_fallback
+          of: KnockoutDifferentialProof
+          type: bool
+        - kind: attribute
+          name: diagnostics
+          of: KnockoutDifferentialProof
+          type: tuple[ValidationError, Ellipsis]
+        - kind: attribute
+          name: proof
+          of: KnockoutResult
+          type: KnockoutDifferentialProof | None
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+          returns: dict[str, KnockoutReport]
+          description: "Attempts positive focused proof and exact-command fallback separately for every declaration, restoring target bytes before the next legacy-ordered declaration sequence."
+    - path: tests/cli/test_verify_knockout_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_differential_proof_text_and_json_expose_same_detector_and_fallback
+          args: []
+          description: "Scenario: focused and fallback detections; action: render verify text/JSON; expected: identical detector, fallback, and structured error attribution."
+  scope:
+    - path: README.md
+      reason: "Document mutation-caused differential detection and exact fallback without contracting prose as code artifacts."
+    - path: docs/maid_specs.md
+      reason: "Update the canonical knockout semantics after maid-evolver hardening."
+    - path: docs/troubleshooting.md
+      reason: "Explain baseline, focused-proof, and fallback diagnostics."
+    - path: maid_runner/docs/maid_specs.md
+      reason: "Synchronize the packaged canonical specification."
+    - path: .maid/docs/maid_specs.md
+      reason: "Synchronize the repository-installed canonical specification."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/drafts/121-11-deduplicate-knockout-mutation-specs.manifest.yaml
+    - manifests/068-02-add-artifact-knockout-harness.manifest.yaml
+    - manifests/068-03-wire-knockout-into-verify.manifest.yaml
+    - maid_runner/core/_test_command_execution.py
+    - tests/core/test_knockout.py
+    - tests/cli/test_verify_knockout_cmd.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_differential_detection.py tests/core/test_knockout_batch.py tests/core/test_knockout.py tests/cli/test_verify_knockout_cmd.py
+  - uv run maid validate manifests/drafts/121-12-require-differential-knockout-detection.manifest.yaml --mode schema --quiet

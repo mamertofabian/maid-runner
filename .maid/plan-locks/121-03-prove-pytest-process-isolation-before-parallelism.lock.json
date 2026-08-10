@@ -1,0 +1,987 @@
+{
+  "manifest_path": "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+  "manifest_hash": "sha256-contract:55505e62beeeacd810876bdfa8df9f94b8bdf341dfae71bf4858c1f59545f92b",
+  "test_hashes": {
+    "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:870e030ff1c7037af7dbe90be9f0da64c6708a0e3ac6b58bc6728ea465ea4fb2"
+  },
+  "created_at": "2026-08-10T12:21:25.092695+00:00",
+  "revision": 17,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:35ca100f2cd24cd5faf8e0c7cf4974c95b320f5b7eb2e01888abf24a190a9635",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:6771461efa523d21030f4d190942c7f775d8a7819eb39f35c0d23e0a970025bb"
+      },
+      "revised_at": "2026-08-10T12:21:31.107289+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml -> manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f7209c6e541d8c7c3b7f183651daff120c531c893463f785b3adffc9ffa18354",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:6771461efa523d21030f4d190942c7f775d8a7819eb39f35c0d23e0a970025bb"
+      },
+      "revised_at": "2026-08-10T12:47:28.393217+00:00",
+      "reason": "Independent implementation review required fail-closed public recursion and complete project-state fingerprint coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_empty_directory_state_contamination",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_empty_directory_state_contamination:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_file_mode_state_contamination",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_file_mode_state_contamination:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_pytest_cache_state_contamination",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_pytest_cache_state_contamination:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_never_recursively_selects_its_own_repository_run",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_never_recursively_selects_its_own_repository_run:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6fdba554dcb1c6c6a46eaf529a4a2c6323a0c792b7385ab51e5dd847002f8803",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:e325716298d7c7295ffe0537fbfe9b72f00c7ece520169021aabbedc7c8c6d10"
+      },
+      "revised_at": "2026-08-10T12:52:44.577501+00:00",
+      "reason": "Second implementation review required option-selector rejection and collection-time recursion detection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_refuses_collection_time_recursion",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_refuses_collection_time_recursion:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_rejects_pytest_option_arguments",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_rejects_pytest_option_arguments:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21ac9e10952a1695c115b8ad2a1933af5273539eb83bc3d87348014abe2ca097",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:bfff8b7049b798b794bb7e727d4f963e93729ec004a22a69e16c9f707fdf02ed"
+      },
+      "revised_at": "2026-08-10T13:01:28.055568+00:00",
+      "reason": "Full acceptance exposed legitimate repository-local test outputs; isolate serial and parallel runs in equivalent disposable snapshots while guarding the source worktree",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_parallel_project_state_from_source_tree",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_parallel_project_state_from_source_tree:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_parallel_project_state_contamination",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_parallel_project_state_contamination:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c50f95c43806eb311533a34802607ea09338ad6989504b5d14584db5e16e6139",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:73de51f991840795f068a61fe26059c84fda770033e3c72aa5e4676c9a886436"
+      },
+      "revised_at": "2026-08-10T13:08:35.020143+00:00",
+      "reason": "Plan review required source-escape evidence, canonical target mapping, and exact snapshot topology/symlink preservation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_worktree_escape",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_worktree_escape:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_maps_inside_root_absolute_targets_into_snapshots",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_maps_inside_root_absolute_targets_into_snapshots:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_outside_root_and_parent_targets",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_outside_root_and_parent_targets:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_symlinks_that_escape_project_root",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_symlinks_that_escape_project_root:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4aa4d9b106c2db058755441823d5d70077a4feee6a59de34fbe73d0771ad918e",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:6c2d0cd6c3bf7ff171b9c3ac64e30f4681b9d73b156d844b785faade58159e0b"
+      },
+      "revised_at": "2026-08-10T13:15:04.615610+00:00",
+      "reason": "Plan review aligned snapshot inventory with generated roots, copied dependencies, symlink classes, target boundary, and execution environment evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_equal_serial_and_parallel_execution_environments",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_equal_serial_and_parallel_execution_environments:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_targets_inside_excluded_snapshot_roots",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_targets_inside_excluded_snapshot_roots:kind=test_function",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:kind=attribute",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:of=PytestEquivalenceReport",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:type=tuple[tuple[str, str], Ellipsis]",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:kind=attribute",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:of=PytestEquivalenceReport",
+          "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:type=tuple[tuple[str, str], Ellipsis]"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f522cc1fc321b81276ea28eec28beaa27c34ef49d0b643268defc608b014892",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:7302ebd3d7422aabf047cd2f13e22b24e3ff8e4d813a3a321b19337c54a43004"
+      },
+      "revised_at": "2026-08-10T13:20:17.297390+00:00",
+      "reason": "Plan review completed exact environment evidence, mismatch rejection, venv interpreter exception, and complete excluded-target coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_copied_venv_interpreter_links",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_copied_venv_interpreter_links:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_mismatched_execution_environment",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_mismatched_execution_environment:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a6e0fc4fd2cc575efe3c8c297917b3240b768fd89b7c73d9382f7c531ef6e16d",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:a5bda7726a3f85b0e8fa9aac4a90652db4ec69098c3f0b32ea082818b3fe806a"
+      },
+      "revised_at": "2026-08-10T13:29:13.095025+00:00",
+      "reason": "Plan review fixed nested excluded fixtures and proved independent copied dependency boundaries and per-worker environment mismatch",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_copies_node_modules_into_independent_snapshots",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_copies_node_modules_into_independent_snapshots:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:491614c657a99d8ea9c47afef11a894e9e0ddf21f089d4888c4d794ca6eb2eb9",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:10502dbe464c1b82fda5bb610d14417c6cb30161dd2487b068a1a878be3118c5"
+      },
+      "revised_at": "2026-08-10T13:58:12.357896+00:00",
+      "reason": "Implementation review added fail-closed adversaries for actual venv interpreter targets, linked-worktree Git metadata isolation, and exact worker identity binding",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_worker_environment_ids_to_collection_ids",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_worker_environment_ids_to_collection_ids:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_linked_worktree_git_metadata",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_linked_worktree_git_metadata:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_python_named_venv_link_to_non_interpreter",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_python_named_venv_link_to_non_interpreter:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8adb0741241a794ee6abd7989e69262bf58e8ab4e44d15e0be14c9bcce2c6518",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:ee2982ccfeb9fb568cd9f9b4b2977daccebbf8289b8505f7afcbefc06ef8a803"
+      },
+      "revised_at": "2026-08-10T14:02:06.997748+00:00",
+      "reason": "Plan review strengthened the venv adversary to the accepted python basename and documented independent linked-worktree Git metadata as an explicit snapshot boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:934618b69c72b29932135cab8e26e81464f64f5766936773060a48edb815095c",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:031b5736a3e61410c0b2764d347d43e18cc460dd73cb62391fceae24c52bcd1f"
+      },
+      "revised_at": "2026-08-10T14:17:50.292121+00:00",
+      "reason": "Implementation re-review requires one sanitized standalone Git seed, no source remote, deterministic byte-copied second metadata snapshot, and source Git content fingerprinting",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d94cfc402ba27fc0755f8701b37845d06d5e979b9f606dd1d2c90bdb7e516209",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:11d88e576ec93a58f04d9babc5067302c5c20eeef0144ed35719a49a0d7e209c"
+      },
+      "revised_at": "2026-08-10T14:25:33.847463+00:00",
+      "reason": "Full acceptance isolated concurrent FETCH_HEAD refresh as transient; durable source Git config/index/object/ref state remains fingerprinted and now has an absolute-control-escape adversary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_control_escape",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_control_escape:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:58c6e8825ccc5f756184723541f741b2c96339428dc3c19ac54e24e320964635",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:a20951ab7ad6fc36497bbe079e49b18bac3d95c59142152b4c23b94105f15b18"
+      },
+      "revised_at": "2026-08-10T14:34:45.702241+00:00",
+      "reason": "Implementation re-review proved FETCH_HEAD and empty Git directories are readable source-state channels; fingerprint all Git file contents and directory topology and fail on concurrent changes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_empty_source_git_directory_state_channel",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_empty_source_git_directory_state_channel:kind=test_function",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_fetch_head_state_channel",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_fetch_head_state_channel:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c77a2d64101f7db24219cb5daaafe53ef9d524fed03f5fb1cc2ac0e3ba3db1a2",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:f73ec5e7c0e1119ed1af34775bac8651dd710247c2534c41845abeac636bf23e"
+      },
+      "revised_at": "2026-08-10T14:49:28.187791+00:00",
+      "reason": "Implementation re-review proved Git directory permissions are a state channel; align Git-control lstat metadata with the full worktree fingerprint and add chmod adversary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_directory_mode_state_channel",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_directory_mode_state_channel:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:001951650bae78545d247652cb7827ed341db6c2a5c495d1bf270ea6bbfa1d75",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:a85f3c071c9ab193c7365b5639cbbfbbff44de6165e8f8a54f9cb78f426ab5a6"
+      },
+      "revised_at": "2026-08-10T14:53:11.927372+00:00",
+      "reason": "Security hardening removes every remote from standalone and linked Git snapshot seeds so subprocess tests cannot push or fetch external state",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_sanitizes_standalone_repository_remotes",
+          "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_sanitizes_standalone_repository_remotes:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:55505e62beeeacd810876bdfa8df9f94b8bdf341dfae71bf4858c1f59545f92b",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:5e0fe6d9ef779168f8d34ac1fbb993ceada9f1f7f43aa4ab44a410f68461f8cd"
+      },
+      "revised_at": "2026-08-10T14:55:25.401553+00:00",
+      "reason": "Plan review strengthened both Git-remote adversaries to require an empty remote list and preserve non-origin source remotes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T14:55:26.713245+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/performance/test_pytest_parallel_equivalence_probe.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_rejects_symlinks_that_escape_project_root[venv_non_interpreter_absolute]\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_rejects_python_named_venv_link_to_non_interpreter\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_preserves_copied_venv_interpreter_links\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_copies_node_modules_into_independent_snapshots\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_isolates_linked_worktree_git_metadata\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_sanitizes_standalone_repository_remotes\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_binds_equal_serial_and_parallel_execution_environments\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_rejects_mismatched_execution_environment\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_binds_worker_environment_ids_to_collection_ids\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_report_binds_evidence_to_exact_worker_count_and_dist_mode\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_cli_reports_green_equivalence\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_cli_reports_mismatch_and_nonzero_exit\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_script_rejects_matching_nonzero_runs\nFAILED tests/performance/test_pytest_parallel_equivalence_probe.py::test_probe_dependency_is_declared_and_locked\n55 failed in 0.53s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.37ms\nInstalled 1 package in 0.68ms",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      "manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+      "manifests/drafts/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+      "manifests/drafts/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+      "manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+      "manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+      "manifests/drafts/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+      "manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+      "manifests/drafts/121-11-deduplicate-knockout-mutation-specs.manifest.yaml",
+      "manifests/drafts/121-12-require-differential-knockout-detection.manifest.yaml",
+      "manifests/drafts/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+      "manifests/drafts/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+      "manifests/drafts/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/plans/full-and-deep-verification-performance-redesign.md:attribute:performance redesign._pytest_equivalence_prerequisite",
+      "docs/plans/full-and-deep-verification-performance-redesign.md:attribute:performance redesign._pytest_equivalence_prerequisite:kind=attribute",
+      "docs/plans/full-and-deep-verification-performance-redesign.md:attribute:performance redesign._pytest_equivalence_prerequisite:of=performance redesign",
+      "docs/plans/full-and-deep-verification-performance-redesign.md:attribute:performance redesign._pytest_equivalence_prerequisite:type=markdown section",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_02_correction",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_02_correction:kind=attribute",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_02_correction:of=documentation",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_02_correction:type=markdown",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml:attribute:manifest._full_and_deep_verification_performance_roadmap",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml:attribute:manifest._full_and_deep_verification_performance_roadmap:kind=attribute",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml:attribute:manifest._full_and_deep_verification_performance_roadmap:of=manifest",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml:attribute:manifest._full_and_deep_verification_performance_roadmap:type=draft epic",
+      "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml:attribute:manifest._abandoned_broad_pytest_subprocess_sharding",
+      "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml:attribute:manifest._abandoned_broad_pytest_subprocess_sharding:kind=attribute",
+      "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml:attribute:manifest._abandoned_broad_pytest_subprocess_sharding:of=manifest",
+      "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml:attribute:manifest._abandoned_broad_pytest_subprocess_sharding:type=archived draft",
+      "pyproject.toml:attribute:dependency-groups.dev.pytest_xdist_dev_dependency",
+      "pyproject.toml:attribute:dependency-groups.dev.pytest_xdist_dev_dependency:kind=attribute",
+      "pyproject.toml:attribute:dependency-groups.dev.pytest_xdist_dev_dependency:of=dependency-groups.dev",
+      "pyproject.toml:attribute:dependency-groups.dev.pytest_xdist_dev_dependency:type=dependency",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_canonical_pytest_outcome_is_immutable",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_canonical_pytest_outcome_is_immutable:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_accepts_equivalent_serial_and_loadscope_outcomes",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_accepts_equivalent_serial_and_loadscope_outcomes:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_equal_serial_and_parallel_execution_environments",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_equal_serial_and_parallel_execution_environments:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_worker_environment_ids_to_collection_ids",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_binds_worker_environment_ids_to_collection_ids:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_cli_reports_green_equivalence",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_cli_reports_green_equivalence:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_cli_reports_mismatch_and_nonzero_exit",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_cli_reports_mismatch_and_nonzero_exit:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_copies_node_modules_into_independent_snapshots",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_copies_node_modules_into_independent_snapshots:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_dependency_is_declared_and_locked",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_dependency_is_declared_and_locked:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_empty_source_git_directory_state_channel",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_empty_source_git_directory_state_channel:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_control_escape",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_control_escape:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_directory_mode_state_channel",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_directory_mode_state_channel:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_fetch_head_state_channel",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_git_fetch_head_state_channel:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_worktree_escape",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_detects_source_worktree_escape:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_linked_worktree_git_metadata",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_linked_worktree_git_metadata:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_parallel_project_state_from_source_tree",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_isolates_parallel_project_state_from_source_tree:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_maps_inside_root_absolute_targets_into_snapshots",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_maps_inside_root_absolute_targets_into_snapshots:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_never_recursively_selects_its_own_repository_run",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_never_recursively_selects_its_own_repository_run:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_copied_venv_interpreter_links",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_copied_venv_interpreter_links:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_empty_directory_state_contamination",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_empty_directory_state_contamination:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_file_mode_state_contamination",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_file_mode_state_contamination:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_matching_nonzero_serial_and_parallel_runs",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_matching_nonzero_serial_and_parallel_runs:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_mismatched_execution_environment",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_mismatched_execution_environment:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_outside_root_and_parent_targets",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_outside_root_and_parent_targets:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_phase_outcome_difference",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_phase_outcome_difference:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_process_order_state_leak",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_process_order_state_leak:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_pytest_cache_state_contamination",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_pytest_cache_state_contamination:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_python_named_venv_link_to_non_interpreter",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_python_named_venv_link_to_non_interpreter:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_serial_project_state_contamination",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_serial_project_state_contamination:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_symlinks_that_escape_project_root",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_symlinks_that_escape_project_root:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_targets_inside_excluded_snapshot_roots",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_targets_inside_excluded_snapshot_roots:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_worker_collection_difference",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_rejects_worker_collection_difference:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_report_binds_evidence_to_exact_worker_count_and_dist_mode",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_report_binds_evidence_to_exact_worker_count_and_dist_mode:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_sanitizes_standalone_repository_remotes",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_sanitizes_standalone_repository_remotes:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_script_rejects_matching_nonzero_runs",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_script_rejects_matching_nonzero_runs:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_uses_requested_worker_count_and_dist_mode",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_probe_uses_requested_worker_count_and_dist_mode:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_never_recursively_selects_its_own_repository_run",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_never_recursively_selects_its_own_repository_run:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_refuses_collection_time_recursion",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_refuses_collection_time_recursion:kind=test_function",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_rejects_pytest_option_arguments",
+      "tests/performance/test_pytest_parallel_equivalence_probe.py:test_public_probe_rejects_pytest_option_arguments:kind=test_function",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.nodeid",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.nodeid:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.nodeid:of=CanonicalPytestOutcome",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.nodeid:type=str",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.outcome",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.outcome:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.outcome:of=CanonicalPytestOutcome",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.outcome:type=str",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.phase",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.phase:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.phase:of=CanonicalPytestOutcome",
+      "tools/check_pytest_parallel_equivalence.py:attribute:CanonicalPytestOutcome.phase:type=str",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.differences",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.differences:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.differences:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.differences:type=tuple[str, Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.dist_mode",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.dist_mode:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.dist_mode:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.dist_mode:type=str",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_environment:type=tuple[tuple[str, str], Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_exit_code",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_exit_code:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_exit_code:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_exit_code:type=int",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_outcomes",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_outcomes:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_outcomes:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_outcomes:type=tuple[CanonicalPytestOutcome, Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_worker_collections",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_worker_collections:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_worker_collections:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.parallel_worker_collections:type=tuple[tuple[str, tuple[str, Ellipsis]], Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_environment:type=tuple[tuple[str, str], Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_exit_code",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_exit_code:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_exit_code:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_exit_code:type=int",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_outcomes",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_outcomes:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_outcomes:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.serial_outcomes:type=tuple[CanonicalPytestOutcome, Ellipsis]",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.success",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.success:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.success:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.success:type=bool",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.workers",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.workers:kind=attribute",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.workers:of=PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:attribute:PytestEquivalenceReport.workers:type=int",
+      "tools/check_pytest_parallel_equivalence.py:class:CanonicalPytestOutcome",
+      "tools/check_pytest_parallel_equivalence.py:class:CanonicalPytestOutcome:kind=class",
+      "tools/check_pytest_parallel_equivalence.py:class:PytestEquivalenceReport",
+      "tools/check_pytest_parallel_equivalence.py:class:PytestEquivalenceReport:kind=class",
+      "tools/check_pytest_parallel_equivalence.py:function:main",
+      "tools/check_pytest_parallel_equivalence.py:function:main:arg=argv:type=Sequence[str] | None:default=None",
+      "tools/check_pytest_parallel_equivalence.py:function:main:kind=function",
+      "tools/check_pytest_parallel_equivalence.py:function:main:returns=int",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:arg=dist_mode:type=str:default='loadscope'",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:arg=project_root:type=Path:default=None",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:arg=targets:type=Sequence[str]:default=None",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:arg=workers:type=int:default=None",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:kind=function",
+      "tools/check_pytest_parallel_equivalence.py:function:run_pytest_equivalence_probe:returns=PytestEquivalenceReport",
+      "uv.lock:attribute:dependency-lock.pytest_xdist_lock",
+      "uv.lock:attribute:dependency-lock.pytest_xdist_lock:kind=attribute",
+      "uv.lock:attribute:dependency-lock.pytest_xdist_lock:of=dependency-lock",
+      "uv.lock:attribute:dependency-lock.pytest_xdist_lock:type=lock entry"
+    ],
+    "files": {
+      "create": [
+        "tests/performance/test_pytest_parallel_equivalence_probe.py",
+        "tools/check_pytest_parallel_equivalence.py"
+      ],
+      "edit": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "docs/plans/maid-runner-performance-backlog.md",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "read": [
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "maid_runner/core/ts_compiler_resolver.py",
+        "maid_runner/core/ts_module_paths.py",
+        "package-lock.json",
+        "package.json"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tools/check_pytest_parallel_equivalence.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CanonicalPytestOutcome",
+              "description": "Immutable node/phase/outcome record used to compare fresh pytest processes."
+            },
+            {
+              "kind": "attribute",
+              "name": "nodeid",
+              "of": "CanonicalPytestOutcome",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "phase",
+              "of": "CanonicalPytestOutcome",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "outcome",
+              "of": "CanonicalPytestOutcome",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "PytestEquivalenceReport",
+              "description": "Canonical serial/parallel collection, outcome, exit-code, and difference report."
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_outcomes",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[CanonicalPytestOutcome, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_outcomes",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[CanonicalPytestOutcome, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_exit_code",
+              "of": "PytestEquivalenceReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_exit_code",
+              "of": "PytestEquivalenceReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_worker_collections",
+              "description": "Complete observed worker-id to collected-node mapping used to prove worker count and collection agreement.",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[tuple[str, tuple[str, Ellipsis]], Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_environment",
+              "description": "Observed Python, pytest, and xdist identity for the serial subprocess.",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[tuple[str, str], Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_environment",
+              "description": "Observed Python, pytest, and xdist identity for the parallel subprocess.",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[tuple[str, str], Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "differences",
+              "of": "PytestEquivalenceReport",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "workers",
+              "of": "PytestEquivalenceReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "dist_mode",
+              "of": "PytestEquivalenceReport",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "PytestEquivalenceReport",
+              "type": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "run_pytest_equivalence_probe",
+              "description": "Runs fresh serial and xdist processes and compares canonical collected node-phase outcomes.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "targets",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "workers",
+                  "type": "int"
+                },
+                {
+                  "name": "dist_mode",
+                  "type": "str",
+                  "default": "'loadscope'"
+                }
+              ],
+              "returns": "PytestEquivalenceReport"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Prints deterministic differences and exits nonzero when collection, outcomes, or exit status differ.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "Sequence[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/performance/test_pytest_parallel_equivalence_probe.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_probe_accepts_equivalent_serial_and_loadscope_outcomes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_canonical_pytest_outcome_is_immutable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_process_order_state_leak"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_worker_collection_difference"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_uses_requested_worker_count_and_dist_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_phase_outcome_difference"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_matching_nonzero_serial_and_parallel_runs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_never_recursively_selects_its_own_repository_run"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_probe_never_recursively_selects_its_own_repository_run"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_probe_rejects_pytest_option_arguments"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_probe_refuses_collection_time_recursion"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_serial_project_state_contamination"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_isolates_parallel_project_state_from_source_tree"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_empty_directory_state_contamination"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_file_mode_state_contamination"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_pytest_cache_state_contamination"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_detects_source_worktree_escape"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_detects_source_git_control_escape"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_detects_source_git_fetch_head_state_channel"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_detects_empty_source_git_directory_state_channel"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_detects_source_git_directory_mode_state_channel"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_maps_inside_root_absolute_targets_into_snapshots"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_outside_root_and_parent_targets"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_targets_inside_excluded_snapshot_roots"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_symlinks_that_escape_project_root"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_python_named_venv_link_to_non_interpreter"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_preserves_copied_venv_interpreter_links"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_copies_node_modules_into_independent_snapshots"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_isolates_linked_worktree_git_metadata"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_sanitizes_standalone_repository_remotes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_binds_equal_serial_and_parallel_execution_environments"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_mismatched_execution_environment"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_binds_worker_environment_ids_to_collection_ids"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_report_binds_evidence_to_exact_worker_count_and_dist_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_cli_reports_green_equivalence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_cli_reports_mismatch_and_nonzero_exit"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_script_rejects_matching_nonzero_runs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_dependency_is_declared_and_locked"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_abandoned_broad_pytest_subprocess_sharding",
+              "description": "Corrects the archived diagnosis while retaining the rejected experiment and measurements.",
+              "of": "manifest",
+              "type": "archived draft"
+            }
+          ]
+        },
+        {
+          "path": "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_full_and_deep_verification_performance_roadmap",
+              "description": "Makes environment-complete serial/worker equivalence the first prerequisite without asserting an unproven cache leak.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "docs/plans/full-and-deep-verification-performance-redesign.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_pytest_equivalence_prerequisite",
+              "description": "Records the corrected 121-02 diagnosis and the zero-exit equivalence requirement.",
+              "of": "performance redesign",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/plans/maid-runner-performance-backlog.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_performance_backlog_121_02_correction",
+              "description": "Corrects the environment-confounded sharding result without reviving the rejected implementation.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        },
+        {
+          "path": "pyproject.toml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "pytest_xdist_dev_dependency",
+              "description": "Installs the pinned runner-native worker implementation for equivalence testing without enabling it by default.",
+              "of": "dependency-groups.dev",
+              "type": "dependency"
+            }
+          ]
+        },
+        {
+          "path": "uv.lock",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "pytest_xdist_lock",
+              "of": "dependency-lock",
+              "type": "lock entry"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/core/ts_compiler_resolver.py",
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "package.json",
+        "package-lock.json"
+      ]
+    },
+    "test_files": [
+      "tests/performance/test_pytest_parallel_equivalence_probe.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/performance/test_pytest_parallel_equivalence_probe.py",
+      "uv run maid validate manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -582,15 +582,38 @@ E708 `tests-stage selection widened` warning. Deep verification and explicit
 Broad pytest subprocess sharding was implemented and then rejected before
 handoff because it changed the repository gate result. Round-robin sharding
 finished in 84.35 seconds but failed three pytest workers. Contiguous sharding
-finished in 105.24 seconds but still failed two shards. Isolated reproduction
-showed that TypeScript resolver tests depend on process-local state established
-by other test files; the same targets therefore fail when moved into an
-otherwise complete isolated shard.
+finished in 105.24 seconds but still failed two shards. Reconstruction later
+found that the isolated worktree lacked its declared `node_modules/typescript`
+dependency. The same session ran `npm install`, after which the suspected
+TypeScript tests and full serial `maid test` passed. The failed shard runs were
+therefore environment-confounded and did not prove a process-order cache leak.
 
-The optimization was removed rather than trading false failures for speed. A
-future retry must first make test files independently runnable or prove
-runner-native fixture/session equivalence. The safe 121-01 task-scoped handoff
-optimization remains in place.
+The optimization was still correctly removed: it was never rerun under a
+controlled equivalent environment, and raw subprocess sharding changes
+fixture/session process lifetimes. A future retry must compare successful
+serial and runner-native worker runs in one dependency-complete environment.
+The safe 121-01 task-scoped handoff optimization remains in place.
+
+## 121 full/deep roadmap reopened (2026-08-10)
+
+The remaining 3.9-minute full test inventory and 30-minute deep gate are
+operationally unacceptable. Fresh integrated-tree profiling and the
+replacement strategy are captured in
+[`full-and-deep-verification-performance-redesign.md`](full-and-deep-verification-performance-redesign.md).
+
+The roadmap does not revive blind subprocess sharding. It first proves
+successful serial/worker equivalence in a controlled environment, removes repeated subprocess/Git
+setup from the slow-test policy matrix, then uses runner-native duration-aware
+pytest workers. Deep verification is redesigned around one per-test-attributed
+runtime-evidence run shared by the tests and artifact-coverage stages, with
+exact fallback for unproven fixture lifecycles. Knockout then moves through
+immutable unique-spec planning, fail-closed differential detection, fresh
+per-declaration project snapshots, and bounded workers. Because the root test
+configuration has session-autouse fixtures, grouped coverage may conservatively
+fallback every exact tuple; 121-15 therefore bounds the exact fallback path in
+Git-isolated snapshots and requires full serial/parallel report equivalence
+before enforcing the 180-second budget. The ordered continuation is 121-03
+through 121-15.
 
 ## Suggested Acceptance Criteria
 

@@ -1,0 +1,183 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Reuse immutable real-Git templates across plan-lock and stash policy tests"
+type: refactor
+created: "2026-08-10T16:42:00+08:00"
+metadata:
+  status: planning
+  priority: medium
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - tests
+    - git
+    - plan-lock
+description: |
+  The duration profile records more than 30 seconds in plan-lock, stash, and
+  legacy-baseline cases that repeatedly create files, initialize Git, configure
+  identity, add, and commit nearly identical tiny repositories. These tests
+  need real Git semantics, so replacing Git with mocks would reduce confidence.
+
+  Build immutable session-scoped template repositories for the common red,
+  green, and legacy-baseline starting states. Each test receives a local clone
+  or Git-native worktree with independent index/worktree bytes, then applies
+  only its scenario delta. Preserve dedicated tests for initial repository,
+  first-commit, subdirectory, staged, untracked, stash, and race behavior that
+  cannot share a template safely.
+
+  Prove byte/state equivalence against the former builders and assert that
+  expensive init/config/initial-commit setup occurs once per template rather
+  than once per policy case.
+temptations:
+  - risk: "Do not replace Git behavior with a mocked subprocess return table."
+    instead: "Use real local clones/worktrees of immutable tiny templates and keep assertions on the actual index, HEAD, stash, and worktree."
+  - risk: "Do not share a mutable working tree or index between tests."
+    instead: "Give every test an independent clone/worktree and verify template HEAD and status remain unchanged after the test."
+  - risk: "Do not force first-commit, subdirectory, or race tests through a template that erases the behavior they cover."
+    instead: "Retain bespoke builders for scenarios whose observable precondition is the absence or topology of Git history."
+  - risk: "Do not assert a machine-specific millisecond budget in unit tests."
+    instead: "Assert init/config/commit call counts and keep wall-time improvement as benchmark evidence."
+files:
+  create:
+    - path: tests/support/git_project_templates.py
+      artifacts:
+        - kind: class
+          name: GitProjectTemplate
+          description: "Immutable template descriptor with source repository, committed revision, and declared fixture shape."
+        - kind: attribute
+          name: source_root
+          of: GitProjectTemplate
+          type: Path
+        - kind: attribute
+          name: revision
+          of: GitProjectTemplate
+          type: str
+        - kind: attribute
+          name: shape
+          of: GitProjectTemplate
+          type: str
+        - kind: class
+          name: GitProjectTemplateFactory
+          description: "Session-owned cache that builds each immutable template shape once."
+        - kind: attribute
+          name: root
+          of: GitProjectTemplateFactory
+          type: Path
+        - kind: attribute
+          name: build_count
+          of: GitProjectTemplateFactory
+          type: int
+        - kind: method
+          name: get
+          of: GitProjectTemplateFactory
+          args:
+            - name: shape
+              type: str
+          returns: GitProjectTemplate
+          description: "Returns the cached immutable shape or builds it once under the session root."
+        - kind: function
+          name: build_git_project_template
+          args:
+            - name: root
+              type: Path
+            - name: shape
+              type: str
+          returns: GitProjectTemplate
+          description: "Creates and commits one canonical tiny real-Git project for a supported shape."
+        - kind: function
+          name: clone_git_project_template
+          args:
+            - name: template
+              type: GitProjectTemplate
+            - name: destination
+              type: Path
+          returns: Path
+          description: "Creates an independent local clone/worktree and verifies it starts at the template revision with a clean index."
+        - kind: function
+          name: git_project_template_factory
+          args:
+            - name: tmp_path_factory
+              type: pytest.TempPathFactory
+          returns: Iterator[GitProjectTemplateFactory]
+          description: "Session-scoped pytest fixture that owns and cleans the immutable template cache."
+    - path: tests/core/test_git_project_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_template_clone_has_independent_index_and_worktree
+          args: []
+        - kind: test_function
+          name: test_template_source_remains_byte_and_status_clean_after_clone_mutation
+          args: []
+        - kind: test_function
+          name: test_template_setup_runs_once_for_multiple_policy_cases
+          args: []
+        - kind: test_function
+          name: test_template_and_legacy_builder_expose_equivalent_initial_git_state
+          args: []
+        - kind: test_function
+          name: test_distinct_template_shape_builds_distinct_committed_state
+          args: []
+  edit:
+    - path: tests/cli/test_plan_legacy_baseline_cmd.py
+      artifacts:
+        - kind: function
+          name: _write_committed_legacy_project
+          args:
+            - name: project_root
+              type: Path
+            - name: committed_command
+              type: str
+              default: "'python scripts/validate.py'"
+            - name: committed_additional_commands
+              type: tuple[str, Ellipsis]
+              default: "()"
+            - name: validate_exit
+              type: int
+              default: "0"
+            - name: validation_mutation
+              type: str | None
+              default: "None"
+            - name: validation_lock_payload
+              type: str | None
+              default: "None"
+            - name: ignore_maid
+              type: bool
+              default: "False"
+            - name: template_factory
+              type: GitProjectTemplateFactory | None
+              default: "None"
+          returns: Path
+          description: "Uses the immutable legacy template for ordinary cases and preserves bespoke setup for scenario-specific history."
+    - path: tests/cli/test_plan_cmd_stash_implementation.py
+      artifacts:
+        - kind: function
+          name: _write_tracked_project
+          args:
+            - name: project_root
+              type: Path
+            - name: template_factory
+              type: GitProjectTemplateFactory | None
+              default: "None"
+          returns: Path
+          description: "Clones the common red-contract template before applying each stash scenario delta."
+    - path: tests/cli/test_plan_cmd_stash_import_obstruction.py
+      artifacts:
+        - kind: function
+          name: _write_locked_full_stack_project
+          args:
+            - name: project_root
+              type: Path
+            - name: template_factory
+              type: GitProjectTemplateFactory | None
+              default: "None"
+          returns: Path
+          description: "Reuses a committed import-obstruction template without sharing mutable Git state."
+  read:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/core/worktree.py
+    - maid_runner/cli/commands/plan.py
+    - tests/core/test_plan_lock_git_subdirectory.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_git_project_templates.py tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_stash_implementation.py tests/cli/test_plan_cmd_stash_import_obstruction.py
+  - uv run maid validate manifests/drafts/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet

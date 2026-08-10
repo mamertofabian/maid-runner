@@ -1,0 +1,195 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Make runtime-evidence policy tests fast by injecting an owned executor boundary"
+type: refactor
+created: "2026-08-10T16:41:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - tests
+    - artifact-coverage
+    - testability
+description: |
+  The duration profile attributes more than 30 recorded seconds to artifact
+  coverage tests and another 18.66 seconds to five nested strict-preview
+  cases. Most scenarios validate deterministic policy (attribution, merging,
+  error mapping, strict-boundary propagation) but each launches real
+  coverage/pytest subprocesses.
+
+  Introduce an owned runtime-command executor protocol. Keep the existing
+  subprocess implementation as the production default, but let policy code
+  consume deterministic execution records. Convert policy matrices to a fake
+  executor and retain a bounded real-adapter suite covering success, command
+  failure, timeout, line/call capture, nested strict propagation, and output
+  equivalence. The fake must model observable records, not private subprocess
+  calls.
+
+  Prove the refactor with result/JSON equivalence and executor call counts.
+  Wall-clock assertions remain benchmark evidence only. Because this evolves
+  the existing artifact-coverage execution signatures declared by 068-01 and
+  the directory batch behavior declared by 096-01, contract hardening must use
+  `maid-evolver` rather than treating this draft as a standalone replacement.
+temptations:
+  - risk: "Do not mock coverage.py data classes or subprocess.CompletedProcess throughout policy tests."
+    instead: "Define MAID-owned immutable execution records and a fake executor that returns those values."
+  - risk: "Do not delete all real nested or coverage subprocess tests to make the suite fast."
+    instead: "Retain bounded adapter integration cases for success, failure, timeout, runtime calls, and strict-boundary propagation."
+  - risk: "Do not change E710/E900 attribution or JSON ordering while extracting the boundary."
+    instead: "Compare legacy and injected result payloads byte-for-byte after normalizing duration fields."
+  - risk: "Do not make a fake executor the production fallback when coverage is unavailable."
+    instead: "Keep the real executor as the default and preserve the existing visible validator-unavailable diagnostic."
+files:
+  create:
+    - path: maid_runner/core/_runtime_command_executor.py
+      artifacts:
+        - kind: class
+          name: RuntimeFileExecution
+          description: "Immutable owned line/call evidence for one normalized source path."
+        - kind: attribute
+          name: executed_lines
+          of: RuntimeFileExecution
+          type: frozenset[int]
+        - kind: attribute
+          name: called_qualnames
+          of: RuntimeFileExecution
+          type: frozenset[str]
+        - kind: class
+          name: RuntimeCommandRecord
+          description: "Immutable MAID-owned value carrying command, return code, stdout, stderr, line execution, call identities, and report errors."
+        - kind: attribute
+          name: command
+          of: RuntimeCommandRecord
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: returncode
+          of: RuntimeCommandRecord
+          type: int
+        - kind: attribute
+          name: stdout
+          of: RuntimeCommandRecord
+          type: str
+        - kind: attribute
+          name: stderr
+          of: RuntimeCommandRecord
+          type: str
+        - kind: attribute
+          name: execution_data
+          of: RuntimeCommandRecord
+          type: Mapping[str, RuntimeFileExecution]
+        - kind: attribute
+          name: report_errors
+          of: RuntimeCommandRecord
+          type: tuple[ValidationError, Ellipsis]
+        - kind: class
+          name: RuntimeCommandExecutor
+          description: "Protocol for executing one normalized pytest command with runtime evidence."
+        - kind: method
+          name: execute
+          of: RuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+          returns: RuntimeCommandRecord
+          description: "Owned execution seam shared by the production adapter and deterministic test fake."
+        - kind: class
+          name: SubprocessRuntimeCommandExecutor
+          description: "Production adapter preserving the existing coverage.py plus pytest subprocess behavior and timeout semantics."
+        - kind: method
+          name: execute
+          of: SubprocessRuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+          returns: RuntimeCommandRecord
+          description: "Runs the real instrumented command and returns stable runtime evidence."
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: run_artifact_coverage
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+          returns: ArtifactCoverageReport
+          description: "Evaluates one manifest using the production executor by default or an explicitly supplied owned executor."
+        - kind: function
+          name: run_artifact_coverage_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Preserves per-manifest attribution while accepting an injected executor for policy tests."
+    - path: maid_runner/core/_test_command_execution.py
+      artifacts:
+        - kind: function
+          name: _strict_validation_test_environment
+          args:
+            - name: enabled
+              type: bool
+            - name: process_wide
+              type: bool
+              default: "False"
+          returns: Iterator[None]
+          description: "Remains the single strict-boundary policy seam and is tested directly for thread/process restoration."
+    - path: tests/core/test_artifact_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_fake_runtime_executor_preserves_single_manifest_report
+          args: []
+        - kind: test_function
+          name: test_runtime_record_change_invalidates_evaluated_execution
+          args: []
+    - path: tests/core/test_artifact_coverage_batch.py
+      artifacts:
+        - kind: test_function
+          name: test_policy_matrix_uses_owned_fake_without_spawning_pytest
+          args: []
+        - kind: test_function
+          name: test_real_and_fake_executor_reports_are_equivalent
+          args: []
+        - kind: test_function
+          name: test_batch_executor_call_count_matches_unique_command_count
+          args: []
+    - path: tests/cli/test_nested_strict_preview.py
+      artifacts:
+        - kind: test_function
+          name: test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses
+          args: []
+        - kind: test_function
+          name: test_real_nested_strict_preview_adapter_still_propagates_once
+          args: []
+  read:
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+    - maid_runner/cli/commands/validate.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+    - tests/core/test_artifact_coverage_timeout_config.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py tests/cli/test_nested_strict_preview.py
+  - uv run maid validate manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet

@@ -1,0 +1,256 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Bound exact artifact-coverage fallback time with isolated deterministic workers"
+type: refactor
+created: "2026-08-10T17:15:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - fallback
+    - isolation
+    - parallelism
+description: |
+  The repository-wide grouped evidence fast path must exact-fallback every
+  unproven fixture lifecycle. Maid-runner's root conftest contains two
+  session-scoped autouse fixtures, so correctness-first 121-08/09 may route all
+  297 exact coverage tuples to fallback. Make that conservative path fast
+  without weakening it: after 121-13 proves current-byte and Git-metadata
+  snapshot isolation and 121-14 establishes one process budget, run the
+  original exact fallback commands concurrently in independent snapshots.
+
+  Each worker executes the unmodified selector in its own pytest process, so
+  session/module/autouse setup and yield teardown retain exact-command
+  lifetime. Coverage/call data is normalized back to repository-relative paths
+  and evaluated by the existing legacy report logic. Buffer completion and
+  render in immutable manifest/command order. Command, snapshot, worker,
+  coverage, or path-remapping uncertainty is E900/E712 or exact serial
+  fallback, never missing evidence or an empty success.
+
+  Prove isolation eligibility at runtime. Workers record pre/post observable
+  project and Git identities while excluding only MAID-owned temporary
+  coverage output and explicitly proven cache files. If any command produces
+  an unclassified material project write, loses a worker, uses an unsupported
+  external execution shape, or cannot reproduce current inputs, discard the
+  entire ordered fallback batch and execute it through the legacy serial path;
+  this preserves a later command that observes an earlier command's state
+  without attempting read/write dependency inference. Consumer defaults remain
+  one fallback worker; this repository
+  opts in only after a full serial-versus-isolated-parallel report comparison.
+  The acceptance probe must also demonstrate the parallel phase below the
+  180-second cold-stage budget before the budget becomes enforceable.
+temptations:
+  - risk: "Do not call grouped fixture evidence complete merely to avoid exact fallbacks."
+    instead: "Preserve every exact selector/lifecycle and accelerate the fallback mechanism itself."
+  - risk: "Do not run fallback processes concurrently against one mutable checkout."
+    instead: "Use independently verified current-byte and Git-isolated snapshots for every active worker."
+  - risk: "Do not accept parallel results after an unclassified project write or worker loss."
+    instead: "Discard the whole ordered batch and run the exact legacy serial fallback, or emit visible E900/E712."
+  - risk: "Do not multiply fallback jobs by configured or command-supplied xdist workers."
+    instead: "Resolve effective pytest addopts/auto policy and reserve all processes from the shared budget."
+  - risk: "Do not compare only success booleans or wall time."
+    instead: "Compare findings, errors, suggestions, attribution, normalized JSON, command order, and then enforce the parallel-phase budget."
+files:
+  create:
+    - path: maid_runner/core/_artifact_coverage_fallback_worker.py
+      artifacts:
+        - kind: class
+          name: ArtifactCoverageFallbackWorkerResult
+          description: "One exact fallback command's isolated coverage data, state deltas, and harness diagnostics."
+        - kind: attribute
+          name: identity
+          of: ArtifactCoverageFallbackWorkerResult
+          type: RuntimeCommandIdentity
+        - kind: attribute
+          name: command_run
+          of: ArtifactCoverageFallbackWorkerResult
+          type: RuntimeCommandEvidence | None
+        - kind: attribute
+          name: material_project_writes
+          of: ArtifactCoverageFallbackWorkerResult
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: process_cost
+          of: ArtifactCoverageFallbackWorkerResult
+          type: int
+        - kind: attribute
+          name: errors
+          of: ArtifactCoverageFallbackWorkerResult
+          type: tuple[ValidationError, Ellipsis]
+        - kind: class
+          name: ArtifactCoverageFallbackRun
+          description: "Ordered exact results plus identities that required legacy serial rerun."
+        - kind: attribute
+          name: results
+          of: ArtifactCoverageFallbackRun
+          type: tuple[ArtifactCoverageFallbackWorkerResult, Ellipsis]
+        - kind: attribute
+          name: serial_fallback_identities
+          of: ArtifactCoverageFallbackRun
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+        - kind: function
+          name: run_isolated_artifact_coverage_fallbacks
+          args:
+            - name: identities
+              type: Sequence[RuntimeCommandIdentity]
+            - name: project_root
+              type: Path
+            - name: target_files
+              type: Mapping[RuntimeCommandIdentity, set[str]]
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend
+            - name: executor
+              type: RuntimeCommandExecutor
+            - name: jobs
+              type: int
+            - name: max_processes
+              type: int
+          returns: ArtifactCoverageFallbackRun
+          description: "Schedules exact commands within one resolved process budget and returns immutable input order."
+    - path: tools/check_artifact_coverage_fallback_equivalence.py
+      artifacts:
+        - kind: function
+          name: compare_serial_and_isolated_fallbacks
+          args:
+            - name: project_root
+              type: Path
+            - name: jobs
+              type: int
+            - name: max_processes
+              type: int
+            - name: max_parallel_seconds
+              type: float
+          returns: int
+          description: "Runs the active exact fallback inventory both ways, compares normalized reports, and enforces only the isolated parallel-phase budget."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: Sequence[str] | None
+              default: "None"
+          returns: int
+    - path: tests/core/test_artifact_coverage_fallback_workers.py
+      artifacts:
+        - kind: test_function
+          name: test_root_session_autouse_fixture_commands_keep_exact_process_lifetimes
+          args: []
+        - kind: test_function
+          name: test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order
+          args: []
+        - kind: test_function
+          name: test_disjoint_exact_fallbacks_overlap_within_process_budget
+          args: []
+        - kind: test_function
+          name: test_material_write_discards_entire_batch_and_preserves_later_reader_legacy_order
+          args: []
+        - kind: test_function
+          name: test_worker_loss_snapshot_failure_or_path_remap_gap_is_never_clean_success
+          args: []
+        - kind: test_function
+          name: test_command_config_and_auto_xdist_counts_reduce_fallback_jobs
+          args: []
+        - kind: test_function
+          name: test_one_fallback_worker_preserves_legacy_execution
+          args: []
+        - kind: test_function
+          name: test_text_and_json_disclose_parallel_and_serial_fallback_identities
+          args: []
+    - path: tests/performance/test_artifact_coverage_fallback_equivalence_probe.py
+      artifacts:
+        - kind: test_function
+          name: test_probe_rejects_report_or_order_difference
+          args: []
+        - kind: test_function
+          name: test_probe_enforces_budget_only_after_equivalence
+          args: []
+        - kind: test_function
+          name: test_probe_never_recursively_runs_repository_acceptance_in_normal_suite
+          args: []
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+          returns: EvidenceArtifactCoverageResult
+          description: "Uses isolated workers for exact incomplete-lifecycle fallbacks, then reruns the whole ordered legacy batch on any stateful or unproven result."
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: attribute
+          name: fallback_jobs
+          of: ArtifactCoverageConfig
+          type: int
+          description: "Positive exact-fallback worker count; defaults to one."
+    - path: .maidrc.yaml
+      artifacts:
+        - kind: attribute
+          name: artifact_coverage.fallback_jobs
+          of: maid-config
+          type: int
+          description: "Repository opt-in enabled only after full exact report equivalence and timing acceptance."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: _run_artifact_coverage_by_manifest
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Path
+            - name: strict_context
+              type: bool
+              default: "False"
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Loads the bounded fallback policy while preserving standalone and verify report order."
+    - path: tests/core/test_config.py
+      artifacts:
+        - kind: test_function
+          name: test_artifact_coverage_fallback_jobs_requires_positive_bounded_integer
+          args: []
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
+    - manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+    - manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/drafts/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+    - manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - manifests/drafts/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/drafts/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - maid_runner/core/_pytest_config_addopts.py
+    - maid_runner/core/_pytest_worker_execution.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+acceptance:
+  tests:
+    - uv run python tools/check_artifact_coverage_fallback_equivalence.py --project-root . --jobs 8 --max-processes 16 --max-parallel-seconds 180
+  immutable: true
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_config.py
+  - uv run maid validate manifests/drafts/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet

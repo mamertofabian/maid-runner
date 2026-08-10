@@ -1,0 +1,419 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Collect command-identified node, fixture, and collection runtime evidence with explicit completeness"
+type: feature
+created: "2026-08-10T16:45:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - pytest
+    - runtime-evidence
+description: |
+  Directory artifact coverage launches 297 exact pytest tuples even though 352
+  of 353 declarations share one ordinary batching key. A node-only context is
+  insufficient: grouped selectors alter session/module fixture lifetime, and
+  import/collection code may execute outside any runtest hook.
+
+  Add immutable command identities, context records, and completeness data.
+  The pytest plugin records setup/call/teardown reports, node contexts,
+  collection/import contexts, fixture setup and yield teardown, scope plus
+  consuming-node closure, and controller/worker completion. Consumer closure
+  proves attribution, not lifecycle equivalence: grouping can change
+  class/module/package/session or autouse fixture multiplicity, state, order,
+  and teardown. Only function-scoped lifecycles proven identical are reusable.
+  Every wider, autouse, dynamic, or otherwise unproven fixture lifecycle --
+  including yield teardown whose timing cannot be proven identical -- is
+  marked incomplete for affected exact-command fallback, as is collection,
+  selector, worker, or content evidence that cannot be assigned. Evidence is
+  never unioned globally. Bind every bundle to a typed resolved-environment
+  identity covering command prefix/cwd, Python and plugin versions, config and
+  dependency digests, and a digest-only effective command environment.
+
+  This child captures evidence and ordinary results only. It does not evaluate
+  E710 or alter verify stages. It extends the owned executor protocol created
+  by 121-04 and consumes the bounded worker path from 121-07.
+temptations:
+  - risk: "Do not treat a proven fixture consumer closure as proof that grouping preserved fixture lifecycle."
+    instead: "Attribute setup and yield teardown, reuse only proven-identical function scope, and exact-fallback wider/autouse/dynamic or otherwise unproven lifecycles."
+  - risk: "Do not discard collection/import execution because it has no runtest node."
+    instead: "Record explicit collection contexts and require selector-safe attribution or exact-command fallback."
+  - risk: "Do not key selector maps by an ambiguous string."
+    instead: "Use immutable manifest-path, command-index, original-command identities plus behavior-group identity."
+  - risk: "Do not infer completeness when an xdist worker or report disappears."
+    instead: "Carry worker IDs, missing reports, and blocking diagnostics in a typed completeness record."
+  - risk: "Do not add contextual execution only to the subprocess implementation."
+    instead: "Extend the owned RuntimeCommandExecutor protocol and test both fake and production adapters."
+files:
+  create:
+    - path: maid_runner/core/runtime_evidence.py
+      artifacts:
+        - kind: class
+          name: RuntimeCommandIdentity
+          description: "Stable declaring-manifest and command-index identity."
+        - kind: attribute
+          name: manifest_path
+          of: RuntimeCommandIdentity
+          type: str
+        - kind: attribute
+          name: command_index
+          of: RuntimeCommandIdentity
+          type: int
+        - kind: attribute
+          name: command
+          of: RuntimeCommandIdentity
+          type: tuple[str, Ellipsis]
+        - kind: class
+          name: RuntimeEnvironmentIdentity
+          description: "Typed, privacy-preserving identity for the resolved runner, cwd, tools, config, dependencies, and effective command environment."
+        - kind: attribute
+          name: resolved_command_prefix
+          of: RuntimeEnvironmentIdentity
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: working_directory
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: python_identity
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: pytest_version
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: coverage_version
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: xdist_version
+          of: RuntimeEnvironmentIdentity
+          type: str | None
+        - kind: attribute
+          name: configuration_digest
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: dependency_digest
+          of: RuntimeEnvironmentIdentity
+          type: str
+        - kind: attribute
+          name: effective_environment_digest
+          of: RuntimeEnvironmentIdentity
+          type: str
+          description: "Digest only; raw environment values, credentials, and secrets are never persisted."
+        - kind: class
+          name: RuntimeEvidenceCompleteness
+          description: "Explicit completeness state and fail-closed diagnostics."
+        - kind: attribute
+          name: complete
+          of: RuntimeEvidenceCompleteness
+          type: bool
+        - kind: attribute
+          name: missing_worker_ids
+          of: RuntimeEvidenceCompleteness
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: unsupported_selectors
+          of: RuntimeEvidenceCompleteness
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: unresolved_context_ids
+          of: RuntimeEvidenceCompleteness
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: unproven_fixture_lifecycles
+          of: RuntimeEvidenceCompleteness
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: diagnostics
+          of: RuntimeEvidenceCompleteness
+          type: tuple[ValidationError, Ellipsis]
+        - kind: class
+          name: RuntimeContextEvidence
+          description: "Node, fixture, collection, or session context with consuming-node attribution."
+        - kind: attribute
+          name: context_id
+          of: RuntimeContextEvidence
+          type: str
+        - kind: attribute
+          name: kind
+          of: RuntimeContextEvidence
+          type: str
+        - kind: attribute
+          name: consuming_nodeids
+          of: RuntimeContextEvidence
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: execution_data
+          of: RuntimeContextEvidence
+          type: Mapping[str, RuntimeFileExecution]
+        - kind: class
+          name: RuntimeCommandEvidence
+          description: "One exact command identity, selected nodes, contexts, result, and completeness."
+        - kind: attribute
+          name: identity
+          of: RuntimeCommandEvidence
+          type: RuntimeCommandIdentity
+        - kind: attribute
+          name: behavior_group_key
+          of: RuntimeCommandEvidence
+          type: tuple[str, tuple[str, Ellipsis], tuple[str, Ellipsis]]
+        - kind: attribute
+          name: selected_nodeids
+          of: RuntimeCommandEvidence
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: contexts
+          of: RuntimeCommandEvidence
+          type: tuple[RuntimeContextEvidence, Ellipsis]
+        - kind: attribute
+          name: result
+          of: RuntimeCommandEvidence
+          type: RuntimeCommandRecord
+        - kind: attribute
+          name: completeness
+          of: RuntimeCommandEvidence
+          type: RuntimeEvidenceCompleteness
+        - kind: class
+          name: RuntimeEvidenceBundle
+          description: "Invocation-scoped command evidence bound to current source/test/config bytes."
+        - kind: attribute
+          name: commands
+          of: RuntimeEvidenceBundle
+          type: tuple[RuntimeCommandEvidence, Ellipsis]
+        - kind: attribute
+          name: content_digest
+          of: RuntimeEvidenceBundle
+          type: str
+        - kind: attribute
+          name: environment_identity
+          of: RuntimeEvidenceBundle
+          type: RuntimeEnvironmentIdentity
+        - kind: attribute
+          name: worker_ids
+          of: RuntimeEvidenceBundle
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: completeness
+          of: RuntimeEvidenceBundle
+          type: RuntimeEvidenceCompleteness
+        - kind: class
+          name: RuntimeEvidenceRun
+          description: "Ordinary results for executed compatible groups plus their evidence bundle."
+        - kind: attribute
+          name: test_result
+          of: RuntimeEvidenceRun
+          type: BatchTestResult
+        - kind: attribute
+          name: evidence
+          of: RuntimeEvidenceRun
+          type: RuntimeEvidenceBundle
+        - kind: attribute
+          name: executed_identities
+          of: RuntimeEvidenceRun
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+        - kind: function
+          name: collect_runtime_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+          returns: RuntimeEvidenceRun
+          description: "Executes each proven-compatible group once and returns exact-command maps without evaluating coverage findings."
+    - path: maid_runner/core/_runtime_evidence_pytest_plugin.py
+      artifacts:
+        - kind: class
+          name: RuntimeEvidencePlugin
+          description: "Pytest plugin recording node, fixture, collection, call, and worker contexts."
+        - kind: attribute
+          name: output_path
+          of: RuntimeEvidencePlugin
+          type: Path
+        - kind: attribute
+          name: target_files
+          of: RuntimeEvidencePlugin
+          type: frozenset[str]
+        - kind: attribute
+          name: contexts
+          of: RuntimeEvidencePlugin
+          type: dict[str, RuntimeContextEvidence]
+        - kind: attribute
+          name: completeness
+          of: RuntimeEvidencePlugin
+          type: RuntimeEvidenceCompleteness
+        - kind: method
+          name: pytest_collection_modifyitems
+          of: RuntimeEvidencePlugin
+          args:
+            - name: session
+              type: pytest.Session
+            - name: config
+              type: pytest.Config
+            - name: items
+              type: list[pytest.Item]
+          returns: None
+        - kind: method
+          name: pytest_fixture_setup
+          of: RuntimeEvidencePlugin
+          args:
+            - name: fixturedef
+              type: pytest.FixtureDef
+            - name: request
+              type: pytest.FixtureRequest
+          returns: Generator[None, object, None]
+          description: "Hookwrapper switches to a fixture context around real setup without replacing the fixture result."
+        - kind: method
+          name: pytest_runtest_setup
+          of: RuntimeEvidencePlugin
+          args:
+            - name: item
+              type: pytest.Item
+          returns: None
+        - kind: method
+          name: pytest_runtest_teardown
+          of: RuntimeEvidencePlugin
+          args:
+            - name: item
+              type: pytest.Item
+            - name: nextitem
+              type: pytest.Item | None
+          returns: Generator[None, object, None]
+          description: "Hookwrapper attributes execution during runtest and fixture teardown, while unproven wider-scope lifecycles remain fallback-only."
+        - kind: method
+          name: pytest_fixture_post_finalizer
+          of: RuntimeEvidencePlugin
+          args:
+            - name: fixturedef
+              type: pytest.FixtureDef
+            - name: request
+              type: pytest.FixtureRequest
+          returns: None
+          description: "Records completed fixture finalization and marks any teardown without a proven equivalent lifecycle incomplete."
+        - kind: method
+          name: pytest_runtest_logreport
+          of: RuntimeEvidencePlugin
+          args:
+            - name: report
+              type: pytest.TestReport
+          returns: None
+        - kind: method
+          name: pytest_testnodedown
+          of: RuntimeEvidencePlugin
+          args:
+            - name: node
+              type: object
+            - name: error
+              type: object | None
+          returns: None
+        - kind: method
+          name: pytest_sessionfinish
+          of: RuntimeEvidencePlugin
+          args:
+            - name: session
+              type: pytest.Session
+            - name: exitstatus
+              type: int
+          returns: None
+    - path: tests/core/test_runtime_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_compatible_commands_execute_once_with_exact_command_identities
+          args: []
+        - kind: test_function
+          name: test_unrelated_node_context_is_not_attributed_to_manifest_command
+          args: []
+        - kind: test_function
+          name: test_stateful_session_and_module_yield_fixture_setup_teardown_force_exact_fallback
+          args: []
+        - kind: test_function
+          name: test_function_yield_fixture_setup_and_teardown_are_attributed_per_node
+          args: []
+        - kind: test_function
+          name: test_dynamic_fixture_without_proven_closure_is_incomplete
+          args: []
+        - kind: test_function
+          name: test_collection_import_context_is_recorded_or_marked_for_fallback
+          args: []
+        - kind: test_function
+          name: test_overlapping_directory_file_and_node_selectors_map_exactly
+          args: []
+        - kind: test_function
+          name: test_behavior_changing_options_remain_separate_runs
+          args: []
+        - kind: test_function
+          name: test_line_and_call_contexts_survive_worker_combine
+          args: []
+        - kind: test_function
+          name: test_worker_loss_marks_bundle_incomplete
+          args: []
+        - kind: test_function
+          name: test_content_change_rejects_in_memory_bundle
+          args: []
+        - kind: test_function
+          name: test_resolved_runner_config_dependency_or_environment_change_rejects_bundle
+          args: []
+        - kind: test_function
+          name: test_environment_identity_stores_digests_without_raw_secret_values
+          args: []
+        - kind: test_function
+          name: test_runtime_collection_result_matches_ordinary_group_result
+          args: []
+  edit:
+    - path: maid_runner/core/_runtime_command_executor.py
+      artifacts:
+        - kind: method
+          name: execute_with_contexts
+          of: RuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+          returns: RuntimeCommandEvidence
+        - kind: method
+          name: execute_with_contexts
+          of: SubprocessRuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+          returns: RuntimeCommandEvidence
+          description: "Runs the contextual plugin and combines controller/worker files into typed evidence."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml
+    - manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/_test_command_batching.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py
+  - uv run maid validate manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet
