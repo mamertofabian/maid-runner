@@ -1,19 +1,23 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Reduce MAID handoff and full-suite verification wall time without caching stale test results"
+goal: "Archive the consumed fast-verification roadmap"
 type: refactor
 created: "2026-08-10T14:05:00+08:00"
 metadata:
-  status: planning
-  priority: high
+  status: archived
+  priority: low
   tags:
     - performance
     - verify
     - test-runner
     - task-scope
     - parallelism
+    - archive
 description: |
+  This roadmap has been consumed. Child 121-01 was promoted and delivered a
+  safe task-scoped handoff tests stage. Child 121-02 was implemented
+  experimentally and archived after isolated shards changed test outcomes.
+
   Fresh profiling on 519 active manifests and 3,919 collected pytest cases
   measured repository-wide verify at 237.62s. The tests stage consumed
   228.48s, while every static MAID gate together consumed about nine seconds.
@@ -24,20 +28,18 @@ description: |
   commands are reused within the invocation. The remaining problem is test
   selection and subprocess scheduling, not missing static-validation caches.
 
-  Planned child order:
+  Child results:
 
   1. `121-01-add-explicit-task-scoped-handoff-tests` - keep repository-wide
      static validation but run only changed active manifests' declared test
      commands for assessed handoff verification. The measured current-task
      probe completed in 9.54s instead of 237.62s.
-  2. `121-02-shard-broad-pytest-batches-across-test-jobs` - make the existing
-     explicit jobs option split one broad compatible pytest batch into
-     deterministic target shards. Eight manual shards passed in 64.71s versus
-     182.16s for the single broad command.
+  2. `121-02-shard-broad-pytest-batches-across-test-jobs` was rejected because
+     repository-integrated shards exposed process-order dependencies and did
+     not preserve the passing gate result.
 
-  Do not promote or implement this epic. Harden, review, lock, promote, and
-  implement one child at a time. Remeasure after 121-01 before choosing the
-  default worker count or broadening sharding beyond pytest file targets.
+  Do not promote or implement this archived epic. Future full-suite
+  parallelism requires a new contract after test-file independence is proven.
 temptations:
   - risk: "Do not cache successful pytest results across CLI invocations with an incomplete dependency key."
     instead: "Use task-scoped command selection and explicit in-run parallelism; keep every selected test command executing against current inputs."
@@ -52,10 +54,10 @@ files:
     - path: manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
       artifacts:
         - kind: attribute
-          name: _fast_verification_roadmap
+          name: _archived_fast_verification_roadmap
           of: manifest
-          type: draft epic
-          description: "Split-before-promote roadmap for measured task-scoped handoff tests and deterministic pytest batch sharding."
+          type: archived draft epic
+          description: "Historical pointer for the delivered 121-01 optimization and rejected 121-02 experiment."
   read:
     - docs/plans/maid-runner-performance-backlog.md
     - maid_runner/cli/commands/verify.py

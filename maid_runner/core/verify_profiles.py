@@ -43,6 +43,7 @@ _PROFILES: Mapping[str, Mapping[str, bool | str]] = MappingProxyType(
                 "summary": True,
                 "require_plan_lock": True,
                 "require_red_evidence": True,
+                "test_scope": "task",
             }
         ),
         "pre-commit": MappingProxyType(

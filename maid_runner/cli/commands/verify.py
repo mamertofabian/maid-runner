@@ -7,6 +7,7 @@ import json
 import subprocess
 import time
 from collections.abc import Iterable
+from dataclasses import replace
 from pathlib import Path
 from typing import Union
 
@@ -85,6 +86,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
+            test_scope=getattr(args, "test_scope", "repository"),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
             plan_lock_scope=getattr(args, "plan_lock_scope", "repository"),
@@ -386,6 +388,7 @@ def _run_verify(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     plan_lock_scope: str = "repository",
@@ -418,6 +421,7 @@ def _run_verify(
             fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
+            test_scope=test_scope,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
             plan_lock_scope=plan_lock_scope,
@@ -448,6 +452,7 @@ def _run_verify_cached(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     plan_lock_scope: str = "repository",
@@ -598,7 +603,9 @@ def _run_verify_cached(
                 return _verification_result(stages, started)
 
         test_manifest_paths = None
+        test_scope_widening: list[ValidationError] = []
         if _should_scope_tests_to_task(
+            test_scope=test_scope,
             file_tracking_scope=file_tracking_scope,
             plan_lock_scope=plan_lock_scope,
         ):
@@ -607,17 +614,34 @@ def _run_verify_cached(
                 manifest_dir,
                 since,
                 base_ref,
+                widening=test_scope_widening,
             )
 
-        stages.append(
-            _tests_stage(
-                root,
-                manifest_dir,
-                fail_fast,
-                test_jobs=test_jobs,
-                manifest_paths=test_manifest_paths,
-            )
+        tests_stage = _tests_stage(
+            root,
+            manifest_dir,
+            fail_fast,
+            test_jobs=test_jobs,
+            manifest_paths=test_manifest_paths,
         )
+        if test_scope_widening:
+            if tests_stage._tests is not None:
+                tests_stage = replace(
+                    tests_stage,
+                    _tests=replace(
+                        tests_stage._tests,
+                        chain_errors=[
+                            *tests_stage._tests.chain_errors,
+                            *test_scope_widening,
+                        ],
+                    ),
+                )
+            else:
+                tests_stage = replace(
+                    tests_stage,
+                    _errors=(*tests_stage._errors, *test_scope_widening),
+                )
+        stages.append(tests_stage)
 
         return _verification_result(stages, started)
 
@@ -920,10 +944,15 @@ def _plan_lock_changed_paths(
 
 def _should_scope_tests_to_task(
     *,
-    file_tracking_scope: str,
-    plan_lock_scope: str,
+    test_scope: str = "repository",
+    file_tracking_scope: str = "repository",
+    plan_lock_scope: str = "repository",
 ) -> bool:
-    return file_tracking_scope == "task" or plan_lock_scope == "task"
+    return (
+        test_scope == "task"
+        or file_tracking_scope == "task"
+        or plan_lock_scope == "task"
+    )
 
 
 def _task_scoped_test_manifest_paths(
@@ -931,11 +960,30 @@ def _task_scoped_test_manifest_paths(
     manifest_dir: str,
     since: str | None,
     base_ref: str | None,
+    *,
+    widening: "list[ValidationError] | None" = None,
 ) -> tuple[str, ...] | None:
     from maid_runner.core.chain import get_cached_manifest_chain
 
     chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-    changed_paths = _plan_lock_changed_paths(root, chain, since, base_ref)
+    selection_widening: list[ValidationError] = []
+    changed_paths = _plan_lock_changed_paths(
+        root,
+        chain,
+        since,
+        base_ref,
+        widening=selection_widening,
+    )
+    if widening is not None:
+        widening.extend(
+            replace(
+                finding,
+                message=finding.message.replace(
+                    "plan-lock enforcement", "tests-stage selection"
+                ),
+            )
+            for finding in selection_widening
+        )
     if changed_paths is None:
         return None
 
