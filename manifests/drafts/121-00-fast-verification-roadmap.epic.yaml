@@ -1,0 +1,65 @@
+# draft-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Reduce MAID handoff and full-suite verification wall time without caching stale test results"
+type: refactor
+created: "2026-08-10T14:05:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  tags:
+    - performance
+    - verify
+    - test-runner
+    - task-scope
+    - parallelism
+description: |
+  Fresh profiling on 519 active manifests and 3,919 collected pytest cases
+  measured repository-wide verify at 237.62s. The tests stage consumed
+  228.48s, while every static MAID gate together consumed about nine seconds.
+  One repository-wide batched pytest command consumed 182.16s.
+
+  Existing caches are effective: the manifest chain, parsed source/test
+  artifacts, discovery results, assertion checks, and quiet `maid validate`
+  commands are reused within the invocation. The remaining problem is test
+  selection and subprocess scheduling, not missing static-validation caches.
+
+  Planned child order:
+
+  1. `121-01-add-explicit-task-scoped-handoff-tests` - keep repository-wide
+     static validation but run only changed active manifests' declared test
+     commands for assessed handoff verification. The measured current-task
+     probe completed in 9.54s instead of 237.62s.
+  2. `121-02-shard-broad-pytest-batches-across-test-jobs` - make the existing
+     explicit jobs option split one broad compatible pytest batch into
+     deterministic target shards. Eight manual shards passed in 64.71s versus
+     182.16s for the single broad command.
+
+  Do not promote or implement this epic. Harden, review, lock, promote, and
+  implement one child at a time. Remeasure after 121-01 before choosing the
+  default worker count or broadening sharding beyond pytest file targets.
+temptations:
+  - risk: "Do not cache successful pytest results across CLI invocations with an incomplete dependency key."
+    instead: "Use task-scoped command selection and explicit in-run parallelism; keep every selected test command executing against current inputs."
+  - risk: "Do not skip repository-wide static validation to obtain the task-handoff timing."
+    instead: "Narrow only the tests-stage manifest command inventory while retaining schema, behavioral, implementation, coherence, and configured scope gates."
+  - risk: "Do not silently treat an unresolved task baseline as an empty test selection."
+    instead: "Return a visible blocking diagnostic or explicitly disclose fail-closed widening to repository tests."
+  - risk: "Do not shard stateful or non-combinable pytest commands."
+    instead: "Shard only commands that already pass the existing batch-compatibility policy and retain the serial path for unsupported option sets."
+files:
+  create:
+    - path: manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _fast_verification_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for measured task-scoped handoff tests and deterministic pytest batch sharding."
+  read:
+    - docs/plans/maid-runner-performance-backlog.md
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/_test_command_batching.py
+validate:
+  - uv run maid validate manifests/drafts/121-00-fast-verification-roadmap.epic.yaml --mode schema --quiet

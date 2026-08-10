@@ -1,0 +1,149 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Let explicit test jobs accelerate one broad pytest batch through deterministic target sharding"
+type: refactor
+created: "2026-08-10T14:05:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  tags:
+    - performance
+    - pytest
+    - test-runner
+    - parallelism
+description: |
+  The full tests stage currently batches compatible pytest commands before
+  scheduling external jobs. On this repository that produces one command over
+  nearly every test file, so `--test-jobs 8` has only one dominant unit to
+  schedule. That command passed in 182.16s. A manual deterministic split of the
+  same file targets into eight pytest processes passed all 3,871 cases in
+  64.71s, a 2.8x wall-time improvement.
+
+  When jobs is greater than one and fail-fast is false, partition only a
+  compatible pytest batch's explicit file/node targets into at most `jobs`
+  deterministic shards before the existing parallel scheduler. Preserve the
+  normalized runner prefix and behavior options on every shard. Do not shard
+  directory targets, target-less commands, stateful/non-combinable options, or
+  commands the existing compatibility policy rejects.
+
+  Every target must execute exactly once. Returned results remain stable by
+  original shard order rather than completion order. Any shard failure fails
+  the batch. Default jobs=1 and fail-fast remain byte-for-byte on the serial
+  command construction path.
+temptations:
+  - risk: "Do not install pytest-xdist or require projects to add a new test plugin for this slice."
+    instead: "Use MAID's existing external-command worker pool to schedule deterministic pytest target shards."
+  - risk: "Do not shard directory targets or stateful options such as last-failed."
+    instead: "Require explicit batch-compatible file/node targets and keep unsupported shapes as one serial-equivalent command."
+  - risk: "Do not duplicate options, drop targets, or render completion-order results."
+    instead: "Round-trip normalized prefix/targets/options, assert a one-to-one target multiset, and collect futures in shard-input order."
+  - risk: "Do not parallelize fail-fast while claiming deterministic early stop."
+    instead: "Retain the current serial path whenever fail-fast is enabled."
+  - risk: "Do not accept a timing-only test as proof of sharding."
+    instead: "Assert shard count, target coverage, option preservation, worker concurrency bound, result order, and failure propagation; record wall time only as benchmark evidence."
+files:
+  edit:
+    - path: maid_runner/core/_test_command_batching.py
+      artifacts:
+        - kind: function
+          name: _shard_compatible_pytest_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: jobs
+              type: int
+          returns: list[tuple[str, Ellipsis]]
+          description: "Returns deterministic, non-empty pytest target shards preserving the runner prefix and options, or the original command as one item when the shape is unsafe to shard."
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: _run_implementation_commands
+          args:
+            - name: commands
+              type: list[tuple[tuple[str, Ellipsis], str]]
+            - name: project_root
+              type: Path
+            - name: batch
+              type: bool | None
+            - name: fail_fast
+              type: bool
+            - name: chain_errors
+              type: list[ValidationError]
+            - name: previous_results
+              type: list[TestRunResult]
+            - name: previous_passed
+              type: int
+            - name: previous_failed
+              type: int
+            - name: jobs
+              type: int
+              default: "1"
+          returns: tuple[list[TestRunResult], int, int, BatchTestResult | None]
+          description: "Expands a broad compatible pytest batch into deterministic shards only for explicit parallel non-fail-fast execution, then schedules them through the existing ordered worker path."
+        - kind: function
+          name: _run_parallel_test_commands
+          args:
+            - name: commands
+              type: list[tuple[tuple[str, Ellipsis], str]]
+            - name: project_root
+              type: Path
+            - name: jobs
+              type: int
+          returns: list[TestRunResult]
+          description: "Runs at most the requested number of shard/external commands concurrently and returns results in input order."
+    - path: tests/core/validation/test_test_command_batching.py
+      artifacts:
+        - kind: test_function
+          name: test_shard_compatible_pytest_command_preserves_every_target_once
+          args: []
+          description: "Eight file targets split across three shards with identical prefix/options and a one-to-one flattened target list."
+        - kind: test_function
+          name: test_shard_compatible_pytest_command_is_deterministic
+          args: []
+          description: "Repeated calls with identical inputs return identical shard order and contents."
+        - kind: test_function
+          name: test_shard_compatible_pytest_command_keeps_unsafe_shapes_single
+          args: []
+          description: "Directory, target-less, and stateful-option commands remain one command."
+        - kind: test_function
+          name: test_shard_compatible_pytest_command_changes_when_targets_change
+          args: []
+          description: "Adding or removing a target produces a corresponding shard set, proving no stale partition cache."
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_parallel_jobs_shard_one_broad_pytest_batch
+          args: []
+          description: "The runner schedules multiple shards from one batch, executes every original target once, and respects the worker bound."
+        - kind: test_function
+          name: test_parallel_pytest_shards_return_results_in_input_order
+          args: []
+          description: "Out-of-order worker completion still returns deterministic shard order."
+        - kind: test_function
+          name: test_parallel_pytest_shard_failure_fails_batch
+          args: []
+          description: "One failing shard increments failed once and makes the aggregate unsuccessful without hiding the command output."
+        - kind: test_function
+          name: test_serial_and_fail_fast_paths_do_not_shard_pytest_batch
+          args: []
+          description: "Jobs one and fail-fast preserve the existing single batched command behavior."
+        - kind: test_function
+          name: test_parallel_sharded_and_serial_runs_cover_equivalent_targets
+          args: []
+          description: "Optimized and unoptimized paths execute the same normalized target set and produce equivalent aggregate success for the same fake command outcomes."
+    - path: docs/plans/maid-runner-performance-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _performance_backlog_121_02_pytest_shard_status
+          of: documentation
+          type: markdown
+          description: "Records post-implementation serial versus sharded full-suite timings and correctness evidence."
+  read:
+    - maid_runner/core/_pytest_command_normalization.py
+    - maid_runner/core/_test_command_execution.py
+    - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
+    - tests/cli/test_test_cmd.py
+    - tests/cli/test_verify_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
+  - uv run maid validate manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml --mode behavioral --quiet

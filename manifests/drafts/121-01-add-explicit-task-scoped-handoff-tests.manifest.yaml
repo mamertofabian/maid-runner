@@ -1,0 +1,281 @@
+# draft-kind: implementation
+schema: "2"
+goal: "Make assessed handoff verification run changed manifests' tests instead of the repository-wide test inventory"
+type: refactor
+created: "2026-08-10T14:05:00+08:00"
+metadata:
+  status: planning
+  priority: high
+  tags:
+    - performance
+    - verify
+    - handoff
+    - task-scope
+description: |
+  Repository-wide verify passed in 237.62s, with 228.48s in the tests stage.
+  The same checkout using the existing changed-manifest selection completed in
+  9.54s, including 0.51s for two task test commands, while repository-wide
+  schema, behavioral, implementation, and coherence stages still ran.
+
+  The current selection is coupled indirectly to file-tracking or plan-lock
+  scope. Add an explicit tests-stage scope and let the handoff profile select
+  task scope. `maid assess` already emits an explicit `--since` or `--base-ref`
+  baseline, so its low/medium handoff recommendation can run only the validate
+  commands of active manifests changed in that task window. Deep and explicit
+  repository test scope remain repository-wide.
+
+  Preserve the anti-gaming contract: all selected manifest commands execute;
+  a failing selected command fails verify; changed-manifest resolution follows
+  the same baseline rules as scope and plan-lock gates; unresolved selection
+  never becomes a silent empty pass. JSON output stays deterministic.
+temptations:
+  - risk: "Do not turn task test scope into task-scoped static validation."
+    instead: "Keep schema, behavioral, implementation, coherence, and default file-tracking behavior unchanged; narrow only `_tests_stage` command selection."
+  - risk: "Do not infer test files directly from the git diff and bypass manifest validate commands."
+    instead: "Resolve changed active manifests through the chain, then execute their declared commands through the existing integrity, batching, pruning, and cache paths."
+  - risk: "Do not return success with zero tests when the task baseline cannot be resolved."
+    instead: "Emit a stable blocking diagnostic or an explicit fail-closed repository-scope widening diagnostic, with behavioral tests for the chosen policy."
+  - risk: "Do not make deep or explicitly repository-scoped verification task-only."
+    instead: "Honor explicit CLI scope over profile defaults and retain repository as the parser default outside the handoff profile."
+  - risk: "Do not assert speed only by wall clock in unit tests."
+    instead: "Assert the exact selected manifest paths and command call counts, then retain the measured benchmark as Outcome evidence."
+files:
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: _register_verify_parser
+          args:
+            - name: sub
+              type: argparse._SubParsersAction
+          returns: None
+          description: "Adds an explicit `--test-scope repository|task` option with repository as the non-profile default and explicitness tracking for profile precedence."
+    - path: maid_runner/core/verify_profiles.py
+      artifacts:
+        - kind: function
+          name: apply_verify_profile
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: str | None
+          description: "Applies handoff task-test scope without overriding an explicit repository scope and reports the contributed flag."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Forwards the effective explicit/profile test scope into verification and preserves profile attribution in text and JSON output."
+        - kind: function
+          name: _run_verify
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+            - name: allow_empty
+              type: bool
+              default: "False"
+            - name: fail_fast
+              type: bool
+              default: "True"
+            - name: check_assertions
+              type: bool
+              default: "True"
+            - name: check_stubs
+              type: bool
+              default: "True"
+            - name: fail_on_warnings
+              type: bool
+              default: "True"
+            - name: require_worktree_scope
+              type: bool
+              default: "False"
+            - name: require_changed_scope
+              type: bool
+              default: "False"
+            - name: changed_scope_explicit
+              type: bool
+              default: "False"
+            - name: since
+              type: str | None
+              default: "None"
+            - name: base_ref
+              type: str | None
+              default: "None"
+            - name: file_tracking_scope
+              type: str
+              default: "'repository'"
+            - name: fail_on_scope_only
+              type: bool
+              default: "False"
+            - name: include_tests
+              type: bool
+              default: "False"
+            - name: test_jobs
+              type: int
+              default: "1"
+            - name: test_scope
+              type: str
+              default: "'repository'"
+            - name: require_plan_lock
+              type: bool
+              default: "False"
+            - name: require_red_evidence
+              type: bool
+              default: "False"
+            - name: plan_lock_scope
+              type: str
+              default: "'repository'"
+            - name: artifact_coverage
+              type: bool
+              default: "False"
+            - name: knockout
+              type: bool
+              default: "False"
+            - name: knockout_limit
+              type: int | None
+              default: "None"
+            - name: knockout_allow_dirty
+              type: bool
+              default: "False"
+          returns: VerificationResult
+          description: "Forwards the explicit tests-stage scope while preserving all existing verification stages and options."
+        - kind: function
+          name: _run_verify_cached
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Union[str, Path]
+            - name: allow_empty
+              type: bool
+              default: "False"
+            - name: fail_fast
+              type: bool
+              default: "True"
+            - name: check_assertions
+              type: bool
+              default: "True"
+            - name: check_stubs
+              type: bool
+              default: "True"
+            - name: fail_on_warnings
+              type: bool
+              default: "True"
+            - name: require_worktree_scope
+              type: bool
+              default: "False"
+            - name: require_changed_scope
+              type: bool
+              default: "False"
+            - name: changed_scope_explicit
+              type: bool
+              default: "False"
+            - name: since
+              type: str | None
+              default: "None"
+            - name: base_ref
+              type: str | None
+              default: "None"
+            - name: file_tracking_scope
+              type: str
+              default: "'repository'"
+            - name: fail_on_scope_only
+              type: bool
+              default: "False"
+            - name: include_tests
+              type: bool
+              default: "False"
+            - name: test_jobs
+              type: int
+              default: "1"
+            - name: test_scope
+              type: str
+              default: "'repository'"
+            - name: require_plan_lock
+              type: bool
+              default: "False"
+            - name: require_red_evidence
+              type: bool
+              default: "False"
+            - name: plan_lock_scope
+              type: str
+              default: "'repository'"
+            - name: artifact_coverage
+              type: bool
+              default: "False"
+            - name: knockout
+              type: bool
+              default: "False"
+            - name: knockout_limit
+              type: int | None
+              default: "None"
+            - name: knockout_allow_dirty
+              type: bool
+              default: "False"
+          returns: VerificationResult
+          description: "Selects task manifest paths only when requested and otherwise preserves repository-wide `run_tests`."
+        - kind: function
+          name: _task_scoped_test_manifest_paths
+          args:
+            - name: root
+              type: Path
+            - name: manifest_dir
+              type: str
+            - name: since
+              type: str | None
+            - name: base_ref
+              type: str | None
+          returns: tuple[str, Ellipsis] | None
+          description: "Returns changed active manifest paths deterministically and exposes unresolved baseline handling without treating it as an empty selection."
+    - path: tests/cli/test_verify_task_scoped_tests_stage.py
+      artifacts:
+        - kind: test_function
+          name: test_handoff_profile_runs_only_changed_active_manifest_commands
+          args: []
+          description: "Two active manifests declare distinct commands; the baseline changes one manifest and verify executes exactly that command while static validation remains repository-wide."
+        - kind: test_function
+          name: test_explicit_repository_test_scope_overrides_handoff_profile
+          args: []
+          description: "An explicit repository scope executes both manifests' commands and is not overwritten by the profile."
+        - kind: test_function
+          name: test_task_test_scope_fails_visibly_when_baseline_is_unresolvable
+          args: []
+          description: "An invalid baseline produces the chosen stable blocking or disclosed-widening result and never reports an empty successful tests stage."
+        - kind: test_function
+          name: test_task_test_scope_propagates_selected_command_failure
+          args: []
+          description: "A failing command from the changed active manifest fails the tests stage with its original result visible."
+        - kind: test_function
+          name: test_task_test_scope_selection_changes_when_baseline_changes
+          args: []
+          description: "Changing the baseline changes the selected active manifest set, proving selection is not stale across invocations."
+    - path: tests/cli/test_verify_profiles.py
+      artifacts:
+        - kind: test_function
+          name: test_handoff_profile_contributes_task_test_scope
+          args: []
+          description: "The profile report names task test scope and retains plan-lock and red-evidence requirements."
+        - kind: test_function
+          name: test_handoff_profile_does_not_override_explicit_repository_test_scope
+          args: []
+          description: "Explicit CLI scope wins over the profile default."
+    - path: docs/plans/maid-runner-performance-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _performance_backlog_121_01_task_handoff_status
+          of: documentation
+          type: markdown
+          description: "Records before/after handoff verification timings and result-equivalence evidence."
+  read:
+    - maid_runner/core/worktree.py
+    - maid_runner/core/chain.py
+    - manifests/fix-verify-task-scoped-tests-stage.manifest.yaml
+    - tests/cli/test_assess_cmd.py
+    - tests/cli/test_verify_cmd.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py
+  - uv run maid validate manifests/drafts/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml --mode behavioral --quiet

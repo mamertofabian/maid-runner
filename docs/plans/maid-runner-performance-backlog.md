@@ -35,6 +35,57 @@ maid verify --keep-going --no-changed-scope --advisory --json
 keeping schema, behavioral, implementation, coherence, file tracking, worktree
 scope when applicable, and test stages.
 
+## 2026-08-10 Verify Test-Stage Probe
+
+The current checkout has 519 active manifests, 337 pytest files, and 3,919
+collected pytest cases. A repository-wide advisory verify run measured:
+
+```bash
+uv run maid verify --keep-going --no-changed-scope --advisory --json
+```
+
+| Stage / probe | Wall time | Result | Notes |
+| --- | ---: | --- | --- |
+| Full repository verify | 237.62s | pass | JSON-reported duration was 237.40s. |
+| Schema | 1.43s | pass | Manifest-chain caching is holding. |
+| Behavioral with assertions | 4.09s | pass | Test discovery and artifact caches are holding. |
+| Implementation with stubs | 1.97s | pass | Source collection caches are holding. |
+| Coherence + file tracking + worktree scope | 1.42s | pass | Not a material contributor. |
+| Tests stage | 228.48s | pass | 96.2% of verify wall time; 240 post-batching commands. |
+| One repository-wide batched pytest command | 182.16s | pass | Dominant command; contains nearly the full test-file inventory. |
+| Eight manual deterministic pytest file shards | 64.71s | pass | All 3,871 cases in the broad batch passed; max shard duration is the parallel wall-time anchor. |
+| Task-scoped verify from `HEAD` | 9.54s | pass | Repository-wide static gates remained; two changed-manifest test commands took 0.51s. |
+
+The command-level distribution matters more than the raw number of manifest
+validate commands. Of the 240 test-stage commands, 231 completed below one
+second. The one broad pytest batch took 182.16s. The remaining eight commands
+above one second were focused pytest, docs, formatting, or broad validate
+commands. This confirms that the post-078 in-process quiet-validate cache is
+working: static validation is no longer the long pole.
+
+Two independent closure shapes are measured:
+
+1. Add an explicit task test scope to handoff verification and make the
+   assessed handoff profile select it when a task baseline is present. Static
+   schema, behavioral, implementation, coherence, and scope gates remain
+   repository-wide unless their own scope is explicitly changed; only the
+   subprocess test command inventory narrows to changed active manifests.
+   Unresolvable task scope must fail visibly or widen with an explicit
+   diagnostic, never silently claim that no tests were required.
+2. When `--test-jobs N` is explicit and fail-fast is off, split a compatible
+   broad pytest batch into deterministic target shards before scheduling.
+   Current command-level parallelism cannot accelerate the dominant command
+   because batching collapses it to one scheduled unit. Shards must preserve
+   every target and option, retain deterministic result order, and surface a
+   failure in any shard as a failed tests stage.
+
+Cross-invocation caching of successful pytest results remains speculative and
+is not queued. A safe key would need to include all source, test, configuration,
+plugin, environment, generated-file, and external-service inputs that can
+affect a test. An incomplete key could return stale green evidence, which is a
+larger correctness risk than the measured wait. Task selection and explicit
+parallel execution provide large wins without that stale-result boundary.
+
 ## Post-043 Timing Summary
 
 Measured on 2026-05-29 after `043-04` landed.
