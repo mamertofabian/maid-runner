@@ -367,6 +367,7 @@ def _render_promoted_yaml(
 
     yaml = YAML()
     yaml.preserve_quotes = True
+    yaml.width = 4096
     source_text = manifest_path.read_text()
     try:
         data, sequence_indent, sequence_offset = load_yaml_guess_indent(

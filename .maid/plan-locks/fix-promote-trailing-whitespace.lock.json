@@ -1,0 +1,115 @@
+{
+  "manifest_path": "manifests/fix-promote-trailing-whitespace.manifest.yaml",
+  "manifest_hash": "sha256-contract:8990f78a8b0a5c01b50bf0cbcfbdd55c6122757f29ccef6736e1a7b4673d2268",
+  "test_hashes": {
+    "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256-pyast:v2:d8d87b2d0a6aeba02df34b1f8652e09cd3c4092d3d83ddd2157e52193e62ab61"
+  },
+  "created_at": "2026-08-10T05:41:55.014811+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7dfb207ccfdf93c2b2c1dd68301db14731f3d09292e4d9d74abcdc96f805b90f",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256-pyast:v2:d8d87b2d0a6aeba02df34b1f8652e09cd3c4092d3d83ddd2157e52193e62ab61"
+      },
+      "revised_at": "2026-08-10T05:41:56.798755+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-promote-trailing-whitespace.manifest.yaml -> manifests/fix-promote-trailing-whitespace.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-promote-trailing-whitespace.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-promote-trailing-whitespace.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T05:41:58.437516+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_yaml_style_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            \"uv run maid validate \"\n            f\"manifests/drafts/{DRAFT_NAME} --mode behavioral --quiet\"\n        ]\n        draft_path.write_text(yaml.safe_dump(draft_data, sort_keys=False, width=4096))\n    \n        exit_code = cmd_manifest(_promote_args(tmp_path, draft_path))\n    \n        text = _promoted_text(tmp_path)\n        promoted = yaml.safe_load(text)\n        assert exit_code == 0\n>       assert all(line == line.rstrip() for line in text.splitlines())\nE       assert False\nE        +  where False = all(<generator object test_promote_does_not_emit_trailing_whitespace.<locals>.<genexpr> at 0x76fbdc621e50>)\n\ntests/cli/test_manifest_promote_yaml_style_cmd.py:126: AssertionError\n----------------------------- Captured stdout call -----------------------------\nPromoted /tmp/pytest-of-atomrem/pytest-1032/test_promote_does_not_emit_tra0/manifests/drafts/add-example.manifest.yaml -> /tmp/pytest-of-atomrem/pytest-1032/test_promote_does_not_emit_tra0/manifests/add-example.manifest.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_yaml_style_cmd.py::test_promote_does_not_emit_trailing_whitespace\n1 failed, 3 passed in 0.15s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-promote-trailing-whitespace.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_manifest_promote_yaml_style_cmd.py:test_promote_does_not_emit_trailing_whitespace",
+      "tests/cli/test_manifest_promote_yaml_style_cmd.py:test_promote_does_not_emit_trailing_whitespace:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py"
+      ],
+      "read": [
+        "manifests/fix-promote-git-rename-detection.manifest.yaml",
+        "manifests/fix-promote-multiline-yaml-style.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/manifest.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_manifest_promote_yaml_style_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_does_not_emit_trailing_whitespace",
+              "source_scenario": "A promoted draft contains long plain scalar values that the default round-trip emitter would wrap.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every physical line in the promoted YAML equals its right-stripped form while the scalar values still round-trip."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/fix-promote-multiline-yaml-style.manifest.yaml",
+        "manifests/fix-promote-git-rename-detection.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "reason": "Set the private round-trip promotion emitter to a wide output width without changing the public cmd_manifest contract."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_promote_yaml_style_cmd.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_manifest_promote_yaml_style_cmd.py",
+      "uv run maid validate manifests/fix-promote-trailing-whitespace.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

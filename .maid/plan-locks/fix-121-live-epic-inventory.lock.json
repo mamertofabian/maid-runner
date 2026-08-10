@@ -1,0 +1,106 @@
+{
+  "manifest_path": "manifests/fix-121-live-epic-inventory.manifest.yaml",
+  "manifest_hash": "sha256-contract:367ff3d6d4a10558b67d33bc3328fbde939f353901957bb8e222d10b0d26401e",
+  "test_hashes": {
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+  },
+  "created_at": "2026-08-10T06:15:49.101886+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:21d6d31a10955841824a071fd0b7ae2b4cb953b7470c1a53b176d54fd9148f45",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-10T06:15:50.868785+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-121-live-epic-inventory.manifest.yaml -> manifests/fix-121-live-epic-inventory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-121-live-epic-inventory.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-121-live-epic-inventory.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:367ff3d6d4a10558b67d33bc3328fbde939f353901957bb8e222d10b0d26401e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-10T06:16:32.526661+00:00",
+      "reason": "accept implemented 121 live epic inventory expectation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T06:15:52.393022+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+        "exit_code": 1,
+        "output_tail": "        live_planning_names = set()\n    \n        for path in (REPO_ROOT / \"manifests\" / \"drafts\").glob(\"*.epic.yaml\"):\n            text = path.read_text(encoding=\"utf-8\")\n            if text.startswith(\"# draft-kind: epic\\n\"):\n                manifest = yaml.safe_load(text)\n                if manifest[\"metadata\"][\"status\"] == \"planning\":\n                    live_planning_names.add(path.name)\n    \n>       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...ap.epic.yaml'} == {'062-00-stri...ge.epic.yaml'}\nE         \nE         Extra items in the left set:\nE         '121-00-fast-verification-roadmap.epic.yaml'\nE         Use -v to get more diff\n\ntests/core/test_draft_epic_archive_inventory.py:142: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n1 failed, 2 passed in 0.07s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-121-live-epic-inventory.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml"
+      ],
+      "scope": [
+        "tests/core/test_draft_epic_archive_inventory.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "reason": "Add the committed 121 roadmap filename to the exact live planning inventory constant without changing test functions or public artifacts."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_draft_epic_archive_inventory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+      "uv run maid validate manifests/fix-121-live-epic-inventory.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}
