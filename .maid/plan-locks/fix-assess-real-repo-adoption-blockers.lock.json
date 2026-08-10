@@ -1,0 +1,562 @@
+{
+  "manifest_path": "manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml",
+  "manifest_hash": "sha256-contract:1fd00e18d7a072d10eb78d12258b02e687a289d924e4fa4abc4737d10afdbc84",
+  "test_hashes": {
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+    "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79",
+    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8",
+    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
+  },
+  "created_at": "2026-08-10T02:34:22.252830+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e41ca607bb13dc13aa154b7d9033267d8bb6444a5174ab1504d3eb351e1ad5b2",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:6741d84c29bd9947038937a64a6e0e67c53ea65579c8ad45607b8a5f0dc7dee1"
+      },
+      "revised_at": "2026-08-10T02:34:24.245953+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-assess-real-repo-adoption-blockers.manifest.yaml -> manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51cc393cd7f8e6fb7af3bab7643e0b25d9470d0905620e59394036323f95cd01",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:6741d84c29bd9947038937a64a6e0e67c53ea65579c8ad45607b8a5f0dc7dee1"
+      },
+      "revised_at": "2026-08-10T02:39:44.021073+00:00",
+      "reason": "Include concise assess-first repository and distributed skill guidance after successful real-repository validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles",
+          "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles:kind=test_function",
+          "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol",
+          "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol:kind=test_function",
+          "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe",
+          "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_verify_profile_distribution.py",
+          "edit:tests/test_review_convergence_guidance.py",
+          "scope:.claude/skills/maid-implementation-review/SKILL.md",
+          "scope:.claude/skills/maid-implementer/SKILL.md",
+          "scope:.claude/skills/maid-runner-draft-implement/SKILL.md",
+          "scope:.codex/skills/maid-implementation-review/SKILL.md",
+          "scope:.codex/skills/maid-implementer/SKILL.md",
+          "scope:.codex/skills/maid-runner-draft-implement/SKILL.md",
+          "scope:AGENTS.md",
+          "scope:maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "scope:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "scope:maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "scope:maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "scope:maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d465c7cb5c7cf01641da0a1dd9108eaf438f9d221cb6b551c9e7db7fd2be5b07",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:6741d84c29bd9947038937a64a6e0e67c53ea65579c8ad45607b8a5f0dc7dee1",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-10T02:44:33.350699+00:00",
+      "reason": "Replace stale AGENTS handoff assertion discovered by the full pytest gate",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle",
+          "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle:kind=method",
+          "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle:of=TestCodexMaidLoopRepoWiring"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/ci/test_codex_maid_loop.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0f6889e37f4143c324e8945511566b2e9cbd2369ea471954e5d70701d0949cd8",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:6741d84c29bd9947038937a64a6e0e67c53ea65579c8ad45607b8a5f0dc7dee1",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60"
+      },
+      "revised_at": "2026-08-10T02:49:12.008394+00:00",
+      "reason": "Include every declared behavioral test in the manifest validation command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3cc9d65401aca6b85d433d545541f87cadcc5710c725291a491999ebea7d49b9",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:6741d84c29bd9947038937a64a6e0e67c53ea65579c8ad45607b8a5f0dc7dee1",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60"
+      },
+      "revised_at": "2026-08-10T02:58:49.051868+00:00",
+      "reason": "Address independent review findings for configured manifest roots, lifecycle downgrade resistance, and payload versioning",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+          "tests/cli/test_assess_cmd.py:test_custom_manifest_directory_lifecycle_pair_is_calibrated",
+          "tests/cli/test_assess_cmd.py:test_custom_manifest_directory_lifecycle_pair_is_calibrated:kind=test_function",
+          "tests/cli/test_assess_cmd.py:test_unrelated_material_change_cannot_hide_manifest",
+          "tests/cli/test_assess_cmd.py:test_unrelated_material_change_cannot_hide_manifest:kind=test_function",
+          "tests/cli/test_init_instruction_payload_version.py:test_assess_guidance_bumps_instruction_payload_version",
+          "tests/cli/test_init_instruction_payload_version.py:test_assess_guidance_bumps_instruction_payload_version:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/instruction_payload.py",
+          "edit:tests/cli/test_init_instruction_payload_version.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py tests/cli/test_init_instruction_payload_version.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7b2433f68e763c2659b1067f52253741476c2baa233c32b05f0037e31f85bb15",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:816b6a43493c8ac81ea1775d709cdb85e048c06553f9699b5ecd5add6aa725a7",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
+      },
+      "revised_at": "2026-08-10T03:06:45.715203+00:00",
+      "reason": "Match recursively discovered active manifests while excluding MAID inactive directories",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_assess_cmd.py:test_nested_active_manifest_lifecycle_pair_is_calibrated",
+          "tests/cli/test_assess_cmd.py:test_nested_active_manifest_lifecycle_pair_is_calibrated:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/chain.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T03:06:49.509640+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py tests/cli/test_init_instruction_payload_version.py -v",
+        "exit_code": 1,
+        "output_tail": "E        +  where (2026, 8, 9, 1) = tuple(<map object at 0x743022f17880>)\nE        +    where <map object at 0x743022f17880> = map(int, ['2026', '08', '09', '1'])\nE        +      where ['2026', '08', '09', '1'] = <built-in method split of str object at 0x743023113670>('.')\nE        +        where <built-in method split of str object at 0x743023113670> = '2026.08.09.1'.split\n\ntests/cli/test_init_instruction_payload_version.py:55: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_coverage_recommendation.py::test_recommendation_can_bypass_persistent_cache_without_changing_default\nFAILED tests/cli/test_assess_cmd.py::test_assessment_is_repeatable_and_does_not_create_cache\nFAILED tests/cli/test_assess_cmd.py::test_routine_lifecycle_files_do_not_inflate_material_change\nFAILED tests/cli/test_assess_cmd.py::test_custom_manifest_directory_lifecycle_pair_is_calibrated\nFAILED tests/cli/test_assess_cmd.py::test_nested_active_manifest_lifecycle_pair_is_calibrated\nFAILED tests/cli/test_assess_cmd.py::test_deep_recommendation_command_retains_handoff_gates\nFAILED tests/cli/test_verify_profile_distribution.py::test_actionable_payload_commands_use_gate_equivalent_profiles\nFAILED tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized\nFAILED tests/test_review_convergence_guidance.py::test_implementation_review_skill_carries_convergence_protocol\nFAILED tests/test_review_convergence_guidance.py::test_implementer_skills_carry_iteration_recipe\nFAILED tests/ci/test_codex_maid_loop.py::TestCodexMaidLoopRepoWiring::test_agents_guidance_requires_plan_lock_promotion_lifecycle\nFAILED tests/cli/test_init_instruction_payload_version.py::test_assess_guidance_bumps_instruction_payload_version\n======================== 12 failed, 64 passed in 2.08s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/assess.py:function:cmd_assess",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:kind=function",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:returns=int",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=baseline:type=DiffScopeBaseline:default=None",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=manifest_dir:type=str:default=manifests/",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:arg=project_root:type=Path:default=None",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:kind=function",
+      "maid_runner/core/change_assessment.py:function:assess_change_signals:returns=ChangeSignalSummary",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=deep:type=bool:default=False",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=limit:type=int:default=20",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=manifest_dir:type=str:default=manifests/",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=respect_gitignore:type=bool:default=True",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:arg=use_cache:type=bool:default=True",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:kind=function",
+      "maid_runner/core/coverage_recommendation.py:function:recommend_coverage:returns=CoverageRecommendationReport",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle",
+      "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle:kind=method",
+      "tests/ci/test_codex_maid_loop.py:method:TestCodexMaidLoopRepoWiring.test_agents_guidance_requires_plan_lock_promotion_lifecycle:of=TestCodexMaidLoopRepoWiring",
+      "tests/cli/test_assess_cmd.py:test_assessment_is_repeatable_and_does_not_create_cache",
+      "tests/cli/test_assess_cmd.py:test_assessment_is_repeatable_and_does_not_create_cache:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_custom_manifest_directory_lifecycle_pair_is_calibrated",
+      "tests/cli/test_assess_cmd.py:test_custom_manifest_directory_lifecycle_pair_is_calibrated:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_deep_recommendation_command_retains_handoff_gates",
+      "tests/cli/test_assess_cmd.py:test_deep_recommendation_command_retains_handoff_gates:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_manifest_only_change_remains_sensitive",
+      "tests/cli/test_assess_cmd.py:test_manifest_only_change_remains_sensitive:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_nested_active_manifest_lifecycle_pair_is_calibrated",
+      "tests/cli/test_assess_cmd.py:test_nested_active_manifest_lifecycle_pair_is_calibrated:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_routine_lifecycle_files_do_not_inflate_material_change",
+      "tests/cli/test_assess_cmd.py:test_routine_lifecycle_files_do_not_inflate_material_change:kind=test_function",
+      "tests/cli/test_assess_cmd.py:test_unrelated_material_change_cannot_hide_manifest",
+      "tests/cli/test_assess_cmd.py:test_unrelated_material_change_cannot_hide_manifest:kind=test_function",
+      "tests/cli/test_init_instruction_payload_version.py:test_assess_guidance_bumps_instruction_payload_version",
+      "tests/cli/test_init_instruction_payload_version.py:test_assess_guidance_bumps_instruction_payload_version:kind=test_function",
+      "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles",
+      "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles:kind=test_function",
+      "tests/core/test_coverage_recommendation.py:test_recommendation_can_bypass_persistent_cache_without_changing_default",
+      "tests/core/test_coverage_recommendation.py:test_recommendation_can_bypass_persistent_cache_without_changing_default:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/core/coverage_recommendation.py",
+        "maid_runner/instruction_payload.py",
+        "tests/ci/test_codex_maid_loop.py",
+        "tests/cli/test_assess_cmd.py",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "tests/cli/test_verify_profile_distribution.py",
+        "tests/core/test_coverage_recommendation.py",
+        "tests/test_review_convergence_guidance.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/verify_profiles.py",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml"
+      ],
+      "scope": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "AGENTS.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/coverage_recommendation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "recommend_coverage",
+              "description": "Preserves persistent risk-v1 caching by default while allowing read-only callers to bypass cache reads and writes deterministically.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "manifests/"
+                },
+                {
+                  "name": "limit",
+                  "type": "int",
+                  "default": "20"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "deep",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "use_cache",
+                  "type": "bool",
+                  "default": "True"
+                }
+              ],
+              "returns": "CoverageRecommendationReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/change_assessment.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "assess_change_signals",
+              "description": "Collects repeatable read-only signals, excludes generated cache paths, and excludes routine manifest/plan-lock envelope paths only when material changed paths remain.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "baseline",
+                  "type": "DiffScopeBaseline"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "manifests/"
+                }
+              ],
+              "returns": "ChangeSignalSummary"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/assess.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_assess",
+              "description": "Emits deep verify argv with explicit plan-lock and red-evidence requirements while leaving handoff recommendations unchanged.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_coverage_recommendation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_recommendation_can_bypass_persistent_cache_without_changing_default"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_assess_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_assessment_is_repeatable_and_does_not_create_cache"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_routine_lifecycle_files_do_not_inflate_material_change"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_only_change_remains_sensitive"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_material_change_cannot_hide_manifest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_custom_manifest_directory_lifecycle_pair_is_calibrated"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_active_manifest_lifecycle_pair_is_calibrated"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_deep_recommendation_command_retains_handoff_gates"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_profile_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_actionable_payload_commands_use_gate_equivalent_profiles"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_review_convergence_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_implementation_review_skill_carries_convergence_protocol"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_implementer_skills_carry_iteration_recipe"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_codex_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "test_agents_guidance_requires_plan_lock_promotion_lifecycle",
+              "of": "TestCodexMaidLoopRepoWiring"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_init_instruction_payload_version.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_assess_guidance_bumps_instruction_payload_version"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/verify_profiles.py",
+        "manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml",
+        "manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "AGENTS.md",
+          "reason": "Concisely direct repository handoff through assessment with a safe fallback."
+        },
+        {
+          "path": ".codex/skills/maid-implementer/SKILL.md",
+          "reason": "Update the canonical Codex implementation handoff recipe."
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Update the canonical Codex review validation recipe."
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Update the canonical Codex draft implementation handoff recipe."
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "reason": "Keep the canonical Claude implementation recipe aligned."
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Keep the canonical Claude review recipe aligned."
+        },
+        {
+          "path": ".claude/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Keep the repository Claude draft implementation recipe aligned."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "reason": "Package the synced Codex implementation guidance."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Package the synced Codex review guidance."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Package the synced Codex draft implementation guidance."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "reason": "Package the synced Claude implementation guidance."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Package the synced Claude review guidance."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_codex_maid_loop.py",
+      "tests/cli/test_assess_cmd.py",
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/cli/test_verify_profile_distribution.py",
+      "tests/core/test_coverage_recommendation.py",
+      "tests/test_review_convergence_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_coverage_recommendation.py tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py tests/cli/test_init_instruction_payload_version.py -v",
+      "uv run maid validate manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

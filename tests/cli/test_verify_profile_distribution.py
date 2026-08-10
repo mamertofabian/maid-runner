@@ -122,26 +122,30 @@ def test_actionable_payload_commands_use_gate_equivalent_profiles() -> None:
     expected = {
         ".claude/skills/maid-implementation-review/SKILL.md": (
             "maid verify --profile handoff --since <baseline>",
-            "maid verify --profile deep --since <baseline>",
+            "maid assess --since <baseline>",
         ),
         ".codex/skills/maid-implementation-review/SKILL.md": (
             "maid verify --profile handoff --since <baseline>",
-            "maid verify --profile deep --since <baseline>",
+            "maid assess --since <baseline>",
         ),
         ".claude/skills/maid-implementer/SKILL.md": (
             "maid verify --profile agent-retry --since <baseline>",
             "maid verify --profile handoff --since <baseline>",
+            "maid assess --since <baseline>",
         ),
         ".codex/skills/maid-implementer/SKILL.md": (
             "maid verify --profile agent-retry --since <baseline>",
             "maid verify --profile handoff --since <baseline>",
+            "maid assess --since <baseline>",
         ),
         ".codex/skills/maid-runner-draft-implement/SKILL.md": (
             "maid verify --profile agent-retry --since <baseline>",
             "uv run maid verify --profile handoff --since <baseline>",
+            "uv run maid assess --since <baseline>",
         ),
         ".claude/skills/maid-runner-draft-implement/SKILL.md": (
             "uv run maid verify --profile handoff --since <baseline>",
+            "uv run maid assess --since <baseline>",
         ),
         ".claude/skills/maid-onboard/SKILL.md": ("maid verify --profile handoff",),
         ".codex/skills/maid-onboard/SKILL.md": ("maid verify --profile handoff",),

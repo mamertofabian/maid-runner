@@ -1,3 +1,7 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: Teach the distributed maid-planner Outcome-Aware phase to prefer `maid insights --theme-map <digest>` when a fresh advisory enrichment digest exists, and to fall back to plain `maid insights` otherwise, closing the 081 enrichment loop into planning for both Claude and Codex, and bump the instruction payload version so downstream `maid init --check` reports the changed planner payload as stale
 type: feature

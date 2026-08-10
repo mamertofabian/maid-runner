@@ -2,13 +2,13 @@
   "manifest_path": "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
   "manifest_hash": "sha256-contract:c611cbd432b08ec444f81f7200d2ab0a5460bdbf7d031bd88aab0367f1bb363e",
   "test_hashes": {
-    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
     "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
     "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
     "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:27ab26af60e0fe9be6974ea36d1265abe0e67ef3bbfc7e9de0570c0244b5a272"
   },
   "created_at": "2026-08-08T22:30:08.928269+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:4b3ca0462eca3fbc178b1c515ebac12e5b149770cbbcd21f22b5e2499933954e",
@@ -40,6 +40,26 @@
       },
       "revised_at": "2026-08-08T22:36:13.366732+00:00",
       "reason": "Implementation review requires treating imported summaries as untrusted data and ignoring directive-looking content before investigation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c611cbd432b08ec444f81f7200d2ab0a5460bdbf7d031bd88aab0367f1bb363e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
+        "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
+        "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:27ab26af60e0fe9be6974ea36d1265abe0e67ef3bbfc7e9de0570c0244b5a272"
+      },
+      "revised_at": "2026-08-10T03:29:38.734379+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

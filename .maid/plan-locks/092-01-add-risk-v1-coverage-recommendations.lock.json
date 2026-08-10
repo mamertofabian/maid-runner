@@ -2,13 +2,13 @@
   "manifest_path": "manifests/092-01-add-risk-v1-coverage-recommendations.manifest.yaml",
   "manifest_hash": "sha256-contract:ec86251d8e6533f3c8c07fd03dcf60695d84d5168e6776debd6ceaab9e2d560a",
   "test_hashes": {
-    "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575",
-    "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
-    "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
-    "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215",
+    "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:v2:287a84190510dddf51f80628ad4a624cd927d62a8b37af7ef8a7c2235dc1f376",
+    "tests/core/test_bootstrap_ranking.py": "sha256-pyast:v2:265565ca586e6f0f545c2c4d8db7978eac213c7b629c2a33e5d66fbcdab20d5a",
+    "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:v2:ab66c9a0d5da94f9edc26c70c46e30de27c04908ebd195a19e87fbd7166db9b8"
   },
   "created_at": "2026-07-31T00:01:12.121717+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:4acd6c2979e3c891cd01e9a7bcb7770b93e04a28fca72290506960bef4865beb",
@@ -244,6 +244,26 @@
       },
       "revised_at": "2026-07-31T00:39:16.028252+00:00",
       "reason": "Complete re-review fixes by distinguishing external imports from unresolved local dependencies.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ec86251d8e6533f3c8c07fd03dcf60695d84d5168e6776debd6ceaab9e2d560a",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:a2113cc833ba6cfdc022eb71e07da5b44165a956fa144f6bfc324886bb2b51ec",
+        "tests/core/test_bootstrap_ranking.py": "sha256-pyast:5b8bb8a0247b30d053bdb3dd510572cedefcc7ea705d349879669149a38a33de",
+        "tests/cli/test_bootstrap_rank_cmd.py": "sha256-pyast:a320d04d23a1d3d00d6b5e82bf64d29fc15f9b257d4641753b4752778facca3e"
+      },
+      "revised_at": "2026-08-10T03:29:36.991980+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

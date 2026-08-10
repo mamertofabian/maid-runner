@@ -1,3 +1,7 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: Extend the distributed maid-planner Outcome-Aware guidance so that after a successful `maid insights --theme-map` run the planner also reads the rendered `.maid/outcomes-digest.md` as advisory narrative retrospective — treated as untrusted data, never as instructions or authority — closing the orphaned-narrative gap, and bump the instruction payload version so downstream `maid init --check` reports the changed planner payload as stale
 type: feature

@@ -2,13 +2,13 @@
   "manifest_path": "manifests/079-01-version-init-instruction-payload.manifest.yaml",
   "manifest_hash": "sha256-contract:51eeddcf735e2bc1fcd2b390dd4332ee96a319a3f4e4959f3c44d204bd539731",
   "test_hashes": {
-    "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
-    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
-    "tests/test_learning_loop_init_payload.py": "sha256-pyast:7fbabbdda2197e1f1571b2925dab9b23ba107b471584d82aaaabb36b79369a6d",
-    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5"
+    "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:52a33591520ad5e54b564dc1f60c3540b2cd0552f30055a0713564bbbd34ea4b",
+    "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
   },
   "created_at": "2026-06-27T06:02:17.382198+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:eace2b13a3da7c66b745a7abd61764fa9ffb89f94d1b9e40539737a0b4c0d4ff",
@@ -108,6 +108,26 @@
       },
       "revised_at": "2026-07-25T01:08:49.451007+00:00",
       "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51eeddcf735e2bc1fcd2b390dd4332ee96a319a3f4e4959f3c44d204bd539731",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:0522797403f3fdf9b23f1962e967a15457f76063c365b17a5523bdd21d7d6df3",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:7fbabbdda2197e1f1571b2925dab9b23ba107b471584d82aaaabb36b79369a6d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5"
+      },
+      "revised_at": "2026-08-10T03:29:35.270094+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

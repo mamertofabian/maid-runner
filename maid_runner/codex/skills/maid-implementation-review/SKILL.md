@@ -266,20 +266,21 @@ gate.
 Where practical, run:
 
 ```bash
-maid verify --profile handoff --since <baseline>
+maid assess --since <baseline>
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
 
-For high-risk changes where runtime evidence matters, the opt-in gate is
-`maid verify --profile deep`; run it as
-`maid verify --profile deep --since <baseline>`. This
-Python-only review gate checks that declared artifacts are executed by tests
-and that breaking each declared function or method makes validation fail.
+Run the exact verify command emitted by assessment. It scales between `handoff`
+and `maid verify --profile deep` for high-risk changes; the deep command retains
+the plan-lock and red-evidence requirements
+while adding artifact-coverage and knockout checks. If assessment is unavailable
+or fails, use `maid verify --profile handoff --since <baseline>` as the safety
+floor.
 
-The `maid verify --profile handoff --since <baseline>` command is the
-implementation handoff gate for the approved plan lock and captured red-phase
-evidence. Treat E700-E706 plan-lock failures as blockers unless the review
+The emitted verify command is the implementation handoff gate for the approved
+plan lock and captured red-phase evidence. Treat E700-E706 plan-lock failures as
+blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.
 E700/E704/E705 requirement errors apply to manifests changed in the task window;
 E701/E702/E703/E706 integrity errors are blockers regardless of task window

@@ -112,6 +112,7 @@ def recommend_coverage(
     exclude_patterns: set[str] | None = None,
     respect_gitignore: bool = True,
     deep: bool = False,
+    use_cache: bool = True,
 ) -> CoverageRecommendationReport:
     """Rank incompletely tracked production files with the risk-v1 model."""
     root = Path(project_root).resolve()
@@ -161,7 +162,8 @@ def recommend_coverage(
             ],
         },
     )
-    if policy.cache_enabled and not deep:
+    cache_enabled = use_cache and policy.cache_enabled
+    if cache_enabled and not deep:
         cached = load_cached_coverage_report(root, cache_key)
         if cached is not None:
             return _report_from_cache(cached, limit=limit)
@@ -219,7 +221,7 @@ def recommend_coverage(
         warnings=warnings,
         cache_status="bypassed-deep" if deep else "disabled",
     )
-    if policy.cache_enabled and not deep:
+    if cache_enabled and not deep:
         write_cached_coverage_report(root, cache_key, _report_to_cache(full_report))
         cache_status = "miss"
     elif deep:

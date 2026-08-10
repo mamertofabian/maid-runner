@@ -2,13 +2,13 @@
   "manifest_path": "manifests/081-06-planner-prefers-theme-map-insights.manifest.yaml",
   "manifest_hash": "sha256-contract:65af7d5508c525fb1f4d7d40bc828083758602950670ae676fbc89e180c86a83",
   "test_hashes": {
-    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5",
-    "tests/test_insights_skill_guidance.py": "sha256-pyast:434a663bb10b133d290a6a2eb5c94963dcbb9440ef519d623a6230ad1b093ef4",
-    "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:2e2b372eabd5a9ba4744be4915bf0ae053ec778c59b4575c29d88aca7d77e36d",
-    "tests/test_planner_theme_map_guidance.py": "sha256-pyast:fadfeb65ce393c88329692a6c3ea6743d254a9b5ee487885634add14614c0a2c"
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+    "tests/test_insights_skill_guidance.py": "sha256-pyast:v2:073284b1c50a4be07a5b75e2ef64f863db4bda70db33594c24ee53815ee556ff",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:v2:17936960109de62ae90479a678ec0b6402f7bd8a19b2e34a680529b0fdd60881",
+    "tests/test_planner_theme_map_guidance.py": "sha256-pyast:v2:d9469d26018e240ba75f96b995b21d825078159a5cc22dede191a1887bae7dfa"
   },
   "created_at": "2026-06-28T23:49:37.447274+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:047d2ab545418d96c6ded1d59e8d2fd1f7eec789441e5b1b207457b9925b9390",
@@ -136,6 +136,26 @@
       },
       "revised_at": "2026-07-25T01:08:50.377209+00:00",
       "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:65af7d5508c525fb1f4d7d40bc828083758602950670ae676fbc89e180c86a83",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:26703123d15d9cf83812a4e3c3a49ed54f7d76944db9db2897c27e08013c12b5",
+        "tests/test_insights_skill_guidance.py": "sha256-pyast:434a663bb10b133d290a6a2eb5c94963dcbb9440ef519d623a6230ad1b093ef4",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:2e2b372eabd5a9ba4744be4915bf0ae053ec778c59b4575c29d88aca7d77e36d",
+        "tests/test_planner_theme_map_guidance.py": "sha256-pyast:fadfeb65ce393c88329692a6c3ea6743d254a9b5ee487885634add14614c0a2c"
+      },
+      "revised_at": "2026-08-10T03:29:35.520804+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

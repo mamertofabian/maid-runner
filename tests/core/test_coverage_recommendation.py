@@ -114,6 +114,25 @@ def test_recommendation_includes_incomplete_tracking_states_and_excludes_tracked
     assert _signal(by_path["src/read_only.py"], "coverage_gap").contribution == 14.0
 
 
+def test_recommendation_can_bypass_persistent_cache_without_changing_default(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core.coverage_recommendation import recommend_coverage
+
+    _write(tmp_path, "src/service.py", "def service():\n    return 1\n")
+    cache_path = tmp_path / ".maid/cache/coverage-risk-v1.json"
+
+    uncached = recommend_coverage(tmp_path, use_cache=False)
+
+    assert uncached.cache_status == "disabled"
+    assert not cache_path.exists()
+
+    cached_by_default = recommend_coverage(tmp_path)
+
+    assert cached_by_default.cache_status == "miss"
+    assert cache_path.is_file()
+
+
 def test_dependency_evidence_separates_production_and_test_importers(
     tmp_path: Path,
 ) -> None:

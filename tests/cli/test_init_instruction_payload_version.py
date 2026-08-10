@@ -49,6 +49,12 @@ def _instruction_payload_contract() -> tuple[str, dict[str, str]]:
     return INSTRUCTION_PAYLOAD_VERSION, instruction_payload_metadata()
 
 
+def test_assess_guidance_bumps_instruction_payload_version() -> None:
+    payload_version, _ = _instruction_payload_contract()
+
+    assert tuple(map(int, payload_version.split("."))) > (2026, 8, 9, 1)
+
+
 def test_init_stamps_instruction_payload_version_into_codex_payload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

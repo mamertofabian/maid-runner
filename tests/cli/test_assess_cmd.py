@@ -233,6 +233,191 @@ def test_assess_output_cannot_lower_or_set_an_enforcement_gate(
     }
 
 
+def test_assessment_is_repeatable_and_does_not_create_cache(tmp_path: Path) -> None:
+    from maid_runner.core.change_assessment import assess_change_signals
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    baseline = _init_changed_repo(tmp_path)
+    scope = DiffScopeBaseline(source="since", commitish=baseline)
+
+    first = assess_change_signals(tmp_path, scope)
+    second = assess_change_signals(tmp_path, scope)
+
+    assert first == second
+    assert first.changed_paths == ("src/widget.py",)
+    assert not (tmp_path / ".maid/cache").exists()
+
+
+def test_routine_lifecycle_files_do_not_inflate_material_change(tmp_path: Path) -> None:
+    from maid_runner.core.change_assessment import assess_change_signals
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    baseline = _init_changed_repo(tmp_path)
+    manifest = tmp_path / "manifests/task.manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        "schema: '2'\ngoal: task\ntype: fix\n"
+        "files:\n  edit:\n  - path: src/widget.py\n"
+    )
+    lock = tmp_path / ".maid/plan-locks/task.lock.json"
+    lock.parent.mkdir(parents=True)
+    lock.write_text("{}\n")
+
+    signals = assess_change_signals(
+        tmp_path,
+        DiffScopeBaseline(source="since", commitish=baseline),
+    )
+
+    assert signals.changed_paths == ("src/widget.py",)
+    assert signals.sensitive_paths == ()
+
+
+def test_manifest_only_change_remains_sensitive(tmp_path: Path) -> None:
+    from subprocess import run
+
+    from maid_runner.core.change_assessment import assess_change_signals
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    manifest = tmp_path / "manifests/task.manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("schema: '2'\ngoal: original\ntype: fix\nfiles: {}\n")
+    run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    run(["git", "config", "user.email", "maid@example.test"], cwd=tmp_path, check=True)
+    run(["git", "config", "user.name", "MAID Test"], cwd=tmp_path, check=True)
+    run(["git", "add", "."], cwd=tmp_path, check=True)
+    run(["git", "commit", "-qm", "baseline"], cwd=tmp_path, check=True)
+    baseline = run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    manifest.write_text("schema: '2'\ngoal: revised\ntype: fix\nfiles: {}\n")
+
+    signals = assess_change_signals(
+        tmp_path,
+        DiffScopeBaseline(source="since", commitish=baseline),
+    )
+
+    assert signals.changed_paths == ("manifests/task.manifest.yaml",)
+    assert signals.sensitive_paths == ("manifests/task.manifest.yaml",)
+
+
+def test_unrelated_material_change_cannot_hide_manifest(tmp_path: Path) -> None:
+    from subprocess import run
+
+    from maid_runner.core.change_assessment import (
+        AssessmentTier,
+        assess_change_signals,
+        recommend_verify_profile,
+    )
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    notes = tmp_path / "README.md"
+    notes.write_text("original\n")
+    run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    run(["git", "config", "user.email", "maid@example.test"], cwd=tmp_path, check=True)
+    run(["git", "config", "user.name", "MAID Test"], cwd=tmp_path, check=True)
+    run(["git", "add", "."], cwd=tmp_path, check=True)
+    run(["git", "commit", "-qm", "baseline"], cwd=tmp_path, check=True)
+    baseline = run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    notes.write_text("revised\n")
+    manifest = tmp_path / "manifests/security-policy.manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("schema: '2'\ngoal: policy\ntype: fix\nfiles: {}\n")
+
+    signals = assess_change_signals(
+        tmp_path,
+        DiffScopeBaseline(source="since", commitish=baseline),
+    )
+
+    assert "manifests/security-policy.manifest.yaml" in signals.sensitive_paths
+    assert recommend_verify_profile(signals).tier is AssessmentTier.HIGH
+
+
+def test_custom_manifest_directory_lifecycle_pair_is_calibrated(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core.change_assessment import assess_change_signals
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    baseline = _init_changed_repo(tmp_path)
+    manifest = tmp_path / "custom-manifests/task.manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        "schema: '2'\ngoal: task\ntype: fix\n"
+        "files:\n  edit:\n  - path: src/widget.py\n"
+    )
+    lock = tmp_path / ".maid/plan-locks/task.lock.json"
+    lock.parent.mkdir(parents=True)
+    lock.write_text("{}\n")
+
+    signals = assess_change_signals(
+        tmp_path,
+        DiffScopeBaseline(source="since", commitish=baseline),
+        manifest_dir="custom-manifests/",
+    )
+
+    assert signals.changed_paths == ("src/widget.py",)
+    assert signals.sensitive_paths == ()
+
+
+def test_nested_active_manifest_lifecycle_pair_is_calibrated(tmp_path: Path) -> None:
+    from maid_runner.core.change_assessment import assess_change_signals
+    from maid_runner.core.diff_scope import DiffScopeBaseline
+
+    baseline = _init_changed_repo(tmp_path)
+    manifest = tmp_path / "manifests/team/task.manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        "schema: '2'\ngoal: task\ntype: fix\n"
+        "files:\n  edit:\n  - path: src/widget.py\n"
+    )
+    lock = tmp_path / ".maid/plan-locks/task.lock.json"
+    lock.parent.mkdir(parents=True)
+    lock.write_text("{}\n")
+
+    signals = assess_change_signals(
+        tmp_path,
+        DiffScopeBaseline(source="since", commitish=baseline),
+    )
+
+    assert signals.changed_paths == ("src/widget.py",)
+    assert signals.sensitive_paths == ()
+
+
+def test_deep_recommendation_command_retains_handoff_gates(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    from maid_runner.cli.commands._main import main
+
+    baseline = _init_changed_repo(tmp_path, "src/auth/session.py")
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = main(["assess", "--since", baseline, "--json"])
+    document = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert document["profile"] == "deep"
+    assert document["verify_argv"] == [
+        "maid",
+        "verify",
+        "--profile",
+        "deep",
+        "--require-plan-lock",
+        "--require-red-evidence",
+        "--since",
+        baseline,
+    ]
+
+
 def test_assess_requires_a_baseline_and_json_is_single_document(capsys) -> None:
     from maid_runner.cli.commands._main import main
 

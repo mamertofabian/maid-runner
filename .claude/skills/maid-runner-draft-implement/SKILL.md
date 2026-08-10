@@ -104,13 +104,18 @@ maid test
 rg "manifests/drafts/<slug>.manifest.yaml" manifests manifests/drafts
 ```
 
-6. Run the plan-lock handoff gate and treat E700/E704/E705 on the promoted
-   manifest as workflow blockers, not as evidence to fabricate after green
-   implementation:
+6. Assess from the task baseline, run the exact verify command it prints, and
+   treat E700/E704/E705 on the promoted manifest as workflow blockers, not as
+   evidence to fabricate after green implementation:
 
 ```bash
-uv run maid verify --profile handoff --since <baseline>
+uv run maid assess --since <baseline>
 ```
+
+Assessment scales between `handoff` and `deep`; its deep command retains the
+plan-lock and red-evidence requirements. If assessment is unavailable or fails,
+use `uv run maid verify --profile handoff --since <baseline>` as the safety
+floor.
 
 Prefer `--summary` for agent and human handoff because it keeps blocking
 failures visible while deduplicating warning storms. Rerun without `--summary`,

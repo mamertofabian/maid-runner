@@ -70,9 +70,10 @@ def cmd_assess(args: argparse.Namespace) -> int:
         "verify",
         "--profile",
         recommendation.profile,
-        baseline_flag,
-        baseline_value,
     ]
+    if recommendation.profile == "deep":
+        verify_argv.extend(("--require-plan-lock", "--require-red-evidence"))
+    verify_argv.extend((baseline_flag, baseline_value))
     payload = {
         "tier": recommendation.tier.value,
         "profile": recommendation.profile,

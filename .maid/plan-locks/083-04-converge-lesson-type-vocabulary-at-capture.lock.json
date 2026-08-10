@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
-  "manifest_hash": "sha256:0b574925ef292aa1c79f3e44378675c0e59afac2d9ffe514129ecaa1e2c403de",
+  "manifest_hash": "sha256-contract:49e2f0e35e9d3b8221fe5f3e1116b9aa08f7dadf4986b17b58645e8855520e7d",
   "test_hashes": {
-    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
-    "tests/test_outcome_vocabulary_guidance.py": "sha256:34e9a43fbc31c628c3f0b4d29a8453b2c7e22f5d72cfd1b0872b69a59fe50247"
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+    "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff"
   },
   "created_at": "2026-07-04T10:46:54.732392+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:09623723b5a9d030a9ec27622a606ab820d29974144c176304ffae7c95e1d74b",
@@ -15,7 +15,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
       },
       "revised_at": "2026-07-04T10:46:59.274059+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml -> manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml -> manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -24,7 +26,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
       },
       "revised_at": "2026-07-04T10:55:53.091037+00:00",
-      "reason": "Implementation review found the docs parity test only asserted the vocabulary section exists, not that the docs section contains the reuse-first, insights/by_lesson_type, theme-map member_lesson_types, and advisory non-blocking rules declared by the manifest."
+      "reason": "Implementation review found the docs parity test only asserted the vocabulary section exists, not that the docs section contains the reuse-first, insights/by_lesson_type, theme-map member_lesson_types, and advisory non-blocking rules declared by the manifest.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -33,7 +37,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:685cbc2bf56db2bc7e394649ce6cc833e7fb575b5e33ef23abdf6f1cb99f2aad"
       },
       "revised_at": "2026-07-04T10:57:13.015999+00:00",
-      "reason": "Strengthen review-driven docs coverage so the Outcome docs section asserts the same lesson_type vocabulary rules as the implementation-review skill guidance."
+      "reason": "Strengthen review-driven docs coverage so the Outcome docs section asserts the same lesson_type vocabulary rules as the implementation-review skill guidance.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -42,7 +48,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:70b10919b105c6266a4073666a4726104124bf16faabff35164040f1c5d61ba2"
       },
       "revised_at": "2026-07-04T11:02:28.679594+00:00",
-      "reason": "Strengthen review-driven package parity coverage so the focused tests assert current working-tree packaged skill and docs files are synced, not only regenerated copies in an isolated workspace."
+      "reason": "Strengthen review-driven package parity coverage so the focused tests assert current working-tree packaged skill and docs files are synced, not only regenerated copies in an isolated workspace.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -51,7 +59,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:f73ea250a14fa8e97d31913de96a65f95f814858e393f6390b153e0795a2f3ed"
       },
       "revised_at": "2026-07-04T11:03:16.436979+00:00",
-      "reason": "Adjust strengthened package parity test so MAID behavioral assertion scanning sees direct assertions in the declared test function."
+      "reason": "Adjust strengthened package parity test so MAID behavioral assertion scanning sees direct assertions in the declared test function.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -60,7 +70,9 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:f84d93803415f1dea96d49df816e454215139dc8eef003059c87106bed4cd697"
       },
       "revised_at": "2026-07-04T11:05:26.631991+00:00",
-      "reason": "Format the strengthened focused test with Black without changing the behavioral contract."
+      "reason": "Format the strengthened focused test with Black without changing the behavioral contract.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c79af8086ad45fabd3d0c1877182e8d8790b3f1fa6a2286a6bdacd1f99065b5a",
@@ -69,7 +81,42 @@
         "tests/test_outcome_vocabulary_guidance.py": "sha256:34e9a43fbc31c628c3f0b4d29a8453b2c7e22f5d72cfd1b0872b69a59fe50247"
       },
       "revised_at": "2026-07-04T11:12:27.036663+00:00",
-      "reason": "Capture evidence-backed Outcome after ready implementation review."
+      "reason": "Capture evidence-backed Outcome after ready implementation review.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:0b574925ef292aa1c79f3e44378675c0e59afac2d9ffe514129ecaa1e2c403de",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256:34e9a43fbc31c628c3f0b4d29a8453b2c7e22f5d72cfd1b0872b69a59fe50247"
+      },
+      "revised_at": "2026-08-10T03:29:36.010239+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/test_outcome_vocabulary_guidance.py",
+          "edit:.claude/skills/maid-implementation-review/SKILL.md",
+          "edit:.codex/skills/maid-implementation-review/SKILL.md",
+          "edit:docs/manifest-outcome-records.md",
+          "edit:maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "edit:maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "edit:maid_runner/docs/manifest-outcome-records.md",
+          "edit:maid_runner/instruction_payload.py",
+          "read:manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml",
+          "read:manifests/073-03-require-outcome-before-ready.manifest.yaml",
+          "read:manifests/079-01-version-init-instruction-payload.manifest.yaml",
+          "read:manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+          "read:scripts/sync_claude_files.py",
+          "read:tests/cli/test_init_instruction_payload_version.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -84,6 +131,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._capture_lesson_vocabulary_guidance",
@@ -133,6 +182,175 @@
       "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs:kind=test_function",
       "tests/test_outcome_vocabulary_guidance.py:test_vocabulary_guidance_synced_to_payloads_and_docs:returns=None"
     ],
+    "files": {
+      "create": [
+        "tests/test_outcome_vocabulary_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml",
+        "manifests/073-03-require-outcome-before-ready.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_instruction_payload_version.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_outcome_vocabulary_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_capture_guidance_requires_consulting_existing_lesson_types",
+              "description": "Both implementation-review skill sources tell the agent to list existing lesson_types via maid insights before coining a new one.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_guidance_prefers_fresh_theme_map_families",
+              "description": "Guidance prefers a fresh validated theme map's member_lesson_types as canonical families when one exists.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_guidance_states_reuse_first_rule",
+              "description": "Guidance states reuse an existing lesson_type when it fits and coin a new one only when nothing fits.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_vocabulary_check_is_advisory_and_non_blocking",
+              "description": "Guidance keeps the vocabulary check advisory; unavailable insights or index never blocks Outcome capture.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vocabulary_guidance_synced_to_payloads_and_docs",
+              "description": "Skill package copies equal sources after an isolated sync, and both doc copies carry the convergence section.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_vocabulary_change",
+              "description": "INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change baseline.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_capture_lesson_vocabulary_guidance",
+              "description": "Claude source implementation-review Outcome capture rule: consult existing lesson_types (maid insights by_lesson_type, or fresh theme-map member_lesson_types) and reuse-first before coining a new lesson_type; advisory, never blocking capture.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_capture_lesson_vocabulary_guidance",
+              "description": "Codex source capture vocabulary rule identical to the Claude copy.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_capture_lesson_vocabulary_guidance",
+              "description": "Generated Claude package copy of the capture vocabulary guidance, byte-for-byte in sync with the source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_capture_lesson_vocabulary_guidance",
+              "description": "Generated Codex package copy of the capture vocabulary guidance, byte-for-byte in sync with the source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_lesson_type_vocabulary_convergence_docs",
+              "description": "Outcome record docs section stating the reuse-first lesson_type vocabulary rule and its advisory, non-blocking nature.",
+              "of": "documentation",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_lesson_type_vocabulary_convergence_docs",
+              "description": "Packaged copy of the vocabulary convergence docs section, kept in sync.",
+              "of": "package_resource",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version advanced past the value current at implementation time (2026.07.01.1 at drafting), so downstream maid init --check reports the changed implementation-review payload as stale.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+        "manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml",
+        "manifests/073-03-require-outcome-before-ready.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "scripts/sync_claude_files.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_instruction_payload_version.py",
       "tests/test_outcome_vocabulary_guidance.py"

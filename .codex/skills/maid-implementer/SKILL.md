@@ -245,11 +245,16 @@ the full-tree handoff gate after every edit:
 maid verify --summary --plan-lock-scope task --since <baseline>
 ```
 
-Run the final strict handoff gate once with the same explicit task baseline:
+Assess once with the explicit task baseline, then run the exact verify command
+it prints:
 
 ```bash
-maid verify --profile handoff --since <baseline>
+maid assess --since <baseline>
 ```
+
+Assessment scales between `handoff` and `deep`; its deep command retains the
+plan-lock and red-evidence requirements. If assessment is unavailable or fails,
+use `maid verify --profile handoff --since <baseline>` as the safety floor.
 
 Apply ALL blocking fixes from one review round as a batch. If the contract or
 locked tests changed, run one revise after the batch and one re-validation;
