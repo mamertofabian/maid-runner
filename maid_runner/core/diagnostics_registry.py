@@ -185,6 +185,16 @@ _DESCRIPTION_OVERRIDES = {
         "A function or method signature differs from the arguments declared by "
         "the manifest.",
     ),
+    ErrorCode.DELIVERY_ATTESTATION_INVALID.value: (
+        "Delivery attestation is invalid",
+        "The delivery proof is missing, unreadable, malformed, or no longer "
+        "matches its plan-locked manifest contract.",
+    ),
+    ErrorCode.DELIVERED_CONTENT_MISMATCH.value: (
+        "Delivered content does not match",
+        "The delivery target is not a named branch ref, cannot be resolved, or "
+        "contains covered committed bytes that differ from the attestation.",
+    ),
 }
 
 _RECIPE_TEMPLATES = {
@@ -279,6 +289,22 @@ _RECIPE_TEMPLATES = {
             "that callable artifact in the declaring manifest with "
             "default_hook: true; do not use that acknowledgment for genuinely "
             "unimplemented stubs."
+        ),
+    ),
+    ErrorCode.DELIVERY_ATTESTATION_INVALID.value: RepairRecipe(
+        kind="run-command",
+        target="{command}",
+        instruction=(
+            "Regenerate the delivery attestation from the clean committed tree "
+            "that passed verification, then rerun {command}."
+        ),
+    ),
+    ErrorCode.DELIVERED_CONTENT_MISMATCH.value: RepairRecipe(
+        kind="escalate-human",
+        target="{file}",
+        instruction=(
+            "Inspect {file} and the configured destination branch. Deliver the "
+            "validated covered bytes or approve a new plan and attestation."
         ),
     ),
 }

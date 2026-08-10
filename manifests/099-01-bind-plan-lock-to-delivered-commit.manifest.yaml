@@ -1,0 +1,307 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Bind a plan-locked validated commit's writable file bytes to a named delivered
+  Git ref and emit independently recomputable provenance"
+type: feature
+created: "2026-08-09T23:31:11Z"
+metadata:
+  status: implementation-ready
+  origin: runwield-comparison-analysis-2026-08-09
+  tags:
+    - validation-trust
+    - tamper-evidence
+    - plan-lock
+    - git-integration
+    - anti-gaming
+  priority: high
+description: |
+  Add a deterministic delivery-attestation core and a `maid verify` delivery
+  check. A harness first calls `compute_delivery_attestation` for the explicit
+  task manifests and the clean, committed SHA whose tree passed verification,
+  then persists `render_provenance_record(...)`. Post-delivery CI runs
+  `maid verify --delivered <branch-ref> --attestation <record>`; MAID resolves
+  the named branch ref, hashes each contracted writable path at that tree, and
+  emits the same versioned record with the delivered SHA and pass/fail result.
+
+  The attested set is task-selected but never self-declared at the file level:
+  every selected manifest contributes its complete `files.create`,
+  `files.edit`, `files.scope`, `files.delete`, and `files.snapshot` set. Each
+  manifest must have a readable plan lock whose contract hash matches the
+  manifest stored at the validated commit. The record exposes the selected
+  manifest paths and covered paths so a consumer can audit task selection.
+
+  Hash committed blob bytes with `sha256:` digests rather than Git object IDs.
+  This remains stable across SHA-1/SHA-256 repositories and proves content
+  equality across squash or rebase delivery. Missing files are represented as
+  null, so declared deletes remain bound. Files outside the covered set do not
+  affect the result.
+
+  Delivery accepts only a ref that Git resolves symbolically to
+  `refs/heads/...` or `refs/remotes/...`; a raw pre-merge commit ID is rejected.
+  This prevents the trivial `--delivered <validated-sha>` claim while retaining
+  valid fast-forward delivery where the trusted branch ref resolves to that
+  same SHA. Trust in which destination branch CI supplies remains an operator
+  boundary and is made visible in the provenance record.
+
+  Missing, unreadable, structurally invalid, or contract-mismatched
+  attestations fail closed with E713. Unresolvable/non-branch delivery refs and
+  covered-byte mismatches fail with E714. Both codes have deterministic repair
+  recipes. `cmd_verify` appends a blocking delivery stage without changing the
+  ordinary gate ordering, exit semantics, failure-packet/SARIF behavior, or
+  single-document JSON output. In JSON mode the portable provenance record is
+  included under `delivery_provenance`; text mode reports the stage normally.
+
+  OUT: read-only dependencies, files outside selected manifests' writable
+  scope, semantic or LLM comparison, merge reconstruction, automatic repair,
+  signing/notarization, daemon protocol changes, and destination authorization.
+temptations:
+  - risk: "Do not reduce delivery proof to Git ancestry or commit-SHA equality."
+    instead: "Hash every selected manifest's complete writable path set at both commits
+      so squash/rebase delivery preserving bytes passes and any covered mutation fails."
+  - risk: "Do not compare working-tree bytes, platform-normalized text, or fork verify's
+      JSON formatting."
+    instead: "Hash committed Git blob bytes from an explicit project-root cwd, append
+      one verification stage, and inject provenance into the existing JSON document."
+  - risk: "Do not let a missing, unreadable, malformed, or contract-mismatched attestation
+      pass silently."
+    instead: "Return E713 as a blocking delivery stage with a registry-backed repair
+      recipe."
+  - risk: "Do not accept a raw validated commit ID as proof of delivery."
+    instead: "Require Git to resolve the supplied delivery target to a local or remote
+      branch ref and record both the ref and resolved SHA."
+  - risk: "Do not let callers hand-pick a smaller covered-file subset."
+    instead: "Derive paths only from each selected loaded manifest's full all_writable_paths
+      contract and expose task selection in the record."
+files:
+  create:
+    - path: maid_runner/core/delivery_attestation.py
+      artifacts:
+        - kind: function
+          name: compute_delivery_attestation
+          args:
+            - name: project_root
+              type: Path
+            - name: manifest_paths
+              type: Collection[Path]
+            - name: validated_ref
+              type: str
+          returns: dict
+          description: "Derive a versioned record for explicit plan-locked manifests
+            at one validated commit, using their full writable sets and exact committed
+            blob-byte hashes."
+        - kind: function
+          name: verify_delivered_attestation
+          args:
+            - name: attestation
+              type: dict
+            - name: project_root
+              type: Path
+            - name: delivered_ref
+              type: str
+          returns: dict
+          description: "Fail-closed comparison against a named local/remote branch
+            ref, returning the resolved SHA and every missing or mismatched contract/path."
+        - kind: function
+          name: render_provenance_record
+          args:
+            - name: attestation
+              type: dict
+            - name: verification
+              type: "dict | None"
+              default: None
+          returns: str
+          description: "Serialize the versioned attestation and optional delivery
+            result as deterministic, self-describing JSON."
+    - path: tests/core/test_delivery_attestation.py
+      artifacts:
+        - kind: test_function
+          name: test_delivered_ref_with_matching_covered_bytes_passes
+        - kind: test_function
+          name: test_delivered_ref_with_mutated_covered_file_fails
+        - kind: test_function
+          name: test_delivered_ref_missing_covered_file_fails_closed
+        - kind: test_function
+          name: test_squash_or_rebase_preserving_covered_bytes_still_passes
+        - kind: test_function
+          name: test_missing_or_mismatched_attestation_fails_closed
+        - kind: test_function
+          name: test_ref_adding_only_uncovered_files_still_passes
+        - kind: test_function
+          name: test_provenance_record_is_independently_recomputable
+        - kind: test_function
+          name: test_attestation_compare_is_deterministic_and_cwd_independent
+  edit:
+    - path: tests/core/test_diagnostics_registry.py
+      artifacts:
+        - kind: test_function
+          name: test_pinned_codes_have_structured_repair_recipes
+          args: []
+          returns: None
+          description: "Pins E713 and E714 as registry-backed diagnostics with structured repair recipes."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: cmd_verify
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Optionally appends delivery verification and emits its portable
+            record without changing existing verify output or exit semantics."
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: DELIVERY_ATTESTATION_INVALID
+          of: ErrorCode
+          type: str
+          description: "E713: missing, unreadable, malformed, or contract-mismatched
+            delivery attestation."
+        - kind: attribute
+          name: DELIVERED_CONTENT_MISMATCH
+          of: ErrorCode
+          type: str
+          description: "E714: invalid delivery branch ref or covered committed bytes
+            that differ from the validated attestation."
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Register --delivered and --attestation verify flags; parser registration
+        is private wiring."
+    - path: maid_runner/core/diagnostics_registry.py
+      reason: "Register E713/E714 descriptions and repair recipes without adding a
+        new public diagnostic API."
+  read:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/types.py
+    - maid_runner/cli/commands/_format.py
+    - AGENTS.md
+validate:
+  - uv run python -m pytest tests/core/test_delivery_attestation.py tests/core/test_diagnostics_registry.py -v
+  - uv run maid validate
+    manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T00:52:53Z'
+  summary: Added deterministic Git delivery attestations that bind every selected
+    plan-locked manifest's complete writable path set to exact committed blob bytes,
+    plus a fail-closed `maid verify` delivery stage and portable provenance output.
+  rationale: |
+    Delivery verification now compares content rather than ancestry, so squash or
+    rebase delivery passes when contracted bytes are preserved while mutations and
+    deletions fail. Named branch refs keep the destination claim visible, strict
+    manifest and JSON parsing prevents ambiguous proof inputs, and the existing
+    verify result pipeline retains its normal exit, packet, SARIF, and JSON behavior.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-implement-draft
+    - maid-plan-review
+    - maid-implementer
+    - maid-implementation-review
+  lessons:
+  - lesson_type: validation-trust
+    summary: A delivery proof must recompute the selected manifests' complete writable
+      sets and validated Git blobs instead of trusting the proof's own path inventory.
+    tags:
+    - anti-gaming
+    - git
+    - plan-lock
+    paths:
+    - maid_runner/core/delivery_attestation.py
+    - tests/core/test_delivery_attestation.py
+  - lesson_type: input-hardening
+    summary: Trust-boundary parsers need strict semantics at every layer; duplicate
+      YAML keys, duplicate JSON keys, invalid UTF-8, and non-standard JSON constants
+      can otherwise make independently recomputed provenance ambiguous.
+    tags:
+    - fail-closed
+    - provenance
+    - implementation-review
+    paths:
+    - maid_runner/core/delivery_attestation.py
+    - maid_runner/cli/commands/verify.py
+    - tests/core/test_delivery_attestation.py
+  - lesson_type: test-design
+    summary: Artifact coverage exposed that checking a CLI function was callable did
+      not prove the delivery stage executed; the behavioral test now invokes cmd_verify
+      and asserts its single-document JSON result.
+    tags:
+    - artifact-coverage
+    - behavioral-tests
+    paths:
+    - maid_runner/cli/commands/verify.py
+    - tests/core/test_delivery_attestation.py
+  review_notes:
+  - source: implementation-review-subagent-delivery_attestation_review
+    severity: P1 fixed
+    summary: Found that delivered manifests used permissive YAML parsing; both validated
+      and delivered manifests now pass through MAID's strict duplicate-key loader.
+  - source: implementation-review-subagent-delivery_attestation_rereview
+    severity: P1 fixed
+    summary: Found ambiguous duplicate JSON keys and unstructured invalid UTF-8 handling;
+      both now fail through the delivery stage with E713.
+  - source: implementation-review-subagent-delivery_attestation_final_review
+    severity: P2 fixed
+    summary: Found Python's non-standard NaN/Infinity JSON behavior; parsing rejects
+      those constants and rendering uses allow_nan=false.
+  - source: implementation-review-subagent-delivery_attestation_strict_json_review
+    severity: ready
+    summary: Final independent review found no actionable findings, confirmed all prior
+      trust-boundary findings closed, and found no implementation scope drift.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: Implementation validation passed against plan-lock revision 12.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --artifact-coverage
+    - manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml
+    - --mode
+    - implementation
+    status: passed
+    summary: Targeted artifact coverage executed all four declared public functions.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full Python suite passed 3880 tests with 5 skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: Repository validation passed 404 active manifests, skipped 109 superseded
+      manifests, and reported zero failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 237 manifest-declared commands passed.

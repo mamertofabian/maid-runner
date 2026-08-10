@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
-  "manifest_hash": "sha256:630603bcdf2eb00d499936d7c2aace00a764c944284b5055c3fea4230e0303ce",
+  "manifest_hash": "sha256-contract:97ae13e7ad8d432ef05c0ccd82a114bfdde79463f7935c98ff21b0e2279eda53",
   "test_hashes": {
-    "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4"
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
   },
   "created_at": "2026-06-13T21:43:28.711525+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:486873f27c854af1f27084a31f5c96caacfd6f55a9e86dac37b41c616e36a8fa",
@@ -13,7 +13,9 @@
         "tests/core/test_diagnostics_registry.py": "sha256:05d69ac454f967f9bd20d9493cfbbc7b19575cd9d349f740cd5b8bb8d76e5ff9"
       },
       "revised_at": "2026-06-13T21:51:05.763917+00:00",
-      "reason": "refresh red evidence after severity coverage test"
+      "reason": "refresh red evidence after severity coverage test",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:486873f27c854af1f27084a31f5c96caacfd6f55a9e86dac37b41c616e36a8fa",
@@ -21,7 +23,9 @@
         "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd"
       },
       "revised_at": "2026-06-13T22:14:31.216049+00:00",
-      "reason": "record implementation outcome"
+      "reason": "record implementation outcome",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:630603bcdf2eb00d499936d7c2aace00a764c944284b5055c3fea4230e0303ce",
@@ -29,7 +33,32 @@
         "tests/core/test_diagnostics_registry.py": "sha256:13acbcb6f3b010a18529f0638eafb44b44feb5c83a9a721c675ca5911202a3bd"
       },
       "revised_at": "2026-07-03T01:10:09.490839+00:00",
-      "reason": "Shared diagnostics registry test updated to pin the new E310 repair recipe."
+      "reason": "Shared diagnostics registry test updated to pin the new E310 repair recipe.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:630603bcdf2eb00d499936d7c2aace00a764c944284b5055c3fea4230e0303ce",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256:d87328fd42ac63d293a23bd64443830e4bcbf180919464a29f70f1d1e97811d4"
+      },
+      "revised_at": "2026-08-09T23:45:17.050328+00:00",
+      "reason": "accept approved E713/E714 registry-test expansion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/core/diagnostics_registry.py",
+          "read:docs/troubleshooting.md",
+          "read:maid_runner/core/result.py",
+          "read:manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml",
+          "read:tests/core/test_diagnostics_registry.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -56,6 +85,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/core/diagnostics_registry.py:attribute:DiagnosticRule.code",
@@ -111,6 +142,134 @@
       "maid_runner/core/diagnostics_registry.py:function:render_next_action:kind=function",
       "maid_runner/core/diagnostics_registry.py:function:render_next_action:returns=dict | None"
     ],
+    "files": {
+      "create": [
+        "maid_runner/core/diagnostics_registry.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/result.py",
+        "manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml",
+        "tests/core/test_diagnostics_registry.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "RepairRecipe",
+              "description": "Structured next_action recipe template: kind, target, and an imperative instruction template with named placeholders."
+            },
+            {
+              "kind": "attribute",
+              "name": "kind",
+              "of": "RepairRecipe",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "target",
+              "of": "RepairRecipe",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "instruction",
+              "of": "RepairRecipe",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "DiagnosticRule",
+              "description": "Per-error-code registry entry: code, default severity, short description, full description, docs link, and optional repair recipe."
+            },
+            {
+              "kind": "attribute",
+              "name": "code",
+              "of": "DiagnosticRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "default_severity",
+              "of": "DiagnosticRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "short_description",
+              "of": "DiagnosticRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "description",
+              "of": "DiagnosticRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "help_uri",
+              "of": "DiagnosticRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "next_action",
+              "of": "DiagnosticRule",
+              "type": "RepairRecipe | None"
+            },
+            {
+              "kind": "function",
+              "name": "get_rule",
+              "description": "Return the registered rule for an error code; fail loudly for unknown codes.",
+              "args": [
+                {
+                  "name": "code",
+                  "type": "str"
+                }
+              ],
+              "returns": "DiagnosticRule"
+            },
+            {
+              "kind": "function",
+              "name": "all_rules",
+              "description": "Return all registered rules, deterministically ordered by code, covering every ErrorCode member.",
+              "returns": "tuple[DiagnosticRule, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "render_next_action",
+              "description": "Render the recipe template for a code with actual diagnostic file/artifact/command values into a {kind, target, instruction} dict; return None for codes without a recipe.",
+              "args": [
+                {
+                  "name": "code",
+                  "type": "str"
+                },
+                {
+                  "name": "values",
+                  "type": "dict[str, str]"
+                }
+              ],
+              "returns": "dict | None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml",
+        "docs/troubleshooting.md",
+        "tests/core/test_diagnostics_registry.py"
+      ]
+    },
     "test_files": [
       "tests/core/test_diagnostics_registry.py"
     ],

@@ -2,14 +2,14 @@
   "manifest_path": "manifests/090-01-surface-plan-lock-scope-widening.manifest.yaml",
   "manifest_hash": "sha256-contract:6a06dd9a608bea3864bf188b634125f771d81cbd273a8e448cfc8a0ff82aaff7",
   "test_hashes": {
-    "tests/core/test_changed_scope.py": "sha256-pyast:8a8319eef415298d77fa9784668f4d696b0c12cd4c478d9fabd228b301d3ca55",
-    "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:0b0b6723414792485a3b1537d9bddc984cf52f6a7cd62e2fb10bc7c31587efc3",
-    "tests/core/test_changed_scope_declarations.py": "sha256-pyast:1afe25cadc7b912ae3f91a359af833dbdd34c4bb7107800ad2d7b2a9c62cc607",
-    "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78",
-    "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2"
+    "tests/core/test_changed_scope.py": "sha256-pyast:v2:7878def5a1513f3f6534b4541e43e9cd3c02cf4a351dd5199bf07b40af5b5dbe",
+    "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:v2:b1d11ad42401a9580ee2f0e7f149c277275ebfb90a1363f4778c1f7a6086e7f5",
+    "tests/core/test_changed_scope_declarations.py": "sha256-pyast:v2:8662e3b36162793976f25e76a9552d8a02bc3546f0589000e412d2a8b358c733",
+    "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:v2:9580b6d8aa6cb1803ae34bcfcb7fa4369bcd75c727f5f750db0fb28d67a91e7f",
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
   },
   "created_at": "2026-07-26T05:24:25.550354+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:449addc8538289237cf04d6682fb50b18faf2b25a0cc97462ef70fc0fa2ea5fb",
@@ -64,6 +64,27 @@
           "scope:tests/cli/test_verify_plan_lock_cmd.py",
           "scope:tests/cli/test_verify_plan_lock_scope_cmd.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6a06dd9a608bea3864bf188b634125f771d81cbd273a8e448cfc8a0ff82aaff7",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope.py": "sha256-pyast:8a8319eef415298d77fa9784668f4d696b0c12cd4c478d9fabd228b301d3ca55",
+        "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:0b0b6723414792485a3b1537d9bddc984cf52f6a7cd62e2fb10bc7c31587efc3",
+        "tests/core/test_changed_scope_declarations.py": "sha256-pyast:1afe25cadc7b912ae3f91a359af833dbdd34c4bb7107800ad2d7b2a9c62cc607",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:9b7dddb1894bbf3521f3367230b163d4fa80cb68f7688e43acab12cce0e8aa78",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:77dc30469c0604b5d57f5f070954bbad1c3abb40d4578bb1cbbb4c6f5f00abb2"
+      },
+      "revised_at": "2026-08-09T23:45:17.543997+00:00",
+      "reason": "accept approved E713/E714 registry-test expansion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

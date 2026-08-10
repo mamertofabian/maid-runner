@@ -17,6 +17,7 @@ from maid_runner.cli.commands._format import (
 )
 from maid_runner.core.result import (
     ErrorCode,
+    Location,
     ValidationError,
     Severity,
     VerificationResult,
@@ -93,22 +94,38 @@ def cmd_verify(args: argparse.Namespace) -> int:
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
         )
+        delivery_provenance = None
+        delivered_ref = getattr(args, "delivered", None)
+        attestation_path = getattr(args, "attestation", None)
+        if delivered_ref is not None or attestation_path is not None:
+            delivery_stage, delivery_provenance = _delivery_attestation_stage(
+                delivered_ref=delivered_ref,
+                attestation_path=attestation_path,
+                project_root=Path("."),
+            )
+            result = VerificationResult(
+                stages=(*result.stages, delivery_stage),
+                duration_ms=result.duration_ms,
+            )
         formatter = (
             format_verify_summary
             if getattr(args, "summary", False)
             else format_verify_result
         )
-        print(
-            _mark_profile_output(
-                _mark_strict_preview_output(
-                    formatter(result, json_mode=json_mode),
-                    enabled=strict_preview,
-                    json_mode=json_mode,
-                ),
-                report=profile_report,
+        output = _mark_profile_output(
+            _mark_strict_preview_output(
+                formatter(result, json_mode=json_mode),
+                enabled=strict_preview,
                 json_mode=json_mode,
-            )
+            ),
+            report=profile_report,
+            json_mode=json_mode,
         )
+        if json_mode and delivery_provenance is not None:
+            payload = json.loads(output) if output else {}
+            payload["delivery_provenance"] = delivery_provenance
+            output = json.dumps(payload, indent=2)
+        print(output)
         exit_code = 0 if _result_success(result) else 1
         if not _write_sarif_report_if_requested(args, result):
             return 2
@@ -119,6 +136,116 @@ def cmd_verify(args: argparse.Namespace) -> int:
             json_mode=json_mode,
         )
         return 2
+
+
+def _delivery_attestation_stage(
+    *,
+    delivered_ref: str | None,
+    attestation_path: str | None,
+    project_root: Path,
+) -> tuple[VerificationStageResult, dict | None]:
+    from maid_runner.core.delivery_attestation import (
+        render_provenance_record,
+        verify_delivered_attestation,
+    )
+
+    started = time.monotonic()
+    if delivered_ref is None or attestation_path is None:
+        error = ValidationError(
+            code=ErrorCode.DELIVERY_ATTESTATION_INVALID,
+            message="--delivered and --attestation must be supplied together",
+            severity=Severity.ERROR,
+            suggestion=(
+                "Supply a named destination branch and a provenance record "
+                "generated from the validated commit."
+            ),
+        )
+        return (
+            VerificationStageResult(
+                name="delivery_attestation",
+                success=False,
+                _duration_ms=_elapsed_ms(started),
+                _errors=(error,),
+            ),
+            None,
+        )
+
+    proof_path = Path(attestation_path)
+    try:
+        attestation = json.loads(
+            proof_path.read_bytes().decode("utf-8"),
+            object_pairs_hook=_reject_duplicate_json_keys,
+            parse_constant=_reject_nonstandard_json_constant,
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        error = ValidationError(
+            code=ErrorCode.DELIVERY_ATTESTATION_INVALID,
+            message=f"delivery attestation is unreadable at {proof_path}: {exc}",
+            severity=Severity.ERROR,
+            location=Location(file=str(proof_path)),
+            suggestion=(
+                "Regenerate the delivery attestation from the clean committed "
+                "tree that passed verification."
+            ),
+        )
+        return (
+            VerificationStageResult(
+                name="delivery_attestation",
+                success=False,
+                _duration_ms=_elapsed_ms(started),
+                _errors=(error,),
+            ),
+            None,
+        )
+
+    verification = verify_delivered_attestation(
+        attestation,
+        project_root,
+        delivered_ref,
+    )
+    errors = tuple(
+        ValidationError(
+            code=ErrorCode(item["code"]),
+            message=item["message"],
+            severity=Severity.ERROR,
+            location=Location(file=str(proof_path)),
+            suggestion=(
+                "Regenerate the attestation from the validated commit."
+                if item["code"] == ErrorCode.DELIVERY_ATTESTATION_INVALID.value
+                else "Inspect the covered path changes and destination branch."
+            ),
+        )
+        for item in verification["errors"]
+    )
+    provenance = None
+    try:
+        provenance = json.loads(render_provenance_record(attestation, verification))
+    except ValueError:
+        pass
+    return (
+        VerificationStageResult(
+            name="delivery_attestation",
+            success=verification["success"],
+            _duration_ms=_elapsed_ms(started),
+            _errors=errors,
+        ),
+        provenance,
+    )
+
+
+def _reject_duplicate_json_keys(
+    pairs: list[tuple[str, object]],
+) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key in delivery attestation: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_nonstandard_json_constant(value: str) -> object:
+    raise ValueError(f"non-standard JSON constant in delivery attestation: {value}")
 
 
 def _attribute_to_profile(

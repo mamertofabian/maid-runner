@@ -586,6 +586,21 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         default=False,
         help="Print categorized, deduplicated verification output",
     )
+    p.add_argument(
+        "--delivered",
+        default=None,
+        metavar="BRANCH_REF",
+        help=(
+            "Verify attested covered bytes at a named local or remote delivery "
+            "branch ref"
+        ),
+    )
+    p.add_argument(
+        "--attestation",
+        default=None,
+        metavar="PATH",
+        help="Portable delivery-attestation JSON consumed by --delivered",
+    )
 
 
 def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
