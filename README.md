@@ -363,7 +363,14 @@ by the tests. The gate is opt-in and Python-only. Attribute artifacts are
 excluded, and a class passes when any declared method on the class executes.
 Install the optional quality extra with `maid-runner[quality]`; requesting the
 gate without that extra fails closed with `E307` semantics instead of silently
-skipping the evidence check.
+skipping the evidence check. Artifact-coverage subprocesses have a finite
+15-minute default that repositories can adjust with a positive number of
+seconds in `.maidrc.yaml`:
+
+```yaml
+artifact_coverage:
+  timeout_seconds: 900
+```
 
 `maid verify --knockout` is an opt-in Python-only gate that replaces each
 declared public function or method body with

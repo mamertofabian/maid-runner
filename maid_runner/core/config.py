@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 from pathlib import PureWindowsPath
 from typing import Union
@@ -27,6 +28,29 @@ class CoverageRecommendationConfig:
 
 
 @dataclass(frozen=True)
+class ArtifactCoverageConfig:
+    timeout_seconds: float = 900.0
+
+    def __post_init__(self) -> None:
+        raw_timeout = self.timeout_seconds
+        if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)):
+            raise ValueError(
+                "artifact_coverage.timeout_seconds must be a positive number"
+            )
+        try:
+            normalized_timeout = float(raw_timeout)
+        except OverflowError as exc:
+            raise ValueError(
+                "artifact_coverage.timeout_seconds must be a positive number"
+            ) from exc
+        if not math.isfinite(normalized_timeout) or normalized_timeout <= 0:
+            raise ValueError(
+                "artifact_coverage.timeout_seconds must be a positive number"
+            )
+        object.__setattr__(self, "timeout_seconds", normalized_timeout)
+
+
+@dataclass(frozen=True)
 class TestRunnerWrapperConfig:
     command: str
     runner: str
@@ -44,6 +68,7 @@ class MaidConfig:
     coverage_recommendation: CoverageRecommendationConfig = (
         CoverageRecommendationConfig()
     )
+    artifact_coverage: ArtifactCoverageConfig = ArtifactCoverageConfig()
 
 
 def load_config(project_root: Union[str, Path]) -> MaidConfig:
@@ -101,6 +126,17 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         raise ValueError(
             "coverage_recommendation.deep.command must be a non-empty string list"
         )
+    artifact_coverage = data.get("artifact_coverage", {}) or {}
+    if not isinstance(artifact_coverage, dict):
+        raise ValueError("artifact_coverage must be a mapping")
+    raw_artifact_coverage_timeout = artifact_coverage.get("timeout_seconds", 900.0)
+    if isinstance(raw_artifact_coverage_timeout, bool) or not isinstance(
+        raw_artifact_coverage_timeout, (int, float)
+    ):
+        raise ValueError("artifact_coverage.timeout_seconds must be a positive number")
+    artifact_coverage_config = ArtifactCoverageConfig(
+        timeout_seconds=raw_artifact_coverage_timeout
+    )
 
     return MaidConfig(
         manifest_dir=data.get("manifest_dir", "manifests/"),
@@ -118,6 +154,7 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
             cache_enabled=bool(recommendation.get("cache", True)),
             deep_command=tuple(raw_command) if raw_command is not None else None,
         ),
+        artifact_coverage=artifact_coverage_config,
     )
 
 

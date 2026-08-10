@@ -15,6 +15,7 @@ from maid_runner.core._test_command_execution import (
     _strict_validation_test_active,
     _test_command_environment,
 )
+from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
@@ -91,6 +92,7 @@ def run_artifact_coverage(
         )
 
     root = Path(project_root)
+    timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
     coverage_targets = _coverage_targets(manifest, root)
     if not coverage_targets:
         return ArtifactCoverageReport(findings=(), errors=())
@@ -104,6 +106,7 @@ def run_artifact_coverage(
             root,
             data_file,
             call_file,
+            timeout_seconds,
         )
         coverage_json = tmp_path / "coverage.json"
         report_errors = _write_coverage_json(data_file, coverage_json)
@@ -133,6 +136,7 @@ def run_artifact_coverage_batch(
         }
 
     root = Path(project_root)
+    timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
     targets_by_manifest = {
         manifest.source_path: _coverage_targets(manifest, root)
         for manifest in ordered_manifests
@@ -162,6 +166,7 @@ def run_artifact_coverage_batch(
             pytest_args,
             target_files=target_files,
             root=root,
+            timeout_seconds=timeout_seconds,
         )
         for pytest_args, target_files in target_files_by_command.items()
     }
@@ -239,6 +244,7 @@ def _run_shared_coverage_command(
     *,
     target_files: set[str],
     root: Path,
+    timeout_seconds: float,
 ) -> _SharedCoverageCommandRun:
     import subprocess
 
@@ -268,7 +274,7 @@ def _run_shared_coverage_command(
             capture_output=True,
             text=True,
             env=_test_command_environment(),
-            timeout=300,
+            timeout=timeout_seconds,
         )
         coverage_json = tmp_path / "coverage.json"
         report_errors = _write_coverage_json(data_file, coverage_json)
@@ -344,6 +350,7 @@ def _run_coverage_commands(
     root: Path,
     data_file: Path,
     call_file: Path,
+    timeout_seconds: float,
 ) -> list[ValidationError]:
     import subprocess
 
@@ -375,7 +382,7 @@ def _run_coverage_commands(
             capture_output=True,
             text=True,
             env=env,
-            timeout=300,
+            timeout=timeout_seconds,
         )
         if proc.returncode != 0:
             errors.append(
