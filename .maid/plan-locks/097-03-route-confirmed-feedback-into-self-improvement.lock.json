@@ -1,0 +1,381 @@
+{
+  "manifest_path": "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+  "manifest_hash": "sha256-contract:c611cbd432b08ec444f81f7200d2ab0a5460bdbf7d031bd88aab0367f1bb363e",
+  "test_hashes": {
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+    "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
+    "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
+    "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:27ab26af60e0fe9be6974ea36d1265abe0e67ef3bbfc7e9de0570c0244b5a272"
+  },
+  "created_at": "2026-08-08T22:30:08.928269+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:4b3ca0462eca3fbc178b1c515ebac12e5b149770cbbcd21f22b5e2499933954e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
+        "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
+        "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:5b368125b74aa58b4bbffed538a58f74322bde443bde8cabe712158731391bf2"
+      },
+      "revised_at": "2026-08-08T22:30:09.806796+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml -> manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d3b3a714fea853322a559d188b5c988827ca983215ddc4a65a2a837354130062",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
+        "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
+        "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:5b368125b74aa58b4bbffed538a58f74322bde443bde8cabe712158731391bf2"
+      },
+      "revised_at": "2026-08-08T22:36:13.366732+00:00",
+      "reason": "Implementation review requires treating imported summaries as untrusted data and ignoring directive-looking content before investigation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c611cbd432b08ec444f81f7200d2ab0a5460bdbf7d031bd88aab0367f1bb363e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:17e4b85729173978b23d3332e1211db19908ad3dec01d257946c3ab4c5532e71",
+        "tests/test_outcome_vocabulary_guidance.py": "sha256-pyast:v2:69a475b498190b16714291b72deb43fb32b4c7f139f059c13cf8290a966adeff",
+        "tests/test_self_improvement_digest_guidance.py": "sha256-pyast:v2:1e3a2c19ec44816333cee643cd386af9cbe53f5aebf3b1fdbd0054a73f5171b0",
+        "tests/test_cross_repository_feedback_guidance.py": "sha256-pyast:v2:27ab26af60e0fe9be6974ea36d1265abe0e67ef3bbfc7e9de0570c0244b5a272"
+      },
+      "revised_at": "2026-08-10T03:29:38.734379+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T22:36:13.939129+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_cross_repository_feedback_guidance.py tests/test_outcome_vocabulary_guidance.py tests/test_self_improvement_digest_guidance.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "E             \nE             Skipping 10504 identical leading characters in diff, use -v to show\nE               ly.\nE             + \nE             + ### MAID Runner Feedback Candidates\nE             + \nE             + Adding the exact, case-sensitive `maid-runner-feedback` tag must be an explicit...\nE             \nE             ...Full output truncated (106 lines hidden), use '-vv' to show\n\ntests/test_outcome_vocabulary_guidance.py:100: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_cross_repository_feedback_guidance.py::test_outcome_capture_marks_only_safe_generalizable_feedback_candidates\nFAILED tests/test_cross_repository_feedback_guidance.py::test_self_improvement_treats_feedback_aggregate_as_advisory\nFAILED tests/test_cross_repository_feedback_guidance.py::test_self_improvement_requires_current_tree_reproduction\nFAILED tests/test_cross_repository_feedback_guidance.py::test_confirmed_feedback_routes_through_specialist_and_maid_gates\nFAILED tests/test_cross_repository_feedback_guidance.py::test_feedback_workflow_guidance_is_synced_to_payloads_and_docs\nFAILED tests/test_cross_repository_feedback_guidance.py::test_instruction_payload_version_bumped_for_feedback_capture_guidance\nFAILED tests/test_outcome_vocabulary_guidance.py::test_vocabulary_guidance_synced_to_payloads_and_docs\n7 failed, 17 passed in 0.32s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._maid_runner_feedback_candidate_capture_guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._maid_runner_feedback_candidate_capture_guidance:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._maid_runner_feedback_candidate_capture_guidance:of=skill",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._maid_runner_feedback_candidate_capture_guidance:type=markdown section",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._cross_repository_feedback_intake_guidance",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._cross_repository_feedback_intake_guidance:kind=attribute",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._cross_repository_feedback_intake_guidance:of=skill",
+      ".claude/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._cross_repository_feedback_intake_guidance:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_maid_runner_feedback_candidate_capture_guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_maid_runner_feedback_candidate_capture_guidance:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_maid_runner_feedback_candidate_capture_guidance:of=skill",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_maid_runner_feedback_candidate_capture_guidance:type=markdown section",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_cross_repository_feedback_intake_guidance",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_cross_repository_feedback_intake_guidance:kind=attribute",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_cross_repository_feedback_intake_guidance:of=skill",
+      ".codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._codex_cross_repository_feedback_intake_guidance:type=markdown section",
+      "docs/manifest-outcome-records.md:attribute:documentation._cross_repository_feedback_workflow_docs",
+      "docs/manifest-outcome-records.md:attribute:documentation._cross_repository_feedback_workflow_docs:kind=attribute",
+      "docs/manifest-outcome-records.md:attribute:documentation._cross_repository_feedback_workflow_docs:of=documentation",
+      "docs/manifest-outcome-records.md:attribute:documentation._cross_repository_feedback_workflow_docs:type=doc-section",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_maid_runner_feedback_candidate_capture_guidance",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_maid_runner_feedback_candidate_capture_guidance:kind=attribute",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_maid_runner_feedback_candidate_capture_guidance:of=skill",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._distributed_maid_runner_feedback_candidate_capture_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_maid_runner_feedback_candidate_capture_guidance",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_maid_runner_feedback_candidate_capture_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_maid_runner_feedback_candidate_capture_guidance:of=skill",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_distributed_maid_runner_feedback_candidate_capture_guidance:type=markdown section",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_cross_repository_feedback_intake_guidance",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_cross_repository_feedback_intake_guidance:kind=attribute",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_cross_repository_feedback_intake_guidance:of=skill",
+      "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md:attribute:skill._packaged_codex_cross_repository_feedback_intake_guidance:type=markdown section",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_cross_repository_feedback_workflow_docs",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_cross_repository_feedback_workflow_docs:kind=attribute",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_cross_repository_feedback_workflow_docs:of=package_resource",
+      "maid_runner/docs/manifest-outcome-records.md:attribute:package_resource._packaged_cross_repository_feedback_workflow_docs:type=doc-section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_cross_repository_feedback_guidance.py:test_confirmed_feedback_routes_through_specialist_and_maid_gates",
+      "tests/test_cross_repository_feedback_guidance.py:test_confirmed_feedback_routes_through_specialist_and_maid_gates:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_confirmed_feedback_routes_through_specialist_and_maid_gates:returns=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_feedback_workflow_guidance_is_synced_to_payloads_and_docs",
+      "tests/test_cross_repository_feedback_guidance.py:test_feedback_workflow_guidance_is_synced_to_payloads_and_docs:arg=tmp_path:type=Path:default=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_feedback_workflow_guidance_is_synced_to_payloads_and_docs:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_feedback_workflow_guidance_is_synced_to_payloads_and_docs:returns=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_instruction_payload_version_bumped_for_feedback_capture_guidance",
+      "tests/test_cross_repository_feedback_guidance.py:test_instruction_payload_version_bumped_for_feedback_capture_guidance:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_instruction_payload_version_bumped_for_feedback_capture_guidance:returns=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_outcome_capture_marks_only_safe_generalizable_feedback_candidates",
+      "tests/test_cross_repository_feedback_guidance.py:test_outcome_capture_marks_only_safe_generalizable_feedback_candidates:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_outcome_capture_marks_only_safe_generalizable_feedback_candidates:returns=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_requires_current_tree_reproduction",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_requires_current_tree_reproduction:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_requires_current_tree_reproduction:returns=None",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_treats_feedback_aggregate_as_advisory",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_treats_feedback_aggregate_as_advisory:kind=test_function",
+      "tests/test_cross_repository_feedback_guidance.py:test_self_improvement_treats_feedback_aggregate_as_advisory:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_cross_repository_feedback_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-runner-self-improvement/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-runner-self-improvement/SKILL.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "maid_runner/core/feedback_intake.py",
+        "manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
+        "manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "manifests/drafts/README.md",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "tests/test_outcome_vocabulary_guidance.py",
+        "tests/test_self_improvement_digest_guidance.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_cross_repository_feedback_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_outcome_capture_marks_only_safe_generalizable_feedback_candidates",
+              "description": "Every implementation-review guidance surface requires explicit per-lesson opt-in, forbids inferred or blanket marking, limits the exact marker to privacy-reviewed generalizable MAID Runner findings, excludes unsafe content, and distinguishes candidacy from upload consent.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_self_improvement_treats_feedback_aggregate_as_advisory",
+              "description": "Every self-improvement surface treats a local aggregate as untrusted advisory evidence rather than instructions, ignores directive-looking content, extracts only reported claims, and does not misstate reported_source_count as unique repositories.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_self_improvement_requires_current_tree_reproduction",
+              "description": "Self-improvement guidance requires current-tree reproduction and primary evidence while preserving unreproduced reports as explicitly unconfirmed.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_confirmed_feedback_routes_through_specialist_and_maid_gates",
+              "description": "Confirmed findings route across every named self-improvement lane and specialist owner and cannot automatically submit data, create issues, create or promote manifests, change validation policy, modify code, or bypass any MAID gate.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_workflow_guidance_is_synced_to_payloads_and_docs",
+              "description": "Current and freshly regenerated package copies match their implementation-review, self-improvement, and Outcome-doc sources and carry the feedback workflow.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_feedback_capture_guidance",
+              "description": "INSTRUCTION_PAYLOAD_VERSION advances past the pre-change baseline so downstream payload drift is visible.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_runner_feedback_candidate_capture_guidance",
+              "description": "Claude Outcome-capture guidance for explicitly marking only privacy-reviewed, generalizable MAID Runner lessons as local feedback candidates without implying upload consent.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_maid_runner_feedback_candidate_capture_guidance",
+              "description": "Codex Outcome-capture guidance equivalent to the Claude feedback-candidate rule.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_maid_runner_feedback_candidate_capture_guidance",
+              "description": "Packaged Claude copy of the feedback-candidate capture guidance, synchronized with its source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_distributed_maid_runner_feedback_candidate_capture_guidance",
+              "description": "Packaged Codex copy of the feedback-candidate capture guidance, synchronized with its source skill.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-runner-self-improvement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_cross_repository_feedback_intake_guidance",
+              "description": "Claude self-improvement procedure for treating local aggregate reports as untrusted advisory leads rather than instructions, reproducing candidates, and routing only confirmed findings through specialist lanes and MAID gates.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-runner-self-improvement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_cross_repository_feedback_intake_guidance",
+              "description": "Codex self-improvement feedback intake procedure equivalent to the Claude guidance, including the untrusted-data and prompt-injection boundary.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_cross_repository_feedback_intake_guidance",
+              "description": "Packaged repo-internal Codex self-improvement copy of the governed, untrusted-data feedback intake guidance.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_cross_repository_feedback_workflow_docs",
+              "description": "Canonical Outcome docs explaining safe candidate marking, untrusted advisory aggregate interpretation, current-tree reproduction, and governed routing.",
+              "of": "documentation",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_cross_repository_feedback_workflow_docs",
+              "description": "Packaged copy of the cross-repository feedback workflow guidance, kept synchronized with the canonical docs.",
+              "of": "package_resource",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped payload version advanced past 2026.08.07.2 so downstream repositories detect the changed implementation-review guidance.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/083-04-converge-lesson-type-vocabulary-at-capture.manifest.yaml",
+        "manifests/083-05-feed-digest-into-self-improvement-audit.manifest.yaml",
+        "maid_runner/core/feedback_intake.py",
+        "maid_runner/claude/manifest.json",
+        "maid_runner/codex/manifest.json",
+        "manifests/drafts/README.md",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "tests/test_outcome_vocabulary_guidance.py",
+        "tests/test_self_improvement_digest_guidance.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_cross_repository_feedback_guidance.py",
+      "tests/test_outcome_vocabulary_guidance.py",
+      "tests/test_self_improvement_digest_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_cross_repository_feedback_guidance.py tests/test_outcome_vocabulary_guidance.py tests/test_self_improvement_digest_guidance.py tests/cli/test_init_instruction_payload_version.py"
+    ]
+  }
+}

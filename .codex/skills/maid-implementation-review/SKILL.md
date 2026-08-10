@@ -210,6 +210,20 @@ insights or the index is unavailable, capture proceeds with the agent's
 best-fit lesson_type and the unavailable vocabulary evidence should be noted
 as advisory context only.
 
+### MAID Runner Feedback Candidates
+
+Adding the exact, case-sensitive `maid-runner-feedback` tag must be an explicit
+per-lesson decision. Use it only for an individual lesson about generalizable
+MAID Runner behavior, validation, CLI behavior, packaging, or MAID workflow.
+The reviewer must not infer candidacy from lesson text, paths, error codes, or
+other tags, and must not blanket-mark every MAID-adjacent lesson.
+
+Do not mark application-specific findings or summaries containing secrets,
+credentials, personal data, or proprietary details. Inspect the authored
+Outcome summary before adding the marker and edit or omit unsafe details at the
+source. The marker makes the lesson a local export candidate; it is not consent
+to upload, submit, or publish the lesson.
+
 ### Manifest Outcome Record Check
 
 After the review verdict is ready, check related completed Outcome records to
@@ -252,20 +266,21 @@ gate.
 Where practical, run:
 
 ```bash
-maid verify --profile handoff --since <baseline>
+maid assess --since <baseline>
 maid validate manifests/<slug>.manifest.yaml --mode implementation
 maid test --manifest manifests/<slug>.manifest.yaml
 ```
 
-For high-risk changes where runtime evidence matters, the opt-in gate is
-`maid verify --profile deep`; run it as
-`maid verify --profile deep --since <baseline>`. This
-Python-only review gate checks that declared artifacts are executed by tests
-and that breaking each declared function or method makes validation fail.
+Run the exact verify command emitted by assessment. It scales between `handoff`
+and `maid verify --profile deep` for high-risk changes; the deep command retains
+the plan-lock and red-evidence requirements
+while adding artifact-coverage and knockout checks. If assessment is unavailable
+or fails, use `maid verify --profile handoff --since <baseline>` as the safety
+floor.
 
-The `maid verify --profile handoff --since <baseline>` command is the
-implementation handoff gate for the approved plan lock and captured red-phase
-evidence. Treat E700-E706 plan-lock failures as blockers unless the review
+The emitted verify command is the implementation handoff gate for the approved
+plan lock and captured red-phase evidence. Treat E700-E706 plan-lock failures as
+blockers unless the review
 packet explicitly states that opt-in enforcement is out of scope for the task.
 E700/E704/E705 requirement errors apply to manifests changed in the task window;
 E701/E702/E703/E706 integrity errors are blockers regardless of task window

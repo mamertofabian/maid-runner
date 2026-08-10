@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
-  "manifest_hash": "sha256-contract:d69c53c0d836275d8b6a87abc1b6e875ba654c6211c704da02d1869be207cbf1",
+  "manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 13,
+  "revision": 20,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -204,16 +204,156 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d69c53c0d836275d8b6a87abc1b6e875ba654c6211c704da02d1869be207cbf1",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427"
+      },
+      "revised_at": "2026-08-08T01:29:34.992646+00:00",
+      "reason": "Register live 085 and 096 split-before-promote epics in the explicit planning inventory contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+          "read:manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7117c386d0928300d84f4f84a7be78021434484f35673b41d8d32b6213d1e481",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:56628f915dcdb74fb7b48bc3309f1da6165c59f4269d2ac72e9694cb89ba8427"
+      },
+      "revised_at": "2026-08-08T01:34:36.603064+00:00",
+      "reason": "Archive consumed 085 epic and pin final 062/064/096 live inventory behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic",
+          "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:kind=attribute",
+          "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:of=manifest",
+          "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:type=draft epic"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+          "read:manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+          "read:manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+          "read:manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml",
+          "read:manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+          "read:manifests/085-05-stash-implementation-session-robustness.manifest.yaml",
+          "read:manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+          "read:manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml"
+        ],
+        "files_removed": [
+          "read:manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml"
+        ],
+        "validate_commands_added": [
+          "uv run maid validate manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2008b823365ee83c73193a687bd630c3b56d1187bbadd8169908266cbbbe9fdb",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:75f0f3d68a113e2bffbb70becf667a4f93bf4e78eca93bd75b8f3866f1091da0"
+      },
+      "revised_at": "2026-08-08T01:39:54.627769+00:00",
+      "reason": "Prove archived 085 marker, do-not-promote instruction, and seven exact child pointers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:8312933e78a674f599c1e024af7b9132af13ca7ea7ba62525c0696417f9175f4"
+      },
+      "revised_at": "2026-08-08T11:37:55.739806+00:00",
+      "reason": "Refresh shared live-epic inventory test after adding planning epic 097",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:079d373a9fdbbaaa3134158ed8e02d47bfb3c25970638d86a2b59b5ef53edd6b"
+      },
+      "revised_at": "2026-08-08T22:56:08.183360+00:00",
+      "reason": "Include completed 097 archive in the shared consumed-epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-10T06:16:31.612619+00:00",
+      "reason": "accept approved shared-test change for 121 live epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:37.928534+00:00",
+      "reason": "accept approved archived-121 shared inventory test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-07-06T14:03:12.334757+00:00",
+    "captured_at": "2026-08-08T01:39:57.135866+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v",
         "exit_code": 1,
-        "output_tail": "                if manifest[\"metadata\"][\"status\"] == \"planning\":\n                    live_planning_names.add(path.name)\n    \n>       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...on.epic.yaml'} == {'062-00-stri...on.epic.yaml'}\nE         \nE         Extra items in the left set:\nE         '084-00-after-action-run-evaluation.epic.yaml'\nE         \nE         Full diff:\nE           {\nE               '062-00-strict-by-default-validation-gates.epic.yaml',...\nE         \nE         ...Full output truncated (3 lines hidden), use '-vv' to show\n\ntests/core/test_draft_epic_archive_inventory.py:98: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_consumed_epic_drafts_are_archived_pointers_to_promoted_children\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n========================= 2 failed, 1 passed in 0.05s ==========================",
+        "output_tail": "                if manifest[\"metadata\"][\"status\"] == \"planning\":\n                    live_planning_names.add(path.name)\n    \n>       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...on.epic.yaml'} == {'062-00-stri...ge.epic.yaml'}\nE         \nE         Extra items in the left set:\nE         '085-00-plan-lock-ceremony-reduction.epic.yaml'\nE         Extra items in the right set:\nE         '096-00-bound-directory-artifact-coverage.epic.yaml'\nE         \nE         Full diff:...\nE         \nE         ...Full output truncated (6 lines hidden), use '-vv' to show\n\ntests/core/test_draft_epic_archive_inventory.py:121: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_consumed_epic_drafts_are_archived_pointers_to_promoted_children\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n========================= 2 failed, 1 passed in 0.07s ==========================",
         "classification": "red"
       },
       {
@@ -236,9 +376,15 @@
       },
       {
         "command": "uv run maid validate manifests/drafts/084-00-after-action-run-evaluation.epic.yaml --mode schema --quiet",
-        "exit_code": 1,
-        "output_tail": "  E004 Schema validation failed for manifests/drafts/084-00-after-action-run-evaluation.epic.yaml: 'validate' is a required property; 'files' is a required property",
-        "classification": "red"
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
       },
       {
         "command": "uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet",
@@ -246,6 +392,15 @@
         "output_tail": "",
         "classification": "not_red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/095-05-complete-profile-guidance-and-archive-adoption-epics.lock.json",
+      ".maid/plan-locks/096-01-deduplicate-identical-artifact-coverage-commands.lock.json",
+      "docs/plans/maid-runner-performance-backlog.md",
+      "maid_runner/cli/commands/validate.py",
+      "maid_runner/core/artifact_coverage.py",
+      "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+      "tests/core/test_artifact_coverage_batch.py"
     ]
   },
   "legacy_baseline": null,
@@ -268,6 +423,10 @@
       "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml:attribute:manifest._archived_after_action_run_evaluation_epic:kind=attribute",
       "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml:attribute:manifest._archived_after_action_run_evaluation_epic:of=manifest",
       "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml:attribute:manifest._archived_after_action_run_evaluation_epic:type=draft epic",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:kind=attribute",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:of=manifest",
+      "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml:attribute:manifest._archived_plan_lock_ceremony_reduction_epic:type=draft epic",
       "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
       "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children:kind=test_function",
       "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory",
@@ -283,7 +442,8 @@
         "manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml",
         "manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml",
         "manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml",
-        "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml"
+        "manifests/drafts/084-00-after-action-run-evaluation.epic.yaml",
+        "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml"
       ],
       "read": [
         "manifests/043-03-archive-consumed-draft-epics.manifest.yaml",
@@ -312,6 +472,14 @@
         "manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
         "manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
         "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+        "manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml",
+        "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+        "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+        "manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml",
         "manifests/drafts/README.md"
       ],
       "scope": [
@@ -328,12 +496,12 @@
             {
               "kind": "test_function",
               "name": "test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
-              "description": "Draft epics 067-00, 077-00, 081-00, and 084-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest."
+              "description": "Draft epics 067-00, 077-00, 081-00, 084-00, and 085-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest."
             },
             {
               "kind": "test_function",
               "name": "test_only_unconsumed_epics_remain_live_planning_inventory",
-              "description": "The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00 and 064-00."
+              "description": "The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00, 064-00, and 096-00."
             },
             {
               "kind": "test_function",
@@ -391,6 +559,18 @@
               "type": "draft epic"
             }
           ]
+        },
+        {
+          "path": "manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_plan_lock_ceremony_reduction_epic",
+              "description": "Archived pointer for promoted child manifests 085-01 through 085-07.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
         }
       ],
       "read": [
@@ -420,7 +600,15 @@
         "manifests/084-04-add-maid-evaluate-run-command.manifest.yaml",
         "manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml",
         "manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml",
-        "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml"
+        "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml",
+        "manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml",
+        "manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml",
+        "manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml",
+        "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+        "manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml",
+        "manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml"
       ],
       "scope": [
         {
@@ -438,6 +626,7 @@
       "uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet",
       "uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet",
       "uv run maid validate manifests/drafts/084-00-after-action-run-evaluation.epic.yaml --mode schema --quiet",
+      "uv run maid validate manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml --mode schema --quiet",
       "uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet"
     ]
   }

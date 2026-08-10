@@ -1,0 +1,219 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make inactive-manifest repair guidance immediately actionable"
+type: fix
+created: "2026-08-08T09:35:25Z"
+metadata:
+  tags:
+    - developer-experience
+    - manifest-lifecycle
+    - cli
+  priority: high
+description: |
+  E109 correctly prevents active-looking manifests from being silently hidden
+  under inactive directories, but its current suggestion names only an
+  abstract "draft/archive marker". Agents must search documentation and source
+  code to discover the accepted marker syntax. At the same time,
+  `maid manifest create --output-dir manifests/drafts` writes an unmarked file
+  that immediately triggers E109.
+
+  Preserve the fail-closed lifecycle rule while making its recovery path
+  copyable: draft diagnostics name the implementation and epic marker choices,
+  archive diagnostics name the archive marker form, and manifest creation under
+  a drafts directory emits `# draft-kind: implementation` as the leading
+  lifecycle marker. Document the ordinary implementation-draft marker alongside
+  the existing epic and archive examples.
+
+  Expected red phase: the focused tests fail because E109 omits the concrete
+  marker examples and manifest creation writes only the generic MAID header.
+temptations:
+  - risk: "Do not weaken or suppress E109 when a caller explicitly validates an unmarked
+      draft."
+    instead: "Keep the fail-closed diagnostic and improve its exact recovery suggestion."
+  - risk: "Do not infer lifecycle from arbitrary output-directory substrings."
+    instead: "Recognize an exact drafts path component and prepend the canonical implementation
+      marker only there."
+  - risk: "Do not test private marker-detection or YAML-rendering helpers."
+    instead: "Exercise diagnostics through ManifestChain and creation through cmd_manifest,
+      then assert the written public file contract."
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: inactive_manifest_diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+          description: "Reports E109 with copyable lifecycle marker choices tailored
+            to draft or archive inventory."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Creates implementation drafts with the required leading lifecycle
+            marker when output is under a drafts directory."
+  create:
+    - path: tests/core/test_inactive_manifest_repair_guidance.py
+      artifacts:
+        - kind: test_function
+          name: test_draft_inventory_diagnostic_names_copyable_marker_choices
+          source_scenario: "An unmarked v2 manifest is hidden under manifests/drafts."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "E109 keeps failing closed while its suggestion shows the exact
+              implementation and epic draft marker syntax."
+        - kind: test_function
+          name: test_archive_inventory_diagnostic_names_copyable_archive_marker
+          source_scenario: "An unmarked v2 manifest is hidden under manifests/v1-archive."
+          actions:
+            - type: api_call
+              subject:
+                export: ManifestChain
+          expected:
+            behavior: "E109 keeps failing closed while its suggestion shows the exact
+              archive marker form."
+    - path: tests/cli/test_manifest_create_draft_marker_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_manifest_create_under_drafts_writes_required_lifecycle_marker
+          source_scenario: "maid manifest create writes an implementation manifest
+            below a manifests/drafts path component."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The created file begins with # draft-kind: implementation and
+              produces no inactive-manifest diagnostic from the parent chain."
+        - kind: test_function
+          name: test_manifest_create_in_active_directory_keeps_generic_header
+          source_scenario: "maid manifest create writes an active manifest to the
+            normal manifests output directory."
+          actions:
+            - type: api_call
+              subject:
+                export: cmd_manifest
+          expected:
+            behavior: "The active manifest keeps the generic MAID header and does
+              not receive an inactive draft marker."
+  scope:
+    - path: docs/draft-manifest-workflow.md
+      reason: "Document the canonical marker required on child implementation drafts."
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      reason: "Keep the packaged workflow guide synchronized with the canonical documentation."
+    - path: manifests/drafts/README.md
+      reason: "Show the implementation-draft marker before the existing epic and archive
+        examples."
+    - path: maid_runner/manifests/drafts/README.md
+      reason: "Keep the packaged draft inventory README synchronized with the canonical
+        repository copy."
+  read:
+    - manifests/fix-manifest-dir-active-subdirectory-discovery.manifest.yaml
+    - manifests/043-02-enforce-active-manifest-lifecycle-status.manifest.yaml
+    - maid_runner/core/manifest.py
+validate:
+  - uv run python -m pytest -q
+    tests/core/test_inactive_manifest_repair_guidance.py
+    tests/cli/test_manifest_create_draft_marker_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-08-08T09:49:58Z"
+  summary: "Made E109 lifecycle diagnostics name copyable draft and archive markers, and made manifest creation under a drafts path emit the canonical implementation marker automatically."
+  rationale: "Preserved the fail-closed inactive-directory guard while removing avoidable agent discovery work. Dedicated public-entry-point tests prove exact repair guidance, nested draft creation, and active-manifest header compatibility; canonical and packaged workflow documentation now describe the same marker contract."
+  lessons:
+    - lesson_type: guidance-contract
+      summary: "When a validator already knows a mechanically repairable state, its diagnostic should emit the exact accepted syntax instead of forcing users or agents to search help and source code."
+      tags:
+        - developer-experience
+        - diagnostics
+        - manifest-lifecycle
+      paths:
+        - maid_runner/core/chain.py
+        - tests/core/test_inactive_manifest_repair_guidance.py
+    - lesson_type: testing
+      summary: "A generator for inactive inventory should be tested through the parent manifest chain so the generated output is proven to satisfy the validator boundary that consumes it."
+      tags:
+        - cli
+        - behavioral-testing
+        - manifest-lifecycle
+      paths:
+        - maid_runner/cli/commands/manifest.py
+        - tests/cli/test_manifest_create_draft_marker_cmd.py
+  review_notes:
+    - source: maid-implementation-review-subagent
+      severity: ready
+      summary: "No actionable findings. Residual advisories were limited to lexical path edge cases outside the locked exact-component contract and an already-covered header-composition assertion."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_inactive_manifest_repair_guidance.py
+        - tests/cli/test_manifest_create_draft_marker_cmd.py
+      status: passed
+      summary: "All four focused behavioral scenarios passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-inactive-manifest-repair-guidance.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository validation passed: 392 active manifests passed, 109 superseded manifests skipped, and none failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 233 MAID validation command groups passed."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full pytest suite passed: 3812 passed and 5 skipped."
+    - command:
+        - make
+        - build
+      status: passed
+      summary: "Package asset synchronization and wheel/sdist build completed successfully."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --since
+        - HEAD
+      status: passed
+      summary: "All nine handoff stages passed with only existing E307 no-validator warnings."

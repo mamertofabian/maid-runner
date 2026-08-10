@@ -1,3 +1,7 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: '2'
 goal: 'Align `maid recall --theme-map` digest staleness semantics with the 083-06 insights/enrich split: register `--allow-stale-digest` on the recall subparser as the narrow opt-in that waives only the digest `source_generated_from` mismatch, keep `--allow-stale-index` backward compatible (it continues to waive both index and digest staleness on recall), and never let the new flag waive Outcome index staleness'
 type: fix

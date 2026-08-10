@@ -1,0 +1,44 @@
+# archive-kind: abandoned-draft-manifest
+schema: "2"
+goal: "Archive unsafe broad pytest subprocess sharding experiment"
+type: refactor
+created: "2026-08-10T14:05:00+08:00"
+metadata:
+  status: archived
+  priority: high
+  tags:
+    - performance
+    - pytest
+    - test-runner
+    - archive
+description: |
+  This optimization was promoted and implemented experimentally, then
+  abandoned before handoff because repository-wide evidence showed it could
+  not preserve the existing gate result.
+
+  The single broad pytest command passed in 182.16 seconds. Eight manual
+  shards had previously passed in 64.71 seconds, but runner-integrated
+  round-robin sharding finished in 84.35 seconds with three failing pytest
+  workers. Contiguous sharding finished in 105.24 seconds with two failing
+  shards. Isolated reproduction proved these were real order dependencies:
+  TypeScript resolver tests passed in the original broad process only after
+  other test files established process-local state, but failed in an isolated
+  shard. The experiment also exposed and fixed the independent handoff-profile
+  adoption expectation under 121-01.
+
+  Generic subprocess sharding therefore changes observable gate behavior even
+  when every target executes exactly once. Future work must first make test
+  files independently runnable or use a runner-native scheduler that can prove
+  fixture/session equivalence. Do not revive target sharding from file-count or
+  timing evidence alone.
+files:
+  create:
+    - path: manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _abandoned_broad_pytest_subprocess_sharding
+          of: manifest
+          type: archived draft
+          description: "Records that subprocess target sharding was rejected because isolated shards changed test outcomes."
+validate:
+  - uv run maid validate manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml --mode schema --quiet

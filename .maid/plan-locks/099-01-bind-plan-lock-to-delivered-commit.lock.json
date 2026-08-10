@@ -1,0 +1,506 @@
+{
+  "manifest_path": "manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml",
+  "manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+  "test_hashes": {
+    "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:37f354c63e2d21cc05ab8cb548aa167e60a585d7eb49db599629163b9034ffb6",
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+  },
+  "created_at": "2026-08-09T23:31:03.011435+00:00",
+  "revision": 12,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:de98eb03ec3a229cd1abcb987fb8a097c0b537935d6f1bdb608c318dfe305916",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:dc49ce7acbdce3bbb3c53f8abfbfa6a4cca7fe7d17d638329a6f3170389f7fbb"
+      },
+      "revised_at": "2026-08-09T23:31:11.569187+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml -> manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:786f3720547e3f62a868238453bf923e54c9b8e1cf6cc806a0454b03c92d17cd",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:dc49ce7acbdce3bbb3c53f8abfbfa6a4cca7fe7d17d638329a6f3170389f7fbb"
+      },
+      "revised_at": "2026-08-09T23:35:14.404525+00:00",
+      "reason": "remove lint-only unused helper bindings from behavioral tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:786f3720547e3f62a868238453bf923e54c9b8e1cf6cc806a0454b03c92d17cd",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:fbffe38174725670691f31b0bd30461d6c3b2bbfb2ccc0cda88ca686de2fd37d"
+      },
+      "revised_at": "2026-08-09T23:35:43.518814+00:00",
+      "reason": "restore shared delivery-module helper required by cwd-determinism scenario",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:786f3720547e3f62a868238453bf923e54c9b8e1cf6cc806a0454b03c92d17cd",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d884406604900013df883b0ea073b20ffadb3768732109fd72d4327ca433f9c1",
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:89e914a9a6e1dbaf14fceb7353af1b65908da1e42514299b2ff4a538a5e28784"
+      },
+      "revised_at": "2026-08-09T23:36:33.080088+00:00",
+      "reason": "remove accidental undeclared diagnostics test dependency that caused E230",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_diagnostics_registry.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8a4bc868b86e627167a103535024d77996bd03e36bb8484cf7e4f7579946f95e",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:89e914a9a6e1dbaf14fceb7353af1b65908da1e42514299b2ff4a538a5e28784"
+      },
+      "revised_at": "2026-08-09T23:37:19.238584+00:00",
+      "reason": "declare and validate the registry contract required by new E713 and E714 repair recipes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes",
+          "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:kind=test_function",
+          "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_diagnostics_registry.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_delivery_attestation.py tests/core/test_diagnostics_registry.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_delivery_attestation.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:89e914a9a6e1dbaf14fceb7353af1b65908da1e42514299b2ff4a538a5e28784",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:15:23.215951+00:00",
+      "reason": "pin fail-closed recomputation of the attested writable set and validated-commit hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:5df49a8db27d955a41a65f2dcd6eec6bf1c3e1054129469246f9f195fe4e9bc5",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:15:59.323948+00:00",
+      "reason": "format the strengthened fail-closed behavioral scenario",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:5df49a8db27d955a41a65f2dcd6eec6bf1c3e1054129469246f9f195fe4e9bc5",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:17:05.555506+00:00",
+      "reason": "execute cmd_verify delivery-stage and single-document JSON behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:92179e49b195ff0b80d0ea8f012eedd76b112b091f48e96d68faaea21a4a9950",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:32:59.430054+00:00",
+      "reason": "reject duplicate-key delivered manifests before contract hashing",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:bb983bf0ad9d8f4b088b9707ae57782d3f856b5a46e902457871b7bc0c44784e",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:37:03.154800+00:00",
+      "reason": "reject duplicate-key and invalid-UTF-8 attestation JSON as structured E713",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:068d609e5879b8facec7adc75270cf2aef024a3838eaa5e0f8e6080894739a2c",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-10T00:42:45.142004+00:00",
+      "reason": "reject non-standard JSON constants in attestation parsing and rendering",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T00:42:48.326852+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_delivery_attestation.py tests/core/test_diagnostics_registry.py -v",
+        "exit_code": 1,
+        "output_tail": "        normalized = _normalize_code(code)\n        try:\n            return _RULES_BY_CODE[normalized]\n        except KeyError as exc:\n>           raise KeyError(f\"Unknown diagnostic code: {normalized}\") from exc\nE           KeyError: 'Unknown diagnostic code: E714'\n\nmaid_runner/core/diagnostics_registry.py:33: KeyError\n=========================== short test summary info ============================\nFAILED tests/core/test_delivery_attestation.py::test_delivered_ref_with_matching_covered_bytes_passes\nFAILED tests/core/test_delivery_attestation.py::test_delivered_ref_with_mutated_covered_file_fails\nFAILED tests/core/test_delivery_attestation.py::test_delivered_ref_missing_covered_file_fails_closed\nFAILED tests/core/test_delivery_attestation.py::test_squash_or_rebase_preserving_covered_bytes_still_passes\nFAILED tests/core/test_delivery_attestation.py::test_missing_or_mismatched_attestation_fails_closed\nFAILED tests/core/test_delivery_attestation.py::test_ref_adding_only_uncovered_files_still_passes\nFAILED tests/core/test_delivery_attestation.py::test_provenance_record_is_independently_recomputable\nFAILED tests/core/test_delivery_attestation.py::test_attestation_compare_is_deterministic_and_cwd_independent\nFAILED tests/core/test_diagnostics_registry.py::test_pinned_codes_have_structured_repair_recipes\nFAILED tests/core/test_diagnostics_registry.py::test_recipe_templates_render_with_actual_diagnostic_values\n========================= 10 failed, 6 passed in 2.81s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json",
+      ".maid/plan-locks/070-01-add-error-code-registry-with-repair-recipes.lock.json",
+      ".maid/plan-locks/090-01-surface-plan-lock-scope-widening.lock.json",
+      "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation:arg=manifest_paths:type=Collection[Path]:default=None",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation:arg=project_root:type=Path:default=None",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation:arg=validated_ref:type=str:default=None",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation:kind=function",
+      "maid_runner/core/delivery_attestation.py:function:compute_delivery_attestation:returns=dict",
+      "maid_runner/core/delivery_attestation.py:function:render_provenance_record",
+      "maid_runner/core/delivery_attestation.py:function:render_provenance_record:arg=attestation:type=dict:default=None",
+      "maid_runner/core/delivery_attestation.py:function:render_provenance_record:arg=verification:type=dict | None:default=None",
+      "maid_runner/core/delivery_attestation.py:function:render_provenance_record:kind=function",
+      "maid_runner/core/delivery_attestation.py:function:render_provenance_record:returns=str",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation:arg=attestation:type=dict:default=None",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation:arg=delivered_ref:type=str:default=None",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation:arg=project_root:type=Path:default=None",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation:kind=function",
+      "maid_runner/core/delivery_attestation.py:function:verify_delivered_attestation:returns=dict",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERED_CONTENT_MISMATCH",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERED_CONTENT_MISMATCH:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERED_CONTENT_MISMATCH:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERED_CONTENT_MISMATCH:type=str",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERY_ATTESTATION_INVALID",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERY_ATTESTATION_INVALID:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERY_ATTESTATION_INVALID:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.DELIVERY_ATTESTATION_INVALID:type=str",
+      "tests/core/test_delivery_attestation.py:test_attestation_compare_is_deterministic_and_cwd_independent",
+      "tests/core/test_delivery_attestation.py:test_attestation_compare_is_deterministic_and_cwd_independent:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_missing_covered_file_fails_closed",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_missing_covered_file_fails_closed:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_with_matching_covered_bytes_passes",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_with_matching_covered_bytes_passes:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_with_mutated_covered_file_fails",
+      "tests/core/test_delivery_attestation.py:test_delivered_ref_with_mutated_covered_file_fails:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_missing_or_mismatched_attestation_fails_closed",
+      "tests/core/test_delivery_attestation.py:test_missing_or_mismatched_attestation_fails_closed:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_provenance_record_is_independently_recomputable",
+      "tests/core/test_delivery_attestation.py:test_provenance_record_is_independently_recomputable:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_ref_adding_only_uncovered_files_still_passes",
+      "tests/core/test_delivery_attestation.py:test_ref_adding_only_uncovered_files_still_passes:kind=test_function",
+      "tests/core/test_delivery_attestation.py:test_squash_or_rebase_preserving_covered_bytes_still_passes",
+      "tests/core/test_delivery_attestation.py:test_squash_or_rebase_preserving_covered_bytes_still_passes:kind=test_function",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:kind=test_function",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/delivery_attestation.py",
+        "tests/core/test_delivery_attestation.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/result.py",
+        "tests/core/test_diagnostics_registry.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/core/diagnostics_registry.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/delivery_attestation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compute_delivery_attestation",
+              "description": "Derive a versioned record for explicit plan-locked manifests at one validated commit, using their full writable sets and exact committed blob-byte hashes.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_paths",
+                  "type": "Collection[Path]"
+                },
+                {
+                  "name": "validated_ref",
+                  "type": "str"
+                }
+              ],
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "verify_delivered_attestation",
+              "description": "Fail-closed comparison against a named local/remote branch ref, returning the resolved SHA and every missing or mismatched contract/path.",
+              "args": [
+                {
+                  "name": "attestation",
+                  "type": "dict"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "delivered_ref",
+                  "type": "str"
+                }
+              ],
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "render_provenance_record",
+              "description": "Serialize the versioned attestation and optional delivery result as deterministic, self-describing JSON.",
+              "args": [
+                {
+                  "name": "attestation",
+                  "type": "dict"
+                },
+                {
+                  "name": "verification",
+                  "type": "dict | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_delivery_attestation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_delivered_ref_with_matching_covered_bytes_passes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_delivered_ref_with_mutated_covered_file_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_delivered_ref_missing_covered_file_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_squash_or_rebase_preserving_covered_bytes_still_passes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_or_mismatched_attestation_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ref_adding_only_uncovered_files_still_passes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_provenance_record_is_independently_recomputable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_attestation_compare_is_deterministic_and_cwd_independent"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/core/test_diagnostics_registry.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pinned_codes_have_structured_repair_recipes",
+              "description": "Pins E713 and E714 as registry-backed diagnostics with structured repair recipes.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Optionally appends delivery verification and emits its portable record without changing existing verify output or exit semantics.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "DELIVERY_ATTESTATION_INVALID",
+              "description": "E713: missing, unreadable, malformed, or contract-mismatched delivery attestation.",
+              "of": "ErrorCode",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "DELIVERED_CONTENT_MISMATCH",
+              "description": "E714: invalid delivery branch ref or covered committed bytes that differ from the validated attestation.",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/types.py",
+        "maid_runner/cli/commands/_format.py",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register --delivered and --attestation verify flags; parser registration is private wiring."
+        },
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "reason": "Register E713/E714 descriptions and repair recipes without adding a new public diagnostic API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_delivery_attestation.py",
+      "tests/core/test_diagnostics_registry.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_delivery_attestation.py tests/core/test_diagnostics_registry.py -v",
+      "uv run maid validate manifests/099-01-bind-plan-lock-to-delivered-commit.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

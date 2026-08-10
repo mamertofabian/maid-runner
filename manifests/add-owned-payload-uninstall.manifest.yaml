@@ -1,0 +1,411 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add ownership-safe uninstall commands for user-level MAID skills and 
+  repository-local init payloads
+type: feature
+created: '2026-08-08T10:38:00Z'
+metadata:
+  status: implementation-ready
+  tags: [cli, agent-skills, uninstall, safety]
+  priority: high
+description: |
+  Add the missing inverse operations for both MAID installation paths:
+  `maid skills uninstall` removes the user-level `maid-onboard` skill installed
+  by `maid skills install`, and `maid init --uninstall` removes repository-local
+  payloads installed by `maid init`.
+
+  This is an additive chain merge over `add-skills-install-command` and the
+  existing init contracts. Existing install function signatures remain intact.
+  Both new public uninstall functions take explicit roots and return the same
+  typed `UninstallReport`, whose stable fields are `removed`, `preserved`, and
+  `missing`. A dry run returns the exact report that execution would return from
+  the same state; it merely skips applying the removal plan.
+
+  Repository uninstall is ownership-bounded. It reads each installed agent
+  manifest and removes only manifest-declared MAID payload paths plus the
+  manifest itself. Before any mutation, every selected manifest must be valid
+  JSON with correctly typed distributable sections, every owned path must be a
+  normalized relative descendant without `..` or absolute components, and no
+  path between the agent root and an owned target may cross a symlink. Invalid
+  ownership data or malformed managed markers fail the complete operation
+  before writes.
+
+  Merged settings receive leaf-level cleanup: exact MAID scope-check command
+  leaves are removed while permissions, user hooks, sibling commands within the
+  same hook entry, and unrelated empty containers remain. Marker-delimited MAID
+  sections are removed from CLAUDE.md, AGENTS.md, .gitignore, and pre-commit
+  configuration while preserving surrounding user content.
+
+  Shared scaffold files created wholesale by init (`.maidrc.yaml`, the two
+  workflow documents, and `manifests/drafts/README.md`) are removed only when
+  their bytes still match the current generated payload; locally modified
+  copies are preserved and reported. User-authored active manifests, custom
+  drafts, custom agent skills, and unrelated configuration are never removed.
+  Empty directories may be pruned only after their owned children are gone.
+
+  Default `maid init --uninstall` removes every installed supported agent
+  payload and the unmodified shared scaffold. A specific `--tool` removes only
+  that tool's payload; `--tool generic` targets shared scaffold only. Both
+  uninstall surfaces support `--dry-run` and succeed idempotently when nothing
+  is installed. User-level uninstall compares installed copies to the packaged
+  payload, preserving and reporting locally modified or redirected copies.
+  Installer-created file symlinks are removed without following or modifying
+  their packaged targets.
+
+  Advisory Outcome digestion: the prior user-skill installer Outcome applies
+  directly—machine-wide delivery must stay isolated from per-repo init and
+  policy must retain injected roots. The init portability Outcome also applies:
+  structured cleanup removes exact owned leaves rather than user-extensible
+  containers. Theme-map enrichment was rejected because it contains the unknown
+  lesson type `plan-lock-maintenance`; plain `maid insights` was used instead.
+  Broad plan-lock and validator themes were rejected as irrelevant to payload
+  ownership. Independent plan review added containment, selected-tool isolation,
+  exact dry-run parity, sibling-hook, linked-install, and report-shape coverage.
+temptations:
+- risk: Do not recursively delete .claude, .codex, manifests, docs, or user home
+    skill roots.
+  instead: Resolve exact owned paths from validated installed manifests or fixed
+    maid-onboard destinations, remove those leaves, and prune only directories 
+    made empty by those removals.
+- risk: Do not trust installed manifest path strings or follow symlinked parent 
+    directories during deletion.
+  instead: Preflight JSON structure, relative normalized containment, and every 
+    path component before any mutation; reject the whole operation on one unsafe
+    target.
+- risk: Do not delete merged Claude settings.json or an entire hook entry that 
+    can contain sibling user commands.
+  instead: Remove only exact MAID scope-check command leaves and prune only 
+    containers emptied by an actual owned-leaf removal.
+- risk: Do not delete generated-looking shared or user-level files after users 
+    have edited or redirected them.
+  instead: Compare wholesale files and user-level skill trees with canonical 
+    payloads, preserve mismatches or unsafe links, and report each preserved 
+    path.
+- risk: Do not implement selected tools or dry-run as separate approximate 
+    cleanup paths.
+  instead: Build one deterministic typed report for the exact selected surfaces 
+    and apply it only when dry_run is false; tests compare preview and execution
+    reports and isolate tool boundaries.
+files:
+  create:
+  - path: maid_runner/core/uninstall.py
+    artifacts:
+    - kind: class
+      name: UninstallReport
+      description: Typed stable report returned by both uninstall mechanisms.
+    - kind: attribute
+      name: removed
+      of: UninstallReport
+      type: list[str]
+      description: Paths selected for removal; dry-run and execution return the 
+        same deterministic list.
+    - kind: attribute
+      name: preserved
+      of: UninstallReport
+      type: list[str]
+      description: Owned-looking paths preserved because they were modified or 
+        unsafe to remove.
+    - kind: attribute
+      name: missing
+      of: UninstallReport
+      type: list[str]
+      description: Expected owned paths already absent at report time.
+  - path: tests/cli/test_uninstall_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_uninstall_onboard_skill_removes_only_owned_user_level_skills
+      args: [{name: tmp_path, type: Path}]
+      returns: None
+      source_scenario: User-level maid-onboard is installed beside an unrelated 
+        custom Codex skill.
+      actions: [{type: api_call, subject: {export: uninstall_onboard_skill}}]
+      expected:
+        behavior: Preview and execution typed reports are equal with exact 
+          removed, preserved, and missing fields; both owned directories are 
+          removed, and the custom skill remains byte-identical.
+    - kind: test_function
+      name: test_uninstall_onboard_skill_preserves_modified_user_level_copy
+      args: [{name: tmp_path, type: Path}]
+      returns: None
+      source_scenario: One installed user-level maid-onboard copy was locally 
+        customized after installation.
+      actions: [{type: api_call, subject: {export: uninstall_onboard_skill}}]
+      expected:
+        behavior: Preview and execution reports are equal; the unchanged copy is
+          removed while the customized copy is preserved and reported.
+    - kind: test_function
+      name: 
+        test_uninstall_onboard_skill_removes_owned_links_without_following_targets
+      args: [{name: tmp_path, type: Path}]
+      returns: None
+      source_scenario: User-level maid-onboard was installed with --link, then 
+        one installed file was redirected to a local external target.
+      actions: [{type: api_call, subject: {export: uninstall_onboard_skill}}]
+      expected:
+        behavior: Uninstall removes canonical installer-created links without 
+          deleting or modifying packaged targets, but preserves and reports 
+          redirected skills and skills reached through symlinked agent or skills
+          parents; a change after comparison aborts, and platforms without safe
+          descriptor-relative removal fail closed, leaving every target intact.
+    - kind: test_function
+      name: test_skills_uninstall_dry_run_is_non_mutating_and_repeatable
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: capsys, type: pytest.CaptureFixture}
+      returns: None
+      source_scenario: A user previews, performs, and repeats user-level skill 
+        uninstall through the CLI.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Dry-run lists removals without mutation, execution removes 
+          them, and a repeat succeeds with an explicit nothing-installed 
+          message.
+    - kind: test_function
+      name: test_init_uninstall_removes_all_owned_agent_payloads_and_guidance
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: Claude, Codex, and Cursor payloads coexist with custom 
+        skills, merged user settings, a sibling command in the MAID hook entry, 
+        unrelated empty entry and category containers, and surrounding guidance
+        text before dry-run and execution.
+      actions: [{type: api_call, subject: {export: uninstall_init_payload}}]
+      expected:
+        behavior: Agent dry-run is non-mutating and returns exactly the 
+          execution report; all manifest-owned payloads and exact MAID leaves 
+          are removed while every custom file, sibling command, user setting, 
+          and unrelated empty entry or category container remains.
+    - kind: test_function
+      name: 
+        test_init_uninstall_removes_shared_scaffold_but_preserves_project_data
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: Generic init created shared scaffold beside user 
+        pre-commit rules, ignore rules, an active manifest, and a custom draft.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Unmodified generated scaffold and marked blocks are removed 
+          while all user project data, unrelated configuration, and original
+          file permission modes remain.
+    - kind: test_function
+      name: 
+        test_init_uninstall_preserves_modified_generated_files_and_reports_them
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: The user modified files originally generated wholesale by
+        init.
+      actions: [{type: api_call, subject: {export: uninstall_init_payload}}]
+      expected:
+        behavior: Dry-run and execution reports are equal; modified files remain
+          and appear in the stable preserved list.
+    - kind: test_function
+      name: test_init_uninstall_selected_tool_boundaries_are_isolated
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: Fresh repositories containing Claude, Codex, Cursor, and 
+        shared scaffold each receive one of the four Claude, Codex, Cursor, or 
+        generic selectors.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Every agent selector removes only its matching payload and 
+          preserves both sibling agents and shared scaffold; generic removes 
+          only shared scaffold and preserves all agents.
+    - kind: test_function
+      name: test_init_uninstall_rejects_malformed_markers_before_any_removal
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      - {name: capsys, type: pytest.CaptureFixture}
+      returns: None
+      source_scenario: Fresh fully initialized repositories independently have 
+        malformed MAID markers in CLAUDE.md, AGENTS.md, .gitignore, or 
+        pre-commit configuration before uninstall begins.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Every malformed marker surface makes uninstall exit non-zero 
+          before writes; selected agent payloads and shared scaffold remain 
+          intact.
+    - kind: test_function
+      name: 
+        test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      - {name: capsys, type: pytest.CaptureFixture}
+      returns: None
+      source_scenario: Installed agent manifests are invalid JSON, have wrongly 
+        typed distributable data, or contain parent-traversing, non-normalized, 
+        absolute, or agent-root-dot owned paths.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Every unsafe manifest fails before writes; agent roots, custom
+          files, owned payloads, manifest files, and outside files remain intact.
+    - kind: test_function
+      name: 
+        test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      - {name: capsys, type: pytest.CaptureFixture}
+      returns: None
+      source_scenario: Either an agent root or a parent directory between it and
+        owned skill targets was replaced with a symlink to an outside tree.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Uninstall rejects both unsafe boundaries before writes and 
+          leaves each symlink and outside payload untouched; the test skips only
+          when the platform cannot create symlinks.
+    - kind: test_function
+      name: test_init_uninstall_revalidates_plan_before_applying_mutations
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      - {name: capsys, type: pytest.CaptureFixture}
+      returns: None
+      source_scenario: Concurrent edits affect managed-marker and wholesale
+        scaffold sources before or during snapshot construction, after complete
+        batch validation, and immediately before one operation; safe
+        descriptor-relative mutation is also unavailable.
+      actions: [{type: api_call, subject: {export: main}}]
+      expected:
+        behavior: Single-read stat-stable source snapshots and per-operation
+          revalidation abort before deleting or overwriting changed data,
+          preserve installed manifests and outside targets, and fail closed
+          instead of using a pathname fallback when safe mutation primitives
+          are unavailable.
+  edit:
+  - path: maid_runner/core/skill_install.py
+    artifacts:
+    - kind: function
+      name: uninstall_onboard_skill
+      args:
+      - {name: target_root, type: Path}
+      - {name: payload_root, type: Path}
+      - {name: dry_run, type: bool}
+      returns: UninstallReport
+      description: Remove only user-level Claude and Codex maid-onboard 
+        directories that match the packaged payload, preserving modified, 
+        redirected, and unrelated skills and succeeding when absent.
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: uninstall_init_payload
+      args:
+      - {name: project_root, type: Path}
+      - {name: tools, type: 'tuple[str, Ellipsis]'}
+      - {name: dry_run, type: bool}
+      returns: UninstallReport
+      description: Preflight and remove only safe manifest-owned agent payloads,
+        exact merged MAID hook leaves, marked blocks, and unmodified shared 
+        scaffold for the selected tools.
+  scope:
+  - path: maid_runner/cli/commands/skills.py
+    reason: Extend the existing cmd_skills dispatcher with uninstall reporting 
+      without changing its public signature.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register uninstall flags and subcommands in the centralized argparse
+      composition root; no stable parser-helper API changes.
+  read:
+  - manifests/add-skills-install-command.manifest.yaml
+  - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+  - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+  - manifests/add-init-pre-commit-verification.manifest.yaml
+  - manifests/fix-init-payload-portability.manifest.yaml
+  - maid_runner/claude/manifest.json
+  - maid_runner/claude/settings.json
+  - maid_runner/codex/manifest.json
+  - maid_runner/cursor/manifest.json
+  - maid_runner/docs/draft-manifest-workflow.md
+  - maid_runner/docs/manifest-outcome-records.md
+  - maid_runner/manifests/drafts/README.md
+  - tests/cli/test_init_hook_payloads.py
+  - tests/cli/test_init_pre_commit.py
+  - tests/cli/test_init_payload_portability.py
+  - tests/cli/test_skills_install.py
+validate:
+- uv run python -m pytest -q tests/cli/test_uninstall_cmd.py 
+  tests/cli/test_skills_install.py tests/cli/test_init_hook_payloads.py 
+  tests/cli/test_init_pre_commit.py tests/cli/test_init_payload_portability.py
+outcome:
+  status: completed
+  completed_at: '2026-08-08T19:14:14+08:00'
+  summary: >-
+    Added ownership-safe inverses for both MAID delivery paths: `maid skills
+    uninstall` removes unchanged user-level maid-onboard copies, and `maid init
+    --uninstall` removes selected repository-local agent payloads or generic
+    scaffold while preserving customized, redirected, and unrelated data. Both
+    commands support deterministic dry runs and idempotent repeated use.
+  rationale: >-
+    Uninstall is driven by validated ownership evidence rather than broad
+    directory deletion. Repository cleanup validates installed manifests and
+    marker pairs, removes exact merged hook leaves, compares wholesale scaffold
+    bytes to canonical resources, snapshots every target before mutation, and
+    uses descriptor-relative no-follow operations. Platforms without those safe
+    mutation primitives fail closed rather than falling back to pathname-based
+    recursive deletion.
+  lessons:
+  - lesson_type: validation-trust
+    summary: >-
+      A destructive dry-run plan is trustworthy only when the bytes used to
+      derive each replacement or ownership decision are the same bytes bound to
+      its snapshot. Single-read before/after-stat snapshots plus whole-batch and
+      per-operation revalidation prevented stale marker, manifest, settings, and
+      scaffold decisions from overwriting concurrent user edits.
+    tags: [uninstall, filesystem, race-safety, fail-closed]
+    paths:
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_uninstall_cmd.py
+  - lesson_type: testing
+    summary: >-
+      Independent destructive-operation review exposed cases ordinary success
+      tests missed: dot paths targeting agent roots, symlinked parent trees,
+      unrelated empty hook categories, permission drift, and mutations at
+      multiple plan/apply boundaries. Injecting each race at its exact boundary
+      produced discriminating regression evidence before the fix.
+    tags: [review, symlink, ownership, concurrency]
+    paths:
+    - maid_runner/core/skill_install.py
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_uninstall_cmd.py
+  review_notes:
+  - source: independent-reviewer-review_uninstall_implementation
+    severity: ready
+    summary: >-
+      Final read-only review found no blocking issues after seven plan-lock
+      revisions addressed path containment, static and swapped symlink parents,
+      source/snapshot binding, per-operation revalidation, fail-closed platform
+      behavior, hook-container preservation, and file-mode retention.
+  - source: implementation-session
+    severity: info
+    summary: >-
+      The only non-behavioral contract correction normalized the standard Python
+      `tuple[str, ...]` annotation to MAID's collector spelling
+      `tuple[str, Ellipsis]`; the sanctioned revision preserved existing red
+      evidence.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_uninstall_cmd.py, tests/cli/test_skills_install.py, tests/cli/test_init_hook_payloads.py, tests/cli/test_init_pre_commit.py, tests/cli/test_init_payload_portability.py]
+    status: passed
+    summary: All 58 focused uninstall, install, hook, pre-commit, and portability tests passed.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3824 tests with 5 skipped.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: All 393 active manifests passed; 109 superseded manifests were skipped and none failed.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 233 manifest-declared validation commands passed.
+  - command: [uv, run, ruff, check, maid_runner/core/uninstall.py, maid_runner/core/skill_install.py, maid_runner/cli/commands/skills.py, maid_runner/cli/commands/_main.py, maid_runner/cli/commands/init.py, tests/cli/test_uninstall_cmd.py]
+    status: passed
+    summary: Focused Ruff and Black formatting checks passed for every touched Python file.

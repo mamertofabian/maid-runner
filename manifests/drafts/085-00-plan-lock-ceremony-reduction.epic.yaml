@@ -1,143 +1,41 @@
-# draft-kind: epic
-# promotion: split-before-promote
+# archive-kind: consumed-draft-epic
 schema: "2"
-goal: "Reduce plan-lock ceremony amplification so autonomous MAID runs spend their turns on implementation instead of evidence bookkeeping, without weakening tamper evidence, red-phase integrity, or anti-gaming bounds"
-type: fix
+goal: "Archive consumed plan-lock ceremony reduction epic"
+type: refactor
 created: "2026-07-18T00:00:00Z"
 metadata:
-  status: planning
+  status: archived
   tags:
     - plan-lock
     - red-phase
     - ceremony-reduction
     - workflow-hardening
-    - test-discovery
-    - stash-implementation
-    - agent-skills
-  priority: high
+    - archive
+  priority: low
 description: |
-  Split-before-promote epic. Evidence base: the 2026-07-16 17.8-hour Codex
-  /goal run on manatal-coop-site + manatal-coop-api (session rollout
-  ~/.codex/sessions/2026/07/16/rollout-2026-07-16T11-22-24-019f68f2-*.jsonl)
-  and the five ~/.maid/bug-report entries filed 2026-07-14..15. The run
-  analysis showed direct maid command runtime was ~3% of active wall time;
-  the dominant cost was model-turn count driven by evidence ceremony:
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `085-01` through `085-07` and each has a
+  completed Outcome.
 
-  - 559 plan-lock revisions across the two repos (site: 487 over 88 locks,
-    max 21 per lock; api: 72 over 6 locks, max 31 per lock). Recorded
-    reasons: 207 red-evidence refreshes, 86 review-driven test edits,
-    31 "refresh after outcome capture", 27 promote migrations.
-  - 120 `maid plan revise` invocations against 18 `maid plan lock` for
-    roughly 14 delivered slices (~28 maid invocations per slice).
-  - Error-code churn in tool outputs: E200 x138 (mostly Django `tests.py`
-    non-recognition in the api repo), E701 x55, E705/E706/E707 family ~100.
-  - Nearly all revisions carried empty contract deltas: the contract never
-    changed, but byte-hash pinning forced full revise + recapture +
-    re-verify cycles per cosmetic or bookkeeping edit.
-
-  Bug-report convergence (all against runner 2.20.0/2.21.0; re-verified
-  against the 2.21.1 tree before drafting this epic):
-
-  - 20260714-110500 Django `tests.py` not classified as a test file
-    (`maid_runner/core/_file_discovery.py::is_test_file` and the private
-    classifier in `maid_runner/core/manifest.py`) -> E200 storms. STILL OPEN.
-  - 20260715-035754 `--require-red-evidence` unsatisfiable for
-    bookkeeping-only revisions: plain `maid plan revise` always discards
-    red evidence (`revise_plan_lock` sets `red_evidence=None`), fresh
-    recapture on an implemented manifest is necessarily green -> E705, and
-    `--stash-implementation` refuses any unrelated dirty path repo-wide.
-    STILL OPEN.
-  - 20260715-035010 issue 2: test-only manifests cannot recapture red
-    evidence at all (`--stash-implementation requires at least one declared
-    non-test implementation file`). STILL OPEN. Issue 1 (promote leaving
-    self-referencing validate paths under drafts/) is FIXED in 2.21.x via
-    `_rewrite_self_validate_paths`; no child needed.
-  - 20260714-083456 stash-revise fails for untracked `files.create`
-    implementations and refuses staged paths without a recovery hint.
-    STILL OPEN (the stash push already passes --include-untracked; the
-    failure needs a pinning characterization test and fix).
-  - 20260715-175500 stash-revise cannot hide materialized dependency state
-    (node_modules) behind lockfile-only implementations. Treated as a
-    documented limitation with a specific error, not a git-level fix.
-
-  ARCHITECTURE CONSTRAINTS (do not redesign in children):
-
-  - Fail-closed stays the default. Every relaxation in this epic is either
-    provably safe (byte-identical inputs, empty contract delta) or bounded
-    and recorded in the evidence payload / stdout so review and `maid
-    evaluate` can audit it. No silent tolerance.
-  - The runner stays deterministic and AI-free. No child adds model calls.
-  - No broad static analysis. Per AGENTS.md "Validator Hardening
-    Constraints", children must not model control flow or "plausible
-    impact" of dirty paths; rules are exact-name, exact-hash, exact-set
-    comparisons with documented limits.
-  - Tamper evidence is preserved: locks still pin the contract and the
-    behavioral tests; E701/E702/E705/E707 semantics stay intact for every
-    case that actually changes contract or test content.
-  - Red evidence is never fabricated. Preservation is allowed only when the
-    evidence provably still describes the current commands and test bytes;
-    the new test-only mode records honest green evidence under an explicit,
-    enforced bound instead of masquerading as red.
-
-  IMPLEMENTATION SEQUENCE (deliberate; do not reorder without cause):
-
-  1. 085-01-recognize-django-tests-py-test-modules — smallest, highest
-     frequency friction (false E200 on every Django app touch); no
-     migration surface; lands first so later children's runs stop fighting
-     phantom E200s.
-  2. 085-02-preserve-red-evidence-on-contract-preserving-revisions —
-     largest revision-class removed (red-evidence refresh, 207/487 in the
-     run): plain revise keeps valid red evidence when the contract delta is
-     empty AND locked test bytes are unchanged. Pure CLI/core logic, no
-     lock schema change.
-  3. 085-03-contract-scoped-plan-lock-manifest-hash — stops `maid plan
-     status` reporting TAMPERED (exit 1) after Outcome capture, removing
-     the "refresh plan lock after outcome capture" revision class entirely.
-     Introduces a versioned hash format with legacy compatibility, so it
-     lands after 085-02's simpler win.
-  4. 085-04-test-only-green-red-evidence-mode — closes the E705
-     unsatisfiable class for test-only contracts with an explicit, bounded
-     evidence mode.
-  5. 085-05-stash-implementation-session-robustness — multi-manifest
-     session recovery: sibling-dirty tolerance behind an explicit flag with
-     audit trail, untracked files.create stashing, staged-path recovery
-     hint, dependency-lockfile limitation error. Depends on 085-04 for the
-     test-only error pointer. Extended 2026-07-18 with the three follow-ups
-     from the post-implementation review of 085-01..04: test-only-green
-     evidence preservation on contract-preserving plain revise, contract
-     hashing normalization for YAML-typed scalars (unquoted metadata dates
-     currently cannot lock), and structured plan-status reporting for
-     unreadable manifests.
-  6. 085-06-review-convergence-and-iteration-guidance — packaged skill and
-     docs guidance: single-pass exhaustive reviews, blocking-vs-advisory
-     classification, bounded re-review rounds, task-scoped inner-loop
-     verify recipe. Lands last so it can document the new mechanics.
-  7. 085-07-ast-scoped-behavioral-test-hash — closes the Black/formatter
-     test-hash ceremony class that 085-02 explicitly left out of scope
-     (format-before-lock guidance only). New locks pin `.py` behavioral
-     tests with `sha256-pyast:` AST-canonical digests; non-Python tests and
-     legacy `sha256:` locks stay byte-hashed via prefix dispatch.
-
-  Related prior work: 067 (plan locks & red evidence), 076-01/082-03
-  (stash-backed revise lineage), 084-03 (contract deltas per revision —
-  085-02 builds directly on that data). Outcome recall (2026-07-18)
-  surfaced the standing lessons "format declared files before plan locking"
-  and "avoid adding assertions to shared behavioral test files already
-  locked by older manifests"; 085-06 folds both into the packaged guidance;
-  085-07 removes the formatter half of that tax for new Python locks.
+  The file remains in `manifests/drafts/` only as a historical pointer for
+  agents and manifests that still read or mention the original roadmap path.
+  Do not promote or implement this archived epic.
 files:
   edit:
     - path: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
       artifacts:
         - kind: attribute
-          name: _plan_lock_ceremony_reduction_epic
+          name: _archived_plan_lock_ceremony_reduction_epic
           of: manifest
           type: draft epic
-          description: "Split-before-promote roadmap; children 085-01 through 085-07 carry the implementation-sized contracts."
+          description: "Historical pointer for promoted child manifests 085-01 through 085-07."
   read:
-    - maid_runner/core/plan_lock.py
-    - maid_runner/core/_file_discovery.py
-    - maid_runner/cli/commands/plan.py
-    - docs/plans/maid-runner-self-improvement-backlog.md
+    - manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml
+    - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+    - manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml
+    - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+    - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+    - manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml
+    - manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml
 validate:
   - uv run maid validate manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml --mode schema --quiet

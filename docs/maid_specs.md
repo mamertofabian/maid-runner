@@ -130,6 +130,25 @@ output tail for human inspection, but it does not parse text output to decide
 whether evidence is red. `maid plan lock --no-run` records
 `red_evidence: null`.
 
+When one behavioral test is shared by several manifests, use
+`maid plan dependents <test-path>` before revising any lock. The read-only
+query inspects the persisted test hashes of active manifests, excludes
+superseded manifests, reports whether each dependent lock currently matches,
+and prints one explicit `maid plan revise ... --preserve-red-evidence` command
+per lock. The query never changes locks or assumes preservation is valid: each
+explicit revise still runs the existing evidence and validate-command checks.
+Unreadable active locks and paths outside the project fail the whole query
+instead of producing a partial dependency report. E701 diagnostics point to
+this query using the structured changed-test path.
+
+When two or more active manifests emit the same E701 dependency-query
+suggestion, `maid verify --summary` keeps every manifest failure visible but
+moves the repeated suggestion into one `RECOVERY` group naming all contributing
+manifest paths. Summary JSON exposes the same group under
+`findings.recovery`. Default verify text, raw JSON, and SARIF retain every
+per-manifest E701 suggestion. A single E701 remains inline without creating a
+singleton recovery section.
+
 ##### **Repository-Owned Django Test Wrappers**
 
 Command-integrity checks recognize standard Django entry points by default. A

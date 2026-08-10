@@ -1,0 +1,100 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Register the newly committed 121 fast-verification roadmap in the live planning epic inventory assertion.
+type: fix
+created: '2026-08-10T06:15:50Z'
+metadata:
+  status: implementation-ready
+  tags:
+  - planning-inventory
+  - test-repair
+  - fast-verification
+description: |
+  Commit b641477 added `121-00-fast-verification-roadmap.epic.yaml` as a live
+  planning epic but did not update the exact inventory assertion. Add that
+  filename to `LIVE_PLANNING_EPICS` so the test reflects the committed planning
+  state while continuing to reject unregistered live epics.
+
+  This is a narrow additive expectation update. It does not alter or archive
+  any epic, change production behavior, or supersede prior inventory contracts.
+temptations:
+- risk: Do not weaken the assertion to accept arbitrary planning epics.
+  instead: Add exactly the committed 121 roadmap filename to the expected set.
+- risk: Do not modify or archive the concurrently authored roadmap.
+  instead: Preserve commit b641477 and reconcile only its missing inventory registration.
+files:
+  scope:
+  - path: tests/core/test_draft_epic_archive_inventory.py
+    reason: Add the committed 121 roadmap filename to the exact live planning inventory constant without changing test functions or public artifacts.
+  read:
+  - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+  - manifests/082-06-archive-consumed-post-067-epics.manifest.yaml
+  - manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py
+- uv run maid validate manifests/fix-121-live-epic-inventory.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T06:29:44Z'
+  summary: Registered the concurrently committed 121 fast-verification roadmap
+    in the exact live planning epic inventory.
+  rationale: |
+    Commit b641477 added a fourth live planning epic but left the strict expected
+    set at three entries, blocking repository handoff. Adding exactly the 121
+    roadmap filename preserves strict equality and does not weaken inventory
+    detection. All five plan locks sharing the inventory test were revised with
+    their valid red evidence explicitly preserved. Evidence: 47 combined focused
+    tests passed, all 411 active manifests and 242 declared commands passed, and
+    the independent combined review found no blocking issues.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-evolver
+    - maid-implementation-review
+  lessons:
+  - lesson_type: workflow
+    summary: Adding a live planning epic requires updating the exact inventory
+      assertion in the same commit and revising every dependent shared-test lock.
+    tags:
+    - planning-inventory
+    - shared-tests
+    - plan-lock
+    paths:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - tests/core/test_draft_epic_archive_inventory.py
+  review_notes:
+  - source: independent-reviewer-combined-whitespace-inventory
+    severity: ready
+    summary: Exact inventory equality remains strict, lifecycle lock revisions
+      are legitimate, and no blockers were found.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_draft_epic_archive_inventory.py
+    status: passed
+    summary: All three epic inventory and archive assertions passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: All 411 active manifests passed; 109 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 242 declared validation commands passed.

@@ -26,8 +26,10 @@ description: |
   This is an additive evolution over 043-03's archive-pointer convention, not
   a redesign of draft lifecycle semantics. The previous epic paths stay
   stable for humans and for active manifests that mention them by metadata
-  or historical context. Only 062-00 and 064-00 should remain live
-  `draft-kind: epic` planning inventory after this pass.
+  or historical context. The live inventory assertion is intentionally explicit
+  and evolves as new split-before-promote epics are created; after archiving
+  the fully consumed 085 roadmap it keeps 062-00, 064-00, and 096-00 as live
+  `draft-kind: epic` planning work.
 
   Outcome/insights digestion: `maid learn` refreshed 110 records, and the
   enriched theme map was stale, so planning fell back to plain
@@ -39,9 +41,9 @@ temptations:
 - risk: Do not delete consumed epic files just because their children are promoted.
   instead: 'Preserve each draft path and rewrite it as an archived pointer with `# archive-kind: consumed-draft-epic`.'
 - risk: Do not leave 067, 077, 081, or 084 marked as live planning inventory after archiving their descriptions.
-  instead: 'Replace the draft marker, set `metadata.status: archived`, and test that only 062 and 064 remain live planning epics.'
+  instead: 'Replace the draft marker, set `metadata.status: archived`, and test the explicit set of genuinely live planning epics.'
 - risk: Do not archive partially consumed epics to make inventory look cleaner.
-  instead: Archive only confirmed consumed epics and keep 062/064 untouched as planning.
+  instead: Archive only confirmed consumed epics and keep 062/064/096 untouched as planning.
 - risk: Do not rely on prose-only backlog updates as the behavioral contract.
   instead: Add a focused test that reads the draft epic files and proves their archive markers, status, and child pointers are present.
 files:
@@ -50,10 +52,10 @@ files:
     artifacts:
     - kind: test_function
       name: test_consumed_epic_drafts_are_archived_pointers_to_promoted_children
-      description: 'Draft epics 067-00, 077-00, 081-00, and 084-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest.'
+      description: 'Draft epics 067-00, 077-00, 081-00, 084-00, and 085-00 are archived pointers with `# archive-kind: consumed-draft-epic`, metadata.status archived, a do-not-promote instruction, and files.read links to each promoted child manifest.'
     - kind: test_function
       name: test_only_unconsumed_epics_remain_live_planning_inventory
-      description: 'The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00 and 064-00.'
+      description: 'The only draft epic files still marked `# draft-kind: epic` with metadata.status planning are 062-00, 064-00, and 096-00.'
     - kind: test_function
       name: test_self_improvement_backlog_no_longer_describes_consumed_epics_as_stale
       description: The self-improvement backlog no longer describes 067, 077, or 081 as stale/planning takeover work after Theme 8 archives them.
@@ -86,6 +88,13 @@ files:
       of: manifest
       type: draft epic
       description: Archived pointer for promoted child manifests 084-01 through 084-07.
+  - path: manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_plan_lock_ceremony_reduction_epic
+      of: manifest
+      type: draft epic
+      description: Archived pointer for promoted child manifests 085-01 through 085-07.
   scope:
   - path: docs/plans/maid-runner-self-improvement-backlog.md
     reason: Mark Theme 8 as completed and update the draft inventory notes so takeover agents no longer reopen consumed epics.
@@ -117,18 +126,27 @@ files:
   - manifests/084-05-add-maid-evaluate-compare-aggregation.manifest.yaml
   - manifests/084-06-add-run-review-enrichment-pipeline.manifest.yaml
   - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+  - manifests/085-01-recognize-django-tests-py-test-modules.manifest.yaml
+  - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+  - manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml
+  - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+  - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+  - manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml
+  - manifests/085-07-ast-scoped-behavioral-test-hash.manifest.yaml
+  - manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml
 validate:
 - uv run python -m pytest tests/core/test_draft_epic_archive_inventory.py -v
 - uv run maid validate manifests/drafts/067-00-plan-lock-and-red-phase-evidence.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/drafts/081-00-outcome-llm-enrichment.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/drafts/084-00-after-action-run-evaluation.epic.yaml --mode schema --quiet
+- uv run maid validate manifests/drafts/085-00-plan-lock-ceremony-reduction.epic.yaml --mode schema --quiet
 - uv run maid validate manifests/082-06-archive-consumed-post-067-epics.manifest.yaml --mode behavioral --quiet
 outcome:
   status: completed
   completed_at: "2026-07-03T13:40:42+08:00"
-  summary: "Archived consumed split-before-promote epics and made the self-improvement backlog truthful for Theme 8; the contract was later revised to include the consumed 084 after-action run evaluation epic."
-  rationale: "Implementation preserved stable draft epic paths as archive pointers, listed promoted child manifests, left only 062 and 064 as live planning epics, and added characterization coverage for both draft inventory and stale backlog prose after implementation review found a takeover-summary contradiction. A later read-only review found the archive inventory test had been extended for 084 without declaring 084 in this governing manifest, so the contract now includes the 084 archived pointer, child-manifest read dependencies, and schema validation command."
+  summary: "Archived consumed split-before-promote epics and kept the explicit live-planning inventory aligned as later 084 and 085 roadmaps completed and the 096 performance roadmap opened."
+  rationale: "Implementation preserved stable draft epic paths as archive pointers, listed promoted child manifests, and added characterization coverage for both draft inventory and stale backlog prose. Later contract evolutions added consumed 084 and 085 archive pointers and now identify only 062, 064, and 096 as live planning epics; 096 remains intentionally live for fresh post-096-01 measurement, while 064 still requires its separate rejected-default-routing closure decision."
   lessons:
   - lesson_type: workflow
     summary: "Archiving consumed epics must update both machine-readable draft files and human takeover prose; otherwise agents can still reopen completed work even when manifests are archived."
@@ -158,6 +176,12 @@ outcome:
   - source: implementation-review-subagent-Bohr
     severity: warning
     summary: "Follow-up review found the archive inventory test covered 084 while this manifest still declared only 067, 077, and 081; fixed by adding 084 to the artifact, read, validate, and Outcome evidence sections."
+  - source: implementation-review-subagent-maid_082_06_inventory_review
+    severity: P1-fixed
+    summary: "Review found 085 was fully consumed, the shared inventory test had tampered 082-06 and 095-05 locks, and Outcome wording was stale. Fixed by archiving 085, revising both locks to pin the final test, and aligning current live-set evidence to 062/064/096."
+  - source: implementation-review-subagent-maid_082_06_inventory_review-final
+    severity: ready
+    summary: "Final re-review found no actionable findings after the inventory test proved 085's archive marker, do-not-promote instruction, and seven exact child pointers; both shared locks reported OK."
   validation:
   - command:
     - uv
@@ -168,7 +192,7 @@ outcome:
     - tests/core/test_draft_epic_archive_inventory.py
     - -v
     status: passed
-    summary: "Focused archive-inventory suite passed 3 tests covering archive markers for consumed epics including 084, promoted child pointers, only 062/064 live planning epics, and absence of known stale backlog phrases."
+    summary: "Focused archive-inventory suite passed 3 tests covering archive markers for consumed epics through 085, promoted child pointers, only 062/064/096 live planning epics, and absence of known stale backlog phrases."
   - command:
     - uv
     - run
@@ -224,6 +248,17 @@ outcome:
     - --quiet
     status: passed
     summary: "Promoted manifest behavioral validation passed after the review-driven backlog-prose test was declared."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - handoff
+    - --since
+    - 2636eb8cae3d7480e127aae61958770840822fec
+    status: passed
+    summary: "Final handoff verification passed all nine stages, including the current plan locks and full repository test stage; only existing non-blocking E307 warnings remained."
   - command:
     - uv
     - run

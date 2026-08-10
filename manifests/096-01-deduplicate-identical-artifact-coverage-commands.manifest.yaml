@@ -1,0 +1,200 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Execute identical directory-wide artifact-coverage pytest commands once while
+  preserving deterministic per-manifest reports"
+type: refactor
+created: "2026-08-07T23:36:18Z"
+metadata:
+  epic: 096-00-bound-directory-artifact-coverage
+  priority: high
+  tags:
+    - performance
+    - artifact-coverage
+    - strict-delta
+    - subprocess-deduplication
+description: |
+  Replace the per-manifest directory loop with an invocation-scoped batch path.
+  Group only manifests that declare the exact same normalized pytest argument
+  tuple. Execute that tuple once with the union of the group's absolute target
+  files, then evaluate the resulting line and call evidence separately against
+  each manifest's original artifact set. Preserve manifest-chain insertion
+  order in the returned mapping and preserve the single-manifest
+  run_artifact_coverage API unchanged.
+
+  This is an exact-command first slice. It removes 54 confirmed duplicate
+  subprocess occurrences in the current repository, including nineteen of the
+  twenty full-suite reruns for `pytest tests/ -v`. It does not merge different
+  pytest selectors or options. Missing coverage.py remains fail-closed with
+  E307. A failed shared command contributes the same E900 diagnostic to every
+  manifest that declared it. E710 findings, locations, suggestions, and JSON
+  order remain equivalent to independent runs.
+temptations:
+  - risk: "Do not cache a report by command alone because manifests in the group declare
+      different targets."
+    instead: "Share only raw execution evidence, then evaluate each manifest's original
+      targets into a separate report."
+  - risk: "Do not treat different pytest argument tuples as compatible based on guessed
+      semantics."
+    instead: "Use exact normalized pytest arguments as the grouping key in this child."
+  - risk: "Do not hide or attribute a failed shared command to only the first manifest."
+    instead: "Attach the existing E900 command-failure diagnostic to every manifest
+      that declares the failed tuple."
+  - risk: "Do not change result order as groups are formed."
+    instead: "Build the final mapping in original manifest-chain order and assert
+      deterministic JSON-equivalent reports."
+  - risk: "Do not add process-global or persistent caching."
+    instead: "Keep grouped targets, subprocess results, and coverage data local to
+      one batch function call."
+files:
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: run_artifact_coverage_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Run exact duplicate pytest command tuples once per directory-wide
+            invocation and return deterministic per-manifest reports equivalent to
+            independent artifact-coverage runs."
+  scope:
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Route directory-wide validate, strict-preview, strict-delta, and verify's
+        shared directory helper through run_artifact_coverage_batch without changing
+        CLI public signatures or output structure."
+  create:
+    - path: tests/core/test_artifact_coverage_batch.py
+      artifacts:
+        - kind: test_function
+          name:
+            test_batch_reports_match_independent_reports_for_identical_command
+          description: "Two manifests with different targets and the same pytest command
+            receive reports identical to independent runs, excluding duration-free
+            implementation details."
+        - kind: test_function
+          name: test_batch_executes_identical_pytest_command_once
+          description: "A subprocess boundary counter proves equivalent direct and
+            uv-wrapped pytest commands normalize to one launch while both manifests
+            receive their own findings."
+        - kind: test_function
+          name: test_batch_keeps_distinct_pytest_arguments_separate
+          description: "Changing a selector or option invalidates the grouping key
+            and launches a separate coverage command."
+        - kind: test_function
+          name:
+            test_batch_attributes_shared_command_failure_to_every_declaring_manifest
+          description: "One failed shared subprocess produces a report byte-for-byte
+            equivalent to independent failure evaluation for every declaring manifest,
+            with exactly E900 and no spurious E710."
+        - kind: test_function
+          name: test_batch_preserves_manifest_order_and_json_shape
+          description: "Returned mapping order and each report's serialized findings/errors
+            match the input manifest order deterministically."
+        - kind: test_function
+          name:
+            test_batch_missing_coverage_dependency_fails_closed_for_every_manifest
+          description: "When coverage.py is unavailable, every target-bearing manifest
+            receives the existing E307 diagnostic and no pytest subprocess launches."
+        - kind: test_function
+          name: test_batch_combines_evidence_from_multiple_commands_per_manifest
+          description: "A manifest whose artifacts execute across two distinct pytest
+            commands combines both evidence sets before evaluating E710 findings."
+        - kind: test_function
+          name: test_batch_matches_final_command_call_trace_for_one_line_artifact
+          description: "A one-line artifact executed by an earlier command but not
+            the final command produces a batch report identical to the legacy
+            single-manifest path, whose accumulated line data uses only the final
+            command's call-trace fallback."
+  read:
+    - maid_runner/core/_test_command_batching.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/strict_delta.py
+    - maid_runner/cli/commands/verify.py
+    - tests/core/test_artifact_coverage.py
+    - tests/cli/test_artifact_coverage_cmd.py
+    - tests/cli/test_strict_delta_advisory_warnings.py
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml
+    - docs/plans/maid-runner-performance-backlog.md
+validate:
+  - uv run python -m pytest tests/core/test_artifact_coverage_batch.py
+    tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py
+    tests/cli/test_strict_delta_advisory_warnings.py -v
+  - uv run maid validate
+    manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+    --mode behavioral --quiet
+  - uv run maid validate
+    manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+    --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-08T09:25:23+08:00"
+  summary: "Deduplicated exact normalized artifact-coverage pytest commands within directory-wide validation while preserving deterministic, legacy-compatible per-manifest reports."
+  rationale: "The directory helper now executes each exact pytest argument tuple once with the union of declaring manifests' target files, then evaluates separate reports in manifest-chain order. A representative two-manifest duplicate-command probe fell from 9.83 seconds to 5.23 seconds (about 47 percent) without widening grouping to different pytest options or introducing persistent caching."
+  lessons:
+    - lesson_type: performance
+      summary: "Measured exact-command duplication provided a bounded first optimization: sharing raw runtime evidence removed redundant subprocess cost without weakening per-manifest E307, E710, or E900 evaluation."
+      tags:
+        - artifact-coverage
+        - measurement-discipline
+        - subprocess-deduplication
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - maid_runner/cli/commands/validate.py
+    - lesson_type: test-design
+      summary: "Multi-line fixtures masked a call-trace compatibility difference because accumulated line evidence was sufficient; one-line artifacts were required to prove that batch mode preserves the legacy final-command calls.json semantics."
+      tags:
+        - implementation-review
+        - behavioral-parity
+        - regression-coverage
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage_batch.py
+  review_notes:
+    - source: implementation-review-subagent-maid_096_01_review
+      severity: P2-fixed
+      summary: "Re-review required durable one-line, multi-command parity coverage after the implementation correction; the new regression test was added through plan-lock revision 3 and the final verdict was ready with no actionable findings."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/core/test_artifact_coverage_batch.py
+        - tests/core/test_artifact_coverage.py
+        - tests/cli/test_artifact_coverage_cmd.py
+        - tests/cli/test_strict_delta_advisory_warnings.py
+        - -q
+      status: passed
+      summary: "29 focused and adjacent tests passed, including exact-command deduplication, failure attribution, missing-validator behavior, deterministic ordering, distinct-command separation, and one-line multi-command parity."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --summary
+        - --plan-lock-scope
+        - task
+        - --since
+        - 2636eb8cae3d7480e127aae61958770840822fec
+      status: passed
+      summary: "All eight task-scoped verify stages passed after plan-lock revision 3; only existing non-blocking E307 warnings remained."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: failed
+      summary: "3806 tests passed and 5 skipped; the sole failure was the sibling planning-inventory assertion because the newly created live 096-00 epic was not yet registered in tests/core/test_draft_epic_archive_inventory.py. No implementation test failed."

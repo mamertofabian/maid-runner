@@ -1,0 +1,218 @@
+{
+  "manifest_path": "manifests/configure-artifact-coverage-timeout.manifest.yaml",
+  "manifest_hash": "sha256-contract:26ec04e4fdce6fe4b7bb8b63acb87a0dc276be3b3b3d344c5719f45bbdae38a3",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+    "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:53df7c8cfec9f3700f011e40e3b27f6599ad0f8a7840aa2243c37bf332d74f17",
+    "tests/core/test_config.py": "sha256-pyast:v2:39f9255ea6b382b886deff3aa0a311248660c221df6d4ac47de364942c485ad6"
+  },
+  "created_at": "2026-08-10T04:13:37.448078+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:afafb778b15fdb3b0ba675ce4c1b1363c48a110d30eb7dd5d7a6084b81c14213",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:00b9a77ac50205500c5e06c360c5b80c5bd5390914f9d0f07928c45fbd85e22e",
+        "tests/core/test_config.py": "sha256-pyast:v2:39f9255ea6b382b886deff3aa0a311248660c221df6d4ac47de364942c485ad6"
+      },
+      "revised_at": "2026-08-10T04:14:12.770241+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/configure-artifact-coverage-timeout.manifest.yaml -> manifests/configure-artifact-coverage-timeout.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d729389a456b1ff30534dd9025becf61dfacce75e53182be53e11cce0d6b5715",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:00b9a77ac50205500c5e06c360c5b80c5bd5390914f9d0f07928c45fbd85e22e",
+        "tests/core/test_config.py": "sha256-pyast:v2:39f9255ea6b382b886deff3aa0a311248660c221df6d4ac47de364942c485ad6"
+      },
+      "revised_at": "2026-08-10T05:11:27.720353+00:00",
+      "reason": "Deep artifact coverage showed the data-only config class could not satisfy its declared class contract; add a tested post-init invariant so direct construction is valid and executable.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__",
+          "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__:kind=method",
+          "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__:of=ArtifactCoverageConfig",
+          "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_config_enforces_invariant_directly",
+          "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_config_enforces_invariant_directly:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T05:12:03.403213+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_artifact_coverage_timeout_config.py tests/core/test_config.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py -v",
+        "exit_code": 1,
+        "output_tail": "E         \nE         Full diff:\nE           [\nE         -     902.5,\nE         +     300,\nE           ]\n\ntests/core/test_artifact_coverage_timeout_config.py:95: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_defaults_to_fifteen_minutes\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_loads_positive_numeric_values\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_rejects_invalid_values[True]\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_rejects_invalid_values[900]\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_rejects_invalid_values[0]\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_rejects_invalid_values[-1]\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_timeout_rejects_invalid_values[10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_artifact_coverage_config_enforces_invariant_directly\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_single_artifact_coverage_uses_configured_timeout\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_batched_artifact_coverage_uses_configured_timeout\n======================== 10 failed, 27 passed in 34.07s ========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/configure-artifact-coverage-timeout.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:type=float",
+      "maid_runner/core/config.py:attribute:MaidConfig.artifact_coverage",
+      "maid_runner/core/config.py:attribute:MaidConfig.artifact_coverage:kind=attribute",
+      "maid_runner/core/config.py:attribute:MaidConfig.artifact_coverage:of=MaidConfig",
+      "maid_runner/core/config.py:attribute:MaidConfig.artifact_coverage:type=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:class:ArtifactCoverageConfig",
+      "maid_runner/core/config.py:class:ArtifactCoverageConfig:kind=class",
+      "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__",
+      "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__:kind=method",
+      "maid_runner/core/config.py:method:ArtifactCoverageConfig.__post_init__:of=ArtifactCoverageConfig",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_config_enforces_invariant_directly",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_config_enforces_invariant_directly:kind=test_function",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_defaults_to_fifteen_minutes",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_defaults_to_fifteen_minutes:kind=test_function",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_loads_positive_numeric_values",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_loads_positive_numeric_values:kind=test_function",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_rejects_invalid_values",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_artifact_coverage_timeout_rejects_invalid_values:kind=test_function",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_batched_artifact_coverage_uses_configured_timeout",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_batched_artifact_coverage_uses_configured_timeout:kind=test_function",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_single_artifact_coverage_uses_configured_timeout",
+      "tests/core/test_artifact_coverage_timeout_config.py:test_single_artifact_coverage_uses_configured_timeout:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_timeout_config.py"
+      ],
+      "edit": [
+        "maid_runner/core/config.py"
+      ],
+      "read": [
+        "maid_runner/core/_deep_coverage.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py"
+      ],
+      "scope": [
+        "README.md",
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_timeout_config.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_timeout_defaults_to_fifteen_minutes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_timeout_loads_positive_numeric_values"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_timeout_rejects_invalid_values"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_config_enforces_invariant_directly"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_single_artifact_coverage_uses_configured_timeout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batched_artifact_coverage_uses_configured_timeout"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageConfig"
+            },
+            {
+              "kind": "method",
+              "name": "__post_init__",
+              "of": "ArtifactCoverageConfig"
+            },
+            {
+              "kind": "attribute",
+              "name": "timeout_seconds",
+              "of": "ArtifactCoverageConfig",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "artifact_coverage",
+              "of": "MaidConfig",
+              "type": "ArtifactCoverageConfig"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_deep_coverage.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Replace both private hard-coded subprocess timeouts with the validated project configuration without changing public function signatures."
+        },
+        {
+          "path": "README.md",
+          "reason": "Document the artifact_coverage.timeout_seconds setting, its 900-second default, and positive-number requirement."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_timeout_config.py",
+      "tests/core/test_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_artifact_coverage_timeout_config.py tests/core/test_config.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py -v",
+      "uv run maid validate manifests/configure-artifact-coverage-timeout.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

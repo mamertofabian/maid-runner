@@ -1,0 +1,293 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Validate local MAID feedback bundles fail-closed and aggregate exact lesson
+  evidence into a deterministic source-anonymous intake report"
+type: feature
+created: "2026-08-08T12:00:43Z"
+metadata:
+  epic: 097-00-cross-repository-maid-feedback
+  priority: high
+  lane: correctness
+  owner_skill: maid-evolver
+  tags:
+    - feedback
+    - aggregation
+    - privacy
+    - cli
+description: |
+  Add the second local-only 097 slice. `maid feedback aggregate` accepts one or
+  more explicitly named version-1 feedback bundle files, validates every file
+  before producing output, deduplicates byte-equivalent logical bundles, and
+  aggregates exact lesson records into a deterministic intake report.
+
+  Bundle validation is fail-closed: top-level and record keys must match the
+  version-1 allowlist exactly; values must have the expected non-boolean scalar
+  types; status arrays must be sorted, unique, and restricted to the exported
+  generic vocabularies; records must be sorted by exact lesson type/summary;
+  and every feedback ID must equal the canonical content-derived SHA-256.
+  Unsupported schema versions, extra or duplicate JSON keys, malformed JSON,
+  invalid records, and conflicting content abort the whole operation without
+  writing a report. The public aggregation function revalidates supplied
+  bundle dataclasses too, so callers cannot bypass file validation.
+
+  Aggregation first canonicalizes and deduplicates logically identical bundles,
+  so supplying the same bundle twice cannot inflate evidence. Across distinct
+  bundles, exact feedback IDs form one report record with a distinct bundle
+  count, a sum of the bundles' already-anonymous source counts, and sorted
+  status unions. This count is reported source evidence, not a claim of unique
+  repositories: the privacy boundary deliberately provides no repository ID
+  with which to make that claim.
+
+  The report contains no input paths, repository identities, timestamps,
+  commands, provenance, review prose, or transport metadata. Existing output
+  is preserved unless `--force` is explicit. The command remains a local file
+  operation and visibly states that aggregation is advisory and performs no
+  submission, issue creation, manifest creation, or automatic MAID mutation.
+temptations:
+  - risk: "Do not accept unknown keys or future schema versions and silently discard
+      what the current intake does not understand."
+    instead: "Validate the exact version-1 shape and fail the complete operation before
+      output when any input is unsupported or malformed."
+  - risk: "Do not trust a supplied feedback_id or allow it to group different lesson
+      content."
+    instead: "Recompute the canonical content hash for every record and reject mismatches
+      before aggregation."
+  - risk: "Do not count the same logical bundle twice or describe summed anonymous
+      source_count values as unique repositories."
+    instead: "Deduplicate canonical bundle content, expose distinct bundle_count and
+      reported_source_count, and document their limits."
+  - risk: "Do not leak local input paths or rejected payload fragments into the serialized
+      intake report."
+    instead: "Keep paths in local diagnostics only and build the report from a minimal
+      explicit field allowlist."
+  - risk: "Do not turn aggregation into automatic triage, backlog mutation, remote
+      submission, or trust elevation."
+    instead: "Emit an advisory local report only; reproduction and governed routing
+      remain the 097-03 contract."
+files:
+  create:
+    - path: maid_runner/core/feedback_intake.py
+      artifacts:
+        - kind: class
+          name: FeedbackIntakeRecord
+          description: "One exact feedback aggregate across distinct validated logical
+            bundles."
+        - kind: attribute
+          name: feedback_id
+          of: FeedbackIntakeRecord
+          type: str
+        - kind: attribute
+          name: lesson_type
+          of: FeedbackIntakeRecord
+          type: str
+        - kind: attribute
+          name: summary
+          of: FeedbackIntakeRecord
+          type: str
+        - kind: attribute
+          name: bundle_count
+          of: FeedbackIntakeRecord
+          type: int
+        - kind: attribute
+          name: reported_source_count
+          of: FeedbackIntakeRecord
+          type: int
+        - kind: attribute
+          name: outcome_statuses
+          of: FeedbackIntakeRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: validation_statuses
+          of: FeedbackIntakeRecord
+          type: tuple[str, ...]
+        - kind: attribute
+          name: review_severities
+          of: FeedbackIntakeRecord
+          type: tuple[str, ...]
+        - kind: class
+          name: FeedbackIntakeReport
+          description: "Versioned deterministic report over validated, deduplicated
+            feedback bundles."
+        - kind: attribute
+          name: schema_version
+          of: FeedbackIntakeReport
+          type: str
+        - kind: attribute
+          name: bundles_received
+          of: FeedbackIntakeReport
+          type: int
+        - kind: attribute
+          name: unique_bundles
+          of: FeedbackIntakeReport
+          type: int
+        - kind: attribute
+          name: records
+          of: FeedbackIntakeReport
+          type: tuple[FeedbackIntakeRecord, ...]
+        - kind: function
+          name: read_feedback_bundle
+          args:
+            - name: path
+              type: Union[str, Path]
+          returns: FeedbackBundle
+          description: "Read and fail-closed validate one exact version-1 feedback
+            bundle."
+        - kind: function
+          name: aggregate_feedback_bundles
+          args:
+            - name: bundles
+              type: Sequence[FeedbackBundle]
+          returns: FeedbackIntakeReport
+          description: "Deduplicate logical bundles and aggregate exact feedback records
+            without source identities."
+        - kind: function
+          name: write_feedback_intake_report
+          args:
+            - name: report
+              type: FeedbackIntakeReport
+            - name: output_path
+              type: Union[str, Path]
+            - name: overwrite
+              type: bool
+              default: "False"
+          returns: None
+          description: "Write stable minimized JSON and preserve existing output by
+            default."
+    - path: tests/core/test_feedback_intake.py
+      artifacts:
+        - kind: test_function
+          name: test_read_feedback_bundle_accepts_exact_version_one_shape
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe
+          args: []
+          returns: None
+    - path: tests/cli/test_feedback_aggregate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_feedback_aggregate_parser_requires_local_inputs_and_output
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_feedback_aggregate_writes_advisory_local_report_without_submission
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_feedback_aggregate_fails_atomically_when_any_input_is_invalid
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit
+          args: []
+          returns: None
+        - kind: test_function
+          name: 
+            test_feedback_aggregate_guidance_documents_advisory_count_semantics
+          args: []
+          returns: None
+  edit:
+    - path: maid_runner/cli/commands/feedback.py
+      artifacts:
+        - kind: function
+          name: cmd_feedback_aggregate
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Validate all named bundles and write one advisory local intake
+            report atomically with respect to validation."
+  scope:
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Register aggregate arguments under the existing feedback command without
+        changing export behavior."
+    - path: README.md
+      reason: "List the local aggregate command and its advisory, no-submission boundary."
+    - path: docs/manifest-outcome-records.md
+      reason: "Document strict bundle intake, anonymous evidence-count semantics,
+        and advisory aggregation."
+    - path: maid_runner/docs/manifest-outcome-records.md
+      reason: "Keep the packaged Outcome workflow document synchronized."
+  read:
+    - manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml
+    - manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+    - maid_runner/core/feedback.py
+    - tests/core/test_feedback_export.py
+    - tests/cli/test_feedback_cmd.py
+validate:
+  - uv run python -m pytest -q tests/core/test_feedback_intake.py 
+    tests/cli/test_feedback_aggregate_cmd.py tests/core/test_feedback_export.py 
+    tests/cli/test_feedback_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-08-08T12:06:57Z"
+  summary: "Added fail-closed local feedback bundle intake and deterministic aggregation through `maid feedback aggregate`, including duplicate-key rejection, content-ID verification, canonical bundle deduplication, anonymous evidence counts, overwrite protection, and advisory-only guidance."
+  rationale: "This completes the second 097 bridge without weakening the export privacy boundary: intake accepts only the exact version-1 contract, revalidates direct public-API callers, never restores repository identities, and produces a local report that cannot submit data or mutate MAID state."
+  lessons:
+    - lesson_type: schema-hardening
+      summary: "Strict JSON intake must reject duplicate object keys as well as extra fields; ordinary json.loads last-value behavior otherwise makes an apparently exact schema ambiguous."
+      tags:
+        - maid-runner-feedback
+        - feedback-intake
+        - fail-closed
+      paths:
+        - maid_runner/core/feedback_intake.py
+        - tests/core/test_feedback_intake.py
+    - lesson_type: privacy
+      summary: "Anonymous cross-bundle source counts must be labeled as reported evidence rather than unique repositories because privacy-preserving bundles intentionally contain no identity for global deduplication."
+      tags:
+        - aggregation
+        - privacy-boundary
+        - evidence-semantics
+      paths:
+        - maid_runner/core/feedback_intake.py
+        - docs/manifest-outcome-records.md
+    - lesson_type: test-design
+      summary: "A fail-closed file reader does not protect a public aggregation API by itself; behavioral tests should construct invalid dataclasses directly and require the aggregation boundary to revalidate them."
+      tags:
+        - public-api
+        - validation-boundary
+        - behavioral-contract
+      paths:
+        - tests/core/test_feedback_intake.py
+  review_notes:
+    - source: independent-implementation-review
+      severity: ready
+      summary: "Fresh read-only review found no blocking or advisory findings; extra malformed-count, duplicate-status, duplicate-record, and scalar-record probes were all rejected."
+    - source: environment-limit
+      severity: warning
+      summary: "The repository-wide test/handoff batch was not rerun because its prior invocation reproducibly corrupted live Git worktree metadata; manifest-scoped and task-scoped gates were used safely instead."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_feedback_intake.py, tests/cli/test_feedback_aggregate_cmd.py, tests/core/test_feedback_export.py, tests/cli/test_feedback_cmd.py]
+      status: passed
+      summary: "All 18 focused intake, aggregate CLI, export regression, and export CLI tests passed."
+    - command: [uv, run, maid, validate, manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against the promoted locked contract."
+    - command: [uv, run, maid, verify, --summary, --plan-lock-scope, task, --since, 4a13b60]
+      status: passed
+      summary: "Task-scoped verification passed all eight stages with only existing E307 advisories."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "Repository validation passed 394 active manifests, skipped 109 superseded manifests, and reported zero failures."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 4a13b60]
+      status: not-run
+      summary: "Not run because the repository-wide test stage previously corrupted live Git metadata; this known environment defect remains outside the 097-02 scope."

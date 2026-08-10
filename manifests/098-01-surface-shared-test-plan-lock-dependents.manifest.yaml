@@ -1,0 +1,377 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Surface every active plan lock that pins a shared behavioral test and 
+  provide explicit per-lock recovery guidance without mutating evidence
+type: feature
+created: '2026-08-09T12:43:08Z'
+metadata:
+  tags:
+  - plan-lock
+  - developer-experience
+  - shared-tests
+  - cross-repository-feedback
+  priority: medium
+description: |
+  Implement the bounded R5 improvement confirmed by the 2026-08-09
+  cross-repository feedback trial. A downstream maid-validator-csharp Outcome
+  reported that changing one shared full-suite behavioral test requires every
+  active lock hashing that test to be refreshed. A current v2.25 reproduction
+  confirmed that two active manifests sharing one test emit two independent
+  E701 failures, while `maid manifests <test-path>` cannot discover the
+  relationship because that command intentionally indexes writable paths.
+
+  Add `maid plan dependents <test-path>` as the plan-lock-specific read-only
+  query. It resolves a project-relative test path, inspects only active
+  manifests and their existing locks, reports every lock that pins the path,
+  exposes whether each stored hash currently matches, and emits an explicit
+  per-manifest `maid plan revise ... --preserve-red-evidence` command. The
+  revise command remains an operator action: its existing evidence and command
+  checks decide whether preservation is legitimate.
+
+  E701 diagnostics point operators to the read-only query for the changed test
+  before any revision. Text output is concise and sorted by active manifest
+  order; JSON output keeps the exact dependency and recovery fields. Missing
+  matches are a successful empty query. An unreadable lock or a test path that
+  escapes the project fails loudly without partial output.
+
+  This is an additive evolution of the existing plan-lock CLI and core
+  contracts. It does not supersede prior manifests, broaden `maid manifests`,
+  change E701 enforcement, revise locks automatically, or infer that preserved
+  evidence is valid.
+temptations:
+- risk: Automatically revise every dependent lock after discovering a shared 
+    test.
+  instead: Keep discovery read-only and print one explicit command per active 
+    lock so existing revise-time evidence checks remain authoritative.
+- risk: Reuse `ManifestChain.manifests_for_file`, which intentionally ignores 
+    files.read paths and would reproduce the confirmed blind spot.
+  instead: Inspect the persisted `PlanLock.test_hashes` of active manifests 
+    because those hashes are the exact evidence relationship being queried.
+- risk: Skip malformed locks and return the remaining dependencies as if the 
+    result were complete.
+  instead: Fail the entire query before rendering partial output when an active 
+    candidate lock cannot be loaded.
+- risk: Include superseded manifests or scan orphan lock filenames without 
+    consulting the active chain.
+  instead: Iterate `ManifestChain.active_manifests()` and resolve each lock by 
+    the active manifest slug.
+- risk: Parse rendered E701 text to recover the changed test path.
+  instead: Attach the query command while `_test_hash_errors` still has the 
+    structured relative test path.
+files:
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: class
+      name: PlanLockDependent
+      description: Immutable public record describing one active manifest lock 
+        that pins the queried behavioral test.
+    - kind: attribute
+      name: manifest_slug
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: manifest_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: lock_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: test_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: test_hash_matches
+      of: PlanLockDependent
+      type: bool
+    - kind: attribute
+      name: recovery_command
+      of: PlanLockDependent
+      type: str
+    - kind: function
+      name: find_plan_lock_dependents
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: test_path
+        type: str | Path
+      returns: tuple[PlanLockDependent, Ellipsis]
+      description: Resolve one in-project test path and return every active 
+        readable lock that pins it, failing loudly on an unreadable active lock 
+        that must be inspected.
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Dispatches the additive dependents subcommand alongside lock,
+        revise, and status.
+    - kind: function
+      name: cmd_plan_dependents
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Render the shared-test plan-lock dependency report as 
+        deterministic text or JSON without changing locks.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the additive `plan dependents` parser, test-path argument, 
+      manifest-dir/project-root options, and JSON flag without changing 
+      unrelated parser behavior.
+  - path: docs/maid_specs.md
+    reason: Document the read-only shared-test dependency query and its explicit
+      per-lock recovery boundary.
+  create:
+  - path: tests/cli/test_plan_dependents_cmd.py
+    artifacts:
+    - kind: test_function
+      name: 
+        test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command
+      args: []
+      returns: None
+      source_scenario: Two active manifests have readable plan locks that both 
+        pin one shared behavioral test whose content has changed.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits successfully and reports both active 
+          manifests, both lock paths, mismatch state, and one explicit 
+          preserve-red-evidence revise command per manifest without changing 
+          either lock.
+    - kind: test_function
+      name: test_plan_dependents_json_excludes_superseded_locks
+      args: []
+      returns: None
+      source_scenario: A superseded manifest and one active manifest both have 
+        historical locks that pin the queried test.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: JSON contains only the active dependent with exact manifest, 
+          lock, test-path, hash-state, and recovery-command fields; the 
+          superseded lock is absent.
+    - kind: test_function
+      name: test_plan_dependents_rejects_out_of_project_paths
+      args: []
+      returns: None
+      source_scenario: The query names an absolute or parent-relative test path 
+        outside the configured project root.
+      actions:
+      - type: api_call
+        subject:
+          function: find_plan_lock_dependents
+      expected:
+        behavior: Dependency discovery raises a clear ValueError rather than 
+          reading or reporting locks for an escaped path.
+    - kind: test_function
+      name: test_plan_dependents_empty_query_succeeds_without_recovery_commands
+      args: []
+      returns: None
+      source_scenario: No active plan lock pins the requested in-project path.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits successfully with a visible zero-dependent 
+          result and emits no revise command.
+    - kind: test_function
+      name: test_plan_dependents_recovery_command_preserves_non_default_project_root
+      args: []
+      returns: None
+      source_scenario: The dependency query runs outside the target repository
+        and selects it with an explicit non-default project root.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Every recovery command preserves the resolved project root so
+          the printed command is executable from the caller's current working
+          directory.
+    - kind: test_function
+      name: test_plan_dependents_fails_loudly_on_unreadable_active_lock
+      args: []
+      returns: None
+      source_scenario: An active manifest's lock file is malformed while another
+        active lock also pins the requested test.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits 2, writes no partial JSON report, and 
+          identifies the unreadable active lock.
+    - kind: test_function
+      name: test_e701_suggests_querying_all_shared_test_dependents
+      args: []
+      returns: None
+      source_scenario: Plan-lock enforcement detects a changed test that is 
+        pinned by multiple active manifests.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: Every E701 diagnostic for that test carries the same `maid 
+          plan dependents <test-path>` suggestion so verify output leads to the 
+          complete read-only dependency view before revision.
+  read:
+  - maid_runner/core/chain.py
+  - maid_runner/core/result.py
+  - maid_runner/cli/commands/_format.py
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - manifests/add-verify-summary-output.manifest.yaml
+  - docs/plans/maid-runner-self-improvement-backlog.md
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_dependents_cmd.py
+- uv run maid validate 
+  manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml --mode
+  behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-09T13:20:47Z'
+  summary: Added a read-only `maid plan dependents` query that discovers every
+    active lock pinning a behavioral test, reports current hash state, and emits
+    explicit per-lock recovery commands without revising evidence automatically.
+  rationale: |
+    The maid-validator-csharp feedback trial reproduced a real blind spot:
+    writable-file lookup cannot reveal locks that share a test through
+    persisted read/hash evidence. Querying active locks directly closes that
+    discovery gap while preserving supersession, fail-closed loading, and the
+    existing explicit plan-revision approval boundary.
+  lessons:
+  - lesson_type: plan-lock
+    summary: Shared behavioral-test ownership is an evidence relationship and
+      should be discovered from active locks' persisted test hashes rather than
+      writable-file manifest indexes.
+    tags:
+    - shared-tests
+    - diagnostics
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/plan.py
+  - lesson_type: command-generation
+    summary: A recovery command printed for a non-default project root must
+      carry both an absolute manifest path and the root option because the
+      positional manifest is resolved against the caller's working directory.
+    tags:
+    - portability
+    - paths
+    paths:
+    - maid_runner/core/plan_lock.py
+    - tests/cli/test_plan_dependents_cmd.py
+  - lesson_type: test-design
+    summary: Generated recovery commands should be executed from the adverse
+      calling context, not merely compared as strings, so path-resolution bugs
+      cannot satisfy the behavioral contract.
+    tags:
+    - behavioral-tests
+    - implementation-review
+    paths:
+    - tests/cli/test_plan_dependents_cmd.py
+  review_notes:
+  - source: implementation-review-subagent-implementation_review
+    severity: P1 fixed
+    summary: Found that the initial cross-directory recovery command omitted
+      project-root context; the command now includes the resolved root outside
+      the target repository.
+  - source: implementation-review-subagent-implementation_review
+    severity: P1 fixed
+    summary: Found that adding only `--project-root` still left the positional
+      manifest relative to the caller; fixed with an absolute manifest path and
+      an execution-based regression test.
+  - source: implementation-review-subagent-implementation_review
+    severity: ready
+    summary: Final re-review found no blocking findings; residual risk is limited
+      to untested Windows shell quoting while retaining the project's existing
+      `shlex.quote` command-rendering convention.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_dependents_cmd.py
+    status: passed
+    summary: All seven dependency-query behavioral scenarios passed, including
+      execution of a cross-directory recovery command against a spaced path.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_dependents_cmd.py
+    - tests/core/test_plan_lock.py
+    - tests/core/test_plan_lock_enforcement.py
+    - tests/cli/test_plan_cmd.py
+    - tests/cli/test_verify_plan_lock_cmd.py
+    - tests/cli/test_cli_help_text.py
+    status: passed
+    summary: The focused plan-lock and CLI regression scope passed 63 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml
+    - --mode
+    - implementation
+    - --packet
+    status: passed
+    summary: Manifest implementation validation passed against revision 6.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml
+    status: passed
+    summary: Both manifest-declared validation commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed 400 active manifests with 109
+      superseded manifests skipped and no failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 235 repository manifest test commands passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    status: passed
+    summary: The full Python suite passed 3859 tests with 5 skipped.

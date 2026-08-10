@@ -1,0 +1,267 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Make maid assess repeatable and safe for real MAID repositories without 
+  routine lifecycle files inflating ceremony or deep recommendations dropping 
+  handoff gates.
+type: fix
+created: '2026-08-10T02:34:24Z'
+metadata:
+  status: implementation-ready
+  origin: tower-recall-real-repository-assessment
+  tags:
+  - developer-experience
+  - verification
+  - risk-scaling
+  - cache
+  priority: high
+description: |
+  A real-repository trial found three adoption blockers in the first `maid
+  assess` implementation. First, assessment invoked risk-v1 with its persistent
+  cache enabled, so the advisory read dirtied repositories and a repeated run
+  assessed the newly-created cache path. Second, routine manifest and plan-lock
+  envelope files made nearly every MAID-backed implementation look sensitive
+  or wider than its material production/test change. Third, a deep recommendation
+  printed only `--profile deep`, even though deep does not itself enable the
+  handoff profile's plan-lock and red-evidence gates.
+
+  Add a backward-compatible `use_cache` option to `recommend_coverage`; assess
+  disables it so gathering signals neither reads nor writes persistent report
+  state. Assessment discards generated `.maid/cache/**` paths. When a diff also
+  contains material paths, it excludes an active-manifest and plan-lock envelope
+  only when the changed manifest declares a changed material file. Lifecycle-only
+  and unrelated manifest diffs remain conservatively sensitive, so a trivial
+  extra file cannot hide a direct contract edit. Lifecycle recognition follows
+  the configured manifest directory.
+
+  Deep recommendations print an exact verify command that explicitly retains
+  `--require-plan-lock` and `--require-red-evidence`. This does not change verify
+  presets or execute verification; it makes the advisory command match the
+  existing handoff safety floor while adding deep's artifact-coverage and
+  knockout checks.
+temptations:
+- risk: Do not disable risk-v1 caching globally or change bootstrap behavior.
+  instead: Add an optional cache-control argument whose default preserves 
+    current callers, and disable it only from assessment.
+- risk: Do not ignore all manifest changes and create a low-risk escape hatch.
+  instead: Exclude routine lifecycle paths only when material paths are also 
+    present; retain lifecycle-only diffs as sensitive evidence.
+- risk: Do not redefine the deep preset and broaden this fix into verify-profile
+    evolution.
+  instead: Add the handoff requirements explicitly to the command emitted for a 
+    deep assessment.
+- risk: Do not let generated assessment cache files feed back into the next 
+    assessment.
+  instead: Prevent assessment from creating the cache and always exclude 
+    `.maid/cache/**` from material change signals.
+files:
+  edit:
+  - path: maid_runner/core/coverage_recommendation.py
+    artifacts:
+    - kind: function
+      name: recommend_coverage
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: manifest_dir
+        type: str
+        default: manifests/
+      - name: limit
+        type: int
+        default: '20'
+      - name: exclude_patterns
+        type: set[str] | None
+        default: None
+      - name: respect_gitignore
+        type: bool
+        default: 'True'
+      - name: deep
+        type: bool
+        default: 'False'
+      - name: use_cache
+        type: bool
+        default: 'True'
+      returns: CoverageRecommendationReport
+      description: Preserves persistent risk-v1 caching by default while 
+        allowing read-only callers to bypass cache reads and writes 
+        deterministically.
+  - path: maid_runner/core/change_assessment.py
+    artifacts:
+    - kind: function
+      name: assess_change_signals
+      args:
+      - name: project_root
+        type: Path
+      - name: baseline
+        type: DiffScopeBaseline
+      - name: manifest_dir
+        type: str
+        default: manifests/
+      returns: ChangeSignalSummary
+      description: Collects repeatable read-only signals, excludes generated 
+        cache paths, and excludes routine manifest/plan-lock envelope paths only
+        when material changed paths remain.
+  - path: maid_runner/cli/commands/assess.py
+    artifacts:
+    - kind: function
+      name: cmd_assess
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Emits deep verify argv with explicit plan-lock and 
+        red-evidence requirements while leaving handoff recommendations 
+        unchanged.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+  - path: tests/core/test_coverage_recommendation.py
+    artifacts:
+    - kind: test_function
+      name: 
+        test_recommendation_can_bypass_persistent_cache_without_changing_default
+  - path: tests/cli/test_assess_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_assessment_is_repeatable_and_does_not_create_cache
+    - kind: test_function
+      name: test_routine_lifecycle_files_do_not_inflate_material_change
+    - kind: test_function
+      name: test_manifest_only_change_remains_sensitive
+    - kind: test_function
+      name: test_unrelated_material_change_cannot_hide_manifest
+    - kind: test_function
+      name: test_custom_manifest_directory_lifecycle_pair_is_calibrated
+    - kind: test_function
+      name: test_nested_active_manifest_lifecycle_pair_is_calibrated
+    - kind: test_function
+      name: test_deep_recommendation_command_retains_handoff_gates
+  - path: tests/cli/test_verify_profile_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_actionable_payload_commands_use_gate_equivalent_profiles
+  - path: tests/test_review_convergence_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_implementation_review_skill_carries_convergence_protocol
+    - kind: test_function
+      name: test_implementer_skills_carry_iteration_recipe
+  - path: tests/ci/test_codex_maid_loop.py
+    artifacts:
+    - kind: method
+      name: test_agents_guidance_requires_plan_lock_promotion_lifecycle
+      of: TestCodexMaidLoopRepoWiring
+  - path: tests/cli/test_init_instruction_payload_version.py
+    artifacts:
+    - kind: test_function
+      name: test_assess_guidance_bumps_instruction_payload_version
+  scope:
+  - path: AGENTS.md
+    reason: Concisely direct repository handoff through assessment with a safe fallback.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    reason: Update the canonical Codex implementation handoff recipe.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    reason: Update the canonical Codex review validation recipe.
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Update the canonical Codex draft implementation handoff recipe.
+  - path: .claude/skills/maid-implementer/SKILL.md
+    reason: Keep the canonical Claude implementation recipe aligned.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    reason: Keep the canonical Claude review recipe aligned.
+  - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+    reason: Keep the repository Claude draft implementation recipe aligned.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    reason: Package the synced Codex implementation guidance.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    reason: Package the synced Codex review guidance.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Package the synced Codex draft implementation guidance.
+  - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+    reason: Package the synced Claude implementation guidance.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    reason: Package the synced Claude review guidance.
+  read:
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/chain.py
+  - maid_runner/core/verify_profiles.py
+  - manifests/092-03-add-coverage-risk-policy-cache-and-deep-evidence.manifest.yaml
+  - manifests/099-02-recommend-verify-profile-from-change-assessment.manifest.yaml
+validate:
+- uv run python -m pytest tests/core/test_coverage_recommendation.py 
+  tests/cli/test_assess_cmd.py tests/cli/test_verify_profile_distribution.py
+  tests/test_review_convergence_guidance.py tests/ci/test_codex_maid_loop.py
+  tests/cli/test_init_instruction_payload_version.py -v
+- uv run maid validate 
+  manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml --mode 
+  behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T03:08:48Z'
+  summary: Made change assessment read-only and repeatable, calibrated routine
+    manifest/plan-lock envelopes without hiding substantive contract edits,
+    preserved handoff gates in deep commands, and adopted assess-first guidance.
+  rationale: |
+    Assessment now bypasses persistent risk-v1 cache reads and writes, ignores
+    generated cache paths, and recognizes active manifests beneath configured
+    manifest roots using MAID's inactive-directory policy. A lifecycle envelope
+    is excluded only when its manifest declares a changed material path; direct
+    or unrelated manifest edits remain sensitive. Deep recommendations explicitly
+    retain plan-lock and red-evidence flags. Repository and distributed skills
+    now direct agents through the exact assessed command, with handoff as the
+    fallback safety floor, and the instruction payload version is advanced.
+    Evidence: 76 affected tests passed; `maid validate` passed all 406 active
+    manifests; `maid test` passed 239/239 commands including full pytest; two
+    tower-recall runs were identical and left the detached worktree clean; the
+    final independent review found no remaining issues.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-implement-draft
+    - maid-evolver
+    - maid-planner
+    - maid-implementation-review
+    - skill-creator
+  lessons:
+  - lesson_type: real-repository-validation
+    summary: Advisory assessment must not persist cache state because its own
+      generated files can change the next assessment and dirty consumer repos.
+    tags:
+    - assessment
+    - determinism
+    - cache
+    paths:
+    - maid_runner/core/change_assessment.py
+    - maid_runner/core/coverage_recommendation.py
+  - lesson_type: anti-gaming
+    summary: Routine lifecycle calibration is safe only when a changed manifest
+      demonstrably declares a changed material path; blanket manifest filtering
+      lets an unrelated trivial edit hide a substantive contract change.
+    tags:
+    - lifecycle
+    - anti-gaming
+    - verify-profiles
+    paths:
+    - maid_runner/core/change_assessment.py
+    - tests/cli/test_assess_cmd.py
+  - lesson_type: distribution
+    summary: Changing shipped skill guidance requires advancing the instruction
+      payload version so installed repositories can detect stale instructions.
+    tags:
+    - skills
+    - payload-version
+    paths:
+    - maid_runner/instruction_payload.py
+    - tests/cli/test_init_instruction_payload_version.py
+  review_notes:
+  - source: implementation-review-assess_adoption_fix_review_clean
+    severity: P1/P2 fixed
+    summary: Fixed configured-root matching, lifecycle downgrade resistance,
+      payload versioning, and nested active-manifest discovery across revisions
+      6 and 7; final reviewer verdict was Ready to merge with no findings.

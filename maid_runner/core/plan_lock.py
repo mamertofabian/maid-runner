@@ -88,6 +88,18 @@ class ContractDelta:
 
 
 @dataclass(frozen=True)
+class PlanLockDependent:
+    """One active manifest lock that pins a queried behavioral test."""
+
+    manifest_slug: str
+    manifest_path: str
+    lock_path: str
+    test_path: str
+    test_hash_matches: bool
+    recovery_command: str
+
+
+@dataclass(frozen=True)
 class PlanLockRevision:
     """One immutable revision history entry."""
 
@@ -263,6 +275,57 @@ class PlanLock:
 def default_plan_lock_path(project_root: Path, manifest_slug: str) -> Path:
     """Return `.maid/plan-locks/<manifest-slug>.lock.json` under the root."""
     return Path(project_root) / ".maid" / "plan-locks" / f"{manifest_slug}.lock.json"
+
+
+def find_plan_lock_dependents(
+    chain: ManifestChain,
+    project_root: Path,
+    test_path: str | Path,
+) -> tuple[PlanLockDependent, ...]:
+    """Return active readable locks that pin one in-project behavioral test."""
+    root = Path(project_root).resolve()
+    requested = Path(test_path)
+    full_test_path = requested if requested.is_absolute() else root / requested
+    try:
+        relative_test_path = full_test_path.resolve().relative_to(root).as_posix()
+    except ValueError as exc:
+        raise ValueError(
+            f"Plan-lock dependency path is outside project root: {test_path}"
+        ) from exc
+
+    dependents: list[PlanLockDependent] = []
+    for manifest in chain.active_manifests():
+        lock_path = default_plan_lock_path(root, manifest.slug)
+        if not lock_path.exists():
+            continue
+        lock = PlanLock.load(lock_path)
+        locked_hash = lock.test_hashes.get(relative_test_path)
+        if locked_hash is None:
+            continue
+        manifest_path = _project_relative_path(Path(manifest.source_path), root)
+        relative_lock_path = _project_relative_path(lock_path, root)
+        project_root_option = ""
+        recovery_manifest_path = manifest_path
+        if root != Path.cwd().resolve():
+            project_root_option = f"--project-root {shlex.quote(str(root))} "
+            recovery_manifest_path = str(root / manifest_path)
+        recovery_command = (
+            f"maid plan revise {shlex.quote(recovery_manifest_path)} "
+            f"{project_root_option}"
+            '--reason "accept approved shared-test change" '
+            "--preserve-red-evidence"
+        )
+        dependents.append(
+            PlanLockDependent(
+                manifest_slug=manifest.slug,
+                manifest_path=manifest_path,
+                lock_path=relative_lock_path,
+                test_path=relative_test_path,
+                test_hash_matches=test_hash_matches(locked_hash, full_test_path),
+                recovery_command=recovery_command,
+            )
+        )
+    return tuple(dependents)
 
 
 def compute_manifest_contract_hash(manifest_path: Path) -> str:
@@ -1581,6 +1644,11 @@ def _test_hash_errors(
                     manifest,
                     project_root,
                     detail=f"behavioral test changed after lock: {rel}",
+                    suggestion=(
+                        f"Run `maid plan dependents {shlex.quote(rel)}` to inspect "
+                        "every active lock that pins this behavioral test before "
+                        "revising evidence."
+                    ),
                 )
             )
     return errors
@@ -1657,6 +1725,8 @@ def _red_evidence_command_mismatch_detail(
 def _red_evidence_is_valid(evidence: dict) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
         return False
+    if evidence.get("mode") == "stash_restoration":
+        return _stash_restoration_red_evidence_is_valid(evidence)
     commands = evidence.get("commands")
     if not isinstance(commands, list):
         return False
@@ -1666,6 +1736,48 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         if isinstance(command, dict)
     ]
     return "red" in classifications and "invalid" not in classifications
+
+
+def _stash_restoration_red_evidence_is_valid(evidence: dict) -> bool:
+    """Validate mixed red evidence proven by an exact-stash restoration run."""
+    commands = evidence.get("commands")
+    restored_commands = evidence.get("restored_commands")
+    if not isinstance(commands, list) or not isinstance(restored_commands, list):
+        return False
+    if not commands or len(commands) != len(restored_commands):
+        return False
+    if not isinstance(evidence.get("restored_captured_at"), str):
+        return False
+    if not all(
+        _red_command_payload_is_consistent(command)
+        for command in (*commands, *restored_commands)
+    ):
+        return False
+
+    classifications = [command["classification"] for command in commands]
+    if "red" not in classifications or "invalid" not in classifications:
+        return False
+    if any(command["classification"] == "invalid" for command in restored_commands):
+        return False
+    return all(
+        command["command"] == restored_command["command"]
+        for command, restored_command in zip(commands, restored_commands)
+    )
+
+
+def _red_command_payload_is_consistent(command: object) -> bool:
+    """Return whether serialized command evidence matches exit classification."""
+    if not isinstance(command, dict):
+        return False
+    command_text = command.get("command")
+    exit_code = command.get("exit_code")
+    return (
+        isinstance(command_text, str)
+        and bool(command_text)
+        and isinstance(exit_code, int)
+        and command.get("classification") == classify_red_exit_code(exit_code)
+        and isinstance(command.get("output_tail"), str)
+    )
 
 
 def _contract_writable_paths(contract: dict) -> set[str]:
@@ -1819,6 +1931,7 @@ def _lock_error(
     project_root: Path,
     *,
     detail: str | None = None,
+    suggestion: str | None = None,
 ) -> ValidationError:
     messages = {
         ErrorCode.PLAN_LOCK_MISSING: "PLAN_LOCK_MISSING: manifest has no plan lock",
@@ -1850,6 +1963,7 @@ def _lock_error(
         code=code,
         message=message,
         location=Location(file=_manifest_location(manifest, project_root)),
+        suggestion=suggestion,
     )
 
 

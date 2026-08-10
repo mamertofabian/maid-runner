@@ -41,14 +41,22 @@ kit usage, `maid validators` audit command, and support boundary.
 
 ## Quick Start
 
+**macOS / Linux:**
+
 ```bash
-# Install
-pip install maid-runner  # or: uv pip install maid-runner
+curl -LsSf https://maidrunner.dev/install.sh | sh
+```
 
-# Set up MAID in your project
+**Windows PowerShell:**
+
+```powershell
+irm https://maidrunner.dev/install.ps1 | iex
+```
+
+Then, inside your project:
+
+```bash
 maid init
-
-# Walk the first-win path
 maid howto quickstart
 ```
 
@@ -56,22 +64,41 @@ That is the whole starting path. `maid howto` opens the guided topics, and
 each topic ends by pointing at the next one. Adding MAID to a codebase that
 already exists starts at [Brownfield Onboarding](#brownfield-onboarding).
 
+<details>
+<summary>Alternative installation methods</summary>
+
+Already use uv?
+
+```bash
+uv tool install maid-runner
+```
+
+Already have Python 3.10+?
+
+```bash
+pip install maid-runner
+```
+
+Pin an exact release on macOS or Linux:
+
+```bash
+curl -LsSf https://maidrunner.dev/install.sh | sh -s -- --version 2.25.0
+```
+
+</details>
+
 ## Installation
 
-### Claude Code Plugin (Recommended)
+The bootstrap installers use uv internally and install the core Python
+validator. For all language and quality extras, use
+`uv tool install "maid-runner[all]"`; `typescript`, `svelte`, `quality`, and
+`watch` can be selected the same way.
+
+### Claude Code Plugin
 
 ```bash
 /plugin marketplace add aidrivencoder/claude-plugins
 /plugin install maid-runner@aidrivencoder
-```
-
-### From PyPI
-
-```bash
-pip install maid-runner              # Python only (core — no tree-sitter)
-pip install maid-runner[all]         # All language support (TypeScript, Svelte)
-pip install maid-runner[typescript]  # TypeScript/JS only
-pip install maid-runner[watch]       # File watching for TDD mode
 ```
 
 ### Multi-Tool Support
@@ -133,6 +160,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid test` | Run validation commands from manifests | `--manifest <path>`, `--jobs N`, `--watch`, `--watch-all`, `--fail-fast`, `--json` |
 | `maid pgtap -- <psql arguments>` | Run a file-backed pgTAP script with MAID-safe red-phase exit semantics | Requires `-f`/`--file`; forces `ON_ERROR_STOP=1`; explicit pgTAP assertion failures exit 1 and infrastructure/setup failures exit 2 |
 | `maid verify` | Run the combined done gate | `--profile handoff\|pre-commit\|agent-retry\|deep`, `--summary`, `--strict`, `--advisory`, `--file-tracking-scope repository\|task`, `--plan-lock-scope repository\|task`, `--artifact-coverage`, `--knockout`, `--knockout-limit N`, `--knockout-allow-dirty`, `--require-plan-lock`, `--require-red-evidence`, `--worktree-scope`, `--changed-scope`, `--no-changed-scope`, `--since`, `--base-ref`, `--test-jobs N`, `--json`, `--packet [path]` |
+| `maid assess` | Recommend an advisory verify profile from deterministic change signals | `--since`, `--base-ref`, `--json` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--legacy-baseline --reason` (tracked legacy lock), `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
 | `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
@@ -144,6 +172,8 @@ MAID Runner section in `AGENTS.md`.
 | `maid learn` | Refresh the deterministic Outcome index | `--manifest-dir`, `--output`, `--include-status`, `--json`, `--quiet` |
 | `maid recall` | Search the deterministic Outcome index | `--text`, `--tag`, `--path`, `--artifact`, `--validation-command`, `--manifest-slug`, `--allow-stale-index`, `--json` |
 | `maid insights` | Aggregate deterministic Outcome insights | `--index`, `--manifest-dir`, `--allow-stale-index`, `--limit`, `--json` |
+| `maid feedback export` | Write explicitly marked Outcome lessons to a local-only MAID Runner feedback bundle | `--index`, `--output`, `--manifest-dir`, `--project-root`, `--allow-stale-index`, `--force`, `--json` |
+| `maid feedback aggregate` | Validate and aggregate local MAID Runner feedback bundles into an advisory intake report | `<bundle>...`, `--output`, `--force`, `--json` |
 | `maid enrich prompt\|validate\|render` | Build and verify deterministic Outcome enrichment artifacts | `--index`, `--digest`, `--md-output`, `--output`, `--allow-stale-index`, `--json` |
 | `maid evaluate run <manifest>` | Report deterministic after-action run evidence; see `docs/run-evaluation.md` | `--project-root`, `--json`, `--quiet` |
 | `maid manifests <file>` | List manifests referencing a file | `--manifest-dir`, `--quiet` |
@@ -288,6 +318,7 @@ maid verify --require-plan-lock --require-red-evidence
 # --summary --require-plan-lock --require-red-evidence, and the applied
 # profile and its flags are reported in the output
 maid verify --profile handoff
+maid assess --base-ref origin/main
 
 # Opt-in Python-only constraint evidence gates for high-risk review
 maid validate --artifact-coverage manifests/add-auth.manifest.yaml
@@ -359,7 +390,14 @@ by the tests. The gate is opt-in and Python-only. Attribute artifacts are
 excluded, and a class passes when any declared method on the class executes.
 Install the optional quality extra with `maid-runner[quality]`; requesting the
 gate without that extra fails closed with `E307` semantics instead of silently
-skipping the evidence check.
+skipping the evidence check. Artifact-coverage subprocesses have a finite
+15-minute default that repositories can adjust with a positive number of
+seconds in `.maidrc.yaml`:
+
+```yaml
+artifact_coverage:
+  timeout_seconds: 900
+```
 
 `maid verify --knockout` is an opt-in Python-only gate that replaces each
 declared public function or method body with

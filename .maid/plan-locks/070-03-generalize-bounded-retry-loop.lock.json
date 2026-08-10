@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/070-03-generalize-bounded-retry-loop.manifest.yaml",
-  "manifest_hash": "sha256:e7a70e8083a4e7696306bf80edab8332f8ffea3bc2c1752dd0d390cba99ae707",
+  "manifest_hash": "sha256-contract:ebd6f18b42c58e69a5a321d8b803a984e6e7edac32f6d9c02b896e84132baf22",
   "test_hashes": {
-    "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
-    "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82",
-    "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
+    "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:32a252e591b991591d957e0159eed0ee6f222b5b901ccd85ec81a3df673bb99e",
+    "tests/ci/test_maid_loop_core.py": "sha256-pyast:v2:4791b4587987906ed6cb712f2e977f71eb05798fb6ccd045fdf094ff67f858dc"
   },
   "created_at": "2026-06-15T00:36:01.997211+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:1c74c0152c6abe99676a44fc614ddb31b58c4d535c347d665514cc687e33eddc",
@@ -17,7 +17,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:1a82cc8466b4bb48a731aa75b3500e4e1c992d2776fcb4770863a43236ab4d76"
       },
       "revised_at": "2026-06-15T00:36:06.420100+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/070-03-generalize-bounded-retry-loop.manifest.yaml -> manifests/070-03-generalize-bounded-retry-loop.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/070-03-generalize-bounded-retry-loop.manifest.yaml -> manifests/070-03-generalize-bounded-retry-loop.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -27,7 +29,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:1a82cc8466b4bb48a731aa75b3500e4e1c992d2776fcb4770863a43236ab4d76"
       },
       "revised_at": "2026-06-15T00:45:01.930538+00:00",
-      "reason": "Capture valid red evidence after replacing missing-file red with behavioral assertion red"
+      "reason": "Capture valid red evidence after replacing missing-file red with behavioral assertion red",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -37,7 +41,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:f62934059bc2b3818def0e074cb4d22a1d608849955ff092c0488daf23849ac1"
       },
       "revised_at": "2026-06-15T00:45:18.507079+00:00",
-      "reason": "Refresh lock hashes after restoring formatted behavioral tests"
+      "reason": "Refresh lock hashes after restoring formatted behavioral tests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -47,7 +53,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
       },
       "revised_at": "2026-06-15T01:00:59.232999+00:00",
-      "reason": "Refresh lock hashes after packet retry loop coverage"
+      "reason": "Refresh lock hashes after packet retry loop coverage",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -57,7 +65,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
       },
       "revised_at": "2026-06-15T01:09:24.559897+00:00",
-      "reason": "Recapture red evidence from missing retry failure packet handoff"
+      "reason": "Recapture red evidence from missing retry failure packet handoff",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -67,7 +77,9 @@
         "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
       },
       "revised_at": "2026-06-15T01:10:03.696836+00:00",
-      "reason": "Refresh lock hashes after retry packet evidence and parser help fix"
+      "reason": "Refresh lock hashes after retry packet evidence and parser help fix",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:b67d0c076ad2ee080715ff2e5a7d993d85e45c668112503c0d8e455b6bdc18c3",
@@ -77,7 +89,37 @@
         "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
       },
       "revised_at": "2026-06-15T01:15:29.205701+00:00",
-      "reason": "Refresh lock hashes after Outcome capture"
+      "reason": "Refresh lock hashes after Outcome capture",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:e7a70e8083a4e7696306bf80edab8332f8ffea3bc2c1752dd0d390cba99ae707",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82",
+        "tests/ci/test_maid_loop_core.py": "sha256:32741e9fcb2a9e3dee30d517d185fc9a80db22b96a6554b4f9e9bab5ed7316a3"
+      },
+      "revised_at": "2026-08-10T03:29:34.718734+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:docs/agent-retry-protocol.md",
+          "create:tests/ci/test_maid_loop_core.py",
+          "create:tools/maid_loop_core.py",
+          "edit:tools/claude_maid_loop.py",
+          "edit:tools/codex_maid_loop.py",
+          "read:maid_runner/core/failure_packet.py",
+          "read:tests/ci/test_claude_maid_loop.py",
+          "read:tests/ci/test_codex_maid_loop.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -104,6 +146,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/agent-retry-protocol.md:attribute:documentation._agent_retry_protocol_contract",
@@ -207,6 +251,435 @@
       "tools/maid_loop_core.py:function:stage_commit_packet_files:kind=function",
       "tools/maid_loop_core.py:function:stage_commit_packet_files:returns=int"
     ],
+    "files": {
+      "create": [
+        "docs/agent-retry-protocol.md",
+        "tests/ci/test_maid_loop_core.py",
+        "tools/maid_loop_core.py"
+      ],
+      "edit": [
+        "tools/claude_maid_loop.py",
+        "tools/codex_maid_loop.py"
+      ],
+      "read": [
+        "maid_runner/core/failure_packet.py",
+        "tests/ci/test_claude_maid_loop.py",
+        "tests/ci/test_codex_maid_loop.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tools/maid_loop_core.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CommitPacket",
+              "description": "Parsed READY commit message and exact file list, shared by both loop tools."
+            },
+            {
+              "kind": "attribute",
+              "name": "message",
+              "of": "CommitPacket",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "files",
+              "of": "CommitPacket",
+              "type": "list[str]"
+            },
+            {
+              "kind": "class",
+              "name": "RetryLoopResult",
+              "description": "Outcome of a bounded retry loop run: attempts used, success, escalation, and the final failure packet if any."
+            },
+            {
+              "kind": "attribute",
+              "name": "attempts",
+              "of": "RetryLoopResult",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "RetryLoopResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "escalated",
+              "of": "RetryLoopResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "final_packet",
+              "of": "RetryLoopResult",
+              "type": "dict | None"
+            },
+            {
+              "kind": "function",
+              "name": "find_implementable_drafts",
+              "description": "Return sorted non-epic draft MAID manifests that remain to be implemented.",
+              "args": [
+                {
+                  "name": "draft_dir",
+                  "type": "Path"
+                }
+              ],
+              "returns": "list[Path]"
+            },
+            {
+              "kind": "function",
+              "name": "parse_automation_status",
+              "description": "Extract the final AUTOMATION_STATUS marker from an agent's final message.",
+              "args": [
+                {
+                  "name": "final_message",
+                  "type": "str"
+                }
+              ],
+              "returns": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "parse_commit_packet",
+              "description": "Extract the commit message and explicit file list from a READY final message; last complete packet wins.",
+              "args": [
+                {
+                  "name": "final_message",
+                  "type": "str"
+                }
+              ],
+              "returns": "CommitPacket | None"
+            },
+            {
+              "kind": "function",
+              "name": "git_status_short",
+              "description": "Return `git status --short` output for worktree preflight.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "stage_commit_packet_files",
+              "description": "Stage the exact existing or tracked-deleted files named by a READY packet; refuse absolute or parent-relative paths.",
+              "args": [
+                {
+                  "name": "files",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "commit_ready_changes",
+              "description": "Stage and commit a READY packet after approval.",
+              "args": [
+                {
+                  "name": "packet",
+                  "type": "CommitPacket"
+                },
+                {
+                  "name": "root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "ask_commit_approval",
+              "description": "Require a per-pass typed approval before committing a READY packet.",
+              "args": [
+                {
+                  "name": "pass_number",
+                  "type": "int"
+                },
+                {
+                  "name": "status",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "read_failure_packet",
+              "description": "Read and parse the failure packet JSON written by a failed gate run; return None for a missing or unreadable packet.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "dict | None"
+            },
+            {
+              "kind": "function",
+              "name": "run_bounded_retry_loop",
+              "description": "Drive the documented loop contract: run gate, on failure read packet and hand it to the next attempt, re-run, stop and escalate with the final packet after max_attempts.",
+              "args": [
+                {
+                  "name": "run_gate",
+                  "type": "Callable[[], int]"
+                },
+                {
+                  "name": "run_attempt",
+                  "type": "Callable[[dict | None], str]"
+                },
+                {
+                  "name": "packet_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "max_attempts",
+                  "type": "int",
+                  "default": "5"
+                }
+              ],
+              "returns": "RetryLoopResult"
+            }
+          ]
+        },
+        {
+          "path": "docs/agent-retry-protocol.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_agent_retry_protocol_contract",
+              "description": "Loop contract specification: run gate with --packet, read packet on failure, apply next_action-guided fixes within manifest scope, re-run, bounded attempts (default 5), then human escalation with the final packet; includes the packet schema and escalation rules.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_maid_loop_core.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_discovery_excludes_epic_drafts",
+              "source_scenario": "The automation loop discovers implementable draft manifests before starting a pass.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "find_implementable_drafts"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only non-epic `.manifest.yaml` drafts are returned, sorted by path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_status_and_commit_packet_parsing_preserves_existing_protocol",
+              "source_scenario": "An agent final message contains automation status and READY commit packet markers.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "parse_automation_status"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "parse_commit_packet"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The last valid AUTOMATION_STATUS is selected, the last complete commit packet wins, and malformed packets are rejected."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stage_commit_packet_files_rejects_unsafe_paths",
+              "source_scenario": "A READY packet names absolute or parent-relative paths.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "stage_commit_packet_files"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The staging helper refuses unsafe paths without invoking git."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_read_failure_packet_returns_dict_or_none",
+              "source_scenario": "The retry loop reads the packet emitted by a failed MAID gate.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_failure_packet"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Valid packet JSON is returned as a dict, while missing or unreadable packet files return None."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_bounded_retry_loop_stops_immediately_when_gate_passes",
+              "source_scenario": "The first MAID gate run passes before any agent retry is needed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_bounded_retry_loop"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The loop returns success without invoking the attempt callable or reading stale packet state."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_bounded_retry_loop_passes_packet_to_attempt_and_records_outcomes",
+              "source_scenario": "A gate fails, writes a failure packet, then passes after the agent attempt consumes that packet.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_bounded_retry_loop"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The loop reads the packet, passes it to the next attempt callable, records per-attempt outcomes, and returns a successful RetryLoopResult."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_bounded_retry_loop_escalates_after_default_attempt_bound",
+              "source_scenario": "The MAID gate continues to fail after every retry attempt.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_bounded_retry_loop"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The loop stops after the default bound of five attempts and returns escalated=True with the final packet."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_git_commit_helpers_delegate_through_public_commit_packet",
+              "source_scenario": "A READY packet names safe repository-relative paths and commit approval is requested for a pass.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "git_status_short"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "commit_ready_changes"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ask_commit_approval"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Git helpers run in the supplied root, commit_ready_changes stages only packet files before committing, and typed approval accepts only `commit`."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_agent_retry_protocol_document_names_packet_cycle_and_escalation",
+              "source_scenario": "A maintainer reads the documented retry protocol.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The document specifies running gates with --packet, reading the packet, applying next_action-guided fixes, rerunning, defaulting to five attempts, and escalating to a human with the final packet."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tools/codex_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Codex loop entry point keeps its CLI behavior while delegating shared logic to tools/maid_loop_core.py and consuming failure packets.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tools/claude_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Claude loop entry point keeps its CLI behavior while delegating shared logic to tools/maid_loop_core.py and consuming failure packets.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/failure_packet.py",
+        "tests/ci/test_codex_maid_loop.py",
+        "tests/ci/test_claude_maid_loop.py"
+      ]
+    },
     "test_files": [
       "tests/ci/test_claude_maid_loop.py",
       "tests/ci/test_codex_maid_loop.py",

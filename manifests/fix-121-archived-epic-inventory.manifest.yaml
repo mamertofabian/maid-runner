@@ -1,0 +1,83 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Remove the archived 121 roadmap from the exact live planning epic inventory
+type: fix
+created: '2026-08-10T11:47:06Z'
+supersedes:
+- fix-121-live-epic-inventory
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: existing-red-confirmed
+  status: implementation-ready
+  tags:
+  - planning-inventory
+  - release-blocker
+  - fast-verification
+  priority: high
+description: |
+  The delivered 121-01 work archived the consumed fast-verification roadmap,
+  but the strict live-planning inventory still expects its filename. Remove
+  exactly that archived filename from `LIVE_PLANNING_EPICS` so the existing
+  observable inventory test matches the committed lifecycle state.
+
+  This supersedes the earlier registration fix because the roadmap's lifecycle
+  intentionally changed from live planning to archived. Strict equality stays
+  intact and continues rejecting every unregistered live epic.
+temptations:
+- risk: Do not weaken strict inventory equality or ignore archived files.
+  instead: Remove exactly the archived 121 roadmap filename from the expected live set and rerun the complete inventory test module.
+- risk: Do not reopen or edit the consumed roadmap to make the stale test pass.
+  instead: Preserve its archive marker and archived status as the source of truth for the expectation change.
+files:
+  scope:
+  - path: tests/core/test_draft_epic_archive_inventory.py
+    reason: Remove one archived roadmap filename from the exact live planning inventory constant without changing test functions or production APIs.
+  read:
+  - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+  - manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml
+  - manifests/fix-121-live-epic-inventory.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py
+outcome:
+  status: completed
+  completed_at: '2026-08-10T20:26:53+08:00'
+  summary: Removed the consumed and archived 121 fast-verification roadmap from
+    the exact live-planning inventory while preserving strict equality and the
+    roadmap's archived historical pointer.
+  rationale: The branch had archived the roadmap after delivering 121-01 but
+    retained the earlier expectation that it was live. A one-line expectation
+    correction supersedes that lifecycle-specific contract without reopening
+    the epic or weakening detection of unregistered live planning work.
+  lessons:
+  - lesson_type: workflow
+    summary: When a live epic is consumed and archived, the exact live-planning
+      inventory and every shared behavioral-test lock must move with the same
+      lifecycle transition.
+    tags:
+    - planning-inventory
+    - shared-tests
+    - plan-lock
+    paths:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - tests/core/test_draft_epic_archive_inventory.py
+  review_notes:
+  - source: independent-implementation-reviewer-release_review
+    severity: ready
+    summary: Independent review confirmed the one-line strict inventory repair,
+      supersession rationale, scope, and preserved-red-evidence lock revisions
+      with no blocking findings.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_draft_epic_archive_inventory.py]
+    status: passed
+    summary: All three exact live/archive inventory tests passed.
+  - command: [uv, run, maid, validate, manifests/fix-121-archived-epic-inventory.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed against the promoted locked contract.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-121-archived-epic-inventory.manifest.yaml]
+    status: passed
+    summary: The manifest-declared inventory command passed.

@@ -1,0 +1,206 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make maid validate strict, strict-preview, and strict-delta honor the existing
+  E307 advisory exemption so unsupported-source warnings stay visible without blocking
+  strict evaluation or suppressing artifact coverage"
+type: fix
+created: "2026-08-07T22:53:39Z"
+metadata:
+  epic: 062-00-strict-by-default-validation-gates
+  priority: critical
+  tags:
+    - validation-trust
+    - strict-preview
+    - strict-delta
+    - artifact-coverage
+    - warning-policy
+description: |
+  Repair the first confirmed cause of the false-clean strict migration report.
+  The 062-02 contract says strict-preview keeps the established advisory warning
+  policy, including E307 VALIDATOR_NOT_AVAILABLE. Verify already treats E307 as
+  advisory, but validate's single-manifest, batch, and CLI warning-failure paths
+  currently fail on every warning. On this repository, the two source-like E307
+  warnings make the strict batch unsuccessful, so _run_strict_delta skips its
+  artifact-coverage evaluation and reports strict_delta: [] in roughly five
+  seconds without running the intended fitness function.
+
+  This child centralizes the exact E307 advisory decision and applies it to
+  validate's strict success and warning-failure policy. E307 records remain in
+  text, JSON, and SARIF output at their existing severity; only their ability to
+  block strict validation changes. Every other warning, including E310 stub
+  diagnostics, remains blocking under strict, strict-preview, and future strict
+  defaults. The strict-delta exit code remains governed by the current default
+  evaluation, but an advisory E307 can no longer prevent the strict-side
+  artifact-coverage report from being computed.
+
+  This is deliberately the first reconciliation slice, not the whole 062-04
+  release flip. After it lands, rerun the repository strict-delta command and
+  treat any newly exposed E710/E900 findings as migration evidence for the next
+  child. Process-wide simulation of nested post-flip CLI defaults remains a
+  separate follow-up if the repaired strict-side run still differs from the
+  parked flipped-default branch.
+temptations:
+  - risk: "Do not downgrade E307 or remove it from structured output to make strict
+      validation pass."
+    instead: "Keep the diagnostic and severity unchanged; centralize only the established
+      advisory-vs-blocking policy."
+  - risk: "Do not make every warning advisory because one warning code is exempt."
+    instead: "Match only ErrorCode.VALIDATOR_NOT_AVAILABLE and prove E310 still fails
+      strict validation."
+  - risk: "Do not force artifact coverage to run after genuine strict structural failures."
+    instead: "Fix strict success classification so advisory E307 does not manufacture
+      a failure; retain the existing success prerequisite for real blocking findings."
+  - risk: "Do not fold the stale 062-04 branch or a process-global strict-default
+      simulation into this first slice."
+    instead: "Land the warning-policy correction, rerun strict-delta for current evidence,
+      and plan any remaining nested-default mismatch from that output."
+files:
+  edit:
+    - path: maid_runner/core/diagnostic_policy.py
+      artifacts:
+        - kind: function
+          name: warning_is_advisory
+          args:
+            - name: warning
+              type: ValidationError
+          returns: bool
+          description: "Return true only for warning diagnostics whose stable error
+            code is advisory under strict validation; initially E307 VALIDATOR_NOT_AVAILABLE."
+  create:
+    - path: tests/cli/test_strict_delta_advisory_warnings.py
+      artifacts:
+        - kind: test_function
+          name: test_warning_is_advisory_only_for_e307
+          description: "The shared policy recognizes E307 and rejects E310 so the
+            exemption is exact and fail-closed."
+        - kind: test_function
+          name: test_validate_strict_preview_keeps_e307_visible_without_failing
+          description: "A strict-preview fixture with a declared unsupported source
+            file exits zero while retaining its E307 warning in JSON output."
+        - kind: test_function
+          name: test_strict_delta_runs_artifact_coverage_despite_e307
+          description: "Directory-wide validation with advisory E307 plus an unexecuted
+            Python artifact reports E710 in strict_delta, reproducing the repository
+            batch path and proving E307 no longer suppresses the strict-side coverage
+            fitness function."
+        - kind: test_function
+          name: test_validate_strict_preview_still_fails_on_e310
+          description: "A real stub warning remains blocking under strict-preview,
+            proving the E307 exemption does not weaken other strict warnings."
+  scope:
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Apply the advisory-warning policy to CLI exit classification and strict-delta
+        orchestration without changing cmd_validate's public signature."
+    - path: maid_runner/core/validate.py
+      reason: "Apply the centralized advisory-warning decision to single-manifest
+        strict success without changing ValidationEngine's public signature."
+    - path: maid_runner/core/_validate_all.py
+      reason: "Apply the same policy to batch strict success so advisory E307 cannot
+        mark the strict batch failed before artifact coverage."
+  read:
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/core/result.py
+    - maid_runner/core/artifact_coverage.py
+    - tests/cli/test_strict_preview.py
+    - tests/cli/test_strict_delta_cmd.py
+    - manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml
+    - manifests/062-03-report-strict-migration-delta.manifest.yaml
+    - manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml
+validate:
+  - uv run python -m pytest tests/cli/test_strict_delta_advisory_warnings.py
+    tests/cli/test_strict_preview.py tests/cli/test_strict_delta_cmd.py -v
+  - uv run maid validate
+    manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode
+    behavioral --quiet
+  - uv run maid validate
+    manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml --mode
+    schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-08T07:11:11+08:00'
+  summary: >-
+    Strict validation now treats E307 VALIDATOR_NOT_AVAILABLE as advisory in
+    single-manifest, batch, plugin-diagnostic, and CLI warning-classification
+    paths while preserving the diagnostic and its warning severity. Directory-wide
+    strict-delta therefore reaches artifact coverage and exposes E710 instead of
+    returning a false-clean empty delta; E310 and every other warning remain
+    blocking.
+  rationale: >-
+    The established verify policy already exempted E307, but validate failed on
+    every warning. On this repository that made the strict batch unsuccessful
+    before artifact coverage could run. A shared warning_is_advisory predicate
+    now makes the exemption exact and reusable without downgrading or filtering
+    output. The implementation stayed within the approved first reconciliation
+    slice and did not merge the parked strict-default flip or introduce broad
+    control-flow analysis.
+  lessons:
+    - lesson_type: validation-trust
+      summary: >-
+        A prerequisite gate can make a migration report look clean by preventing
+        the measured fitness function from running. Tests for comparison modes
+        should prove both the prerequisite classification and a diagnostic that
+        only the downstream evaluation can produce; the batch E710 assertion is
+        the discriminating evidence here.
+      tags:
+        - strict-delta
+        - artifact-coverage
+        - fail-closed
+      paths:
+        - maid_runner/core/validate.py
+        - maid_runner/cli/commands/validate.py
+        - tests/cli/test_strict_delta_advisory_warnings.py
+    - lesson_type: test-design
+      summary: >-
+        A missing public helper masked two defects in later assertions: an
+        incorrect E310 enum member and the wrong strict-preview JSON nesting.
+        The sanctioned stash-backed plan revision restored genuine red evidence
+        before correcting the locked tests, then restored the implementation.
+      tags:
+        - plan-revision
+        - red-evidence
+      paths:
+        - tests/cli/test_strict_delta_advisory_warnings.py
+        - .maid/plan-locks/062-06-preserve-e307-advisory-strict-policy.lock.json
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Independent read-only review found no actionable issues and confirmed
+        scope fidelity, exact E307-only classification, preserved diagnostics,
+        correct batch failed-count behavior, and a ready verdict.
+    - source: maid-implementation-reviewer
+      severity: advisory
+      summary: >-
+        JSON retention and the critical directory-wide E710 path are directly
+        tested. Text/SARIF retention and explicit passed/failed batch counters
+        remain covered indirectly by implementation inspection and the broader
+        regression suite rather than dedicated assertions.
+    - source: implementation-session
+      severity: advisory
+      summary: >-
+        The repository-wide strict-delta probe was stopped after more than six
+        minutes while running per-manifest artifact coverage, including a full
+        tests/ coverage subprocess. This confirms the prior five-second
+        false-clean shortcut is gone and identifies a separate bounded-performance
+        follow-up; the focused directory-wide reproduction completed and exposed
+        E710 as contracted.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/cli/test_strict_delta_advisory_warnings.py, tests/cli/test_strict_preview.py, tests/cli/test_strict_delta_cmd.py, -v]
+      status: passed
+      summary: All 19 focused strict-preview and strict-delta tests passed.
+    - command: [uv, run, maid, validate, manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: The promoted additive contract passed implementation validation.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 390 active manifests passed; 109 superseded manifests were skipped and none failed.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 230 manifest-declared validation commands passed.
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 21697782419c1f7be044866fe9b6c1de37623ea4]
+      status: passed
+      summary: All nine handoff stages passed with zero blocking findings; E307 remained visible as a non-blocking warning.

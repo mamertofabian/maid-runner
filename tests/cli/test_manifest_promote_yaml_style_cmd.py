@@ -107,3 +107,21 @@ def test_promote_does_not_wrap_long_strings_with_backslashes(tmp_path: Path):
     assert exit_code == 0
     assert all(not line.endswith("\\") for line in text.splitlines())
     assert promoted["temptations"][0]["instead"] == LONG_INSTEAD
+
+
+def test_promote_does_not_emit_trailing_whitespace(tmp_path: Path):
+    draft_path = _write_draft(tmp_path)
+    draft_data = yaml.safe_load(draft_path.read_text())
+    draft_data["validate"] = [
+        "uv run maid validate "
+        f"manifests/drafts/{DRAFT_NAME} --mode behavioral --quiet"
+    ]
+    draft_path.write_text(yaml.safe_dump(draft_data, sort_keys=False, width=4096))
+
+    exit_code = cmd_manifest(_promote_args(tmp_path, draft_path))
+
+    text = _promoted_text(tmp_path)
+    promoted = yaml.safe_load(text)
+    assert exit_code == 0
+    assert all(line == line.rstrip() for line in text.splitlines())
+    assert promoted["temptations"][0]["instead"] == LONG_INSTEAD

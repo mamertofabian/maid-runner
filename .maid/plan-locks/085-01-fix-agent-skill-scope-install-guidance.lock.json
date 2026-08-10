@@ -1,15 +1,15 @@
 {
   "manifest_path": "manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml",
-  "manifest_hash": "sha256:97e207ce552cbc41108017990c1da378257caf70d56735a9dc7ad2cd6661df93",
+  "manifest_hash": "sha256-contract:eb9aea406dafe36413ec4378750a46bb00e15f55c02fc72bfa1d3ea1c30b9b88",
   "test_hashes": {
-    "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
-    "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
-    "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
-    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
-    "tests/test_agent_skill_scope_install_guidance.py": "sha256:0e57aa82d48d24053d541fb0b9fd09949b93aa24c9fc508abef46cb02042f27d"
+    "tests/test_claude_skill_distribution.py": "sha256-pyast:v2:de7cd68bf62fb90661da3358c497acbc78a055332f5b3bc9ffc2aa905c56c300",
+    "tests/test_run_review_skill_guidance.py": "sha256-pyast:v2:7c90785fcf7ab9a64336d2549cd1fdba3593b778af7eface53dcb7f07d61ff55",
+    "tests/test_outcome_enrich_skill_guidance.py": "sha256-pyast:v2:17936960109de62ae90479a678ec0b6402f7bd8a19b2e34a680529b0fdd60881",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+    "tests/test_agent_skill_scope_install_guidance.py": "sha256-pyast:v2:08be364bcb02c7134acbb4a7e4a0c1686eea02718c7792d41c9fd40de6b42f06"
   },
   "created_at": "2026-07-06T22:26:38.229381+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:1ce3483558245b0c173a0f5cd50e18236835d1d018acdc6608ec70914a73cd1e",
@@ -147,6 +147,27 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:97e207ce552cbc41108017990c1da378257caf70d56735a9dc7ad2cd6661df93",
+      "prior_test_hashes": {
+        "tests/test_claude_skill_distribution.py": "sha256:e34f17bda8f1d54fe1198a9a8dedab827d539c5eb6ab894a808e1e7df9048cb6",
+        "tests/test_run_review_skill_guidance.py": "sha256:801f055f463b216e87056764f0683460a240f819feeb6c93c716e6df18d545bc",
+        "tests/test_outcome_enrich_skill_guidance.py": "sha256:5d5d398aa64f0d67b6966ecf3ad3c7d9ea546864382634de5b533a4b7eb7fa7d",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256:0e57aa82d48d24053d541fb0b9fd09949b93aa24c9fc508abef46cb02042f27d"
+      },
+      "revised_at": "2026-08-10T03:29:36.485809+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -167,6 +188,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -250,6 +272,179 @@
         "tests/test_claude_skill_distribution.py",
         "tests/test_outcome_enrich_skill_guidance.py",
         "tests/test_run_review_skill_guidance.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_agent_skill_scope_install_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_implementer_skills_treat_scope_and_delete_as_writable_not_read",
+              "description": "All source and packaged implementer skills allow files.scope/files.delete while excluding files.read from the hard writable-scope rule.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_prerequisites_use_pypi_install_not_local_dev_flow",
+              "description": "All source and packaged planner skills probe maid availability and recommend PyPI/package-manager installation without forcing local dev setup.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_gitignore_covers_generated_advisory_payloads",
+              "description": ".gitignore includes generated advisory Outcome and run-review artifacts including .maid/run-review.json.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_skill_guidance_source_and_package_payloads_match",
+              "description": "Claude and Codex source planner/implementer skill files match their packaged payload copies byte-for-byte.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_skill_guidance_fix",
+              "description": "INSTRUCTION_PAYLOAD_VERSION advanced past 2026.07.06.1 for the changed init-distributed payload.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_implementer_scope_guidance",
+              "description": "Claude source implementer guidance describes files.scope/files.delete as writable implementation scope and files.read as read-only dependency context.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_implementer_scope_guidance",
+              "description": "Codex source implementer guidance uses the same files.scope/files.delete writable and files.read read-only contract.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_implementer_scope_guidance",
+              "description": "Packaged Claude implementer payload copy mirrors the source scope guidance.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_implementer_scope_guidance",
+              "description": "Packaged Codex implementer payload copy mirrors the source scope guidance.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_planner_pypi_prerequisite_guidance",
+              "description": "Claude source planner prerequisites probe maid availability and recommend PyPI/package-manager installation without assuming local dev setup.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_planner_pypi_prerequisite_guidance",
+              "description": "Codex source planner prerequisites match the PyPI/package-manager Claude planner guidance.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_planner_pypi_prerequisite_guidance",
+              "description": "Packaged Claude planner payload copy mirrors the PyPI/package-manager prerequisite guidance.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_planner_pypi_prerequisite_guidance",
+              "description": "Packaged Codex planner payload copy mirrors the PyPI/package-manager prerequisite guidance.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".gitignore",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_advisory_artifact_ignore_patterns",
+              "description": "Ignore generated advisory Outcome and run-review artifacts, including .maid/run-review.json.",
+              "of": "gitignore",
+              "type": "ignore pattern list"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version advanced past 2026.07.06.1 because init-distributed skill guidance changed.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "tests/test_claude_skill_distribution.py",
+        "tests/test_run_review_skill_guidance.py",
+        "tests/test_outcome_enrich_skill_guidance.py",
+        "tests/cli/test_init_instruction_payload_version.py",
+        "manifests/add-scope-only-file-section.manifest.yaml",
+        "manifests/083-02-point-planner-at-digest-narrative.manifest.yaml",
+        "manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml"
       ]
     },
     "test_files": [

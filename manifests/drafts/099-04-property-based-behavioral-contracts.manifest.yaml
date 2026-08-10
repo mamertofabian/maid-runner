@@ -1,0 +1,208 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Let a manifest bind a declared invariant to a property-based test, so
+  universal behavioral properties become locked, RED-evidenced contract elements
+  in the acceptance stream rather than hand-picked examples.
+type: feature
+created: '2026-08-09T23:40:00Z'
+metadata:
+  status: planning
+  origin: sdd-landscape-analysis-2026-08-09
+  tags:
+  - acceptance-validation
+  - behavioral-testing
+  - property-based-testing
+  - red-evidence
+  - anti-gaming
+  priority: high
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  The contract-hardening agent writes the behavioral tests, confirms the red
+  phase, runs behavioral validation, plan-review, and (after approval) plan
+  lock + promote. Do not lock or implement from this file as-is.
+
+  ORIGIN
+
+  From the 2026-08-09 spec-driven-development landscape review, verified against
+  the source. Kiro (kiro.dev, GA) extracts properties from EARS/Gherkin
+  requirements and runs them as property-based tests via Fast Check, generating
+  many inputs to falsify each property. Verification confirmed Kiro does this
+  but does NOT have MAID's tamper-evident locking or a RED-evidence gate. So the
+  borrow is the concept plus MAID's stronger chain of custody: an invariant
+  becomes a property-based test that MAID locks like a behavioral test and can
+  require to have failed (RED) against the pre-implementation code.
+
+  WHY THIS IS THE #1 BORROW (and safe under the hardening constraints)
+
+  It is runtime-backed: a property-based framework (Hypothesis for Python)
+  generates the inputs and the tests actually run. MAID does not build or own a
+  new analyzer; recognizing "is this a property-based test" is a bounded
+  syntactic rule, which AGENTS.md explicitly permits. This extends MAID's
+  strongest differentiator (executable behavioral contract + RED evidence)
+  without any control/data-flow modeling (see the 033 reachability lesson).
+
+  WHAT (first slice)
+
+  A manifest can mark a declared behavioral test as a property contract by
+  attaching a prose `invariant` to it (exact shape -- a new artifact kind
+  `property_test` vs an `invariant` field on a `test_function` -- is an open
+  question). MAID then validates that the bound test:
+  - exists, as it already does for behavioral tests;
+  - is genuinely property-based: it uses a recognized property-based construct
+    (Hypothesis `@given` / a strategy import), detected syntactically, so a
+    hand-picked example test cannot masquerade as a property;
+  - actually asserts something (reuse the existing assertion-checking that
+    already rejects trivially-passing tests);
+  - participates in RED evidence and plan-lock exactly like other behavioral
+    tests -- editing it trips E701, and its RED evidence proves the property
+    failed against the pre-implementation code.
+
+  MAID stays out of generating properties and out of running the engine:
+  pytest + Hypothesis already run the property; MAID recognizes, declares,
+  locks, and RED-evidences it. Property generation from requirements is the
+  planner's/agent's job (or a later child), not MAID's.
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: a manifest binding of a declared invariant to a property-based test;
+  a bounded syntactic recognizer for Python property-based tests (Hypothesis);
+  wiring so the property test flows through the existing behavioral validation,
+  RED-evidence capture, and plan-lock tamper-evidence; a dedicated diagnostic
+  when a declared invariant is bound to a non-property test.
+
+  OUT (later children or explicitly rejected): MAID generating properties from
+  requirements; MAID implementing or owning a property-based engine; shrinking /
+  counterexample surfacing (Hypothesis already does this); non-Python PBT
+  (fast-check for TypeScript) beyond a documented boundary; any static analysis
+  of the property body.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import the recognizer / property-validation functions inside
+  the test bodies. Red is: the recognizer and the property-binding validation do
+  not exist yet, so the tests fail on a real assertion / AttributeError raised
+  from within the test function.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a manifest that binds an invariant to a Hypothesis `@given` test validates,
+    and the test is recognized as property-based;
+  - an invariant bound to a plain example test (no generated inputs) is rejected
+    with the dedicated diagnostic;
+  - a property test with no real assertion (trivially passing under `@given`) is
+    rejected, reusing the existing assertion-checking;
+  - the property test participates in RED evidence: it is captured as having
+    failed against the pre-implementation code, like a behavioral test;
+  - editing the locked property test trips E701 tamper-evidence like other
+    behavioral tests;
+  - the property-based recognizer is deterministic and does not flag a normal
+    example test as property-based (no false positive);
+  - a non-Python or unrecognized PBT construct is reported with the documented
+    Python-first limit, not silently accepted.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest <new property-contracts test module> -v
+  - uv run maid validate manifests/drafts/099-04-property-based-behavioral-contracts.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (decide in contract hardening / plan review)
+
+  - Manifest shape: a new artifact `kind: property_test` with an `invariant`
+    field, or an optional `invariant` on the existing `test_function` kind?
+    Prefer the smallest schema change that keeps property tests first-class in
+    the acceptance stream. Once the shape is chosen, the manifest schema
+    (`maid_runner/schemas/manifest.v2.schema.json`) and the manifest model
+    (`maid_runner/core/types.py`) are edited to add it -- both are read here and
+    move into edit/scope in the hardened contract.
+  - Recognizer scope: match Hypothesis `@given` plus a `hypothesis` import; what
+    other Python PBT constructs (e.g. parametrized strategies) count, and what is
+    the documented limit? Keep it a narrow syntactic rule, not an analysis.
+  - RED-evidence semantics for properties: is "the property failed on at least
+    one generated input against pre-implementation code" sufficient, and how does
+    that compose with Hypothesis's own database/seed determinism so the captured
+    RED evidence is reproducible?
+  - Interaction with 099-05 evidence-strength levels and the 099-02 assurance
+    tier: should high-risk manifests be able to *require* a property (not just an
+    example) for a given behavior?
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Gaming path: an agent binds an invariant to an example test to claim
+    property coverage cheaply. Defense: the syntactic recognizer + a pinned test
+    that an example test bound as a property is rejected.
+  - Gaming path: a property with a vacuous body (`@given(...)` that asserts
+    nothing or `assume`s everything away) passes trivially. Defense: reuse
+    assertion-checking and require real RED evidence against prior code.
+  - Over-reach risk: drifting into generating properties or building a PBT
+    engine. Defense: recognize and run the existing framework only; generation
+    is out of scope.
+  - Constraints risk: any temptation to inspect the property body semantically is
+    the 033 trap. Defense: recognition is syntactic; correctness evidence is the
+    runtime test result, not analysis.
+temptations:
+- risk: Do not build or own a property-based engine, or reimplement Hypothesis /
+    Fast Check inside MAID.
+  instead: Recognize a property-based test written for the existing framework,
+    declare and lock it, and let pytest + Hypothesis generate and run the inputs.
+- risk: Do not accept an invariant bound to a plain example test as property
+    coverage because it is easier for the agent.
+  instead: Require a recognized property-based construct via a bounded syntactic
+    rule, and pin a test that an example test bound as a property is rejected.
+- risk: Do not let a vacuous property (no real assertion, or preconditions that
+    discard every input) count as satisfied.
+  instead: Reuse the existing assertion-checking and require genuine RED evidence
+    that the property failed against the pre-implementation code.
+- risk: Do not analyze the property body's semantics to judge correctness -- that
+    is the 033 reachability trap.
+  instead: Keep recognition syntactic and take correctness evidence from the
+    runtime test result, staying within the acceptance/WHAT stream.
+- risk: Do not half-build multi-language property support in this child.
+  instead: Ship Python-first with Hypothesis, report unrecognized constructs with
+    a documented limit, and leave TypeScript/fast-check to a later child.
+files:
+  create:
+  - path: maid_runner/core/property_contracts.py
+    artifacts:
+    - kind: function
+      name: is_property_based_test
+      description: Bounded syntactic recognizer that returns whether a declared
+        Python test function is property-based (Hypothesis `@given` / strategy
+        import), with documented limits; no semantic analysis of the body,
+        deterministic. Exact signature finalized during contract hardening.
+    - kind: function
+      name: validate_declared_properties
+      description: Validates that each manifest-declared invariant is bound to an
+        existing, property-based, asserting test and reports a dedicated
+        diagnostic otherwise; composes with existing behavioral validation rather
+        than duplicating it. Exact signature finalized during hardening.
+  - path: tests/core/test_property_contracts.py
+    artifacts:
+    - kind: test_function
+      name: test_invariant_bound_to_given_property_test_validates
+    - kind: test_function
+      name: test_invariant_bound_to_example_test_is_rejected
+    - kind: test_function
+      name: test_property_test_without_assertion_is_rejected
+    - kind: test_function
+      name: test_property_test_participates_in_red_evidence
+    - kind: test_function
+      name: test_editing_locked_property_test_trips_tamper_evidence
+    - kind: test_function
+      name: test_recognizer_does_not_flag_a_normal_example_test
+    - kind: test_function
+      name: test_unrecognized_pbt_construct_reports_documented_limit
+  read:
+  - maid_runner/schemas/manifest.v2.schema.json
+  - maid_runner/core/types.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/validators/registry.py
+  - docs/unit-testing-rules.md
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_property_contracts.py -v
+- uv run maid validate manifests/drafts/099-04-property-based-behavioral-contracts.manifest.yaml
+  --mode schema --quiet

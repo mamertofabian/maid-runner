@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shlex
+import stat
 import subprocess
 import sys
 import uuid
@@ -26,11 +28,78 @@ def cmd_plan(args: argparse.Namespace) -> int:
         return cmd_plan_revise(args)
     if sub == "status":
         return cmd_plan_status(args)
+    if sub == "dependents":
+        return cmd_plan_dependents(args)
     print_error(
         f"Unknown plan subcommand: {sub}",
         json_mode=getattr(args, "json", False),
     )
     return 2
+
+
+def cmd_plan_dependents(args: argparse.Namespace) -> int:
+    """Report active plan locks that pin one behavioral test."""
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.plan_lock import (
+        _PlanLockLoadError,
+        find_plan_lock_dependents,
+    )
+
+    root = Path(getattr(args, "project_root", ".")).resolve()
+    manifest_dir = Path(getattr(args, "manifest_dir", "manifests/"))
+    if not manifest_dir.is_absolute():
+        manifest_dir = root / manifest_dir
+    json_mode = bool(getattr(args, "json", False))
+    try:
+        dependents = find_plan_lock_dependents(
+            ManifestChain(manifest_dir, root),
+            root,
+            args.test_path,
+        )
+        requested = Path(args.test_path)
+        full_test_path = requested if requested.is_absolute() else root / requested
+        normalized_test_path = full_test_path.resolve().relative_to(root).as_posix()
+    except _PlanLockLoadError as exc:
+        print_error(
+            f"Active plan lock cannot be loaded: {exc}",
+            json_mode=json_mode,
+        )
+        return 2
+    except (OSError, ValueError) as exc:
+        print_error(str(exc), json_mode=json_mode)
+        return 2
+
+    if json_mode:
+        print(
+            json.dumps(
+                {
+                    "test_path": normalized_test_path,
+                    "dependents": [
+                        {
+                            "manifest_slug": dependent.manifest_slug,
+                            "manifest_path": dependent.manifest_path,
+                            "lock_path": dependent.lock_path,
+                            "test_path": dependent.test_path,
+                            "test_hash_matches": dependent.test_hash_matches,
+                            "recovery_command": dependent.recovery_command,
+                        }
+                        for dependent in dependents
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+    noun = "lock" if len(dependents) == 1 else "locks"
+    print(f"{len(dependents)} active plan {noun} pin '{normalized_test_path}'")
+    for dependent in dependents:
+        state = "match" if dependent.test_hash_matches else "MISMATCH"
+        print(f"  {dependent.manifest_slug}: {state}")
+        print(f"    Manifest: {dependent.manifest_path}")
+        print(f"    Lock: {dependent.lock_path}")
+        print(f"    Recovery: {dependent.recovery_command}")
+    return 0
 
 
 def cmd_plan_lock(args: argparse.Namespace) -> int:
@@ -454,17 +523,38 @@ def _manifest_status_errors() -> tuple[type[Exception], ...]:
 
 def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
     """Return whether an existing lock payload is valid red evidence."""
-    if not isinstance(evidence, dict) or evidence.get("red") is not True:
-        return False
+    from maid_runner.core.plan_lock import _red_evidence_is_valid
+
+    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
+
+
+def _stash_restoration_evidence_payload(
+    stashed_evidence: dict, restored_evidence: dict
+) -> dict | None:
+    """Build auditable recovery evidence when restoration resolves invalid runs."""
+    from maid_runner.core.plan_lock import _red_evidence_is_valid
+
+    payload = {
+        **stashed_evidence,
+        "red": True,
+        "mode": "stash_restoration",
+        "restored_captured_at": restored_evidence.get("captured_at"),
+        "restored_commands": restored_evidence.get("commands"),
+    }
+    return payload if _red_evidence_is_valid(payload) else None
+
+
+def _has_mixed_red_and_invalid_commands(evidence: dict) -> bool:
+    """Return whether hidden-state evidence qualifies for restoration recapture."""
     commands = evidence.get("commands")
     if not isinstance(commands, list):
         return False
-    classifications = [
+    classifications = {
         command.get("classification")
         for command in commands
         if isinstance(command, dict)
-    ]
-    return "red" in classifications and "invalid" not in classifications
+    }
+    return "red" in classifications and "invalid" in classifications
 
 
 def _preserved_evidence_commands_match_manifest(
@@ -911,6 +1001,7 @@ def _cmd_plan_revise_with_stashed_implementation(
             for entry in dirty_target_entries
             if entry.path in set(target_paths)
         )
+        original_target_modes = _stash_target_modes(ctx.project_root, target_paths)
         stash_message = f"maid plan revise --stash-implementation {uuid.uuid4().hex}"
         _git(
             ctx.project_root,
@@ -937,6 +1028,7 @@ def _cmd_plan_revise_with_stashed_implementation(
         )
         stash_hash = created_stash.commit_hash
         restored = False
+        implementation_applied = False
         try:
             revised = revise_plan_lock(
                 existing,
@@ -962,8 +1054,63 @@ def _cmd_plan_revise_with_stashed_implementation(
                     json_mode=ctx.json_mode,
                 )
                 return 2
+            restored_evidence = None
+            if not _red_evidence_payload_is_valid(
+                evidence
+            ) and _has_mixed_red_and_invalid_commands(evidence):
+                _apply_stash_entry(
+                    ctx.project_root,
+                    stash_hash,
+                    target_paths,
+                    original_target_modes,
+                )
+                implementation_applied = True
+                restored_target_fingerprints = {
+                    path: _stash_target_fingerprint(ctx.project_root / path)
+                    for path in target_paths
+                }
+                restored_evidence = capture_red_phase_evidence(
+                    ctx.manifest_path, ctx.project_root
+                ).to_payload()
+                if (
+                    _contract_hashes_for_stash_revise(
+                        ctx.project_root, ctx.manifest_path, manifest
+                    )
+                    != contract_hashes
+                ):
+                    print_error(
+                        "--stash-implementation refuses to save because restoration "
+                        "validation changed the manifest or behavioral tests.",
+                        json_mode=ctx.json_mode,
+                    )
+                    return 2
+                if any(
+                    _stash_target_fingerprint(ctx.project_root / path) != fingerprint
+                    for path, fingerprint in restored_target_fingerprints.items()
+                ):
+                    print_error(
+                        "--stash-implementation refuses to save because restoration "
+                        "validation changed a declared implementation path.",
+                        json_mode=ctx.json_mode,
+                    )
+                    return 2
+                recovery_evidence = _stash_restoration_evidence_payload(
+                    evidence, restored_evidence
+                )
+                _drop_stash_entry(ctx.project_root, stash_hash)
+                restored = True
+                implementation_applied = False
+                if recovery_evidence is not None:
+                    evidence = recovery_evidence
             if not _red_evidence_payload_is_valid(evidence):
                 details = _format_red_evidence_capture_details(evidence)
+                if restored_evidence is not None:
+                    details += (
+                        "\nRestoration "
+                        + _format_red_evidence_capture_details(
+                            restored_evidence
+                        ).lower()
+                    )
                 if _includes_dependency_lockfile(dirty_target_paths):
                     print_error(
                         "--stash-implementation did not capture valid red evidence "
@@ -983,8 +1130,14 @@ def _cmd_plan_revise_with_stashed_implementation(
                 return 1
             if allow_sibling_dirty:
                 evidence["sibling_dirty_paths"] = list(sibling_dirty_paths)
-            _restore_stash_entry(ctx.project_root, stash_hash, target_paths)
-            restored = True
+            if not restored:
+                _restore_stash_entry(
+                    ctx.project_root,
+                    stash_hash,
+                    target_paths,
+                    original_target_modes,
+                )
+                restored = True
             revised = replace(revised, red_evidence=evidence)
             revised.save(ctx.lock_path)
             print(
@@ -1003,7 +1156,20 @@ def _cmd_plan_revise_with_stashed_implementation(
             return 0
         finally:
             if not restored:
-                _restore_stash_entry(ctx.project_root, stash_hash, target_paths)
+                if implementation_applied:
+                    _recover_applied_stash_entry(
+                        ctx.project_root,
+                        stash_hash,
+                        target_paths,
+                        original_target_modes,
+                    )
+                else:
+                    _restore_stash_entry(
+                        ctx.project_root,
+                        stash_hash,
+                        target_paths,
+                        original_target_modes,
+                    )
     except _plan_input_errors() as exc:
         print_error(str(exc), json_mode=ctx.json_mode)
         return 2
@@ -1138,8 +1304,22 @@ def _stash_ref_for_hash(project_root: Path, commit_hash: str) -> str | None:
 
 
 def _restore_stash_entry(
-    project_root: Path, stash_hash: str, target_paths: tuple[str, ...]
+    project_root: Path,
+    stash_hash: str,
+    target_paths: tuple[str, ...],
+    target_modes: dict[str, int],
 ) -> None:
+    _apply_stash_entry(project_root, stash_hash, target_paths, target_modes)
+    _drop_stash_entry(project_root, stash_hash)
+
+
+def _apply_stash_entry(
+    project_root: Path,
+    stash_hash: str,
+    target_paths: tuple[str, ...],
+    target_modes: dict[str, int],
+) -> None:
+    """Apply a targeted stash while retaining it for possible recovery."""
     dirty_target_paths = sorted(
         entry.path
         for entry in _git_dirty_entries(project_root)
@@ -1151,6 +1331,11 @@ def _restore_stash_entry(
             "target path(s): " + ", ".join(dirty_target_paths)
         )
     _git(project_root, "stash", "apply", "--quiet", stash_hash)
+    _restore_stash_target_modes(project_root, target_modes)
+
+
+def _drop_stash_entry(project_root: Path, stash_hash: str) -> None:
+    """Drop the exact MAID-created stash after its state is safely restored."""
     stash_ref = _stash_ref_for_hash(project_root, stash_hash)
     if stash_ref is None:
         raise _GitCommandError(
@@ -1158,6 +1343,73 @@ def _restore_stash_entry(
             "created stash entry to drop."
         )
     _git(project_root, "stash", "drop", "--quiet", stash_ref)
+
+
+def _recover_applied_stash_entry(
+    project_root: Path,
+    stash_hash: str,
+    target_paths: tuple[str, ...],
+    target_modes: dict[str, int],
+) -> None:
+    """Reconstruct pre-validation target state from a retained applied stash."""
+    tracked_output = _git(project_root, "ls-files", "-z", "--", *target_paths)
+    tracked_paths = {path for path in tracked_output.split("\0") if path}
+    untracked_paths = sorted(set(target_paths) - tracked_paths)
+    if tracked_paths:
+        _git(
+            project_root,
+            "restore",
+            "--source=HEAD",
+            "--worktree",
+            "--",
+            *sorted(tracked_paths),
+        )
+    if untracked_paths:
+        _git(project_root, "clean", "-f", "-d", "--", *untracked_paths)
+    _git(project_root, "stash", "apply", "--quiet", stash_hash)
+    _restore_stash_target_modes(project_root, target_modes)
+    _drop_stash_entry(project_root, stash_hash)
+
+
+def _stash_target_modes(
+    project_root: Path, target_paths: tuple[str, ...]
+) -> dict[str, int]:
+    """Capture full regular-file modes that Git stash does not preserve."""
+    modes: dict[str, int] = {}
+    for path in target_paths:
+        target = project_root / path
+        try:
+            metadata = target.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISREG(metadata.st_mode):
+            modes[path] = stat.S_IMODE(metadata.st_mode)
+    return modes
+
+
+def _restore_stash_target_modes(
+    project_root: Path, target_modes: dict[str, int]
+) -> None:
+    """Restore full pre-stash regular-file permissions after applying a stash."""
+    for path, mode in target_modes.items():
+        target = project_root / path
+        if target.is_file() and not target.is_symlink():
+            target.chmod(mode)
+
+
+def _stash_target_fingerprint(path: Path) -> tuple[object, ...]:
+    """Fingerprint target existence, file kind, mode, and logical content."""
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        return ("missing",)
+    file_kind = stat.S_IFMT(metadata.st_mode)
+    mode = stat.S_IMODE(metadata.st_mode)
+    if stat.S_ISLNK(metadata.st_mode):
+        return (file_kind, mode, os.readlink(path))
+    if stat.S_ISREG(metadata.st_mode):
+        return (file_kind, mode, hashlib.sha256(path.read_bytes()).hexdigest())
+    return (file_kind, mode)
 
 
 def _project_relative(path: Path, project_root: Path) -> str:

@@ -13,6 +13,7 @@ DOCUMENTED_PROFILES: dict[str, dict[str, bool | str]] = {
         "summary": True,
         "require_plan_lock": True,
         "require_red_evidence": True,
+        "test_scope": "task",
     },
     "pre-commit": {
         "summary": True,
@@ -150,6 +151,30 @@ def test_explicit_valued_option_matching_parser_default_still_wins() -> None:
     assert "--file-tracking-scope task" not in report
 
 
+def test_handoff_profile_contributes_task_test_scope() -> None:
+    from maid_runner.core.verify_profiles import apply_verify_profile
+
+    args = _parse_verify(["--profile", "handoff"])
+
+    report = apply_verify_profile(args)
+
+    assert args.test_scope == "task"
+    assert report is not None
+    assert "--test-scope task" in report
+
+
+def test_handoff_profile_does_not_override_explicit_repository_test_scope() -> None:
+    from maid_runner.core.verify_profiles import apply_verify_profile
+
+    args = _parse_verify(["--profile", "handoff", "--test-scope", "repository"])
+
+    report = apply_verify_profile(args)
+
+    assert args.test_scope == "repository"
+    assert report is not None
+    assert "--test-scope task" not in report
+
+
 def test_no_profile_supplies_a_changed_scope_baseline() -> None:
     from maid_runner.core.verify_profiles import (
         apply_verify_profile,
@@ -276,7 +301,12 @@ def test_apply_verify_profile_reports_the_profile_and_its_flags() -> None:
 
     assert report is not None
     assert "handoff" in report
-    for flag in ("--summary", "--require-plan-lock", "--require-red-evidence"):
+    for flag in (
+        "--summary",
+        "--require-plan-lock",
+        "--require-red-evidence",
+        "--test-scope task",
+    ):
         assert flag in report
 
 

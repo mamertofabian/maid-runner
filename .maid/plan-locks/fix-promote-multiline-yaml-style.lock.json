@@ -1,12 +1,34 @@
 {
   "manifest_path": "manifests/fix-promote-multiline-yaml-style.manifest.yaml",
-  "manifest_hash": "sha256:62f16faefa08536cde0e608cef2123a38c7ffee55ef317f451d5151b44f32332",
+  "manifest_hash": "sha256-contract:94fd8b8daece0e4f15bec53916a92d653c2741a3b23933cebe1fb2bd321e223a",
   "test_hashes": {
-    "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256:4d8fcd626076591111926df7489dd58e3e399bc12b9e1a416fcf97ca781abde5"
+    "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256-pyast:v2:d8d87b2d0a6aeba02df34b1f8652e09cd3c4092d3d83ddd2157e52193e62ab61"
   },
   "created_at": "2026-06-12T21:46:00.089048+00:00",
-  "revision": 1,
-  "revisions": [],
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256:62f16faefa08536cde0e608cef2123a38c7ffee55ef317f451d5151b44f32332",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256:4d8fcd626076591111926df7489dd58e3e399bc12b9e1a416fcf97ca781abde5"
+      },
+      "revised_at": "2026-08-10T05:51:09.756153+00:00",
+      "reason": "accept approved shared-test change for trailing-whitespace promotion regression",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/cli/test_manifest_promote_yaml_style_cmd.py",
+          "edit:maid_runner/cli/commands/manifest.py",
+          "read:manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
   "red_evidence": {
     "red": true,
     "captured_at": "2026-06-12T21:46:02.390516+00:00",
@@ -31,6 +53,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
@@ -44,6 +68,99 @@
       "tests/cli/test_manifest_promote_yaml_style_cmd.py:test_promote_round_trips_multiline_description_content",
       "tests/cli/test_manifest_promote_yaml_style_cmd.py:test_promote_round_trips_multiline_description_content:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py"
+      ],
+      "read": [
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_promote_yaml_style_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_renders_multiline_description_as_literal_block",
+              "source_scenario": "A draft with a multiline description containing an em dash is promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The promoted file renders the description as a literal block scalar with no escaped newlines and the em dash appears literally."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_round_trips_multiline_description_content",
+              "source_scenario": "A draft with a multiline description is promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The promoted manifest parses back with the description byte-identical to the draft's."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_does_not_wrap_long_strings_with_backslashes",
+              "source_scenario": "A draft with a long single-line temptation string that requires quoting is promoted.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No line in the promoted file ends with a backslash continuation and the string parses back identical."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "description": "Promote (and create) write manifest YAML through a literal-block-preserving dumper: multiline strings render as block scalars, unicode stays literal, and long single-line strings are not backslash-wrapped.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/cli/test_manifest_promote_yaml_style_cmd.py"
     ],

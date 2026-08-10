@@ -1,0 +1,207 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Make artifact-coverage subprocess timeouts repository-configurable with a
+  15-minute default so legitimate instrumented suites are not constrained by a
+  hidden five-minute constant.
+type: fix
+created: '2026-08-10T04:14:12Z'
+metadata:
+  status: implementation-ready
+  origin: maid-runner-deep-artifact-coverage-timeout-real-repository-trial
+  tags:
+  - artifact-coverage
+  - configuration
+  - developer-experience
+  - verification
+  priority: high
+description: |
+  Replace the two hard-coded 300-second artifact-coverage subprocess limits
+  with one repository setting: `artifact_coverage.timeout_seconds`. The default
+  is 900 seconds, which gives instrumented full suites a practical budget while
+  retaining a finite fail-loud boundary. Both the single-manifest path and the
+  exact-command batched path load the same project configuration and pass the
+  value to `subprocess.run`.
+
+  Accept positive YAML integers or floats and normalize them to `float`. Reject
+  booleans, strings, zero, and negative values with a direct configuration
+  error. This contract does not change the separate
+  `coverage_recommendation.deep.command` subprocess timeout in
+  `_deep_coverage.py`, does not add a CLI override, and does not weaken
+  artifact-coverage failures.
+temptations:
+- risk: Do not merely replace 300 with another hard-coded number.
+  instead: Load one validated repository setting and thread it through both
+    public artifact-coverage execution paths.
+- risk: Do not accept falsey, string, boolean, zero, or negative timeout values
+    that disable or destabilize the subprocess boundary.
+  instead: Require a positive numeric YAML value and fail loudly during config
+    loading.
+- risk: Do not change the public run_artifact_coverage or
+    run_artifact_coverage_batch signatures just to pass configuration.
+  instead: Load configuration once at each public project-root boundary and pass
+    the timeout only through private helpers.
+- risk: Do not conflate verify artifact coverage with risk-v1 deep coverage.
+  instead: Scope this setting and documentation to `artifact_coverage.py`; leave
+    `_deep_coverage.py` unchanged.
+files:
+  edit:
+  - path: maid_runner/core/config.py
+    artifacts:
+    - kind: class
+      name: ArtifactCoverageConfig
+    - kind: method
+      name: __post_init__
+      of: ArtifactCoverageConfig
+    - kind: attribute
+      name: timeout_seconds
+      of: ArtifactCoverageConfig
+      type: float
+    - kind: attribute
+      name: artifact_coverage
+      of: MaidConfig
+      type: ArtifactCoverageConfig
+  create:
+  - path: tests/core/test_artifact_coverage_timeout_config.py
+    artifacts:
+    - kind: test_function
+      name: test_artifact_coverage_timeout_defaults_to_fifteen_minutes
+    - kind: test_function
+      name: test_artifact_coverage_timeout_loads_positive_numeric_values
+    - kind: test_function
+      name: test_artifact_coverage_timeout_rejects_invalid_values
+    - kind: test_function
+      name: test_artifact_coverage_config_enforces_invariant_directly
+    - kind: test_function
+      name: test_single_artifact_coverage_uses_configured_timeout
+    - kind: test_function
+      name: test_batched_artifact_coverage_uses_configured_timeout
+  scope:
+  - path: maid_runner/core/artifact_coverage.py
+    reason: Replace both private hard-coded subprocess timeouts with the
+      validated project configuration without changing public function
+      signatures.
+  - path: README.md
+    reason: Document the artifact_coverage.timeout_seconds setting, its
+      900-second default, and positive-number requirement.
+  read:
+  - maid_runner/core/_deep_coverage.py
+  - tests/core/test_artifact_coverage.py
+  - tests/core/test_artifact_coverage_batch.py
+  - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+  - manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+validate:
+- uv run python -m pytest tests/core/test_artifact_coverage_timeout_config.py
+  tests/core/test_config.py tests/core/test_artifact_coverage.py
+  tests/core/test_artifact_coverage_batch.py -v
+- uv run maid validate
+  manifests/configure-artifact-coverage-timeout.manifest.yaml --mode behavioral
+  --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T05:20:05Z'
+  summary: Made artifact-coverage subprocess timeouts repository-configurable
+    with a validated 15-minute default across single-manifest and batched paths.
+  rationale: |
+    A real-repository deep verification exceeded the former hidden 300-second
+    artifact-coverage limit. Both execution paths now load
+    `artifact_coverage.timeout_seconds` from `.maidrc.yaml`, default it to 900
+    seconds, and retain a finite fail-loud boundary. The configuration object
+    owns normalization and validation for direct and file-backed construction,
+    including unrepresentable integers, without changing public execution-path
+    signatures or the separate risk-v1 deep-coverage timeout. The assessed deep
+    command ran for about 31 minutes without timing out; it reached completion
+    and reported existing repository-wide E710 gaps. This manifest's focused
+    artifact coverage then passed with both its class and invariant executed.
+    Full validation passed 408 active manifests and all 240 declared commands,
+    and the final independent review found no blocking issues.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-evolver
+    - maid-planner
+    - maid-implementation-review
+  lessons:
+  - lesson_type: real-repository-validation
+    summary: Artifact instrumentation can make deep verification exceed five
+      minutes, so a practical configurable per-subprocess budget is necessary;
+      total deep runtime remains a separate performance concern.
+    tags:
+    - artifact-coverage
+    - timeout
+    - configuration
+    paths:
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/config.py
+  - lesson_type: validation-hardening
+    summary: Numeric configuration needs guarded normalization because huge YAML
+      integers overflow float conversion, while data-only declared classes need
+      meaningful executable invariants to satisfy artifact coverage honestly.
+    tags:
+    - configuration
+    - fail-loud
+    - artifact-coverage
+    paths:
+    - maid_runner/core/config.py
+    - tests/core/test_artifact_coverage_timeout_config.py
+  review_notes:
+  - source: maid-implementation-review-round-1
+    severity: blocker
+    summary: Huge YAML integers raised OverflowError instead of the documented
+      configuration ValueError.
+  - source: maid-implementation-review-round-2
+    severity: ready
+    summary: The overflow boundary was fixed and regression-covered with no
+      remaining code-level blockers.
+  - source: maid-implementation-review-round-3
+    severity: ready
+    summary: The revised post-init invariant closed the task-specific E710
+      without gaming; focused artifact coverage and boundary probes passed.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_artifact_coverage_timeout_config.py
+    - tests/core/test_config.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - -q
+    status: passed
+    summary: All 37 focused configuration and artifact-coverage tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: All 408 active manifests passed; 109 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 240 declared validation commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - HEAD
+    status: failed
+    summary: Completed after about 31 minutes without timeout; blocked by broad
+      pre-existing E710 execution gaps outside this manifest. Focused artifact
+      coverage for this manifest subsequently passed with zero errors.

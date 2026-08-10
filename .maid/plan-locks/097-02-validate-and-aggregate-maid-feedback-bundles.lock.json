@@ -1,0 +1,418 @@
+{
+  "manifest_path": "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+  "manifest_hash": "sha256-contract:f1d103fa3f337870802fa28c626430eaa8a8125d379bc1400df39622f21a1fe2",
+  "test_hashes": {
+    "tests/core/test_feedback_export.py": "sha256-pyast:v2:a93094233db2e823c73300f8037059a43b8cf5a838f1888be78309267f1b06a6",
+    "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
+    "tests/core/test_feedback_intake.py": "sha256-pyast:v2:670c01a0827460f93113b20fa1475ca7bba23f3e81773c50c7ab83458b7ea753",
+    "tests/cli/test_feedback_aggregate_cmd.py": "sha256-pyast:v2:97b7bd6adf16ec6844a8a10712b475048dc13c59d209098ed6636b3e3735666b"
+  },
+  "created_at": "2026-08-08T12:00:38.117791+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d6e6c08a5430fbcbbffe6094bcc85e385c4c36b79eb92a73c820807c8013d230",
+      "prior_test_hashes": {
+        "tests/core/test_feedback_export.py": "sha256-pyast:v2:a93094233db2e823c73300f8037059a43b8cf5a838f1888be78309267f1b06a6",
+        "tests/cli/test_feedback_cmd.py": "sha256-pyast:v2:634781780c5120fa0746f1d1c79a13fa46f86d65aae30c45a81fc6c7575a882d",
+        "tests/core/test_feedback_intake.py": "sha256-pyast:v2:670c01a0827460f93113b20fa1475ca7bba23f3e81773c50c7ab83458b7ea753",
+        "tests/cli/test_feedback_aggregate_cmd.py": "sha256-pyast:v2:97b7bd6adf16ec6844a8a10712b475048dc13c59d209098ed6636b3e3735666b"
+      },
+      "revised_at": "2026-08-08T12:00:43.161863+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml -> manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T12:00:43.698733+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_feedback_intake.py tests/cli/test_feedback_aggregate_cmd.py tests/core/test_feedback_export.py tests/cli/test_feedback_cmd.py",
+        "exit_code": 1,
+        "output_tail": "            encoding=\"utf-8\"\n        )\n        readme = (repo_root / \"README.md\").read_text(encoding=\"utf-8\")\n    \n        assert canonical == packaged\n>       assert \"maid feedback aggregate\" in canonical\nE       AssertionError: assert 'maid feedback aggregate' in '# Manifest Outcome Records\\n\\nOutcome records are explicit completion metadata for MAID manifests. They are\\nauthored...;\\n- which validation commands are most relied on;\\n- whether completed manifests consistently capture Outcome data.\\n'\n\ntests/cli/test_feedback_aggregate_cmd.py:128: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_feedback_intake.py::test_read_feedback_bundle_accepts_exact_version_one_shape\nFAILED tests/core/test_feedback_intake.py::test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content\nFAILED tests/core/test_feedback_intake.py::test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence\nFAILED tests/core/test_feedback_intake.py::test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe\nFAILED tests/cli/test_feedback_aggregate_cmd.py::test_feedback_aggregate_parser_requires_local_inputs_and_output\nFAILED tests/cli/test_feedback_aggregate_cmd.py::test_feedback_aggregate_writes_advisory_local_report_without_submission\nFAILED tests/cli/test_feedback_aggregate_cmd.py::test_feedback_aggregate_fails_atomically_when_any_input_is_invalid\nFAILED tests/cli/test_feedback_aggregate_cmd.py::test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit\nFAILED tests/cli/test_feedback_aggregate_cmd.py::test_feedback_aggregate_guidance_documents_advisory_count_semantics\n9 failed, 9 passed in 0.35s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback_aggregate",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback_aggregate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback_aggregate:kind=function",
+      "maid_runner/cli/commands/feedback.py:function:cmd_feedback_aggregate:returns=int",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.bundle_count",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.bundle_count:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.bundle_count:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.bundle_count:type=int",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.feedback_id",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.feedback_id:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.feedback_id:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.feedback_id:type=str",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.lesson_type",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.lesson_type:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.lesson_type:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.lesson_type:type=str",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.outcome_statuses",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.outcome_statuses:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.outcome_statuses:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.outcome_statuses:type=tuple[str, ...]",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.reported_source_count",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.reported_source_count:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.reported_source_count:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.reported_source_count:type=int",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.review_severities",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.review_severities:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.review_severities:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.review_severities:type=tuple[str, ...]",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.summary",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.summary:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.summary:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.summary:type=str",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.validation_statuses",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.validation_statuses:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.validation_statuses:of=FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeRecord.validation_statuses:type=tuple[str, ...]",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.bundles_received",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.bundles_received:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.bundles_received:of=FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.bundles_received:type=int",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.records",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.records:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.records:of=FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.records:type=tuple[FeedbackIntakeRecord, ...]",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.schema_version",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.schema_version:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.schema_version:of=FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.schema_version:type=str",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.unique_bundles",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.unique_bundles:kind=attribute",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.unique_bundles:of=FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:attribute:FeedbackIntakeReport.unique_bundles:type=int",
+      "maid_runner/core/feedback_intake.py:class:FeedbackIntakeRecord",
+      "maid_runner/core/feedback_intake.py:class:FeedbackIntakeRecord:kind=class",
+      "maid_runner/core/feedback_intake.py:class:FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:class:FeedbackIntakeReport:kind=class",
+      "maid_runner/core/feedback_intake.py:function:aggregate_feedback_bundles",
+      "maid_runner/core/feedback_intake.py:function:aggregate_feedback_bundles:arg=bundles:type=Sequence[FeedbackBundle]:default=None",
+      "maid_runner/core/feedback_intake.py:function:aggregate_feedback_bundles:kind=function",
+      "maid_runner/core/feedback_intake.py:function:aggregate_feedback_bundles:returns=FeedbackIntakeReport",
+      "maid_runner/core/feedback_intake.py:function:read_feedback_bundle",
+      "maid_runner/core/feedback_intake.py:function:read_feedback_bundle:arg=path:type=Union[str, Path]:default=None",
+      "maid_runner/core/feedback_intake.py:function:read_feedback_bundle:kind=function",
+      "maid_runner/core/feedback_intake.py:function:read_feedback_bundle:returns=FeedbackBundle",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report:arg=overwrite:type=bool:default=False",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report:arg=report:type=FeedbackIntakeReport:default=None",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report:kind=function",
+      "maid_runner/core/feedback_intake.py:function:write_feedback_intake_report:returns=None",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_fails_atomically_when_any_input_is_invalid",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_fails_atomically_when_any_input_is_invalid:kind=test_function",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_fails_atomically_when_any_input_is_invalid:returns=None",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_guidance_documents_advisory_count_semantics",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_guidance_documents_advisory_count_semantics:kind=test_function",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_guidance_documents_advisory_count_semantics:returns=None",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_parser_requires_local_inputs_and_output",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_parser_requires_local_inputs_and_output:kind=test_function",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_parser_requires_local_inputs_and_output:returns=None",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit:kind=test_function",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit:returns=None",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_writes_advisory_local_report_without_submission",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_writes_advisory_local_report_without_submission:kind=test_function",
+      "tests/cli/test_feedback_aggregate_cmd.py:test_feedback_aggregate_writes_advisory_local_report_without_submission:returns=None",
+      "tests/core/test_feedback_intake.py:test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence",
+      "tests/core/test_feedback_intake.py:test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence:kind=test_function",
+      "tests/core/test_feedback_intake.py:test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence:returns=None",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_accepts_exact_version_one_shape",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_accepts_exact_version_one_shape:kind=test_function",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_accepts_exact_version_one_shape:returns=None",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content:kind=test_function",
+      "tests/core/test_feedback_intake.py:test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content:returns=None",
+      "tests/core/test_feedback_intake.py:test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe",
+      "tests/core/test_feedback_intake.py:test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe:kind=test_function",
+      "tests/core/test_feedback_intake.py:test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/feedback_intake.py",
+        "tests/cli/test_feedback_aggregate_cmd.py",
+        "tests/core/test_feedback_intake.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/feedback.py"
+      ],
+      "read": [
+        "maid_runner/core/feedback.py",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "tests/cli/test_feedback_cmd.py",
+        "tests/core/test_feedback_export.py"
+      ],
+      "scope": [
+        "README.md",
+        "docs/manifest-outcome-records.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/docs/manifest-outcome-records.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/feedback_intake.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "FeedbackIntakeRecord",
+              "description": "One exact feedback aggregate across distinct validated logical bundles."
+            },
+            {
+              "kind": "attribute",
+              "name": "feedback_id",
+              "of": "FeedbackIntakeRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "lesson_type",
+              "of": "FeedbackIntakeRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "summary",
+              "of": "FeedbackIntakeRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "bundle_count",
+              "of": "FeedbackIntakeRecord",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "reported_source_count",
+              "of": "FeedbackIntakeRecord",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "outcome_statuses",
+              "of": "FeedbackIntakeRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "validation_statuses",
+              "of": "FeedbackIntakeRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "review_severities",
+              "of": "FeedbackIntakeRecord",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "class",
+              "name": "FeedbackIntakeReport",
+              "description": "Versioned deterministic report over validated, deduplicated feedback bundles."
+            },
+            {
+              "kind": "attribute",
+              "name": "schema_version",
+              "of": "FeedbackIntakeReport",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "bundles_received",
+              "of": "FeedbackIntakeReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "unique_bundles",
+              "of": "FeedbackIntakeReport",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "records",
+              "of": "FeedbackIntakeReport",
+              "type": "tuple[FeedbackIntakeRecord, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "read_feedback_bundle",
+              "description": "Read and fail-closed validate one exact version-1 feedback bundle.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "FeedbackBundle"
+            },
+            {
+              "kind": "function",
+              "name": "aggregate_feedback_bundles",
+              "description": "Deduplicate logical bundles and aggregate exact feedback records without source identities.",
+              "args": [
+                {
+                  "name": "bundles",
+                  "type": "Sequence[FeedbackBundle]"
+                }
+              ],
+              "returns": "FeedbackIntakeReport"
+            },
+            {
+              "kind": "function",
+              "name": "write_feedback_intake_report",
+              "description": "Write stable minimized JSON and preserve existing output by default.",
+              "args": [
+                {
+                  "name": "report",
+                  "type": "FeedbackIntakeReport"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "overwrite",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_feedback_intake.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_read_feedback_bundle_accepts_exact_version_one_shape",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_read_feedback_bundle_rejects_unsupported_ambiguous_or_unbounded_content",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_aggregate_feedback_bundles_deduplicates_bundles_and_unions_exact_evidence",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_write_feedback_intake_report_is_stable_minimized_and_overwrite_safe",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_feedback_aggregate_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_feedback_aggregate_parser_requires_local_inputs_and_output",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_aggregate_writes_advisory_local_report_without_submission",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_aggregate_fails_atomically_when_any_input_is_invalid",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_aggregate_preserves_existing_output_unless_force_is_explicit",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_feedback_aggregate_guidance_documents_advisory_count_semantics",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/feedback.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_feedback_aggregate",
+              "description": "Validate all named bundles and write one advisory local intake report atomically with respect to validation.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "maid_runner/core/feedback.py",
+        "tests/core/test_feedback_export.py",
+        "tests/cli/test_feedback_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register aggregate arguments under the existing feedback command without changing export behavior."
+        },
+        {
+          "path": "README.md",
+          "reason": "List the local aggregate command and its advisory, no-submission boundary."
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "reason": "Document strict bundle intake, anonymous evidence-count semantics, and advisory aggregation."
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "reason": "Keep the packaged Outcome workflow document synchronized."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_feedback_aggregate_cmd.py",
+      "tests/cli/test_feedback_cmd.py",
+      "tests/core/test_feedback_export.py",
+      "tests/core/test_feedback_intake.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_feedback_intake.py tests/cli/test_feedback_aggregate_cmd.py tests/core/test_feedback_export.py tests/cli/test_feedback_cmd.py"
+    ]
+  }
+}

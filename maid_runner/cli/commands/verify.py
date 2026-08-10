@@ -7,6 +7,7 @@ import json
 import subprocess
 import time
 from collections.abc import Iterable
+from dataclasses import replace
 from pathlib import Path
 from typing import Union
 
@@ -17,6 +18,7 @@ from maid_runner.cli.commands._format import (
 )
 from maid_runner.core.result import (
     ErrorCode,
+    Location,
     ValidationError,
     Severity,
     VerificationResult,
@@ -84,6 +86,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
             test_jobs=getattr(args, "test_jobs", 1),
+            test_scope=getattr(args, "test_scope", "repository"),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
             plan_lock_scope=getattr(args, "plan_lock_scope", "repository"),
@@ -93,22 +96,38 @@ def cmd_verify(args: argparse.Namespace) -> int:
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
         )
+        delivery_provenance = None
+        delivered_ref = getattr(args, "delivered", None)
+        attestation_path = getattr(args, "attestation", None)
+        if delivered_ref is not None or attestation_path is not None:
+            delivery_stage, delivery_provenance = _delivery_attestation_stage(
+                delivered_ref=delivered_ref,
+                attestation_path=attestation_path,
+                project_root=Path("."),
+            )
+            result = VerificationResult(
+                stages=(*result.stages, delivery_stage),
+                duration_ms=result.duration_ms,
+            )
         formatter = (
             format_verify_summary
             if getattr(args, "summary", False)
             else format_verify_result
         )
-        print(
-            _mark_profile_output(
-                _mark_strict_preview_output(
-                    formatter(result, json_mode=json_mode),
-                    enabled=strict_preview,
-                    json_mode=json_mode,
-                ),
-                report=profile_report,
+        output = _mark_profile_output(
+            _mark_strict_preview_output(
+                formatter(result, json_mode=json_mode),
+                enabled=strict_preview,
                 json_mode=json_mode,
-            )
+            ),
+            report=profile_report,
+            json_mode=json_mode,
         )
+        if json_mode and delivery_provenance is not None:
+            payload = json.loads(output) if output else {}
+            payload["delivery_provenance"] = delivery_provenance
+            output = json.dumps(payload, indent=2)
+        print(output)
         exit_code = 0 if _result_success(result) else 1
         if not _write_sarif_report_if_requested(args, result):
             return 2
@@ -119,6 +138,116 @@ def cmd_verify(args: argparse.Namespace) -> int:
             json_mode=json_mode,
         )
         return 2
+
+
+def _delivery_attestation_stage(
+    *,
+    delivered_ref: str | None,
+    attestation_path: str | None,
+    project_root: Path,
+) -> tuple[VerificationStageResult, dict | None]:
+    from maid_runner.core.delivery_attestation import (
+        render_provenance_record,
+        verify_delivered_attestation,
+    )
+
+    started = time.monotonic()
+    if delivered_ref is None or attestation_path is None:
+        error = ValidationError(
+            code=ErrorCode.DELIVERY_ATTESTATION_INVALID,
+            message="--delivered and --attestation must be supplied together",
+            severity=Severity.ERROR,
+            suggestion=(
+                "Supply a named destination branch and a provenance record "
+                "generated from the validated commit."
+            ),
+        )
+        return (
+            VerificationStageResult(
+                name="delivery_attestation",
+                success=False,
+                _duration_ms=_elapsed_ms(started),
+                _errors=(error,),
+            ),
+            None,
+        )
+
+    proof_path = Path(attestation_path)
+    try:
+        attestation = json.loads(
+            proof_path.read_bytes().decode("utf-8"),
+            object_pairs_hook=_reject_duplicate_json_keys,
+            parse_constant=_reject_nonstandard_json_constant,
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        error = ValidationError(
+            code=ErrorCode.DELIVERY_ATTESTATION_INVALID,
+            message=f"delivery attestation is unreadable at {proof_path}: {exc}",
+            severity=Severity.ERROR,
+            location=Location(file=str(proof_path)),
+            suggestion=(
+                "Regenerate the delivery attestation from the clean committed "
+                "tree that passed verification."
+            ),
+        )
+        return (
+            VerificationStageResult(
+                name="delivery_attestation",
+                success=False,
+                _duration_ms=_elapsed_ms(started),
+                _errors=(error,),
+            ),
+            None,
+        )
+
+    verification = verify_delivered_attestation(
+        attestation,
+        project_root,
+        delivered_ref,
+    )
+    errors = tuple(
+        ValidationError(
+            code=ErrorCode(item["code"]),
+            message=item["message"],
+            severity=Severity.ERROR,
+            location=Location(file=str(proof_path)),
+            suggestion=(
+                "Regenerate the attestation from the validated commit."
+                if item["code"] == ErrorCode.DELIVERY_ATTESTATION_INVALID.value
+                else "Inspect the covered path changes and destination branch."
+            ),
+        )
+        for item in verification["errors"]
+    )
+    provenance = None
+    try:
+        provenance = json.loads(render_provenance_record(attestation, verification))
+    except ValueError:
+        pass
+    return (
+        VerificationStageResult(
+            name="delivery_attestation",
+            success=verification["success"],
+            _duration_ms=_elapsed_ms(started),
+            _errors=errors,
+        ),
+        provenance,
+    )
+
+
+def _reject_duplicate_json_keys(
+    pairs: list[tuple[str, object]],
+) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key in delivery attestation: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_nonstandard_json_constant(value: str) -> object:
+    raise ValueError(f"non-standard JSON constant in delivery attestation: {value}")
 
 
 def _attribute_to_profile(
@@ -259,6 +388,7 @@ def _run_verify(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     plan_lock_scope: str = "repository",
@@ -291,6 +421,7 @@ def _run_verify(
             fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
+            test_scope=test_scope,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
             plan_lock_scope=plan_lock_scope,
@@ -321,6 +452,7 @@ def _run_verify_cached(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
     plan_lock_scope: str = "repository",
@@ -471,7 +603,9 @@ def _run_verify_cached(
                 return _verification_result(stages, started)
 
         test_manifest_paths = None
+        test_scope_widening: list[ValidationError] = []
         if _should_scope_tests_to_task(
+            test_scope=test_scope,
             file_tracking_scope=file_tracking_scope,
             plan_lock_scope=plan_lock_scope,
         ):
@@ -480,17 +614,34 @@ def _run_verify_cached(
                 manifest_dir,
                 since,
                 base_ref,
+                widening=test_scope_widening,
             )
 
-        stages.append(
-            _tests_stage(
-                root,
-                manifest_dir,
-                fail_fast,
-                test_jobs=test_jobs,
-                manifest_paths=test_manifest_paths,
-            )
+        tests_stage = _tests_stage(
+            root,
+            manifest_dir,
+            fail_fast,
+            test_jobs=test_jobs,
+            manifest_paths=test_manifest_paths,
         )
+        if test_scope_widening:
+            if tests_stage._tests is not None:
+                tests_stage = replace(
+                    tests_stage,
+                    _tests=replace(
+                        tests_stage._tests,
+                        chain_errors=[
+                            *tests_stage._tests.chain_errors,
+                            *test_scope_widening,
+                        ],
+                    ),
+                )
+            else:
+                tests_stage = replace(
+                    tests_stage,
+                    _errors=(*tests_stage._errors, *test_scope_widening),
+                )
+        stages.append(tests_stage)
 
         return _verification_result(stages, started)
 
@@ -793,10 +944,15 @@ def _plan_lock_changed_paths(
 
 def _should_scope_tests_to_task(
     *,
-    file_tracking_scope: str,
-    plan_lock_scope: str,
+    test_scope: str = "repository",
+    file_tracking_scope: str = "repository",
+    plan_lock_scope: str = "repository",
 ) -> bool:
-    return file_tracking_scope == "task" or plan_lock_scope == "task"
+    return (
+        test_scope == "task"
+        or file_tracking_scope == "task"
+        or plan_lock_scope == "task"
+    )
 
 
 def _task_scoped_test_manifest_paths(
@@ -804,11 +960,30 @@ def _task_scoped_test_manifest_paths(
     manifest_dir: str,
     since: str | None,
     base_ref: str | None,
+    *,
+    widening: "list[ValidationError] | None" = None,
 ) -> tuple[str, ...] | None:
     from maid_runner.core.chain import get_cached_manifest_chain
 
     chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-    changed_paths = _plan_lock_changed_paths(root, chain, since, base_ref)
+    selection_widening: list[ValidationError] = []
+    changed_paths = _plan_lock_changed_paths(
+        root,
+        chain,
+        since,
+        base_ref,
+        widening=selection_widening,
+    )
+    if widening is not None:
+        widening.extend(
+            replace(
+                finding,
+                message=finding.message.replace(
+                    "plan-lock enforcement", "tests-stage selection"
+                ),
+            )
+            for finding in selection_widening
+        )
     if changed_paths is None:
         return None
 

@@ -1,12 +1,14 @@
 {
   "manifest_path": "manifests/083-08-align-recall-stale-digest-flag.manifest.yaml",
-  "manifest_hash": "sha256:d312b96afeb0d24bf06987c5f502ff0265412030dde07a20c0864ab9e8dd61f0",
+  "manifest_hash": "sha256-contract:9c1ee934d955a5923dffeb74b213593382480d9ea9e93f8b5a20ee85f72a4ea7",
   "test_hashes": {
-    "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
-    "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:21befd44ac337bc9a870a2d95fda686c60bf8171e7aec4b78df629eb8cd3e5d3"
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+    "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256-pyast:v2:d5b04b87fd666bc3e3f4e3a325c4cd12f183670413728cbd6eb32f746442e679",
+    "tests/cli/test_recall_theme_map_cmd.py": "sha256-pyast:v2:916c72e9a1cb10bde65d3ca8adfeb32165c529e5e62c19e7a537422a45746345",
+    "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d"
   },
   "created_at": "2026-07-05T03:00:17.113335+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:f04dc504b100c94894f308397598f1271bbf88790b8107c271de1541552b0b1b",
@@ -14,7 +16,9 @@
         "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:81b9c9bd82eabd91504aa679977ab774f516a65e44ab45634556bae89b3b3b9e"
       },
       "revised_at": "2026-07-05T03:00:21.099431+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/083-08-align-recall-stale-digest-flag.manifest.yaml -> manifests/083-08-align-recall-stale-digest-flag.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/083-08-align-recall-stale-digest-flag.manifest.yaml -> manifests/083-08-align-recall-stale-digest-flag.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:2ae0e371dd53cbf93ab3224d5622f9b58e2b9b695e1b8343eb7511e71bfbaf41",
@@ -22,7 +26,9 @@
         "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:81b9c9bd82eabd91504aa679977ab774f516a65e44ab45634556bae89b3b3b9e"
       },
       "revised_at": "2026-07-05T03:11:12.280790+00:00",
-      "reason": "Add instruction payload version bump for init-distributed Outcome docs change"
+      "reason": "Add instruction payload version bump for init-distributed Outcome docs change",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c2bf6e247920a55f42c0b6f295b9d316b574ca8063768088493d40d56f98462e",
@@ -31,7 +37,42 @@
         "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:21befd44ac337bc9a870a2d95fda686c60bf8171e7aec4b78df629eb8cd3e5d3"
       },
       "revised_at": "2026-07-05T03:11:56.664102+00:00",
-      "reason": "Include payload metadata regression tests in the revised validate command"
+      "reason": "Include payload metadata regression tests in the revised validate command",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:d312b96afeb0d24bf06987c5f502ff0265412030dde07a20c0864ab9e8dd61f0",
+      "prior_test_hashes": {
+        "tests/cli/test_init_instruction_payload_version.py": "sha256:e816d3d2eabedbae25c072d62695501c931e0199119b8710501b8be4d883b7b2",
+        "tests/cli/test_recall_stale_digest_flag_cmd.py": "sha256:21befd44ac337bc9a870a2d95fda686c60bf8171e7aec4b78df629eb8cd3e5d3"
+      },
+      "revised_at": "2026-08-10T03:29:36.243649+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/cli/test_recall_stale_digest_flag_cmd.py",
+          "edit:docs/manifest-outcome-records.md",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/recall.py",
+          "edit:maid_runner/docs/manifest-outcome-records.md",
+          "edit:maid_runner/instruction_payload.py",
+          "read:maid_runner/cli/commands/insights.py",
+          "read:maid_runner/core/outcome_enrichment.py",
+          "read:manifests/072-01-disable-cli-option-abbreviation.manifest.yaml",
+          "read:manifests/079-01-version-init-instruction-payload.manifest.yaml",
+          "read:manifests/083-03-add-theme-aware-recall.manifest.yaml",
+          "read:manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml",
+          "read:manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+          "read:tests/cli/test_init_instruction_payload_version.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -46,6 +87,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/manifest-outcome-records.md:attribute:documentation._recall_stale_digest_optin_docs",
@@ -85,9 +128,156 @@
       "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_rejected_without_any_allow_flag:kind=test_function",
       "tests/cli/test_recall_stale_digest_flag_cmd.py:test_recall_stale_digest_rejected_without_any_allow_flag:returns=None"
     ],
+    "files": {
+      "create": [
+        "tests/cli/test_recall_stale_digest_flag_cmd.py"
+      ],
+      "edit": [
+        "docs/manifest-outcome-records.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/recall.py",
+        "maid_runner/docs/manifest-outcome-records.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/core/outcome_enrichment.py",
+        "manifests/072-01-disable-cli-option-abbreviation.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "manifests/083-03-add-theme-aware-recall.manifest.yaml",
+        "manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml",
+        "manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+        "tests/cli/test_init_instruction_payload_version.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_recall_stale_digest_flag_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_recall_stale_digest_rejected_without_any_allow_flag",
+              "description": "A stale digest on recall --theme-map is rejected with no waiver flags and the error names --allow-stale-digest as the narrow fix.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recall_allow_stale_digest_accepts_stale_theme_map",
+              "description": "--allow-stale-digest accepts the stale digest and recall output carries the theme annotations, with match selection unchanged.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recall_allow_stale_index_keeps_backward_compatible_double_duty",
+              "description": "Bare --allow-stale-index still waives digest staleness on recall as shipped in 083-03, pinning backward compatibility.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recall_allow_stale_digest_does_not_waive_index_staleness",
+              "description": "A stale Outcome index with only --allow-stale-digest is still rejected with recall's index-stale error and exit conventions.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recall_stale_digest_flag_is_registered_unabbreviated",
+              "description": "--allow-stale-digest is a registered option on the recall parser and abbreviation remains disabled.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_recall_docs_payload_change",
+              "description": "INSTRUCTION_PAYLOAD_VERSION advanced past the pre-change baseline because maid init distributes the changed Outcome docs.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/recall.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_recall",
+              "description": "Theme-map digest staleness is waived by --allow-stale-digest or (unchanged, for backward compatibility) --allow-stale-index, with the stale error steering to --allow-stale-digest; Outcome index staleness is waived only by --allow-stale-index. All other recall behavior, including annotation-only theme-map consumption, is unchanged.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Registers --allow-stale-digest on the recall subparser, unabbreviated per 072-01, with help text distinguishing the narrow digest waiver from --allow-stale-index.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_recall_stale_digest_optin_docs",
+              "description": "Advisory enrichment docs extended: maid recall --theme-map follows the same --allow-stale-digest / --allow-stale-index opt-in semantics as insights.",
+              "of": "documentation",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/manifest-outcome-records.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_recall_stale_digest_optin_docs",
+              "description": "Packaged copy of the recall stale-digest opt-in docs, kept byte-for-byte in sync.",
+              "of": "package_resource",
+              "type": "doc-section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version advanced past 2026.07.04.2 because the init-distributed Outcome docs changed.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/083-00-close-outcome-enrichment-consumption-loop.epic.yaml",
+        "manifests/083-03-add-theme-aware-recall.manifest.yaml",
+        "manifests/083-06-harden-enrich-staleness-flags-and-prompt-scaling.manifest.yaml",
+        "manifests/072-01-disable-cli-option-abbreviation.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "maid_runner/cli/commands/insights.py",
+        "maid_runner/core/outcome_enrichment.py",
+        "tests/cli/test_init_instruction_payload_version.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_init_instruction_payload_version.py",
-      "tests/cli/test_recall_stale_digest_flag_cmd.py"
+      "tests/cli/test_recall_stale_digest_flag_cmd.py",
+      "tests/cli/test_recall_theme_map_cmd.py",
+      "tests/test_manifest_outcome_docs.py"
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_recall_stale_digest_flag_cmd.py tests/cli/test_recall_theme_map_cmd.py tests/test_manifest_outcome_docs.py tests/cli/test_init_instruction_payload_version.py"

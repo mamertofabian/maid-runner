@@ -64,8 +64,8 @@ def test_implementation_review_skill_carries_convergence_protocol() -> None:
         "MUST NOT trigger manifest or locked-test revision",
         "two full review rounds",
         "why it was not visible in round 1",
+        "maid assess --since <baseline>",
         "maid verify --profile handoff --since <baseline>",
-        "maid verify --profile deep --since <baseline>",
     )
 
     for tool in TOOLS:
@@ -82,6 +82,7 @@ def test_implementer_skills_carry_iteration_recipe() -> None:
         "--test-only-green",
         "--stash-implementation",
         "--allow-sibling-dirty",
+        "maid assess --since <baseline>",
         "maid verify --profile handoff --since <baseline>",
     )
 

@@ -1,0 +1,159 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prevent maid manifest promote from introducing trailing whitespace when
+  its round-trip YAML emitter wraps long plain scalars.
+type: fix
+created: '2026-08-10T05:41:56Z'
+metadata:
+  status: implementation-ready
+  tags:
+  - manifest-promotion
+  - yaml-formatting
+  - developer-experience
+description: |
+  The ruamel.yaml round-trip emitter used by `maid manifest promote` defaults
+  to an 80-column width. When it wraps a long plain scalar, it preserves the
+  separating space at the end of each physical line, so promoted manifests
+  fail `git diff --check` just before commit. Configure the promotion emitter
+  with the same wide width already used by MAID's manifest-creation dumper so
+  it does not introduce those wrapped lines.
+
+  This is an additive formatting guarantee over the existing multiline-style
+  and Git-rename-preservation contracts. It must preserve scalar values,
+  comments, quotes, indentation, bounded promotion mutations, and plan-lock
+  migration behavior. Do not strip arbitrary rendered lines because trailing
+  whitespace inside block scalars can be meaningful content.
+temptations:
+- risk: Do not post-process every rendered line with rstrip.
+  instead: Configure the YAML emitter not to introduce wrapped plain-scalar
+    whitespace, preserving meaningful block-scalar content unchanged.
+- risk: Do not replace the round-trip emitter or reserialize through PyYAML.
+  instead: Retain ruamel.yaml presentation preservation and adjust only its
+    output width.
+- risk: Do not supersede the existing promotion contracts.
+  instead: Chain-merge this narrow rendering guarantee additively.
+files:
+  edit:
+  - path: tests/cli/test_manifest_promote_yaml_style_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_does_not_emit_trailing_whitespace
+      source_scenario: A promoted draft contains long plain scalar values that
+        the default round-trip emitter would wrap.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Every physical line in the promoted YAML equals its
+          right-stripped form while the scalar values still round-trip.
+  scope:
+  - path: maid_runner/cli/commands/manifest.py
+    reason: Set the private round-trip promotion emitter to a wide output width
+      without changing the public cmd_manifest contract.
+  read:
+  - manifests/fix-promote-multiline-yaml-style.manifest.yaml
+  - manifests/fix-promote-git-rename-detection.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_manifest_promote_yaml_style_cmd.py
+- uv run maid validate manifests/fix-promote-trailing-whitespace.manifest.yaml
+  --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-10T05:48:56Z'
+  summary: Promotion now uses the same wide YAML emitter width as manifest
+    creation, preventing practical long scalar rewrites from adding trailing
+    whitespace.
+  rationale: |
+    Promotion's round-trip emitter defaulted to 80 columns. Rewriting a long
+    draft-self-referencing validation command produced wrapped physical lines
+    whose separating spaces remained at line ends. Setting the private emitter
+    width to 4096 prevents that MAID-introduced wrapping while retaining
+    ruamel.yaml comment, quote, indentation, block-scalar, and Git-rename
+    presentation behavior. The implementation does not strip rendered content,
+    so meaningful source-authored block-scalar whitespace remains untouched.
+    Evidence: the focused regression failed before implementation; 44 promotion
+    tests, 410 active manifests, and all 241 declared commands passed afterward;
+    git diff checks were clean; and the independent reviewer found no blockers.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+    - maid-evolver
+    - maid-implementation-review
+  lessons:
+  - lesson_type: root-cause
+    summary: Round-trip YAML preserves existing presentation but newly assigned
+      plain scalars use the emitter width, and ruamel retains a separating space
+      at wrapped physical line endings.
+    tags:
+    - yaml-formatting
+    - manifest-promotion
+    - trailing-whitespace
+    paths:
+    - maid_runner/cli/commands/manifest.py
+    - tests/cli/test_manifest_promote_yaml_style_cmd.py
+  - lesson_type: validation
+    summary: A clean-input regression must force promotion to reconstruct a
+      long scalar; an already wrapped untouched fixture does not exercise the
+      emitter behavior, and git diff --check does not inspect untracked files.
+    tags:
+    - behavioral-tests
+    - git
+    - regression-testing
+    paths:
+    - tests/cli/test_manifest_promote_yaml_style_cmd.py
+    - manifests/fix-promote-trailing-whitespace.manifest.yaml
+  review_notes:
+  - source: independent-reviewer-promote-whitespace
+    severity: ready
+    summary: No blockers; the change preserves promotion fidelity and avoids
+      destructive postprocessing. Values beyond 4096 columns remain a bounded
+      advisory outside the practical contract.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_manifest_promote_yaml_style_cmd.py
+    - tests/cli/test_manifest_promote_git_rename_cmd.py
+    - tests/cli/test_manifest_promote_argv_self_reference.py
+    - tests/cli/test_manifest_promote_lock_cmd.py
+    - tests/cli/test_manifest_cmd.py
+    status: passed
+    summary: All 44 promotion-focused tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: All 410 active manifests passed; 109 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 241 declared validation commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - handoff
+    - --since
+    - HEAD
+    status: failed
+    summary: All non-test handoff gates passed after shared-lock repair; the
+      test stage was blocked by concurrent commit b641477 adding live epic 121
+      without updating the pre-existing live-planning inventory assertion.

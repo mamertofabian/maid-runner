@@ -2,11 +2,11 @@
   "manifest_path": "manifests/092-02-add-validator-risk-analysis-hooks.manifest.yaml",
   "manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
   "test_hashes": {
-    "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:847a9ba93a3b7fe7fa258002538630316671e4dc88825f965a1ec73340743117",
-    "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+    "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:v2:c044b89a4f144d916fe13b02f442e2422fbfaf422588e60b0dab1989d8fffbb6",
+    "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
   },
   "created_at": "2026-07-31T00:13:10.681074+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1c8183ae34631028275ddd9765e4c7f25a938e7333d5abfadf4ab442c71ad9a4",
@@ -106,6 +106,24 @@
       },
       "revised_at": "2026-07-31T00:41:30.961821+00:00",
       "reason": "Resolve the final review case for mixed package attribute and submodule imports.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:373fbbb52b578478f61320e8b43a35ee33564964fbd24e22ddfa2c2ce1363648",
+      "prior_test_hashes": {
+        "tests/validators/test_coverage_recommendation_hooks.py": "sha256-pyast:847a9ba93a3b7fe7fa258002538630316671e4dc88825f965a1ec73340743117",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:bc8e17def5cd03ea1e4e85f153ea280a0d40ebda7bbce9edd74bd49b7d437575"
+      },
+      "revised_at": "2026-08-10T03:29:37.237846+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

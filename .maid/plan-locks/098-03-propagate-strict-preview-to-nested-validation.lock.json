@@ -1,0 +1,386 @@
+{
+  "manifest_path": "manifests/098-03-propagate-strict-preview-to-nested-validation.manifest.yaml",
+  "manifest_hash": "sha256-contract:4143412daa8e3348745223233b8361864c05582cafa0e2851ad7865e91c971f6",
+  "test_hashes": {
+    "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+    "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af"
+  },
+  "created_at": "2026-08-09T14:31:33.745863+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3a6480da457a3e340a1aaa5a59c2b513b14861e702a80cab416b39c86147c994",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:64e7c70b7575ccbec98a6c25d17639eab5e3d9d5974b1aa18f93cbe4a03e1f3a"
+      },
+      "revised_at": "2026-08-09T14:31:45.546337+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/098-03-propagate-strict-preview-to-nested-validation.manifest.yaml -> manifests/098-03-propagate-strict-preview-to-nested-validation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7b4fe9c45bb09438570e8d96f96c3fed355e9eea91b1ae9f21433e73477e303f",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:64e7c70b7575ccbec98a6c25d17639eab5e3d9d5974b1aa18f93cbe4a03e1f3a"
+      },
+      "revised_at": "2026-08-09T14:34:15.976633+00:00",
+      "reason": "Replace clipped literal E310 assertion with preserved nested stub diagnostic",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7b4fe9c45bb09438570e8d96f96c3fed355e9eea91b1ae9f21433e73477e303f",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:056c851a98782089f2477743c518259e27811f9bc028443e42600fa1d38b2bce"
+      },
+      "revised_at": "2026-08-09T14:52:36.653228+00:00",
+      "reason": "Add review-required non-reentrant coverage cases for explicit nested modes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes",
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes:kind=test_function",
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6029affcedf856ab48b2da28040f07d60180b3ec28dce06b5fdc8a37fc3631a0",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:3e87d9f388938606612d6817d31754d32baf8a28febca92813b93afa9968ce24"
+      },
+      "revised_at": "2026-08-09T14:54:17.577919+00:00",
+      "reason": "Use a non-stub inner implementation in explicit nested coverage fixtures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6029affcedf856ab48b2da28040f07d60180b3ec28dce06b5fdc8a37fc3631a0",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:808766352f886b6ba30d473f0e0f1621391d89c3af1f9a222290b36cc45ac8b3"
+      },
+      "revised_at": "2026-08-09T15:08:41.726269+00:00",
+      "reason": "Require a live capability so stale environment markers cannot bypass explicit coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage",
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage:kind=test_function",
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1eab5628eba3f76f72246d0e2e4abb9844ccc1281a884143b9109da74f3f0173",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:e6be40b084da41570393828740a6e15122c143b7a746d9e8378d1082f6bca95e"
+      },
+      "revised_at": "2026-08-09T15:21:10.474327+00:00",
+      "reason": "Move strict-boundary issuance into the generated runtime coverage runner",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage",
+          "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage:kind=test_function",
+          "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage",
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage:kind=test_function",
+          "tests/cli/test_nested_strict_preview.py:test_stale_internal_marker_cannot_suppress_top_level_artifact_coverage:returns=None"
+        ],
+        "files_added": [
+          "scope:maid_runner/core/artifact_coverage.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/artifact_coverage.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dfd89090ee238eacc5c354cda4c83b9ddfcc2dc59c9e16e8309592e490ff8b43",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:38dd66efa5dbe28910bce56386e55398badbe369b34c4cc57747202251f3af7b"
+      },
+      "revised_at": "2026-08-09T15:28:02.798023+00:00",
+      "reason": "Propagate the child runner boundary across pytest worker threads",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread",
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:kind=test_function",
+          "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-09T15:28:24.655662+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_nested_strict_preview.py",
+        "exit_code": 1,
+        "output_tail": "                str(outer_manifest.relative_to(tmp_path)),\n                \"--mode\",\n                \"schema\",\n                \"--no-chain\",\n                \"--strict-preview\",\n                \"--json\",\n            ]\n        )\n    \n        payload = json.loads(capsys.readouterr().out)\n>       assert exit_code == 0\nE       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_nested_strict_preview.py:232: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_nested_strict_preview.py::test_strict_preview_propagates_strict_defaults_to_nested_validation\nFAILED tests/cli/test_nested_strict_preview.py::test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side\nFAILED tests/cli/test_nested_strict_preview.py::test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes\nFAILED tests/cli/test_nested_strict_preview.py::test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread\n4 failed, 1 passed in 19.92s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_strict_preview.py tests/cli/test_strict_delta_cmd.py",
+        "exit_code": 0,
+        "output_tail": "...............                                                          [100%]\n15 passed in 1.52s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/validate.py:function:cmd_validate",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:kind=function",
+      "maid_runner/cli/commands/validate.py:function:cmd_validate:returns=int",
+      "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage",
+      "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage:returns=None",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes:returns=None",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:returns=None",
+      "tests/cli/test_nested_strict_preview.py:test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side",
+      "tests/cli/test_nested_strict_preview.py:test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side:returns=None",
+      "tests/cli/test_nested_strict_preview.py:test_strict_preview_propagates_strict_defaults_to_nested_validation",
+      "tests/cli/test_nested_strict_preview.py:test_strict_preview_propagates_strict_defaults_to_nested_validation:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_strict_preview_propagates_strict_defaults_to_nested_validation:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_nested_strict_preview.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/validate.py"
+      ],
+      "read": [
+        "maid_runner/core/strict_delta.py",
+        "manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml",
+        "manifests/062-03-report-strict-migration-delta.manifest.yaml",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "tests/cli/test_strict_delta_cmd.py",
+        "tests/cli/test_strict_preview.py"
+      ],
+      "scope": [
+        "docs/plans/maid-runner-self-improvement-backlog.md",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_nested_strict_preview.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_strict_preview_propagates_strict_defaults_to_nested_validation",
+              "returns": "None",
+              "source_scenario": "An outer manifest's coverage test invokes default `maid validate` on an inner manifest whose declared function is a stub.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --artifact-coverage --json"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --strict-preview --json"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Plain artifact coverage succeeds because the nested call keeps legacy defaults; strict-preview fails with top-level strict_preview=true and E900 because the nested call inherits strict stub checking; a second plain coverage run succeeds, proving strict context is restored and does not leak after preview execution."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side",
+              "returns": "None",
+              "source_scenario": "The same nested-validation fixture is compared through strict-delta with explicit default-side artifact coverage.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --artifact-coverage --strict-delta --json"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits zero from the successful legacy default side, while strict_delta contains an E900 artifact-coverage command failure attributable to the outer manifest and caused by the nested strict E310 failure."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes",
+              "returns": "None",
+              "source_scenario": "An outer strict-preview coverage test invokes a clean nested MAID validation that explicitly requests artifact coverage, strict-preview, or strict-delta; a fixture counter fails immediately if the same test command is entered twice.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --strict-preview --json"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every explicit nested coverage-producing mode completes successfully with exactly one execution of the outer test, proving the inherited strict marker is an active non-reentrant coverage boundary while structural strictness remains enabled."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage",
+              "returns": "None",
+              "source_scenario": "A top-level caller creates a matching file-and-token pair under the former private environment marker names and explicitly requests artifact coverage for a function its test never executes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --artifact-coverage --json"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Caller-controlled environment values are ignored; explicit artifact coverage runs and fails with E710 instead of being silently bypassed."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread",
+              "returns": "None",
+              "source_scenario": "An outer strict-preview coverage test launches a nested MAID validation with explicit artifact coverage from a worker thread; a fixture counter fails if coverage recursively re-enters the test.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "command": "maid validate manifests/outer.manifest.yaml --mode schema --no-chain --strict-preview --json"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The worker-thread nested validation inherits strict policy, suppresses recursive artifact coverage, exits successfully, and the outer test command executes exactly once."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_validate",
+              "description": "Treat an inherited private strict-preview execution context as strict assertion, stub, and warning policy without recursively re-entering artifact coverage, and propagate that context only while running strict artifact coverage, including the strict side of strict-delta.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/strict_delta.py",
+        "tests/cli/test_strict_preview.py",
+        "tests/cli/test_strict_delta_cmd.py",
+        "manifests/062-02-add-strict-defaults-preview-mode.manifest.yaml",
+        "manifests/062-03-report-strict-migration-delta.manifest.yaml",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_command_execution.py",
+          "reason": "Hold the scoped private strict-validation ContextVar used by the parent command plus a ref-counted process-wide child-runner boundary so pytest worker threads inherit strict policy without contaminating concurrent parent coverage launches or trusting environment values."
+        },
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Activate the strict-validation ContextVar inside the generated runtime coverage runner around pytest, where nested MAID calls execute."
+        },
+        {
+          "path": "docs/plans/maid-runner-self-improvement-backlog.md",
+          "reason": "Record closure evidence for the ranked R1 strict-default reconciliation item after implementation and review."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_nested_strict_preview.py",
+      "tests/cli/test_strict_delta_cmd.py",
+      "tests/cli/test_strict_preview.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_nested_strict_preview.py",
+      "uv run python -m pytest -q tests/cli/test_strict_preview.py tests/cli/test_strict_delta_cmd.py"
+    ]
+  }
+}

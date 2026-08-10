@@ -1,0 +1,131 @@
+{
+  "manifest_path": "manifests/fix-test-git-environment-isolation.manifest.yaml",
+  "manifest_hash": "sha256-contract:3b6e10b84f1ee92a66fc02bada489c110c857bbf6e511562efbd3e7629d3f9d4",
+  "test_hashes": {
+    "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393",
+    "tests/core/test_changed_scope_dotnet_files.py": "sha256-pyast:v2:58121563db85b968dccf90a877ea2a7c040a1770cd90ce8aa7c436f43bede192",
+    "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+    "tests/test_git_environment_isolation.py": "sha256-pyast:v2:a3a3f8be4661fb7a1c4e6365dfed51b57ceb43ed0465607e6b842226ae6c7c15"
+  },
+  "created_at": "2026-08-09T16:17:03.110737+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:eccf1b67cbcfd680c8bc25e3f3ebc26ff80f8ec8feb7e0f00a0a4f132bb0bffc",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393",
+        "tests/core/test_changed_scope_dotnet_files.py": "sha256-pyast:v2:58121563db85b968dccf90a877ea2a7c040a1770cd90ce8aa7c436f43bede192",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+        "tests/test_git_environment_isolation.py": "sha256-pyast:v2:a3a3f8be4661fb7a1c4e6365dfed51b57ceb43ed0465607e6b842226ae6c7c15"
+      },
+      "revised_at": "2026-08-09T16:17:03.485765+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-test-git-environment-isolation.manifest.yaml -> manifests/fix-test-git-environment-isolation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e811b8c7eb1a10d5eaf7ce5b3347aae1589534955e7971a03c6cc707e27cd9de",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393",
+        "tests/core/test_changed_scope_dotnet_files.py": "sha256-pyast:v2:58121563db85b968dccf90a877ea2a7c040a1770cd90ce8aa7c436f43bede192",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+        "tests/test_git_environment_isolation.py": "sha256-pyast:v2:a3a3f8be4661fb7a1c4e6365dfed51b57ceb43ed0465607e6b842226ae6c7c15"
+      },
+      "revised_at": "2026-08-09T16:18:50.276886+00:00",
+      "reason": "Run every discovered representative Git behavioral test under the hostile hook environment",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "env GIT_DIR=/tmp/maid-test-ambient.git GIT_WORK_TREE=/tmp/maid-test-ambient-worktree GIT_INDEX_FILE=/tmp/maid-test-ambient.index GIT_COMMON_DIR=/tmp/maid-test-ambient-common GIT_PREFIX=maid-test-ambient-prefix GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects uv run python -m pytest -q tests/test_git_environment_isolation.py tests/cli/test_plan_legacy_baseline_first_commit.py tests/core/test_changed_scope_dotnet_files.py tests/core/test_plan_lock_git_subdirectory.py"
+        ],
+        "validate_commands_removed": [
+          "env GIT_DIR=/tmp/maid-test-ambient.git GIT_WORK_TREE=/tmp/maid-test-ambient-worktree GIT_INDEX_FILE=/tmp/maid-test-ambient.index GIT_COMMON_DIR=/tmp/maid-test-ambient-common GIT_PREFIX=maid-test-ambient-prefix GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects uv run python -m pytest -q tests/test_git_environment_isolation.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": false,
+    "captured_at": "2026-08-09T16:18:54.902814+00:00",
+    "commands": [
+      {
+        "command": "env GIT_DIR=/tmp/maid-test-ambient.git GIT_WORK_TREE=/tmp/maid-test-ambient-worktree GIT_INDEX_FILE=/tmp/maid-test-ambient.index GIT_COMMON_DIR=/tmp/maid-test-ambient-common GIT_PREFIX=maid-test-ambient-prefix GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects uv run python -m pytest -q tests/test_git_environment_isolation.py tests/cli/test_plan_legacy_baseline_first_commit.py tests/core/test_changed_scope_dotnet_files.py tests/core/test_plan_lock_git_subdirectory.py",
+        "exit_code": 0,
+        "output_tail": ".............                                                            [100%]\n13 passed in 4.46s",
+        "classification": "not_red"
+      }
+    ],
+    "mode": "test_only_green"
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_git_environment_isolation.py:test_git_repository_pointers_are_removed_from_test_environment",
+      "tests/test_git_environment_isolation.py:test_git_repository_pointers_are_removed_from_test_environment:kind=test_function",
+      "tests/test_git_environment_isolation.py:test_git_repository_pointers_are_removed_from_test_environment:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_git_environment_isolation.py"
+      ],
+      "edit": [],
+      "read": [
+        "tests/cli/test_plan_legacy_baseline_first_commit.py",
+        "tests/core/test_changed_scope_dotnet_files.py",
+        "tests/core/test_plan_lock_git_subdirectory.py"
+      ],
+      "scope": [
+        "tests/conftest.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_git_environment_isolation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_git_repository_pointers_are_removed_from_test_environment",
+              "description": "A pytest session started with hook-exported Git repository pointers cannot expose those pointers to test Git subprocesses.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/cli/test_plan_legacy_baseline_first_commit.py",
+        "tests/core/test_changed_scope_dotnet_files.py",
+        "tests/core/test_plan_lock_git_subdirectory.py"
+      ],
+      "scope": [
+        {
+          "path": "tests/conftest.py",
+          "reason": "Add session-wide autouse test-harness wiring that sanitizes inherited Git repository pointers without defining a production API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_legacy_baseline_first_commit.py",
+      "tests/core/test_changed_scope_dotnet_files.py",
+      "tests/core/test_plan_lock_git_subdirectory.py",
+      "tests/test_git_environment_isolation.py"
+    ],
+    "validate_commands": [
+      "env GIT_DIR=/tmp/maid-test-ambient.git GIT_WORK_TREE=/tmp/maid-test-ambient-worktree GIT_INDEX_FILE=/tmp/maid-test-ambient.index GIT_COMMON_DIR=/tmp/maid-test-ambient-common GIT_PREFIX=maid-test-ambient-prefix GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects uv run python -m pytest -q tests/test_git_environment_isolation.py tests/cli/test_plan_legacy_baseline_first_commit.py tests/core/test_changed_scope_dotnet_files.py tests/core/test_plan_lock_git_subdirectory.py"
+    ]
+  }
+}

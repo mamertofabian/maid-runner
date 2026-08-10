@@ -1,0 +1,138 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep artifact-coverage failure reports deterministic when equivalent pytest
+  subprocesses report different elapsed durations"
+type: fix
+created: "2026-08-09T07:50:35Z"
+metadata:
+  priority: high
+  tags: [artifact-coverage, deterministic-output, handoff-reliability]
+description: |
+  Strengthen the active 096-01 artifact-coverage batching contract without
+  changing public APIs. Independent and batched executions may naturally emit
+  different pytest elapsed durations, but those volatile timings must not make
+  otherwise equivalent serialized E900 reports unequal. Normalize only the
+  elapsed duration in recognizable quiet or decorated verbose pytest summary
+  lines before retaining the bounded diagnostic suggestion. Preserve failure
+  names, traceback details (including single-line and cross-line duration-like
+  failure text), assertion text, counts, summary decoration, exit attribution,
+  and the existing 500-character suggestion bound.
+
+  This is an additive chain merge over 096-01. Its existing behavioral test
+  file remains immutable; a dedicated regression injects distinct durations
+  into the independent and batched public execution paths and requires stable
+  report equality with substantive failure detail intact.
+temptations:
+- risk: Do not weaken the existing equivalence assertion by ignoring the
+    complete E900 suggestion.
+  instead: Make the observable serialized suggestion deterministic at its
+    production boundary, then continue comparing complete reports.
+- risk: Do not erase all pytest output or broadly replace arbitrary
+    duration-like text in tracebacks.
+  instead: Normalize only a terminal elapsed duration on pytest summary lines
+    that also contain a recognized outcome count.
+- risk: Do not modify the historically locked 096-01 behavioral test file.
+  instead: Add a dedicated behavioral test file and preserve the existing suite
+    unchanged.
+files:
+  create:
+  - path: tests/core/test_artifact_coverage_failure_determinism.py
+    artifacts:
+    - kind: test_function
+      name: test_failure_reports_ignore_volatile_pytest_elapsed_duration
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      source_scenario: Equivalent failing artifact-coverage commands emit
+        different elapsed durations in decorated verbose pytest summaries during
+        two independent runs and one shared batch run, while the traceback and
+        captured output contain substantive single-line and cross-line
+        duration-like text.
+      actions:
+      - type: api_call
+        subject: {export: run_artifact_coverage}
+      - type: api_call
+        subject: {export: run_artifact_coverage_batch}
+      expected:
+        behavior: Complete serialized per-manifest reports remain equal, every
+          manifest receives E900, summary decoration plus substantive single-line
+          and cross-line duration text remain intact, and only the volatile
+          pytest summary elapsed duration is replaced.
+  scope:
+  - path: maid_runner/core/artifact_coverage.py
+    reason: Normalize volatile pytest summary duration text at the private E900
+      diagnostic boundary without changing public artifact signatures.
+  read:
+  - manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+  - tests/core/test_artifact_coverage_batch.py
+  - maid_runner/core/result.py
+validate:
+- uv run python -m pytest -q
+  tests/core/test_artifact_coverage_failure_determinism.py
+  tests/core/test_artifact_coverage_batch.py
+outcome:
+  status: completed
+  completed_at: '2026-08-09T16:12:39+08:00'
+  summary: >-
+    Made independent and batched artifact-coverage E900 reports deterministic by
+    normalizing only pytest summary elapsed durations while preserving summary
+    decoration, failure diagnostics, traceback text, cross-line output, and the
+    existing bounded suggestion behavior.
+  rationale: >-
+    Both execution paths now construct command failures through one private
+    boundary. Its anchored grammar accepts quiet and decorated verbose pytest
+    summaries with recognized numeric outcome counts, uses horizontal whitespace
+    so matches cannot cross lines, preserves CR and decoration, and replaces only
+    the elapsed duration with a stable token.
+  lessons:
+  - lesson_type: validation-trust
+    summary: >-
+      Serialized validator parity cannot compare raw subprocess output when it
+      contains volatile timings. Normalization must happen at the shared
+      production boundary and must use a whole-line grammar narrow enough to
+      preserve traceback and cross-line text that merely resembles a summary.
+    tags: [artifact-coverage, deterministic-output, diagnostics, maid-runner-feedback]
+    paths:
+    - maid_runner/core/artifact_coverage.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+  - lesson_type: test-design
+    summary: >-
+      Injecting distinct durations into two independent runs and one shared run
+      made the intermittent timing defect deterministic. Independent review then
+      strengthened the fixture with decorated verbose summaries plus single-line
+      and cross-line preservation sentinels that prevented overbroad regex fixes.
+    tags: [regression-coverage, review, nondeterminism]
+    paths:
+    - tests/core/test_artifact_coverage_failure_determinism.py
+  review_notes:
+  - source: independent-reviewer-review_artifact_coverage_determinism
+    severity: ready
+    summary: >-
+      Final read-only review found no actionable issues after revisions addressed
+      verbose summary decoration, traceback-like duration text, and multiline
+      matching caused by broad whitespace classes. All earlier blockers were
+      confirmed closed, including CR preservation.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_failure_determinism.py, tests/core/test_artifact_coverage_batch.py]
+    status: passed
+    summary: All 9 deterministic-failure and existing batch behavior tests passed.
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_failure_determinism.py, tests/core/test_artifact_coverage_batch.py, tests/core/test_artifact_coverage.py, tests/cli/test_artifact_coverage_cmd.py, tests/cli/test_strict_delta_advisory_warnings.py]
+    status: passed
+    summary: All 30 focused and adjacent artifact-coverage tests passed.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Full Python suite passed 3853 tests with 5 skipped against the final implementation.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: All 399 active manifests passed; 109 superseded manifests were skipped and none failed.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 234 manifest-declared validation commands passed against the final implementation.
+  - command: [uv, run, maid, verify, --summary, --plan-lock-scope, task, --since, HEAD]
+    status: passed
+    summary: All eight task-scoped verify stages passed with only existing non-blocking E307 warnings.

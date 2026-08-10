@@ -98,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_test_parser(sub)
     _register_pgtap_parser(sub)
     _register_verify_parser(sub)
+    _register_assess_parser(sub)
     _register_plan_parser(sub)
     _register_task_parser(sub)
     _register_hook_parser(sub)
@@ -107,6 +108,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_learn_parser(sub)
     _register_recall_parser(sub)
     _register_insights_parser(sub)
+    _register_feedback_parser(sub)
     _register_enrich_parser(sub)
     _register_evaluate_parser(sub)
     _register_benchmark_parser(sub)
@@ -140,6 +142,20 @@ def _register_skills_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         dest="target_root",
         help="Override the install base directory (default: user home)",
+    )
+    uninstall = ssub.add_parser(
+        "uninstall", help="Remove unchanged user-level maid-onboard skills"
+    )
+    uninstall.add_argument(
+        "--target-root",
+        default=None,
+        dest="target_root",
+        help="Override the uninstall base directory (default: user home)",
+    )
+    uninstall.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview owned skills without removing them",
     )
 
 
@@ -495,6 +511,16 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Run the verify tests stage with this many test command workers",
     )
     p.add_argument(
+        "--test-scope",
+        action=_StoreExplicit,
+        choices=["repository", "task"],
+        default="repository",
+        help=(
+            "Run validation commands from every active manifest (default) or "
+            "only active manifests changed from the explicit task baseline"
+        ),
+    )
+    p.add_argument(
         "--require-plan-lock",
         action=_StoreExplicit,
         nargs=0,
@@ -570,6 +596,44 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         const=True,
         default=False,
         help="Print categorized, deduplicated verification output",
+    )
+    p.add_argument(
+        "--delivered",
+        default=None,
+        metavar="BRANCH_REF",
+        help=(
+            "Verify attested covered bytes at a named local or remote delivery "
+            "branch ref"
+        ),
+    )
+    p.add_argument(
+        "--attestation",
+        default=None,
+        metavar="PATH",
+        help="Portable delivery-attestation JSON consumed by --delivered",
+    )
+
+
+def _register_assess_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "assess",
+        help="Recommend a verify profile from deterministic change signals",
+    )
+    p.add_argument(
+        "--since",
+        default=None,
+        help="Assess changes since this explicit commit or ref",
+    )
+    p.add_argument(
+        "--base-ref",
+        default=None,
+        dest="base_ref",
+        help="Assess changes since the merge base with this explicit ref",
+    )
+    p.add_argument(
+        "--json",
+        action="store_true",
+        help="Print one machine-readable assessment document",
     )
 
 
@@ -665,6 +729,26 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+    dp = psub.add_parser(
+        "dependents",
+        help="List active plan locks that pin a behavioral test",
+    )
+    dp.add_argument("test_path", help="Behavioral test path to inspect")
+    dp.add_argument(
+        "--manifest-dir",
+        default="manifests/",
+        dest="manifest_dir",
+        help="Directory of active manifests",
+    )
+    dp.add_argument(
+        "--project-root",
+        default=".",
+        dest="project_root",
+        help="Project root containing manifests and plan locks",
+    )
+    dp.add_argument(
+        "--json", action="store_true", help="Print plan-lock dependencies as JSON"
     )
 
 
@@ -1016,6 +1100,69 @@ def _register_insights_parser(sub: argparse._SubParsersAction) -> None:
         help="Maximum number of insight groups to print",
     )
     p.add_argument("--json", action="store_true", help="Print insights as JSON")
+
+
+def _register_feedback_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "feedback",
+        help="Export explicit Outcome lessons for MAID Runner feedback",
+    )
+    fsub = p.add_subparsers(dest="feedback_command")
+    export = fsub.add_parser(
+        "export",
+        help="Write a privacy-bounded local feedback bundle",
+    )
+    export.add_argument(
+        "--index",
+        default=".maid/outcomes.json",
+        help="Outcome index containing explicitly marked lessons",
+    )
+    export.add_argument(
+        "--output",
+        required=True,
+        help="Local JSON feedback bundle path",
+    )
+    export.add_argument(
+        "--manifest-dir",
+        default=None,
+        help="Manifest directory used for staleness checks",
+    )
+    export.add_argument(
+        "--project-root",
+        default=None,
+        help="Project root used to resolve manifest-relative paths",
+    )
+    export.add_argument(
+        "--allow-stale-index",
+        action="store_true",
+        help="Export from the index even when source manifests changed",
+    )
+    export.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing local output file",
+    )
+    export.add_argument("--json", action="store_true", help="Print result as JSON")
+    aggregate = fsub.add_parser(
+        "aggregate",
+        help="Validate and aggregate local feedback bundles",
+    )
+    aggregate.add_argument(
+        "inputs",
+        nargs="+",
+        help="Local version-1 feedback bundle paths",
+    )
+    aggregate.add_argument(
+        "--output",
+        required=True,
+        help="Local JSON intake report path",
+    )
+    aggregate.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing local report file",
+    )
+    aggregate.add_argument("--json", action="store_true", help="Print result as JSON")
 
 
 def _register_enrich_parser(sub: argparse._SubParsersAction) -> None:
@@ -1441,6 +1588,11 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
         help="Check whether installed MAID init instruction payloads are current",
     )
     p.add_argument(
+        "--uninstall",
+        action="store_true",
+        help="Remove MAID-owned init payloads while preserving project data",
+    )
+    p.add_argument(
         "--json", action="store_true", help="Print init or check result as JSON"
     )
     p.add_argument(
@@ -1620,6 +1772,7 @@ def main(argv: list[str] | None = None) -> int:
         "test": "_cmd_test",
         "pgtap": "_cmd_pgtap",
         "verify": "_cmd_verify",
+        "assess": "_cmd_assess",
         "plan": "_cmd_plan",
         "task": "_cmd_task",
         "hook": "_cmd_hook",
@@ -1629,6 +1782,7 @@ def main(argv: list[str] | None = None) -> int:
         "learn": "_cmd_learn",
         "recall": "_cmd_recall",
         "insights": "_cmd_insights",
+        "feedback": "_cmd_feedback",
         "enrich": "_cmd_enrich",
         "evaluate": "_cmd_evaluate",
         "benchmark": "_cmd_benchmark",
@@ -1660,6 +1814,7 @@ def main(argv: list[str] | None = None) -> int:
         test as test_mod,
         pgtap as pgtap_mod,
         verify as verify_mod,
+        assess as assess_mod,
         plan as plan_mod,
         task as task_mod,
         hook as hook_mod,
@@ -1668,6 +1823,7 @@ def main(argv: list[str] | None = None) -> int:
         learn as learn_mod,
         recall as recall_mod,
         insights as insights_mod,
+        feedback as feedback_mod,
         enrich as enrich_mod,
         evaluate as evaluate_mod,
         benchmark as benchmark_mod,
@@ -1692,6 +1848,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_test": test_mod.cmd_test,
         "_cmd_pgtap": pgtap_mod.cmd_pgtap,
         "_cmd_verify": verify_mod.cmd_verify,
+        "_cmd_assess": assess_mod.cmd_assess,
         "_cmd_plan": plan_mod.cmd_plan,
         "_cmd_task": task_mod.cmd_task,
         "_cmd_hook": hook_mod.cmd_hook,
@@ -1701,6 +1858,7 @@ def main(argv: list[str] | None = None) -> int:
         "_cmd_learn": learn_mod.cmd_learn,
         "_cmd_recall": recall_mod.cmd_recall,
         "_cmd_insights": insights_mod.cmd_insights,
+        "_cmd_feedback": feedback_mod.cmd_feedback,
         "_cmd_enrich": enrich_mod.cmd_enrich,
         "_cmd_evaluate": evaluate_mod.cmd_evaluate,
         "_cmd_benchmark": benchmark_mod.cmd_benchmark,

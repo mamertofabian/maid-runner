@@ -1,0 +1,172 @@
+{
+  "manifest_path": "manifests/097-04-archive-completed-cross-repository-feedback-epic.manifest.yaml",
+  "manifest_hash": "sha256-contract:07f643883b9d5ed269ee4ca6e0dfb754b52ab5e19ce18f0911d1ed4d740c3684",
+  "test_hashes": {
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+  },
+  "created_at": "2026-08-08T22:55:24.597999+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:f313d6dd52fe90b1b205a8e2362b14871fe4aa1108acfad07f29882fc6b98c00",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-08T22:55:25.224447+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/097-04-archive-completed-cross-repository-feedback-epic.manifest.yaml -> manifests/097-04-archive-completed-cross-repository-feedback-epic.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07f643883b9d5ed269ee4ca6e0dfb754b52ab5e19ce18f0911d1ed4d740c3684",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-10T06:16:32.324416+00:00",
+      "reason": "accept approved shared-test change for 121 live epic inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:07f643883b9d5ed269ee4ca6e0dfb754b52ab5e19ce18f0911d1ed4d740c3684",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-10T11:47:38.678468+00:00",
+      "reason": "accept approved archived-121 shared inventory test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T22:55:25.620175+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+        "exit_code": 1,
+        "output_tail": "    \n        for path in (REPO_ROOT / \"manifests\" / \"drafts\").glob(\"*.epic.yaml\"):\n            text = path.read_text(encoding=\"utf-8\")\n            if text.startswith(\"# draft-kind: epic\\n\"):\n                manifest = yaml.safe_load(text)\n                if manifest[\"metadata\"][\"status\"] == \"planning\":\n                    live_planning_names.add(path.name)\n    \n>       assert live_planning_names == LIVE_PLANNING_EPICS\nE       AssertionError: assert {'062-00-stri...ck.epic.yaml'} == {'062-00-stri...ge.epic.yaml'}\nE         \nE         Extra items in the left set:\nE         '097-00-cross-repository-maid-feedback.epic.yaml'\nE         Use -v to get more diff\n\ntests/core/test_draft_epic_archive_inventory.py:142: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_consumed_epic_drafts_are_archived_pointers_to_promoted_children\nFAILED tests/core/test_draft_epic_archive_inventory.py::test_only_unconsumed_epics_remain_live_planning_inventory\n2 failed, 1 passed in 0.06s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml:attribute:manifest._archived_cross_repository_maid_feedback_epic",
+      "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml:attribute:manifest._archived_cross_repository_maid_feedback_epic:kind=attribute",
+      "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml:attribute:manifest._archived_cross_repository_maid_feedback_epic:of=manifest",
+      "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml:attribute:manifest._archived_cross_repository_maid_feedback_epic:type=draft epic",
+      "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
+      "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children:kind=test_function",
+      "tests/core/test_draft_epic_archive_inventory.py:test_consumed_epic_drafts_are_archived_pointers_to_promoted_children:returns=None",
+      "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory",
+      "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory:kind=test_function",
+      "tests/core/test_draft_epic_archive_inventory.py:test_only_unconsumed_epics_remain_live_planning_inventory:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+        "tests/core/test_draft_epic_archive_inventory.py"
+      ],
+      "read": [
+        ".maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json",
+        ".maid/plan-locks/095-05-complete-profile-guidance-and-archive-adoption-epics.lock.json",
+        ".maid/plan-locks/097-01-export-local-maid-feedback-bundle.lock.json",
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/plan.py",
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+        "manifests/drafts/README.md"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_archived_cross_repository_maid_feedback_epic",
+              "description": "Historical consumed-epic pointer to completed child manifests 097-01, 097-02, and 097-03 that preserves the no-transport and advisory-only boundary.",
+              "of": "manifest",
+              "type": "draft epic"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_consumed_epic_drafts_are_archived_pointers_to_promoted_children",
+              "description": "Every consumed epic has exactly its registered promoted-child read pointers, and archived 097 also preserves explicit privacy-bounded, local-only, no-network-transport, and advisory-evidence semantics.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_only_unconsumed_epics_remain_live_planning_inventory",
+              "description": "The explicit live-planning set excludes the consumed 097 roadmap while preserving genuinely unfinished epics.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
+        "manifests/095-05-complete-profile-guidance-and-archive-adoption-epics.manifest.yaml",
+        "manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml",
+        "manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml",
+        "manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml",
+        "manifests/drafts/README.md",
+        "docs/maid_specs.md",
+        "maid_runner/cli/commands/plan.py",
+        ".maid/plan-locks/082-06-archive-consumed-post-067-epics.lock.json",
+        ".maid/plan-locks/095-05-complete-profile-guidance-and-archive-adoption-epics.lock.json",
+        ".maid/plan-locks/097-01-export-local-maid-feedback-bundle.lock.json"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_draft_epic_archive_inventory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+      "uv run maid validate manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml --mode schema --quiet"
+    ]
+  }
+}

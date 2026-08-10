@@ -2,10 +2,10 @@
   "manifest_path": "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
   "manifest_hash": "sha256-contract:9b5cce34067d8c7cbb234b7d500f3f0b9a284e8ac43742755c93213aa0994750",
   "test_hashes": {
-    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:b84e48d8bd617e3f1586c39f8413b6ef18de6b8f26e998358d352aa535d91e5c"
+    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
   },
   "created_at": "2026-07-18T08:33:13.246017+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:398914cdf9aef9044f34d066674a1cc093e69c263c5f9de6eee2618f7b16e3f3",
@@ -90,6 +90,23 @@
       },
       "revised_at": "2026-08-07T13:19:30.021747+00:00",
       "reason": "095-05 evolves shared archive inventory and generated-workflow expectations to include consumed 092/095 epics and the gate-equivalent handoff profile without changing the historical contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9b5cce34067d8c7cbb234b7d500f3f0b9a284e8ac43742755c93213aa0994750",
+      "prior_test_hashes": {
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:b84e48d8bd617e3f1586c39f8413b6ef18de6b8f26e998358d352aa535d91e5c"
+      },
+      "revised_at": "2026-08-10T03:29:36.728877+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

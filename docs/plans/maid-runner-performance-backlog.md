@@ -35,6 +35,57 @@ maid verify --keep-going --no-changed-scope --advisory --json
 keeping schema, behavioral, implementation, coherence, file tracking, worktree
 scope when applicable, and test stages.
 
+## 2026-08-10 Verify Test-Stage Probe
+
+The current checkout has 519 active manifests, 337 pytest files, and 3,919
+collected pytest cases. A repository-wide advisory verify run measured:
+
+```bash
+uv run maid verify --keep-going --no-changed-scope --advisory --json
+```
+
+| Stage / probe | Wall time | Result | Notes |
+| --- | ---: | --- | --- |
+| Full repository verify | 237.62s | pass | JSON-reported duration was 237.40s. |
+| Schema | 1.43s | pass | Manifest-chain caching is holding. |
+| Behavioral with assertions | 4.09s | pass | Test discovery and artifact caches are holding. |
+| Implementation with stubs | 1.97s | pass | Source collection caches are holding. |
+| Coherence + file tracking + worktree scope | 1.42s | pass | Not a material contributor. |
+| Tests stage | 228.48s | pass | 96.2% of verify wall time; 240 post-batching commands. |
+| One repository-wide batched pytest command | 182.16s | pass | Dominant command; contains nearly the full test-file inventory. |
+| Eight manual deterministic pytest file shards | 64.71s | pass | All 3,871 cases in the broad batch passed; max shard duration is the parallel wall-time anchor. |
+| Task-scoped verify from `HEAD` | 9.54s | pass | Repository-wide static gates remained; two changed-manifest test commands took 0.51s. |
+
+The command-level distribution matters more than the raw number of manifest
+validate commands. Of the 240 test-stage commands, 231 completed below one
+second. The one broad pytest batch took 182.16s. The remaining eight commands
+above one second were focused pytest, docs, formatting, or broad validate
+commands. This confirms that the post-078 in-process quiet-validate cache is
+working: static validation is no longer the long pole.
+
+Two independent closure shapes are measured:
+
+1. Add an explicit task test scope to handoff verification and make the
+   assessed handoff profile select it when a task baseline is present. Static
+   schema, behavioral, implementation, coherence, and scope gates remain
+   repository-wide unless their own scope is explicitly changed; only the
+   subprocess test command inventory narrows to changed active manifests.
+   Unresolvable task scope must fail visibly or widen with an explicit
+   diagnostic, never silently claim that no tests were required.
+2. When `--test-jobs N` is explicit and fail-fast is off, split a compatible
+   broad pytest batch into deterministic target shards before scheduling.
+   Current command-level parallelism cannot accelerate the dominant command
+   because batching collapses it to one scheduled unit. Shards must preserve
+   every target and option, retain deterministic result order, and surface a
+   failure in any shard as a failed tests stage.
+
+Cross-invocation caching of successful pytest results remains speculative and
+is not queued. A safe key would need to include all source, test, configuration,
+plugin, environment, generated-file, and external-service inputs that can
+affect a test. An incomplete key could return stale green evidence, which is a
+larger correctness risk than the measured wait. Task selection and explicit
+parallel execution provide large wins without that stale-result boundary.
+
 ## Post-043 Timing Summary
 
 Measured on 2026-05-29 after `043-04` landed.
@@ -93,6 +144,27 @@ Because `run_tests()` already opens an outer manifest-chain cache scope, adding
 cached path to reuse the chain across these commands. The counterfactual probe
 shows the validate-shaped portion can fall from roughly 166s to roughly 16s
 without weakening validation or changing the declared command set.
+
+## Post-062-06 Strict-Delta Artifact-Coverage Probe
+
+Measured on 2026-08-08 after `062-06` repaired E307 warning classification and
+allowed strict-delta to reach its artifact-coverage fitness function.
+
+| Probe | Result | Evidence |
+| --- | --- | --- |
+| `uv run maid validate --strict-delta --json` | Stopped after 6 minutes | The command was still executing per-manifest coverage subprocesses and had reached `python -m coverage run ... tests/ -v`; before 062-06 the same command returned a false-clean empty delta in about five seconds without running coverage. |
+| Active manifest inventory | 390 active; 316 with Python coverage targets | Directory-wide artifact coverage invokes `run_artifact_coverage` independently for every target-bearing manifest. |
+| Pytest-shaped coverage commands | 338 occurrences; 284 exact command tuples | 54 subprocess executions are exact duplicates before considering overlapping test targets. |
+| Broadest exact duplicate | `pytest tests/ -v` appears 20 times | The current implementation can execute the entire repository suite under coverage twenty times in one strict-delta run. |
+| Two manifests sharing `pytest tests/core/test_test_runner.py -v` | 9.83s total; 5.07s and 5.05s separately | One exact-command execution is roughly half the observed pair cost, establishing a measurable first-slice win without grouping different pytest options. |
+
+The first safe optimization is exact-command deduplication, not general pytest
+batching. For manifests that declare the same normalized pytest command, run it
+once with the union of their target files, then evaluate and return a separate
+`ArtifactCoverageReport` for each manifest in deterministic chain order. A
+failed shared command must still produce E900 for every manifest that declares
+that command. Commands with different argument tuples remain separate in this
+slice, and the single-manifest API remains unchanged.
 
 Immediate workaround: `uv run maid test --jobs 8 --json` reduces wall time to
 1:33.64 in the current checkout, but it does this by running multiple external
@@ -368,6 +440,46 @@ Closure shape:
 Status: implemented as
 `manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml`.
 
+### 7. Directory-wide artifact coverage reruns identical pytest commands per manifest
+
+Files and functions:
+
+- `maid_runner/cli/commands/validate.py::_run_artifact_coverage_by_manifest`
+- `maid_runner/core/artifact_coverage.py::run_artifact_coverage`
+- `maid_runner/core/artifact_coverage.py::_run_coverage_commands`
+- `maid_runner/cli/commands/verify.py::_artifact_coverage_stage`
+
+Evidence:
+
+- 316 active manifests currently have Python artifact-coverage targets.
+- Their validate sections contain 338 pytest-shaped command occurrences but
+  only 284 exact command tuples.
+- `pytest tests/ -v` alone appears on 20 target-bearing manifests, so one
+  directory-wide strict-delta can launch the full suite under coverage twenty
+  times.
+- Two manifests sharing the small
+  `pytest tests/core/test_test_runner.py -v` command took 9.83s sequentially;
+  either individual run took about 5.06s.
+- The real repository strict-delta probe remained inside coverage subprocesses
+  after six minutes and was stopped rather than allowed an unbounded run.
+
+Closure shape:
+
+- Add a directory-wide batch API that groups only identical normalized pytest
+  command tuples and executes each group once with the union of its declared
+  target files.
+- Evaluate the shared runtime evidence against each manifest's original target
+  set and return per-manifest reports in manifest-chain order.
+- Preserve E900 command-failure attribution for every declaring manifest,
+  E710 findings and locations, missing-coverage E307 behavior, and deterministic
+  JSON ordering.
+- Keep different pytest arguments separate. Broader compatible-command batching
+  requires its own measurements and contract.
+- Preserve `run_artifact_coverage` as the single-manifest path.
+
+Status: implemented as
+`manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml`.
+
 ## Speculative Ideas
 
 - Opt-in parallel validation can help only after the caching work above. Running
@@ -394,8 +506,9 @@ Completed:
 
 Next draft:
 
-- None pending from the current performance backlog. Re-benchmark before
-  planning another optimization slice.
+- None pending. Re-measure directory-wide strict-delta after 096-01 before
+  deciding whether compatible-command batching or another bounded child is
+  warranted.
 
 Future draft candidates:
 
@@ -450,6 +563,34 @@ Still open, if the 102s batch is worth revisiting: a project may set `-n auto`
 in its own pytest configuration, which needs no MAID change. That interaction
 with MAID's pytest-addopts validation (044) is **unverified** and would need
 checking before it is recommended.
+
+## 121-01 implementation result (2026-08-10)
+
+The explicit task-scoped handoff tests stage reduced the exact handoff gate from
+237.62 seconds to 23.10 seconds on this checkout, a roughly 10.3x improvement.
+Its final focused behavioral suite ran 85 tests in 5.04 seconds. Schema, behavioral,
+implementation, coherence, worktree/changed-scope, plan-lock, and red-evidence
+gates remain unchanged; only tests-stage command selection is narrowed.
+
+Task selection remains fail-closed. If an explicit task baseline cannot be
+resolved, verify runs the full repository test inventory and reports a visible
+E708 `tests-stage selection widened` warning. Deep verification and explicit
+`--test-scope repository` runs also retain the full repository test inventory.
+
+## 121-02 experiment result (2026-08-10)
+
+Broad pytest subprocess sharding was implemented and then rejected before
+handoff because it changed the repository gate result. Round-robin sharding
+finished in 84.35 seconds but failed three pytest workers. Contiguous sharding
+finished in 105.24 seconds but still failed two shards. Isolated reproduction
+showed that TypeScript resolver tests depend on process-local state established
+by other test files; the same targets therefore fail when moved into an
+otherwise complete isolated shard.
+
+The optimization was removed rather than trading false failures for speed. A
+future retry must first make test files independently runnable or prove
+runner-native fixture/session equivalence. The safe 121-01 task-scoped handoff
+optimization remains in place.
 
 ## Suggested Acceptance Criteria
 

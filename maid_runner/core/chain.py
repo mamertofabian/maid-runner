@@ -641,8 +641,14 @@ class ManifestChain:
                     ),
                     location=Location(file=str(path)),
                     suggestion=(
-                        "Add an explicit draft/archive marker or move the manifest "
-                        "outside the inactive directory."
+                        "For an implementation draft, add "
+                        "'# draft-kind: implementation' as the first line; "
+                        "for an epic planning draft, add '# draft-kind: epic'. "
+                        "Otherwise promote or move the manifest outside "
+                        "manifests/drafts/."
+                        if inactive_dir == "drafts"
+                        else "Add '# archive-kind: <kind>' as the first line, "
+                        "or move the manifest outside the inactive archive directory."
                     ),
                 )
             )

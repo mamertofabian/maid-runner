@@ -987,7 +987,8 @@ class TestCodexMaidLoopRepoWiring(unittest.TestCase):
             "uv run maid plan lock <manifest>",
             "uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml",
             "Do not manually move or copy draft manifests",
-            "uv run maid verify --require-plan-lock --require-red-evidence",
+            "uv run maid assess --since <baseline>",
+            "uv run maid verify --profile handoff --since <baseline>",
         ):
             self.assertIn(expected_text, agents_guidance)
 

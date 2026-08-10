@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
 import stat
 import sys
 import tempfile
+from dataclasses import dataclass
 from importlib import resources
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import yaml
 from yaml.nodes import MappingNode, SequenceNode
@@ -20,6 +23,7 @@ from maid_runner.instruction_payload import (
     INSTRUCTION_PAYLOAD_VERSION,
     instruction_payload_metadata,
 )
+from maid_runner.core.uninstall import UninstallReport
 
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
@@ -57,9 +61,31 @@ _INIT_WORKFLOW_PAYLOADS = (
     ("docs/manifest-outcome-records.md", Path("docs/manifest-outcome-records.md")),
     ("manifests/drafts/README.md", Path("manifests/drafts/README.md")),
 )
+_INIT_CONFIG_CONTENT = (
+    "# MAID Runner configuration\n"
+    "manifest_dir: manifests/\n"
+    "schema_version: 2\n"
+    "default_validation_mode: implementation\n"
+).encode()
+_AGENT_TARGETS = {
+    "claude": (Path(".claude"), Path("CLAUDE.md")),
+    "codex": (Path(".codex"), Path("AGENTS.md")),
+    "cursor": (Path(".cursor"), None),
+}
+
+
+@dataclass(frozen=True)
+class _UninstallOperation:
+    path: Path
+    replacement: bytes | None = None
+    expected_digest: str = ""
+    expected_identity: tuple[int, int, int] = (0, 0, 0)
+    expected_file_hash: str | None = None
 
 
 def cmd_init(args: argparse.Namespace) -> int:
+    if getattr(args, "uninstall", False):
+        return _cmd_init_uninstall(args)
     if args.check:
         return _cmd_init_check(args)
 
@@ -132,14 +158,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     drafts_dir.mkdir(parents=True, exist_ok=True)
 
-    config_content = (
-        "# MAID Runner configuration\n"
-        "manifest_dir: manifests/\n"
-        "schema_version: 2\n"
-        "default_validation_mode: implementation\n"
-    )
-
-    config_file.write_text(config_content)
+    config_file.write_bytes(_INIT_CONFIG_CONTENT)
     _install_init_workflow_payloads(Path.cwd())
 
     if install_claude:
@@ -189,6 +208,580 @@ def cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_init_uninstall(args: argparse.Namespace) -> int:
+    tool = getattr(args, "tool", "auto")
+    tools = ("claude", "codex", "cursor", "generic") if tool == "auto" else (tool,)
+    try:
+        report = uninstall_init_payload(Path.cwd(), tools, bool(args.dry_run))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"MAID init uninstall failed: {exc}", file=sys.stderr)
+        return 1
+
+    if not report.removed and not report.preserved:
+        print("No installed MAID init payload found")
+        return 0
+    verb = "Would remove" if args.dry_run else "Removed"
+    for relative in report.removed:
+        print(f"{verb}: {relative}")
+    for relative in report.preserved:
+        print(f"Preserved modified or redirected file: {relative}")
+    return 0
+
+
+def uninstall_init_payload(
+    project_root: Path, tools: tuple[str, ...], dry_run: bool
+) -> UninstallReport:
+    """Remove only preflighted MAID-owned init payloads for selected tools."""
+    project_root = Path(project_root).absolute()
+    unknown = set(tools) - {*_AGENT_TARGETS, "generic", "windsurf"}
+    if unknown:
+        raise ValueError(f"unsupported MAID init tool(s): {', '.join(sorted(unknown))}")
+
+    operations: list[_UninstallOperation] = []
+    removed: list[str] = []
+    preserved: list[str] = []
+    missing: list[str] = []
+
+    for tool in tools:
+        if tool in _AGENT_TARGETS:
+            _plan_agent_uninstall(
+                project_root,
+                tool,
+                operations,
+                removed,
+                preserved,
+                missing,
+            )
+    if "generic" in tools:
+        _plan_generic_uninstall(project_root, operations, removed, preserved, missing)
+
+    report = UninstallReport(
+        removed=sorted(set(removed)),
+        preserved=sorted(set(preserved)),
+        missing=sorted(set(missing)),
+    )
+    if dry_run:
+        return report
+
+    planned = _deduplicate_operations(operations)
+    for operation in planned:
+        _revalidate_uninstall_operation(project_root, operation)
+    for operation in planned:
+        _apply_uninstall_operation(project_root, operation)
+    return report
+
+
+def _plan_agent_uninstall(
+    project_root: Path,
+    tool: str,
+    operations: list[_UninstallOperation],
+    removed: list[str],
+    preserved: list[str],
+    missing: list[str],
+) -> None:
+    target_relative, guidance_relative = _AGENT_TARGETS[tool]
+    target_root = project_root / target_relative
+    manifest_path = target_root / "manifest.json"
+    manifest_label = manifest_path.relative_to(project_root).as_posix()
+    if not os.path.lexists(manifest_path):
+        missing.append(manifest_label)
+    else:
+        _assert_no_symlink_boundary(project_root, manifest_path, include_leaf=True)
+        try:
+            manifest_bytes = manifest_path.read_bytes()
+            manifest = json.loads(manifest_bytes)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"{manifest_label} contains invalid JSON: {exc}") from exc
+        owned_paths = _validated_manifest_payload_paths(manifest, manifest_label)
+        for relative in _top_level_owned_paths(owned_paths):
+            destination = target_root / relative
+            label = destination.relative_to(project_root).as_posix()
+            if tool == "claude" and relative == Path("settings.json"):
+                _plan_claude_settings_cleanup(
+                    destination, label, operations, removed, missing
+                )
+                continue
+            if not os.path.lexists(destination):
+                missing.append(label)
+                continue
+            _assert_no_symlink_boundary(target_root, destination, include_leaf=False)
+            operations.append(_new_uninstall_operation(destination))
+            removed.append(label)
+        operations.append(
+            _new_uninstall_operation(manifest_path, expected_source=manifest_bytes)
+        )
+        removed.append(manifest_label)
+
+    if guidance_relative is not None:
+        _plan_marker_cleanup(
+            project_root,
+            guidance_relative,
+            _MAID_SECTION_START,
+            _MAID_SECTION_END,
+            operations,
+            removed,
+            missing,
+        )
+
+
+def _plan_generic_uninstall(
+    project_root: Path,
+    operations: list[_UninstallOperation],
+    removed: list[str],
+    preserved: list[str],
+    missing: list[str],
+) -> None:
+    canonical_files = [(Path(".maidrc.yaml"), _INIT_CONFIG_CONTENT)]
+    canonical_files.extend(
+        (destination, _maid_runner_resource(source).read_bytes())
+        for source, destination in _INIT_WORKFLOW_PAYLOADS
+    )
+    for relative, canonical in canonical_files:
+        path = project_root / relative
+        label = relative.as_posix()
+        if not os.path.lexists(path):
+            missing.append(label)
+        elif path.is_symlink() or not path.is_file() or path.read_bytes() != canonical:
+            preserved.append(label)
+        else:
+            operations.append(_new_uninstall_operation(path, expected_source=canonical))
+            removed.append(label)
+
+    _plan_marker_cleanup(
+        project_root,
+        _PRE_COMMIT_CONFIG,
+        _PRE_COMMIT_SECTION_START,
+        _PRE_COMMIT_SECTION_END,
+        operations,
+        removed,
+        missing,
+    )
+    _plan_marker_cleanup(
+        project_root,
+        _GITIGNORE_PATH,
+        _GITIGNORE_SECTION_START,
+        _GITIGNORE_SECTION_END,
+        operations,
+        removed,
+        missing,
+    )
+
+
+def _validated_manifest_payload_paths(manifest: object, label: str) -> set[Path]:
+    if not isinstance(manifest, dict):
+        raise ValueError(f"{label} must contain a JSON object")
+    paths: set[Path] = set()
+    for section, prefix in _PAYLOAD_PATH_PREFIXES.items():
+        section_data = manifest.get(section, {})
+        if not isinstance(section_data, dict):
+            raise ValueError(f"{label} field {section!r} must be an object")
+        distributable = section_data.get("distributable", [])
+        if not isinstance(distributable, list) or not all(
+            isinstance(item, str) for item in distributable
+        ):
+            raise ValueError(
+                f"{label} field {section}.distributable must be a list of strings"
+            )
+        for item in distributable:
+            relative_text = f"{prefix}/{item}" if prefix else item
+            relative = PurePosixPath(relative_text)
+            if (
+                not item
+                or "\\" in item
+                or relative.is_absolute()
+                or not relative.parts
+                or relative == PurePosixPath(".")
+                or ".." in relative.parts
+                or relative.as_posix() != relative_text
+            ):
+                raise ValueError(
+                    f"{label} contains unsafe or non-normalized path: {item!r}"
+                )
+            paths.add(Path(*relative.parts))
+    return paths
+
+
+def _top_level_owned_paths(paths: set[Path]) -> list[Path]:
+    selected: list[Path] = []
+    for path in sorted(paths, key=lambda item: (len(item.parts), item.as_posix())):
+        if any(parent == path or parent in path.parents for parent in selected):
+            continue
+        selected.append(path)
+    return selected
+
+
+def _plan_claude_settings_cleanup(
+    path: Path,
+    label: str,
+    operations: list[_UninstallOperation],
+    removed: list[str],
+    missing: list[str],
+) -> None:
+    if not os.path.lexists(path):
+        missing.append(label)
+        return
+    _assert_no_symlink_boundary(path.parent, path, include_leaf=True)
+    try:
+        source_bytes = path.read_bytes()
+        settings = json.loads(source_bytes)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{label} contains invalid JSON: {exc}") from exc
+    if not isinstance(settings, dict):
+        raise ValueError(f"{label} must contain a JSON object")
+
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        missing.append(f"{label}#maid-scope-check")
+        return
+    cleaned_hooks: dict[str, object] = {}
+    removed_any = False
+    for hook_name, entries in hooks.items():
+        if not isinstance(entries, list):
+            cleaned_hooks[hook_name] = entries
+            continue
+        cleaned_entries: list[object] = []
+        for entry in entries:
+            cleaned, was_removed = _without_maid_scope_check_hooks(entry)
+            removed_any = removed_any or was_removed
+            if cleaned is not None:
+                cleaned_entries.append(cleaned)
+        if cleaned_entries or not entries:
+            cleaned_hooks[hook_name] = cleaned_entries
+    if not removed_any:
+        missing.append(f"{label}#maid-scope-check")
+        return
+    cleaned_settings = dict(settings)
+    if cleaned_hooks:
+        cleaned_settings["hooks"] = cleaned_hooks
+    else:
+        cleaned_settings.pop("hooks", None)
+    operations.append(
+        _new_uninstall_operation(
+            path,
+            (json.dumps(cleaned_settings, indent=2) + "\n").encode(),
+            expected_source=source_bytes,
+        )
+    )
+    removed.append(f"{label}#maid-scope-check")
+
+
+def _plan_marker_cleanup(
+    project_root: Path,
+    relative: Path,
+    start_marker: str,
+    end_marker: str,
+    operations: list[_UninstallOperation],
+    removed: list[str],
+    missing: list[str],
+) -> None:
+    path = project_root / relative
+    label = relative.as_posix()
+    if not os.path.lexists(path):
+        missing.append(f"{label}#maid-managed-block")
+        return
+    _assert_no_symlink_boundary(project_root, path, include_leaf=True)
+    try:
+        original = path.read_bytes()
+        text = original.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"cannot read managed markers in {label}: {exc}") from exc
+    is_pre_commit_block = (
+        relative == _PRE_COMMIT_CONFIG
+        and start_marker == _PRE_COMMIT_SECTION_START
+        and end_marker == _PRE_COMMIT_SECTION_END
+    )
+    if is_pre_commit_block:
+        starts, ends = _pre_commit_marker_matches(text)
+    else:
+        starts = _standalone_marker_matches(text, start_marker)
+        ends = _standalone_marker_matches(text, end_marker)
+    if is_pre_commit_block and _has_unrecognized_pre_commit_markers(text, starts, ends):
+        raise ValueError(f"{label} has malformed MAID managed markers")
+    if not starts and not ends:
+        missing.append(f"{label}#maid-managed-block")
+        return
+    if len(starts) != 1 or len(ends) != 1 or starts[0].start() > ends[0].start():
+        raise ValueError(f"{label} has malformed MAID managed markers")
+    if is_pre_commit_block:
+        _assert_pre_commit_marker_ownership(text, path, starts[0], ends[0])
+    start, end = _managed_marker_span(text, starts[0], ends[0])
+    updated = text[:start] + text[end:]
+    operations.append(
+        _new_uninstall_operation(
+            path, updated.encode("utf-8"), expected_source=original
+        )
+    )
+    removed.append(f"{label}#maid-managed-block")
+
+
+def _assert_no_symlink_boundary(
+    root: Path, target: Path, *, include_leaf: bool
+) -> None:
+    try:
+        relative = target.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"unsafe uninstall target outside {root}: {target}") from exc
+    current = root
+    components = relative.parts if include_leaf else relative.parts[:-1]
+    if current.is_symlink():
+        raise ValueError(f"refusing to cross symlink boundary: {current}")
+    for component in components:
+        current = current / component
+        if current.is_symlink():
+            raise ValueError(f"refusing to cross symlink boundary: {current}")
+
+
+def _deduplicate_operations(
+    operations: list[_UninstallOperation],
+) -> list[_UninstallOperation]:
+    by_path: dict[Path, _UninstallOperation] = {}
+    for operation in operations:
+        previous = by_path.get(operation.path)
+        if previous is not None and previous != operation:
+            raise ValueError(f"conflicting uninstall operations for {operation.path}")
+        by_path[operation.path] = operation
+    return sorted(
+        by_path.values(),
+        key=lambda operation: (-len(operation.path.parts), operation.path.as_posix()),
+    )
+
+
+def _new_uninstall_operation(
+    path: Path,
+    replacement: bytes | None = None,
+    *,
+    expected_source: bytes | None = None,
+) -> _UninstallOperation:
+    if expected_source is not None:
+        before = path.lstat()
+        current = path.read_bytes()
+        after = path.lstat()
+        before_state = (
+            before.st_dev,
+            before.st_ino,
+            before.st_mode,
+            before.st_size,
+            before.st_mtime_ns,
+        )
+        after_state = (
+            after.st_dev,
+            after.st_ino,
+            after.st_mode,
+            after.st_size,
+            after.st_mtime_ns,
+        )
+        if current != expected_source or before_state != after_state:
+            raise ValueError(f"{path} changed while uninstall was planning")
+        stat_result = after
+        expected_digest = _single_file_digest(stat_result, expected_source)
+        expected_file_hash = hashlib.sha256(expected_source).hexdigest()
+    else:
+        stat_result = path.lstat()
+        expected_digest = _path_digest(path)
+        expected_file_hash = (
+            hashlib.sha256(path.read_bytes()).hexdigest()
+            if path.is_file() and not path.is_symlink()
+            else None
+        )
+    return _UninstallOperation(
+        path=path,
+        replacement=replacement,
+        expected_digest=expected_digest,
+        expected_identity=(stat_result.st_dev, stat_result.st_ino, stat_result.st_mode),
+        expected_file_hash=expected_file_hash,
+    )
+
+
+def _single_file_digest(stat_result: os.stat_result, content: bytes) -> str:
+    digest = hashlib.sha256()
+    digest.update(b".")
+    digest.update(str(stat.S_IFMT(stat_result.st_mode)).encode())
+    digest.update(content)
+    return digest.hexdigest()
+
+
+def _path_digest(path: Path) -> str:
+    digest = hashlib.sha256()
+
+    def add_entry(entry: Path, relative: str) -> None:
+        stat_result = entry.lstat()
+        digest.update(relative.encode("utf-8", errors="surrogateescape"))
+        digest.update(str(stat.S_IFMT(stat_result.st_mode)).encode())
+        if entry.is_symlink():
+            digest.update(os.readlink(entry).encode("utf-8", errors="surrogateescape"))
+        elif entry.is_file():
+            digest.update(entry.read_bytes())
+
+    add_entry(path, ".")
+    if path.is_dir() and not path.is_symlink():
+        for current_root, directory_names, file_names in os.walk(
+            path, followlinks=False
+        ):
+            directory_names.sort()
+            file_names.sort()
+            current = Path(current_root)
+            for name in [*directory_names, *file_names]:
+                entry = current / name
+                add_entry(entry, entry.relative_to(path).as_posix())
+    return digest.hexdigest()
+
+
+def _revalidate_uninstall_operation(
+    project_root: Path, operation: _UninstallOperation
+) -> None:
+    try:
+        _assert_no_symlink_boundary(
+            project_root,
+            operation.path,
+            include_leaf=operation.replacement is not None,
+        )
+        stat_result = operation.path.lstat()
+        identity = (stat_result.st_dev, stat_result.st_ino, stat_result.st_mode)
+        digest = _path_digest(operation.path)
+    except (OSError, ValueError) as exc:
+        raise ValueError(
+            f"{operation.path} changed after uninstall planning: {exc}"
+        ) from exc
+    if identity != operation.expected_identity or digest != operation.expected_digest:
+        raise ValueError(f"{operation.path} changed after uninstall planning")
+
+
+def _apply_uninstall_operation(
+    project_root: Path, operation: _UninstallOperation
+) -> None:
+    _revalidate_uninstall_operation(project_root, operation)
+    if not _supports_descriptor_relative_mutation():
+        raise OSError(
+            "safe descriptor-relative uninstall is unavailable on this platform; "
+            "refusing pathname-based mutation"
+        )
+    parent_fd, name = _open_parent_directory(project_root, operation.path)
+    try:
+        stat_result = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        identity = (stat_result.st_dev, stat_result.st_ino, stat_result.st_mode)
+        if identity != operation.expected_identity:
+            raise ValueError(f"{operation.path} changed after uninstall planning")
+        if operation.replacement is None:
+            if stat.S_ISDIR(stat_result.st_mode):
+                shutil.rmtree(name, dir_fd=parent_fd)
+            else:
+                os.unlink(name, dir_fd=parent_fd)
+        else:
+            _replace_file_at_descriptor(
+                parent_fd,
+                name,
+                operation.path,
+                operation.replacement,
+                operation.expected_file_hash,
+            )
+    finally:
+        os.close(parent_fd)
+
+
+def _supports_descriptor_relative_mutation() -> bool:
+    return (
+        os.open in os.supports_dir_fd
+        and os.stat in os.supports_dir_fd
+        and os.unlink in os.supports_dir_fd
+        and os.rename in os.supports_dir_fd
+        and bool(getattr(shutil.rmtree, "avoids_symlink_attacks", False))
+    )
+
+
+def _open_parent_directory(project_root: Path, target: Path) -> tuple[int, str]:
+    relative = target.relative_to(project_root)
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(project_root, flags)
+    try:
+        for component in relative.parts[:-1]:
+            child = os.open(component, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+        return descriptor, relative.name
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _replace_file_at_descriptor(
+    parent_fd: int,
+    name: str,
+    path: Path,
+    content: bytes,
+    expected_file_hash: str | None,
+) -> None:
+    source_fd = os.open(
+        name,
+        os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+        dir_fd=parent_fd,
+    )
+    try:
+        current = b""
+        initial_stat = os.fstat(source_fd)
+        while chunk := os.read(source_fd, 65536):
+            current += chunk
+        after_read_stat = os.fstat(source_fd)
+        if (
+            after_read_stat.st_size != initial_stat.st_size
+            or after_read_stat.st_mtime_ns != initial_stat.st_mtime_ns
+        ):
+            raise ValueError(f"{path} changed after uninstall planning")
+        if (
+            expected_file_hash is None
+            or hashlib.sha256(current).hexdigest() != expected_file_hash
+        ):
+            raise ValueError(f"{path} changed after uninstall planning")
+        mode = stat.S_IMODE(initial_stat.st_mode)
+    finally:
+        os.close(source_fd)
+
+    temporary_name = f".{name}.{os.getpid()}.{secrets.token_hex(6)}.maid-uninstall.tmp"
+    temporary_fd = os.open(
+        temporary_name,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+        mode,
+        dir_fd=parent_fd,
+    )
+    try:
+        os.fchmod(temporary_fd, mode)
+        view = memoryview(content)
+        while view:
+            written = os.write(temporary_fd, view)
+            view = view[written:]
+        os.fsync(temporary_fd)
+    finally:
+        os.close(temporary_fd)
+    try:
+        current_stat = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        current_identity = (
+            current_stat.st_dev,
+            current_stat.st_ino,
+            current_stat.st_mode,
+            current_stat.st_size,
+            current_stat.st_mtime_ns,
+        )
+        initial_identity = (
+            initial_stat.st_dev,
+            initial_stat.st_ino,
+            initial_stat.st_mode,
+            initial_stat.st_size,
+            initial_stat.st_mtime_ns,
+        )
+        if current_identity != initial_identity:
+            raise ValueError(f"{path} changed after uninstall planning")
+        os.rename(
+            temporary_name,
+            name,
+            src_dir_fd=parent_fd,
+            dst_dir_fd=parent_fd,
+        )
+    finally:
+        try:
+            os.unlink(temporary_name, dir_fd=parent_fd)
+        except FileNotFoundError:
+            pass
+
+
 def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
     """Return the write action and complete managed pre-commit config text."""
     if path.is_symlink():
@@ -209,8 +802,11 @@ def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
         raise ValueError(f"cannot read {path}: {exc}") from exc
 
     newline = _pre_commit_newline(text)
-    start_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_START)
-    end_matches = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_END)
+    start_matches, end_matches = _pre_commit_marker_matches(text)
+    if _has_unrecognized_pre_commit_markers(text, start_matches, end_matches):
+        raise ValueError(
+            f"{path} has malformed MAID managed markers; reconcile them manually"
+        )
     if (len(start_matches), len(end_matches)) not in {(0, 0), (1, 1)}:
         raise ValueError(
             f"{path} has malformed MAID managed markers; reconcile them manually"
@@ -225,14 +821,10 @@ def _prepare_pre_commit_config(path: Path) -> tuple[str, bytes]:
     data, root = _parse_pre_commit_config(text, path)
     hook_count = _maid_verify_hook_count(data)
     if managed:
-        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
-        block_data, _ = _parse_pre_commit_config(
-            "repos:" + newline + text[start:end], path
+        _assert_pre_commit_marker_ownership(
+            text, path, start_matches[0], end_matches[0]
         )
-        if _maid_verify_hook_count(block_data) != 1 or hook_count != 1:
-            raise ValueError(
-                f"{path} managed block must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
-            )
+        start, end = _managed_marker_span(text, start_matches[0], end_matches[0])
         updated_text = _replace_managed_pre_commit_block(
             text, start, end, newline, _maid_verify_entry(path.parent)
         )
@@ -388,6 +980,44 @@ def _standalone_marker_matches(text: str, marker: str) -> list[re.Match[str]]:
     return list(re.finditer(rf"(?m)^{re.escape(marker)}\r?$", text))
 
 
+def _pre_commit_marker_matches(
+    text: str,
+) -> tuple[list[re.Match[str]], list[re.Match[str]]]:
+    starts = _standalone_marker_matches(text, _PRE_COMMIT_SECTION_START)
+    starts.extend(
+        re.finditer(rf"(?m)^  {re.escape(_PRE_COMMIT_SECTION_START)}\r?$", text)
+    )
+    starts.sort(key=lambda match: match.start())
+    return starts, _standalone_marker_matches(text, _PRE_COMMIT_SECTION_END)
+
+
+def _has_unrecognized_pre_commit_markers(
+    text: str,
+    starts: list[re.Match[str]],
+    ends: list[re.Match[str]],
+) -> bool:
+    return text.count(_PRE_COMMIT_SECTION_START) != len(starts) or text.count(
+        _PRE_COMMIT_SECTION_END
+    ) != len(ends)
+
+
+def _assert_pre_commit_marker_ownership(
+    text: str,
+    path: Path,
+    start_match: re.Match[str],
+    end_match: re.Match[str],
+) -> None:
+    data, _ = _parse_pre_commit_config(text, path)
+    start, end = _managed_marker_span(text, start_match, end_match)
+    block_data, _ = _parse_pre_commit_config(
+        "repos:" + _pre_commit_newline(text) + text[start:end], path
+    )
+    if _maid_verify_hook_count(block_data) != 1 or _maid_verify_hook_count(data) != 1:
+        raise ValueError(
+            f"{path} managed block must contain exactly one {_PRE_COMMIT_HOOK_ID} hook"
+        )
+
+
 def _managed_marker_span(
     text: str, start_match: re.Match[str], end_match: re.Match[str]
 ) -> tuple[int, int]:
@@ -444,7 +1074,9 @@ def _write_pre_commit_config_atomically(path: Path, content: bytes) -> None:
     )
     temporary_path = Path(temporary_name)
     try:
-        os.fchmod(descriptor, mode)
+        descriptor_chmod = getattr(os, "fchmod", None)
+        if descriptor_chmod is not None:
+            descriptor_chmod(descriptor, mode)
         with os.fdopen(descriptor, "wb") as temporary:
             descriptor = -1
             temporary.write(content)

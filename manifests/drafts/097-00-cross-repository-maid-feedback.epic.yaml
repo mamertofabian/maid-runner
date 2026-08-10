@@ -1,0 +1,46 @@
+# archive-kind: consumed-draft-epic
+schema: '2'
+goal: Archive consumed cross-repository MAID feedback epic
+type: refactor
+created: '2026-08-08T18:05:00+08:00'
+metadata:
+  status: archived
+  priority: low
+  tags:
+  - outcome-records
+  - feedback
+  - self-improvement
+  - privacy
+  - archive
+description: |
+  This split-before-promote epic has been consumed. Its implementation-sized
+  child contracts were promoted as `097-01` through `097-03` and each records
+  a completed Outcome.
+
+  Together the children deliver privacy-bounded, local-only feedback export,
+  fail-closed anonymous aggregation, and governed self-improvement intake.
+  Imported reports remain advisory evidence that must be reproduced against
+  the current MAID Runner tree before routing. There is no network transport,
+  background upload, automatic issue creation, validator-policy mutation, or
+  automatic self-modification in this completed roadmap.
+
+  The file remains in `manifests/drafts/` only as a historical pointer.
+  Do not promote or implement this archived epic. Any future submission mechanism
+  requires a separate privacy and security specification covering explicit
+  consent, destination ownership, authentication, retention, deletion,
+  licensing, abuse handling, and service availability.
+files:
+  edit:
+  - path: manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml
+    artifacts:
+    - kind: attribute
+      name: _archived_cross_repository_maid_feedback_epic
+      of: manifest
+      type: draft epic
+      description: Historical consumed-epic pointer to completed child manifests 097-01, 097-02, and 097-03 that preserves the no-transport and advisory-only boundary.
+  read:
+  - manifests/097-01-export-local-maid-feedback-bundle.manifest.yaml
+  - manifests/097-02-validate-and-aggregate-maid-feedback-bundles.manifest.yaml
+  - manifests/097-03-route-confirmed-feedback-into-self-improvement.manifest.yaml
+validate:
+- uv run maid validate manifests/drafts/097-00-cross-repository-maid-feedback.epic.yaml --mode schema --quiet

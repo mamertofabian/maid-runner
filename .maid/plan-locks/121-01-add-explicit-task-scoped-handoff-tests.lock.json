@@ -1,0 +1,771 @@
+{
+  "manifest_path": "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+  "manifest_hash": "sha256-contract:952f6b0000d85048857709f86f9634e1186a4234937b906208a2837519bd62c7",
+  "test_hashes": {
+    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
+    "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52",
+    "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:17c610e46987d5da9b9b31de275677abc3cf9550bc223066cbff9f55933b6c8b"
+  },
+  "created_at": "2026-08-10T06:06:01.599731+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:354f046911eefcff22ec3bc634934ff2ce1b2557017def48b5e36d828f7355a6",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:8a81bdd9f52d54854ffc538dfc4537ddcc74cd7e43ebd098647e9560a97e6832",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-10T06:06:09.806164+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml -> manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b5dde3157ff5de233b5124a3e16ec9bfde2132932c671f3860fbfa18c6744e21",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:8a81bdd9f52d54854ffc538dfc4537ddcc74cd7e43ebd098647e9560a97e6832",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-10T06:09:12.390107+00:00",
+      "reason": "cover every declared behavioral test dependency in the focused validate command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py tests/cli/test_verify_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:863e436571d3c2dadba294ad81d7e784be880c77eddfa7a46200740e7ba15516",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:8a81bdd9f52d54854ffc538dfc4537ddcc74cd7e43ebd098647e9560a97e6832",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-10T06:19:52.920698+00:00",
+      "reason": "Independent implementation review found that an unresolvable task-test baseline widened silently; require fail-closed repository execution with a visible E708 tests-stage warning.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=widening:type=list[ValidationError] | None:default=None",
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable",
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_fails_visibly_when_baseline_is_unresolvable",
+          "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_fails_visibly_when_baseline_is_unresolvable:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:97c13742e44ea60475fbd8f383e5f977c1c0585cd46a809d9aa0759ed54d5f26",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:c368d8290636ff333ea0edbcf22695655a13a3edb188839b6896d942de866b46",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-10T06:20:42.748860+00:00",
+      "reason": "Align the review-driven E708 widening assertion with the existing baseline-comparison recovery message.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:97c13742e44ea60475fbd8f383e5f977c1c0585cd46a809d9aa0759ed54d5f26",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:880c9dc40670441b10d8cfbc99c8a7b762898061d38902bb11e0bd3092a5998d",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-10T06:41:09.819894+00:00",
+      "reason": "Repository-wide execution exposed the profile-adoption contract; declare and update it to prove task test scope is the only intentional change from the frozen handoff gate.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates",
+          "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_verify_profile_adoption.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py tests/cli/test_verify_cmd.py tests/cli/test_verify_profile_adoption.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py tests/cli/test_verify_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:952f6b0000d85048857709f86f9634e1186a4234937b906208a2837519bd62c7",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:880c9dc40670441b10d8cfbc99c8a7b762898061d38902bb11e0bd3092a5998d",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:17c610e46987d5da9b9b31de275677abc3cf9550bc223066cbff9f55933b6c8b"
+      },
+      "revised_at": "2026-08-10T07:34:12.889003+00:00",
+      "reason": "Final implementation review required end-to-end proof that explicit repository scope under the handoff profile executes both active manifests' test targets.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T07:34:19.059272+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py tests/cli/test_verify_cmd.py tests/cli/test_verify_profile_adoption.py",
+        "exit_code": 1,
+        "output_tail": "    \n>       assert migrated[\"test_scope\"] == \"task\"\n               ^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'test_scope'\n\ntests/cli/test_verify_profile_adoption.py:91: KeyError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_handoff_profile_forwards_task_test_scope_to_verify\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_explicit_task_test_scope_runs_only_changed_manifest_commands\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_explicit_repository_test_scope_overrides_handoff_profile\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_task_test_scope_propagates_selected_command_failure\nFAILED tests/cli/test_verify_task_scoped_tests_stage.py::test_explicit_test_scope_preserves_legacy_task_scope_triggers\nFAILED tests/cli/test_verify_profiles.py::test_each_shipped_profile_resolves_to_its_documented_flags\nFAILED tests/cli/test_verify_profiles.py::test_handoff_profile_contributes_task_test_scope\nFAILED tests/cli/test_verify_profiles.py::test_handoff_profile_does_not_override_explicit_repository_test_scope\nFAILED tests/cli/test_verify_profiles.py::test_apply_verify_profile_reports_the_profile_and_its_flags\nFAILED tests/cli/test_verify_profiles.py::test_profile_resolution_does_not_depend_on_repository_or_cwd\nFAILED tests/cli/test_verify_profile_adoption.py::test_repo_commit_gate_applies_the_frozen_pre_migration_gates\n12 failed, 73 passed in 4.67s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/095-02-add-verify-profile-presets.lock.json",
+      ".maid/plan-locks/095-04-migrate-generated-profile-payloads.lock.json",
+      ".maid/plan-locks/fix-verify-task-scoped-tests-stage.lock.json",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+      "manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_01_task_handoff_status",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_01_task_handoff_status:kind=attribute",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_01_task_handoff_status:of=documentation",
+      "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_121_01_task_handoff_status:type=markdown",
+      "maid_runner/cli/commands/_main.py:function:_register_verify_parser",
+      "maid_runner/cli/commands/_main.py:function:_register_verify_parser:arg=sub:type=argparse._SubParsersAction:default=None",
+      "maid_runner/cli/commands/_main.py:function:_register_verify_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:_register_verify_parser:returns=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=allow_empty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=artifact_coverage:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=changed_scope_explicit:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=check_assertions:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=check_stubs:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_fast:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_on_warnings:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=include_tests:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout_allow_dirty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout_limit:type=int | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_changed_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_plan_lock:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_red_evidence:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_worktree_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:returns=VerificationResult",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=allow_empty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=artifact_coverage:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=changed_scope_explicit:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_assertions:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_stubs:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_fast:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_warnings:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=include_tests:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_allow_dirty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_limit:type=int | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_changed_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_plan_lock:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_red_evidence:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_worktree_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:returns=VerificationResult",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_should_scope_tests_to_task:returns=bool",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:arg=widening:type=list[ValidationError] | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_task_scoped_test_manifest_paths:returns=tuple[str, Ellipsis] | None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:kind=function",
+      "maid_runner/core/verify_profiles.py:function:apply_verify_profile:returns=str | None",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates",
+      "tests/cli/test_verify_profile_adoption.py:test_repo_commit_gate_applies_the_frozen_pre_migration_gates:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_handoff_profile_contributes_task_test_scope",
+      "tests/cli/test_verify_profiles.py:test_handoff_profile_contributes_task_test_scope:kind=test_function",
+      "tests/cli/test_verify_profiles.py:test_handoff_profile_does_not_override_explicit_repository_test_scope",
+      "tests/cli/test_verify_profiles.py:test_handoff_profile_does_not_override_explicit_repository_test_scope:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_repository_test_scope_overrides_handoff_profile",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_repository_test_scope_overrides_handoff_profile:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_task_test_scope_runs_only_changed_manifest_commands",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_task_test_scope_runs_only_changed_manifest_commands:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_test_scope_preserves_legacy_task_scope_triggers",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_explicit_test_scope_preserves_legacy_task_scope_triggers:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_handoff_profile_forwards_task_test_scope_to_verify",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_handoff_profile_forwards_task_test_scope_to_verify:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_propagates_selected_command_failure",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_propagates_selected_command_failure:kind=test_function",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_selection_changes_when_baseline_changes",
+      "tests/cli/test_verify_task_scoped_tests_stage.py:test_task_test_scope_selection_changes_when_baseline_changes:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "docs/plans/maid-runner-performance-backlog.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/verify_profiles.py",
+        "tests/cli/test_verify_profile_adoption.py",
+        "tests/cli/test_verify_profiles.py",
+        "tests/cli/test_verify_task_scoped_tests_stage.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/worktree.py",
+        "manifests/fix-verify-task-scoped-tests-stage.manifest.yaml",
+        "tests/cli/test_assess_cmd.py",
+        "tests/cli/test_verify_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_register_verify_parser",
+              "description": "Adds an explicit `--test-scope repository|task` option with repository as the non-profile default and explicitness tracking for profile precedence.",
+              "args": [
+                {
+                  "name": "sub",
+                  "type": "argparse._SubParsersAction"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/verify_profiles.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "apply_verify_profile",
+              "description": "Applies handoff task-test scope without overriding an explicit repository scope and reports the contributed flag.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "str | None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Forwards the effective explicit/profile test scope into verification and preserves profile attribution in text and JSON output.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "_run_verify",
+              "description": "Forwards the explicit tests-stage scope while preserving all existing verification stages and options.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "allow_empty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "require_worktree_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_changed_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "changed_scope_explicit",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "artifact_coverage",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout_limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "knockout_allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_run_verify_cached",
+              "description": "Selects task manifest paths only when requested and otherwise preserves repository-wide `run_tests`.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "allow_empty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "require_worktree_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_changed_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "changed_scope_explicit",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "artifact_coverage",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout_limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "knockout_allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_task_scoped_test_manifest_paths",
+              "description": "Returns changed active manifest paths deterministically and exposes unresolved baseline handling without treating it as an empty selection.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None"
+                },
+                {
+                  "name": "widening",
+                  "type": "list[ValidationError] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[str, Ellipsis] | None"
+            },
+            {
+              "kind": "function",
+              "name": "_should_scope_tests_to_task",
+              "description": "Selects task tests for the explicit test scope while preserving the existing task-oriented file-tracking and plan-lock compatibility path.",
+              "args": [
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_task_scoped_tests_stage.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_handoff_profile_forwards_task_test_scope_to_verify",
+              "description": "The handoff profile contributes task test scope to `cmd_verify` while leaving repository-wide static validation arguments unchanged."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_task_test_scope_runs_only_changed_manifest_commands",
+              "description": "Two active manifests declare distinct commands; the baseline changes one manifest and verify executes exactly that command while static validation remains repository-wide."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_repository_test_scope_overrides_handoff_profile",
+              "description": "An explicit repository scope executes both manifests' commands and is not overwritten by the profile."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_test_scope_discloses_full_scope_widening_when_baseline_is_unresolvable",
+              "description": "An invalid baseline runs the full repository test inventory and emits an E708 tests-stage widening warning instead of silently reporting task-scoped success."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_test_scope_propagates_selected_command_failure",
+              "description": "A failing command from the changed active manifest fails the tests stage with its original result visible."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_test_scope_selection_changes_when_baseline_changes",
+              "description": "Changing the baseline changes the selected active manifest set, proving selection is not stale across invocations."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_test_scope_preserves_legacy_task_scope_triggers",
+              "description": "The new explicit task scope activates selection while the existing file-tracking and plan-lock task scopes remain backward compatible."
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_profiles.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_handoff_profile_contributes_task_test_scope",
+              "description": "The profile report names task test scope and retains plan-lock and red-evidence requirements."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_handoff_profile_does_not_override_explicit_repository_test_scope",
+              "description": "Explicit CLI scope wins over the profile default."
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_profile_adoption.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repo_commit_gate_applies_the_frozen_pre_migration_gates",
+              "description": "The repository handoff hook retains every frozen gate and differs only by intentionally selecting task-scoped tests."
+            }
+          ]
+        },
+        {
+          "path": "docs/plans/maid-runner-performance-backlog.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_performance_backlog_121_01_task_handoff_status",
+              "description": "Records before/after handoff verification timings and result-equivalence evidence.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/worktree.py",
+        "maid_runner/core/chain.py",
+        "manifests/fix-verify-task-scoped-tests-stage.manifest.yaml",
+        "tests/cli/test_assess_cmd.py",
+        "tests/cli/test_verify_cmd.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_assess_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/cli/test_verify_profile_adoption.py",
+      "tests/cli/test_verify_profiles.py",
+      "tests/cli/test_verify_task_scoped_tests_stage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_task_scoped_tests_stage.py tests/cli/test_verify_profiles.py tests/cli/test_assess_cmd.py tests/cli/test_verify_cmd.py tests/cli/test_verify_profile_adoption.py",
+      "uv run maid validate manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
-  "manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
+  "manifest_hash": "sha256-contract:5f2a80c6406c1c1dd5a2f2edfb23a2d403af4ae8268eb78aad469caef4f5edd7",
   "test_hashes": {
-    "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
-    "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82"
+    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
+    "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:32a252e591b991591d957e0159eed0ee6f222b5b901ccd85ec81a3df673bb99e"
   },
   "created_at": "2026-06-14T21:48:44.034717+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:f6e33ea2c76b5c106606a669ca22e2438817e6b92c45d1c3a89d52197e67192b",
@@ -15,7 +15,9 @@
         "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
       },
       "revised_at": "2026-06-14T21:53:45.800045+00:00",
-      "reason": "Expand scope after implementation review found stale packaged Codex draft-implement payload"
+      "reason": "Expand scope after implementation review found stale packaged Codex draft-implement payload",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:7901eec0b8210d9d6f9122ee739c6ca698a378238d9bdd9cc837b4a690361832",
@@ -25,7 +27,9 @@
         "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
       },
       "revised_at": "2026-06-14T21:55:42.172665+00:00",
-      "reason": "Move packaged Codex payload guard into owned Codex CI skill test to avoid older locked distribution test file"
+      "reason": "Move packaged Codex payload guard into owned Codex CI skill test to avoid older locked distribution test file",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
@@ -34,7 +38,9 @@
         "tests/ci/test_claude_maid_loop.py": "sha256:a4bab70035890a12ca1f0d05e810bda2d541377055171218b54577a7555ab86d"
       },
       "revised_at": "2026-06-15T01:01:30.954991+00:00",
-      "reason": "Refresh shared loop test hashes after packet retry coverage"
+      "reason": "Refresh shared loop test hashes after packet retry coverage",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
@@ -43,7 +49,37 @@
         "tests/ci/test_claude_maid_loop.py": "sha256:f5b04348ea391ed3616e718e6c4aee754925909608202c3d74c9ee6c6facb50f"
       },
       "revised_at": "2026-06-15T01:10:03.894435+00:00",
-      "reason": "Refresh shared loop test hashes after retry help coverage"
+      "reason": "Refresh shared loop test hashes after retry help coverage",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:69877d69da75b52bdab8c53d7cd4f1b9b82d6b7a4f1d4383c775677e19d56d72",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256:e2fdbf353e2bde45404f3003fbb2e3fee54a46334d7d30bcb1eb67b4c72055df",
+        "tests/ci/test_claude_maid_loop.py": "sha256:0600c8d20c8412009ea82b3aace1960b533147dac76f179c72d2d3b5ce056c82"
+      },
+      "revised_at": "2026-08-10T03:29:35.003641+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:.claude/skills/maid-runner-draft-implement/SKILL.md",
+          "edit:.codex/skills/maid-runner-draft-implement/SKILL.md",
+          "edit:AGENTS.md",
+          "edit:maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "edit:tests/ci/test_claude_maid_loop.py",
+          "edit:tests/ci/test_codex_maid_loop.py",
+          "read:CLAUDE.md",
+          "read:docs/draft-manifest-workflow.md",
+          "read:manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -70,6 +106,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".claude/skills/maid-runner-draft-implement/SKILL.md:attribute:skill._claude_draft_implement_lock_aware_promotion_guidance",
@@ -95,6 +133,140 @@
       "tests/ci/test_codex_maid_loop.py:test_draft_implement_skill_requires_lock_aware_promotion_guidance",
       "tests/ci/test_codex_maid_loop.py:test_draft_implement_skill_requires_lock_aware_promotion_guidance:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "AGENTS.md",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+        "tests/ci/test_claude_maid_loop.py",
+        "tests/ci/test_codex_maid_loop.py"
+      ],
+      "read": [
+        "CLAUDE.md",
+        "docs/draft-manifest-workflow.md",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "AGENTS.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_plan_lock_promotion_lifecycle_guidance",
+              "description": "Codex repo-level MAID lifecycle guidance names plan lock, sanctioned manifest promotion, and the opt-in handoff verify gate.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_draft_implement_lock_aware_promotion_guidance",
+              "description": "Codex draft implementation skill requires plan-lock-aware `maid manifest promote` instead of manual draft moves.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_draft_implement_lock_aware_promotion_guidance",
+              "description": "Claude draft implementation skill requires plan-lock-aware `maid manifest promote` instead of manual draft moves.",
+              "of": "skill",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_distributed_codex_draft_implement_lock_aware_promotion_guidance",
+              "description": "Packaged Codex draft implementation skill mirrors the repo-local lock-aware promotion guidance.",
+              "of": "codex_payload",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_codex_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_agents_guidance_requires_plan_lock_promotion_lifecycle",
+              "source_scenario": "Codex reads repo-level AGENTS.md before implementing MAID work.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "AGENTS.md requires plan locking before implementation, sanctioned `maid manifest promote` for drafts, no manual draft moves, and the opt-in plan-lock handoff verify gate."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_draft_implement_skill_requires_lock_aware_promotion_guidance",
+              "source_scenario": "Codex uses the repo-local draft implementation skill to promote a selected draft.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The Codex source and packaged skills match, require `uv run maid manifest promote`, require a pre-promotion plan lock, forbid manual move/copy promotion, and name the handoff verify gate."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_claude_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance",
+              "source_scenario": "Claude Code uses the repo-local draft implementation skill to promote a selected draft.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The Claude skill requires `uv run maid manifest promote`, requires a pre-promotion plan lock, forbids manual move/copy promotion, and names the handoff verify gate."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "CLAUDE.md",
+        "docs/draft-manifest-workflow.md",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/ci/test_claude_maid_loop.py",
       "tests/ci/test_codex_maid_loop.py"

@@ -1,0 +1,326 @@
+{
+  "manifest_path": "manifests/add-bootstrap-installers.manifest.yaml",
+  "manifest_hash": "sha256-contract:2ea65c657a8006c49aa243892b4d98da7c684b09cf684ddee62709a104e87551",
+  "test_hashes": {
+    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1"
+  },
+  "created_at": "2026-08-10T08:08:41.191199+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6290710cd31cd5fd3ade275de33e7744939d5a05b7b909f8d00f42b8b04d1b2b",
+      "prior_test_hashes": {
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:338b8a1e0263a04b180158e71a8a59c058650324da90abc71a12e76a97dd98b8"
+      },
+      "revised_at": "2026-08-10T08:08:43.152934+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-bootstrap-installers.manifest.yaml -> manifests/add-bootstrap-installers.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/add-bootstrap-installers.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/add-bootstrap-installers.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ad37d0cf7baf062a48ee9a70057dc2c7d5cfea1523cb2dd3d384a406826f84dc",
+      "prior_test_hashes": {
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:338b8a1e0263a04b180158e71a8a59c058650324da90abc71a12e76a97dd98b8"
+      },
+      "revised_at": "2026-08-10T08:47:54.430345+00:00",
+      "reason": "Route ShellCheck through the behavioral pytest command so an intentionally absent new installer records valid red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck",
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": [
+          "shellcheck website/install.sh"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2ea65c657a8006c49aa243892b4d98da7c684b09cf684ddee62709a104e87551",
+      "prior_test_hashes": {
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:efb707301ad936f0a143d8c93d13b0e7e1b325ed8d6aee547ca32169025deb6d"
+      },
+      "revised_at": "2026-08-10T09:00:05.625168+00:00",
+      "reason": "Tighten the approved invalid-version behavior after implementation review to reject option-looking and punctuation-only values before invoking uv",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T09:00:07.437726+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_bootstrap_installers.py",
+        "exit_code": 1,
+        "output_tail": "        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/maid-runner/.github/workflows/test-installers.yml'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_bootstrap_installers.py::test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid\nFAILED tests/test_bootstrap_installers.py::test_shell_installer_bootstraps_uv_when_missing\nFAILED tests/test_bootstrap_installers.py::test_shell_installer_rejects_unsafe_or_incomplete_arguments\nFAILED tests/test_bootstrap_installers.py::test_shell_installer_propagates_download_and_tool_failures\nFAILED tests/test_bootstrap_installers.py::test_powershell_installer_contract_is_auditable_and_fail_closed\nFAILED tests/test_bootstrap_installers.py::test_shell_installer_passes_shellcheck\nFAILED tests/test_bootstrap_installers.py::test_readme_and_landing_page_publish_bootstrap_installers_as_primary\nFAILED tests/test_bootstrap_installers.py::test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms\n8 failed in 0.10s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:returns=None",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:returns=None",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_bootstrap_installers.py"
+      ],
+      "edit": [],
+      "read": [
+        ".github/workflows/deploy-website.yml",
+        "pyproject.toml"
+      ],
+      "scope": [
+        ".github/workflows/test-installers.yml",
+        "README.md",
+        "website/index.html",
+        "website/install.ps1",
+        "website/install.sh"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_bootstrap_installers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user already has uv and requests a reproducible MAID Runner version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer keeps the existing uv, installs the requested maid-runner version with Python 3.12, refreshes tool PATH, and verifies maid --version before succeeding."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_bootstraps_uv_when_missing",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user runs the installer on a machine where uv is absent.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer retrieves Astral's official uv installer, discovers the newly installed uv without restarting the shell, installs MAID Runner, and verifies the command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+              "returns": "None",
+              "source_scenario": "A caller supplies an unsafe version value, omits the value, or uses an unsupported option.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero with usage guidance before invoking uv for every invalid argument form."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_propagates_download_and_tool_failures",
+              "returns": "None",
+              "source_scenario": "The uv download or MAID Runner tool installation fails during bootstrap.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero, does not run maid verification after the failed step, and never prints a success message."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_powershell_installer_contract_is_auditable_and_fail_closed",
+              "returns": "None",
+              "source_scenario": "A reviewer inspects the Windows bootstrapper in an environment without PowerShell execution support.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The script validates its version, uses only Astral's HTTPS installer when uv is absent, checks native command exits, installs with Python 3.12, refreshes PATH, and verifies maid before success."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_passes_shellcheck",
+              "returns": "None",
+              "source_scenario": "A maintainer validates the published POSIX bootstrapper before deployment.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "ShellCheck accepts the installer with no diagnostics."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+              "returns": "None",
+              "source_scenario": "A newcomer scans the README or landing page for the shortest supported installation path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both surfaces show the maidrunner.dev shell and PowerShell commands before uv and pip alternatives, include the first-run commands, and keep versioned installation concise in the README."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+              "returns": "None",
+              "source_scenario": "An installer or installer-workflow change is proposed or lands on main.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "A path-scoped workflow executes the checked-out shell installer on Ubuntu and macOS and the checked-out PowerShell installer on Windows with least-privilege contents access."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "pyproject.toml",
+        ".github/workflows/deploy-website.yml"
+      ],
+      "scope": [
+        {
+          "path": "website/install.sh",
+          "reason": "Public POSIX bootstrap endpoint for macOS and Linux; behavior is exercised as a process by dedicated tests and linted with ShellCheck."
+        },
+        {
+          "path": "website/install.ps1",
+          "reason": "Public PowerShell bootstrap endpoint for Windows; behavior and failure guards are pinned by a source contract because PowerShell is unavailable in the Linux development environment."
+        },
+        {
+          "path": "website/index.html",
+          "reason": "The landing-page quick start must make the two first-party bootstrap commands primary and keep direct package commands secondary."
+        },
+        {
+          "path": "README.md",
+          "reason": "The repository onboarding hierarchy must concisely present the bootstrap installers, version pinning, and advanced uv/pip alternatives."
+        },
+        {
+          "path": ".github/workflows/test-installers.yml",
+          "reason": "A path-scoped smoke workflow must execute the local shell and PowerShell installers on Linux, macOS, and Windows runners before they are published."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_bootstrap_installers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_bootstrap_installers.py",
+      "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.0] - 2026-08-10
+
+### Added
+- **First-party bootstrap installers** — Added small, auditable macOS/Linux and Windows installers as the primary one-line setup path, retained explicit uv and pip alternatives, and added cross-platform smoke coverage.
+- **Ownership-safe payload uninstall** — Added deterministic dry-run and idempotent uninstall flows for user-level skills and repository-local init payloads. Cleanup is bounded by validated ownership evidence, preserves modified or redirected content, and fails closed when safe descriptor-relative removal is unavailable.
+- **Cross-repository feedback workflow** — Added privacy-bounded local feedback export, strict bundle validation and deterministic aggregation, plus governed guidance that treats downstream summaries as untrusted advisory leads requiring current-tree reproduction before specialist routing.
+- **Shared-test plan-lock recovery** — Added `maid plan dependents` to find every active lock pinning a shared behavioral test and grouped repeated E701 recovery guidance into copyable, project-root-aware commands without hiding individual findings.
+- **Delivery attestations** — Added deterministic Git delivery proofs that bind selected plan-locked manifests' complete writable paths to committed blob bytes, allowing content-preserving rebases or squashes while failing closed on mutation, deletion, or ambiguous proof input.
+- **Change assessment** — Added read-only `maid assess` recommendations that derive auditable change signals and choose the existing handoff or deep verify profile without running or weakening verification. Deep recommendations preserve plan-lock and red-evidence requirements.
+
+### Changed
+- **Artifact-coverage efficiency** — Deduplicated identical directory-wide pytest commands while preserving per-manifest reports, propagated strict-preview policy through nested coverage execution, and made subprocess timeouts repository-configurable with a validated 15-minute default.
+- **Task-scoped handoff performance** — Kept repository-wide static, scope, plan-lock, and red-evidence gates while limiting assessed handoff test execution to changed active manifests. Explicit repository scope still runs all commands, and unresolved baselines visibly fail closed to the full test set.
+- **Website positioning** — Reworked the landing page to lead with MAID's core validation, evidence, and review strengths and connected the primary install path to the new first-party bootstrap scripts.
+
+### Fixed
+- **Advisory strict validation policy** — Kept E307 validator-unavailable diagnostics visible but non-blocking across strict, strict-preview, strict-delta, batch, and nested artifact-coverage paths; every other warning remains blocking.
+- **Actionable inactive-manifest repair** — Made E109 diagnostics print copyable draft/archive markers and made draft-path manifest creation add the canonical implementation marker automatically.
+- **Deterministic coverage diagnostics** — Normalized only volatile pytest elapsed durations in artifact-coverage failures, preserved traceback content, and hardened legacy pre-commit marker cleanup without accepting malformed or ambiguous ownership markers.
+- **Git test isolation** — Removed inherited Git repository pointers for pytest sessions so temporary-repository helpers cannot mutate the worktree that invoked a Git hook.
+- **Windows init portability** — Allowed `maid init` to complete when `os.fchmod` is unavailable while retaining POSIX descriptor-mode preservation and native Windows regression coverage.
+- **Stash-backed plan revision recovery** — Added auditable exact-stash recapture when hidden implementation state causes invalid red-evidence commands, preserving both observations and restoring user work on every rejected recovery path.
+- **Manifest promotion formatting** — Prevented promotion from introducing trailing whitespace in long flow-style YAML while preserving comments, quoting, indentation, block scalars, and rename detection.
+
 ## [2.25.0] - 2026-08-07
 
 ### Added
@@ -1246,6 +1270,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.26.0]: https://github.com/mamertofabian/maid-runner/compare/v2.25.0...v2.26.0
 [2.25.0]: https://github.com/mamertofabian/maid-runner/compare/v2.24.0...v2.25.0
 [2.24.0]: https://github.com/mamertofabian/maid-runner/compare/v2.23.2...v2.24.0
 [2.23.2]: https://github.com/mamertofabian/maid-runner/compare/v2.23.1...v2.23.2

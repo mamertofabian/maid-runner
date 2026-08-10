@@ -1,0 +1,245 @@
+{
+  "manifest_path": "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+  "manifest_hash": "sha256-contract:9cf6a39543eb2eba8b9e8f46ce38568cd93f267f9ae24f96d007a040ca9e32a5",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+    "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+    "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:7319d262dd39223e8d2f8fbb661193296e23ec27b5d98c115d7b50482c2d7b10",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:841bda90d7b83fb48fabaa664eaf02b3e854e4682c2956c0ff5e6b506babbb3a"
+  },
+  "created_at": "2026-08-07T23:36:11.908745+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:532e945c3db6cb54374896a50c14b633377e863e5ae93ae31f7887524faa342c",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:7319d262dd39223e8d2f8fbb661193296e23ec27b5d98c115d7b50482c2d7b10",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:eb8561b80c3810559848dea56c77316c283db3a238d024df9e5f58c69728c049"
+      },
+      "revised_at": "2026-08-07T23:36:18.709150+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml -> manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c53732823c4643e5808d50c9f02a0d390a48d10ea4d60afd8ce80898f8369ea3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:29a36a34f7ef602dfabdc5b2316ffc10968e5c72cff11c9608bb2bab5d6379cb",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_strict_delta_advisory_warnings.py": "sha256-pyast:v2:7319d262dd39223e8d2f8fbb661193296e23ec27b5d98c115d7b50482c2d7b10",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:eb8561b80c3810559848dea56c77316c283db3a238d024df9e5f58c69728c049"
+      },
+      "revised_at": "2026-08-08T01:24:09.599356+00:00",
+      "reason": "Add review-required one-line multi-command parity coverage for legacy call-trace semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_batch.py:test_batch_matches_final_command_call_trace_for_one_line_artifact",
+          "tests/core/test_artifact_coverage_batch.py:test_batch_matches_final_command_call_trace_for_one_line_artifact:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-08T01:24:15.942736+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_strict_delta_advisory_warnings.py -v",
+        "exit_code": 1,
+        "output_tail": "    def test_batch_matches_final_command_call_trace_for_one_line_artifact(\n        tmp_path: Path,\n    ) -> None:\n>       from maid_runner.core.artifact_coverage import (\n            run_artifact_coverage,\n            run_artifact_coverage_batch,\n        )\nE       ImportError: cannot import name 'run_artifact_coverage_batch' from 'maid_runner.core.artifact_coverage' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/artifact_coverage.py)\n\ntests/core/test_artifact_coverage_batch.py:173: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_reports_match_independent_reports_for_identical_command\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_executes_identical_pytest_command_once\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_keeps_distinct_pytest_arguments_separate\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_attributes_shared_command_failure_to_every_declaring_manifest\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_preserves_manifest_order_and_json_shape\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_missing_coverage_dependency_fails_closed_for_every_manifest\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_combines_evidence_from_multiple_commands_per_manifest\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_matches_final_command_call_trace_for_one_line_artifact\n========================= 8 failed, 21 passed in 4.66s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      "manifests/drafts/096-00-bound-directory-artifact-coverage.epic.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_attributes_shared_command_failure_to_every_declaring_manifest",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_attributes_shared_command_failure_to_every_declaring_manifest:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_combines_evidence_from_multiple_commands_per_manifest",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_combines_evidence_from_multiple_commands_per_manifest:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_executes_identical_pytest_command_once",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_executes_identical_pytest_command_once:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_keeps_distinct_pytest_arguments_separate",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_keeps_distinct_pytest_arguments_separate:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_matches_final_command_call_trace_for_one_line_artifact",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_matches_final_command_call_trace_for_one_line_artifact:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_missing_coverage_dependency_fails_closed_for_every_manifest",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_missing_coverage_dependency_fails_closed_for_every_manifest:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_preserves_manifest_order_and_json_shape",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_preserves_manifest_order_and_json_shape:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_reports_match_independent_reports_for_identical_command",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_reports_match_independent_reports_for_identical_command:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_batch.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "docs/plans/maid-runner-performance-backlog.md",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/strict_delta.py",
+        "manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "tests/cli/test_artifact_coverage_cmd.py",
+        "tests/cli/test_strict_delta_advisory_warnings.py",
+        "tests/core/test_artifact_coverage.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/validate.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_batch.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_batch_reports_match_independent_reports_for_identical_command",
+              "description": "Two manifests with different targets and the same pytest command receive reports identical to independent runs, excluding duration-free implementation details."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_executes_identical_pytest_command_once",
+              "description": "A subprocess boundary counter proves equivalent direct and uv-wrapped pytest commands normalize to one launch while both manifests receive their own findings."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_keeps_distinct_pytest_arguments_separate",
+              "description": "Changing a selector or option invalidates the grouping key and launches a separate coverage command."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_attributes_shared_command_failure_to_every_declaring_manifest",
+              "description": "One failed shared subprocess produces a report byte-for-byte equivalent to independent failure evaluation for every declaring manifest, with exactly E900 and no spurious E710."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_preserves_manifest_order_and_json_shape",
+              "description": "Returned mapping order and each report's serialized findings/errors match the input manifest order deterministically."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_missing_coverage_dependency_fails_closed_for_every_manifest",
+              "description": "When coverage.py is unavailable, every target-bearing manifest receives the existing E307 diagnostic and no pytest subprocess launches."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_combines_evidence_from_multiple_commands_per_manifest",
+              "description": "A manifest whose artifacts execute across two distinct pytest commands combines both evidence sets before evaluating E710 findings."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_matches_final_command_call_trace_for_one_line_artifact",
+              "description": "A one-line artifact executed by an earlier command but not the final command produces a batch report identical to the legacy single-manifest path, whose accumulated line data uses only the final command's call-trace fallback."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "Run exact duplicate pytest command tuples once per directory-wide invocation and return deterministic per-manifest reports equivalent to independent artifact-coverage runs.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/strict_delta.py",
+        "maid_runner/cli/commands/verify.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/cli/test_artifact_coverage_cmd.py",
+        "tests/cli/test_strict_delta_advisory_warnings.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+        "docs/plans/maid-runner-performance-backlog.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Route directory-wide validate, strict-preview, strict-delta, and verify's shared directory helper through run_artifact_coverage_batch without changing CLI public signatures or output structure."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_artifact_coverage_cmd.py",
+      "tests/cli/test_strict_delta_advisory_warnings.py",
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_strict_delta_advisory_warnings.py -v",
+      "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
