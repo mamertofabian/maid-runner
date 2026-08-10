@@ -491,7 +491,10 @@
         <div class="container quickstart-card">
           <div class="quickstart-copy">
             <h2 id="quickstart-title">Quick start</h2>
-            <p>Get MAID Runner up and running in minutes. Works on macOS, Linux, and Windows.</p>
+            <p>
+              One command installs MAID Runner on macOS, Linux, or Windows—no
+              existing Python setup required.
+            </p>
             <a
               class="text-link"
               href="https://github.com/mamertofabian/maid-runner#quick-start"
@@ -507,10 +510,20 @@
               <div class="terminal-controls" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="terminal-name">terminal</span>
             </div>
-            <pre><code><span class="terminal-prompt">$</span> pip install maid-runner
+            <pre><code><span class="terminal-success"># macOS / Linux</span>
+<span class="terminal-prompt">$</span> curl -LsSf https://maidrunner.dev/install.sh | sh
+
+<span class="terminal-success"># Windows PowerShell</span>
+<span class="terminal-prompt">&gt;</span> irm https://maidrunner.dev/install.ps1 | iex
+
 <span class="terminal-prompt">$</span> maid init
 <span class="terminal-prompt">$</span> maid howto --section quickstart
 <span class="terminal-success">✓</span> ready to write a verifiable change</code></pre>
+            <details>
+              <summary>Alternative installation methods</summary>
+              <p><code>uv tool install maid-runner</code></p>
+              <p><code>pip install maid-runner</code></p>
+            </details>
           </div>
         </div>
       </section>

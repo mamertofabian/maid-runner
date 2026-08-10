@@ -1,0 +1,245 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+schema: "2"
+goal: "Add first-party one-line bootstrap installers for MAID Runner"
+type: feature
+created: "2026-08-10T08:08:43Z"
+metadata:
+  planning_state: implementation_ready
+  tags:
+    - onboarding
+    - installer
+    - windows
+    - macos
+    - linux
+    - website
+  priority: high
+description: |
+  Publish small, auditable bootstrap scripts at maidrunner.dev/install.sh and
+  maidrunner.dev/install.ps1 so newcomers can install MAID Runner without
+  knowing that it is distributed as a Python package. Each installer detects
+  uv, delegates uv installation to Astral's official installer when needed,
+  installs MAID Runner in an isolated Python 3.12 tool environment, refreshes
+  the current process PATH from uv's tool bin directory, asks uv to persist the
+  PATH update, and verifies the result with `maid --version`.
+
+  Both installers accept an optional exact MAID Runner version for
+  reproducible setup. They must validate user input, propagate download/tool
+  failures, and never report success unless the installed command runs. Keep
+  uv and pip visible as concise advanced alternatives in README.md and the
+  landing page, but make the first-party scripts the canonical onboarding UX.
+  Native binaries, uninstall behavior, package-manager integrations, automatic
+  privilege escalation, and arbitrary dependency installation are out of
+  scope.
+temptations:
+  - risk: "Do not hide failed downloads, uv commands, PATH discovery, or maid verification behind best-effort fallbacks."
+    instead: "Fail immediately with a clear nonzero result and print success only after maid --version succeeds."
+  - risk: "Do not interpolate an unchecked version string into a package requirement or executable expression."
+    instead: "Accept only a narrow PEP-440-compatible character set and pass the resulting requirement as one quoted argument."
+  - risk: "Do not duplicate uv's platform and Python installation machinery or require administrator privileges."
+    instead: "Use Astral's official uv installers when uv is absent, then use uv tool install with Python 3.12."
+  - risk: "Do not let documentation promise installer behavior through untested copy alone."
+    instead: "Exercise the shell installer with fake uv/curl commands and contract-check the PowerShell script and published onboarding commands."
+files:
+  scope:
+    - path: website/install.sh
+      reason: "Public POSIX bootstrap endpoint for macOS and Linux; behavior is exercised as a process by dedicated tests and linted with ShellCheck."
+    - path: website/install.ps1
+      reason: "Public PowerShell bootstrap endpoint for Windows; behavior and failure guards are pinned by a source contract because PowerShell is unavailable in the Linux development environment."
+    - path: website/index.html
+      reason: "The landing-page quick start must make the two first-party bootstrap commands primary and keep direct package commands secondary."
+    - path: README.md
+      reason: "The repository onboarding hierarchy must concisely present the bootstrap installers, version pinning, and advanced uv/pip alternatives."
+    - path: .github/workflows/test-installers.yml
+      reason: "A path-scoped smoke workflow must execute the local shell and PowerShell installers on Linux, macOS, and Windows runners before they are published."
+  create:
+    - path: tests/test_bootstrap_installers.py
+      artifacts:
+        - kind: test_function
+          name: test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid
+          args: []
+          returns: None
+          source_scenario: "A macOS or Linux user already has uv and requests a reproducible MAID Runner version."
+          actions:
+            - type: api_call
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "The installer keeps the existing uv, installs the requested maid-runner version with Python 3.12, refreshes tool PATH, and verifies maid --version before succeeding."
+        - kind: test_function
+          name: test_shell_installer_bootstraps_uv_when_missing
+          args: []
+          returns: None
+          source_scenario: "A macOS or Linux user runs the installer on a machine where uv is absent."
+          actions:
+            - type: api_call
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "The installer retrieves Astral's official uv installer, discovers the newly installed uv without restarting the shell, installs MAID Runner, and verifies the command."
+        - kind: test_function
+          name: test_shell_installer_rejects_unsafe_or_incomplete_arguments
+          args: []
+          returns: None
+          source_scenario: "A caller supplies an unsafe version value, omits the value, or uses an unsupported option."
+          actions:
+            - type: api_call
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "The installer exits nonzero with usage guidance before invoking uv for every invalid argument form."
+        - kind: test_function
+          name: test_shell_installer_propagates_download_and_tool_failures
+          args: []
+          returns: None
+          source_scenario: "The uv download or MAID Runner tool installation fails during bootstrap."
+          actions:
+            - type: api_call
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "The installer exits nonzero, does not run maid verification after the failed step, and never prints a success message."
+        - kind: test_function
+          name: test_powershell_installer_contract_is_auditable_and_fail_closed
+          args: []
+          returns: None
+          source_scenario: "A reviewer inspects the Windows bootstrapper in an environment without PowerShell execution support."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The script validates its version, uses only Astral's HTTPS installer when uv is absent, checks native command exits, installs with Python 3.12, refreshes PATH, and verifies maid before success."
+        - kind: test_function
+          name: test_shell_installer_passes_shellcheck
+          args: []
+          returns: None
+          source_scenario: "A maintainer validates the published POSIX bootstrapper before deployment."
+          actions:
+            - type: api_call
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "ShellCheck accepts the installer with no diagnostics."
+        - kind: test_function
+          name: test_readme_and_landing_page_publish_bootstrap_installers_as_primary
+          args: []
+          returns: None
+          source_scenario: "A newcomer scans the README or landing page for the shortest supported installation path."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Both surfaces show the maidrunner.dev shell and PowerShell commands before uv and pip alternatives, include the first-run commands, and keep versioned installation concise in the README."
+        - kind: test_function
+          name: test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms
+          args: []
+          returns: None
+          source_scenario: "An installer or installer-workflow change is proposed or lands on main."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.load
+          expected:
+            behavior: "A path-scoped workflow executes the checked-out shell installer on Ubuntu and macOS and the checked-out PowerShell installer on Windows with least-privilege contents access."
+  read:
+    - pyproject.toml
+    - .github/workflows/deploy-website.yml
+validate:
+  - uv run python -m pytest -q tests/test_bootstrap_installers.py
+  - uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/add-bootstrap-installers.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-10T09:06:26Z"
+  summary: "Added small, auditable bootstrap installers for macOS/Linux and Windows, made them the primary installation path in the README and landing page, retained concise uv and pip alternatives, and added cross-platform installer smoke CI plus focused behavioral coverage."
+  rationale: "MAID Runner is a CLI, so its primary onboarding path should not require users to understand Python packaging. The first-party scripts keep uv as the managed implementation detail while preserving direct uv and pip installation for users who prefer them."
+  lessons:
+    - lesson_type: validation
+      summary: "Bootstrap installers must apply the same fail-closed version policy on shell and PowerShell; independent review caught permissive shell values that the PowerShell parameter validator already rejected."
+      tags:
+        - installer-security
+        - cross-platform
+        - version-pinning
+      paths:
+        - website/install.sh
+        - website/install.ps1
+        - tests/test_bootstrap_installers.py
+    - lesson_type: workflow
+      summary: "When a new executable does not exist during the red phase, run its standalone lint tool through the behavioral test command so missing-file red evidence remains valid while the final implementation still receives tool-native validation."
+      tags:
+        - red-evidence
+        - shellcheck
+        - test-design
+      paths:
+        - tests/test_bootstrap_installers.py
+        - manifests/add-bootstrap-installers.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent-Sagan
+      severity: high
+      summary: "The first review found that the shell installer accepted incomplete version-like values such as `--help`, `-`, and `.`. The implementation and behavioral tests were hardened before re-review."
+    - source: implementation-review-subagent-Sagan
+      severity: info
+      summary: "The final independent read-only review reported no blocking or advisory findings and returned a ready verdict."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_bootstrap_installers.py
+        - tests/test_website_static.py
+        - tests/test_entry_point_guidance.py
+      status: passed
+      summary: "Focused installer and documentation coverage passed: 32 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/add-bootstrap-installers.manifest.yaml
+      status: passed
+      summary: "All three manifest validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide MAID validation passed with 521 manifests, 412 passed, 109 superseded, and 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository-wide manifest tests passed: 245 commands passed and 0 failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --since
+        - HEAD
+      status: passed
+      summary: "The changed-scope handoff gate passed all nine blocking checks with only pre-existing advisory diagnostics."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: failed
+      summary: "Deep verification passed schema, behavioral, and implementation checks but exposed 1,673 repository-wide E710 artifact-execution gaps that predate and are unrelated to this documentation-and-installer manifest."

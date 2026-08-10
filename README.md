@@ -41,14 +41,22 @@ kit usage, `maid validators` audit command, and support boundary.
 
 ## Quick Start
 
+**macOS / Linux:**
+
 ```bash
-# Install
-pip install maid-runner  # or: uv pip install maid-runner
+curl -LsSf https://maidrunner.dev/install.sh | sh
+```
 
-# Set up MAID in your project
+**Windows PowerShell:**
+
+```powershell
+irm https://maidrunner.dev/install.ps1 | iex
+```
+
+Then, inside your project:
+
+```bash
 maid init
-
-# Walk the first-win path
 maid howto quickstart
 ```
 
@@ -56,22 +64,41 @@ That is the whole starting path. `maid howto` opens the guided topics, and
 each topic ends by pointing at the next one. Adding MAID to a codebase that
 already exists starts at [Brownfield Onboarding](#brownfield-onboarding).
 
+<details>
+<summary>Alternative installation methods</summary>
+
+Already use uv?
+
+```bash
+uv tool install maid-runner
+```
+
+Already have Python 3.10+?
+
+```bash
+pip install maid-runner
+```
+
+Pin an exact release on macOS or Linux:
+
+```bash
+curl -LsSf https://maidrunner.dev/install.sh | sh -s -- --version 2.25.0
+```
+
+</details>
+
 ## Installation
 
-### Claude Code Plugin (Recommended)
+The bootstrap installers use uv internally and install the core Python
+validator. For all language and quality extras, use
+`uv tool install "maid-runner[all]"`; `typescript`, `svelte`, `quality`, and
+`watch` can be selected the same way.
+
+### Claude Code Plugin
 
 ```bash
 /plugin marketplace add aidrivencoder/claude-plugins
 /plugin install maid-runner@aidrivencoder
-```
-
-### From PyPI
-
-```bash
-pip install maid-runner              # Python only (core — no tree-sitter)
-pip install maid-runner[all]         # All language support (TypeScript, Svelte)
-pip install maid-runner[typescript]  # TypeScript/JS only
-pip install maid-runner[watch]       # File watching for TDD mode
 ```
 
 ### Multi-Tool Support
