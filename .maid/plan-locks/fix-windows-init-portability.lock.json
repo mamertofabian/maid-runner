@@ -1,0 +1,168 @@
+{
+  "manifest_path": "manifests/fix-windows-init-portability.manifest.yaml",
+  "manifest_hash": "sha256-contract:bc5093b94048b7f07674e3e962ff388be3a3b085380f08efa7a4814c69338529",
+  "test_hashes": {
+    "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+    "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+    "tests/cli/test_init_windows_portability.py": "sha256-pyast:v2:d27ca74af8157138c571d6f5770e036966a6580792ca4bf10f279741ee31879e"
+  },
+  "created_at": "2026-08-10T02:41:29.223357+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c498824096f90e4afa5429afbfdc7bd88ee96957ed55159b1b2b7eb534f5b8ca",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_init_windows_portability.py": "sha256-pyast:v2:79563dbb3416475593a067c92b9fac68da184dd4915cf6ead43ee12720bb19a8"
+      },
+      "revised_at": "2026-08-10T02:41:30.581817+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-windows-init-portability.manifest.yaml -> manifests/fix-windows-init-portability.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8d55c44ae8886d001d92ff94fb26209cc6581a3821b2fe5b43a492b97992df04",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_init_windows_portability.py": "sha256-pyast:v2:79563dbb3416475593a067c92b9fac68da184dd4915cf6ead43ee12720bb19a8"
+      },
+      "revised_at": "2026-08-10T02:42:22.749085+00:00",
+      "reason": "Apply Black formatting to the approved behavioral test without changing its assertions or scope",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8d55c44ae8886d001d92ff94fb26209cc6581a3821b2fe5b43a492b97992df04",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:88cb6702106d5609e1f2cf316a15a6343c168808a16b21adfc510c6868de9a03",
+        "tests/cli/test_init_windows_portability.py": "sha256-pyast:v2:79563dbb3416475593a067c92b9fac68da184dd4915cf6ead43ee12720bb19a8"
+      },
+      "revised_at": "2026-08-10T03:03:41.496642+00:00",
+      "reason": "Independent review requires the reusable Windows job to be maid-runner-only and the behavioral test to pin that downstream safety guard",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T03:03:42.375961+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_windows_portability.py tests/cli/test_init_payload_portability.py tests/cli/test_init_pre_commit.py",
+        "exit_code": 1,
+        "output_tail": "E       AssertionError: assert 2 == 0\nE        +  where 2 = main(['init', '--tool', 'generic'])\n\n/home/atomrem/projects/codefrost-dev/maid-runner-windows-init-portability/tests/cli/test_init_windows_portability.py:17: AssertionError\n----------------------------- Captured stderr call -----------------------------\nError: module 'os' has no attribute 'fchmod'\n_______________ test_windows_ci_runs_init_portability_regression _______________\n\n    def test_windows_ci_runs_init_portability_regression() -> None:\n        workflow = yaml.safe_load(Path(\".github/workflows/maid-test.yml\").read_text())\n    \n>       windows_job = workflow[\"jobs\"][\"windows-init-portability\"]\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'windows-init-portability'\n\ntests/cli/test_init_windows_portability.py:50: KeyError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_windows_portability.py::test_init_completes_without_descriptor_chmod\nFAILED tests/cli/test_init_windows_portability.py::test_windows_ci_runs_init_portability_regression\n2 failed, 33 passed in 0.67s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_init_windows_portability.py:test_init_completes_without_descriptor_chmod",
+      "tests/cli/test_init_windows_portability.py:test_init_completes_without_descriptor_chmod:kind=test_function",
+      "tests/cli/test_init_windows_portability.py:test_init_completes_without_descriptor_chmod:returns=None",
+      "tests/cli/test_init_windows_portability.py:test_init_preserves_descriptor_mode_when_fchmod_is_available",
+      "tests/cli/test_init_windows_portability.py:test_init_preserves_descriptor_mode_when_fchmod_is_available:kind=test_function",
+      "tests/cli/test_init_windows_portability.py:test_init_preserves_descriptor_mode_when_fchmod_is_available:returns=None",
+      "tests/cli/test_init_windows_portability.py:test_windows_ci_runs_init_portability_regression",
+      "tests/cli/test_init_windows_portability.py:test_windows_ci_runs_init_portability_regression:kind=test_function",
+      "tests/cli/test_init_windows_portability.py:test_windows_ci_runs_init_portability_regression:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_windows_portability.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/064-04-add-windows-daemon-transport.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-init-payload-portability.manifest.yaml",
+        "tests/cli/test_init_payload_portability.py",
+        "tests/cli/test_init_pre_commit.py"
+      ],
+      "scope": [
+        ".github/workflows/maid-test.yml",
+        "maid_runner/cli/commands/init.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_windows_portability.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_completes_without_descriptor_chmod",
+              "description": "Generic init succeeds and writes the complete managed scaffold when os.fchmod is unavailable, matching native Windows.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_preserves_descriptor_mode_when_fchmod_is_available",
+              "description": "The atomic writer still invokes descriptor chmod on platforms that provide it.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_ci_runs_init_portability_regression",
+              "description": "GitHub Actions contains a native Windows job that runs this focused regression module only for the maid-runner repository, preserving downstream workflow_call consumers.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/add-init-pre-commit-verification.manifest.yaml",
+        "manifests/fix-init-payload-portability.manifest.yaml",
+        "manifests/064-04-add-windows-daemon-transport.manifest.yaml",
+        "tests/cli/test_init_pre_commit.py",
+        "tests/cli/test_init_payload_portability.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Make the existing private atomic writer conditional on descriptor-chmod capability without changing cmd_init's public signature or other init behavior."
+        },
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "reason": "Add an independent maid-runner-only native-Windows job for the focused init portability regression without altering the reusable Ubuntu job or downstream workflow_call behavior."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_payload_portability.py",
+      "tests/cli/test_init_pre_commit.py",
+      "tests/cli/test_init_windows_portability.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_windows_portability.py tests/cli/test_init_payload_portability.py tests/cli/test_init_pre_commit.py"
+    ]
+  }
+}
