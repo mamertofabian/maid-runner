@@ -69,6 +69,19 @@ def cmd_verify(args: argparse.Namespace) -> int:
             or getattr(args, "fail_on_warnings", False)
             or strict_preview
         )
+        from maid_runner.core.config import load_config
+
+        execution_config = load_config(".").test_execution
+        jobs_explicit = getattr(args, "test_jobs_explicit", None)
+        test_jobs = (
+            execution_config.command_jobs
+            if jobs_explicit is False
+            else getattr(args, "test_jobs", 1)
+        )
+        workers_explicit = getattr(args, "pytest_workers_explicit", None)
+        pytest_workers = (
+            None if workers_explicit is False else getattr(args, "pytest_workers", None)
+        )
         result = _run_verify(
             manifest_dir=args.manifest_dir,
             project_root=".",
@@ -85,7 +98,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
             file_tracking_scope=getattr(args, "file_tracking_scope", "repository"),
             fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
-            test_jobs=getattr(args, "test_jobs", 1),
+            test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             test_scope=getattr(args, "test_scope", "repository"),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
@@ -388,6 +402,7 @@ def _run_verify(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    pytest_workers: int | str | None = None,
     test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
@@ -421,6 +436,7 @@ def _run_verify(
             fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             test_scope=test_scope,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
@@ -452,6 +468,7 @@ def _run_verify_cached(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    pytest_workers: int | str | None = None,
     test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
@@ -622,6 +639,7 @@ def _run_verify_cached(
             manifest_dir,
             fail_fast,
             test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             manifest_paths=test_manifest_paths,
         )
         if test_scope_widening:
@@ -1083,6 +1101,7 @@ def _tests_stage(
     fail_fast: bool,
     test_jobs: int = 1,
     manifest_paths: Iterable[str | Path] | None = None,
+    pytest_workers: int | str | None = None,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
@@ -1114,6 +1133,7 @@ def _tests_stage(
                 project_root=root,
                 fail_fast=fail_fast,
                 jobs=test_jobs,
+                pytest_workers=pytest_workers,
             )
         else:
             from maid_runner.core.chain import get_cached_manifest_chain
@@ -1152,6 +1172,7 @@ def _tests_stage(
                     _errors=tuple([*chain_errors, *integrity_errors]),
                 )
             _, implementation_commands = _collect_test_command_streams(active)
+            scheduling_notices = []
             results, passed, failed, early_result = _run_implementation_commands(
                 implementation_commands,
                 root,
@@ -1162,6 +1183,8 @@ def _tests_stage(
                 0,
                 0,
                 jobs=test_jobs,
+                pytest_workers=pytest_workers,
+                scheduling_notices=scheduling_notices,
             )
             result = early_result
             if result is None:
@@ -1171,6 +1194,7 @@ def _tests_stage(
                     passed=passed,
                     failed=failed,
                     chain_errors=list(chain_errors),
+                    scheduling_notices=tuple(scheduling_notices),
                 )
         return VerificationStageResult(
             name="tests",

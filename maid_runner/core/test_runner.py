@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Union
 
@@ -15,6 +15,12 @@ from maid_runner.core.chain import (
 )
 from maid_runner.core._pytest_command_normalization import (
     _is_python_command as _normalization_is_python_command,
+)
+from maid_runner.core._pytest_worker_execution import (
+    PreparedPytestCommand,
+    TestSchedulingNotice,
+    finalize_pytest_timing,
+    prepare_pytest_command,
 )
 from maid_runner.core._maid_validate_command_cache import (
     _run_cached_maid_validate_command,
@@ -75,6 +81,7 @@ def run_command(
     timeout: int = 300,
     manifest_slug: str = "",
     stream: TestStream = TestStream.IMPLEMENTATION,
+    environment_overrides: Mapping[str, str] | None = None,
 ) -> TestRunResult:
     command = _resolve_command(command, cwd=cwd)
     return _run_test_command(
@@ -83,6 +90,7 @@ def run_command(
         timeout=timeout,
         manifest_slug=manifest_slug,
         stream=stream,
+        environment_overrides=environment_overrides,
     )
 
 
@@ -95,6 +103,7 @@ def run_manifest_tests(
     *,
     fail_fast: bool = False,
     project_root: Union[str, Path] = ".",
+    pytest_workers: int | str | None = None,
 ) -> BatchTestResult:
     manifest = load_manifest(manifest_path)
     project_root = Path(project_root)
@@ -114,9 +123,17 @@ def run_manifest_tests(
     results: list[TestRunResult] = []
     passed = 0
     failed = 0
+    scheduling_notices: list[TestSchedulingNotice] = []
 
     for cmd in manifest.validate_commands:
-        result = run_command(cmd, cwd=project_root, manifest_slug=manifest.slug)
+        result = _run_external_test_command(
+            cmd,
+            project_root,
+            manifest.slug,
+            pytest_workers=pytest_workers,
+            command_jobs=1,
+            scheduling_notices=scheduling_notices,
+        )
         results.append(result)
         if result.success:
             passed += 1
@@ -130,6 +147,7 @@ def run_manifest_tests(
         total=len(results),
         passed=passed,
         failed=failed,
+        scheduling_notices=tuple(scheduling_notices),
     )
 
 
@@ -152,6 +170,7 @@ def run_tests(
     project_root: Union[str, Path] = ".",
     batch: bool | None = None,
     jobs: int = 1,
+    pytest_workers: int | str | None = None,
 ) -> BatchTestResult:
     chain_outermost = _enter_manifest_chain_cache_scope()
     try:
@@ -161,6 +180,7 @@ def run_tests(
             project_root=project_root,
             batch=batch,
             jobs=jobs,
+            pytest_workers=pytest_workers,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -173,6 +193,7 @@ def _run_tests_cached(
     project_root: Union[str, Path] = ".",
     batch: bool | None = None,
     jobs: int = 1,
+    pytest_workers: int | str | None = None,
 ) -> BatchTestResult:
     project_root = Path(project_root)
     chain_dir = project_root / manifest_dir
@@ -203,6 +224,7 @@ def _run_tests_cached(
 
     _, implementation_commands = _collect_test_command_streams(active)
 
+    scheduling_notices: list[TestSchedulingNotice] = []
     results, passed, failed, early_result = _run_implementation_commands(
         implementation_commands,
         project_root,
@@ -213,6 +235,8 @@ def _run_tests_cached(
         0,
         0,
         jobs=jobs,
+        pytest_workers=pytest_workers,
+        scheduling_notices=scheduling_notices,
     )
     if early_result is not None:
         return early_result
@@ -223,6 +247,7 @@ def _run_tests_cached(
         passed=passed,
         failed=failed,
         chain_errors=chain_errors,
+        scheduling_notices=tuple(scheduling_notices),
     )
 
 
@@ -285,11 +310,14 @@ def _run_implementation_commands(
     previous_passed: int,
     previous_failed: int,
     jobs: int = 1,
+    pytest_workers: int | str | None = None,
+    scheduling_notices: list[TestSchedulingNotice] | None = None,
 ) -> tuple[list[TestRunResult], int, int, BatchTestResult | None]:
     results = list(previous_results)
     passed = previous_passed
     failed = previous_failed
     maid_validate_cache: dict[str, object] = {}
+    notices = scheduling_notices if scheduling_notices is not None else []
     ordered_impl_commands = commands
     if batch is not False:
         impl_commands_with_slug = _prune_covered_pytest_commands(
@@ -335,16 +363,17 @@ def _run_implementation_commands(
         ordered_impl_commands = [*batched_impl_commands, *sequential_impl_commands]
 
     if jobs > 1 and not fail_fast:
-        pending_external_commands: list[tuple[tuple[str, ...], str]] = []
+        pending_external_commands: list[tuple[PreparedPytestCommand, str]] = []
 
         def flush_external_commands() -> None:
             nonlocal passed, failed
             if not pending_external_commands:
                 return
-            parallel_results = _run_parallel_test_commands(
+            parallel_results = _run_parallel_prepared_commands(
                 pending_external_commands,
                 project_root,
                 jobs,
+                notices,
             )
             results.extend(parallel_results)
             passed += sum(1 for result in parallel_results if result.success)
@@ -361,7 +390,14 @@ def _run_implementation_commands(
                 resolve_command=_resolve_command,
             )
             if result is None:
-                pending_external_commands.append((cmd, slug))
+                prepared = _prepare_external_test_command(
+                    cmd,
+                    project_root,
+                    pytest_workers=pytest_workers,
+                    command_jobs=jobs,
+                    scheduling_notices=notices,
+                )
+                pending_external_commands.append((prepared, slug))
                 continue
 
             flush_external_commands()
@@ -384,7 +420,14 @@ def _run_implementation_commands(
             resolve_command=_resolve_command,
         )
         if result is None:
-            result = run_command(cmd, cwd=project_root, manifest_slug=slug)
+            result = _run_external_test_command(
+                cmd,
+                project_root,
+                slug,
+                pytest_workers=pytest_workers,
+                command_jobs=jobs,
+                scheduling_notices=notices,
+            )
         results.append(result)
         if result.success:
             passed += 1
@@ -401,10 +444,110 @@ def _run_implementation_commands(
                         passed=passed,
                         failed=failed,
                         chain_errors=chain_errors,
+                        scheduling_notices=tuple(notices),
                     ),
                 )
 
     return results, passed, failed, None
+
+
+def _prepare_external_test_command(
+    command: tuple[str, ...],
+    project_root: Path,
+    *,
+    pytest_workers: int | str | None,
+    command_jobs: int,
+    scheduling_notices: list[TestSchedulingNotice],
+) -> PreparedPytestCommand:
+    resolved = _resolve_command(command, cwd=project_root)
+    prepared = prepare_pytest_command(
+        resolved,
+        project_root=project_root,
+        pytest_workers=pytest_workers,
+        command_jobs=command_jobs,
+    )
+    if (
+        isinstance(prepared, PreparedPytestCommand)
+        and prepared.notice is None
+        and prepared.behavior_group_digest is None
+    ):
+        prepared = PreparedPytestCommand(
+            command,
+            prepared.environment_overrides,
+            prepared.notice,
+            prepared.selected_nodeids,
+            prepared.behavior_group_digest,
+            prepared.input_digest,
+            prepared._temporary_directory,
+        )
+    if prepared.notice is not None:
+        scheduling_notices.append(prepared.notice)
+    return prepared
+
+
+def _run_prepared_test_command(
+    prepared: PreparedPytestCommand,
+    project_root: Path,
+    manifest_slug: str,
+) -> TestRunResult:
+    return run_command(
+        prepared.command,
+        cwd=project_root,
+        manifest_slug=manifest_slug,
+        environment_overrides=prepared.environment_overrides,
+    )
+
+
+def _finalize_prepared_test_command(
+    prepared: PreparedPytestCommand,
+    result: TestRunResult,
+    project_root: Path,
+    scheduling_notices: list[TestSchedulingNotice],
+) -> None:
+    notice = finalize_pytest_timing(prepared, result, project_root)
+    if notice is not None:
+        scheduling_notices.append(notice)
+
+
+def _run_external_test_command(
+    command: tuple[str, ...],
+    project_root: Path,
+    manifest_slug: str,
+    *,
+    pytest_workers: int | str | None,
+    command_jobs: int,
+    scheduling_notices: list[TestSchedulingNotice],
+) -> TestRunResult:
+    prepared = _prepare_external_test_command(
+        command,
+        project_root,
+        pytest_workers=pytest_workers,
+        command_jobs=command_jobs,
+        scheduling_notices=scheduling_notices,
+    )
+    result = _run_prepared_test_command(prepared, project_root, manifest_slug)
+    _finalize_prepared_test_command(prepared, result, project_root, scheduling_notices)
+    return result
+
+
+def _run_parallel_prepared_commands(
+    commands: list[tuple[PreparedPytestCommand, str]],
+    project_root: Path,
+    jobs: int,
+    scheduling_notices: list[TestSchedulingNotice],
+) -> list[TestRunResult]:
+    max_workers = min(jobs, len(commands))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(_run_prepared_test_command, prepared, project_root, slug)
+            for prepared, slug in commands
+        ]
+        results = [future.result() for future in futures]
+    for (prepared, _), result in zip(commands, results):
+        _finalize_prepared_test_command(
+            prepared, result, project_root, scheduling_notices
+        )
+    return results
 
 
 def _run_parallel_test_commands(

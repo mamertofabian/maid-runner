@@ -6,6 +6,7 @@ import os
 import subprocess
 import threading
 import time
+from collections.abc import Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from pathlib import Path
@@ -62,8 +63,11 @@ def _run_test_command(
     timeout: int = 300,
     manifest_slug: str = "",
     stream: TestStream = TestStream.IMPLEMENTATION,
+    environment_overrides: Mapping[str, str] | None = None,
 ) -> TestRunResult:
     env = _test_command_environment()
+    if environment_overrides:
+        env.update(environment_overrides)
     start = time.monotonic()
     try:
         proc = subprocess.run(

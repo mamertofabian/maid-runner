@@ -224,6 +224,7 @@ def format_test_result(
             lines.append(f"  Chain issues: {len(result.chain_errors)}")
             for err in result.chain_errors:
                 lines.append(f"  {err.code.value} {err.message}")
+        lines.extend(_format_scheduling_notices(result))
 
         for r in result.results:
             lines.append(_format_test_command_line(r))
@@ -248,6 +249,7 @@ def format_test_result(
         lines.append(f"  Chain issues: {len(result.chain_errors)}")
         for err in result.chain_errors:
             lines.append(f"  {err.code.value} {err.message}")
+    lines.extend(_format_scheduling_notices(result))
     lines.append("")
 
     acc_passed = sum(1 for r in acceptance if r.success)
@@ -919,6 +921,15 @@ def _test_result_to_dict(result: BatchTestResult) -> dict:
         "failed": result.failed,
         "duration_ms": result.duration_ms,
         "chain_errors": [e.to_dict() for e in result.chain_errors],
+        "scheduling_notices": [
+            {
+                "command_group": list(notice.command_group),
+                "mode": notice.mode,
+                "workers": notice.workers,
+                "reason": notice.reason,
+            }
+            for notice in result.scheduling_notices
+        ],
         "results": [
             {
                 "manifest": r.manifest_slug,
@@ -931,6 +942,16 @@ def _test_result_to_dict(result: BatchTestResult) -> dict:
             for r in result.results
         ],
     }
+
+
+def _format_scheduling_notices(result: BatchTestResult) -> list[str]:
+    return [
+        (
+            f"  Scheduling: {notice.mode} workers={notice.workers} "
+            f"reason={notice.reason} command={' '.join(notice.command_group)}"
+        )
+        for notice in result.scheduling_notices
+    ]
 
 
 def _format_test_command_line(result) -> str:

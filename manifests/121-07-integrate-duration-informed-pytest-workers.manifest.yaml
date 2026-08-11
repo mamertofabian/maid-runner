@@ -1,10 +1,14 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: "2"
 goal: "Integrate duration-informed pytest workers with resolved-environment checks and one process budget"
 type: feature
-created: "2026-08-10T16:44:00+08:00"
+created: "2026-08-11T03:36:28Z"
 metadata:
-  status: planning
+  status: implementation-ready
   priority: high
   epic: 121-00-fast-verification-roadmap
   tags:
@@ -79,11 +83,49 @@ files:
         - kind: attribute
           name: workers
           of: TestSchedulingNotice
-          type: int
+          type: int | str
         - kind: attribute
           name: reason
           of: TestSchedulingNotice
           type: str
+        - kind: class
+          name: PytestCollectionResult
+          description: "Exact node IDs collected in the resolved consumer environment or a typed collection error."
+        - kind: attribute
+          name: nodeids
+          of: PytestCollectionResult
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: error
+          of: PytestCollectionResult
+          type: str | None
+        - kind: class
+          name: PreparedPytestCommand
+          description: "One resolved command, child-only plugin environment, exact selection/identity evidence, and cleanup lifecycle."
+        - kind: attribute
+          name: command
+          of: PreparedPytestCommand
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: environment_overrides
+          of: PreparedPytestCommand
+          type: Mapping[str, str]
+        - kind: attribute
+          name: notice
+          of: PreparedPytestCommand
+          type: TestSchedulingNotice | None
+        - kind: attribute
+          name: selected_nodeids
+          of: PreparedPytestCommand
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: behavior_group_digest
+          of: PreparedPytestCommand
+          type: str | None
+        - kind: attribute
+          name: input_digest
+          of: PreparedPytestCommand
+          type: str | None
         - kind: function
           name: probe_pytest_runner_capabilities
           args:
@@ -93,6 +135,55 @@ files:
               type: Path
           returns: PytestRunnerCapabilities
           description: "Probes xdist in the exact resolved runner environment and returns a typed failure instead of guessing."
+        - kind: function
+          name: build_pytest_timing_identity
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+          returns: tuple[str, str]
+          description: "Builds deterministic behavior-group and repository/test/config content digests without storing outcomes."
+        - kind: function
+          name: collect_pytest_nodeids
+          args:
+            - name: resolved_command
+              type: tuple[str, Ellipsis]
+            - name: cwd
+              type: Path
+          returns: PytestCollectionResult
+          description: "Collects the exact current node set in the resolved consumer pytest environment and fails closed on incomplete or invalid evidence."
+        - kind: function
+          name: timing_plugin_environment
+          args:
+            - name: directory
+              type: Path
+          returns: tuple[dict[str, str], str]
+          description: "Materializes a standalone plugin in a child-only import path so consumer environments never need maid-runner installed."
+        - kind: function
+          name: prepare_pytest_command
+          args:
+            - name: resolved_command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+            - name: pytest_workers
+              type: Union[Union[int, str], None]
+            - name: command_jobs
+              type: int
+          returns: PreparedPytestCommand
+          description: "Collects exact nodes, resolves explicit/config policy, probes the consumer runner, applies only accepted loadscope workers, and attaches child-only timing instrumentation."
+        - kind: function
+          name: finalize_pytest_timing
+          args:
+            - name: prepared
+              type: PreparedPytestCommand
+            - name: result
+              type: TestRunResult
+            - name: project_root
+              type: Path
+          returns: TestSchedulingNotice | None
+          description: "On a successful exact-complete run only, validates plugin evidence and atomically refreshes 121-06 history; otherwise discards it with a visible notice and always cleans temporary state."
         - kind: function
           name: apply_pytest_worker_decision
           args:
@@ -108,6 +199,10 @@ files:
               type: tuple[int, Ellipsis]
             - name: max_processes
               type: int
+            - name: command_jobs
+              type: int
+            - name: project_root
+              type: Path
             - name: explicit
               type: bool
           returns: tuple[tuple[str, Ellipsis], TestSchedulingNotice]
@@ -129,6 +224,30 @@ files:
           name: incomplete_workers
           of: PytestTimingPlugin
           type: set[str]
+        - kind: attribute
+          name: selected_nodeids
+          of: PytestTimingPlugin
+          type: set[str]
+        - kind: attribute
+          name: completed_nodeids
+          of: PytestTimingPlugin
+          type: set[str]
+        - kind: method
+          name: pytest_collection_finish
+          of: PytestTimingPlugin
+          args:
+            - name: session
+              type: pytest.Session
+          returns: None
+        - kind: method
+          name: pytest_xdist_node_collection_finished
+          of: PytestTimingPlugin
+          args:
+            - name: node
+              type: object
+            - name: ids
+              type: Sequence[str]
+          returns: None
         - kind: method
           name: pytest_runtest_logreport
           of: PytestTimingPlugin
@@ -204,6 +323,39 @@ files:
         - kind: test_function
           name: test_worker_completion_order_does_not_reorder_structured_results
           args: []
+        - kind: test_function
+          name: test_collection_uses_resolved_consumer_environment_and_fails_closed
+          args: []
+        - kind: test_function
+          name: test_timing_identity_changes_with_repository_test_or_config_content
+          args: []
+        - kind: test_function
+          name: test_collection_preserves_inherited_consumer_pytest_plugins
+          args: []
+        - kind: test_function
+          name: test_existing_config_worker_option_is_not_duplicated
+          args: []
+        - kind: test_function
+          name: test_automatic_policy_collects_exact_nodes_before_duration_decision
+          args: []
+        - kind: test_function
+          name: test_timing_plugin_loads_in_consumer_environment_without_maid_runner_import
+          args: []
+        - kind: test_function
+          name: test_timing_finalizer_records_only_successful_exact_complete_history
+          args: []
+        - kind: test_function
+          name: test_timing_finalizer_discards_advisory_cache_write_failure
+          args: []
+        - kind: test_function
+          name: test_timing_plugin_rejects_missing_duplicate_nonzero_and_disagreeing_evidence
+          args: []
+        - kind: test_function
+          name: test_preconfigured_workers_obey_product_budget_and_command_precedence
+          args: []
+        - kind: test_function
+          name: test_real_preparer_applies_worker_decision_and_fallback_precedence
+          args: []
     - path: .maidrc.yaml
       artifacts:
         - kind: attribute
@@ -254,6 +406,28 @@ files:
     - path: maid_runner/core/test_runner.py
       artifacts:
         - kind: function
+          name: run_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: cwd
+              type: Union[str, Path]
+              default: "'.'"
+            - name: timeout
+              type: int
+              default: "300"
+            - name: manifest_slug
+              type: str
+              default: "''"
+            - name: stream
+              type: TestStream
+              default: "TestStream.IMPLEMENTATION"
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+          returns: TestRunResult
+          description: "Executes a resolved command with optional subprocess-scoped timing-plugin environment additions."
+        - kind: function
           name: run_tests
           args:
             - name: manifest_dir
@@ -272,7 +446,7 @@ files:
               type: int
               default: "1"
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
           returns: BatchTestResult
           description: "Forwards worker policy into the cached repository path and returns deterministic results plus notices."
@@ -338,12 +512,12 @@ files:
               type: int
               default: "1"
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
             - name: scheduling_notices
               type: list[TestSchedulingNotice] | None
               default: "None"
-          returns: tuple[list[TestRunResult], int, int, BatchTestResult | None]
+          returns: tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]
           description: "Renders accepted worker flags before serial/parallel dispatch, appends one notice per group, and preserves existing result order."
     - path: maid_runner/core/result.py
       artifacts:
@@ -352,6 +526,30 @@ files:
           of: BatchTestResult
           type: tuple[TestSchedulingNotice, Ellipsis]
           description: "Notices accumulated identically by repository, task-scoped, and single-manifest execution paths."
+    - path: maid_runner/core/_test_command_execution.py
+      artifacts:
+        - kind: function
+          name: _run_test_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: cwd
+              type: Union[str, Path]
+              default: "'.'"
+            - name: timeout
+              type: int
+              default: "300"
+            - name: manifest_slug
+              type: str
+              default: "''"
+            - name: stream
+              type: TestStream
+              default: "TestStream.IMPLEMENTATION"
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+          returns: TestRunResult
+          description: "Applies environment additions to one child only and never mutates the MAID process environment."
     - path: maid_runner/cli/commands/_main.py
       artifacts:
         - kind: function
@@ -546,10 +744,10 @@ files:
               type: int
               default: "1"
             - name: manifest_paths
-              type: Iterable[str | Path] | None
+              type: Union[Iterable[Union[str, Path]], None]
               default: "None"
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
           returns: VerificationStageResult
           description: "Applies the same worker override/notices to repository run_tests and the task-scoped direct implementation-command path."
@@ -576,6 +774,9 @@ files:
         - kind: test_function
           name: test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices
           args: []
+        - kind: test_function
+          name: test_runner_finalizes_timing_and_appends_discard_notice
+          args: []
     - path: tests/core/test_config.py
       artifacts:
         - kind: test_function
@@ -587,6 +788,9 @@ files:
         - kind: test_function
           name: test_test_execution_config_accepts_only_proven_loadscope_dist_mode
           args: []
+        - kind: test_function
+          name: test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy
+          args: []
     - path: tests/cli/test_test_cmd.py
       artifacts:
         - kind: test_function
@@ -594,6 +798,12 @@ files:
           args: []
         - kind: test_function
           name: test_explicit_single_worker_and_job_override_project_concurrency
+          args: []
+        - kind: test_function
+          name: test_explicit_default_equal_jobs_and_workers_remain_explicit
+          args: []
+        - kind: test_function
+          name: test_silent_test_cli_uses_repository_worker_and_job_config
           args: []
         - kind: test_function
           name: test_text_and_json_disclose_same_worker_or_fallback_decision
@@ -610,19 +820,94 @@ files:
         - kind: test_function
           name: test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice
           args: []
+        - kind: test_function
+          name: test_silent_verify_cli_uses_repository_worker_and_job_config
+          args: []
+        - kind: test_function
+          name: test_verify_explicit_default_equal_jobs_and_workers_remain_explicit
+          args: []
+    - path: tests/core/validation/test_test_command_execution.py
+      artifacts:
+        - kind: test_function
+          name: test_run_test_command_scopes_environment_overrides_to_child
+          args: []
   read:
     - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
-    - manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
-    - manifests/drafts/121-06-record-duration-informed-pytest-policy.manifest.yaml
+    - manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
+    - manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml
     - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
     - manifests/batch-compatible-maid-test-command-groups.manifest.yaml
     - manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml
     - maid_runner/core/_test_command_batching.py
     - maid_runner/core/_pytest_command_normalization.py
     - maid_runner/core/_pytest_config_addopts.py
+    - tools/check_pytest_parallel_equivalence.py
     - pyproject.toml
     - uv.lock
     - docs/plans/full-and-deep-verification-performance-redesign.md
 validate:
-  - uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py tests/core/test_pytest_worker_execution.py tests/core/test_test_runner.py tests/core/test_config.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
-  - uv run maid validate manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet
+  - uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py tests/core/test_pytest_worker_execution.py tests/core/test_test_runner.py tests/core/test_config.py tests/core/validation/test_test_command_execution.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py
+  - uv run maid validate manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T12:42:09+08:00"
+  summary: "Integrated duration-informed pytest execution with exact consumer-environment probing, accepted eight-worker loadscope scheduling, complete timing evidence, stable result ordering, one process budget, and visible fail-closed notices; the warm 251-command MAID test gate fell from 201.91 seconds to 86.86 seconds."
+  rationale: "The runner remains serial by default for consumers and this repository opts into only the worker count and scheduler proven by 121-03. Exact node collection and content-bound timing history prevent selection changes, incomplete or stale evidence falls back visibly, explicit unsupported requests fail, and command jobs multiplied by pytest workers cannot exceed the configured process budget. The measured warm full gate achieved a 2.32x speedup (57% reduction) without removing tests or weakening any gate. Deep verification was also observed spending more than twenty minutes in the pre-existing serialized artifact-coverage stage, but its final output tail was lost to tool truncation and is therefore not represented as a known pass or failure."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-runner-draft-implement
+      - maid-runner-performance-optimization
+      - maid-plan-review
+      - maid-implementer
+      - maid-evolver
+      - maid-implementation-review
+  lessons:
+    - lesson_type: performance
+      summary: "Exact duration history can safely turn repeated repository verification into a worker-scheduled run; eight loadscope workers reduced the full 251-command gate from 201.91 seconds to 86.86 seconds while retaining every command and test."
+      tags: [pytest, xdist, scheduling, benchmark]
+      paths:
+        - maid_runner/core/_pytest_worker_execution.py
+        - maid_runner/core/test_runner.py
+        - .maidrc.yaml
+    - lesson_type: validation-trust
+      summary: "Instrumentation must preserve consumer PYTEST_PLUGINS, discard advisory cache-write failures without changing successful test outcomes, and exclude pytest-generated cache state while hashing ordinary non-Python test inputs."
+      tags: [pytest-plugins, cache-identity, fail-closed, implementation-review]
+      paths:
+        - maid_runner/core/_pytest_worker_execution.py
+        - maid_runner/core/_pytest_timing_plugin.py
+        - tests/core/test_pytest_worker_execution.py
+    - lesson_type: bottleneck
+      summary: "Worker scheduling materially accelerates the full MAID test stage, but deep verification remains dominated by serialized artifact coverage and needs a separate contract-preserving optimization slice."
+      tags: [deep-verify, artifact-coverage, performance]
+      paths:
+        - docs/plans/full-and-deep-verification-performance-redesign.md
+  review_notes:
+    - source: independent-reviewer-review_121_07_implementation
+      severity: needs_changes
+      summary: "Initial review found inherited consumer plugins were overwritten, advisory history-write errors escaped after successful tests, and non-Python repository inputs were absent from timing identity."
+    - source: independent-reviewer-review_121_07_implementation
+      severity: needs_changes
+      summary: "First re-review confirmed the original fixes and found pytest-generated .pytest_cache state could immediately stale newly recorded timing history."
+    - source: independent-reviewer-review_121_07_implementation
+      severity: ready
+      summary: "Final re-review found no blockers after revision 9 preserved red evidence and regression coverage closed plugin inheritance, advisory persistence, non-Python invalidation, and generated pytest-cache stability."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_pytest_parallelism_policy.py, tests/core/test_pytest_worker_execution.py, tests/core/test_test_runner.py, tests/core/test_config.py, tests/core/validation/test_test_command_execution.py, tests/cli/test_test_cmd.py, tests/cli/test_verify_cmd.py]
+      status: passed
+      summary: "All 206 focused worker-policy, subprocess, timing, configuration, runner, and CLI tests passed in 7.41 seconds after the final review fix."
+    - command: [uv, run, maid, validate, manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed in 1.365 seconds with only the expected E307 advisory for repository .maidrc.yaml configuration."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "Repository validation passed 421 active manifests with zero failures and 113 superseded manifests skipped in 5.432 seconds."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "The 251-command calibration run passed serially in 201.91 seconds and wrote exact timing history; an identical warm run passed all 251 commands with eight loadscope workers in 86.86 seconds, a 2.32x speedup and 57% reduction."
+    - command: [uv, run, maid, verify, --profile, handoff, --require-plan-lock, --require-red-evidence, --since, 61d3ee4, --summary]
+      status: passed
+      summary: "All nine handoff stages passed in 35.18 seconds with only known no-validator advisories."

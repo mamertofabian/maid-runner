@@ -57,6 +57,82 @@ class TestRunnerWrapperConfig:
 
 
 @dataclass(frozen=True)
+class TestExecutionConfig:
+    """Validated pytest workers and shared process budget."""
+
+    pytest_workers: int | str = 1
+    pytest_dist_mode: str = "loadscope"
+    accepted_pytest_worker_counts: tuple[int, ...] = ()
+    parallel_threshold_seconds: float = 30.0
+    parallel_without_history: bool = False
+    command_jobs: int = 1
+    max_processes: int = 1
+
+    def __post_init__(self) -> None:
+        workers = self.pytest_workers
+        if isinstance(workers, bool) or not isinstance(workers, (int, str)):
+            raise ValueError("test_execution.pytest_workers must be positive or auto")
+        if isinstance(workers, int) and workers < 1:
+            raise ValueError("test_execution.pytest_workers must be positive or auto")
+        if isinstance(workers, str) and workers != "auto":
+            raise ValueError("test_execution.pytest_workers must be positive or auto")
+        if self.pytest_dist_mode != "loadscope":
+            raise ValueError("test_execution.pytest_dist_mode must be loadscope")
+
+        counts = self.accepted_pytest_worker_counts
+        if not isinstance(counts, tuple) or any(
+            isinstance(value, bool) or not isinstance(value, int) or value <= 1
+            for value in counts
+        ):
+            raise ValueError(
+                "test_execution.accepted_pytest_worker_counts must contain integers greater than one"
+            )
+        if len(set(counts)) != len(counts):
+            raise ValueError(
+                "test_execution.accepted_pytest_worker_counts must be unique"
+            )
+        object.__setattr__(self, "accepted_pytest_worker_counts", tuple(sorted(counts)))
+
+        threshold = self.parallel_threshold_seconds
+        if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
+            raise ValueError(
+                "test_execution.parallel_threshold_seconds must be finite and non-negative"
+            )
+        normalized_threshold = float(threshold)
+        if not math.isfinite(normalized_threshold) or normalized_threshold < 0:
+            raise ValueError(
+                "test_execution.parallel_threshold_seconds must be finite and non-negative"
+            )
+        object.__setattr__(self, "parallel_threshold_seconds", normalized_threshold)
+
+        if not isinstance(self.parallel_without_history, bool):
+            raise ValueError("test_execution.parallel_without_history must be boolean")
+        for name, value in (
+            ("command_jobs", self.command_jobs),
+            ("max_processes", self.max_processes),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                raise ValueError(f"test_execution.{name} must be a positive integer")
+
+        requested = max(counts) if workers == "auto" and counts else workers
+        if workers == "auto" and not counts:
+            raise ValueError(
+                "test_execution.pytest_workers auto requires an accepted worker count"
+            )
+        if isinstance(requested, int) and requested > 1 and requested not in counts:
+            raise ValueError(
+                "test_execution.pytest_workers must be in accepted_pytest_worker_counts"
+            )
+        if (
+            isinstance(requested, int)
+            and self.command_jobs * requested > self.max_processes
+        ):
+            raise ValueError(
+                "test_execution command_jobs * pytest_workers exceeds max_processes"
+            )
+
+
+@dataclass(frozen=True)
 class MaidConfig:
     manifest_dir: str = "manifests/"
     schema_version: str = "2"
@@ -69,6 +145,7 @@ class MaidConfig:
         CoverageRecommendationConfig()
     )
     artifact_coverage: ArtifactCoverageConfig = ArtifactCoverageConfig()
+    test_execution: TestExecutionConfig = TestExecutionConfig()
 
 
 def load_config(project_root: Union[str, Path]) -> MaidConfig:
@@ -137,6 +214,7 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
     artifact_coverage_config = ArtifactCoverageConfig(
         timeout_seconds=raw_artifact_coverage_timeout
     )
+    test_execution_config = _parse_test_execution(data.get("test_execution", {}))
 
     return MaidConfig(
         manifest_dir=data.get("manifest_dir", "manifests/"),
@@ -155,6 +233,40 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
             deep_command=tuple(raw_command) if raw_command is not None else None,
         ),
         artifact_coverage=artifact_coverage_config,
+        test_execution=test_execution_config,
+    )
+
+
+def _parse_test_execution(raw: object) -> TestExecutionConfig:
+    if raw is None:
+        return TestExecutionConfig()
+    if not isinstance(raw, dict):
+        raise ValueError("test_execution must be a mapping")
+    allowed = {
+        "pytest_workers",
+        "pytest_dist_mode",
+        "accepted_pytest_worker_counts",
+        "parallel_threshold_seconds",
+        "parallel_without_history",
+        "command_jobs",
+        "max_processes",
+    }
+    unknown = set(raw) - allowed
+    if unknown:
+        raise ValueError(
+            f"test_execution contains unknown keys: {', '.join(sorted(unknown))}"
+        )
+    raw_counts = raw.get("accepted_pytest_worker_counts", ())
+    if not isinstance(raw_counts, (list, tuple)):
+        raise ValueError("test_execution.accepted_pytest_worker_counts must be a list")
+    return TestExecutionConfig(
+        pytest_workers=raw.get("pytest_workers", 1),
+        pytest_dist_mode=raw.get("pytest_dist_mode", "loadscope"),
+        accepted_pytest_worker_counts=tuple(raw_counts),
+        parallel_threshold_seconds=raw.get("parallel_threshold_seconds", 30.0),
+        parallel_without_history=raw.get("parallel_without_history", False),
+        command_jobs=raw.get("command_jobs", 1),
+        max_processes=raw.get("max_processes", 1),
     )
 
 

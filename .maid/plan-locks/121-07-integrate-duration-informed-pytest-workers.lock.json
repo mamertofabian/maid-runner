@@ -1,0 +1,2052 @@
+{
+  "manifest_path": "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+  "manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+  "test_hashes": {
+    "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+    "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+    "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+    "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+    "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+  },
+  "created_at": "2026-08-11T03:36:15.811144+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5756363cfa6157339e84d056ed689ad67c645b44dd4e961631a8eedeb0b0f972",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:5842a7642db13cf864426cf9431e4ff7042c4ab8105fba8636d171027cf5190b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:44eca27397747ace426aca25040a597c7208d3a461dd030560dc3e06ebf045a7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:52781d6e5d901e4d107e8ba22fe1840958d8bdc39146b9b7ae98a4ed4890ffb4",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T03:36:29.026224+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml -> manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd9e5cbe9a08bae00323541d735c62d051a4d7d6e43939bfd52a2db34a052106",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:5842a7642db13cf864426cf9431e4ff7042c4ab8105fba8636d171027cf5190b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:44eca27397747ace426aca25040a597c7208d3a461dd030560dc3e06ebf045a7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:52781d6e5d901e4d107e8ba22fe1840958d8bdc39146b9b7ae98a4ed4890ffb4",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T03:47:38.018339+00:00",
+      "reason": "normalize equivalent chained union signatures reported by implementation validator",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_paths:type=Union[Iterable[Union[str, Path]], None]:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:_run_implementation_commands:returns=tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=pytest_workers:type=Union[Union[int, str], None]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_paths:type=Iterable[str | Path] | None:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/test_runner.py:function:_run_implementation_commands:returns=tuple[list[TestRunResult], int, int, BatchTestResult | None]",
+          "maid_runner/core/test_runner.py:function:run_tests:arg=pytest_workers:type=int | str | None:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:27f5e4ba6609539eadb8687bc718b114f427194157f58385fa659c024f665ec0",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:5842a7642db13cf864426cf9431e4ff7042c4ab8105fba8636d171027cf5190b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:021c3e788fecf78ea46ab20725821a179f4554e822e52fcd6e4a17f624c55d3f",
+        "tests/core/test_config.py": "sha256-pyast:v2:39f9255ea6b382b886deff3aa0a311248660c221df6d4ac47de364942c485ad6",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:a04afe88828ce7bb799427a1a08d821f6d4a090dd1c15b037ac3b5b8db7c3419",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:9deb995a4d4f5370893e0c7d92521772dcbf12d2e61c421ffce65f3d0a257651",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T03:55:02.157435+00:00",
+      "reason": "accept setup-skipped completeness regression coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:27f5e4ba6609539eadb8687bc718b114f427194157f58385fa659c024f665ec0",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:3aa082dd2d50da42cbf2f3165a3bede89c7d530e265741a927047889a31e097a",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T03:55:56.259849+00:00",
+      "reason": "prove real timing refresh includes setup-skipped nodes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:27f5e4ba6609539eadb8687bc718b114f427194157f58385fa659c024f665ec0",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:0816ffd77d733b898baf9dad6b7b64b66051cbd012bdc95310093bd16f48283d",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T04:38:13.423505+00:00",
+      "reason": "Add review-driven regression coverage for inherited consumer plugins, advisory cache-write failures, and non-Python timing identity inputs without changing the approved worker policy contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:27f5e4ba6609539eadb8687bc718b114f427194157f58385fa659c024f665ec0",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:776320b7498c32802e44a85218f60ed4d14d8b016cc951c4e0151eefc4a72c24",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T04:38:43.769640+00:00",
+      "reason": "Declare the independent-review regression tests for inherited consumer plugins and advisory cache-write failure handling.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_pytest_worker_execution.py:test_collection_preserves_inherited_consumer_pytest_plugins",
+          "tests/core/test_pytest_worker_execution.py:test_collection_preserves_inherited_consumer_pytest_plugins:kind=test_function",
+          "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_discards_advisory_cache_write_failure",
+          "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_discards_advisory_cache_write_failure:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:776320b7498c32802e44a85218f60ed4d14d8b016cc951c4e0151eefc4a72c24",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T04:39:07.348945+00:00",
+      "reason": "Apply Black formatting to the review-driven behavioral tests without changing their contract or assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:776320b7498c32802e44a85218f60ed4d14d8b016cc951c4e0151eefc4a72c24",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T04:41:09.433141+00:00",
+      "reason": "Exclude pytest-generated .pytest_cache state from timing identity and cover stable cache identity across pytest cache writes.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-11T03:36:35.984771+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py tests/core/test_pytest_worker_execution.py tests/core/test_test_runner.py tests/core/test_config.py tests/core/validation/test_test_command_execution.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_pytest_worker_execution.py::test_timing_plugin_rejects_missing_duplicate_nonzero_and_disagreeing_evidence\nFAILED tests/core/test_test_runner.py::test_repository_worker_override_reaches_batched_pytest_command_and_notice\nFAILED tests/core/test_test_runner.py::test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices\nFAILED tests/core/test_test_runner.py::test_runner_finalizes_timing_and_appends_discard_notice\nFAILED tests/core/test_config.py::test_test_execution_config_accepts_workers_threshold_jobs_and_process_budget\nFAILED tests/core/test_config.py::test_test_execution_config_rejects_invalid_or_oversubscribed_values\nFAILED tests/core/test_config.py::test_test_execution_config_accepts_only_proven_loadscope_dist_mode\nFAILED tests/core/test_config.py::test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy\nFAILED tests/core/validation/test_test_command_execution.py::test_run_test_command_scopes_environment_overrides_to_child\nFAILED tests/cli/test_test_cmd.py::test_test_parser_accepts_explicit_pytest_workers\nFAILED tests/cli/test_test_cmd.py::test_explicit_single_worker_and_job_override_project_concurrency\nFAILED tests/cli/test_test_cmd.py::test_explicit_default_equal_jobs_and_workers_remain_explicit\nFAILED tests/cli/test_test_cmd.py::test_silent_test_cli_uses_repository_worker_and_job_config\nFAILED tests/cli/test_test_cmd.py::test_text_and_json_disclose_same_worker_or_fallback_decision\nFAILED tests/cli/test_test_cmd.py::test_single_manifest_worker_override_reaches_exact_pytest_command\nFAILED tests/cli/test_verify_cmd.py::test_verify_explicit_default_equal_jobs_and_workers_remain_explicit\nFAILED tests/cli/test_verify_cmd.py::test_verify_explicit_pytest_workers_reaches_tests_stage_and_overrides_project_default\nFAILED tests/cli/test_verify_cmd.py::test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice\nFAILED tests/cli/test_verify_cmd.py::test_silent_verify_cli_uses_repository_worker_and_job_config\n39 failed, 165 passed in 6.41s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "GPT-5",
+    "provider": "OpenAI",
+    "client": "Codex",
+    "skills": [
+      "maid-runner-draft-implement",
+      "maid-plan-review"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".maidrc.yaml:attribute:maid-config.test_execution",
+      ".maidrc.yaml:attribute:maid-config.test_execution:kind=attribute",
+      ".maidrc.yaml:attribute:maid-config.test_execution:of=maid-config",
+      ".maidrc.yaml:attribute:maid-config.test_execution:type=mapping",
+      "maid_runner/cli/commands/_format.py:function:format_test_result",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=result:type=BatchTestResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=verbose:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:returns=str",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/test.py:function:cmd_test",
+      "maid_runner/cli/commands/test.py:function:cmd_test:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/test.py:function:cmd_test:kind=function",
+      "maid_runner/cli/commands/test.py:function:cmd_test:returns=int",
+      "maid_runner/cli/commands/verify.py:function:_run_verify",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=allow_empty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=artifact_coverage:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=changed_scope_explicit:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=check_assertions:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=check_stubs:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_fast:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=fail_on_warnings:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=include_tests:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout_allow_dirty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=knockout_limit:type=int | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_changed_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_plan_lock:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_red_evidence:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=require_worktree_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify:returns=VerificationResult",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=allow_empty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=artifact_coverage:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=changed_scope_explicit:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_assertions:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_stubs:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_fast:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_warnings:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=include_tests:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_allow_dirty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_limit:type=int | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_changed_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_plan_lock:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_red_evidence:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_worktree_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:returns=VerificationResult",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=fail_fast:type=bool:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=manifest_paths:type=Union[Iterable[Union[str, Path]], None]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_tests_stage:returns=VerificationStageResult",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
+      "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.completed_nodeids",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.completed_nodeids:kind=attribute",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.completed_nodeids:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.completed_nodeids:type=set[str]",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.durations_ms",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.durations_ms:kind=attribute",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.durations_ms:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.durations_ms:type=dict[str, float]",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.incomplete_workers",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.incomplete_workers:kind=attribute",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.incomplete_workers:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.incomplete_workers:type=set[str]",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.output_path",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.output_path:kind=attribute",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.output_path:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.output_path:type=Path",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.selected_nodeids",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.selected_nodeids:kind=attribute",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.selected_nodeids:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:attribute:PytestTimingPlugin.selected_nodeids:type=set[str]",
+      "maid_runner/core/_pytest_timing_plugin.py:class:PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:class:PytestTimingPlugin:kind=class",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_addoption",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_addoption:arg=parser:type=pytest.Parser:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_addoption:kind=function",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_addoption:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_configure",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_configure:arg=config:type=pytest.Config:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_configure:kind=function",
+      "maid_runner/core/_pytest_timing_plugin.py:function:pytest_configure:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_collection_finish",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_collection_finish:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_collection_finish:kind=method",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_collection_finish:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_collection_finish:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_runtest_logreport",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_runtest_logreport:arg=report:type=pytest.TestReport:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_runtest_logreport:kind=method",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_runtest_logreport:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_runtest_logreport:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish:arg=exitstatus:type=int:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish:kind=method",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_sessionfinish:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown:arg=error:type=object | None:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown:arg=node:type=object:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown:kind=method",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_testnodedown:returns=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished:arg=ids:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished:arg=node:type=object:default=None",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished:kind=method",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished:of=PytestTimingPlugin",
+      "maid_runner/core/_pytest_timing_plugin.py:method:PytestTimingPlugin.pytest_xdist_node_collection_finished:returns=None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.behavior_group_digest",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.behavior_group_digest:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.behavior_group_digest:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.behavior_group_digest:type=str | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.command",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.command:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.command:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.command:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.environment_overrides",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.environment_overrides:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.environment_overrides:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.environment_overrides:type=Mapping[str, str]",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.input_digest",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.input_digest:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.input_digest:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.input_digest:type=str | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.notice",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.notice:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.notice:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.notice:type=TestSchedulingNotice | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.selected_nodeids",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.selected_nodeids:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.selected_nodeids:of=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PreparedPytestCommand.selected_nodeids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.error",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.error:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.error:of=PytestCollectionResult",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.error:type=str | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.nodeids",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.nodeids:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.nodeids:of=PytestCollectionResult",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestCollectionResult.nodeids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.error",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.error:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.error:of=PytestRunnerCapabilities",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.error:type=str | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_available",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_available:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_available:of=PytestRunnerCapabilities",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_available:type=bool",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_version",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_version:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_version:of=PytestRunnerCapabilities",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:PytestRunnerCapabilities.xdist_version:type=str | None",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.command_group",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.command_group:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.command_group:of=TestSchedulingNotice",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.command_group:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.mode",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.mode:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.mode:of=TestSchedulingNotice",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.mode:type=str",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.reason",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.reason:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.reason:of=TestSchedulingNotice",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.reason:type=str",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.workers",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.workers:kind=attribute",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.workers:of=TestSchedulingNotice",
+      "maid_runner/core/_pytest_worker_execution.py:attribute:TestSchedulingNotice.workers:type=int | str",
+      "maid_runner/core/_pytest_worker_execution.py:class:PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:class:PreparedPytestCommand:kind=class",
+      "maid_runner/core/_pytest_worker_execution.py:class:PytestCollectionResult",
+      "maid_runner/core/_pytest_worker_execution.py:class:PytestCollectionResult:kind=class",
+      "maid_runner/core/_pytest_worker_execution.py:class:PytestRunnerCapabilities",
+      "maid_runner/core/_pytest_worker_execution.py:class:PytestRunnerCapabilities:kind=class",
+      "maid_runner/core/_pytest_worker_execution.py:class:TestSchedulingNotice",
+      "maid_runner/core/_pytest_worker_execution.py:class:TestSchedulingNotice:kind=class",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=accepted_worker_counts:type=tuple[int, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=capabilities:type=PytestRunnerCapabilities:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=command_jobs:type=int:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=decision:type=PytestWorkerDecision:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=dist_mode:type=str:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=explicit:type=bool:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=max_processes:type=int:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:apply_pytest_worker_decision:returns=tuple[tuple[str, Ellipsis], TestSchedulingNotice]",
+      "maid_runner/core/_pytest_worker_execution.py:function:build_pytest_timing_identity",
+      "maid_runner/core/_pytest_worker_execution.py:function:build_pytest_timing_identity:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:build_pytest_timing_identity:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:build_pytest_timing_identity:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:build_pytest_timing_identity:returns=tuple[str, str]",
+      "maid_runner/core/_pytest_worker_execution.py:function:collect_pytest_nodeids",
+      "maid_runner/core/_pytest_worker_execution.py:function:collect_pytest_nodeids:arg=cwd:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:collect_pytest_nodeids:arg=resolved_command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:collect_pytest_nodeids:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:collect_pytest_nodeids:returns=PytestCollectionResult",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing:arg=prepared:type=PreparedPytestCommand:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing:arg=result:type=TestRunResult:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:finalize_pytest_timing:returns=TestSchedulingNotice | None",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=command_jobs:type=int:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:arg=resolved_command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:prepare_pytest_command:returns=PreparedPytestCommand",
+      "maid_runner/core/_pytest_worker_execution.py:function:probe_pytest_runner_capabilities",
+      "maid_runner/core/_pytest_worker_execution.py:function:probe_pytest_runner_capabilities:arg=cwd:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:probe_pytest_runner_capabilities:arg=resolved_command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:probe_pytest_runner_capabilities:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:probe_pytest_runner_capabilities:returns=PytestRunnerCapabilities",
+      "maid_runner/core/_pytest_worker_execution.py:function:timing_plugin_environment",
+      "maid_runner/core/_pytest_worker_execution.py:function:timing_plugin_environment:arg=directory:type=Path:default=None",
+      "maid_runner/core/_pytest_worker_execution.py:function:timing_plugin_environment:kind=function",
+      "maid_runner/core/_pytest_worker_execution.py:function:timing_plugin_environment:returns=tuple[dict[str, str], str]",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=cwd:type=Union[str, Path]:default='.'",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=environment_overrides:type=Mapping[str, str] | None:default=None",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=manifest_slug:type=str:default=''",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=stream:type=TestStream:default=TestStream.IMPLEMENTATION",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:arg=timeout:type=int:default=300",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:kind=function",
+      "maid_runner/core/_test_command_execution.py:function:_run_test_command:returns=TestRunResult",
+      "maid_runner/core/config.py:attribute:MaidConfig.test_execution",
+      "maid_runner/core/config.py:attribute:MaidConfig.test_execution:kind=attribute",
+      "maid_runner/core/config.py:attribute:MaidConfig.test_execution:of=MaidConfig",
+      "maid_runner/core/config.py:attribute:MaidConfig.test_execution:type=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.accepted_pytest_worker_counts",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.accepted_pytest_worker_counts:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.accepted_pytest_worker_counts:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.accepted_pytest_worker_counts:type=tuple[int, Ellipsis]",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.command_jobs",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.command_jobs:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.command_jobs:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.command_jobs:type=int",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.max_processes",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.max_processes:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.max_processes:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.max_processes:type=int",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_threshold_seconds",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_threshold_seconds:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_threshold_seconds:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_threshold_seconds:type=float",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_without_history",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_without_history:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_without_history:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.parallel_without_history:type=bool",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_dist_mode",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_dist_mode:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_dist_mode:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_dist_mode:type=str",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_workers",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_workers:kind=attribute",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_workers:of=TestExecutionConfig",
+      "maid_runner/core/config.py:attribute:TestExecutionConfig.pytest_workers:type=int | str",
+      "maid_runner/core/config.py:class:TestExecutionConfig",
+      "maid_runner/core/config.py:class:TestExecutionConfig:kind=class",
+      "maid_runner/core/result.py:attribute:BatchTestResult.scheduling_notices",
+      "maid_runner/core/result.py:attribute:BatchTestResult.scheduling_notices:kind=attribute",
+      "maid_runner/core/result.py:attribute:BatchTestResult.scheduling_notices:of=BatchTestResult",
+      "maid_runner/core/result.py:attribute:BatchTestResult.scheduling_notices:type=tuple[TestSchedulingNotice, Ellipsis]",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=batch:type=bool | None:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=chain_errors:type=list[ValidationError]:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=commands:type=list[tuple[tuple[str, Ellipsis], str]]:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=fail_fast:type=bool:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=jobs:type=int:default=1",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=previous_failed:type=int:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=previous_passed:type=int:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=previous_results:type=list[TestRunResult]:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=project_root:type=Path:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:arg=scheduling_notices:type=list[TestSchedulingNotice] | None:default=None",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:kind=function",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:returns=tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=batch:type=bool | None:default=None",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=fail_fast:type=bool:default=False",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=jobs:type=int:default=1",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:kind=function",
+      "maid_runner/core/test_runner.py:function:_run_tests_cached:returns=BatchTestResult",
+      "maid_runner/core/test_runner.py:function:run_command",
+      "maid_runner/core/test_runner.py:function:run_command:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/test_runner.py:function:run_command:arg=cwd:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:run_command:arg=environment_overrides:type=Mapping[str, str] | None:default=None",
+      "maid_runner/core/test_runner.py:function:run_command:arg=manifest_slug:type=str:default=''",
+      "maid_runner/core/test_runner.py:function:run_command:arg=stream:type=TestStream:default=TestStream.IMPLEMENTATION",
+      "maid_runner/core/test_runner.py:function:run_command:arg=timeout:type=int:default=300",
+      "maid_runner/core/test_runner.py:function:run_command:kind=function",
+      "maid_runner/core/test_runner.py:function:run_command:returns=TestRunResult",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=fail_fast:type=bool:default=False",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=manifest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:kind=function",
+      "maid_runner/core/test_runner.py:function:run_manifest_tests:returns=BatchTestResult",
+      "maid_runner/core/test_runner.py:function:run_tests",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=batch:type=bool | None:default=None",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=fail_fast:type=bool:default=False",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=jobs:type=int:default=1",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/test_runner.py:function:run_tests:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/test_runner.py:function:run_tests:kind=function",
+      "maid_runner/core/test_runner.py:function:run_tests:returns=BatchTestResult",
+      "tests/cli/test_test_cmd.py:test_explicit_default_equal_jobs_and_workers_remain_explicit",
+      "tests/cli/test_test_cmd.py:test_explicit_default_equal_jobs_and_workers_remain_explicit:kind=test_function",
+      "tests/cli/test_test_cmd.py:test_explicit_single_worker_and_job_override_project_concurrency",
+      "tests/cli/test_test_cmd.py:test_explicit_single_worker_and_job_override_project_concurrency:kind=test_function",
+      "tests/cli/test_test_cmd.py:test_silent_test_cli_uses_repository_worker_and_job_config",
+      "tests/cli/test_test_cmd.py:test_silent_test_cli_uses_repository_worker_and_job_config:kind=test_function",
+      "tests/cli/test_test_cmd.py:test_single_manifest_worker_override_reaches_exact_pytest_command",
+      "tests/cli/test_test_cmd.py:test_single_manifest_worker_override_reaches_exact_pytest_command:kind=test_function",
+      "tests/cli/test_test_cmd.py:test_test_parser_accepts_explicit_pytest_workers",
+      "tests/cli/test_test_cmd.py:test_test_parser_accepts_explicit_pytest_workers:kind=test_function",
+      "tests/cli/test_test_cmd.py:test_text_and_json_disclose_same_worker_or_fallback_decision",
+      "tests/cli/test_test_cmd.py:test_text_and_json_disclose_same_worker_or_fallback_decision:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_silent_verify_cli_uses_repository_worker_and_job_config",
+      "tests/cli/test_verify_cmd.py:test_silent_verify_cli_uses_repository_worker_and_job_config:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice",
+      "tests/cli/test_verify_cmd.py:test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_explicit_default_equal_jobs_and_workers_remain_explicit",
+      "tests/cli/test_verify_cmd.py:test_verify_explicit_default_equal_jobs_and_workers_remain_explicit:kind=test_function",
+      "tests/cli/test_verify_cmd.py:test_verify_explicit_pytest_workers_reaches_tests_stage_and_overrides_project_default",
+      "tests/cli/test_verify_cmd.py:test_verify_explicit_pytest_workers_reaches_tests_stage_and_overrides_project_default:kind=test_function",
+      "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy",
+      "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy:kind=test_function",
+      "tests/core/test_config.py:test_test_execution_config_accepts_only_proven_loadscope_dist_mode",
+      "tests/core/test_config.py:test_test_execution_config_accepts_only_proven_loadscope_dist_mode:kind=test_function",
+      "tests/core/test_config.py:test_test_execution_config_accepts_workers_threshold_jobs_and_process_budget",
+      "tests/core/test_config.py:test_test_execution_config_accepts_workers_threshold_jobs_and_process_budget:kind=test_function",
+      "tests/core/test_config.py:test_test_execution_config_rejects_invalid_or_oversubscribed_values",
+      "tests/core/test_config.py:test_test_execution_config_rejects_invalid_or_oversubscribed_values:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_missing_xdist_is_structured_serial_fallback",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_missing_xdist_is_structured_serial_fallback:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_policy_collects_exact_nodes_before_duration_decision",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_policy_collects_exact_nodes_before_duration_decision:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_worker_command_pins_accepted_loadscope_scheduler",
+      "tests/core/test_pytest_worker_execution.py:test_automatic_worker_command_pins_accepted_loadscope_scheduler:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_capability_probe_uses_resolved_consumer_environment",
+      "tests/core/test_pytest_worker_execution.py:test_capability_probe_uses_resolved_consumer_environment:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_collection_preserves_inherited_consumer_pytest_plugins",
+      "tests/core/test_pytest_worker_execution.py:test_collection_preserves_inherited_consumer_pytest_plugins:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_collection_uses_resolved_consumer_environment_and_fails_closed",
+      "tests/core/test_pytest_worker_execution.py:test_collection_uses_resolved_consumer_environment_and_fails_closed:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_controller_timing_contains_every_selected_node_once",
+      "tests/core/test_pytest_worker_execution.py:test_controller_timing_contains_every_selected_node_once:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_existing_command_worker_option_is_not_duplicated",
+      "tests/core/test_pytest_worker_execution.py:test_existing_command_worker_option_is_not_duplicated:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_existing_config_worker_option_is_not_duplicated",
+      "tests/core/test_pytest_worker_execution.py:test_existing_config_worker_option_is_not_duplicated:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_explicit_missing_xdist_is_visible_failure",
+      "tests/core/test_pytest_worker_execution.py:test_explicit_missing_xdist_is_visible_failure:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_injected_worker_count_must_be_in_repository_accepted_set",
+      "tests/core/test_pytest_worker_execution.py:test_injected_worker_count_must_be_in_repository_accepted_set:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_lost_worker_does_not_write_complete_timing_history",
+      "tests/core/test_pytest_worker_execution.py:test_lost_worker_does_not_write_complete_timing_history:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_preconfigured_workers_obey_product_budget_and_command_precedence",
+      "tests/core/test_pytest_worker_execution.py:test_preconfigured_workers_obey_product_budget_and_command_precedence:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_process_budget_bounds_command_jobs_plus_pytest_workers",
+      "tests/core/test_pytest_worker_execution.py:test_process_budget_bounds_command_jobs_plus_pytest_workers:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_real_preparer_applies_worker_decision_and_fallback_precedence",
+      "tests/core/test_pytest_worker_execution.py:test_real_preparer_applies_worker_decision_and_fallback_precedence:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_serial_and_worker_results_have_equivalent_normalized_payloads",
+      "tests/core/test_pytest_worker_execution.py:test_serial_and_worker_results_have_equivalent_normalized_payloads:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_discards_advisory_cache_write_failure",
+      "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_discards_advisory_cache_write_failure:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_records_only_successful_exact_complete_history",
+      "tests/core/test_pytest_worker_execution.py:test_timing_finalizer_records_only_successful_exact_complete_history:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_timing_identity_changes_with_repository_test_or_config_content",
+      "tests/core/test_pytest_worker_execution.py:test_timing_identity_changes_with_repository_test_or_config_content:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_timing_plugin_loads_in_consumer_environment_without_maid_runner_import",
+      "tests/core/test_pytest_worker_execution.py:test_timing_plugin_loads_in_consumer_environment_without_maid_runner_import:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_timing_plugin_rejects_missing_duplicate_nonzero_and_disagreeing_evidence",
+      "tests/core/test_pytest_worker_execution.py:test_timing_plugin_rejects_missing_duplicate_nonzero_and_disagreeing_evidence:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_unproven_automatic_dist_mode_is_rejected",
+      "tests/core/test_pytest_worker_execution.py:test_unproven_automatic_dist_mode_is_rejected:kind=test_function",
+      "tests/core/test_pytest_worker_execution.py:test_worker_completion_order_does_not_reorder_structured_results",
+      "tests/core/test_pytest_worker_execution.py:test_worker_completion_order_does_not_reorder_structured_results:kind=test_function",
+      "tests/core/test_test_runner.py:test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices",
+      "tests/core/test_test_runner.py:test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices:kind=test_function",
+      "tests/core/test_test_runner.py:test_repository_worker_override_reaches_batched_pytest_command_and_notice",
+      "tests/core/test_test_runner.py:test_repository_worker_override_reaches_batched_pytest_command_and_notice:kind=test_function",
+      "tests/core/test_test_runner.py:test_runner_finalizes_timing_and_appends_discard_notice",
+      "tests/core/test_test_runner.py:test_runner_finalizes_timing_and_appends_discard_notice:kind=test_function",
+      "tests/core/validation/test_test_command_execution.py:test_run_test_command_scopes_environment_overrides_to_child",
+      "tests/core/validation/test_test_command_execution.py:test_run_test_command_scopes_environment_overrides_to_child:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        ".maidrc.yaml",
+        "maid_runner/core/_pytest_timing_plugin.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "tests/core/test_pytest_worker_execution.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/test.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/test_runner.py",
+        "tests/cli/test_test_cmd.py",
+        "tests/cli/test_verify_cmd.py",
+        "tests/core/test_config.py",
+        "tests/core/test_test_runner.py",
+        "tests/core/validation/test_test_command_execution.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_pytest_command_normalization.py",
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_test_command_batching.py",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+        "manifests/batch-compatible-maid-test-command-groups.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "pyproject.toml",
+        "tools/check_pytest_parallel_equivalence.py",
+        "uv.lock"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/_pytest_worker_execution.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "PytestRunnerCapabilities",
+              "description": "Resolved consumer-runner xdist capability and probe diagnostic."
+            },
+            {
+              "kind": "attribute",
+              "name": "xdist_available",
+              "of": "PytestRunnerCapabilities",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "xdist_version",
+              "of": "PytestRunnerCapabilities",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "error",
+              "of": "PytestRunnerCapabilities",
+              "type": "str | None"
+            },
+            {
+              "kind": "class",
+              "name": "TestSchedulingNotice",
+              "description": "Stable automation-visible scheduling decision or fallback notice."
+            },
+            {
+              "kind": "attribute",
+              "name": "command_group",
+              "of": "TestSchedulingNotice",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "mode",
+              "of": "TestSchedulingNotice",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "workers",
+              "of": "TestSchedulingNotice",
+              "type": "int | str"
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "of": "TestSchedulingNotice",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "PytestCollectionResult",
+              "description": "Exact node IDs collected in the resolved consumer environment or a typed collection error."
+            },
+            {
+              "kind": "attribute",
+              "name": "nodeids",
+              "of": "PytestCollectionResult",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "error",
+              "of": "PytestCollectionResult",
+              "type": "str | None"
+            },
+            {
+              "kind": "class",
+              "name": "PreparedPytestCommand",
+              "description": "One resolved command, child-only plugin environment, exact selection/identity evidence, and cleanup lifecycle."
+            },
+            {
+              "kind": "attribute",
+              "name": "command",
+              "of": "PreparedPytestCommand",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "environment_overrides",
+              "of": "PreparedPytestCommand",
+              "type": "Mapping[str, str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "notice",
+              "of": "PreparedPytestCommand",
+              "type": "TestSchedulingNotice | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "selected_nodeids",
+              "of": "PreparedPytestCommand",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "behavior_group_digest",
+              "of": "PreparedPytestCommand",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "input_digest",
+              "of": "PreparedPytestCommand",
+              "type": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "probe_pytest_runner_capabilities",
+              "description": "Probes xdist in the exact resolved runner environment and returns a typed failure instead of guessing.",
+              "args": [
+                {
+                  "name": "resolved_command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Path"
+                }
+              ],
+              "returns": "PytestRunnerCapabilities"
+            },
+            {
+              "kind": "function",
+              "name": "build_pytest_timing_identity",
+              "description": "Builds deterministic behavior-group and repository/test/config content digests without storing outcomes.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "tuple[str, str]"
+            },
+            {
+              "kind": "function",
+              "name": "collect_pytest_nodeids",
+              "description": "Collects the exact current node set in the resolved consumer pytest environment and fails closed on incomplete or invalid evidence.",
+              "args": [
+                {
+                  "name": "resolved_command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Path"
+                }
+              ],
+              "returns": "PytestCollectionResult"
+            },
+            {
+              "kind": "function",
+              "name": "timing_plugin_environment",
+              "description": "Materializes a standalone plugin in a child-only import path so consumer environments never need maid-runner installed.",
+              "args": [
+                {
+                  "name": "directory",
+                  "type": "Path"
+                }
+              ],
+              "returns": "tuple[dict[str, str], str]"
+            },
+            {
+              "kind": "function",
+              "name": "prepare_pytest_command",
+              "description": "Collects exact nodes, resolves explicit/config policy, probes the consumer runner, applies only accepted loadscope workers, and attaches child-only timing instrumentation.",
+              "args": [
+                {
+                  "name": "resolved_command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]"
+                },
+                {
+                  "name": "command_jobs",
+                  "type": "int"
+                }
+              ],
+              "returns": "PreparedPytestCommand"
+            },
+            {
+              "kind": "function",
+              "name": "finalize_pytest_timing",
+              "description": "On a successful exact-complete run only, validates plugin evidence and atomically refreshes 121-06 history; otherwise discards it with a visible notice and always cleans temporary state.",
+              "args": [
+                {
+                  "name": "prepared",
+                  "type": "PreparedPytestCommand"
+                },
+                {
+                  "name": "result",
+                  "type": "TestRunResult"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "TestSchedulingNotice | None"
+            },
+            {
+              "kind": "function",
+              "name": "apply_pytest_worker_decision",
+              "description": "Produces one normalized command pinned to accepted loadscope/count evidence, visibly falling back or failing on unproven injection without changing selected targets.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "decision",
+                  "type": "PytestWorkerDecision"
+                },
+                {
+                  "name": "capabilities",
+                  "type": "PytestRunnerCapabilities"
+                },
+                {
+                  "name": "dist_mode",
+                  "type": "str"
+                },
+                {
+                  "name": "accepted_worker_counts",
+                  "type": "tuple[int, Ellipsis]"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int"
+                },
+                {
+                  "name": "command_jobs",
+                  "type": "int"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "explicit",
+                  "type": "bool"
+                }
+              ],
+              "returns": "tuple[tuple[str, Ellipsis], TestSchedulingNotice]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_pytest_timing_plugin.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "PytestTimingPlugin",
+              "description": "Controller-side pytest plugin that records completed node durations and worker loss."
+            },
+            {
+              "kind": "attribute",
+              "name": "durations_ms",
+              "of": "PytestTimingPlugin",
+              "type": "dict[str, float]"
+            },
+            {
+              "kind": "attribute",
+              "name": "output_path",
+              "of": "PytestTimingPlugin",
+              "type": "Path"
+            },
+            {
+              "kind": "attribute",
+              "name": "incomplete_workers",
+              "of": "PytestTimingPlugin",
+              "type": "set[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "selected_nodeids",
+              "of": "PytestTimingPlugin",
+              "type": "set[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "completed_nodeids",
+              "of": "PytestTimingPlugin",
+              "type": "set[str]"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_collection_finish",
+              "of": "PytestTimingPlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_xdist_node_collection_finished",
+              "of": "PytestTimingPlugin",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "object"
+                },
+                {
+                  "name": "ids",
+                  "type": "Sequence[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_runtest_logreport",
+              "of": "PytestTimingPlugin",
+              "args": [
+                {
+                  "name": "report",
+                  "type": "pytest.TestReport"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_testnodedown",
+              "of": "PytestTimingPlugin",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "object"
+                },
+                {
+                  "name": "error",
+                  "type": "object | None"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_sessionfinish",
+              "of": "PytestTimingPlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                },
+                {
+                  "name": "exitstatus",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "pytest_addoption",
+              "args": [
+                {
+                  "name": "parser",
+                  "type": "pytest.Parser"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "pytest_configure",
+              "args": [
+                {
+                  "name": "config",
+                  "type": "pytest.Config"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_pytest_worker_execution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_capability_probe_uses_resolved_consumer_environment"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_missing_xdist_is_visible_failure"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_automatic_missing_xdist_is_structured_serial_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_command_worker_option_is_not_duplicated"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_automatic_worker_command_pins_accepted_loadscope_scheduler"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unproven_automatic_dist_mode_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_injected_worker_count_must_be_in_repository_accepted_set"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_process_budget_bounds_command_jobs_plus_pytest_workers"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_controller_timing_contains_every_selected_node_once"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_lost_worker_does_not_write_complete_timing_history"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serial_and_worker_results_have_equivalent_normalized_payloads"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_completion_order_does_not_reorder_structured_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_collection_uses_resolved_consumer_environment_and_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_identity_changes_with_repository_test_or_config_content"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_collection_preserves_inherited_consumer_pytest_plugins"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_config_worker_option_is_not_duplicated"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_automatic_policy_collects_exact_nodes_before_duration_decision"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_plugin_loads_in_consumer_environment_without_maid_runner_import"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_finalizer_records_only_successful_exact_complete_history"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_finalizer_discards_advisory_cache_write_failure"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_plugin_rejects_missing_duplicate_nonzero_and_disagreeing_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preconfigured_workers_obey_product_budget_and_command_precedence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_preparer_applies_worker_decision_and_fallback_precedence"
+            }
+          ]
+        },
+        {
+          "path": ".maidrc.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "test_execution",
+              "description": "Opts this repository into duration-informed loadscope workers within one process budget.",
+              "of": "maid-config",
+              "type": "mapping"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "TestExecutionConfig",
+              "description": "Validated worker, threshold, command concurrency, and total-process policy."
+            },
+            {
+              "kind": "attribute",
+              "name": "pytest_workers",
+              "of": "TestExecutionConfig",
+              "type": "int | str"
+            },
+            {
+              "kind": "attribute",
+              "name": "pytest_dist_mode",
+              "description": "Validated automatic scheduler; only loadscope is accepted until another mode has equivalent 121-03 evidence.",
+              "of": "TestExecutionConfig",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "accepted_pytest_worker_counts",
+              "description": "Worker counts with exact repository-wide 121-03 equivalence evidence; maid-runner configures eight.",
+              "of": "TestExecutionConfig",
+              "type": "tuple[int, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_threshold_seconds",
+              "of": "TestExecutionConfig",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_without_history",
+              "of": "TestExecutionConfig",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "command_jobs",
+              "of": "TestExecutionConfig",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "max_processes",
+              "of": "TestExecutionConfig",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "test_execution",
+              "of": "MaidConfig",
+              "type": "TestExecutionConfig"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/test_runner.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_command",
+              "description": "Executes a resolved command with optional subprocess-scoped timing-plugin environment additions.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "timeout",
+                  "type": "int",
+                  "default": "300"
+                },
+                {
+                  "name": "manifest_slug",
+                  "type": "str",
+                  "default": "''"
+                },
+                {
+                  "name": "stream",
+                  "type": "TestStream",
+                  "default": "TestStream.IMPLEMENTATION"
+                },
+                {
+                  "name": "environment_overrides",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "TestRunResult"
+            },
+            {
+              "kind": "function",
+              "name": "run_tests",
+              "description": "Forwards worker policy into the cached repository path and returns deterministic results plus notices.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "Union[str, Path]",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "batch",
+                  "type": "bool | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "BatchTestResult"
+            },
+            {
+              "kind": "function",
+              "name": "run_manifest_tests",
+              "description": "Applies the same accepted worker/count policy to a single manifest and preserves exact command attribution.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "BatchTestResult"
+            },
+            {
+              "kind": "function",
+              "name": "_run_tests_cached",
+              "description": "Resolves repository commands, accumulates typed notices, and passes the exact override to implementation-command execution.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "Union[str, Path]",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "batch",
+                  "type": "bool | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "BatchTestResult"
+            },
+            {
+              "kind": "function",
+              "name": "_run_implementation_commands",
+              "description": "Renders accepted worker flags before serial/parallel dispatch, appends one notice per group, and preserves existing result order.",
+              "args": [
+                {
+                  "name": "commands",
+                  "type": "list[tuple[tuple[str, Ellipsis], str]]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "batch",
+                  "type": "bool | None"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool"
+                },
+                {
+                  "name": "chain_errors",
+                  "type": "list[ValidationError]"
+                },
+                {
+                  "name": "previous_results",
+                  "type": "list[TestRunResult]"
+                },
+                {
+                  "name": "previous_passed",
+                  "type": "int"
+                },
+                {
+                  "name": "previous_failed",
+                  "type": "int"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                },
+                {
+                  "name": "scheduling_notices",
+                  "type": "list[TestSchedulingNotice] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[list[TestRunResult], int, int, Union[BatchTestResult, None]]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "scheduling_notices",
+              "description": "Notices accumulated identically by repository, task-scoped, and single-manifest execution paths.",
+              "of": "BatchTestResult",
+              "type": "tuple[TestSchedulingNotice, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_test_command_execution.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_test_command",
+              "description": "Applies environment additions to one child only and never mutates the MAID process environment.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "timeout",
+                  "type": "int",
+                  "default": "300"
+                },
+                {
+                  "name": "manifest_slug",
+                  "type": "str",
+                  "default": "''"
+                },
+                {
+                  "name": "stream",
+                  "type": "TestStream",
+                  "default": "TestStream.IMPLEMENTATION"
+                },
+                {
+                  "name": "environment_overrides",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "TestRunResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Adds explicit pytest-worker options distinct from independent command jobs.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/test.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_test",
+              "description": "Forwards the explicit worker override to repository and --manifest execution paths.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Forwards the explicit pytest worker override into the complete verify execution path.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "_run_verify",
+              "description": "Threads the exact worker override through the cached invocation without resolving it early.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "allow_empty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "require_worktree_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_changed_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "changed_scope_explicit",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "artifact_coverage",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout_limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "knockout_allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_run_verify_cached",
+              "description": "Passes the exact worker override to the tests stage for both repository and task-scoped plans.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "allow_empty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "require_worktree_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_changed_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "changed_scope_explicit",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "artifact_coverage",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout_limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "knockout_allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_tests_stage",
+              "description": "Applies the same worker override/notices to repository run_tests and the task-scoped direct implementation-command path.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "manifest_paths",
+                  "type": "Union[Iterable[Union[str, Path]], None]",
+                  "default": "None"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "VerificationStageResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_test_result",
+              "description": "Renders identical test results plus deterministic scheduling notices in text and JSON.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "BatchTestResult"
+                },
+                {
+                  "name": "verbose",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_test_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repository_worker_override_reaches_batched_pytest_command_and_notice"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runner_finalizes_timing_and_appends_discard_notice"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_config.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_test_execution_config_accepts_workers_threshold_jobs_and_process_budget"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_execution_config_rejects_invalid_or_oversubscribed_values"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_execution_config_accepts_only_proven_loadscope_dist_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_test_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_test_parser_accepts_explicit_pytest_workers"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_single_worker_and_job_override_project_concurrency"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_default_equal_jobs_and_workers_remain_explicit"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_silent_test_cli_uses_repository_worker_and_job_config"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_text_and_json_disclose_same_worker_or_fallback_decision"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_single_manifest_worker_override_reaches_exact_pytest_command"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_explicit_pytest_workers_reaches_tests_stage_and_overrides_project_default",
+              "description": "Parses the CLI value and proves the same value reaches the actual repository/task tests-stage runner."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_silent_verify_cli_uses_repository_worker_and_job_config"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_explicit_default_equal_jobs_and_workers_remain_explicit"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_test_command_execution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_run_test_command_scopes_environment_overrides_to_child"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml",
+        "manifests/batch-compatible-maid-test-command-groups.manifest.yaml",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/_pytest_command_normalization.py",
+        "maid_runner/core/_pytest_config_addopts.py",
+        "tools/check_pytest_parallel_equivalence.py",
+        "pyproject.toml",
+        "uv.lock",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_test_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/core/test_config.py",
+      "tests/core/test_pytest_parallelism_policy.py",
+      "tests/core/test_pytest_worker_execution.py",
+      "tests/core/test_test_runner.py",
+      "tests/core/validation/test_test_command_execution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py tests/core/test_pytest_worker_execution.py tests/core/test_test_runner.py tests/core/test_config.py tests/core/validation/test_test_command_execution.py tests/cli/test_test_cmd.py tests/cli/test_verify_cmd.py",
+      "uv run maid validate manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

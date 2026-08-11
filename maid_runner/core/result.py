@@ -5,7 +5,10 @@ from __future__ import annotations
 import json as _json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
 
 from maid_runner.core.types import TestStream, ValidationMode
 
@@ -253,6 +256,7 @@ class BatchTestResult:
     failed: int
     chain_errors: list[ValidationError] = field(default_factory=list)
     duration_ms: Optional[float] = None
+    scheduling_notices: tuple[TestSchedulingNotice, ...] = ()
 
     @property
     def success(self) -> bool:

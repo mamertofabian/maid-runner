@@ -70,6 +70,22 @@ class _StoreExplicit(argparse.Action):
         setattr(namespace, f"{self.dest}_explicit", True)
 
 
+def _pytest_workers_arg(value: str) -> int | str:
+    if value == "auto":
+        return value
+    try:
+        workers = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "pytest workers must be a positive integer or auto"
+        ) from exc
+    if workers < 1:
+        raise argparse.ArgumentTypeError(
+            "pytest workers must be a positive integer or auto"
+        )
+    return workers
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -315,6 +331,7 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.core.test_runner import _positive_jobs_arg
 
     p = sub.add_parser("test", help="Run validation commands from manifests")
+    p.set_defaults(jobs_explicit=False, pytest_workers_explicit=False)
     p.add_argument(
         "--manifest", default=None, help="Run validate commands for one manifest"
     )
@@ -331,9 +348,17 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--jobs",
+        action=_StoreExplicit,
         type=_positive_jobs_arg,
         default=1,
         help="Run independent implementation command groups with this many workers",
+    )
+    p.add_argument(
+        "--pytest-workers",
+        action=_StoreExplicit,
+        type=_pytest_workers_arg,
+        default=None,
+        help="Run pytest with a positive worker count or auto",
     )
     p.add_argument(
         "--verbose", action="store_true", help="Print command output while tests run"
@@ -375,6 +400,7 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
 
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
+    p.set_defaults(test_jobs_explicit=False, pytest_workers_explicit=False)
     p.add_argument(
         "--profile",
         choices=verify_profile_names(),
@@ -506,9 +532,17 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--test-jobs",
+        action=_StoreExplicit,
         type=_positive_jobs_arg,
         default=1,
         help="Run the verify tests stage with this many test command workers",
+    )
+    p.add_argument(
+        "--pytest-workers",
+        action=_StoreExplicit,
+        type=_pytest_workers_arg,
+        default=None,
+        help="Run verify's pytest commands with a positive worker count or auto",
     )
     p.add_argument(
         "--test-scope",

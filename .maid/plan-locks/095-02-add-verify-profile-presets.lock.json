@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
   "test_hashes": {
     "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
-    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
     "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
     "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
   },
   "created_at": "2026-08-07T04:15:19.885861+00:00",
-  "revision": 6,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1829db64444b104fbfa77575de5339affe72209b175f9f406320aa251570364a",
@@ -108,6 +108,46 @@
       },
       "revised_at": "2026-08-10T06:07:59.758806+00:00",
       "reason": "accept approved 121-01 shared-test additions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-11T03:36:51.736182+00:00",
+      "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4dda8e0c6c6fdccea799614e3835875841539b6d03cbdc17864f081be250cb6e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_pre_commit.py": "sha256-pyast:v2:bd68b26313b5bb0a75fca238a193d6ba20ef6741b6278da67d2a1aa48c38a8c4",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83",
+        "tests/cli/test_cli_help_text.py": "sha256-pyast:v2:12cbac2dd797488156eafa75f1353502044b823fc39fe2f1ac8be21fbb0683af",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52"
+      },
+      "revised_at": "2026-08-11T04:03:23.125455+00:00",
+      "reason": "accept final approved 121-07 shared implementation and test hashes",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

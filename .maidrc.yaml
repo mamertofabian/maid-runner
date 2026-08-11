@@ -1,0 +1,8 @@
+test_execution:
+  pytest_workers: 8
+  pytest_dist_mode: loadscope
+  accepted_pytest_worker_counts: [8]
+  parallel_threshold_seconds: 30
+  parallel_without_history: false
+  command_jobs: 1
+  max_processes: 8

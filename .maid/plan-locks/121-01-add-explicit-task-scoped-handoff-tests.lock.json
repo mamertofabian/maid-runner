@@ -3,13 +3,13 @@
   "manifest_hash": "sha256-contract:952f6b0000d85048857709f86f9634e1186a4234937b906208a2837519bd62c7",
   "test_hashes": {
     "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
-    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
     "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
     "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52",
     "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:17c610e46987d5da9b9b31de275677abc3cf9550bc223066cbff9f55933b6c8b"
   },
   "created_at": "2026-08-10T06:06:01.599731+00:00",
-  "revision": 7,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:354f046911eefcff22ec3bc634934ff2ce1b2557017def48b5e36d828f7355a6",
@@ -146,6 +146,48 @@
       },
       "revised_at": "2026-08-10T07:34:12.889003+00:00",
       "reason": "Final implementation review required end-to-end proof that explicit repository scope under the handoff profile executes both active manifests' test targets.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:952f6b0000d85048857709f86f9634e1186a4234937b906208a2837519bd62c7",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:17c610e46987d5da9b9b31de275677abc3cf9550bc223066cbff9f55933b6c8b"
+      },
+      "revised_at": "2026-08-11T03:36:52.041784+00:00",
+      "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:952f6b0000d85048857709f86f9634e1186a4234937b906208a2837519bd62c7",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:2629f3bd6bdd1711022f08c87b112a47d93494c7be129f103d48e3931954b485",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83",
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
+        "tests/cli/test_verify_profiles.py": "sha256-pyast:v2:9cd12c3fdb0e262c51d9234994240aacf0abb7eb6378560c61f95bc5a1dadf52",
+        "tests/cli/test_verify_profile_adoption.py": "sha256-pyast:v2:17c610e46987d5da9b9b31de275677abc3cf9550bc223066cbff9f55933b6c8b"
+      },
+      "revised_at": "2026-08-11T04:03:23.424939+00:00",
+      "reason": "accept final approved 121-07 shared implementation and test hashes",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

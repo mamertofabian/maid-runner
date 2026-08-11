@@ -108,3 +108,30 @@ def test_run_test_command_maps_unexpected_exception_to_exit_code_minus_two(
     assert result.exit_code == -2
     assert result.stdout == ""
     assert result.stderr == "missing executable"
+
+
+def test_run_test_command_scopes_environment_overrides_to_child(monkeypatch, tmp_path):
+    import os
+
+    original_timing_output = os.environ.get("MAID_TIMING_OUTPUT")
+    monkeypatch.setenv("MAID_PARENT_ONLY", "parent")
+    observed = {}
+
+    def fake_run(command, **kwargs):
+        observed.update(kwargs["env"])
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(
+        "maid_runner.core._test_command_execution.subprocess.run", fake_run
+    )
+
+    result = _run_test_command(
+        ("pytest", "tests/test_gate.py"),
+        cwd=tmp_path,
+        environment_overrides={"MAID_TIMING_OUTPUT": "child-only"},
+    )
+
+    assert result.success is True
+    assert observed["MAID_PARENT_ONLY"] == "parent"
+    assert observed["MAID_TIMING_OUTPUT"] == "child-only"
+    assert os.environ.get("MAID_TIMING_OUTPUT") == original_timing_output

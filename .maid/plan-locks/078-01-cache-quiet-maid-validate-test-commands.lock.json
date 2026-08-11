@@ -1,12 +1,11 @@
 {
   "manifest_path": "manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml",
-  "manifest_hash": "sha256:4b7a5c3085f29b3c2961da2779fbf3e8b954227535e6f8be80369fd4c88f23b3",
+  "manifest_hash": "sha256-contract:30e6ec738b1d58b92862258144aa225f341265f2d3e84d97ebd1a0a6a9c83e30",
   "test_hashes": {
-    "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
-    "tests/core/validation/test_maid_validate_command_cache.py": "sha256:60d224f849437836a9a3b74d2e848983c99483abc0f4d79e51ee6e47a5a4e031"
+    "tests/core/validation/test_maid_validate_command_cache.py": "sha256-pyast:v2:2060c625ef24ba9ebf5b0a03624d52877a9603e74d8b9a78235d8fc5dcf49444"
   },
   "created_at": "2026-06-27T00:45:41.700689+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:b916543ed5f9ce420bbeeeec9b28adb12836a6914b40c620b5951dedf7aca832",
@@ -17,7 +16,9 @@
         "tests/core/test_test_runner.py": "sha256:209ad31af4d18f0cb4b71a2ea18421f2519d2100681be129fb91d065f1eda0c1"
       },
       "revised_at": "2026-06-27T00:45:51.494069+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml -> manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml -> manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f8ef23543bf1a3e54eb0083553c194013cd83378a4575627582db1ac6df74edd",
@@ -28,7 +29,9 @@
         "tests/core/test_test_runner.py": "sha256:209ad31af4d18f0cb4b71a2ea18421f2519d2100681be129fb91d065f1eda0c1"
       },
       "revised_at": "2026-06-27T00:47:21.496341+00:00",
-      "reason": "Correct quiet failure coverage to use implementation-mode missing-file diagnostics and align tuple varargs annotations with validator syntax"
+      "reason": "Correct quiet failure coverage to use implementation-mode missing-file diagnostics and align tuple varargs annotations with validator syntax",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:f8ef23543bf1a3e54eb0083553c194013cd83378a4575627582db1ac6df74edd",
@@ -39,7 +42,9 @@
         "tests/core/test_test_runner.py": "sha256:209ad31af4d18f0cb4b71a2ea18421f2519d2100681be129fb91d065f1eda0c1"
       },
       "revised_at": "2026-06-27T00:49:11.767571+00:00",
-      "reason": "Relock corrected quiet failure and tuple-varargs contract after implementation-hidden red check"
+      "reason": "Relock corrected quiet failure and tuple-varargs contract after implementation-hidden red check",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:c54bf5da4cd33bc9df0740ff28b550a67c03d51249bb6c286ab0e5853bf87738",
@@ -50,7 +55,9 @@
         "tests/core/test_test_runner.py": "sha256:209ad31af4d18f0cb4b71a2ea18421f2519d2100681be129fb91d065f1eda0c1"
       },
       "revised_at": "2026-06-27T00:50:12.009063+00:00",
-      "reason": "Remove unused CLI test read dependency so validate commands cover all behavioral test files in scope"
+      "reason": "Remove unused CLI test read dependency so validate commands cover all behavioral test files in scope",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:d304524e6aa8c42b1d85114db5019d98dcb59eec5dbc0f7f6f87f9a944c0e83e",
@@ -60,7 +67,9 @@
         "tests/core/test_test_runner.py": "sha256:209ad31af4d18f0cb4b71a2ea18421f2519d2100681be129fb91d065f1eda0c1"
       },
       "revised_at": "2026-06-27T00:56:02.113222+00:00",
-      "reason": "Move quiet run_tests coverage into the 078 cache test module to avoid invalidating unrelated locked runner-test manifests"
+      "reason": "Move quiet run_tests coverage into the 078 cache test module to avoid invalidating unrelated locked runner-test manifests",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:0440623d906d29124d7d9147e9a2b2e3eeb2f944862ad8c45b7b165c8f2e47c5",
@@ -69,7 +78,9 @@
         "tests/core/validation/test_maid_validate_command_cache.py": "sha256:c618861cc2a898de914cb7c05e7b186ce3804be3ceeff918f9dfd7eddb392d0f"
       },
       "revised_at": "2026-06-27T01:02:11.820362+00:00",
-      "reason": "Declare the performance backlog planning update as editable documentation scope instead of read-only context"
+      "reason": "Declare the performance backlog planning update as editable documentation scope instead of read-only context",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:553e63e806099bb97f4915725c707b461c50256524052cb7fbfdf5de57ce9070",
@@ -78,7 +89,9 @@
         "tests/core/validation/test_maid_validate_command_cache.py": "sha256:c618861cc2a898de914cb7c05e7b186ce3804be3ceeff918f9dfd7eddb392d0f"
       },
       "revised_at": "2026-06-27T01:09:04.524501+00:00",
-      "reason": "Preserve directory-wide quiet validate subprocess stdout shape and update backlog implementation status"
+      "reason": "Preserve directory-wide quiet validate subprocess stdout shape and update backlog implementation status",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4b7a5c3085f29b3c2961da2779fbf3e8b954227535e6f8be80369fd4c88f23b3",
@@ -87,7 +100,34 @@
         "tests/core/validation/test_maid_validate_command_cache.py": "sha256:de44a4614a066c6ce0c29bc25179e00374e841f2023a7987bafeb19028b01e49"
       },
       "revised_at": "2026-06-27T01:10:16.799124+00:00",
-      "reason": "Relock corrected single-vs-batch quiet stdout expectations after reviewer finding"
+      "reason": "Relock corrected single-vs-batch quiet stdout expectations after reviewer finding",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:4b7a5c3085f29b3c2961da2779fbf3e8b954227535e6f8be80369fd4c88f23b3",
+      "prior_test_hashes": {
+        "maid_runner/core/test_runner.py": "sha256:9e069e4df5abff8d22b490cd870d915d58b079da243ad872c24bbc80b3e02b54",
+        "tests/core/validation/test_maid_validate_command_cache.py": "sha256:60d224f849437836a9a3b74d2e848983c99483abc0f4d79e51ee6e47a5a4e031"
+      },
+      "revised_at": "2026-08-11T04:03:20.964483+00:00",
+      "reason": "accept final approved 121-07 shared implementation and test hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:docs/plans/maid-runner-performance-backlog.md",
+          "edit:maid_runner/core/_maid_validate_command_cache.py",
+          "edit:tests/core/validation/test_maid_validate_command_cache.py",
+          "read:maid_runner/cli/commands/_format.py",
+          "read:maid_runner/cli/commands/validate.py",
+          "read:maid_runner/core/test_runner.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -114,6 +154,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "docs/plans/maid-runner-performance-backlog.md:attribute:documentation._performance_backlog_078_01_quiet_validate_cache_status",
@@ -158,8 +200,244 @@
       "tests/core/validation/test_maid_validate_command_cache.py:test_run_tests_keeps_unsupported_validate_flags_on_subprocess_path",
       "tests/core/validation/test_maid_validate_command_cache.py:test_run_tests_keeps_unsupported_validate_flags_on_subprocess_path:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "docs/plans/maid-runner-performance-backlog.md",
+        "maid_runner/core/_maid_validate_command_cache.py",
+        "tests/core/validation/test_maid_validate_command_cache.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/core/test_runner.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_maid_validate_command_cache.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_parse_maid_validate_command",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                }
+              ],
+              "returns": "dict[str, object] | None"
+            },
+            {
+              "kind": "function",
+              "name": "_run_cached_maid_validate_command",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_slug",
+                  "type": "str"
+                },
+                {
+                  "name": "stream",
+                  "type": "TestStream"
+                },
+                {
+                  "name": "cache",
+                  "type": "dict[str, object]"
+                },
+                {
+                  "name": "resolve_command",
+                  "type": "_CommandResolver",
+                  "default": "_identity_resolve_command"
+                }
+              ],
+              "returns": "TestRunResult | None"
+            },
+            {
+              "kind": "function",
+              "name": "_run_cached_maid_validate_command_in_scope",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "manifest_slug",
+                  "type": "str"
+                },
+                {
+                  "name": "stream",
+                  "type": "TestStream"
+                },
+                {
+                  "name": "cache",
+                  "type": "dict[str, object]"
+                },
+                {
+                  "name": "resolve_command",
+                  "type": "_CommandResolver"
+                },
+                {
+                  "name": "parsed",
+                  "type": "dict[str, object]"
+                }
+              ],
+              "returns": "TestRunResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_maid_validate_command_cache.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_parse_maid_validate_command_accepts_quiet_flag",
+              "source_scenario": "A quiet validate command uses the same supported command shape that MAID manifests now commonly declare.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_parse_maid_validate_command"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The parsed command includes `quiet: True` and remains cache-compatible."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_cached_maid_validate_command_preserves_quiet_success_output",
+              "source_scenario": "A quiet cached single-manifest validation succeeds.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_run_cached_maid_validate_command"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The returned result succeeds with exit code 0 and empty stdout."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_cached_maid_validate_command_preserves_quiet_failure_output",
+              "source_scenario": "A quiet cached single-manifest validation fails with a real validation error.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_run_cached_maid_validate_command"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The returned result fails with exit code 1, includes the quiet error-code/message diagnostic, and omits non-quiet summary text such as `FAIL <slug>` and `Mode:`."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_cached_maid_validate_command_json_takes_precedence_over_quiet",
+              "source_scenario": "A cached single-manifest validation command includes both `--json` and `--quiet`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_run_cached_maid_validate_command"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The returned result succeeds and stdout is valid JSON with `success: true`, proving JSON mode takes precedence over quiet formatting."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_cached_maid_validate_command_preserves_quiet_batch_success_output",
+              "source_scenario": "A quiet cached directory-wide validation succeeds.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_run_cached_maid_validate_command"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The returned result succeeds with exit code 0 and stdout matching the subprocess newline shape, proving quiet is passed into the batch formatter without changing `maid test --json` payloads."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_tests_executes_quiet_maid_validate_commands_in_process",
+              "source_scenario": "An active manifest declares `uv run maid validate manifests/target.manifest.yaml --mode schema --quiet` as its validate command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "`run_tests` returns a successful `TestRunResult` for the quiet validate command without invoking `run_command` subprocess fallback."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_tests_keeps_unsupported_validate_flags_on_subprocess_path",
+              "source_scenario": "An active manifest declares a `maid validate` command with an unsupported flag.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "run_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The unsupported command still reaches `run_command`, proving the cache parser remains fail-closed."
+              }
+            }
+          ]
+        },
+        {
+          "path": "docs/plans/maid-runner-performance-backlog.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_performance_backlog_078_01_quiet_validate_cache_status",
+              "description": "Records the post-077 `maid test` timing probe and identifies quiet `maid validate` cache eligibility as the next performance slice.",
+              "of": "documentation",
+              "type": "markdown"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/test_runner.py",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/validate.py"
+      ]
+    },
     "test_files": [
-      "maid_runner/core/test_runner.py",
       "tests/core/validation/test_maid_validate_command_cache.py"
     ],
     "validate_commands": [
