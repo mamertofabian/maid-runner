@@ -7,6 +7,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 
 from maid_runner.core._runtime_command_executor import (
     RuntimeCommandExecutor,
@@ -17,6 +18,12 @@ from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
+from maid_runner.core.runtime_evidence import (
+    RuntimeCommandEvidence,
+    RuntimeCommandIdentity,
+    RuntimeEvidenceBundle,
+    runtime_evidence_is_current,
+)
 
 
 _PYTEST_SUMMARY_DURATION = re.compile(
@@ -60,6 +67,19 @@ class ArtifactCoverageReport:
             "findings": [finding.to_dict() for finding in self.findings],
             "errors": [error.to_dict() for error in self.errors],
         }
+
+
+@dataclass(frozen=True)
+class EvidenceArtifactCoverageResult:
+    """Per-manifest reports and exact commands used as safe fallbacks."""
+
+    reports: Mapping[str, ArtifactCoverageReport]
+    fallback_identities: tuple[RuntimeCommandIdentity, ...]
+    complete: bool
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "reports", MappingProxyType(dict(self.reports)))
+        object.__setattr__(self, "fallback_identities", tuple(self.fallback_identities))
 
 
 def coverage_is_available() -> bool:
@@ -222,6 +242,158 @@ def run_artifact_coverage_batch(
             errors=tuple(command_errors + report_errors + execution_errors),
         )
     return reports
+
+
+def evaluate_artifact_coverage_from_evidence(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    evidence: RuntimeEvidenceBundle,
+    fallback_executor: RuntimeCommandExecutor | None = None,
+) -> EvidenceArtifactCoverageResult:
+    """Evaluate exact attributed contexts, falling back per unsafe command."""
+    ordered_manifests = list(manifests)
+    root = Path(project_root)
+    current = runtime_evidence_is_current(
+        evidence,
+        ordered_manifests,
+        root,
+        pytest_workers=evidence.pytest_workers,
+    )
+    evidence_by_identity = {
+        (
+            command.identity.manifest_path,
+            command.identity.command_index,
+            command.identity.command,
+        ): command
+        for command in evidence.commands
+    }
+    timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
+    executor = fallback_executor
+    fallback_identities: list[RuntimeCommandIdentity] = []
+    reports: dict[str, ArtifactCoverageReport] = {}
+
+    for manifest in ordered_manifests:
+        targets = _coverage_targets(manifest, root)
+        if not targets:
+            reports[manifest.source_path] = ArtifactCoverageReport((), ())
+            continue
+        target_files = {
+            str((root / file_path).resolve()) for file_path, _artifact in targets
+        }
+        command_errors: list[ValidationError] = []
+        report_errors: list[ValidationError] = []
+        execution_data: dict[str, RuntimeFileExecution] = {}
+
+        for index, original_command in enumerate(manifest.validate_commands):
+            pytest_args = _pytest_args(original_command)
+            if pytest_args is None:
+                continue
+            identity = RuntimeCommandIdentity(
+                manifest_path=manifest.source_path,
+                command_index=index,
+                command=original_command,
+            )
+            command_evidence = evidence_by_identity.get(
+                (manifest.source_path, index, tuple(original_command))
+            )
+            if not current or not _command_evidence_is_reusable(command_evidence):
+                if executor is None:
+                    if not coverage_is_available():
+                        reports = {
+                            item.source_path: _coverage_unavailable_report()
+                            for item in ordered_manifests
+                        }
+                        return EvidenceArtifactCoverageResult(
+                            reports=reports,
+                            fallback_identities=tuple(fallback_identities),
+                            complete=False,
+                        )
+                    executor = SubprocessRuntimeCommandExecutor()
+                command_run = executor.execute(
+                    pytest_args,
+                    target_files,
+                    root,
+                    timeout_seconds,
+                )
+                fallback_identities.append(identity)
+                command_execution = command_run.execution_data
+            else:
+                command_run = command_evidence.result
+                command_execution = _execution_from_attributed_contexts(
+                    command_evidence
+                )
+
+            if command_run.returncode != 0:
+                command_errors.append(
+                    _coverage_command_error(
+                        original_command,
+                        stdout=command_run.stdout,
+                        stderr=command_run.stderr,
+                    )
+                )
+            if command_run.report_errors and not report_errors:
+                report_errors.extend(command_run.report_errors)
+            _merge_execution_data(execution_data, command_execution)
+
+        if report_errors:
+            execution_data = {}
+        findings, execution_errors = _evaluate_targets(root, targets, execution_data)
+        reports[manifest.source_path] = ArtifactCoverageReport(
+            findings=tuple(findings),
+            errors=tuple(command_errors + report_errors + execution_errors),
+        )
+
+    return EvidenceArtifactCoverageResult(
+        reports=reports,
+        fallback_identities=tuple(fallback_identities),
+        complete=current and not fallback_identities,
+    )
+
+
+def _command_evidence_is_reusable(
+    command: RuntimeCommandEvidence | None,
+) -> bool:
+    return command is not None and command.completeness.complete
+
+
+def _execution_from_attributed_contexts(
+    command: RuntimeCommandEvidence,
+) -> dict[str, RuntimeFileExecution]:
+    selected = set(command.selected_nodeids)
+    combined: dict[str, RuntimeFileExecution] = {}
+    for context in command.contexts:
+        if not selected.intersection(context.consuming_nodeids):
+            continue
+        if context.kind == "fixture" and not (
+            context.fixture_scope == "function"
+            and not context.autouse
+            and context.lifecycle_equivalent
+        ):
+            continue
+        if context.kind not in {"node", "fixture", "collection"}:
+            continue
+        _union_execution_data(combined, context.execution_data)
+    return combined
+
+
+def _union_execution_data(
+    destination: dict[str, RuntimeFileExecution],
+    source: Mapping[str, RuntimeFileExecution],
+) -> None:
+    for file_path, execution in source.items():
+        existing = destination.get(file_path)
+        destination[file_path] = RuntimeFileExecution(
+            executed_lines=(
+                execution.executed_lines
+                if existing is None
+                else existing.executed_lines | execution.executed_lines
+            ),
+            called_qualnames=(
+                execution.called_qualnames
+                if existing is None
+                else existing.called_qualnames | execution.called_qualnames
+            ),
+        )
 
 
 def _coverage_unavailable_report() -> ArtifactCoverageReport:

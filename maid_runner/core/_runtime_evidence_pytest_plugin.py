@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import partial
 import inspect
 import json
 import os
@@ -290,6 +291,8 @@ class RuntimeEvidencePlugin:
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:
         """Finalize tracing and atomically write this worker's evidence."""
+        if self._consumer_sessionfinish_hook_targets_project(session):
+            self._completeness.unresolved_context_ids.add("session:teardown")
         sys.setprofile(self._previous_profile)
         self._coverage.stop()
         self._coverage.save()
@@ -302,6 +305,11 @@ class RuntimeEvidencePlugin:
                 collection.executed_lines or collection.called_qualnames
             ):
                 self._completeness.unresolved_context_ids.add(collection.context_id)
+        session_tail = self._contexts.get("session:teardown")
+        if session_tail is not None and (
+            session_tail.executed_lines or session_tail.called_qualnames
+        ):
+            self._completeness.unresolved_context_ids.add(session_tail.context_id)
         if exitstatus != 0:
             self._completeness.diagnostics.append(
                 {"code": "E900", "message": f"pytest exited with status {exitstatus}"}
@@ -327,6 +335,30 @@ class RuntimeEvidencePlugin:
             self.output_path / f"evidence-{self._worker_id}.json",
             payload,
         )
+
+    def _consumer_sessionfinish_hook_targets_project(
+        self, session: pytest.Session
+    ) -> bool:
+        config = getattr(session, "config", None)
+        hook = getattr(getattr(config, "hook", None), "pytest_sessionfinish", None)
+        get_hookimpls = getattr(hook, "get_hookimpls", None)
+        if not callable(get_hookimpls):
+            return False
+        for implementation in get_hookimpls():
+            function = getattr(implementation, "function", None)
+            filename = _callable_source_filename(function)
+            plugin = getattr(implementation, "plugin", None)
+            plugin_file = getattr(plugin, "__file__", None)
+            plugin_filename = (
+                str(Path(plugin_file).resolve())
+                if isinstance(plugin_file, str)
+                else None
+            )
+            if filename is None and plugin_filename is None:
+                return True
+            if filename in self.target_files or plugin_filename in self.target_files:
+                return True
+        return False
 
     def _context(
         self,
@@ -502,6 +534,25 @@ def _fixture_context_id(baseid: str, name: str, scope: str, nodeid: str) -> str:
 
 def _context_kind(context_id: str) -> str:
     return context_id.partition(":")[0] or "session"
+
+
+def _callable_source_filename(function: object) -> str | None:
+    candidate = function
+    seen: set[int] = set()
+    while isinstance(candidate, partial) and id(candidate) not in seen:
+        seen.add(id(candidate))
+        candidate = candidate.func
+    try:
+        candidate = inspect.unwrap(candidate)
+    except (ValueError, TypeError):
+        return None
+    code = getattr(candidate, "__code__", None)
+    if code is None:
+        call = getattr(candidate, "__call__", None)
+        code = getattr(call, "__code__", None)
+    if code is None:
+        return None
+    return str(Path(code.co_filename).resolve())
 
 
 def _context_payload(context: _ContextState) -> dict:

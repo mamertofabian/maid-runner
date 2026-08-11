@@ -1,0 +1,397 @@
+{
+  "manifest_path": "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+  "manifest_hash": "sha256-contract:8f191d7b099ed00e428c6275682376645d43d2a40e7a44ee9f58073e81b48fe6",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+    "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+    "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b"
+  },
+  "created_at": "2026-08-11T08:22:46.912487+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6af85ec15be74cd07bfb01386623612aa652c8e4245bdc173792327abdc369ce",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:0c51aa27f3989d9cf7da918134bc42eefb9ba5ce375783e78005069ba7e9d3ab"
+      },
+      "revised_at": "2026-08-11T08:22:51.252783+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml -> manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:123db37f1b864748733c3154a9c7e183d095730d9f1f0fde61a5be0d4bf206e5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:0c51aa27f3989d9cf7da918134bc42eefb9ba5ce375783e78005069ba7e9d3ab"
+      },
+      "revised_at": "2026-08-11T08:24:09.922113+00:00",
+      "reason": "Correct the legacy missing-artifact fixture so evidence with no beta execution is compared against an exact-command record with the same missing beta execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:123db37f1b864748733c3154a9c7e183d095730d9f1f0fde61a5be0d4bf206e5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:a26fa3a1cb651f2e5da3d0a9a82fcc8d09c9f29942d52d3b5f9f68fdb59526bf"
+      },
+      "revised_at": "2026-08-11T08:25:41.880878+00:00",
+      "reason": "Remove an unused read-only test dependency that incorrectly widened the manifest behavioral test scope without changing implementation or behavioral contracts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_runtime_evidence.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af9d999814990987632e0c360e5fbadc52f2c4d0cc2208500c04b00dfe4a9867",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:a26fa3a1cb651f2e5da3d0a9a82fcc8d09c9f29942d52d3b5f9f68fdb59526bf"
+      },
+      "revised_at": "2026-08-11T08:32:30.259198+00:00",
+      "reason": "Close implementation-review gaps with real session-scoped yield-fixture and consumer session-finish evidence, and fail closed when target execution occurs after the final test.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_runtime_evidence_pytest_plugin.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aaae3db6137b3cd1da82a324c9f11d1a0199a3fce896438af65741a468ee9068",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:281f3083433dacd967b1b4f729f46ca550f6e8e1b688fbc5ebc5519103201040"
+      },
+      "revised_at": "2026-08-11T08:35:01.710963+00:00",
+      "reason": "Preserve xdist payload-loss ordering while conservatively detecting project-owned session-finish hooks before tracing stops and forcing exact fallback.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8f191d7b099ed00e428c6275682376645d43d2a40e7a44ee9f58073e81b48fe6",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:281f3083433dacd967b1b4f729f46ca550f6e8e1b688fbc5ebc5519103201040"
+      },
+      "revised_at": "2026-08-11T08:39:40.450040+00:00",
+      "reason": "Close final review gaps with conservative wrapped/partial/callable session-hook ownership detection and real import-time collection evidence equivalence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8f191d7b099ed00e428c6275682376645d43d2a40e7a44ee9f58073e81b48fe6",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:7ee483aec71233e7ad9f2e4145a87748fd45ab223fea423b605cb581a45db473"
+      },
+      "revised_at": "2026-08-11T08:44:33.917300+00:00",
+      "reason": "Use a real late project session hook for end-to-end equivalence and directly adversarially prove wrapped partial hook ownership resolution, since pytest ignores raw partial hook attributes during registration.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-11T08:44:37.913321+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_evidence_and_legacy_json_match_except_duration_fields(tmp_path):\n>       from maid_runner.core.artifact_coverage import (\n            evaluate_artifact_coverage_from_evidence,\n        )\nE       ImportError: cannot import name 'evaluate_artifact_coverage_from_evidence' from 'maid_runner.core.artifact_coverage' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/artifact_coverage.py)\n\ntests/core/test_artifact_coverage_from_runtime_evidence.py:473: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_evidence_report_matches_legacy_honest_and_missing_artifacts\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_unrelated_ambient_context_cannot_satisfy_e710\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_command_failure_attribution_and_e900_match_legacy\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_stateful_wide_scope_yield_fixture_uses_exact_command_fallback\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_ambiguous_dynamic_fixture_or_collection_context_runs_exact_fallback\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_worker_loss_or_selector_gap_runs_exact_fallback\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_content_digest_change_rejects_buffered_evidence\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_resolved_environment_identity_change_runs_exact_fallback\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_compatible_group_executes_once_and_reports_each_manifest\nFAILED tests/core/test_artifact_coverage_from_runtime_evidence.py::test_evidence_and_legacy_json_match_except_duration_fields\n10 failed, 39 passed in 3.59s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.complete",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.complete:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.complete:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.complete:type=bool",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.fallback_identities",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.fallback_identities:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.fallback_identities:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.fallback_identities:type=tuple[RuntimeCommandIdentity, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.reports",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.reports:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.reports:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.reports:type=Mapping[str, ArtifactCoverageReport]",
+      "maid_runner/core/artifact_coverage.py:class:EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:class:EvidenceArtifactCoverageResult:kind=class",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_ambiguous_dynamic_fixture_or_collection_context_runs_exact_fallback",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_ambiguous_dynamic_fixture_or_collection_context_runs_exact_fallback:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_command_failure_attribution_and_e900_match_legacy",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_command_failure_attribution_and_e900_match_legacy:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_compatible_group_executes_once_and_reports_each_manifest",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_compatible_group_executes_once_and_reports_each_manifest:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_content_digest_change_rejects_buffered_evidence",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_content_digest_change_rejects_buffered_evidence:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_evidence_and_legacy_json_match_except_duration_fields",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_evidence_and_legacy_json_match_except_duration_fields:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_evidence_report_matches_legacy_honest_and_missing_artifacts",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_evidence_report_matches_legacy_honest_and_missing_artifacts:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_resolved_environment_identity_change_runs_exact_fallback",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_resolved_environment_identity_change_runs_exact_fallback:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_stateful_wide_scope_yield_fixture_uses_exact_command_fallback",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_stateful_wide_scope_yield_fixture_uses_exact_command_fallback:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_unrelated_ambient_context_cannot_satisfy_e710",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_unrelated_ambient_context_cannot_satisfy_e710:kind=test_function",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_worker_loss_or_selector_gap_runs_exact_fallback",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py:test_worker_loss_or_selector_gap_runs_exact_fallback:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_runtime_command_executor.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py",
+        "tests/core/test_artifact_coverage_failure_determinism.py",
+        "tests/core/test_artifact_coverage_timeout_config.py"
+      ],
+      "scope": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_evidence_report_matches_legacy_honest_and_missing_artifacts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_ambient_context_cannot_satisfy_e710"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_failure_attribution_and_e900_match_legacy"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stateful_wide_scope_yield_fixture_uses_exact_command_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ambiguous_dynamic_fixture_or_collection_context_runs_exact_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_loss_or_selector_gap_runs_exact_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_content_digest_change_rejects_buffered_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolved_environment_identity_change_runs_exact_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compatible_group_executes_once_and_reports_each_manifest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_evidence_and_legacy_json_match_except_duration_fields"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "EvidenceArtifactCoverageResult",
+              "description": "Per-manifest reports plus exact fallback identities used during fail-closed evaluation."
+            },
+            {
+              "kind": "attribute",
+              "name": "reports",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "Mapping[str, ArtifactCoverageReport]"
+            },
+            {
+              "kind": "attribute",
+              "name": "fallback_identities",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "tuple[RuntimeCommandIdentity, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "complete",
+              "description": "True only when every relevant command was evaluated from current complete runtime evidence without exact-command fallback.",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "description": "Evaluates proven contexts and executes affected exact commands whenever evidence is incomplete.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "maid_runner/core/_runtime_command_executor.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py",
+        "tests/core/test_artifact_coverage_failure_determinism.py",
+        "tests/core/test_artifact_coverage_timeout_config.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "reason": "Detect project-owned pytest_sessionfinish hooks before tracing stops and mark their session-tail execution unresolved so artifact coverage falls back exactly; no public plugin artifact or signature changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_failure_determinism.py",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "tests/core/test_artifact_coverage_timeout_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py",
+      "uv run maid validate manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
