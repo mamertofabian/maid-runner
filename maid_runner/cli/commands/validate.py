@@ -19,7 +19,9 @@ from maid_runner.core.diagnostic_policy import warning_is_advisory
 
 if TYPE_CHECKING:
     from maid_runner.coherence.result import CoherenceResult
+    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.result import BatchTestResult, ValidationError
+    from maid_runner.core.runtime_evidence import RuntimeEvidenceBundle
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -380,16 +382,70 @@ def _run_artifact_coverage_by_manifest(
     project_root: Path,
     *,
     strict_context: bool = False,
-):
+    evidence: RuntimeEvidenceBundle | None = None,
+) -> dict[str, ArtifactCoverageReport]:
     from maid_runner.core.chain import get_cached_manifest_chain
-    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+    from maid_runner.core.artifact_coverage import (
+        ArtifactCoverageReport,
+        _coverage_targets,
+        evaluate_artifact_coverage_from_evidence,
+        run_artifact_coverage_batch,
+    )
     from maid_runner.core._test_command_execution import (
         _strict_validation_test_environment,
     )
+    from maid_runner.core.result import ErrorCode, Severity, ValidationError
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
+    active = chain.active_manifests()
     with _strict_validation_test_environment(strict_context):
-        return run_artifact_coverage_batch(chain.active_manifests(), project_root)
+        if evidence is None:
+            return run_artifact_coverage_batch(active, project_root)
+        evidence_manifest_paths = {
+            command.identity.manifest_path for command in evidence.commands
+        }
+        targets_by_manifest = {
+            manifest.source_path: _coverage_targets(manifest, project_root)
+            for manifest in active
+        }
+        coverage_manifests = tuple(
+            manifest
+            for manifest in active
+            if targets_by_manifest[manifest.source_path]
+            or manifest.source_path in evidence_manifest_paths
+        )
+        evaluated = dict(
+            evaluate_artifact_coverage_from_evidence(
+                coverage_manifests,
+                project_root,
+                evidence,
+            ).reports
+        )
+        for manifest in coverage_manifests:
+            if (
+                manifest.source_path in evidence_manifest_paths
+                and not targets_by_manifest[manifest.source_path]
+            ):
+                evaluated[manifest.source_path] = ArtifactCoverageReport(
+                    findings=(),
+                    errors=(
+                        ValidationError(
+                            code=ErrorCode.FILE_READ_ERROR,
+                            message=(
+                                "Artifact coverage target disappeared during "
+                                f"evidence execution for {manifest.source_path}"
+                            ),
+                            severity=Severity.ERROR,
+                        ),
+                    ),
+                )
+        return {
+            manifest.source_path: evaluated.get(
+                manifest.source_path,
+                ArtifactCoverageReport(findings=(), errors=()),
+            )
+            for manifest in active
+        }
 
 
 def _merge_artifact_coverage_reports(reports):

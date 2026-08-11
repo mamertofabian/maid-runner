@@ -9,7 +9,7 @@ import time
 from collections.abc import Iterable
 from dataclasses import replace
 from pathlib import Path
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from maid_runner.cli.commands._format import (
     format_verify_result,
@@ -24,6 +24,9 @@ from maid_runner.core.result import (
     VerificationResult,
     VerificationStageResult,
 )
+
+if TYPE_CHECKING:
+    from maid_runner.core.runtime_evidence import RuntimeEvidenceBundle
 
 
 _STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
@@ -532,7 +535,26 @@ def _run_verify_cached(
             return _verification_result(stages, started)
 
         if artifact_coverage:
-            stages.append(_artifact_coverage_stage(root, manifest_dir))
+            coverage_started = time.monotonic()
+            try:
+                evidence = _collect_artifact_coverage_evidence(
+                    root,
+                    manifest_dir,
+                    test_jobs=test_jobs,
+                    pytest_workers=pytest_workers,
+                )
+                coverage_stage = _artifact_coverage_stage(
+                    root, manifest_dir, evidence=evidence
+                )
+                coverage_stage = replace(
+                    coverage_stage,
+                    _duration_ms=_elapsed_ms(coverage_started),
+                )
+            except Exception as exc:
+                coverage_stage = _error_stage(
+                    "artifact_coverage", coverage_started, exc
+                )
+            stages.append(coverage_stage)
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
 
@@ -782,14 +804,106 @@ def _file_tracking_stage(
         return _error_stage("file_tracking", started, exc)
 
 
-def _artifact_coverage_stage(root: Path, manifest_dir: str) -> VerificationStageResult:
+def _collect_artifact_coverage_evidence(
+    root: Path,
+    manifest_dir: str,
+    test_jobs: int = 1,
+    pytest_workers: int | str | None = None,
+) -> RuntimeEvidenceBundle | None:
+    """Collect grouped coverage evidence, or select the complete legacy path."""
+    if test_jobs != 1:
+        return None
+    try:
+        from maid_runner.core.artifact_coverage import _coverage_targets
+        from maid_runner.core.chain import get_cached_manifest_chain
+        from maid_runner.core.runtime_evidence import (
+            _content_digest,
+            _excluded_content_path,
+            collect_runtime_evidence,
+        )
+
+        if any(
+            not _excluded_content_path(path.relative_to(root))
+            for path in root.rglob("conftest.py")
+            if path.is_file()
+        ):
+            return None
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        coverage_manifests = tuple(
+            manifest
+            for manifest in chain.active_manifests()
+            if _coverage_targets(manifest, root)
+        )
+        if not coverage_manifests:
+            return None
+        pre_execution_digest = _content_digest(root)
+    except Exception:
+        return None
+
+    try:
+        evidence = collect_runtime_evidence(
+            coverage_manifests,
+            root,
+            pytest_workers=pytest_workers,
+        ).evidence
+    except Exception as collection_error:
+        # Evidence is an optimization only. The exact legacy coverage stage is
+        # safe only when preparation left the project bytes unchanged.
+        try:
+            failed_collection_digest = _content_digest(root)
+        except Exception as digest_error:
+            raise RuntimeError(
+                "Artifact coverage evidence preparation failed and the current "
+                "project content identity could not be verified"
+            ) from digest_error
+        if failed_collection_digest != pre_execution_digest:
+            raise RuntimeError(
+                "Artifact coverage evidence preparation changed project content; "
+                "the pre-execution coverage baseline cannot be replayed safely"
+            ) from collection_error
+        return None
+
+    try:
+        post_execution_digest = _content_digest(root)
+    except Exception as exc:
+        raise RuntimeError(
+            "Artifact coverage evidence changed project state and its current "
+            "content identity could not be verified"
+        ) from exc
+    if post_execution_digest != pre_execution_digest:
+        raise RuntimeError(
+            "Artifact coverage evidence command changed project content; the "
+            "pre-execution coverage baseline cannot be replayed safely"
+        )
+    return evidence
+
+
+def _artifact_coverage_stage(
+    root: Path,
+    manifest_dir: str,
+    evidence: RuntimeEvidenceBundle | None = None,
+) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.cli.commands.validate import (
             _run_artifact_coverage_for_manifest_dir,
         )
 
-        report = _run_artifact_coverage_for_manifest_dir(manifest_dir, root)
+        if evidence is None:
+            report = _run_artifact_coverage_for_manifest_dir(manifest_dir, root)
+        else:
+            from maid_runner.cli.commands.validate import (
+                _merge_artifact_coverage_reports,
+                _run_artifact_coverage_by_manifest,
+            )
+
+            report = _merge_artifact_coverage_reports(
+                _run_artifact_coverage_by_manifest(
+                    manifest_dir,
+                    root,
+                    evidence=evidence,
+                ).values()
+            )
         return VerificationStageResult(
             name="artifact_coverage",
             success=report.success,
