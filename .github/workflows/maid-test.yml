@@ -135,7 +135,10 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev
 
-      - name: Run Windows init portability regression
-        run: uv run python -m pytest -q tests/cli/test_init_windows_portability.py
+      - name: Run Windows init and uninstall portability regressions
+        run: >-
+          uv run python -m pytest -q
+          tests/cli/test_init_windows_portability.py
+          tests/cli/test_uninstall_windows_portability.py
 
 # _maid_test_reusable_workflow
