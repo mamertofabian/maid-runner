@@ -1,0 +1,81 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Register the reopened 121 fast-verification roadmap in the exact live planning epic inventory
+type: fix
+created: "2026-08-11T03:04:26Z"
+supersedes:
+  - fix-121-archived-epic-inventory
+metadata:
+  status: implementation-ready
+  tags:
+    - planning-inventory
+    - test-repair
+    - fast-verification
+description: |
+  The 121 roadmap was intentionally reopened as a live planning epic after its
+  earlier archival. Add exactly its filename back to `LIVE_PLANNING_EPICS` so
+  the strict inventory assertion matches the current lifecycle state without
+  accepting arbitrary unregistered epics.
+temptations:
+  - risk: Do not weaken the assertion to accept arbitrary planning epics.
+    instead: Add exactly the reopened 121 roadmap filename to the expected set.
+  - risk: Do not archive or otherwise alter the active performance roadmap.
+    instead: Preserve its live planning marker and reconcile only the inventory expectation.
+files:
+  scope:
+    - path: tests/core/test_draft_epic_archive_inventory.py
+      reason: Add the reopened 121 roadmap filename to the exact live planning inventory constant.
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/fix-121-archived-epic-inventory.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py
+outcome:
+  status: completed
+  completed_at: "2026-08-11T11:08:55+08:00"
+  summary: Registered the intentionally reopened 121 performance roadmap in the strict live-planning inventory and reconciled every active shared-test plan lock.
+  rationale: |
+    The roadmap lifecycle changed from archived back to live planning, but the
+    exact inventory expectation still reflected its archived state. Adding only
+    the reopened filename restores strict equality without weakening detection
+    of unregistered epics. The superseding contract uses sanctioned
+    test-only-green evidence, and all five active locks now match the behavioral
+    test hash.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+      - maid-evolver
+      - maid-implementation-review
+  lessons:
+    - lesson_type: workflow
+      summary: Reopening an archived planning epic must update the exact live inventory and every active shared-test lock in the same lifecycle change.
+      tags:
+        - planning-inventory
+        - shared-tests
+        - plan-lock
+      paths:
+        - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+        - tests/core/test_draft_epic_archive_inventory.py
+  review_notes:
+    - source: independent-reviewer-review_121_inventory_fix
+      severity: ready
+      summary: Re-review confirmed valid test-only-green evidence, a correct supersession chain, strict inventory equality, and a passing nine-gate task-scoped handoff.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_draft_epic_archive_inventory.py]
+      status: passed
+      summary: All three inventory and archive assertions passed.
+    - command: [uv, run, maid, validate, manifests/fix-121-reopened-epic-inventory.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Implementation validation passed against the promoted locked contract.
+    - command: [uv, run, maid, test, --manifest, manifests/fix-121-reopened-epic-inventory.manifest.yaml]
+      status: passed
+      summary: The manifest-declared inventory command passed.
+    - command: [uv, run, maid, plan, dependents, tests/core/test_draft_epic_archive_inventory.py]
+      status: passed
+      summary: All five active plan locks matched the revised shared behavioral test.
