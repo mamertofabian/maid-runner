@@ -1,10 +1,13 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: "2"
 goal: "Reuse immutable real-Git templates across plan-lock and stash policy tests"
 type: refactor
-created: "2026-08-10T16:42:00+08:00"
+created: "2026-08-11T00:18:31Z"
 metadata:
-  status: planning
   priority: medium
   epic: 121-00-fast-verification-roadmap
   tags:
@@ -27,7 +30,11 @@ description: |
 
   Prove byte/state equivalence against the former builders and assert that
   expensive init/config/initial-commit setup occurs once per template rather
-  than once per policy case.
+  than once per policy case. Register the session fixture in the root pytest
+  configuration and pass it explicitly into every
+  policy case that uses a reusable builder; the optional helper arguments exist
+  only to retain bespoke setup for topology/history cases, not as an unexercised
+  escape hatch.
 temptations:
   - risk: "Do not replace Git behavior with a mocked subprocess return table."
     instead: "Use real local clones/worktrees of immutable tiny templates and keep assertions on the actual index, HEAD, stash, and worktree."
@@ -93,13 +100,6 @@ files:
               type: Path
           returns: Path
           description: "Creates an independent local clone/worktree and verifies it starts at the template revision with a clean index."
-        - kind: function
-          name: git_project_template_factory
-          args:
-            - name: tmp_path_factory
-              type: pytest.TempPathFactory
-          returns: Iterator[GitProjectTemplateFactory]
-          description: "Session-scoped pytest fixture that owns and cleans the immutable template cache."
     - path: tests/core/test_git_project_templates.py
       artifacts:
         - kind: test_function
@@ -117,7 +117,36 @@ files:
         - kind: test_function
           name: test_distinct_template_shape_builds_distinct_committed_state
           args: []
+        - kind: test_function
+          name: test_policy_builders_use_templates_when_factory_is_explicit
+          args: []
+        - kind: test_function
+          name: test_session_fixture_exposes_factory_contract
+          args: []
+        - kind: test_function
+          name: test_stash_templates_match_bespoke_committed_git_state
+          args: []
+        - kind: test_function
+          name: test_template_factory_rejects_unsupported_or_escaping_shape_without_writes
+          args: []
+        - kind: test_function
+          name: test_fixture_loader_reraises_transitive_module_import_failure
+          args: []
   edit:
+    - path: tests/conftest.py
+      artifacts:
+        - kind: function
+          name: load_git_project_template_factory
+          args: []
+          returns: type[GitProjectTemplateFactory] | None
+          description: "Loads optional template support only when its exact module exists and propagates transitive import failures."
+        - kind: function
+          name: git_project_template_factory
+          args:
+            - name: tmp_path_factory
+              type: pytest.TempPathFactory
+          returns: Iterator[GitProjectTemplateFactory]
+          description: "Session-scoped pytest fixture that owns and cleans the immutable template cache and fails behaviorally when its implementation is absent."
     - path: tests/cli/test_plan_legacy_baseline_cmd.py
       artifacts:
         - kind: function
@@ -176,8 +205,97 @@ files:
     - maid_runner/core/plan_lock.py
     - maid_runner/core/worktree.py
     - maid_runner/cli/commands/plan.py
-    - tests/core/test_plan_lock_git_subdirectory.py
     - docs/plans/full-and-deep-verification-performance-redesign.md
 validate:
   - uv run python -m pytest -q tests/core/test_git_project_templates.py tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_stash_implementation.py tests/cli/test_plan_cmd_stash_import_obstruction.py
-  - uv run maid validate manifests/drafts/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T01:28:33Z"
+  summary: "Reused worker-local immutable real-Git templates for common legacy-baseline and stash-plan test projects, reducing the unchanged 42-test comparison scope from 31.33 seconds to 11.61 seconds (about 63%) without sharing mutable repositories or weakening scenario-specific setup."
+  rationale: "The high-frequency builders previously repeated Git initialization, configuration, commits, MAID lock construction, and fixture-file setup for every test. The implementation constructs each supported canonical project shape once per pytest worker, then makes independent `git clone --no-hardlinks` copies with no origin or alternates. Bespoke history and mutation cases retain their original setup paths. This reduced the full MAID test gate from the post-121-04 reference of 192.57 seconds to 183.12 seconds, but did not improve the deep gate: its measured duration was 1577.263 seconds versus 1552.902 seconds previously because serialized artifact coverage remains the dominant stage."
+  lessons:
+    - lesson_type: performance
+      summary: "Caching immutable committed Git project shapes and cloning them locally removes repeated repository construction while keeping each test's index, worktree, refs, and objects independent."
+      tags:
+        - pytest
+        - git
+        - fixtures
+        - caching
+      paths:
+        - tests/support/git_project_templates.py
+        - tests/conftest.py
+    - lesson_type: test-design
+      summary: "A reusable test-project optimization needs behavioral equivalence checks for tracked blobs, normalized locks, commit history, clean status, remotes, actual Git command counts, path containment, and clone isolation; path-dependent Python caches must be removed symmetrically before comparison."
+      tags:
+        - equivalence
+        - isolation
+        - fail-loud
+      paths:
+        - tests/core/test_git_project_templates.py
+    - lesson_type: validation-boundary
+      summary: "This slice accelerates Git-heavy pytest setup but cannot slash deep verification because the measured long pole is serialized artifact coverage; subsequent deep-speed work must target that stage directly rather than extrapolating focused-test gains."
+      tags:
+        - deep-verify
+        - artifact-coverage
+        - benchmarking
+      paths:
+        - docs/plans/full-and-deep-verification-performance-redesign.md
+  review_notes:
+    - source: independent-reviewer-subagent
+      severity: needs_changes
+      summary: "Initial review required equivalence coverage for both stash templates, assertions over actual Git subprocess counts, and destination containment before writes."
+    - source: independent-reviewer-subagent
+      severity: needs_changes
+      summary: "Re-review found that the optional fixture import could mask a transitive ModuleNotFoundError; the loader was narrowed to tolerate only the exact absent support module and a regression test proves transitive failures propagate."
+    - source: independent-reviewer-subagent
+      severity: ready
+      summary: "Final re-review reported no findings; Git equivalence, setup counts, path containment, isolation, fail-loud imports, and performance evidence were all resolved."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_git_project_templates.py
+        - tests/cli/test_plan_legacy_baseline_cmd.py
+        - tests/cli/test_plan_cmd_stash_implementation.py
+        - tests/cli/test_plan_cmd_stash_import_obstruction.py
+      status: passed
+      summary: "All 53 focused template and policy tests passed in 20.39 seconds; the unchanged 42-test baseline comparison passed in 11.61 seconds versus 31.33 seconds before implementation."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository validation passed all 419 active manifests with 111 superseded manifests skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Strict handoff verification passed all 9 stages in 42.073 seconds with only pre-existing no-validator warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: failed
+      summary: "The measured deep gate reached artifact coverage after 1577.263 seconds and reported 1703 repository-wide historical E710 gaps plus the known live-121 inventory E900; schema, behavioral, and implementation stages passed. This is recorded as the remaining optimization target rather than a 121-05 regression."

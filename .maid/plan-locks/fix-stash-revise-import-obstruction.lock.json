@@ -2,10 +2,10 @@
   "manifest_path": "manifests/fix-stash-revise-import-obstruction.manifest.yaml",
   "manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:146e555680a6cda74148bffd8baf501aef87282c13290fc9f9880b51241bbf92"
+    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
   },
   "created_at": "2026-08-10T04:22:46.169302+00:00",
-  "revision": 6,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:b9f911ce4db7996e3314938493b092b932385c5d122cb143f31b2481e3fe342f",
@@ -89,6 +89,40 @@
       },
       "revised_at": "2026-08-10T04:58:13.704641+00:00",
       "reason": "Implementation rereview proved Git stash does not preserve full POSIX permission modes, so strengthen the locked recovery test with a pre-stash 0600 implementation mode",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:146e555680a6cda74148bffd8baf501aef87282c13290fc9f9880b51241bbf92"
+      },
+      "revised_at": "2026-08-11T00:27:10.531810+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cefe5d1797cf8fe257c324268e629a497e72d16941a3f8eed338d627984abdc0",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:239bf4fea12f6e613de09aad55802d4da9f1259816eacdbad121d5208649e6fd"
+      },
+      "revised_at": "2026-08-11T01:13:19.375977+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-legacy-baseline-first-commit.manifest.yaml",
   "manifest_hash": "sha256-contract:3236ecbf544298d955784375221b5ce01c4222ddc1dda193b784be731ece6739",
   "test_hashes": {
-    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
     "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393"
   },
   "created_at": "2026-08-05T06:59:58.500924+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1cf8ead7ff2529280f7b39015a48072419fe334a54b8c062ab4e67dd0547c37c",
@@ -34,6 +34,42 @@
       },
       "revised_at": "2026-08-05T07:10:32.414352+00:00",
       "reason": "Refresh the behavioral test hash after removing an unused import during lint cleanup",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3236ecbf544298d955784375221b5ce01c4222ddc1dda193b784be731ece6739",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393"
+      },
+      "revised_at": "2026-08-11T00:27:09.562767+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3236ecbf544298d955784375221b5ce01c4222ddc1dda193b784be731ece6739",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:376f8f306819360f715826d50de03be6f0675ab4fed0c09b8076a2613c2bac1d",
+        "tests/cli/test_plan_legacy_baseline_first_commit.py": "sha256-pyast:v2:4bdbbe2788510b8e172a709c6e9fffb9925b004a9514b003adc54cfcaa51f393"
+      },
+      "revised_at": "2026-08-11T01:13:18.465760+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

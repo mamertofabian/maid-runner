@@ -2,10 +2,10 @@
   "manifest_path": "manifests/076-01-add-stash-backed-plan-revise.manifest.yaml",
   "manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403"
   },
   "created_at": "2026-06-26T09:50:28.500670+00:00",
-  "revision": 14,
+  "revision": 16,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:e5c421748ea776dc1e135500c7ca844fb8d397560293d9d1918fe762b87daea0",
@@ -160,6 +160,40 @@
       },
       "revised_at": "2026-07-27T14:02:55.769242+00:00",
       "reason": "Refresh shared stash-revise behavioral test hash after strengthening diagnostic assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+      },
+      "revised_at": "2026-08-11T00:27:09.805008+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63d8befce8da8e500cd8e44c706ff6fe248cfa48fb05a531e4018895cddf869b",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:48c0b895751fcc8b629d3c2d720c19bc0a45a78d902ae8018cfd7d2737a47bfb"
+      },
+      "revised_at": "2026-08-11T01:13:18.695234+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

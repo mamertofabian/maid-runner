@@ -1,10 +1,17 @@
 """Pytest configuration and fixtures for MAID Runner tests."""
 
+from __future__ import annotations
+
+from collections.abc import Iterator
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from tests.support.git_project_templates import GitProjectTemplateFactory
 
 # Add project root to path for importing scripts
 _project_root = Path(__file__).parent.parent
@@ -19,6 +26,36 @@ _GIT_REPOSITORY_POINTERS = (
     "GIT_PREFIX",
     "GIT_OBJECT_DIRECTORY",
 )
+
+
+def load_git_project_template_factory() -> type[GitProjectTemplateFactory] | None:
+    """Load optional template support without masking broken dependencies."""
+    try:
+        from tests.support.git_project_templates import GitProjectTemplateFactory
+    except ModuleNotFoundError as exc:
+        if exc.name == "tests.support.git_project_templates":
+            return None
+        raise
+
+    return GitProjectTemplateFactory
+
+
+@pytest.fixture(scope="session")
+def git_project_template_factory(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Iterator[GitProjectTemplateFactory]:
+    """Provide one worker-local immutable Git-template cache."""
+    factory_type = load_git_project_template_factory()
+    if factory_type is None:
+
+        class _MissingGitProjectTemplateFactory:
+            def get(self, shape: str):
+                raise AssertionError("Git project template support is not implemented")
+
+        yield _MissingGitProjectTemplateFactory()  # type: ignore[misc]
+        return
+
+    yield factory_type(tmp_path_factory.mktemp("git-project-templates"))
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -19,6 +20,9 @@ from maid_runner.core.plan_lock import (
     enforce_plan_locks,
 )
 from maid_runner.core.result import ErrorCode
+
+if TYPE_CHECKING:
+    from tests.support.git_project_templates import GitProjectTemplateFactory
 
 
 def _git(project_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -70,7 +74,23 @@ def _write_committed_legacy_project(
     validation_mutation: str | None = None,
     validation_lock_payload: str | None = None,
     ignore_maid: bool = False,
+    template_factory: GitProjectTemplateFactory | None = None,
 ) -> Path:
+    if (
+        template_factory is not None
+        and committed_command == "python scripts/validate.py"
+        and committed_additional_commands == ()
+        and validate_exit == 0
+        and validation_mutation is None
+        and validation_lock_payload is None
+        and not ignore_maid
+    ):
+        from tests.support.git_project_templates import clone_git_project_template
+
+        template = template_factory.get("legacy-baseline")
+        clone_git_project_template(template, project_root)
+        return project_root / "manifests" / "legacy-task.manifest.yaml"
+
     (project_root / "manifests").mkdir(parents=True)
     (project_root / "src").mkdir()
     (project_root / "tests").mkdir()
@@ -185,13 +205,16 @@ def test_lock_parser_exposes_legacy_baseline_with_reason() -> None:
 
 def test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     from maid_runner.core.plan_lock import (
         LegacyBaselineEvidence,
         capture_legacy_baseline_evidence,
     )
 
-    manifest_path = _write_committed_legacy_project(tmp_path)
+    manifest_path = _write_committed_legacy_project(
+        tmp_path, template_factory=git_project_template_factory
+    )
     _strengthen_validate_command(manifest_path)
     reason = "Add the already-declared behavioral test to legacy validation"
 
@@ -241,8 +264,13 @@ def test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate(
     assert errors == ()
 
 
-def test_legacy_baseline_rejects_untracked_manifest(tmp_path: Path) -> None:
-    manifest_path = _write_committed_legacy_project(tmp_path)
+def test_legacy_baseline_rejects_untracked_manifest(
+    tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
+) -> None:
+    manifest_path = _write_committed_legacy_project(
+        tmp_path, template_factory=git_project_template_factory
+    )
     manifest_path.rename(tmp_path / "manifests" / "original.manifest.yaml")
     manifest_path = tmp_path / "manifests" / "new-task.manifest.yaml"
     manifest_path.write_text(
@@ -263,9 +291,14 @@ def test_legacy_baseline_rejects_untracked_manifest(tmp_path: Path) -> None:
     assert not default_plan_lock_path(tmp_path, "new-task").exists()
 
 
-def test_legacy_baseline_requires_reason_and_rejects_no_run(tmp_path: Path) -> None:
+def test_legacy_baseline_requires_reason_and_rejects_no_run(
+    tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
+) -> None:
     missing_reason_root = tmp_path / "missing-reason"
-    missing_reason_manifest = _write_committed_legacy_project(missing_reason_root)
+    missing_reason_manifest = _write_committed_legacy_project(
+        missing_reason_root, template_factory=git_project_template_factory
+    )
     _strengthen_validate_command(missing_reason_manifest)
 
     missing_reason_exit = cmd_plan_lock(
@@ -277,7 +310,9 @@ def test_legacy_baseline_requires_reason_and_rejects_no_run(tmp_path: Path) -> N
     )
 
     no_run_root = tmp_path / "no-run"
-    no_run_manifest = _write_committed_legacy_project(no_run_root)
+    no_run_manifest = _write_committed_legacy_project(
+        no_run_root, template_factory=git_project_template_factory
+    )
     _strengthen_validate_command(no_run_manifest)
     no_run_exit = cmd_plan_lock(
         _lock_args(
@@ -297,10 +332,13 @@ def test_legacy_baseline_requires_reason_and_rejects_no_run(tmp_path: Path) -> N
 
 def test_legacy_baseline_rejects_dirty_implementation_or_test_paths(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     for dirty_path in ("src/demo.py", "tests/test_demo.py"):
         project_root = tmp_path / dirty_path.split("/")[0]
-        manifest_path = _write_committed_legacy_project(project_root)
+        manifest_path = _write_committed_legacy_project(
+            project_root, template_factory=git_project_template_factory
+        )
         _strengthen_validate_command(manifest_path)
         target = project_root / dirty_path
         target.write_text(target.read_text(encoding="utf-8") + "# dirty\n")
@@ -320,9 +358,12 @@ def test_legacy_baseline_rejects_dirty_implementation_or_test_paths(
 
 def test_legacy_baseline_rejects_contract_change_or_validate_weakening(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     contract_root = tmp_path / "contract"
-    contract_manifest = _write_committed_legacy_project(contract_root)
+    contract_manifest = _write_committed_legacy_project(
+        contract_root, template_factory=git_project_template_factory
+    )
     contract_manifest.write_text(
         _manifest_text(
             "python scripts/validate.py tests/test_demo.py",
@@ -348,6 +389,7 @@ def test_legacy_baseline_rejects_contract_change_or_validate_weakening(
     weakening_root = tmp_path / "weakening"
     weakening_manifest = _write_committed_legacy_project(
         weakening_root,
+        template_factory=git_project_template_factory,
         committed_command="python scripts/validate.py tests/test_demo.py",
     )
     weakening_manifest.write_text(
@@ -385,7 +427,9 @@ def test_legacy_baseline_rejects_contract_change_or_validate_weakening(
         ),
     }.items():
         project_root = tmp_path / section
-        manifest_path = _write_committed_legacy_project(project_root)
+        manifest_path = _write_committed_legacy_project(
+            project_root, template_factory=git_project_template_factory
+        )
         manifest_path.write_text(
             _manifest_text(
                 "python scripts/validate.py tests/test_demo.py",
@@ -418,7 +462,9 @@ def test_legacy_baseline_rejects_contract_change_or_validate_weakening(
         ),
     }.items():
         project_root = tmp_path / field_name
-        manifest_path = _write_committed_legacy_project(project_root)
+        manifest_path = _write_committed_legacy_project(
+            project_root, template_factory=git_project_template_factory
+        )
         manifest_path.write_text(
             transform(_manifest_text("python scripts/validate.py tests/test_demo.py")),
             encoding="utf-8",
@@ -442,7 +488,10 @@ def test_legacy_baseline_rejects_contract_change_or_validate_weakening(
     assert not default_plan_lock_path(weakening_root, "legacy-task").exists()
 
 
-def test_legacy_baseline_rejects_filtering_suffix_arguments(tmp_path: Path) -> None:
+def test_legacy_baseline_rejects_filtering_suffix_arguments(
+    tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
+) -> None:
     exits = []
     for case, committed_command in (
         ("appended-filter", "python scripts/validate.py"),
@@ -451,6 +500,7 @@ def test_legacy_baseline_rejects_filtering_suffix_arguments(tmp_path: Path) -> N
         project_root = tmp_path / case
         manifest_path = _write_committed_legacy_project(
             project_root,
+            template_factory=git_project_template_factory,
             committed_command=committed_command,
         )
         manifest_path.write_text(
@@ -475,11 +525,13 @@ def test_legacy_baseline_rejects_filtering_suffix_arguments(tmp_path: Path) -> N
 
 def test_legacy_baseline_accepts_overlapping_command_strengthening(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     from maid_runner.core.plan_lock import capture_legacy_baseline_evidence
 
     manifest_path = _write_committed_legacy_project(
         tmp_path,
+        template_factory=git_project_template_factory,
         committed_additional_commands=(
             "python scripts/validate.py tests/test_demo.py",
         ),
@@ -504,10 +556,12 @@ def test_legacy_baseline_accepts_overlapping_command_strengthening(
 
 def test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     invalid_root = tmp_path / "invalid"
     invalid_manifest = _write_committed_legacy_project(
         invalid_root,
+        template_factory=git_project_template_factory,
         validation_lock_payload="validation garbage",
     )
     _strengthen_validate_command(invalid_manifest)
@@ -542,6 +596,7 @@ def test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts(
     competitor_root = tmp_path / "competitor"
     competitor_manifest = _write_committed_legacy_project(
         competitor_root,
+        template_factory=git_project_template_factory,
         validation_lock_payload=competitor_payload,
         ignore_maid=True,
     )
@@ -563,10 +618,14 @@ def test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts(
 
 @pytest.mark.parametrize("validate_exit", [1, 2])
 def test_legacy_baseline_rejects_non_green_validation(
-    tmp_path: Path, validate_exit: int
+    tmp_path: Path,
+    validate_exit: int,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     manifest_path = _write_committed_legacy_project(
-        tmp_path, validate_exit=validate_exit
+        tmp_path,
+        validate_exit=validate_exit,
+        template_factory=git_project_template_factory,
     )
     _strengthen_validate_command(manifest_path)
 
@@ -585,6 +644,7 @@ def test_legacy_baseline_rejects_non_green_validation(
 
 def test_legacy_baseline_rejects_validation_that_mutates_contract(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     for target in (
         "manifests/legacy-task.manifest.yaml",
@@ -592,7 +652,9 @@ def test_legacy_baseline_rejects_validation_that_mutates_contract(
     ):
         project_root = tmp_path / target.split("/")[0]
         manifest_path = _write_committed_legacy_project(
-            project_root, validation_mutation=target
+            project_root,
+            validation_mutation=target,
+            template_factory=git_project_template_factory,
         )
         _strengthen_validate_command(manifest_path)
 
@@ -609,8 +671,13 @@ def test_legacy_baseline_rejects_validation_that_mutates_contract(
         assert not default_plan_lock_path(project_root, "legacy-task").exists()
 
 
-def test_ordinary_no_run_lock_still_fails_e704(tmp_path: Path) -> None:
-    manifest_path = _write_committed_legacy_project(tmp_path)
+def test_ordinary_no_run_lock_still_fails_e704(
+    tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
+) -> None:
+    manifest_path = _write_committed_legacy_project(
+        tmp_path, template_factory=git_project_template_factory
+    )
 
     assert cmd_plan_lock(_lock_args(manifest_path, tmp_path, no_run=True)) == 0
 
@@ -644,7 +711,10 @@ def test_plan_lock_preserves_positional_agent_compatibility() -> None:
     assert lock.legacy_baseline is None
 
 
-def test_tampered_legacy_baseline_fails_e705(tmp_path: Path) -> None:
+def test_tampered_legacy_baseline_fails_e705(
+    tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
+) -> None:
     tamper_cases = (
         "command-mismatch",
         "missing-reason",
@@ -656,7 +726,9 @@ def test_tampered_legacy_baseline_fails_e705(tmp_path: Path) -> None:
     )
     for tamper_case in tamper_cases:
         project_root = tmp_path / tamper_case
-        manifest_path = _write_committed_legacy_project(project_root)
+        manifest_path = _write_committed_legacy_project(
+            project_root, template_factory=git_project_template_factory
+        )
         _strengthen_validate_command(manifest_path)
         assert (
             cmd_plan_lock(
@@ -713,9 +785,13 @@ def test_tampered_legacy_baseline_fails_e705(tmp_path: Path) -> None:
 
 
 def test_plan_status_distinguishes_legacy_baseline_from_red_evidence(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_committed_legacy_project(tmp_path)
+    manifest_path = _write_committed_legacy_project(
+        tmp_path, template_factory=git_project_template_factory
+    )
     _strengthen_validate_command(manifest_path)
     assert (
         cmd_plan_lock(
