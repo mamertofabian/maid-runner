@@ -1,10 +1,13 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: "2"
 goal: "Build deduplicated knockout mutation specs without sharing declaration execution state"
 type: refactor
-created: "2026-08-10T17:11:00+08:00"
+created: "2026-08-11T21:58:25Z"
 metadata:
-  status: planning
   priority: high
   epic: 121-00-fast-verification-roadmap
   tags:
@@ -15,7 +18,8 @@ description: |
   The active chain contains 1,093 declarations but only 554 unique
   file/kind/class/name mutations. Build one immutable mutation specification
   per identity while retaining every manifest, declaration index, original
-  command, and source digest. This child changes planning only: the existing
+  command, and raw source-byte digest (without newline normalization). This
+  child changes planning only: the existing
   runner still executes and restores each declaration independently.
 
   Do not run several declarations inside one mutation lifetime. The legacy
@@ -28,7 +32,7 @@ description: |
   workers, or claim a runtime reduction.
 temptations:
   - risk: "Do not deduplicate only by artifact name."
-    instead: "Use normalized file, kind, parent class, and name identity bound to current source digest."
+    instead: "Use normalized file, kind, parent class, and name identity bound to the exact current source bytes."
   - risk: "Do not collapse manifest attribution when commands are shared."
     instead: "Retain immutable declaration records and their exact command order in each unique specification."
   - risk: "Do not apply --knockout-limit after deduplication."
@@ -96,6 +100,11 @@ files:
           of: KnockoutDeclaration
           type: int
         - kind: attribute
+          name: plan_index
+          of: KnockoutDeclaration
+          type: int
+          description: "Global legacy declaration ordinal used to reconstruct execution order across unique specs."
+        - kind: attribute
           name: commands
           of: KnockoutDeclaration
           type: tuple[tuple[str, Ellipsis], Ellipsis]
@@ -126,6 +135,15 @@ files:
               default: "None"
           returns: tuple[KnockoutMutationSpec, Ellipsis]
           description: "Applies legacy declaration limits, then builds deduplicated exact current-source identities without changing execution."
+        - kind: function
+          name: knockout_mutation_spec_is_current
+          args:
+            - name: spec
+              type: KnockoutMutationSpec
+            - name: project_root
+              type: Path
+          returns: bool
+          description: "Rejects a planned mutation when its normalized target bytes no longer match the bound source digest."
   read:
     - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
     - manifests/068-02-add-artifact-knockout-harness.manifest.yaml
@@ -136,4 +154,53 @@ files:
     - docs/plans/full-and-deep-verification-performance-redesign.md
 validate:
   - uv run python -m pytest -q tests/core/test_knockout_batch.py tests/core/test_knockout.py tests/cli/test_verify_knockout_cmd.py
-  - uv run maid validate manifests/drafts/121-11-deduplicate-knockout-mutation-specs.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T22:09:27Z"
+  summary: "Added immutable knockout artifact identities, declaration records, and deduplicated mutation specifications while leaving the existing serial per-declaration rewrite, command, and restore engine unchanged. Global plan indices preserve legacy order across unique specs, and raw-byte digests reject stale source plans."
+  rationale: "Later snapshot and worker slices need a compact mutation inventory without changing today's observable execution. The plan therefore deduplicates identity metadata only, retains every manifest and exact command sequence, applies the global declaration limit before grouping, and binds each spec to exact source bytes."
+  lessons:
+    - lesson_type: design
+      summary: "Grouping unique mutation identities loses cross-group order unless every retained declaration carries a global legacy plan ordinal."
+      tags: [knockout, ordering, deduplication]
+      paths:
+        - maid_runner/core/knockout.py
+        - tests/core/test_knockout_batch.py
+    - lesson_type: testing
+      summary: "Freshness contracts described as source bytes must hash read_bytes directly; universal-newline decoding can make CRLF and LF changes compare equal."
+      tags: [byte-integrity, regression-testing, fail-closed]
+      paths:
+        - maid_runner/core/knockout.py
+        - tests/core/test_knockout_batch.py
+    - lesson_type: performance
+      summary: "The current active inventory contains 1,149 knockout declarations but 601 unique mutation specs, a 47.7% identity reduction with maximum duplicate fan-in 68; execution remains intentionally unchanged until isolation is proven."
+      tags: [performance, knockout, inventory]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: review_121_11_implementation
+      severity: warning
+      summary: "Initial review proved text-mode hashing accepted CRLF-to-LF byte drift and required exact raw-byte freshness."
+    - source: review_121_11_implementation
+      severity: ready
+      summary: "Revision 3 hashes raw bytes at both planning and freshness boundaries; re-review found no remaining issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_batch.py, tests/core/test_knockout.py, tests/cli/test_verify_knockout_cmd.py]
+      status: passed
+      summary: "All 28 focused planning, legacy knockout, and verify integration tests passed in 1.50s after the review fix."
+    - command: [uv, run, maid, validate, manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 3."
+    - command: [uv, run, maid, validate, --quiet]
+      status: passed
+      summary: "Repository-wide manifest validation passed before the raw-byte-only review correction; focused implementation validation passed afterward."
+    - command: [uv, run, maid, test, --json]
+      status: passed
+      summary: "All 255 active manifest test command groups passed before the raw-byte-only review correction; the affected 28-test scope was rerun afterward."
+    - command: [uv, run, python, -c, "build current active knockout mutation inventory"]
+      status: passed
+      summary: "Built 601 unique specs from 1,149 declarations across 425 active manifests in 1.47s."
+    - command: [uv, run, ruff, check, maid_runner/core/knockout.py, tests/core/test_knockout_batch.py]
+      status: passed
+      summary: "Focused Ruff, Black, and git diff checks passed after the final review fix."

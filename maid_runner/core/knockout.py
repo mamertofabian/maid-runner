@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -39,6 +40,124 @@ class KnockoutReport:
             "results": [_result_to_dict(result) for result in self.results],
             "errors": [error.to_dict() for error in self.errors],
         }
+
+
+@dataclass(frozen=True)
+class KnockoutArtifactIdentity:
+    """Normalized identity for one unique Python artifact mutation."""
+
+    file_path: str
+    artifact_name: str
+    artifact_kind: str
+    parent_class: str | None
+
+
+@dataclass(frozen=True)
+class KnockoutDeclaration:
+    """Original manifest declaration and exact validate-command attribution."""
+
+    manifest_path: str
+    manifest_slug: str
+    declaration_index: int
+    plan_index: int
+    commands: tuple[tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
+class KnockoutMutationSpec:
+    """One immutable current-source mutation with all declaring records."""
+
+    identity: KnockoutArtifactIdentity
+    source_digest: str
+    declarations: tuple[KnockoutDeclaration, ...]
+
+
+def build_knockout_mutation_specs(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    limit: int | None = None,
+) -> tuple[KnockoutMutationSpec, ...]:
+    """Deduplicate selected declarations without changing legacy execution order."""
+    root = Path(project_root)
+    selected_limit = None if limit is None else max(limit, 0)
+    grouped: dict[
+        KnockoutArtifactIdentity,
+        tuple[str, list[KnockoutDeclaration]],
+    ] = {}
+    plan_index = 0
+
+    for manifest in manifests:
+        for declaration_index, (file_path, artifact) in enumerate(
+            _knockout_targets(manifest)
+        ):
+            if selected_limit is not None and plan_index >= selected_limit:
+                break
+            normalized_path = _normalize_project_path(root, file_path)
+            target_path, target_error = _target_path_or_error(root, normalized_path)
+            if target_error is not None:
+                raise ValueError(target_error.message)
+            try:
+                source_digest = hashlib.sha256(target_path.read_bytes()).hexdigest()
+            except Exception as exc:
+                raise ValueError(
+                    f"Knockout could not read source file {normalized_path}: {exc}"
+                ) from exc
+
+            identity = KnockoutArtifactIdentity(
+                file_path=normalized_path,
+                artifact_name=artifact.name,
+                artifact_kind=artifact.kind.value,
+                parent_class=artifact.of,
+            )
+            declaration = KnockoutDeclaration(
+                manifest_path=manifest.source_path,
+                manifest_slug=manifest.slug,
+                declaration_index=declaration_index,
+                plan_index=plan_index,
+                commands=tuple(
+                    tuple(command) for command in manifest.validate_commands
+                ),
+            )
+            existing = grouped.get(identity)
+            if existing is None:
+                grouped[identity] = (source_digest, [declaration])
+            else:
+                existing_digest, declarations = existing
+                if existing_digest != source_digest:
+                    raise ValueError(
+                        "Knockout source changed while building mutation plan for "
+                        f"{normalized_path}"
+                    )
+                declarations.append(declaration)
+            plan_index += 1
+        if selected_limit is not None and plan_index >= selected_limit:
+            break
+
+    return tuple(
+        KnockoutMutationSpec(
+            identity=identity,
+            source_digest=source_digest,
+            declarations=tuple(declarations),
+        )
+        for identity, (source_digest, declarations) in grouped.items()
+    )
+
+
+def knockout_mutation_spec_is_current(
+    spec: KnockoutMutationSpec,
+    project_root: Path,
+) -> bool:
+    """Return whether a planned mutation still matches current target bytes."""
+    root = Path(project_root)
+    target_path, target_error = _target_path_or_error(root, spec.identity.file_path)
+    if target_error is not None:
+        return False
+    try:
+        return (
+            hashlib.sha256(target_path.read_bytes()).hexdigest() == spec.source_digest
+        )
+    except Exception:
+        return False
 
 
 def rewrite_artifact_body(
