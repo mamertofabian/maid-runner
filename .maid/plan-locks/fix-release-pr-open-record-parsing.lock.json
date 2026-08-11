@@ -1,0 +1,218 @@
+{
+  "manifest_path": "manifests/fix-release-pr-open-record-parsing.manifest.yaml",
+  "manifest_hash": "sha256-contract:d119020523d82939d8030b945b8bc7a6302e7e17ab20fe4bd6deb3dcfebfcd8b",
+  "test_hashes": {
+    "tests/test_pr_release_lookup.py": "sha256-pyast:v2:80c321c89f98a076ed27484dc26739af3f5dc69e76c0270c9ce223d6a9054aff"
+  },
+  "created_at": "2026-08-10T22:42:31.957128+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:90fd28d04be06569ba31e3f7b60d61d835d2c545afffdd502da1d48fa3aa74f1",
+      "prior_test_hashes": {
+        "tests/test_pr_release_lookup.py": "sha256-pyast:v2:81047910d3442a0795403787c456dab91ae70c7f8587151e1f040ef2f3c06fa6"
+      },
+      "revised_at": "2026-08-10T22:42:32.628824+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-release-pr-open-record-parsing.manifest.yaml -> manifests/fix-release-pr-open-record-parsing.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:489f635921833f5a1f946b59e5a73c2385a753095bf9b50e5f8ba44515a51bed",
+      "prior_test_hashes": {
+        "tests/test_pr_release_lookup.py": "sha256-pyast:v2:81047910d3442a0795403787c456dab91ae70c7f8587151e1f040ef2f3c06fa6"
+      },
+      "revised_at": "2026-08-10T22:49:43.039967+00:00",
+      "reason": "Independent review identified that only OPEN records may use the stripped three-field shape",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error",
+          "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error:kind=test_function",
+          "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T22:49:43.339840+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_pr_release_lookup.py tests/test_pr_script.py",
+        "exit_code": 1,
+        "output_tail": "            ],\n            check=False,\n        )\n        if exit_code != 0:\n            raise RuntimeError(f\"Could not query release pull requests: {output}\")\n        if not output:\n            return None\n    \n        candidates = []\n        for line in output.splitlines():\n>           url, state, pr_head_sha, merge_commit = line.split(\"\\t\")\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           ValueError: not enough values to unpack (expected 4, got 3)\n\nscripts/pr.py:426: ValueError\n=========================== short test summary info ============================\nFAILED tests/test_pr_release_lookup.py::test_open_release_pr_without_merge_commit_is_reused\nFAILED tests/test_pr_release_lookup.py::test_malformed_release_pr_record_fails_with_specific_error\nFAILED tests/test_pr_release_lookup.py::test_merged_release_pr_without_merge_commit_fails_with_specific_error\n3 failed, 27 passed in 0.13s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "scripts/pr.py:method:PRCreator.find_release_pr",
+      "scripts/pr.py:method:PRCreator.find_release_pr:arg=base:type=str:default=None",
+      "scripts/pr.py:method:PRCreator.find_release_pr:arg=head:type=str:default=None",
+      "scripts/pr.py:method:PRCreator.find_release_pr:arg=head_sha:type=str:default=None",
+      "scripts/pr.py:method:PRCreator.find_release_pr:arg=repo:type=str:default=None",
+      "scripts/pr.py:method:PRCreator.find_release_pr:kind=method",
+      "scripts/pr.py:method:PRCreator.find_release_pr:of=PRCreator",
+      "scripts/pr.py:method:PRCreator.find_release_pr:returns=Optional[Dict[str, str]]",
+      "tests/test_pr_release_lookup.py:test_malformed_release_pr_record_fails_with_specific_error",
+      "tests/test_pr_release_lookup.py:test_malformed_release_pr_record_fails_with_specific_error:kind=test_function",
+      "tests/test_pr_release_lookup.py:test_malformed_release_pr_record_fails_with_specific_error:returns=None",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_is_preferred_and_preserves_merge_commit",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_is_preferred_and_preserves_merge_commit:kind=test_function",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_is_preferred_and_preserves_merge_commit:returns=None",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error:kind=test_function",
+      "tests/test_pr_release_lookup.py:test_merged_release_pr_without_merge_commit_fails_with_specific_error:returns=None",
+      "tests/test_pr_release_lookup.py:test_open_release_pr_without_merge_commit_is_reused",
+      "tests/test_pr_release_lookup.py:test_open_release_pr_without_merge_commit_is_reused:kind=test_function",
+      "tests/test_pr_release_lookup.py:test_open_release_pr_without_merge_commit_is_reused:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_pr_release_lookup.py"
+      ],
+      "edit": [
+        "scripts/pr.py"
+      ],
+      "read": [
+        "tests/test_pr_script.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_pr_release_lookup.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_open_release_pr_without_merge_commit_is_reused",
+              "returns": "None",
+              "source_scenario": "GitHub returns a stripped three-field record for an open release PR whose merge commit is null.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "PRCreator.find_release_pr"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lookup returns the exact open PR metadata with an empty merge_commit value instead of raising an unpacking error."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_merged_release_pr_is_preferred_and_preserves_merge_commit",
+              "returns": "None",
+              "source_scenario": "GitHub returns both open and merged four-field records for the reviewed head.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "PRCreator.find_release_pr"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lookup prefers the merged record and preserves its merge commit SHA."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_malformed_release_pr_record_fails_with_specific_error",
+              "returns": "None",
+              "source_scenario": "GitHub returns a release PR record with neither the supported three-field nor four-field shape.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "PRCreator.find_release_pr"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lookup raises a release-specific RuntimeError rather than leaking an incidental tuple-unpack exception or fabricating data."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_merged_release_pr_without_merge_commit_fails_with_specific_error",
+              "returns": "None",
+              "source_scenario": "GitHub returns a stripped three-field record marked as merged even though its merge commit is absent.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "PRCreator.find_release_pr"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The lookup rejects the malformed merged record with a release-specific RuntimeError instead of treating it as an open PR shape."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "scripts/pr.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "find_release_pr",
+              "of": "PRCreator",
+              "args": [
+                {
+                  "name": "repo",
+                  "type": "str"
+                },
+                {
+                  "name": "head",
+                  "type": "str"
+                },
+                {
+                  "name": "base",
+                  "type": "str"
+                },
+                {
+                  "name": "head_sha",
+                  "type": "str"
+                }
+              ],
+              "returns": "Optional[Dict[str, str]]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/test_pr_script.py"
+      ]
+    },
+    "test_files": [
+      "tests/test_pr_release_lookup.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_pr_release_lookup.py tests/test_pr_script.py"
+    ]
+  }
+}
