@@ -5,7 +5,7 @@
     "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:870e030ff1c7037af7dbe90be9f0da64c6708a0e3ac6b58bc6728ea465ea4fb2"
   },
   "created_at": "2026-08-10T12:21:25.092695+00:00",
-  "revision": 17,
+  "revision": 18,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:35ca100f2cd24cd5faf8e0c7cf4974c95b320f5b7eb2e01888abf24a190a9635",
@@ -346,6 +346,23 @@
       },
       "revised_at": "2026-08-10T14:55:25.401553+00:00",
       "reason": "Plan review strengthened both Git-remote adversaries to require an empty remote list and preserve non-origin source remotes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:55505e62beeeacd810876bdfa8df9f94b8bdf341dfae71bf4858c1f59545f92b",
+      "prior_test_hashes": {
+        "tests/performance/test_pytest_parallel_equivalence_probe.py": "sha256-pyast:v2:870e030ff1c7037af7dbe90be9f0da64c6708a0e3ac6b58bc6728ea465ea4fb2"
+      },
+      "revised_at": "2026-08-11T05:21:49.910066+00:00",
+      "reason": "Update the promoted 121-08 dependency path through the sanctioned lifecycle without changing the 121-03 contract.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

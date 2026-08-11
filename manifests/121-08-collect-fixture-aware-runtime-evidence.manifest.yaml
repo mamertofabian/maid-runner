@@ -1,10 +1,14 @@
 # draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
 schema: "2"
 goal: "Collect command-identified node, fixture, and collection runtime evidence with explicit completeness"
 type: feature
-created: "2026-08-10T16:45:00+08:00"
+created: "2026-08-11T05:21:19Z"
 metadata:
-  status: planning
+  status: implementation-ready
   priority: high
   epic: 121-00-fast-verification-roadmap
   tags:
@@ -152,6 +156,50 @@ files:
           name: execution_data
           of: RuntimeContextEvidence
           type: Mapping[str, RuntimeFileExecution]
+        - kind: attribute
+          name: fixture_scope
+          of: RuntimeContextEvidence
+          type: str | None
+        - kind: attribute
+          name: autouse
+          of: RuntimeContextEvidence
+          type: bool
+        - kind: attribute
+          name: lifecycle_equivalent
+          of: RuntimeContextEvidence
+          type: bool
+          description: "True only when grouping provably preserves this fixture lifecycle."
+        - kind: class
+          name: RuntimeGroupEvidence
+          description: "One physical compatible-group execution before selector evidence is projected to original command identities."
+        - kind: attribute
+          name: command
+          of: RuntimeGroupEvidence
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: selected_nodeids
+          of: RuntimeGroupEvidence
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: selector_nodeids
+          of: RuntimeGroupEvidence
+          type: Mapping[str, tuple[str, Ellipsis]]
+        - kind: attribute
+          name: contexts
+          of: RuntimeGroupEvidence
+          type: tuple[RuntimeContextEvidence, Ellipsis]
+        - kind: attribute
+          name: result
+          of: RuntimeGroupEvidence
+          type: RuntimeCommandRecord
+        - kind: attribute
+          name: worker_ids
+          of: RuntimeGroupEvidence
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: completeness
+          of: RuntimeGroupEvidence
+          type: RuntimeEvidenceCompleteness
         - kind: class
           name: RuntimeCommandEvidence
           description: "One exact command identity, selected nodes, contexts, result, and completeness."
@@ -179,6 +227,10 @@ files:
           name: completeness
           of: RuntimeCommandEvidence
           type: RuntimeEvidenceCompleteness
+        - kind: attribute
+          name: environment_identity
+          of: RuntimeCommandEvidence
+          type: RuntimeEnvironmentIdentity
         - kind: class
           name: RuntimeEvidenceBundle
           description: "Invocation-scoped command evidence bound to current source/test/config bytes."
@@ -191,9 +243,9 @@ files:
           of: RuntimeEvidenceBundle
           type: str
         - kind: attribute
-          name: environment_identity
+          name: environment_identities
           of: RuntimeEvidenceBundle
-          type: RuntimeEnvironmentIdentity
+          type: tuple[RuntimeEnvironmentIdentity, Ellipsis]
         - kind: attribute
           name: worker_ids
           of: RuntimeEvidenceBundle
@@ -202,6 +254,10 @@ files:
           name: completeness
           of: RuntimeEvidenceBundle
           type: RuntimeEvidenceCompleteness
+        - kind: attribute
+          name: pytest_workers
+          of: RuntimeEvidenceBundle
+          type: Union[Union[int, str], None]
         - kind: class
           name: RuntimeEvidenceRun
           description: "Ordinary results for executed compatible groups plus their evidence bundle."
@@ -228,12 +284,45 @@ files:
               type: RuntimeCommandExecutor | None
               default: "None"
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
           returns: RuntimeEvidenceRun
           description: "Executes each proven-compatible group once and returns exact-command maps without evaluating coverage findings."
+        - kind: function
+          name: combine_runtime_contexts
+          args:
+            - name: contexts
+              type: Sequence[RuntimeContextEvidence]
+          returns: RuntimeContextEvidence
+          description: "Combines same-ID controller/worker contexts without losing line, call, consumer, or lifecycle evidence."
+        - kind: function
+          name: runtime_evidence_is_current
+          args:
+            - name: bundle
+              type: RuntimeEvidenceBundle
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: pytest_workers
+              type: Union[Union[int, str], None]
+              default: "None"
+          returns: bool
+          description: "Recomputes content and resolved-environment identity without executing tests and rejects stale in-memory evidence."
     - path: maid_runner/core/_runtime_evidence_pytest_plugin.py
       artifacts:
+        - kind: function
+          name: pytest_addoption
+          args:
+            - name: parser
+              type: pytest.Parser
+          returns: None
+        - kind: function
+          name: pytest_configure
+          args:
+            - name: config
+              type: pytest.Config
+          returns: None
         - kind: class
           name: RuntimeEvidencePlugin
           description: "Pytest plugin recording node, fixture, collection, call, and worker contexts."
@@ -318,6 +407,14 @@ files:
               type: object | None
           returns: None
         - kind: method
+          name: pytest_configure_node
+          of: RuntimeEvidencePlugin
+          args:
+            - name: node
+              type: object
+          returns: None
+          description: "Keeps private instrumentation only until every configured xdist worker has inherited it, then clears the controller environment."
+        - kind: method
           name: pytest_sessionfinish
           of: RuntimeEvidencePlugin
           args:
@@ -370,6 +467,18 @@ files:
         - kind: test_function
           name: test_runtime_collection_result_matches_ordinary_group_result
           args: []
+        - kind: test_function
+          name: test_plugin_preserves_consumer_plugins_and_does_not_leak_context_to_nested_pytest
+          args: []
+        - kind: test_function
+          name: test_xdist_requires_every_expected_worker_payload_and_projects_nodes
+          args: []
+        - kind: test_function
+          name: test_missing_runtest_reports_are_incomplete_even_with_success_exit
+          args: []
+        - kind: test_function
+          name: test_manifest_command_or_worker_policy_change_rejects_bundle
+          args: []
   edit:
     - path: maid_runner/core/_runtime_command_executor.py
       artifacts:
@@ -386,9 +495,9 @@ files:
             - name: timeout_seconds
               type: float
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
-          returns: RuntimeCommandEvidence
+          returns: RuntimeGroupEvidence
         - kind: method
           name: execute_with_contexts
           of: SubprocessRuntimeCommandExecutor
@@ -402,18 +511,83 @@ files:
             - name: timeout_seconds
               type: float
             - name: pytest_workers
-              type: int | str | None
+              type: Union[Union[int, str], None]
               default: "None"
-          returns: RuntimeCommandEvidence
-          description: "Runs the contextual plugin and combines controller/worker files into typed evidence."
+          returns: RuntimeGroupEvidence
+          description: "Runs one contextual compatible group and combines controller/worker files into typed group evidence for exact-command projection."
   read:
     - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
-    - manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml
-    - manifests/drafts/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+    - manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml
+    - manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
     - maid_runner/core/artifact_coverage.py
     - maid_runner/core/test_runner.py
     - maid_runner/core/_test_command_batching.py
     - docs/plans/full-and-deep-verification-performance-redesign.md
 validate:
   - uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py
-  - uv run maid validate manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet
+  - uv run maid validate manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T14:05:49+08:00"
+  summary: "Added fixture-aware, command-identified runtime evidence that safely batches compatible pytest work while failing closed on unproven fixture lifecycles, ambiguous collection, nested pytest, stale identities, incomplete reports, and missing xdist workers."
+  rationale: "Deep verification cannot safely collapse hundreds of artifact-coverage subprocesses until execution is attributable to exact manifest commands. This slice supplies that prerequisite without changing E710 evaluation or verify-stage policy: function fixture setup and yield teardown are attributed per node, wider/autouse lifecycles remain fallback-only, worker reports are checked in aggregate, and contextual execution preserves ordinary subprocess import behavior."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-runner-performance-optimization
+      - maid-runner-draft-implement
+      - maid-plan-review
+      - maid-evolver
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "xdist completeness must be evaluated across all worker payloads: each worker collects the full node set but reports only its assigned subset."
+      tags: [xdist, runtime-evidence, fail-closed]
+      paths:
+        - maid_runner/core/_runtime_evidence_pytest_plugin.py
+        - maid_runner/core/_runtime_command_executor.py
+    - lesson_type: validation-trust
+      summary: "Instrumentation must not add the project root to PYTHONPATH because doing so can make imports pass that fail under the declared ordinary command."
+      tags: [environment, subprocess, equivalence]
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - tests/core/test_runtime_evidence.py
+    - lesson_type: architecture
+      summary: "Fixture consumer closure proves attribution but not lifecycle equivalence; only proven function-scoped lifecycles may be reused while wider and autouse fixtures force exact fallback."
+      tags: [pytest-fixtures, artifact-coverage, correctness]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+        - maid_runner/core/_runtime_evidence_pytest_plugin.py
+  review_notes:
+    - source: independent-reviewer-review_121_08_implementation
+      severity: needs_changes
+      summary: "Initial review found xdist instrumentation inheritance, yield teardown attribution, missing-report detection, identity freshness, nested pytest isolation, and public runtime type gaps."
+    - source: independent-reviewer-review_121_08_implementation
+      severity: needs_changes
+      summary: "Second review found per-worker report validation incorrectly expected other workers' tests and project-root PYTHONPATH injection changed ordinary import behavior."
+    - source: independent-reviewer-review_121_08_implementation
+      severity: ready
+      summary: "Final re-review reproduced matching ordinary/contextual import failure, complete aggregate two-worker reports, and fail-closed missing-worker behavior with no gate weakening or scope drift."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_batch.py, tests/core/validation/test_test_command_batching.py, tests/core/test_test_runner.py]
+      status: passed
+      summary: "All 123 runtime-evidence, artifact-coverage batching, command-batching, and runner tests passed in 33.79 seconds after the final review fixes."
+    - command: [uv, run, maid, validate, manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 10."
+    - command: [uv, run, maid, validate, --quiet]
+      status: passed
+      summary: "Repository-wide active-manifest validation passed with zero reported failures."
+    - command: [uv, run, maid, test, --manifest, manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml]
+      status: passed
+      summary: "Both declared manifest validation commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 898653a]
+      status: failed
+      summary: "The required deep gate ran for 1,685.806 seconds (28 minutes 5.8 seconds) and failed in the pre-existing repository-wide artifact-coverage backlog with 1,769 findings; it also surfaced a timing-text-sensitive git-template test that passed alone but failed in the full 53-test scope. Schema, behavioral, and implementation stages passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_git_project_templates.py, tests/cli/test_plan_legacy_baseline_cmd.py, tests/cli/test_plan_cmd_stash_implementation.py, tests/cli/test_plan_cmd_stash_import_obstruction.py]
+      status: failed
+      summary: "Reproduction confirmed one unrelated existing flake: stable plan-lock comparison retains pytest's variable '0.01s' versus '0.02s' duration text; the parametrized test passed when isolated but one case failed in the 53-test combined scope."
