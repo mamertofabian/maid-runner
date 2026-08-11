@@ -79,3 +79,6 @@ outcome:
     - command: [uv, run, maid, plan, dependents, tests/core/test_draft_epic_archive_inventory.py]
       status: passed
       summary: All five active plan locks matched the revised shared behavioral test.
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: failed-unrelated
+      summary: Schema, behavioral, and implementation passed; artifact coverage stopped after 1,657.29 seconds on 1,711 repository-wide historical E710 gaps and E900 failures from concurrent unfinished 121-07 pytest-worker work.
