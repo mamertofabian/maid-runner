@@ -931,8 +931,10 @@ def _knockout_stage(
             KnockoutReport,
             run_knockout_batch,
         )
+        from maid_runner.core.config import load_config
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        config = load_config(root)
         results = []
         errors = []
         reports = run_knockout_batch(
@@ -941,6 +943,8 @@ def _knockout_stage(
             evidence=evidence,
             limit=limit,
             allow_dirty=allow_dirty,
+            jobs=config.knockout_execution.jobs,
+            max_processes=config.test_execution.max_processes,
         )
         for report in reports.values():
             results.extend(report.results)

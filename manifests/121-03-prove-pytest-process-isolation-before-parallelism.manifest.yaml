@@ -406,7 +406,7 @@ outcome:
       paths:
         - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
         - manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
-        - manifests/drafts/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+        - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
   review_notes:
     - source: implementation-review-rounds
       severity: needs-changes

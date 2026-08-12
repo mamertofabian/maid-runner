@@ -2,10 +2,10 @@
   "manifest_path": "manifests/068-03-wire-knockout-into-verify.manifest.yaml",
   "manifest_hash": "sha256-contract:03cbf2ca38181ce61242720b3488cceb4ae8020c3a6b99402b1d5f8ad6aeab8d",
   "test_hashes": {
-    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:6b22d6a4152eec52a8f8ebed045e06b6875c4189003ec561fcf59a49c8dd5998"
+    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8"
   },
   "created_at": "2026-06-16T01:31:09.465255+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d88571ef25ed87a43ba10e1805eae54aba8d07a9d0265398eb0692a5adb3b56d",
@@ -76,6 +76,23 @@
           "read:maid_runner/core/result.py",
           "read:tests/cli/test_verify_knockout_cmd.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:03cbf2ca38181ce61242720b3488cceb4ae8020c3a6b99402b1d5f8ad6aeab8d",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:6b22d6a4152eec52a8f8ebed045e06b6875c4189003ec561fcf59a49c8dd5998"
+      },
+      "revised_at": "2026-08-12T02:40:14.573489+00:00",
+      "reason": "Refresh shared knockout CLI behavioral hash after 121-14 adds bounded isolated worker reporting",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

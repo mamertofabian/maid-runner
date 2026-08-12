@@ -157,3 +157,22 @@ def test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy():
     assert execution.accepted_pytest_worker_counts == (8,)
     assert execution.command_jobs * execution.pytest_workers <= execution.max_processes
     assert execution.parallel_without_history is False
+
+
+def test_knockout_execution_jobs_requires_positive_bounded_integer(tmp_path):
+    from maid_runner.core.config import KnockoutExecutionConfig
+
+    (tmp_path / ".maidrc.yaml").write_text(
+        "test_execution:\n  max_processes: 4\n" "knockout_execution:\n  jobs: 3\n"
+    )
+    config = load_config(tmp_path)
+    assert isinstance(config.knockout_execution, KnockoutExecutionConfig)
+    assert config.knockout_execution.jobs == 3
+
+    for jobs in ("0", "-1", "true", "'2'", "5"):
+        (tmp_path / ".maidrc.yaml").write_text(
+            "test_execution:\n  max_processes: 4\n"
+            f"knockout_execution:\n  jobs: {jobs}\n"
+        )
+        with pytest.raises(ValueError, match="knockout_execution.jobs"):
+            load_config(tmp_path)

@@ -3,11 +3,11 @@
   "manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
   "test_hashes": {
     "tests/core/test_knockout.py": "sha256-pyast:v2:9a6eb76bc3855769fa4f3286de9b09f3eca062fa5f28266676dd1377efed7103",
-    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:6b22d6a4152eec52a8f8ebed045e06b6875c4189003ec561fcf59a49c8dd5998",
+    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
   },
   "created_at": "2026-08-11T21:58:23.097945+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3e8a3f1e8d1d934e11d4ba12c4baea96e1b29c6b8e56cc9de40d5b873e03e3f2",
@@ -79,6 +79,25 @@
       },
       "revised_at": "2026-08-12T00:55:38.258055+00:00",
       "reason": "accept 121-13 shared-test evolution from worktree mutation to isolated snapshot execution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:9a6eb76bc3855769fa4f3286de9b09f3eca062fa5f28266676dd1377efed7103",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:6b22d6a4152eec52a8f8ebed045e06b6875c4189003ec561fcf59a49c8dd5998",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-12T02:36:42.326767+00:00",
+      "reason": "Refresh shared knockout CLI behavioral hash after 121-14 adds deterministic bounded worker reporting",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

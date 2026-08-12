@@ -4,14 +4,14 @@
   "test_hashes": {
     "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
     "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
-    "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+    "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
     "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
     "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
-    "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+    "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
     "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
   },
   "created_at": "2026-08-11T03:36:15.811144+00:00",
-  "revision": 9,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:5756363cfa6157339e84d056ed689ad67c645b44dd4e961631a8eedeb0b0f972",
@@ -210,6 +210,75 @@
       },
       "revised_at": "2026-08-11T04:41:09.433141+00:00",
       "reason": "Exclude pytest-generated .pytest_cache state from timing identity and cover stable cache identity across pytest cache writes.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:f6049274d1a9d6d59dd2ae41b7288a0374b40340182ec65733623772b7d89a2c",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-12T02:36:35.302774+00:00",
+      "reason": "Refresh shared behavioral hashes after 121-14",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:b7f35b9e08ce0ce150952415bd263d60a25baad7359937e2cfa8e2878840a4de",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-12T02:45:41.603101+00:00",
+      "reason": "Refresh finalized descendant-ownership behavioral hash after 121-14 procfs fail-closed coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:768d644390d9bc071e00cef92c6f2ac52a91197da56eb48d2d7378242eb4e716",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:7f32ffbd01ba4f5a5b1594e8c5be242fc215ef28f0cf456c47b5a80aff41a0ff",
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-12T02:51:33.490984+00:00",
+      "reason": "Refresh finalized pre-launch procfs ownership behavioral hash after 121-14",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -114,6 +114,7 @@ class KnockoutCommandExecutor:
             manifest_slug=manifest_slug,
             environment_overrides=environment_overrides,
             environment_removals=environment_removals,
+            require_descendant_ownership=True,
         )
 
 
@@ -272,6 +273,8 @@ def run_knockout_batch(
     allow_dirty: bool = False,
     executor: KnockoutCommandExecutor | None = None,
     snapshot_backend: ProjectSnapshotBackend | None = None,
+    jobs: int = 1,
+    max_processes: int = 1,
 ) -> dict[str, KnockoutReport]:
     """Run declarations independently with focused proof or exact fallback."""
     ordered_manifests = tuple(manifests)
@@ -309,50 +312,42 @@ def run_knockout_batch(
         ),
         key=lambda item: item[0],
     )
-    for plan_index, spec, declaration in planned:
-        identity = spec.identity
-        try:
-            worker_id = (
-                f"{plan_index:06d}-{declaration.manifest_slug}-"
-                f"{identity.artifact_name}"
-            )
-            with project_snapshots.create(
-                root,
-                (identity.file_path,),
-                worker_id,
-            ) as snapshot:
-                if (
-                    snapshot.source_digests.get(identity.file_path)
-                    != spec.source_digest
-                ):
-                    raise RuntimeError(
-                        "Knockout source bytes changed before isolated execution: "
-                        f"{identity.file_path}"
-                    )
-                target_path, target_error = _target_path_or_error(
-                    snapshot.root,
-                    identity.file_path,
-                )
-                if target_error is not None:
-                    raise RuntimeError(target_error.message)
-                result, errors = _run_differential_declaration(
-                    identity,
-                    declaration,
-                    snapshot.root,
-                    target_path,
-                    root,
-                    trusted_evidence,
-                    command_executor,
-                    snapshot.environment_overrides,
-                    snapshot.environment_removals,
-                )
-        except Exception as exc:
+    from maid_runner.core._knockout_worker import run_knockout_workers
+
+    workers = run_knockout_workers(
+        specs,
+        root,
+        trusted_evidence,
+        project_snapshots,
+        command_executor,
+        jobs,
+        max_processes,
+    )
+    workers_by_identity = {worker.identity: worker for worker in workers}
+    for _plan_index, spec, declaration in planned:
+        worker = workers_by_identity.get(spec.identity)
+        if worker is None:
             errors_by_manifest[declaration.manifest_path].append(
-                _harness_error(identity.file_path, str(exc))
+                _harness_error(
+                    spec.identity.file_path,
+                    "Knockout worker result is missing",
+                )
             )
             continue
-        results_by_manifest[declaration.manifest_path].append(result)
-        errors_by_manifest[declaration.manifest_path].extend(errors)
+        if worker.errors:
+            errors_by_manifest[declaration.manifest_path].extend(worker.errors)
+            continue
+        report = worker.reports.get(str(declaration.plan_index))
+        if report is None:
+            errors_by_manifest[declaration.manifest_path].append(
+                _harness_error(
+                    spec.identity.file_path,
+                    "Knockout worker declaration result is missing",
+                )
+            )
+            continue
+        results_by_manifest[declaration.manifest_path].extend(report.results)
+        errors_by_manifest[declaration.manifest_path].extend(report.errors)
 
     return {
         manifest.source_path: KnockoutReport(

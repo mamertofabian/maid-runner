@@ -133,6 +133,21 @@ class TestExecutionConfig:
 
 
 @dataclass(frozen=True)
+class KnockoutExecutionConfig:
+    """Validated bounded knockout worker configuration."""
+
+    jobs: int = 1
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.jobs, bool)
+            or not isinstance(self.jobs, int)
+            or self.jobs < 1
+        ):
+            raise ValueError("knockout_execution.jobs must be a positive integer")
+
+
+@dataclass(frozen=True)
 class MaidConfig:
     manifest_dir: str = "manifests/"
     schema_version: str = "2"
@@ -146,6 +161,7 @@ class MaidConfig:
     )
     artifact_coverage: ArtifactCoverageConfig = ArtifactCoverageConfig()
     test_execution: TestExecutionConfig = TestExecutionConfig()
+    knockout_execution: KnockoutExecutionConfig = KnockoutExecutionConfig()
 
 
 def load_config(project_root: Union[str, Path]) -> MaidConfig:
@@ -215,6 +231,13 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         timeout_seconds=raw_artifact_coverage_timeout
     )
     test_execution_config = _parse_test_execution(data.get("test_execution", {}))
+    knockout_execution_config = _parse_knockout_execution(
+        data.get("knockout_execution", {})
+    )
+    if knockout_execution_config.jobs > test_execution_config.max_processes:
+        raise ValueError(
+            "knockout_execution.jobs must not exceed test_execution.max_processes"
+        )
 
     return MaidConfig(
         manifest_dir=data.get("manifest_dir", "manifests/"),
@@ -234,7 +257,21 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         ),
         artifact_coverage=artifact_coverage_config,
         test_execution=test_execution_config,
+        knockout_execution=knockout_execution_config,
     )
+
+
+def _parse_knockout_execution(raw: object) -> KnockoutExecutionConfig:
+    if raw is None:
+        return KnockoutExecutionConfig()
+    if not isinstance(raw, dict):
+        raise ValueError("knockout_execution must be a mapping")
+    unknown = set(raw) - {"jobs"}
+    if unknown:
+        raise ValueError(
+            f"knockout_execution contains unknown keys: {', '.join(sorted(unknown))}"
+        )
+    return KnockoutExecutionConfig(jobs=raw.get("jobs", 1))
 
 
 def _parse_test_execution(raw: object) -> TestExecutionConfig:

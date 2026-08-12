@@ -401,6 +401,50 @@ def test_mentions_target_without_calling_it():
     assert "src/target.py" in error["message"]
 
 
+def test_configured_knockout_workers_preserve_text_and_json_results(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    from maid_runner.cli.commands._main import main
+
+    for mode in ("text", "json"):
+        root = tmp_path / mode
+        _write_knockout_project(
+            root,
+            source="""
+def alpha() -> str:
+    value = "alpha"
+    return value
+
+def beta() -> str:
+    value = "beta"
+    return value
+""",
+            test="""
+from src.target import alpha, beta
+
+def test_targets():
+    assert alpha() == "alpha"
+    assert beta() == "beta"
+""",
+            artifacts=("alpha", "beta"),
+        )
+        (root / ".maidrc.yaml").write_text(
+            "test_execution:\n  max_processes: 2\n" "knockout_execution:\n  jobs: 2\n"
+        )
+
+    monkeypatch.chdir(tmp_path / "text")
+    text_exit = main(["verify", "--knockout", "--no-changed-scope"])
+    text_output = capsys.readouterr().out
+    monkeypatch.chdir(tmp_path / "json")
+    json_exit = main(["verify", "--knockout", "--no-changed-scope", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    results = _stage(payload, "knockout")["details"]["results"]
+
+    assert text_exit == json_exit == 0
+    assert text_output.index("detected: alpha") < text_output.index("detected: beta")
+    assert [result["artifact_name"] for result in results] == ["alpha", "beta"]
+
+
 def _write_knockout_project(
     root: Path,
     *,

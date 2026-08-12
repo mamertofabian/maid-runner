@@ -4,11 +4,11 @@
   "test_hashes": {
     "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:v2:ded32ea34865a02e35d24a786ba5e69a5d1042f352a24a74fd390d3ebe42c0d9",
     "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:v2:287a84190510dddf51f80628ad4a624cd927d62a8b37af7ef8a7c2235dc1f376",
-    "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+    "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
     "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
   },
   "created_at": "2026-07-31T00:19:36.730948+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:19f1456468c2140646f513f2131123a3d146878081f782e5259bba5bf2dd8b9c",
@@ -192,6 +192,26 @@
       },
       "revised_at": "2026-08-11T03:36:49.751306+00:00",
       "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cfce8f522c860e38dd994848ac8e32b470e79f4e2be27624f365e24f780d99e2",
+      "prior_test_hashes": {
+        "tests/core/test_coverage_recommendation_policy.py": "sha256-pyast:v2:ded32ea34865a02e35d24a786ba5e69a5d1042f352a24a74fd390d3ebe42c0d9",
+        "tests/cli/test_coverage_recommendation_cmd.py": "sha256-pyast:v2:287a84190510dddf51f80628ad4a624cd927d62a8b37af7ef8a7c2235dc1f376",
+        "tests/core/test_config.py": "sha256-pyast:v2:d88dc97d497f770151b079d64391abf9163b22445f8953b03a99a493661ce616",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
+      },
+      "revised_at": "2026-08-12T03:47:53.308719+00:00",
+      "reason": "Refresh shared config behavioral hash after 121-14 adds bounded knockout worker configuration",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
