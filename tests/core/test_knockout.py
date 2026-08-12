@@ -75,7 +75,6 @@ def target() -> str:
 """,
         artifacts=[{"kind": "function", "name": "target"}],
     )
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
     monkeypatch.setattr(
         knockout,
         "_run_test_command",
@@ -121,20 +120,20 @@ def target() -> str:
     )
     source_path = tmp_path / "src" / "target.py"
     original = source_path.read_text()
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
-    monkeypatch.setattr(
-        knockout,
-        "_run_test_command",
-        lambda *args, **kwargs: _test_result(
-            args[0],
+
+    def detect_snapshot_mutation(command, **kwargs):
+        snapshot_source = Path(kwargs["cwd"]) / "src" / "target.py"
+        return _test_result(
+            command,
             exit_code=(
                 1
                 if 'raise NotImplementedError("maid-knockout")'
-                in source_path.read_text()
+                in snapshot_source.read_text()
                 else 0
             ),
-        ),
-    )
+        )
+
+    monkeypatch.setattr(knockout, "_run_test_command", detect_snapshot_mutation)
 
     report = run_knockout(load_manifest(manifest_path), tmp_path)
 
@@ -161,7 +160,6 @@ def target() -> str:
     )
     source_path = tmp_path / "src" / "target.py"
     original = source_path.read_text()
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
     def raise_during_validate(*args, **kwargs):
         raise RuntimeError("spawn failed")
@@ -191,20 +189,20 @@ def target() -> str:
 """,
         artifacts=[{"kind": "function", "name": "target"}],
     )
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
-    monkeypatch.setattr(
-        knockout,
-        "_run_test_command",
-        lambda *args, **kwargs: _test_result(
-            args[0],
+
+    def detect_snapshot_mutation(command, **kwargs):
+        snapshot_source = Path(kwargs["cwd"]) / "src" / "target.py"
+        return _test_result(
+            command,
             exit_code=(
                 1
                 if 'raise NotImplementedError("maid-knockout")'
-                in (tmp_path / "src" / "target.py").read_text()
+                in snapshot_source.read_text()
                 else 0
             ),
-        ),
-    )
+        )
+
+    monkeypatch.setattr(knockout, "_run_test_command", detect_snapshot_mutation)
     monkeypatch.setattr(
         knockout,
         "_restore_file",
@@ -233,14 +231,21 @@ def target() -> str:
 """,
         artifacts=[{"kind": "function", "name": "target"}],
     )
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ("src/target.py",))
+    source_path = tmp_path / "src" / "target.py"
+    original = source_path.read_text()
+
+    def detect_snapshot_mutation(command, **kwargs):
+        snapshot_source = Path(kwargs["cwd"]) / "src" / "target.py"
+        mutated = 'NotImplementedError("maid-knockout")' in snapshot_source.read_text()
+        return _test_result(command, exit_code=(1 if mutated else 0))
+
+    monkeypatch.setattr(knockout, "_run_test_command", detect_snapshot_mutation)
 
     report = run_knockout(load_manifest(manifest_path), tmp_path)
 
-    assert report.success is False
-    assert report.results == ()
-    assert report.errors[0].code == ErrorCode.KNOCKOUT_HARNESS_FAILURE
-    assert "dirty" in report.errors[0].message
+    assert report.success is True
+    assert report.results[0].detected is True
+    assert source_path.read_text() == original
 
 
 def test_knockout_refuses_normalized_equivalent_dirty_source_file(
@@ -261,18 +266,18 @@ def target() -> str:
     )
     source_path = tmp_path / "src" / "target.py"
     original = source_path.read_text()
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ("src/target.py",))
 
-    def fail_if_called(*args, **kwargs):
-        raise AssertionError("dirty target should not be rewritten or validated")
+    def detect_snapshot_mutation(command, **kwargs):
+        snapshot_source = Path(kwargs["cwd"]) / "src" / "target.py"
+        mutated = 'NotImplementedError("maid-knockout")' in snapshot_source.read_text()
+        return _test_result(command, exit_code=(1 if mutated else 0))
 
-    monkeypatch.setattr(knockout, "_run_test_command", fail_if_called)
+    monkeypatch.setattr(knockout, "_run_test_command", detect_snapshot_mutation)
 
     report = run_knockout(load_manifest(manifest_path), tmp_path)
 
-    assert report.success is False
-    assert report.results == ()
-    assert report.errors[0].code == ErrorCode.KNOCKOUT_HARNESS_FAILURE
+    assert report.success is True
+    assert report.results[0].detected is True
     assert source_path.read_text() == original
 
 
@@ -292,11 +297,10 @@ def target() -> str:
         artifacts=[{"kind": "function", "name": "target"}],
     )
     calls = []
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ("src/target.py",))
 
     def record_validate(command, **kwargs):
         calls.append(command)
-        source = (tmp_path / "src" / "target.py").read_text()
+        source = (Path(kwargs["cwd"]) / "src" / "target.py").read_text()
         return _test_result(
             command,
             exit_code=(1 if 'NotImplementedError("maid-knockout")' in source else 0),
@@ -335,7 +339,6 @@ def target() -> str:
             manifest_file_path=f"../{outside_path.name}",
         )
         original = outside_path.read_text()
-        monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
         def fail_if_called(*args, **kwargs):
             raise AssertionError("escaping target should not be validated")
@@ -361,7 +364,6 @@ def test_knockout_refuses_symlink_target_resolving_outside_project(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core import knockout
     from maid_runner.core.knockout import run_knockout
 
     outside_path = tmp_path.parent / f"{tmp_path.name}-symlink-outside.py"
@@ -384,8 +386,6 @@ def target() -> str:
         target_path.unlink()
         target_path.symlink_to(outside_path)
         original = outside_path.read_text()
-        monkeypatch.setattr(knockout, "changed_files", lambda root: ())
-
         report = run_knockout(
             load_manifest(manifest_path),
             tmp_path,
@@ -423,12 +423,10 @@ def beta() -> str:
             {"kind": "function", "name": "beta"},
         ],
     )
-    source_path = tmp_path / "src" / "target.py"
     observed = []
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
     def record_knockout(command, **kwargs):
-        source = source_path.read_text()
+        source = (Path(kwargs["cwd"]) / "src" / "target.py").read_text()
         alpha_mutated = (
             'def alpha() -> str:\n    raise NotImplementedError("maid-knockout")'
             in source
@@ -463,17 +461,23 @@ def test_knockout_rechecks_dirty_state_before_each_artifact_rewrite(
     manifest_path = _write_two_file_project(tmp_path)
     second_path = tmp_path / "src" / "second.py"
     original_second = second_path.read_text()
-    dirty_paths: list[str] = []
-    monkeypatch.setattr(knockout, "changed_files", lambda root: tuple(dirty_paths))
+    prior_states = []
 
     def dirty_second_after_first(command, **kwargs):
-        first_source = (tmp_path / "src" / "first.py").read_text()
-        dirty_paths.append("src/second.py")
-        second_path.write_text(original_second + "\n# validate dirtied this file\n")
+        snapshot_root = Path(kwargs["cwd"])
+        first_source = (snapshot_root / "src" / "first.py").read_text()
+        second_source = (snapshot_root / "src" / "second.py").read_text()
+        state_path = snapshot_root / "command-state.log"
+        prior = state_path.read_text() if state_path.exists() else ""
+        prior_states.append(prior)
+        state_path.write_text(prior + "called\n")
         return _test_result(
             command,
             exit_code=(
-                1 if 'raise NotImplementedError("maid-knockout")' in first_source else 0
+                1
+                if 'raise NotImplementedError("maid-knockout")'
+                in first_source + second_source
+                else 0
             ),
         )
 
@@ -481,11 +485,11 @@ def test_knockout_rechecks_dirty_state_before_each_artifact_rewrite(
 
     report = run_knockout(load_manifest(manifest_path), tmp_path)
 
-    assert [result.artifact_name for result in report.results] == ["first"]
-    assert report.success is False
-    assert report.errors[0].code == ErrorCode.KNOCKOUT_HARNESS_FAILURE
-    assert "src/second.py" in report.errors[0].message
-    assert 'raise NotImplementedError("maid-knockout")' not in second_path.read_text()
+    assert [result.artifact_name for result in report.results] == ["first", "second"]
+    assert report.success is True
+    assert second_path.read_text() == original_second
+    assert prior_states == ["", "called\n", "called\ncalled\n"] * 2
+    assert not (tmp_path / "command-state.log").exists()
 
 
 def test_knockout_targets_methods_in_manifest_order(
@@ -510,12 +514,10 @@ class Service:
             {"kind": "method", "name": "second", "of": "Service"},
         ],
     )
-    source_path = tmp_path / "src" / "target.py"
     observed = []
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
     def record_knockout(command, **kwargs):
-        source = source_path.read_text()
+        source = (Path(kwargs["cwd"]) / "src" / "target.py").read_text()
         first_mutated = (
             'def first(self) -> str:\n        raise NotImplementedError("maid-knockout")'
             in source

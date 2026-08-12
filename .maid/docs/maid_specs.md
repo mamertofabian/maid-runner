@@ -15,7 +15,11 @@ The Manifest-driven AI Development (MAID) methodology is a structured approach t
 only when the validate command passes before mutation, fails after the declared
 function or method body is replaced with
 `raise NotImplementedError("maid-knockout")`, and passes again after verified
-source restoration. A failing baseline or restored control reports `E712`
+source restoration. The three phases execute in a fresh materialized
+current-byte snapshot with independent Git metadata; dirty inputs are copied
+without rewriting the checkout, and `--knockout-allow-dirty` is a deprecated
+compatibility no-op. Snapshot creation, cleanup, environment binding, or source
+repository identity uncertainty reports `E712`. A failing baseline or restored control reports `E712`
 rather than detection. Complete invocation-scoped runtime evidence may select
 executing pytest nodes for positive proof; incomplete, ambiguous,
 collection/fixture, source-inspection, or subprocess evidence falls back to the

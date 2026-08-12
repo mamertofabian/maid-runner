@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import inspect
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from maid_runner.core._knockout_snapshot import (
+    MaterializedProjectSnapshotBackend,
+    ProjectSnapshotBackend,
+)
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
 from maid_runner.core.result import ErrorCode, Location, TestRunResult, ValidationError
@@ -18,7 +23,6 @@ from maid_runner.core.runtime_evidence import (
     runtime_evidence_is_current,
 )
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
-from maid_runner.core.worktree import changed_files
 
 
 @dataclass(frozen=True)
@@ -101,11 +105,15 @@ class KnockoutCommandExecutor:
         command: tuple[str, ...],
         project_root: Path,
         manifest_slug: str,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
     ) -> TestRunResult:
         return _run_test_command(
             command,
             cwd=project_root,
             manifest_slug=manifest_slug,
+            environment_overrides=environment_overrides,
+            environment_removals=environment_removals,
         )
 
 
@@ -243,6 +251,7 @@ def run_knockout(
     allow_dirty: bool = False,
     evidence: RuntimeEvidenceBundle | None = None,
     executor: KnockoutCommandExecutor | None = None,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
 ) -> KnockoutReport:
     return run_knockout_batch(
         (manifest,),
@@ -251,6 +260,7 @@ def run_knockout(
         limit=limit,
         allow_dirty=allow_dirty,
         executor=executor,
+        snapshot_backend=snapshot_backend,
     )[manifest.source_path]
 
 
@@ -261,11 +271,13 @@ def run_knockout_batch(
     limit: int | None = None,
     allow_dirty: bool = False,
     executor: KnockoutCommandExecutor | None = None,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
 ) -> dict[str, KnockoutReport]:
     """Run declarations independently with focused proof or exact fallback."""
     ordered_manifests = tuple(manifests)
     root = Path(project_root)
     command_executor = executor or KnockoutCommandExecutor()
+    project_snapshots = snapshot_backend or MaterializedProjectSnapshotBackend()
     trusted_evidence = None
     if evidence is not None:
         try:
@@ -291,30 +303,54 @@ def run_knockout_batch(
 
     planned = sorted(
         (
-            (declaration.plan_index, spec.identity, declaration)
+            (declaration.plan_index, spec, declaration)
             for spec in specs
             for declaration in spec.declarations
         ),
         key=lambda item: item[0],
     )
-    for _plan_index, identity, declaration in planned:
-        target_path, target_error = _target_path_or_error(root, identity.file_path)
-        if target_error is not None:
-            errors_by_manifest[declaration.manifest_path].append(target_error)
+    for plan_index, spec, declaration in planned:
+        identity = spec.identity
+        try:
+            worker_id = (
+                f"{plan_index:06d}-{declaration.manifest_slug}-"
+                f"{identity.artifact_name}"
+            )
+            with project_snapshots.create(
+                root,
+                (identity.file_path,),
+                worker_id,
+            ) as snapshot:
+                if (
+                    snapshot.source_digests.get(identity.file_path)
+                    != spec.source_digest
+                ):
+                    raise RuntimeError(
+                        "Knockout source bytes changed before isolated execution: "
+                        f"{identity.file_path}"
+                    )
+                target_path, target_error = _target_path_or_error(
+                    snapshot.root,
+                    identity.file_path,
+                )
+                if target_error is not None:
+                    raise RuntimeError(target_error.message)
+                result, errors = _run_differential_declaration(
+                    identity,
+                    declaration,
+                    snapshot.root,
+                    target_path,
+                    root,
+                    trusted_evidence,
+                    command_executor,
+                    snapshot.environment_overrides,
+                    snapshot.environment_removals,
+                )
+        except Exception as exc:
+            errors_by_manifest[declaration.manifest_path].append(
+                _harness_error(identity.file_path, str(exc))
+            )
             continue
-        if not allow_dirty:
-            dirty_error = _dirty_target_error(root, identity.file_path)
-            if dirty_error is not None:
-                errors_by_manifest[declaration.manifest_path].append(dirty_error)
-                continue
-        result, errors = _run_differential_declaration(
-            identity,
-            declaration,
-            root,
-            target_path,
-            trusted_evidence,
-            command_executor,
-        )
         results_by_manifest[declaration.manifest_path].append(result)
         errors_by_manifest[declaration.manifest_path].extend(errors)
 
@@ -396,30 +432,6 @@ def _knockout_targets(manifest: Manifest) -> list[tuple[str, ArtifactSpec]]:
     return targets
 
 
-def _dirty_target_error(root: Path, file_path: str) -> ValidationError | None:
-    try:
-        dirty_paths = {
-            _normalize_project_path(root, path) for path in changed_files(root)
-        }
-    except RuntimeError as exc:
-        return ValidationError(
-            code=ErrorCode.KNOCKOUT_HARNESS_FAILURE,
-            message=f"Knockout could not inspect worktree state: {exc}",
-        )
-
-    normalized = _normalize_project_path(root, file_path)
-    if normalized not in dirty_paths:
-        return None
-    return ValidationError(
-        code=ErrorCode.KNOCKOUT_HARNESS_FAILURE,
-        message=(
-            "Knockout refused to modify dirty source file "
-            f"{file_path}; rerun with allow_dirty only after reviewing it."
-        ),
-        location=Location(file=file_path),
-    )
-
-
 def _normalize_project_path(root: Path, file_path: str) -> str:
     try:
         return (root / file_path).resolve().relative_to(root.resolve()).as_posix()
@@ -449,8 +461,11 @@ def _run_differential_declaration(
     declaration: KnockoutDeclaration,
     root: Path,
     target_path: Path,
+    evidence_root: Path,
     evidence: RuntimeEvidenceBundle | None,
     executor: KnockoutCommandExecutor,
+    environment_overrides: Mapping[str, str],
+    environment_removals: Sequence[str],
 ) -> tuple[KnockoutResult, list[ValidationError]]:
     started = time.monotonic()
     errors: list[ValidationError] = []
@@ -471,7 +486,7 @@ def _run_differential_declaration(
         ).encode("utf-8")
         for command_index, command in enumerate(declaration.commands):
             focused = _focused_command(
-                evidence, declaration, command_index, identity, root
+                evidence, declaration, command_index, identity, evidence_root
             )
             if focused is not None:
                 focused_command, nodeids = focused
@@ -485,6 +500,8 @@ def _run_differential_declaration(
                     original_hash,
                     rewritten,
                     executor,
+                    environment_overrides,
+                    environment_removals,
                 )
                 if transition_error is not None:
                     errors.append(transition_error)
@@ -512,6 +529,8 @@ def _run_differential_declaration(
                 original_hash,
                 rewritten,
                 executor,
+                environment_overrides,
+                environment_removals,
             )
             if transition_error is not None:
                 errors.append(transition_error)
@@ -563,9 +582,18 @@ def _execute_transition(
     original_hash: str,
     rewritten: bytes,
     executor: KnockoutCommandExecutor,
+    environment_overrides: Mapping[str, str],
+    environment_removals: Sequence[str],
 ) -> tuple[tuple[TestRunResult, ...], ValidationError | None]:
     try:
-        baseline = executor.execute(command, root, manifest_slug)
+        baseline = _execute_snapshot_command(
+            executor,
+            command,
+            root,
+            manifest_slug,
+            environment_overrides,
+            environment_removals,
+        )
     except Exception as exc:
         return (), _harness_error(file_path, str(exc))
     try:
@@ -587,7 +615,14 @@ def _execute_transition(
     mutant: TestRunResult | None = None
     try:
         target_path.write_bytes(rewritten)
-        mutant = executor.execute(command, root, manifest_slug)
+        mutant = _execute_snapshot_command(
+            executor,
+            command,
+            root,
+            manifest_slug,
+            environment_overrides,
+            environment_removals,
+        )
     except Exception as exc:
         mutation_error = _harness_error(file_path, str(exc))
     finally:
@@ -609,7 +644,14 @@ def _execute_transition(
     restored_error: ValidationError | None = None
     restored: TestRunResult | None = None
     try:
-        restored = executor.execute(command, root, manifest_slug)
+        restored = _execute_snapshot_command(
+            executor,
+            command,
+            root,
+            manifest_slug,
+            environment_overrides,
+            environment_removals,
+        )
     except Exception as exc:
         restored_error = _harness_error(
             file_path, f"Knockout restored control failed: {exc}"
@@ -649,6 +691,35 @@ def _execute_transition(
             file_path, "Knockout restored control produced no result."
         )
     return (baseline, mutant, restored), None
+
+
+def _execute_snapshot_command(
+    executor: KnockoutCommandExecutor,
+    command: tuple[str, ...],
+    root: Path,
+    manifest_slug: str,
+    environment_overrides: Mapping[str, str],
+    environment_removals: Sequence[str],
+) -> TestRunResult:
+    """Use the snapshot-aware boundary while retaining legacy test executors."""
+    parameters = inspect.signature(executor.execute).parameters.values()
+    accepts_snapshot_environment = (
+        any(
+            parameter.kind
+            in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+            for parameter in parameters
+        )
+        or len(inspect.signature(executor.execute).parameters) >= 5
+    )
+    if accepts_snapshot_environment:
+        return executor.execute(
+            command,
+            root,
+            manifest_slug,
+            environment_overrides,
+            environment_removals,
+        )
+    return executor.execute(command, root, manifest_slug)
 
 
 def _focused_command(

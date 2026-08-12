@@ -407,9 +407,13 @@ a baseline or restored-control failure is `E712`, not detection. During deep
 verification, complete runtime evidence may select executing pytest nodes for
 positive proof. Incomplete, ambiguous, collection/fixture, source-inspection,
 or subprocess evidence falls back to the original exact command. Use
-`--knockout-limit` to bound the artifact count and `--knockout-allow-dirty` only
-for reviewed dirty targets. Knockout remains sequential in manifest declaration
-order and is not full mutation testing.
+`--knockout-limit` to bound the artifact count. Every declaration now runs in a
+fresh materialized current-byte project snapshot with independent Git metadata,
+so dirty and relevant untracked inputs are preserved without rewriting the
+checkout. `--knockout-allow-dirty` remains parseable as a deprecated no-op.
+Snapshot creation, environment binding, cleanup, or source-repository identity
+uncertainty fails closed with `E712`. Knockout remains sequential in manifest
+declaration order and is not full mutation testing.
 
 ### CI/CD Integration
 

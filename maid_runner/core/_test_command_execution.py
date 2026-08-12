@@ -6,7 +6,7 @@ import os
 import subprocess
 import threading
 import time
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from pathlib import Path
@@ -64,8 +64,11 @@ def _run_test_command(
     manifest_slug: str = "",
     stream: TestStream = TestStream.IMPLEMENTATION,
     environment_overrides: Mapping[str, str] | None = None,
+    environment_removals: Sequence[str] = (),
 ) -> TestRunResult:
     env = _test_command_environment()
+    for name in environment_removals:
+        env.pop(name, None)
     if environment_overrides:
         env.update(environment_overrides)
     start = time.monotonic()

@@ -86,12 +86,11 @@ def test_duplicate_declarations_build_one_unique_spec_without_combined_execution
     second = _write_manifest(tmp_path, "second")
     specs = build_knockout_mutation_specs((first, second), tmp_path)
     calls = []
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
     def record(command, **kwargs):
         mutated = (
             'raise NotImplementedError("maid-knockout")'
-            in (tmp_path / "src" / "target.py").read_text()
+            in (Path(kwargs["cwd"]) / "src" / "target.py").read_text()
         )
         calls.append(
             (
@@ -256,25 +255,18 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
     from maid_runner.core import knockout
     from maid_runner.core.knockout import (
         build_knockout_mutation_specs,
-        run_knockout,
+        run_knockout_batch,
     )
 
-    control_root = tmp_path / "control"
-    planned_root = tmp_path / "planned"
-    original = _write_source(control_root)
-    _write_source(planned_root)
-    control_manifests = (
-        _write_manifest(control_root, "first", commands=("first",)),
-        _write_manifest(control_root, "second", commands=("second",)),
-    )
-    planned_manifests = (
-        _write_manifest(planned_root, "first", commands=("first",)),
-        _write_manifest(planned_root, "second", commands=("second",)),
+    original = _write_source(tmp_path)
+    manifests = (
+        _write_manifest(tmp_path, "first", commands=("first",)),
+        _write_manifest(tmp_path, "second", commands=("second",)),
     )
     declarations = sorted(
         (
             declaration
-            for spec in build_knockout_mutation_specs(planned_manifests, planned_root)
+            for spec in build_knockout_mutation_specs(manifests, tmp_path)
             for declaration in spec.declarations
         ),
         key=lambda item: item.plan_index,
@@ -285,8 +277,7 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
         for command in declaration.commands
         for _phase in range(3)
     ]
-    events = {control_root: [], planned_root: []}
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ())
+    events = []
 
     def record(command, **kwargs):
         root = Path(kwargs["cwd"])
@@ -294,34 +285,31 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
         state_path = root / "command-state.log"
         prior_state = state_path.read_text() if state_path.exists() else ""
         state_path.write_text(prior_state + command[0] + "\n")
-        events[root].append(
-            (tuple(command), source, kwargs["manifest_slug"], prior_state)
+        events.append(
+            (root, tuple(command), source, kwargs["manifest_slug"], prior_state)
         )
         mutated = 'raise NotImplementedError("maid-knockout")' in source
         return _result(command, exit_code=(1 if mutated else 0))
 
     monkeypatch.setattr(knockout, "_run_test_command", record)
 
-    for root, manifests in (
-        (control_root, control_manifests),
-        (planned_root, planned_manifests),
-    ):
-        for manifest in manifests:
-            assert run_knockout(manifest, root).success is True
-            assert (root / "src" / "target.py").read_text() == original
+    reports = run_knockout_batch(manifests, tmp_path)
 
-    normalized_control = [
-        (event[0], event[2], event[3]) for event in events[control_root]
-    ]
-    normalized_planned = [
-        (event[0], event[2], event[3]) for event in events[planned_root]
-    ]
-    assert normalized_planned == normalized_control
-    assert [event[0] for event in events[planned_root]] == expected_order
+    assert all(report.success for report in reports.values())
+    assert (tmp_path / "src" / "target.py").read_text() == original
+    assert [event[1] for event in events] == expected_order
     assert [
-        'raise NotImplementedError("maid-knockout")' in event[1]
-        for event in events[planned_root]
+        'raise NotImplementedError("maid-knockout")' in event[2] for event in events
     ] == [False, True, False, False, True, False]
-    expected_state = "first\nfirst\nfirst\nsecond\nsecond\nsecond\n"
-    assert (control_root / "command-state.log").read_text() == expected_state
-    assert (planned_root / "command-state.log").read_text() == expected_state
+    assert [event[4] for event in events] == [
+        "",
+        "first\n",
+        "first\nfirst\n",
+        "",
+        "second\n",
+        "second\nsecond\n",
+    ]
+    assert events[0][0] == events[1][0] == events[2][0]
+    assert events[3][0] == events[4][0] == events[5][0]
+    assert events[0][0] != events[3][0]
+    assert not (tmp_path / "command-state.log").exists()

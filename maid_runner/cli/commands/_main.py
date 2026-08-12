@@ -605,7 +605,10 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--knockout-allow-dirty",
         action="store_true",
-        help="Allow --knockout to rewrite dirty target files",
+        help=(
+            "Deprecated compatibility flag; isolated knockout snapshots never "
+            "rewrite dirty target files"
+        ),
     )
     p.add_argument(
         "--packet",

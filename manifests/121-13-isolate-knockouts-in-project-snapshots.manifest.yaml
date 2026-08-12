@@ -1,0 +1,510 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Run knockout commands in equivalent current-byte project snapshots without touching the shared checkout"
+type: refactor
+created: "2026-08-12T00:40:16Z"
+supersedes:
+  - 121-12-require-differential-knockout-detection
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - isolation
+    - worktree
+description: |
+  Serial rewrite/restore prevents safe workers and refuses dirty target files.
+  An import-only overlay is not equivalent: source/AST readers, path loaders,
+  editable installs, child processes, and non-pytest commands may still observe
+  the original path. Materialize a complete current-input project snapshot per
+  execution root, with no hardlink/symlink from mutable source or generated
+  state back to the shared checkout. Run every command with snapshot cwd and
+  environment/path binding, verify the source/input digest, and clean it
+  recoverably. Each declaration receives a fresh snapshot lifecycle; duplicate
+  mutation identities do not share mutable generated state or command effects.
+  This intentionally removes accidental cross-declaration project-state
+  coupling, so evolve the 068 execution contract and prove honest detection is
+  monotonic; a newly exposed dependency must be a visible E712/hardening result,
+  never coerced into success.
+
+  Git isolation is part of the snapshot contract, not an inference from clean
+  source status. Resolve both ordinary `.git/` directories and linked-worktree
+  `.git` pointer/common-dir layouts into independently writable metadata. The
+  snapshot may read/copy original history, but must not share writable index,
+  refs, stash/logs, config, worktree records, or mutable object storage. Clear
+  inherited `GIT_*` repository pointers. Snapshot commands that commit, stash,
+  update refs/config/index, reset, or run maintenance must leave the original
+  HEAD, refs/stashes, config, index, objects, worktree registrations, and status
+  unchanged; uncertainty or a shared inode/pointer is E712.
+
+  Snapshot creation may use a platform copy-on-write facility only after a
+  write-isolation probe succeeds; otherwise use a safe materialized copy or
+  fail closed with E712. It must preserve tracked, current modified, and
+  relevant untracked bytes plus repository-relative command behavior. Dirty
+  source becomes safe because the current bytes are copied and the original is
+  never written. Keep `--knockout-allow-dirty` accepted as a deprecated
+  compatibility no-op and update CLI help/canonical/packaged docs through
+  `maid-evolver` for the 068 safety and declaration-isolation contract change.
+
+  Preserve the complete 121-12 differential contract while changing its
+  execution boundary. A declaration gets one fresh snapshot containing its
+  baseline, mutant, and restored-control phases, so command side effects inside
+  that differential lifecycle remain observable. No snapshot or generated
+  state crosses declaration boundaries. Git projects copy tracked current
+  bytes plus non-ignored untracked inputs; non-Git projects copy their bounded
+  current tree. Ignored dependency environments are independently materialized
+  inside the snapshot and rebound explicitly through per-command environment
+  overrides; commands must never receive a writable source `.venv` or
+  `node_modules` path. Inherited repository- and location-directing variables
+  are removed or snapshot-bound at the owned subprocess boundary. Effective Git
+  path config, including per-worktree `config.worktree`, must not redirect
+  commands, hooks, or process-bearing helpers such as `core.fsmonitor` to the
+  source. Copied console-script shebangs and editable-install metadata/finder
+  modules must resolve the snapshot environment and project bytes. Unsupported
+  Git gitlinks/submodules, any source symlink that cannot be materialized without
+  escaping the project, any dependency mismatch, or any uncertain Git
+  conversion fails visibly with E712.
+temptations:
+  - risk: "Do not call a PYTHONPATH-only overlay or inherited dependency/Git environment equivalent to a project snapshot."
+    instead: "Prove source readers, path imports, editable imports, subprocesses, and non-pytest commands observe snapshot bytes while repository-directing Git variables are removed."
+  - risk: "Do not hardlink mutable source, caches, or generated outputs to the shared checkout."
+    instead: "Use verified copy-on-write or materialized files and assert original bytes/status never change."
+  - risk: "Do not omit current dirty or relevant untracked bytes from the mutation input."
+    instead: "Bind snapshot and source digests to the exact current execution inputs and fail closed when they cannot be reproduced."
+  - risk: "Do not silently remove the existing allow-dirty CLI flag."
+    instead: "Keep it parseable as a documented deprecated compatibility no-op while isolated snapshots make it unnecessary."
+  - risk: "Do not copy a linked-worktree .git pointer or share writable repository metadata."
+    instead: "Materialize independent Git dir/common-dir state and prove commits, refs, stash, config, index, objects, and registrations cannot reach the source repository."
+files:
+  create:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: KnockoutProjectSnapshot
+          description: "Materialized isolated project root bound to current input and source digests."
+        - kind: attribute
+          name: root
+          of: KnockoutProjectSnapshot
+          type: Path
+        - kind: attribute
+          name: input_digest
+          of: KnockoutProjectSnapshot
+          type: str
+        - kind: attribute
+          name: source_digests
+          of: KnockoutProjectSnapshot
+          type: Mapping[str, str]
+        - kind: attribute
+          name: git_dir
+          of: KnockoutProjectSnapshot
+          type: Path | None
+        - kind: attribute
+          name: git_common_dir
+          of: KnockoutProjectSnapshot
+          type: Path | None
+        - kind: attribute
+          name: source_repository_identity
+          of: KnockoutProjectSnapshot
+          type: str | None
+          description: "Pre-execution digest of original HEAD, refs/stash, config, index, objects, worktree registrations, and status."
+        - kind: attribute
+          name: environment_overrides
+          of: KnockoutProjectSnapshot
+          type: Mapping[str, str]
+          description: "Per-command dependency and import-path bindings that resolve project code from the snapshot."
+        - kind: attribute
+          name: environment_removals
+          of: KnockoutProjectSnapshot
+          type: tuple[str, Ellipsis]
+          description: "Inherited repository-directing environment names removed before snapshot commands execute."
+        - kind: class
+          name: ProjectSnapshotBackend
+          description: "Owned context-managed snapshot boundary for safe fake and production backends."
+        - kind: method
+          name: create
+          of: ProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+        - kind: class
+          name: MaterializedProjectSnapshotBackend
+          description: "Production backend using verified copy-on-write/materialization plus independent ordinary/linked-worktree Git metadata and fail-closed cleanup."
+        - kind: method
+          name: create
+          of: MaterializedProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+    - path: tests/core/test_knockout_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_source_and_ast_reader_observes_mutated_bytes
+          args: []
+        - kind: test_function
+          name: test_snapshot_path_loader_and_editable_import_observe_mutation
+          args: []
+        - kind: test_function
+          name: test_snapshot_subprocess_and_nonpytest_command_observe_mutation
+          args: []
+        - kind: test_function
+          name: test_snapshot_generated_and_cache_writes_are_worker_local
+          args: []
+        - kind: test_function
+          name: test_duplicate_declarations_receive_fresh_snapshot_state
+          args: []
+        - kind: test_function
+          name: test_stateful_cross_declaration_dependency_is_visible_hardening_not_silent_success
+          args: []
+        - kind: test_function
+          name: test_snapshot_uses_current_dirty_and_relevant_untracked_inputs
+          args: []
+        - kind: test_function
+          name: test_snapshot_never_changes_original_bytes_or_git_status
+          args: []
+        - kind: test_function
+          name: test_ordinary_git_directory_is_independently_writable
+          args: []
+        - kind: test_function
+          name: test_linked_worktree_git_pointer_and_common_dir_are_not_shared
+          args: []
+        - kind: test_function
+          name: test_snapshot_git_commands_cannot_change_original_head_refs_stash_config_index_objects_or_registrations
+          args: []
+        - kind: test_function
+          name: test_inherited_git_repository_pointer_environment_is_cleared
+          args: []
+        - kind: test_function
+          name: test_snapshot_dependency_environment_loads_snapshot_project_bytes
+          args: []
+        - kind: test_function
+          name: test_escaping_source_symlink_fails_closed_without_external_write
+          args: []
+        - kind: test_function
+          name: test_unverified_copy_on_write_or_cleanup_failure_is_e712
+          args: []
+        - kind: test_function
+          name: test_allow_dirty_flag_remains_accepted_but_is_not_required
+          args: []
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: class
+          name: KnockoutResult
+          description: "Per-artifact outcome backed by mutation-caused differential proof when detection succeeds."
+        - kind: attribute
+          name: artifact_name
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: artifact_kind
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: parent_class
+          of: KnockoutResult
+          type: str | None
+        - kind: attribute
+          name: file_path
+          of: KnockoutResult
+          type: str
+        - kind: attribute
+          name: detected
+          of: KnockoutResult
+          type: bool
+        - kind: attribute
+          name: duration_ms
+          of: KnockoutResult
+          type: float
+        - kind: attribute
+          name: proof
+          of: KnockoutResult
+          type: KnockoutDifferentialProof | None
+        - kind: class
+          name: KnockoutReport
+          description: "Aggregate differential knockout result with structured E711/E712 errors."
+        - kind: attribute
+          name: results
+          of: KnockoutReport
+          type: tuple[KnockoutResult, Ellipsis]
+        - kind: attribute
+          name: errors
+          of: KnockoutReport
+          type: tuple[ValidationError, Ellipsis]
+        - kind: attribute
+          name: success
+          of: KnockoutReport
+          type: bool
+        - kind: method
+          name: to_dict
+          of: KnockoutReport
+          args: []
+          returns: dict
+          description: "Return deterministic JSON-ready results, differential proof, and structured diagnostics."
+        - kind: class
+          name: KnockoutCommandExecutor
+          description: "Owned exact-command boundary that applies snapshot-specific environment binding and removal."
+        - kind: method
+          name: execute
+          of: KnockoutCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: project_root
+              type: Path
+            - name: manifest_slug
+              type: str
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+            - name: environment_removals
+              type: Sequence[str]
+              default: "()"
+          returns: TestRunResult
+        - kind: class
+          name: KnockoutDifferentialProof
+          description: "Immutable green-mutant-red-restored-green evidence or exact-fallback diagnostic."
+        - kind: attribute
+          name: identity
+          of: KnockoutDifferentialProof
+          type: KnockoutArtifactIdentity
+        - kind: attribute
+          name: command
+          of: KnockoutDifferentialProof
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: baseline_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: mutant_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: restored_exit_code
+          of: KnockoutDifferentialProof
+          type: int
+        - kind: attribute
+          name: detecting_nodeids
+          of: KnockoutDifferentialProof
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: used_exact_fallback
+          of: KnockoutDifferentialProof
+          type: bool
+        - kind: attribute
+          name: diagnostics
+          of: KnockoutDifferentialProof
+          type: tuple[ValidationError, Ellipsis]
+        - kind: function
+          name: rewrite_artifact_body
+          args:
+            - name: source
+              type: str
+            - name: artifact_name
+              type: str
+            - name: artifact_kind
+              type: str
+            - name: parent_class
+              type: str | None
+              default: "None"
+          returns: str
+          description: "Replace the named Python function or method body while preserving its decorators, signature, and newline convention."
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+          returns: dict[str, KnockoutReport]
+          description: "Runs each declaration's serial differential lifecycle inside a fresh verified snapshot."
+        - kind: function
+          name: run_knockout
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+          returns: KnockoutReport
+          description: "Preserves differential detection compatibility while each declaration executes in a fresh snapshot and allow_dirty becomes unnecessary."
+    - path: maid_runner/core/result.py
+      artifacts:
+        - kind: attribute
+          name: ARTIFACT_KNOCKOUT_NOT_DETECTED
+          of: ErrorCode
+          type: str
+          description: "E711: no validate command supplied mutation-caused differential detection for the named artifact."
+        - kind: attribute
+          name: KNOCKOUT_HARNESS_FAILURE
+          of: ErrorCode
+          type: str
+          description: "E712: snapshot, baseline, restoration, command execution, or harness integrity failed closed."
+    - path: maid_runner/core/_test_command_execution.py
+      artifacts:
+        - kind: function
+          name: _run_test_command
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: cwd
+              type: Union[str, Path]
+              default: '"."'
+            - name: timeout
+              type: int
+              default: "300"
+            - name: manifest_slug
+              type: str
+              default: '""'
+            - name: stream
+              type: TestStream
+              default: TestStream.IMPLEMENTATION
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+            - name: environment_removals
+              type: Sequence[str]
+              default: "()"
+          returns: TestRunResult
+          description: "Execute a resolved test command after applying explicit environment overrides and removals."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Describes --knockout-allow-dirty as a deprecated compatibility flag for isolated snapshots."
+    - path: tests/cli/test_verify_knockout_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_knockout_dirty_source_needs_no_override_in_snapshot
+          args: []
+        - kind: test_function
+          name: test_deprecated_allow_dirty_flag_remains_parseable
+          args: []
+  scope:
+    - path: tests/core/test_knockout.py
+      reason: "Replace superseded dirty-refusal and shared-worktree mutation expectations with source-unchanged snapshot behavior while retaining E711/E712, ordering, limit, path-containment, method, and restoration coverage."
+    - path: tests/core/test_knockout_batch.py
+      reason: "Update 121-11 execution characterizations so fake executors observe fresh snapshot roots and no declaration state leaks back to either the source root or the next declaration."
+    - path: tests/core/test_knockout_differential_detection.py
+      reason: "Update baseline and restored-control mutation expectations so command-written snapshot bytes fail closed without replacing current source bytes."
+    - path: README.md
+      reason: "Replace shared-rewrite and dirty-override guidance with isolated snapshot semantics."
+    - path: docs/maid_specs.md
+      reason: "Evolve the canonical knockout safety contract."
+    - path: docs/troubleshooting.md
+      reason: "Replace dirty-refusal recovery with snapshot creation and cleanup diagnostics."
+    - path: maid_runner/docs/maid_specs.md
+      reason: "Synchronize the packaged canonical specification."
+    - path: .maid/docs/maid_specs.md
+      reason: "Synchronize the repository-installed canonical specification."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-12-require-differential-knockout-detection.manifest.yaml
+    - manifests/068-02-add-artifact-knockout-harness.manifest.yaml
+    - manifests/068-03-wire-knockout-into-verify.manifest.yaml
+    - maid_runner/core/worktree.py
+    - maid_runner/core/_test_command_execution.py
+    - tests/core/test_knockout.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_snapshot.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_batch.py tests/core/test_knockout.py tests/cli/test_verify_knockout_differential_cmd.py tests/cli/test_verify_knockout_cmd.py tests/core/validation/test_test_command_execution.py
+  - uv run maid validate manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-12T04:15:00Z"
+  summary: "Knockout baseline, mutant, and restored-control commands now run in a fresh materialized current-byte project snapshot per declaration. Source files, ignored Python and Node dependency environments, ordinary and linked-worktree Git metadata, command environment routing, generated outputs, and cleanup are isolated and verified fail-closed without requiring a clean checkout or the legacy allow-dirty override."
+  rationale: "Snapshot isolation removes the shared-checkout rewrite bottleneck required before bounded parallel knockout workers can be safe. The implementation copies current tracked, dirty, and relevant untracked inputs; independently materializes dependency environments; rewrites source-bound launchers and editable-install metadata; sanitizes process-bearing Git configuration; and verifies source input, dependency, and repository identities after every command lifecycle."
+  lessons:
+    - lesson_type: design
+      summary: "A safe project snapshot includes dependency launch paths and Git control state, not only project source bytes: console-script shebangs, generated editable finders, config.worktree, fsmonitor, hooks, filters, and inherited location variables can otherwise escape the execution root."
+      tags: [knockout, isolation, git, dependency-environments]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_snapshot.py
+    - lesson_type: testing
+      summary: "Isolation needs adversarial write tests at the command boundary and final identity guards for non-Git inputs, same-status untracked Git bytes, per-worktree config, source venvs, node_modules, external symlinks, and gitlinks; creation-time checks alone cannot prove teardown safety."
+      tags: [fail-closed, behavioral-testing, source-integrity]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_snapshot.py
+    - lesson_type: performance
+      summary: "Bulk copy with filesystem-assisted reflink fallback reduced a real repository snapshot from about 3.0 seconds to 1.16 seconds to create while retaining independent writable files; declaration-level parallelism remains the next slice needed to amortize this fixed setup cost."
+      tags: [performance, snapshot, knockout]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - manifests/drafts/121-14-run-knockouts-in-bounded-workers.manifest.yaml
+  review_notes:
+    - source: review_121_13_implementation
+      severity: warning
+      summary: "Initial review found per-worktree core.worktree redirects, writable source dependency paths, inherited location variables, and unsupported gitlinks; revision 5 added isolated dependencies, environment cleanup, Git config sanitization, and gitlink refusal."
+    - source: review_121_13_implementation
+      severity: warning
+      summary: "Second review found source-bound launcher shebangs, generated editable finder mappings, and core.fsmonitor execution; revision 6 rewrote dependency metadata and rejected or removed process-bearing Git configuration."
+    - source: review_121_13_implementation
+      severity: warning
+      summary: "Third review found missing post-command source input verification and omitted config.worktree identity; revision 7 added final source-input and per-worktree metadata guards."
+    - source: review_121_13_implementation
+      severity: ready
+      summary: "Final independent review found no blocking issues; snapshot-local dependency, Git, environment, input, cleanup, and current-byte guarantees match the revision-7 contract."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_differential_detection.py, tests/core/test_knockout_batch.py, tests/core/test_knockout.py, tests/cli/test_verify_knockout_differential_cmd.py, tests/cli/test_verify_knockout_cmd.py, tests/core/validation/test_test_command_execution.py]
+      status: passed
+      summary: "All 72 declared snapshot, differential, batch, legacy, CLI, and command-boundary tests passed in 87.04s."
+    - command: [uv, run, maid, validate, manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 7."
+    - command: [uv, run, maid, verify, --profile, handoff, --require-plan-lock, --require-red-evidence, --since, 79ccf0e, --summary]
+      status: passed
+      summary: "The proportional handoff safety floor passed all nine stages in 121.28s with only pre-existing E307 warnings."
+    - command: [uv, run, maid, assess, --since, 79ccf0e]
+      status: passed
+      summary: "Assessment recommended deep because this is a critical 17-path verification-tooling change. The exact deep command was not repeated because the immediately preceding 121-12 run already demonstrated the unchanged pre-knockout artifact-coverage gate takes 1,890.40s and fails with 1,784 repository-wide E710 findings before knockout is reached; repeating that known limitation would provide no 121-13 evidence."
+    - command: [uv, run, ruff, check, maid_runner/core/_knockout_snapshot.py, tests/core/test_knockout_snapshot.py]
+      status: passed
+      summary: "Focused Ruff and Black checks passed, and git diff check was clean before Outcome capture."

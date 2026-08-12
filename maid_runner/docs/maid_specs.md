@@ -318,9 +318,16 @@ the artifact, MAID may run those nodes as positive green-red-green proof. A
 focused pass, incomplete or ambiguous evidence, collection/fixture lifecycle,
 source inspection, or unattributed subprocess observation falls back to the
 original exact command. If no command proves a mutation-caused failure, MAID
-reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Knockouts remain independent and
-sequential in manifest declaration order; `--knockout-limit` bounds the artifact
-count, and `--knockout-allow-dirty` permits reviewed dirty targets. Knockout is
+reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Each declaration's baseline,
+mutant, and restored control execute in one fresh materialized current-byte
+project snapshot. The snapshot includes tracked modifications and relevant
+untracked inputs, has independently writable ordinary or linked-worktree Git
+metadata, binds project imports to snapshot bytes, and is discarded before the
+next declaration. Snapshot creation, cleanup, path/environment binding, source
+digest, or source-repository identity uncertainty is `E712`; it is never an
+empty success. The checkout is not rewritten, so `--knockout-allow-dirty` is a
+deprecated compatibility no-op. Knockouts remain sequential in manifest
+declaration order, `--knockout-limit` bounds the artifact count, and knockout is
 not full mutation testing.
 
 The changed-scope baseline that defines the task window resolves from

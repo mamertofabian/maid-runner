@@ -307,7 +307,7 @@ def test_baseline_target_mutation_fails_closed_before_mutant_overwrite(tmp_path)
     ]
     assert "baseline" in report.errors[0].message.lower()
     assert "changed target bytes" in report.errors[0].message.lower()
-    assert (tmp_path / "src" / "target.py").read_text() == command_written
+    assert (tmp_path / "src" / "target.py").read_text() == ORIGINAL
     assert MUTANT_MARKER not in command_written
 
 

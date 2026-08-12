@@ -333,15 +333,20 @@ and subprocess observers are supported through exact-command fallback.
 Symptom: `maid verify --knockout` reports
 `E712 KNOCKOUT_HARNESS_FAILURE`.
 
-Likely cause: The knockout harness could not safely complete the baseline,
-rewrite, mutant, restore, or restored-control cycle for the named file. A
-baseline that already fails is E712 because that failure cannot prove the
-mutation caused anything. Other causes include command spawn failures, dirty
-targets when `--knockout-allow-dirty` was not supplied, or restore mismatch.
+Likely cause: The knockout harness could not safely create, execute, or clean a
+current-byte project snapshot, or it could not complete the baseline, mutant,
+restore, and restored-control cycle inside that snapshot. A baseline that
+already fails is E712 because that failure cannot prove the mutation caused
+anything. Other causes include command spawn failures, an escaping symlink,
+dependency/import environment mismatch, independent Git-metadata conversion
+failure, source bytes changing during snapshot creation, cleanup failure, or a
+source repository identity change. Dirty source is supported automatically;
+`--knockout-allow-dirty` is retained only as a deprecated compatibility no-op.
 
-Fix: Check the named file and rerun after correcting the harness failure. If a
-restore failure leaves the file dirty, recover it with
-`git checkout -- <file>`, then inspect the diff before retrying.
+Fix: Check the named path and E712 detail, correct the snapshot, environment, or
+command failure, and rerun. The shared checkout should remain unchanged. If the
+diagnostic reports that source repository identity changed, inspect Git status,
+refs, configuration, and worktree registrations before retrying.
 
 ### 30. Coherence diagnostics appear
 

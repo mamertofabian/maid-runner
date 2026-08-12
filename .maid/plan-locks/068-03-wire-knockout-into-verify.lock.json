@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/068-03-wire-knockout-into-verify.manifest.yaml",
-  "manifest_hash": "sha256:d9fb81e285c07fe10ac0348b83ea65a98b7d32325f5e0a746edafc55f95022a5",
+  "manifest_hash": "sha256-contract:03cbf2ca38181ce61242720b3488cceb4ae8020c3a6b99402b1d5f8ad6aeab8d",
   "test_hashes": {
-    "tests/cli/test_verify_knockout_cmd.py": "sha256:7319538490eaa4f35fb814779864360e80654136a2089055aaa5b9f1ef3d1c2d"
+    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:6b22d6a4152eec52a8f8ebed045e06b6875c4189003ec561fcf59a49c8dd5998"
   },
   "created_at": "2026-06-16T01:31:09.465255+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d88571ef25ed87a43ba10e1805eae54aba8d07a9d0265398eb0692a5adb3b56d",
@@ -13,7 +13,9 @@
         "tests/cli/test_verify_knockout_cmd.py": "sha256:11973bb819119d14e0a1101408f2399e55dfdc003a1988ce497d5e0ae649e786"
       },
       "revised_at": "2026-06-16T01:31:15.018420+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/068-03-wire-knockout-into-verify.manifest.yaml -> manifests/068-03-wire-knockout-into-verify.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-03-wire-knockout-into-verify.manifest.yaml -> manifests/068-03-wire-knockout-into-verify.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:91618982b2d454267f54232959c2ed6f186a70578d8f4e3679d726d75988f438",
@@ -21,7 +23,9 @@
         "tests/cli/test_verify_knockout_cmd.py": "sha256:11973bb819119d14e0a1101408f2399e55dfdc003a1988ce497d5e0ae649e786"
       },
       "revised_at": "2026-06-16T01:33:58.899618+00:00",
-      "reason": "Correct knockout CLI fixture implementations before implementation; honest fixtures now avoid existing stub warnings while adversarial hardcoded cases use advisory mode so E711 is the red target."
+      "reason": "Correct knockout CLI fixture implementations before implementation; honest fixtures now avoid existing stub warnings while adversarial hardcoded cases use advisory mode so E711 is the red target.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:91618982b2d454267f54232959c2ed6f186a70578d8f4e3679d726d75988f438",
@@ -29,7 +33,9 @@
         "tests/cli/test_verify_knockout_cmd.py": "sha256:29fab94e1b5f3f4a7e014a5b57cca642643223608a407581ace4167310450ee1"
       },
       "revised_at": "2026-06-16T01:35:33.882983+00:00",
-      "reason": "Preserve red evidence after lint-only cleanup of an unused import in the locked behavioral test file."
+      "reason": "Preserve red evidence after lint-only cleanup of an unused import in the locked behavioral test file.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:91618982b2d454267f54232959c2ed6f186a70578d8f4e3679d726d75988f438",
@@ -37,7 +43,9 @@
         "tests/cli/test_verify_knockout_cmd.py": "sha256:26836533bd9e0568a01122a9b01830a44809abf4a31d6d92e7d402cbf0ee6c26"
       },
       "revised_at": "2026-06-16T01:41:32.188964+00:00",
-      "reason": "Add positive-limit regression coverage from implementation review; zero and negative knockout limits must not pass without testing artifacts."
+      "reason": "Add positive-limit regression coverage from implementation review; zero and negative knockout limits must not pass without testing artifacts.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:91618982b2d454267f54232959c2ed6f186a70578d8f4e3679d726d75988f438",
@@ -45,7 +53,33 @@
         "tests/cli/test_verify_knockout_cmd.py": "sha256:7319538490eaa4f35fb814779864360e80654136a2089055aaa5b9f1ef3d1c2d"
       },
       "revised_at": "2026-06-16T01:49:37.958710+00:00",
-      "reason": "Record implementation outcome after ready review while preserving existing red evidence."
+      "reason": "Record implementation outcome after ready review while preserving existing red evidence.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:d9fb81e285c07fe10ac0348b83ea65a98b7d32325f5e0a746edafc55f95022a5",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_knockout_cmd.py": "sha256:7319538490eaa4f35fb814779864360e80654136a2089055aaa5b9f1ef3d1c2d"
+      },
+      "revised_at": "2026-08-12T00:55:38.483207+00:00",
+      "reason": "accept 121-13 dirty-source snapshot and deprecated compatibility-flag behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/_format.py",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/verify.py",
+          "read:maid_runner/core/knockout.py",
+          "read:maid_runner/core/result.py",
+          "read:tests/cli/test_verify_knockout_cmd.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -72,6 +106,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/_format.py:function:format_verify_result",
@@ -90,6 +126,89 @@
       "maid_runner/cli/commands/verify.py:function:cmd_verify:kind=function",
       "maid_runner/cli/commands/verify.py:function:cmd_verify:returns=int"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "read": [
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/result.py",
+        "tests/cli/test_verify_knockout_cmd.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Verify honors --knockout, --knockout-limit, and --knockout-allow-dirty, reporting per-artifact pass/fail with durations and E711/E712 in text and JSON.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Verify parser exposes --knockout, --knockout-limit N (default unlimited), and --knockout-allow-dirty.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Verify dispatch passes the knockout flags through to cmd_verify.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_verify_result",
+              "description": "Verify formatter renders knockout stages with per-artifact pass/fail durations and structured E711/E712 errors in text and JSON.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/result.py",
+        "tests/cli/test_verify_knockout_cmd.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_verify_knockout_cmd.py"
     ],
