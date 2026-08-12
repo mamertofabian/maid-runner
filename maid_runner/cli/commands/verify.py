@@ -488,6 +488,7 @@ def _run_verify_cached(
     root = Path(project_root)
     engine = ValidationEngine(project_root=root)
     stages: list[VerificationStageResult] = []
+    evidence: RuntimeEvidenceBundle | None = None
 
     with engine.validation_cache_scope():
         stages.append(
@@ -565,6 +566,7 @@ def _run_verify_cached(
                     manifest_dir,
                     limit=knockout_limit,
                     allow_dirty=knockout_allow_dirty,
+                    evidence=evidence,
                 )
             )
             if not _should_continue(stages[-1], fail_fast):
@@ -920,29 +922,29 @@ def _knockout_stage(
     *,
     limit: int | None,
     allow_dirty: bool,
+    evidence: RuntimeEvidenceBundle | None = None,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.core.chain import get_cached_manifest_chain
-        from maid_runner.core.knockout import KnockoutReport, run_knockout
+        from maid_runner.core.knockout import (
+            KnockoutReport,
+            run_knockout_batch,
+        )
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-        remaining = limit
         results = []
         errors = []
-        for manifest in chain.active_manifests():
-            if remaining is not None and remaining <= 0:
-                break
-            report = run_knockout(
-                manifest,
-                root,
-                limit=remaining,
-                allow_dirty=allow_dirty,
-            )
+        reports = run_knockout_batch(
+            chain.active_manifests(),
+            root,
+            evidence=evidence,
+            limit=limit,
+            allow_dirty=allow_dirty,
+        )
+        for report in reports.values():
             results.extend(report.results)
             errors.extend(report.errors)
-            if remaining is not None:
-                remaining -= max(len(report.results), len(report.errors))
 
         report = KnockoutReport(results=tuple(results), errors=tuple(errors))
         return VerificationStageResult(

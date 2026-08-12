@@ -89,14 +89,17 @@ def test_duplicate_declarations_build_one_unique_spec_without_combined_execution
     monkeypatch.setattr(knockout, "changed_files", lambda root: ())
 
     def record(command, **kwargs):
+        mutated = (
+            'raise NotImplementedError("maid-knockout")'
+            in (tmp_path / "src" / "target.py").read_text()
+        )
         calls.append(
             (
                 kwargs["manifest_slug"],
-                'raise NotImplementedError("maid-knockout")'
-                in (tmp_path / "src" / "target.py").read_text(),
+                mutated,
             )
         )
-        return _result(command)
+        return _result(command, exit_code=(1 if mutated else 0))
 
     monkeypatch.setattr(knockout, "_run_test_command", record)
     first_report = run_knockout(first, tmp_path)
@@ -113,7 +116,14 @@ def test_duplicate_declarations_build_one_unique_spec_without_combined_execution
     assert len(specs[0].declarations) == 2
     assert first_report.success is True
     assert second_report.success is True
-    assert calls == [(first.slug, True), (second.slug, True)]
+    assert calls == [
+        (first.slug, False),
+        (first.slug, True),
+        (first.slug, False),
+        (second.slug, False),
+        (second.slug, True),
+        (second.slug, False),
+    ]
     assert (tmp_path / "src" / "target.py").read_text() == original
 
 
@@ -270,7 +280,10 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
         key=lambda item: item.plan_index,
     )
     expected_order = [
-        command for declaration in declarations for command in declaration.commands
+        command
+        for declaration in declarations
+        for command in declaration.commands
+        for _phase in range(3)
     ]
     events = {control_root: [], planned_root: []}
     monkeypatch.setattr(knockout, "changed_files", lambda root: ())
@@ -284,7 +297,8 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
         events[root].append(
             (tuple(command), source, kwargs["manifest_slug"], prior_state)
         )
-        return _result(command)
+        mutated = 'raise NotImplementedError("maid-knockout")' in source
+        return _result(command, exit_code=(1 if mutated else 0))
 
     monkeypatch.setattr(knockout, "_run_test_command", record)
 
@@ -304,11 +318,10 @@ def test_inter_declaration_target_restore_and_command_side_effect_order_match_le
     ]
     assert normalized_planned == normalized_control
     assert [event[0] for event in events[planned_root]] == expected_order
-    assert [event[3] for event in events[planned_root]] == ["", "first\n"]
-    assert all(
+    assert [
         'raise NotImplementedError("maid-knockout")' in event[1]
-        for root_events in events.values()
-        for event in root_events
-    )
-    assert (control_root / "command-state.log").read_text() == "first\nsecond\n"
-    assert (planned_root / "command-state.log").read_text() == "first\nsecond\n"
+        for event in events[planned_root]
+    ] == [False, True, False, False, True, False]
+    expected_state = "first\nfirst\nfirst\nsecond\nsecond\nsecond\n"
+    assert (control_root / "command-state.log").read_text() == expected_state
+    assert (planned_root / "command-state.log").read_text() == expected_state

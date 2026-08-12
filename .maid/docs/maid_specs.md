@@ -9,6 +9,22 @@ The Manifest-driven AI Development (MAID) methodology is a structured approach t
 
 -----
 
+#### **Differential Knockout Evidence**
+
+`maid verify --knockout` is an opt-in Python-only gate. It accepts detection
+only when the validate command passes before mutation, fails after the declared
+function or method body is replaced with
+`raise NotImplementedError("maid-knockout")`, and passes again after verified
+source restoration. A failing baseline or restored control reports `E712`
+rather than detection. Complete invocation-scoped runtime evidence may select
+executing pytest nodes for positive proof; incomplete, ambiguous,
+collection/fixture, source-inspection, or subprocess evidence falls back to the
+original exact command. If no command proves mutation-caused failure, MAID
+reports `E711`. Knockouts remain independent and sequential in manifest
+declaration order.
+
+-----
+
 #### **Core Principles**
 
 The MAID methodology is founded on five core principles:
@@ -351,4 +367,3 @@ The development process is broken down into distinct phases, characterized by tw
 
   * **Codebase as a Dependency Graph**
     By analyzing `import` statements, the entire codebase can be mapped as a Directed Acyclic Graph (DAG). This allows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.
-    

@@ -6,11 +6,17 @@ import ast
 import hashlib
 import time
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
+from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
-from maid_runner.core.result import ErrorCode, Location, ValidationError
+from maid_runner.core.result import ErrorCode, Location, TestRunResult, ValidationError
+from maid_runner.core.runtime_evidence import (
+    RuntimeCommandEvidence,
+    RuntimeEvidenceBundle,
+    runtime_evidence_is_current,
+)
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 from maid_runner.core.worktree import changed_files
 
@@ -23,6 +29,7 @@ class KnockoutResult:
     file_path: str
     detected: bool
     duration_ms: float
+    proof: KnockoutDifferentialProof | None = None
 
 
 @dataclass(frozen=True)
@@ -70,6 +77,36 @@ class KnockoutMutationSpec:
     identity: KnockoutArtifactIdentity
     source_digest: str
     declarations: tuple[KnockoutDeclaration, ...]
+
+
+@dataclass(frozen=True)
+class KnockoutDifferentialProof:
+    """Three-point mutation evidence for one command and artifact."""
+
+    identity: KnockoutArtifactIdentity
+    command: tuple[str, ...]
+    baseline_exit_code: int
+    mutant_exit_code: int
+    restored_exit_code: int
+    detecting_nodeids: tuple[str, ...]
+    used_exact_fallback: bool
+    diagnostics: tuple[ValidationError, ...]
+
+
+class KnockoutCommandExecutor:
+    """Owned command boundary for differential knockout execution."""
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        project_root: Path,
+        manifest_slug: str,
+    ) -> TestRunResult:
+        return _run_test_command(
+            command,
+            cwd=project_root,
+            manifest_slug=manifest_slug,
+        )
 
 
 def build_knockout_mutation_specs(
@@ -180,14 +217,23 @@ def rewrite_artifact_body(
     start = first_body.lineno - 1
     end = getattr(last_body, "end_lineno", last_body.lineno)
     indent = " " * first_body.col_offset
-    replacement = f'{indent}raise NotImplementedError("maid-knockout")\n'
+    newline = _source_newline(source)
+    replacement = f'{indent}raise NotImplementedError("maid-knockout"){newline}'
 
     if first_body.lineno == node.lineno:
         signature = lines[start][: first_body.col_offset].rstrip()
-        lines[start:end] = [f"{signature}\n", replacement]
+        lines[start:end] = [f"{signature}{newline}", replacement]
     else:
         lines[start:end] = [replacement]
     return "".join(lines)
+
+
+def _source_newline(source: str) -> str:
+    """Preserve the source's first observed newline convention."""
+    newline_index = source.find("\n")
+    if newline_index > 0 and source[newline_index - 1] == "\r":
+        return "\r\n"
+    return "\n"
 
 
 def run_knockout(
@@ -195,34 +241,120 @@ def run_knockout(
     project_root: Path,
     limit: int | None = None,
     allow_dirty: bool = False,
+    evidence: RuntimeEvidenceBundle | None = None,
+    executor: KnockoutCommandExecutor | None = None,
 ) -> KnockoutReport:
-    root = Path(project_root)
-    targets = _knockout_targets(manifest)
-    if limit is not None:
-        targets = targets[: max(limit, 0)]
+    return run_knockout_batch(
+        (manifest,),
+        project_root,
+        evidence=evidence,
+        limit=limit,
+        allow_dirty=allow_dirty,
+        executor=executor,
+    )[manifest.source_path]
 
-    results: list[KnockoutResult] = []
-    errors: list[ValidationError] = []
-    for file_path, artifact in targets:
-        target_path, target_error = _target_path_or_error(root, file_path)
+
+def run_knockout_batch(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    evidence: RuntimeEvidenceBundle | None = None,
+    limit: int | None = None,
+    allow_dirty: bool = False,
+    executor: KnockoutCommandExecutor | None = None,
+) -> dict[str, KnockoutReport]:
+    """Run declarations independently with focused proof or exact fallback."""
+    ordered_manifests = tuple(manifests)
+    root = Path(project_root)
+    command_executor = executor or KnockoutCommandExecutor()
+    trusted_evidence = None
+    if evidence is not None:
+        try:
+            if _knockout_evidence_is_current(evidence, ordered_manifests, root):
+                trusted_evidence = evidence
+        except Exception:
+            trusted_evidence = None
+    results_by_manifest: dict[str, list[KnockoutResult]] = {
+        manifest.source_path: [] for manifest in ordered_manifests
+    }
+    errors_by_manifest: dict[str, list[ValidationError]] = {
+        manifest.source_path: [] for manifest in ordered_manifests
+    }
+
+    try:
+        specs = build_knockout_mutation_specs(ordered_manifests, root, limit=limit)
+    except Exception as exc:
+        error = _harness_error("", str(exc))
+        return {
+            manifest.source_path: KnockoutReport(results=(), errors=(error,))
+            for manifest in ordered_manifests
+        }
+
+    planned = sorted(
+        (
+            (declaration.plan_index, spec.identity, declaration)
+            for spec in specs
+            for declaration in spec.declarations
+        ),
+        key=lambda item: item[0],
+    )
+    for _plan_index, identity, declaration in planned:
+        target_path, target_error = _target_path_or_error(root, identity.file_path)
         if target_error is not None:
-            errors.append(target_error)
+            errors_by_manifest[declaration.manifest_path].append(target_error)
             continue
         if not allow_dirty:
-            dirty_error = _dirty_target_error(root, file_path)
+            dirty_error = _dirty_target_error(root, identity.file_path)
             if dirty_error is not None:
-                errors.append(dirty_error)
+                errors_by_manifest[declaration.manifest_path].append(dirty_error)
                 continue
-        result, artifact_errors = _run_single_knockout(
-            manifest,
+        result, errors = _run_differential_declaration(
+            identity,
+            declaration,
             root,
-            file_path,
             target_path,
-            artifact,
+            trusted_evidence,
+            command_executor,
         )
-        results.append(result)
-        errors.extend(artifact_errors)
-    return KnockoutReport(results=tuple(results), errors=tuple(errors))
+        results_by_manifest[declaration.manifest_path].append(result)
+        errors_by_manifest[declaration.manifest_path].extend(errors)
+
+    return {
+        manifest.source_path: KnockoutReport(
+            results=tuple(results_by_manifest[manifest.source_path]),
+            errors=tuple(errors_by_manifest[manifest.source_path]),
+        )
+        for manifest in ordered_manifests
+    }
+
+
+def _knockout_evidence_is_current(
+    evidence: RuntimeEvidenceBundle,
+    manifests: Sequence[Manifest],
+    root: Path,
+) -> bool:
+    relevant = tuple(manifest for manifest in manifests if _knockout_targets(manifest))
+    relevant_paths = {manifest.source_path for manifest in relevant}
+    commands = tuple(
+        command
+        for command in evidence.commands
+        if command.identity.manifest_path in relevant_paths
+    )
+    used_environments = {command.environment_identity for command in commands}
+    projected = replace(
+        evidence,
+        commands=commands,
+        environment_identities=tuple(
+            environment
+            for environment in evidence.environment_identities
+            if environment in used_environments
+        ),
+    )
+    return runtime_evidence_is_current(
+        projected,
+        relevant,
+        root,
+        pytest_workers=evidence.pytest_workers,
+    )
 
 
 def _find_artifact_node(
@@ -312,113 +444,358 @@ def _target_path_or_error(
     return target_path, None
 
 
-def _run_single_knockout(
-    manifest: Manifest,
+def _run_differential_declaration(
+    identity: KnockoutArtifactIdentity,
+    declaration: KnockoutDeclaration,
     root: Path,
-    file_path: str,
     target_path: Path,
-    artifact: ArtifactSpec,
+    evidence: RuntimeEvidenceBundle | None,
+    executor: KnockoutCommandExecutor,
 ) -> tuple[KnockoutResult, list[ValidationError]]:
     started = time.monotonic()
-    detected = False
     errors: list[ValidationError] = []
+    proof: KnockoutDifferentialProof | None = None
     original = ""
+    original_bytes = b""
     original_hash = ""
 
     try:
-        original = target_path.read_text()
-        original_hash = _content_hash(original)
+        original_bytes = target_path.read_bytes()
+        original = original_bytes.decode("utf-8")
+        original_hash = _content_hash(original_bytes)
         rewritten = rewrite_artifact_body(
             original,
-            artifact.name,
-            artifact.kind.value,
-            artifact.of,
-        )
-        target_path.write_text(rewritten)
-        detected, errors = _run_validate_commands(manifest, root, file_path, artifact)
-    except Exception as exc:
-        errors.append(_harness_error(file_path, str(exc)))
-    finally:
-        if original:
-            restore_error = _restore_and_verify(
-                target_path,
-                file_path,
-                original,
-                original_hash,
+            identity.artifact_name,
+            identity.artifact_kind,
+            identity.parent_class,
+        ).encode("utf-8")
+        for command_index, command in enumerate(declaration.commands):
+            focused = _focused_command(
+                evidence, declaration, command_index, identity, root
             )
-            if restore_error is not None:
-                errors.append(restore_error)
+            if focused is not None:
+                focused_command, nodeids = focused
+                transition, transition_error = _execute_transition(
+                    focused_command,
+                    declaration.manifest_slug,
+                    root,
+                    target_path,
+                    identity.file_path,
+                    original_bytes,
+                    original_hash,
+                    rewritten,
+                    executor,
+                )
+                if transition_error is not None:
+                    errors.append(transition_error)
+                    break
+                if len(transition) == 3 and _is_positive_transition(*transition):
+                    baseline, mutant, restored = transition
+                    proof = _proof(
+                        identity,
+                        focused_command,
+                        baseline,
+                        mutant,
+                        restored,
+                        nodeids,
+                        used_exact_fallback=False,
+                    )
+                    break
 
-    duration_ms = (time.monotonic() - started) * 1000
+            transition, transition_error = _execute_transition(
+                command,
+                declaration.manifest_slug,
+                root,
+                target_path,
+                identity.file_path,
+                original_bytes,
+                original_hash,
+                rewritten,
+                executor,
+            )
+            if transition_error is not None:
+                errors.append(transition_error)
+                break
+            exact_error = _exact_transition_error(
+                identity.file_path, command, transition
+            )
+            if exact_error is not None:
+                errors.append(exact_error)
+                break
+            if len(transition) < 3:
+                continue
+            baseline, mutant, restored = transition
+            proof = _proof(
+                identity,
+                command,
+                baseline,
+                mutant,
+                restored,
+                (),
+                used_exact_fallback=True,
+            )
+            if mutant.exit_code != 0:
+                break
+    except Exception as exc:
+        errors.append(_harness_error(identity.file_path, str(exc)))
+    detected = proof is not None and proof.mutant_exit_code != 0 and not errors
+    if not detected and not errors:
+        errors.append(_not_detected_error(identity))
     result = KnockoutResult(
-        artifact_name=artifact.name,
-        artifact_kind=artifact.kind.value,
-        parent_class=artifact.of,
-        file_path=file_path,
+        artifact_name=identity.artifact_name,
+        artifact_kind=identity.artifact_kind,
+        parent_class=identity.parent_class,
+        file_path=identity.file_path,
         detected=detected,
-        duration_ms=duration_ms,
+        duration_ms=(time.monotonic() - started) * 1000,
+        proof=proof,
     )
     return result, errors
 
 
-def _run_validate_commands(
-    manifest: Manifest,
+def _execute_transition(
+    command: tuple[str, ...],
+    manifest_slug: str,
     root: Path,
+    target_path: Path,
     file_path: str,
-    artifact: ArtifactSpec,
-) -> tuple[bool, list[ValidationError]]:
-    errors: list[ValidationError] = []
-    detected = False
-    for command in manifest.validate_commands:
-        try:
-            result = _run_test_command(
-                command,
-                cwd=root,
-                manifest_slug=manifest.slug,
-            )
-        except Exception as exc:
-            errors.append(_harness_error(file_path, str(exc)))
-            continue
-        if result.exit_code == -2:
-            errors.append(
-                _harness_error(
-                    file_path,
-                    "Knockout validate command could not be spawned: "
-                    f"{result.stderr or result.stdout}",
-                )
-            )
-            continue
-        if result.exit_code != 0:
-            detected = True
-
-    if not detected and not errors:
-        qualified = artifact.qualified_name
-        errors.append(
-            ValidationError(
-                code=ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED,
-                message=(
-                    "Validate commands still passed with knocked-out artifact "
-                    f"{qualified} in {file_path}."
-                ),
-                location=Location(file=file_path),
-                suggestion=(
-                    "Add behavioral tests that fail when this artifact raises "
-                    'NotImplementedError("maid-knockout").'
-                ),
-            )
+    original: bytes,
+    original_hash: str,
+    rewritten: bytes,
+    executor: KnockoutCommandExecutor,
+) -> tuple[tuple[TestRunResult, ...], ValidationError | None]:
+    try:
+        baseline = executor.execute(command, root, manifest_slug)
+    except Exception as exc:
+        return (), _harness_error(file_path, str(exc))
+    try:
+        baseline_content = target_path.read_bytes()
+    except Exception as exc:
+        return (), _harness_error(
+            file_path, f"Knockout could not verify baseline target bytes: {exc}"
         )
-    return detected, errors
+    if _content_hash(baseline_content) != original_hash:
+        return (), _harness_error(
+            file_path,
+            "Knockout baseline command changed target bytes before mutation; "
+            "the command-written file was preserved.",
+        )
+    if baseline.exit_code != 0:
+        return (baseline,), None
+
+    mutation_error: ValidationError | None = None
+    mutant: TestRunResult | None = None
+    try:
+        target_path.write_bytes(rewritten)
+        mutant = executor.execute(command, root, manifest_slug)
+    except Exception as exc:
+        mutation_error = _harness_error(file_path, str(exc))
+    finally:
+        restore_error = _restore_and_verify(
+            target_path,
+            file_path,
+            original,
+            original_hash,
+        )
+    if restore_error is not None:
+        return (), restore_error
+    if mutation_error is not None or mutant is None:
+        return (), mutation_error or _harness_error(
+            file_path, "Knockout mutant command produced no result."
+        )
+    if mutant.exit_code == 0:
+        return (baseline, mutant), None
+
+    restored_error: ValidationError | None = None
+    restored: TestRunResult | None = None
+    try:
+        restored = executor.execute(command, root, manifest_slug)
+    except Exception as exc:
+        restored_error = _harness_error(
+            file_path, f"Knockout restored control failed: {exc}"
+        )
+    try:
+        post_control = target_path.read_bytes()
+    except Exception as exc:
+        recovery_error = _restore_and_verify(
+            target_path,
+            file_path,
+            original,
+            original_hash,
+        )
+        if recovery_error is not None:
+            return (), recovery_error
+        return (), _harness_error(
+            file_path,
+            "Knockout restored control removed or made the target unreadable; "
+            f"the original bytes were restored before continuing ({exc}).",
+        )
+    if _content_hash(post_control) != original_hash:
+        recovery_error = _restore_and_verify(
+            target_path,
+            file_path,
+            original,
+            original_hash,
+        )
+        if recovery_error is not None:
+            return (), recovery_error
+        return (), _harness_error(
+            file_path,
+            "Knockout restored control changed target bytes; the original bytes "
+            "were restored before continuing.",
+        )
+    if restored_error is not None or restored is None:
+        return (), restored_error or _harness_error(
+            file_path, "Knockout restored control produced no result."
+        )
+    return (baseline, mutant, restored), None
+
+
+def _focused_command(
+    evidence: RuntimeEvidenceBundle | None,
+    declaration: KnockoutDeclaration,
+    command_index: int,
+    identity: KnockoutArtifactIdentity,
+    root: Path,
+) -> tuple[tuple[str, ...], tuple[str, ...]] | None:
+    if evidence is None or not evidence.completeness.complete:
+        return None
+    command_evidence = next(
+        (
+            item
+            for item in evidence.commands
+            if item.identity.manifest_path == declaration.manifest_path
+            and item.identity.command_index == command_index
+            and item.identity.command == declaration.commands[command_index]
+        ),
+        None,
+    )
+    if command_evidence is None or not command_evidence.completeness.complete:
+        return None
+    nodeids = _artifact_nodeids(command_evidence, identity, root)
+    if not nodeids:
+        return None
+    normalized = _normalize_pytest_command(declaration.commands[command_index])
+    if normalized is None:
+        return None
+    prefix, _targets, options = normalized
+    return prefix + nodeids + options, nodeids
+
+
+def _artifact_nodeids(
+    evidence: RuntimeCommandEvidence,
+    identity: KnockoutArtifactIdentity,
+    root: Path,
+) -> tuple[str, ...]:
+    target = str((root / identity.file_path).resolve())
+    qualified = (
+        f"{identity.parent_class}.{identity.artifact_name}"
+        if identity.parent_class
+        else identity.artifact_name
+    )
+    selected = set(evidence.selected_nodeids)
+    nodeids: list[str] = []
+    for context in evidence.contexts:
+        execution = context.execution_data.get(target)
+        if execution is None or qualified not in execution.called_qualnames:
+            continue
+        if context.kind != "node" or not context.lifecycle_equivalent:
+            return ()
+        for nodeid in context.consuming_nodeids:
+            if nodeid in selected and nodeid not in nodeids:
+                nodeids.append(nodeid)
+    return tuple(nodeids)
+
+
+def _is_positive_transition(
+    baseline: TestRunResult,
+    mutant: TestRunResult,
+    restored: TestRunResult,
+) -> bool:
+    return baseline.exit_code == 0 and mutant.exit_code > 0 and restored.exit_code == 0
+
+
+def _exact_transition_error(
+    file_path: str,
+    command: tuple[str, ...],
+    transition: tuple[TestRunResult, ...],
+) -> ValidationError | None:
+    rendered = " ".join(command)
+    baseline = transition[0]
+    if baseline.exit_code != 0:
+        return _harness_error(
+            file_path,
+            f"Knockout baseline command failed before mutation ({rendered}).",
+        )
+    mutant = transition[1]
+    if mutant.exit_code < 0:
+        return _harness_error(
+            file_path,
+            f"Knockout mutant command could not complete ({rendered}).",
+        )
+    if len(transition) < 3:
+        return None
+    restored = transition[2]
+    if restored.exit_code != 0:
+        return _harness_error(
+            file_path,
+            f"Knockout restored command failed after mutation ({rendered}).",
+        )
+    return None
+
+
+def _proof(
+    identity: KnockoutArtifactIdentity,
+    command: tuple[str, ...],
+    baseline: TestRunResult,
+    mutant: TestRunResult,
+    restored: TestRunResult,
+    nodeids: tuple[str, ...],
+    *,
+    used_exact_fallback: bool,
+) -> KnockoutDifferentialProof:
+    return KnockoutDifferentialProof(
+        identity=identity,
+        command=command,
+        baseline_exit_code=baseline.exit_code,
+        mutant_exit_code=mutant.exit_code,
+        restored_exit_code=restored.exit_code,
+        detecting_nodeids=nodeids,
+        used_exact_fallback=used_exact_fallback,
+        diagnostics=(),
+    )
+
+
+def _not_detected_error(identity: KnockoutArtifactIdentity) -> ValidationError:
+    qualified = (
+        f"{identity.parent_class}.{identity.artifact_name}"
+        if identity.parent_class
+        else identity.artifact_name
+    )
+    return ValidationError(
+        code=ErrorCode.ARTIFACT_KNOCKOUT_NOT_DETECTED,
+        message=(
+            "Validate commands did not provide mutation-caused differential "
+            f"detection for {qualified} in {identity.file_path}."
+        ),
+        location=Location(file=identity.file_path),
+        suggestion=(
+            "Add behavioral tests that are green before mutation, fail when the "
+            'artifact raises NotImplementedError("maid-knockout"), and pass after '
+            "restoration."
+        ),
+    )
 
 
 def _restore_and_verify(
     target_path: Path,
     file_path: str,
-    original: str,
+    original: bytes,
     original_hash: str,
 ) -> ValidationError | None:
     try:
         _restore_file(target_path, original)
-        restored = target_path.read_text()
+        restored = target_path.read_bytes()
     except Exception as exc:
         return _restore_error(file_path, f"Knockout could not restore file: {exc}")
 
@@ -430,8 +807,8 @@ def _restore_and_verify(
     return None
 
 
-def _restore_file(path: Path, content: str) -> None:
-    path.write_text(content)
+def _restore_file(path: Path, content: bytes) -> None:
+    path.write_bytes(content)
 
 
 def _restore_error(file_path: str, message: str) -> ValidationError:
@@ -456,8 +833,8 @@ def _harness_error(
     )
 
 
-def _content_hash(content: str) -> str:
-    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+def _content_hash(content: bytes) -> str:
+    return hashlib.sha256(content).hexdigest()
 
 
 def _result_to_dict(result: KnockoutResult) -> dict:
@@ -468,4 +845,23 @@ def _result_to_dict(result: KnockoutResult) -> dict:
         "file_path": result.file_path,
         "detected": result.detected,
         "duration_ms": result.duration_ms,
+        "proof": _proof_to_dict(result.proof) if result.proof is not None else None,
+    }
+
+
+def _proof_to_dict(proof: KnockoutDifferentialProof) -> dict:
+    return {
+        "identity": {
+            "file_path": proof.identity.file_path,
+            "artifact_name": proof.identity.artifact_name,
+            "artifact_kind": proof.identity.artifact_kind,
+            "parent_class": proof.identity.parent_class,
+        },
+        "command": list(proof.command),
+        "baseline_exit_code": proof.baseline_exit_code,
+        "mutant_exit_code": proof.mutant_exit_code,
+        "restored_exit_code": proof.restored_exit_code,
+        "detecting_nodeids": list(proof.detecting_nodeids),
+        "used_exact_fallback": proof.used_exact_fallback,
+        "diagnostics": [item.to_dict() for item in proof.diagnostics],
     }

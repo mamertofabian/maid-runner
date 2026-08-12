@@ -125,7 +125,15 @@ def target() -> str:
     monkeypatch.setattr(
         knockout,
         "_run_test_command",
-        lambda *args, **kwargs: _test_result(args[0], exit_code=1),
+        lambda *args, **kwargs: _test_result(
+            args[0],
+            exit_code=(
+                1
+                if 'raise NotImplementedError("maid-knockout")'
+                in source_path.read_text()
+                else 0
+            ),
+        ),
     )
 
     report = run_knockout(load_manifest(manifest_path), tmp_path)
@@ -187,7 +195,15 @@ def target() -> str:
     monkeypatch.setattr(
         knockout,
         "_run_test_command",
-        lambda *args, **kwargs: _test_result(args[0], exit_code=1),
+        lambda *args, **kwargs: _test_result(
+            args[0],
+            exit_code=(
+                1
+                if 'raise NotImplementedError("maid-knockout")'
+                in (tmp_path / "src" / "target.py").read_text()
+                else 0
+            ),
+        ),
     )
     monkeypatch.setattr(
         knockout,
@@ -280,14 +296,18 @@ def target() -> str:
 
     def record_validate(command, **kwargs):
         calls.append(command)
-        return _test_result(command, exit_code=1)
+        source = (tmp_path / "src" / "target.py").read_text()
+        return _test_result(
+            command,
+            exit_code=(1 if 'NotImplementedError("maid-knockout")' in source else 0),
+        )
 
     monkeypatch.setattr(knockout, "_run_test_command", record_validate)
 
     report = run_knockout(load_manifest(manifest_path), tmp_path, allow_dirty=True)
 
     assert report.success is True
-    assert len(calls) == 1
+    assert len(calls) == 3
 
 
 def test_knockout_refuses_parent_relative_target_outside_project(
@@ -409,17 +429,21 @@ def beta() -> str:
 
     def record_knockout(command, **kwargs):
         source = source_path.read_text()
-        if (
+        alpha_mutated = (
             'def alpha() -> str:\n    raise NotImplementedError("maid-knockout")'
             in source
-        ):
-            observed.append("alpha")
-        if (
+        )
+        beta_mutated = (
             'def beta() -> str:\n    raise NotImplementedError("maid-knockout")'
             in source
-        ):
+        )
+        if alpha_mutated:
+            observed.append("alpha")
+        if beta_mutated:
             observed.append("beta")
-        return _test_result(command, exit_code=1)
+        return _test_result(
+            command, exit_code=(1 if alpha_mutated or beta_mutated else 0)
+        )
 
     monkeypatch.setattr(knockout, "_run_test_command", record_knockout)
 
@@ -443,9 +467,15 @@ def test_knockout_rechecks_dirty_state_before_each_artifact_rewrite(
     monkeypatch.setattr(knockout, "changed_files", lambda root: tuple(dirty_paths))
 
     def dirty_second_after_first(command, **kwargs):
+        first_source = (tmp_path / "src" / "first.py").read_text()
         dirty_paths.append("src/second.py")
         second_path.write_text(original_second + "\n# validate dirtied this file\n")
-        return _test_result(command, exit_code=1)
+        return _test_result(
+            command,
+            exit_code=(
+                1 if 'raise NotImplementedError("maid-knockout")' in first_source else 0
+            ),
+        )
 
     monkeypatch.setattr(knockout, "_run_test_command", dirty_second_after_first)
 
@@ -486,17 +516,21 @@ class Service:
 
     def record_knockout(command, **kwargs):
         source = source_path.read_text()
-        if (
+        first_mutated = (
             'def first(self) -> str:\n        raise NotImplementedError("maid-knockout")'
             in source
-        ):
-            observed.append("Service.first")
-        if (
+        )
+        second_mutated = (
             'def second(self) -> str:\n        raise NotImplementedError("maid-knockout")'
             in source
-        ):
+        )
+        if first_mutated:
+            observed.append("Service.first")
+        if second_mutated:
             observed.append("Service.second")
-        return _test_result(command, exit_code=1)
+        return _test_result(
+            command, exit_code=(1 if first_mutated or second_mutated else 0)
+        )
 
     monkeypatch.setattr(knockout, "_run_test_command", record_knockout)
 

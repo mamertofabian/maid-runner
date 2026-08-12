@@ -401,11 +401,15 @@ artifact_coverage:
 
 `maid verify --knockout` is an opt-in Python-only gate that replaces each
 declared public function or method body with
-`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
-commands, and restores the source file with hash verification. Use
-`--knockout-limit` to bound the number of artifacts tested and
-`--knockout-allow-dirty` when a reviewed workflow deliberately allows dirty
-target files. Knockout runs in manifest declaration order and is not full mutation testing; it checks one bounded failure mode rather than promising general mutation coverage.
+`raise NotImplementedError("maid-knockout")`. Detection requires the command to
+pass before mutation, fail with the mutant, and pass after verified restoration;
+a baseline or restored-control failure is `E712`, not detection. During deep
+verification, complete runtime evidence may select executing pytest nodes for
+positive proof. Incomplete, ambiguous, collection/fixture, source-inspection,
+or subprocess evidence falls back to the original exact command. Use
+`--knockout-limit` to bound the artifact count and `--knockout-allow-dirty` only
+for reviewed dirty targets. Knockout remains sequential in manifest declaration
+order and is not full mutation testing.
 
 ### CI/CD Integration
 

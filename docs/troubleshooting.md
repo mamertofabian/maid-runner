@@ -318,23 +318,26 @@ that does not include the optional coverage dependency.
 Symptom: `maid verify --knockout` reports
 `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED` for a declared artifact.
 
-Likely cause: The tests do not constrain the artifact behavior. MAID replaced
-the artifact body with `raise NotImplementedError("maid-knockout")`, but every
-validate command still exited 0.
+Likely cause: The tests do not constrain the artifact behavior. MAID could not
+prove a green baseline, mutant-red failure, and restored-green control. A
+focused runtime-evidence candidate that stays green is inconclusive, so MAID
+runs the original exact command before reporting E711.
 
 Fix: Strengthen the behavioral assertions so breaking the named artifact makes
-at least one declared validate command fail. Keep the gate opt-in and scoped to
-Python public function and method artifacts.
+at least one declared validate command fail while the original and restored
+source pass. Source/AST inspection, collection hooks, fixture/order dependence,
+and subprocess observers are supported through exact-command fallback.
 
 ### 29. Knockout harness failed (`E712`)
 
 Symptom: `maid verify --knockout` reports
 `E712 KNOCKOUT_HARNESS_FAILURE`.
 
-Likely cause: The knockout harness could not safely complete the rewrite,
-validate, or restore cycle for the named file. Common causes include parse
-failures, command spawn failures, dirty target files when
-`--knockout-allow-dirty` was not supplied, or a restore hash mismatch.
+Likely cause: The knockout harness could not safely complete the baseline,
+rewrite, mutant, restore, or restored-control cycle for the named file. A
+baseline that already fails is E712 because that failure cannot prove the
+mutation caused anything. Other causes include command spawn failures, dirty
+targets when `--knockout-allow-dirty` was not supplied, or restore mismatch.
 
 Fix: Check the named file and rerun after correcting the harness failure. If a
 restore failure leaves the file dirty, recover it with

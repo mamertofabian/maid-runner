@@ -307,18 +307,21 @@ the missing validator dependency.
 
 `maid verify --knockout` is an opt-in Python-only gate that rewrites one
 declared public function or method artifact at a time to
-`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
-commands, and restores the original source content from an in-memory copy with
-hash verification. If all validate commands still exit 0 while the artifact is
-knocked out, MAID reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Harness
-failures such as parse errors, command spawn failures, or restore anomalies
-report `E712 KNOCKOUT_HARNESS_FAILURE` and include the named file so callers
-can recover the worktree state. Knockouts run sequentially in manifest
-declaration order; `--knockout-limit` bounds the artifact count, and
-`--knockout-allow-dirty` permits dirty target files for workflows that
-explicitly accept that risk. Knockout is not full mutation testing; it proves
-this single failure mode and does not promise broader mutmut-style mutation
-coverage.
+`raise NotImplementedError("maid-knockout")`. Detection requires a differential
+transition: the unmodified command passes, the mutant command fails, and the
+same command passes again after verified source restoration. A failing baseline
+or restored control reports `E712 KNOCKOUT_HARNESS_FAILURE`; an unrelated
+pre-existing failure never counts as detection.
+
+When complete invocation-scoped runtime evidence identifies nodes that executed
+the artifact, MAID may run those nodes as positive green-red-green proof. A
+focused pass, incomplete or ambiguous evidence, collection/fixture lifecycle,
+source inspection, or unattributed subprocess observation falls back to the
+original exact command. If no command proves a mutation-caused failure, MAID
+reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Knockouts remain independent and
+sequential in manifest declaration order; `--knockout-limit` bounds the artifact
+count, and `--knockout-allow-dirty` permits reviewed dirty targets. Knockout is
+not full mutation testing.
 
 The changed-scope baseline that defines the task window resolves from
 `--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or

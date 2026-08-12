@@ -730,6 +730,18 @@ def _format_knockout_report(report) -> str:
                 f"  {state}: {name} ({result.file_path}) "
                 f"Duration: {result.duration_ms:.0f}ms"
             )
+            proof = getattr(result, "proof", None)
+            if proof is not None:
+                detector = ", ".join(proof.detecting_nodeids) or "exact command"
+                fallback = "yes" if proof.used_exact_fallback else "no"
+                lines.append(f"    detector: {detector}")
+                lines.append(f"    exact fallback: {fallback}")
+                lines.append(
+                    "    exits: "
+                    f"baseline={proof.baseline_exit_code}, "
+                    f"mutant={proof.mutant_exit_code}, "
+                    f"restored={proof.restored_exit_code}"
+                )
     if getattr(report, "errors", ()):
         lines.append(f"  Errors ({len(report.errors)}):")
         for error in report.errors:
