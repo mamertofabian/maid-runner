@@ -1054,7 +1054,7 @@ def _artifact_nodeids(
         if execution is None or qualified not in execution.called_qualnames:
             continue
         if context.kind != "node" or not context.lifecycle_equivalent:
-            return ()
+            continue
         for nodeid in context.consuming_nodeids:
             if nodeid in selected and nodeid not in nodeids:
                 nodeids.append(nodeid)
