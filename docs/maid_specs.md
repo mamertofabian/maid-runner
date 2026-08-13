@@ -585,7 +585,7 @@ still apply.
 
       This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements. The existing manifest's tests serve as the documentation of the change.
 
-    * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
+    * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology. The `maid chain merge` command family operationalizes this: `maid chain merge <file>` reports whether a file's chain is fragmented (DEFRAG/LEAN/BLOCKED) and `--apply` materializes the consolidated snapshot, refusing rather than dropping any declared artifact. See `docs/maid-chain-merge.md`.
 
     * **Transitioning from Snapshots to Natural Evolution:** Snapshot manifests are designed for "frozen" code—capturing a complete baseline. Once code needs to evolve, you must transition to the natural MAID flow:
 
