@@ -339,3 +339,40 @@ Evidence commands used for this redesign:
   stopped at repository-wide E710 debt; future end-to-end timing must use
   `--keep-going` or a known-green fixture until that debt is independently
   closed
+
+## Continuation reopened 2026-08-13 (121-19, 121-20, 121-26)
+
+A review of this branch confirmed the deep gate still spent 24-46 minutes in
+the legacy serial coverage batch because the grouped-evidence fast path is
+preflight-disabled for any conftest-bearing repository and never ran here. The
+hardened isolated boundary from 121-13/121-14/121-15 existed but was reachable
+only through that disabled path. Three childs reconnect and correct it:
+
+- **121-19** routes the legacy `run_artifact_coverage_batch` itself through the
+  isolated lanes (config-resolved `fallback_jobs`/`max_processes`), with a
+  disclosed `ArtifactCoverageExecutionSummary` per report; `jobs=1` stays
+  byte-for-byte serial. Consumer default remains one lane.
+- **121-20** replaces the single whole-batch `unsafe` flag. Material writes and
+  worker/harness errors stay whole-batch fail-closed; a command that merely
+  exited non-zero without material writes escalates only its own identity, in
+  deterministic chain order. This removes the double-work regression that made
+  the isolated path slower than serial when a few genuinely failing commands
+  (for example the coverage-under-coverage meta-tests) were present.
+- **121-26** binds the `sys.monitoring` DISABLE sentinel once at registration
+  in both generated coverage-runner scripts. A test that legitimately swaps
+  `sys.monitoring` (maid-runner's own `test_runtime_evidence.py`) no longer
+  makes the callback raise, which previously produced an unraisable E900,
+  empty execution data, and fabricated E710 coverage gaps.
+
+Measured on this repository (bounded sampled equivalence, never a full serial
+reference): serial-versus-isolated reports are byte-identical (`to_dict` minus
+the disclosure key); per-identity escalation replays only genuinely red
+commands; the pre-121-20 double-work regression (265s isolated vs 147s serial
+on a red-heavy 3-command sample) is gone (179s vs 172s). The isolated path
+carries a per-lane snapshot cost, so it wins only on large batches where a few
+lane snapshots amortize across many slow commands (the full ~297-command deep
+stage); it is break-even to slower on small or fast batches. A command-count
+threshold to keep small dir-level batches serial is a follow-up, relevant once
+121-24 task-scopes the coverage and knockout stages. The full known-green deep
+budget stays gated behind the independent 1,680 E710 debt and the sysmon
+coverage-under-coverage meta-test conflicts, both pre-existing.

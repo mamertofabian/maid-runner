@@ -100,6 +100,50 @@ description: |
       exact pytest lifecycles for unproven root/session fixtures while bounding
       the fallback wall time with independently verified snapshots, material
       write detection, deterministic reports, and serial fail-closed reruns.
+      Outcome: the machinery was hardened and retained, but its acceptance
+      failed the 270-second bar and the production deep path was rolled back
+      to the legacy serial batch through the 121-10 preflight.
+  14. `121-16-align-snapshot-troubleshooting-contract` - align E712
+      troubleshooting guidance with snapshot isolation.
+  15. `121-17-isolate-nested-test-process-identities` - give nested test
+      processes their own controller/worker topology and end-anchored timing.
+  16. `121-18-preserve-safe-snapshot-test-prerequisites` - preserve resolved
+      Git author and deterministic worker-overlap prerequisites in snapshots.
+
+  Continuation registered 2026-08-13 after the review of this branch found
+  the deep gate still spending 24-46 minutes in the legacy serial coverage
+  batch. Root causes: the grouped-evidence path is preflight-disabled for any
+  conftest-bearing repository, the isolated fallback worker escalates the
+  whole batch to serial replay when any single command is red or writes
+  material state, and no result survives between runs. Two policy decisions
+  were made explicitly by the user on 2026-08-13: derived, disclosed coverage
+  evidence becomes the default E710 standard (exact per-command mode stays
+  available and knockout keeps exact differential commands), and deep results
+  gain a persistent cache keyed by content digests plus typed
+  resolved-environment identity.
+
+  17. `121-19-route-exact-coverage-batch-through-isolated-lanes` - route the
+      legacy shared-command batch through the hardened isolated lanes with
+      config-resolved jobs and a disclosed execution summary; jobs of one
+      stays byte-for-byte serial.
+  18. `121-20-escalate-only-affected-coverage-identities` - replace the
+      whole-batch unsafe flag with per-identity escalation, lane snapshot
+      recycling on material writes, red-command in-place confirmation, and
+      shared-queue handover from failed lanes; remeasure the cold coverage
+      stage as the budget decision gate.
+  19. `121-21-persist-artifact-coverage-evidence-cache` - persistent
+      deep-evidence store for coverage command records keyed by the hermetic
+      content plus resolved-environment identity, with mandatory disclosure,
+      cached red results, and a no-cache escape hatch.
+  20. `121-22-persist-knockout-evidence-cache` - extend the store to
+      per-spec differential knockout results with mutated-body digests.
+  21. `121-23-default-derived-coverage-evidence` - the user-approved derived
+      evidence mode as default with per-stage provenance labels; exact mode
+      retained by flag/config; knockout differential commands stay exact.
+  22. `121-24-task-scoped-deep-verification` - optional task scoping of the
+      coverage and knockout stages through the changed-manifest closure.
+  23. `121-25-tune-maid-test-command-jobs` - measured command_jobs tuning
+      toward the 60-second maid test budget.
 
   Promotion prerequisites are strict. 121-07 cannot enable workers until the
   121-03 full-suite probe is green. 121-09 cannot consume evidence until
@@ -108,13 +152,14 @@ description: |
   narrowing is never used as proof of non-detection: 121-12 must fall back to
   original commands whenever its three-point differential proof is absent.
   Buffered ordinary-test reuse is disabled when in-place knockout intervenes.
-  The coverage/deep time budgets do not become enforceable until 121-15's full
-  serial-versus-isolated exact-fallback comparison and timing acceptance pass.
+  The coverage/deep time budgets become enforceable at 121-20's remeasure of
+  the complete production decision path, not at any phase-level speedup, and
+  no acceptance step may require a reference run longer than ten minutes;
+  bounded sampled equivalence replaces full serial-versus-parallel parity.
 
   Target budgets on the 16-thread reference machine are under 60 seconds for
   green `maid test`, under 180 seconds for cold repository artifact coverage,
-  and under five minutes for a known-green deep profile including knockout,
-  after the 121-15 fallback acceptance is green.
+  and under five minutes for a known-green deep profile including knockout.
   The repository target becomes enforceable only after the independent 1,680
   E710 debt items are closed; until then, use `--keep-going` and known-green
   fixtures for end-to-end timing. No performance child may suppress that debt.
@@ -128,7 +173,7 @@ temptations:
   - risk: "Do not run concurrent knockouts by rewriting the shared worktree or using an import-only overlay."
     instead: "Execute commands in materialized current-byte project snapshots so every source reader and child process sees the mutation while original bytes remain unchanged."
   - risk: "Do not cache a green deep result using an incomplete key."
-    instead: "Reuse evidence only within the invocation; defer persistent pass caching until a hermetic input contract covers repository bytes, tools, dependencies, environment, and external services."
+    instead: "Persist results only under the hermetic key approved 2026-08-13: full-tree content digest plus typed resolved-environment identity plus runner version, never commit hashes, mtimes, or test-file lists; cache red results too and disclose every hit."
 files:
   create:
     - path: manifests/drafts/121-00-fast-verification-roadmap.epic.yaml

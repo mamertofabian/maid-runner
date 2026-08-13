@@ -1,0 +1,229 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Route the exact artifact-coverage batch through isolated bounded lanes"
+type: refactor
+created: "2026-08-13T06:29:54Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - parallelism
+    - verify
+description: |
+  After the 121-10/121-15 rollbacks, the production deep path is the legacy
+  run_artifact_coverage_batch: a serial in-place loop over roughly 297 unique
+  coverage-instrumented pytest commands that consumes 24-30+ minutes and is
+  the dominant deep-verification cost. The hardened isolated execution
+  boundary from 121-13/121-14/121-15 (lane-pooled materialized snapshots,
+  weighted process budget, material-write journaling) already exists but is
+  reachable only through the disabled grouped-evidence path.
+
+  This slice routes the legacy batch itself through that proven boundary. The
+  batch resolves its lane count from artifact_coverage.fallback_jobs and its
+  budget from test_execution.max_processes when the caller does not pass them
+  (explicit parameters win; the packaged config default remains one lane, so
+  consumers stay byte-for-byte serial unless a repository opts in via
+  .maidrc.yaml). With more than one lane, the deduplicated unique commands run
+  as one RuntimeCommandIdentity per unique pytest tuple with unioned target
+  files inside run_isolated_artifact_coverage_fallbacks; identities the worker
+  escalates are replayed in place exactly as today. With one lane the existing
+  serial in-place dict loop is preserved unchanged.
+
+  Rationale for the seam: the isolated runner is injected as a typed callable
+  parameter defaulting to run_isolated_artifact_coverage_fallbacks, following
+  the executor-injection pattern this epic already proved in 121-04. Tests
+  exercise the routing with an owned fake runner and fake snapshot backend
+  instead of monkeypatching worker internals whose capability probes spawn
+  real subprocesses. The callable type stays an inline annotation rather than
+  a public alias so the contract adds no avoidable API surface.
+
+  Disclosure is part of the contract: when isolated execution ran, every
+  returned report carries an ArtifactCoverageExecutionSummary naming the
+  unique command count, isolated and serial in-place counts, and lane count,
+  serialized into to_dict() only when present so one-lane output remains
+  byte-identical. The CLI merge helpers and stage formatters propagate the
+  summary as one visible line; silent parallelism would be worse than the
+  serial loop it replaces.
+
+  Worker-error semantics follow the evaluate-path precedent: when an identity
+  is escalated and replayed, the in-place replay record is the authoritative
+  verdict and the worker diagnostic is consumed as the escalation trigger.
+  Worker errors fail the affected manifest reports only when a misbehaving
+  runner leaves an identity with neither a command record nor an escalation,
+  because a silent evidence hole would otherwise read as success.
+
+  Sequencing note recorded deliberately: run_isolated_artifact_coverage_
+  fallbacks currently escalates the whole batch to serial replay when any
+  single command is red or writes material state. This slice inherits that
+  semantics, so the production cold-stage budget is measured and asserted only
+  after 121-20 narrows escalation to affected identities. Claiming a budget
+  from this slice alone would repeat the 121-15 acceptance failure.
+temptations:
+  - risk: "Do not parallelize by spawning ad-hoc threads or processes inside run_artifact_coverage_batch."
+    instead: "Delegate all concurrent execution to run_isolated_artifact_coverage_fallbacks so snapshot isolation, the weighted process budget, and material-write detection stay in the already-hardened worker."
+  - risk: "Do not drop isolated worker errors or material-write signals to keep reports green."
+    instead: "Surface worker errors inside the affected manifest reports and replay every escalated identity in place; a lost signal must fail loud, never disappear."
+  - risk: "Do not emit the execution summary unconditionally in to_dict() or reorder existing keys."
+    instead: "Serialize the execution key only when a summary exists so one-lane and pre-change outputs stay byte-identical for pinned consumers."
+  - risk: "Do not test the routing by monkeypatching worker internals or asserting private call sequences."
+    instead: "Inject an owned IsolatedCoverageRunner fake and a fake ProjectSnapshotBackend through the public parameters and assert on returned reports, executor working directories, and the execution summary."
+  - risk: "Do not claim the deep-verification or cold-coverage budget from this slice."
+    instead: "Record whole-batch escalation as an inherited limit and measure the production cold stage only after 121-20 lands per-identity escalation."
+files:
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: class
+          name: ArtifactCoverageExecutionSummary
+          description: "Batch-level disclosure of how the exact coverage commands executed: unique command count, isolated lane count, and the isolated versus serial in-place split."
+        - kind: attribute
+          name: command_count
+          of: ArtifactCoverageExecutionSummary
+          type: int
+        - kind: attribute
+          name: isolated_count
+          of: ArtifactCoverageExecutionSummary
+          type: int
+        - kind: attribute
+          name: serial_count
+          of: ArtifactCoverageExecutionSummary
+          type: int
+        - kind: attribute
+          name: lane_count
+          of: ArtifactCoverageExecutionSummary
+          type: int
+        - kind: method
+          name: to_dict
+          of: ArtifactCoverageExecutionSummary
+          args: []
+          returns: dict
+          description: "Stable JSON payload with command_count, isolated_count, serial_count, and lane_count."
+        - kind: method
+          name: describe
+          of: ArtifactCoverageExecutionSummary
+          args: []
+          returns: str
+          description: "One human-readable disclosure line naming commands, isolated count with lanes, and serial in-place count."
+        - kind: class
+          name: ArtifactCoverageReport
+          description: "Existing per-manifest coverage report, extended with an optional batch execution summary so isolated execution is always disclosed."
+        - kind: attribute
+          name: findings
+          of: ArtifactCoverageReport
+          type: tuple[ArtifactCoverageFinding, Ellipsis]
+        - kind: attribute
+          name: errors
+          of: ArtifactCoverageReport
+          type: tuple[ValidationError, Ellipsis]
+        - kind: attribute
+          name: execution
+          of: ArtifactCoverageReport
+          type: ArtifactCoverageExecutionSummary | None
+        - kind: attribute
+          name: success
+          of: ArtifactCoverageReport
+          type: bool
+        - kind: method
+          name: to_dict
+          of: ArtifactCoverageReport
+          args: []
+          returns: dict
+          description: "Existing payload of success, findings, and errors; adds an execution key only when a summary is present."
+        - kind: function
+          name: run_artifact_coverage_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: jobs
+              type: int | None
+              default: "None"
+            - name: max_processes
+              type: int | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Existing shared-command batch. None jobs/max_processes resolve from artifact_coverage.fallback_jobs and test_execution.max_processes; jobs above one routes unique commands through the isolated runner with unioned targets and replays only escalated identities in place; jobs of one preserves the serial in-place loop byte-for-byte. Keyword-only additions keep every existing call site valid."
+  create:
+    - path: tests/core/test_artifact_coverage_lanes.py
+      artifacts:
+        - kind: test_function
+          name: test_default_config_keeps_single_lane_serial_in_place_execution
+          args: []
+        - kind: test_function
+          name: test_config_fallback_jobs_route_unique_commands_through_isolated_lanes
+          args: []
+        - kind: test_function
+          name: test_explicit_jobs_one_overrides_config_and_never_touches_snapshots
+          args: []
+        - kind: test_function
+          name: test_escalated_identities_replay_in_place_only_that_subset
+          args: []
+        - kind: test_function
+          name: test_isolated_worker_errors_surface_in_affected_reports
+          args: []
+        - kind: test_function
+          name: test_execution_summary_serializes_only_when_present
+          args: []
+        - kind: test_function
+          name: test_isolated_reports_match_serial_oracle_for_identical_records
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Private merge helpers propagate the execution summary through per-manifest and merged reports and print its one-line disclosure; no public surface changes."
+    - path: maid_runner/cli/commands/_format.py
+      reason: "Private verify stage-details formatter renders the execution disclosure line when a report carries a summary; no public surface changes."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml
+    - maid_runner/core/_artifact_coverage_fallback_worker.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/_runtime_command_executor.py
+    - maid_runner/core/config.py
+    - maid_runner/core/runtime_evidence.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_lanes.py
+  - uv run maid validate manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T16:30:00Z"
+  summary: "run_artifact_coverage_batch now routes its deduplicated unique commands through the hardened isolated lanes when jobs>1, replaying only worker-escalated identities in place, and discloses an ArtifactCoverageExecutionSummary per report; jobs=1 stays byte-for-byte serial."
+  rationale: "The rolled-back 121-10/121-15 left the isolated boundary reachable only through the preflight-disabled grouped-evidence path, so maid-runner's own deep gate always ran the legacy serial batch. Injecting the isolated runner as a typed callable and resolving jobs/max_processes from config reconnects the proven machinery to the production path without a policy change and keeps the consumer default at one lane."
+  lessons:
+    - lesson_type: performance
+      summary: "Bounded sampled serial-versus-isolated reports are byte-identical (to_dict minus the disclosure key), but isolation carries per-lane snapshot cost and only wins on large batches where few lane snapshots amortize across many slow commands."
+      tags: [performance, artifact-coverage, isolation]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - maid_runner/core/_artifact_coverage_fallback_worker.py
+  review_notes:
+    - source: review_121_perf_batch_impl
+      severity: ready
+      summary: "Independent implementation review found 121-19 Ready: identity-to-command mapping, escalation replay, worker-error surfacing, and determinism all correct; the only blocking finding was invalid red evidence on 121-20/121-26, since recaptured."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_lanes.py]
+      status: passed
+      summary: "7 behavioral tests pass; red phase confirmed (TypeError for the new keyword arguments before implementation)."
+    - command: [uv, run, maid, validate, manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 08b73b9, --summary]
+      status: passed
+      summary: "Task-scoped handoff gate passed all nine stages with zero blocking findings."

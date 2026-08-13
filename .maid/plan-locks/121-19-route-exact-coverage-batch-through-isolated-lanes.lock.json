@@ -1,0 +1,345 @@
+{
+  "manifest_path": "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+  "manifest_hash": "sha256-contract:17c77ef745e14caaaa548ad63a270db6fd815ddb692bdb309f697caa18f82da7",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689"
+  },
+  "created_at": "2026-08-13T06:29:51.319368+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d89312e902bb5a4a17a23e6220a15386be8935cc71cb5c792ccecf03410150ce",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689"
+      },
+      "revised_at": "2026-08-13T06:29:54.954446+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml -> manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T06:29:55.717543+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_lanes.py",
+        "exit_code": 1,
+        "output_tail": "        record = _runtime_record(tmp_path, executed={\"alpha\", \"beta\"})\n    \n>       oracle = run_artifact_coverage_batch(\n            manifests,\n            tmp_path,\n            executor=_RecordingExecutor(record),\n            jobs=1,\n        )\nE       TypeError: run_artifact_coverage_batch() got an unexpected keyword argument 'jobs'\n\ntests/core/test_artifact_coverage_lanes.py:258: TypeError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_lanes.py::test_default_config_keeps_single_lane_serial_in_place_execution\nFAILED tests/core/test_artifact_coverage_lanes.py::test_config_fallback_jobs_route_unique_commands_through_isolated_lanes\nFAILED tests/core/test_artifact_coverage_lanes.py::test_explicit_jobs_one_overrides_config_and_never_touches_snapshots\nFAILED tests/core/test_artifact_coverage_lanes.py::test_escalated_identities_replay_in_place_only_that_subset\nFAILED tests/core/test_artifact_coverage_lanes.py::test_isolated_worker_errors_surface_in_affected_reports\nFAILED tests/core/test_artifact_coverage_lanes.py::test_execution_summary_serializes_only_when_present\nFAILED tests/core/test_artifact_coverage_lanes.py::test_isolated_reports_match_serial_oracle_for_identical_records\n7 failed in 0.17s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.command_count",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.command_count:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.command_count:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.command_count:type=int",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.isolated_count",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.isolated_count:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.isolated_count:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.isolated_count:type=int",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.lane_count",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.lane_count:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.lane_count:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.lane_count:type=int",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.serial_count",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.serial_count:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.serial_count:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageExecutionSummary.serial_count:type=int",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:type=ArtifactCoverageExecutionSummary | None",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:type=tuple[ArtifactCoverageFinding, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:type=bool",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageExecutionSummary:kind=class",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport:kind=class",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=jobs:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=max_processes:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.describe",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.describe:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.describe:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.describe:returns=str",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.to_dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.to_dict:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.to_dict:of=ArtifactCoverageExecutionSummary",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageExecutionSummary.to_dict:returns=dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:returns=dict",
+      "tests/core/test_artifact_coverage_lanes.py:test_config_fallback_jobs_route_unique_commands_through_isolated_lanes",
+      "tests/core/test_artifact_coverage_lanes.py:test_config_fallback_jobs_route_unique_commands_through_isolated_lanes:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_default_config_keeps_single_lane_serial_in_place_execution",
+      "tests/core/test_artifact_coverage_lanes.py:test_default_config_keeps_single_lane_serial_in_place_execution:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_escalated_identities_replay_in_place_only_that_subset",
+      "tests/core/test_artifact_coverage_lanes.py:test_escalated_identities_replay_in_place_only_that_subset:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_execution_summary_serializes_only_when_present",
+      "tests/core/test_artifact_coverage_lanes.py:test_execution_summary_serializes_only_when_present:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_explicit_jobs_one_overrides_config_and_never_touches_snapshots",
+      "tests/core/test_artifact_coverage_lanes.py:test_explicit_jobs_one_overrides_config_and_never_touches_snapshots:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_isolated_reports_match_serial_oracle_for_identical_records",
+      "tests/core/test_artifact_coverage_lanes.py:test_isolated_reports_match_serial_oracle_for_identical_records:kind=test_function",
+      "tests/core/test_artifact_coverage_lanes.py:test_isolated_worker_errors_surface_in_affected_reports",
+      "tests/core/test_artifact_coverage_lanes.py:test_isolated_worker_errors_surface_in_affected_reports:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_lanes.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/validate.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_lanes.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_default_config_keeps_single_lane_serial_in_place_execution"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_config_fallback_jobs_route_unique_commands_through_isolated_lanes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_jobs_one_overrides_config_and_never_touches_snapshots"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_escalated_identities_replay_in_place_only_that_subset"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_isolated_worker_errors_surface_in_affected_reports"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_execution_summary_serializes_only_when_present"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_isolated_reports_match_serial_oracle_for_identical_records"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageExecutionSummary",
+              "description": "Batch-level disclosure of how the exact coverage commands executed: unique command count, isolated lane count, and the isolated versus serial in-place split."
+            },
+            {
+              "kind": "attribute",
+              "name": "command_count",
+              "of": "ArtifactCoverageExecutionSummary",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "isolated_count",
+              "of": "ArtifactCoverageExecutionSummary",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_count",
+              "of": "ArtifactCoverageExecutionSummary",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "lane_count",
+              "of": "ArtifactCoverageExecutionSummary",
+              "type": "int"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "description": "Stable JSON payload with command_count, isolated_count, serial_count, and lane_count.",
+              "of": "ArtifactCoverageExecutionSummary",
+              "returns": "dict"
+            },
+            {
+              "kind": "method",
+              "name": "describe",
+              "description": "One human-readable disclosure line naming commands, isolated count with lanes, and serial in-place count.",
+              "of": "ArtifactCoverageExecutionSummary",
+              "returns": "str"
+            },
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageReport",
+              "description": "Existing per-manifest coverage report, extended with an optional batch execution summary so isolated execution is always disclosed."
+            },
+            {
+              "kind": "attribute",
+              "name": "findings",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ArtifactCoverageFinding, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "execution",
+              "of": "ArtifactCoverageReport",
+              "type": "ArtifactCoverageExecutionSummary | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "ArtifactCoverageReport",
+              "type": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "description": "Existing payload of success, findings, and errors; adds an execution key only when a summary is present.",
+              "of": "ArtifactCoverageReport",
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "Existing shared-command batch. None jobs/max_processes resolve from artifact_coverage.fallback_jobs and test_execution.max_processes; jobs above one routes unique commands through the isolated runner with unioned targets and replays only escalated identities in place; jobs of one preserves the serial in-place loop byte-for-byte. Keyword-only additions keep every existing call site valid.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/runtime_evidence.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Private merge helpers propagate the execution summary through per-manifest and merged reports and print its one-line disclosure; no public surface changes."
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "reason": "Private verify stage-details formatter renders the execution disclosure line when a report carries a summary; no public surface changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_lanes.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_lanes.py",
+      "uv run maid validate manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

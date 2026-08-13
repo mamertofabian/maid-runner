@@ -426,8 +426,7 @@ def format_verify_summary(
     if summary.passed_stages:
         lines.append("")
         lines.append(
-            f"PASSED ({len(summary.passed_stages)}): "
-            f"{', '.join(summary.passed_stages)}"
+            f"PASSED ({len(summary.passed_stages)}): {', '.join(summary.passed_stages)}"
         )
 
     skipped_stages = [
@@ -470,7 +469,7 @@ def format_verify_summary(
     if summary.info_groups:
         lines.append("")
         lines.append(
-            "INFO " f"(deduplicated {summary.raw_info_count} -> {info_unique_count}):"
+            f"INFO (deduplicated {summary.raw_info_count} -> {info_unique_count}):"
         )
         for group in summary.info_groups:
             prefix = group.code or "info"
@@ -516,6 +515,9 @@ def _append_artifact_coverage_result(
 def _format_artifact_coverage_report(report) -> str:
     status = "PASS" if report.success else "FAIL"
     lines = [f"Artifact coverage: {status}"]
+    execution = getattr(report, "execution", None)
+    if execution is not None:
+        lines.append(f"  Execution: {execution.describe()}")
     if getattr(report, "findings", ()):
         lines.append(f"  Findings: {len(report.findings)}")
         for finding in report.findings:

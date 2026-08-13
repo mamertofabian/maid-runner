@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import ast
 import re
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from maid_runner.core._runtime_command_executor import (
     RuntimeCommandExecutor,
@@ -26,6 +27,11 @@ from maid_runner.core.runtime_evidence import (
     RuntimeEvidenceBundle,
     runtime_evidence_is_current,
 )
+
+if TYPE_CHECKING:
+    from maid_runner.core._artifact_coverage_fallback_worker import (
+        ArtifactCoverageFallbackRun,
+    )
 
 
 _PYTEST_SUMMARY_DURATION = re.compile(
@@ -55,20 +61,54 @@ class ArtifactCoverageFinding:
 
 
 @dataclass(frozen=True)
+class ArtifactCoverageExecutionSummary:
+    """Batch-level disclosure of how the exact coverage commands executed.
+
+    Silent parallelism would be worse than the serial loop it replaces, so a
+    batch that ran isolated lanes always carries this summary through every
+    per-manifest report. The counts describe the whole batch, not one manifest.
+    """
+
+    command_count: int
+    isolated_count: int
+    serial_count: int
+    lane_count: int
+
+    def to_dict(self) -> dict:
+        return {
+            "command_count": self.command_count,
+            "isolated_count": self.isolated_count,
+            "serial_count": self.serial_count,
+            "lane_count": self.lane_count,
+        }
+
+    def describe(self) -> str:
+        return (
+            f"{self.command_count} unique commands, "
+            f"{self.isolated_count} isolated ({self.lane_count} lanes), "
+            f"{self.serial_count} serial in-place"
+        )
+
+
+@dataclass(frozen=True)
 class ArtifactCoverageReport:
     findings: tuple[ArtifactCoverageFinding, ...]
     errors: tuple[ValidationError, ...]
+    execution: ArtifactCoverageExecutionSummary | None = None
 
     @property
     def success(self) -> bool:
         return not self.errors
 
     def to_dict(self) -> dict:
-        return {
+        payload = {
             "success": self.success,
             "findings": [finding.to_dict() for finding in self.findings],
             "errors": [error.to_dict() for error in self.errors],
         }
+        if self.execution is not None:
+            payload["execution"] = self.execution.to_dict()
+        return payload
 
 
 @dataclass(frozen=True)
@@ -174,8 +214,35 @@ def run_artifact_coverage_batch(
     manifests: Sequence[Manifest],
     project_root: Path,
     executor: RuntimeCommandExecutor | None = None,
+    *,
+    jobs: int | None = None,
+    max_processes: int | None = None,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
+    isolated_runner: (
+        Callable[
+            [
+                Sequence[RuntimeCommandIdentity],
+                Path,
+                Mapping[RuntimeCommandIdentity, set[str]],
+                ProjectSnapshotBackend,
+                RuntimeCommandExecutor,
+                int,
+                int,
+            ],
+            ArtifactCoverageFallbackRun,
+        ]
+        | None
+    ) = None,
 ) -> dict[str, ArtifactCoverageReport]:
-    """Run shared pytest commands once and return per-manifest reports."""
+    """Run shared pytest commands once and return per-manifest reports.
+
+    With more than one lane the deduplicated unique commands run through the
+    hardened isolated boundary (snapshot-per-lane, weighted process budget,
+    material-write detection) and only worker-escalated identities replay in
+    place. ``jobs`` of one preserves the byte-for-byte serial in-place loop.
+    ``None`` ``jobs``/``max_processes`` resolve from ``artifact_coverage``
+    and ``test_execution`` config; explicit arguments always win.
+    """
     ordered_manifests = list(manifests)
     if executor is None:
         if not coverage_is_available():
@@ -186,13 +253,19 @@ def run_artifact_coverage_batch(
         executor = SubprocessRuntimeCommandExecutor()
 
     root = Path(project_root)
-    timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
+    config = load_config(root)
+    timeout_seconds = config.artifact_coverage.timeout_seconds
+    if jobs is None:
+        jobs = config.artifact_coverage.fallback_jobs
+    if max_processes is None:
+        max_processes = config.test_execution.max_processes
     targets_by_manifest = {
         manifest.source_path: _coverage_targets(manifest, root)
         for manifest in ordered_manifests
     }
     commands_by_manifest: dict[str, list[tuple[tuple[str, ...], tuple[str, ...]]]] = {}
     target_files_by_command: dict[tuple[str, ...], set[str]] = {}
+    command_by_pytest_args: dict[tuple[str, ...], tuple[str, ...]] = {}
 
     for manifest in ordered_manifests:
         targets = targets_by_manifest[manifest.source_path]
@@ -209,17 +282,34 @@ def run_artifact_coverage_batch(
                 target_files_by_command.setdefault(pytest_args, set()).update(
                     target_files
                 )
+                command_by_pytest_args.setdefault(pytest_args, tuple(command))
         commands_by_manifest[manifest.source_path] = command_entries
 
-    command_runs = {
-        pytest_args: executor.execute(
-            pytest_args,
-            target_files,
+    isolated_ran = jobs > 1 and bool(target_files_by_command)
+    if isolated_ran:
+        command_runs, uncovered_errors, summary = _run_coverage_commands_isolated(
+            target_files_by_command,
+            command_by_pytest_args,
             root,
+            executor,
             timeout_seconds,
+            jobs,
+            max_processes,
+            snapshot_backend,
+            isolated_runner,
         )
-        for pytest_args, target_files in target_files_by_command.items()
-    }
+    else:
+        command_runs = {
+            pytest_args: executor.execute(
+                pytest_args,
+                target_files,
+                root,
+                timeout_seconds,
+            )
+            for pytest_args, target_files in target_files_by_command.items()
+        }
+        uncovered_errors = {}
+        summary = None
 
     reports: dict[str, ArtifactCoverageReport] = {}
     for manifest in ordered_manifests:
@@ -241,7 +331,10 @@ def run_artifact_coverage_batch(
         report_errors: list[ValidationError] = []
         execution_data: dict[str, RuntimeFileExecution] = {}
         for pytest_args, original_command in command_entries:
-            command_run = command_runs[pytest_args]
+            command_run = command_runs.get(pytest_args)
+            if command_run is None:
+                command_errors.extend(uncovered_errors.get(pytest_args, ()))
+                continue
             if command_run.returncode != 0:
                 command_errors.append(
                     _coverage_command_error(
@@ -265,7 +358,110 @@ def run_artifact_coverage_batch(
             findings=tuple(findings),
             errors=tuple(command_errors + report_errors + execution_errors),
         )
+
+    if summary is not None:
+        reports = {
+            manifest_path: replace(report, execution=summary)
+            for manifest_path, report in reports.items()
+        }
     return reports
+
+
+def _run_coverage_commands_isolated(
+    target_files_by_command: Mapping[tuple[str, ...], set[str]],
+    command_by_pytest_args: Mapping[tuple[str, ...], tuple[str, ...]],
+    root: Path,
+    executor: RuntimeCommandExecutor,
+    timeout_seconds: float,
+    jobs: int,
+    max_processes: int,
+    snapshot_backend: ProjectSnapshotBackend | None,
+    isolated_runner: object | None,
+) -> tuple[
+    dict[tuple[str, ...], RuntimeCommandRecord],
+    dict[tuple[str, ...], tuple[ValidationError, ...]],
+    ArtifactCoverageExecutionSummary,
+]:
+    """Route unique coverage commands through the isolated lane boundary.
+
+    Records from lanes that were not escalated are authoritative; escalated
+    identities replay exactly once in place so a snapshot artifact can never
+    become the verdict. Worker diagnostics surface only for an identity that
+    ends with neither a record nor an escalation, because that alone is a
+    silent evidence hole.
+    """
+    from maid_runner.core._artifact_coverage_fallback_worker import (
+        run_isolated_artifact_coverage_fallbacks,
+    )
+    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+
+    runner = isolated_runner or run_isolated_artifact_coverage_fallbacks
+    backend = snapshot_backend or MaterializedProjectSnapshotBackend()
+
+    args_by_identity: dict[RuntimeCommandIdentity, tuple[str, ...]] = {}
+    targets_by_identity: dict[RuntimeCommandIdentity, set[str]] = {}
+    identities: list[RuntimeCommandIdentity] = []
+    for index, (pytest_args, target_files) in enumerate(
+        target_files_by_command.items()
+    ):
+        identity = RuntimeCommandIdentity(
+            manifest_path="<artifact-coverage-batch>",
+            command_index=index,
+            command=command_by_pytest_args[pytest_args],
+        )
+        identities.append(identity)
+        args_by_identity[identity] = pytest_args
+        targets_by_identity[identity] = target_files
+
+    isolated_run = runner(
+        identities,
+        root,
+        targets_by_identity,
+        backend,
+        executor,
+        jobs,
+        max_processes,
+    )
+
+    escalated = set(isolated_run.serial_fallback_identities)
+    command_runs: dict[tuple[str, ...], RuntimeCommandRecord] = {}
+    worker_errors: dict[tuple[str, ...], tuple[ValidationError, ...]] = {}
+    for result in isolated_run.results:
+        pytest_args = args_by_identity.get(result.identity)
+        if pytest_args is None:
+            continue
+        if result.identity not in escalated and result.command_run is not None:
+            command_runs.setdefault(pytest_args, result.command_run)
+        if result.errors:
+            worker_errors[pytest_args] = tuple(result.errors)
+
+    serial_args: set[tuple[str, ...]] = set()
+    for identity in isolated_run.serial_fallback_identities:
+        pytest_args = args_by_identity.get(identity)
+        if pytest_args is None or pytest_args in serial_args:
+            continue
+        serial_args.add(pytest_args)
+        command_runs[pytest_args] = executor.execute(
+            pytest_args,
+            target_files_by_command[pytest_args],
+            root,
+            timeout_seconds,
+        )
+
+    uncovered_errors = {
+        pytest_args: errors
+        for pytest_args, errors in worker_errors.items()
+        if pytest_args not in command_runs
+    }
+    command_count = len(target_files_by_command)
+    serial_count = len(serial_args)
+    summary = ArtifactCoverageExecutionSummary(
+        command_count=command_count,
+        isolated_count=command_count - serial_count,
+        serial_count=serial_count,
+        lane_count=jobs,
+    )
+    return command_runs, uncovered_errors, summary
 
 
 def evaluate_artifact_coverage_from_evidence(

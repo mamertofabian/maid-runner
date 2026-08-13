@@ -362,19 +362,12 @@ def _run_artifact_coverage_for_manifest_dir(
     *,
     strict_context: bool = False,
 ):
-    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
-
     reports = _run_artifact_coverage_by_manifest(
         manifest_dir,
         project_root,
         strict_context=strict_context,
     ).values()
-    findings = []
-    errors = []
-    for report in reports:
-        findings.extend(report.findings)
-        errors.extend(report.errors)
-    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+    return _merge_artifact_coverage_reports(reports)
 
 
 def _run_artifact_coverage_by_manifest(
@@ -402,7 +395,12 @@ def _run_artifact_coverage_by_manifest(
     config = load_config(project_root)
     with _strict_validation_test_environment(strict_context):
         if evidence is None:
-            return run_artifact_coverage_batch(active, project_root)
+            return run_artifact_coverage_batch(
+                active,
+                project_root,
+                jobs=config.artifact_coverage.fallback_jobs,
+                max_processes=config.test_execution.max_processes,
+            )
         evidence_manifest_paths = {
             command.identity.manifest_path for command in evidence.commands
         }
@@ -457,10 +455,17 @@ def _merge_artifact_coverage_reports(reports):
 
     findings = []
     errors = []
+    execution = None
     for report in reports:
         findings.extend(report.findings)
         errors.extend(report.errors)
-    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+        if execution is None:
+            execution = report.execution
+    return ArtifactCoverageReport(
+        findings=tuple(findings),
+        errors=tuple(errors),
+        execution=execution,
+    )
 
 
 def _append_artifact_coverage_output(
