@@ -131,10 +131,12 @@ class RuntimeGroupEvidence:
     result: RuntimeCommandRecord
     worker_ids: tuple[str, ...]
     completeness: RuntimeEvidenceCompleteness
+    _failed_nodeids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "command", tuple(self.command))
         object.__setattr__(self, "selected_nodeids", tuple(self.selected_nodeids))
+        object.__setattr__(self, "_failed_nodeids", tuple(self._failed_nodeids))
         object.__setattr__(
             self,
             "selector_nodeids",
@@ -380,7 +382,7 @@ def collect_runtime_evidence(
                     behavior_group_key=group_key,
                     selected_nodeids=selected,
                     contexts=projected,
-                    result=group.result,
+                    result=_projected_command_result(group, selected),
                     completeness=completeness,
                     environment_identity=environment,
                 )
@@ -617,7 +619,11 @@ def _project_completeness(
         for selector in group.completeness.unsupported_selectors
         if selector in entry.selectors
     )
-    unresolved = tuple(group.completeness.unresolved_context_ids)
+    unresolved = tuple(
+        item
+        for item in group.completeness.unresolved_context_ids
+        if _unresolved_applies_to_selected(item, selected)
+    )
     unproven = tuple(
         context_id
         for context_id in group.completeness.unproven_fixture_lifecycles
@@ -632,12 +638,23 @@ def _project_completeness(
                 for other in entry.selectors
             )
         )
+    attributed = bool(group._failed_nodeids) or group.result.returncode == 0
+    diagnostics = tuple(
+        diagnostic
+        for diagnostic in group.completeness.diagnostics
+        if not attributed
+        or (
+            "Runtime evidence command failed" not in diagnostic.message
+            and "pytest exited with status" not in diagnostic.message
+        )
+    )
     complete = (
-        group.completeness.complete
-        and not unsupported
+        not unsupported
         and not unresolved
         and not unproven
         and bool(selected)
+        and not group.completeness.missing_worker_ids
+        and not diagnostics
     )
     return RuntimeEvidenceCompleteness(
         complete=complete,
@@ -645,8 +662,25 @@ def _project_completeness(
         unsupported_selectors=unsupported,
         unresolved_context_ids=unresolved,
         unproven_fixture_lifecycles=unproven,
-        diagnostics=group.completeness.diagnostics,
+        diagnostics=diagnostics,
     )
+
+
+def _unresolved_applies_to_selected(item: str, selected: tuple[str, ...]) -> bool:
+    if not item.startswith("report:"):
+        return True
+    rest = item[len("report:") :]
+    return any(rest.startswith(f"{nodeid}:") for nodeid in selected)
+
+
+def _projected_command_result(group: RuntimeGroupEvidence, selected: tuple[str, ...]):
+    from dataclasses import replace
+
+    attributed = bool(group._failed_nodeids) or group.result.returncode == 0
+    if not attributed:
+        return group.result
+    failed = set(group._failed_nodeids) & set(selected)
+    return replace(group.result, returncode=1 if failed else 0)
 
 
 def _combine_completeness(

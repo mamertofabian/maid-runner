@@ -1,0 +1,116 @@
+{
+  "manifest_path": "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+  "manifest_hash": "sha256-contract:9216de071e48bedc5aca90892b6f1959d1e1c2fe09aec83cd48f55a059f6c5cc",
+  "test_hashes": {
+    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+    "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57"
+  },
+  "created_at": "2026-08-13T10:17:52.029807+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:aea5d26d049e5de4fc105fa4fa5822054b037d5445a4e323c82b44486001a78d",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57"
+      },
+      "revised_at": "2026-08-13T10:18:26.629921+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml -> manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:19:01.412856+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_focused_knockout_with_collection_incompleteness.py tests/core/test_knockout_differential_detection.py",
+        "exit_code": 1,
+        "output_tail": "        executor = _RecordingExecutor((0, 1, 0))\n    \n        report = run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert report.results[0].proof is not None\n>       assert report.results[0].proof.used_exact_fallback is False\nE       AssertionError: assert True is False\nE        +  where True = KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()).used_exact_fallback\nE        +    where KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()) = KnockoutResult(artifact_name='target', artifact_kind='function', parent_class=None, file_path='src/target.py', detecte...nt_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()), cache_hit=False).proof\n\ntests/core/test_focused_knockout_with_collection_incompleteness.py:57: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_focused_knockout_with_collection_incompleteness.py::test_collection_global_bundle_incompleteness_still_uses_focused_knockout\n1 failed, 20 passed in 34.17s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py:test_collection_global_bundle_incompleteness_still_uses_focused_knockout",
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py:test_collection_global_bundle_incompleteness_still_uses_focused_knockout:kind=test_function",
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py:test_unproven_lifecycle_still_forces_exact_knockout_fallback",
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py:test_unproven_lifecycle_still_forces_exact_knockout_fallback:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "tests/core/test_knockout_differential_detection.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_focused_knockout_with_collection_incompleteness.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_collection_global_bundle_incompleteness_still_uses_focused_knockout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unproven_lifecycle_still_forces_exact_knockout_fallback"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "tests/core/test_knockout_differential_detection.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Private focused-command selection must not require bundle completeness when only collection:global is unresolved."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py",
+      "tests/core/test_knockout_differential_detection.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_focused_knockout_with_collection_incompleteness.py tests/core/test_knockout_differential_detection.py",
+      "uv run maid validate manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

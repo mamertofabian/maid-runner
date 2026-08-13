@@ -27,6 +27,7 @@ from maid_runner.core.result import (
 from maid_runner.core.runtime_evidence import (
     RuntimeCommandEvidence,
     RuntimeEvidenceBundle,
+    RuntimeEvidenceCompleteness,
     _content_digest,
     _environment_identity,
     runtime_evidence_is_current,
@@ -939,7 +940,9 @@ def _focused_command(
     identity: KnockoutArtifactIdentity,
     root: Path,
 ) -> tuple[tuple[str, ...], tuple[str, ...]] | None:
-    if evidence is None or not evidence.completeness.complete:
+    if evidence is None or not _completeness_supports_focused_knockout(
+        evidence.completeness
+    ):
         return None
     command_evidence = next(
         (
@@ -951,7 +954,9 @@ def _focused_command(
         ),
         None,
     )
-    if command_evidence is None or not command_evidence.completeness.complete:
+    if command_evidence is None or not _completeness_supports_focused_knockout(
+        command_evidence.completeness
+    ):
         return None
     nodeids = _artifact_nodeids(command_evidence, identity, root)
     if not nodeids:
@@ -961,6 +966,29 @@ def _focused_command(
         return None
     prefix, _targets, options = normalized
     return prefix + nodeids + options, nodeids
+
+
+def _completeness_supports_focused_knockout(
+    completeness: RuntimeEvidenceCompleteness,
+) -> bool:
+    unresolved = tuple(
+        item
+        for item in completeness.unresolved_context_ids
+        if item != "collection:global"
+    )
+    diagnostics = tuple(
+        diagnostic
+        for diagnostic in completeness.diagnostics
+        if "pytest exited with status" not in diagnostic.message
+        and "Runtime evidence command failed" not in diagnostic.message
+    )
+    return not (
+        completeness.missing_worker_ids
+        or completeness.unsupported_selectors
+        or unresolved
+        or completeness.unproven_fixture_lifecycles
+        or diagnostics
+    )
 
 
 def _artifact_nodeids(

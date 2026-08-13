@@ -1,0 +1,90 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Project grouped pytest failures onto the originating command only"
+type: refactor
+created: "2026-08-13T10:14:03Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - runtime-evidence
+    - knockout
+description: |
+  Grouped derived collection now runs this repo's pytest union once. Five
+  isolation-sensitive failures make the physical group exit non-zero. Today
+  that exit is copied onto every projected command, a group-level
+  "command failed" diagnostic marks the whole bundle incomplete, every
+  coverage command reports E900, and focused knockout plus tests-stage reuse
+  stay disabled.
+
+  Completeness means evidence is present, not that every sibling node passed.
+  When per-node reports exist, attribute failed nodeids, skip the group-wide
+  exit diagnostic, and project each command's returncode from whether any of
+  its selected nodeids failed. The physical group TestRunResult still reports
+  the union exit code. If node reports are missing, keep the current fail-closed
+  shared exit and diagnostic.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not treat a sibling node's failure as this command's E900."
+    instead: "Project returncode from the command's selected nodeids when per-node reports exist."
+  - risk: "Do not mark the whole evidence bundle incomplete because the union pytest exited non-zero."
+    instead: "Skip the group-wide command-failed diagnostic when node reports exist; completeness follows projected fields."
+  - risk: "Do not hide the physical union failure."
+    instead: "Keep run.test_result / group.result as the physical pytest exit code."
+  - risk: "Do not assume xdist workers are the only source of node reports."
+    instead: "Aggregate reports_by_node from every payload, including serial main."
+files:
+  create:
+    - path: tests/core/test_grouped_command_failure_projection.py
+      artifacts:
+        - kind: test_function
+          name: test_grouped_sibling_failure_does_not_fail_passing_command_evidence
+          args: []
+        - kind: test_function
+          name: test_grouped_physical_result_still_reports_union_exit_code
+          args: []
+  scope:
+    - path: maid_runner/core/runtime_evidence.py
+      reason: "Project per-command returncode and completeness from selected nodeids."
+    - path: maid_runner/core/_runtime_command_executor.py
+      reason: "Attribute failed nodeids from reports_by_node and skip the group-wide exit diagnostic when those reports exist."
+  read:
+    - maid_runner/core/_runtime_evidence_pytest_plugin.py
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+    - manifests/121-23-default-derived-coverage-evidence.manifest.yaml
+    - manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml
+    - tests/core/test_runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_grouped_command_failure_projection.py tests/core/test_runtime_evidence.py
+  - uv run maid validate manifests/121-30-project-grouped-command-failures.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T10:25:00Z"
+  summary: "When per-node reports exist, a sibling pytest failure no longer copies the union exit onto passing commands or attach the pytest-exited diagnostic to them. The physical group TestRunResult still reports the union exit. Multi-command collection:global incompleteness is unchanged."
+  rationale: "The grouped union on this repo had five failing nodes. Sharing that exit made every coverage command E900 and marked evidence incomplete, which blocks focused knockout. Completeness is evidence presence; node failure belongs to the originating command."
+  lessons:
+    - lesson_type: performance
+      summary: "Project grouped pytest returncodes from selected nodeids; a sibling failure must not fail every command in the union."
+      tags: [performance, runtime-evidence]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+        - maid_runner/core/_runtime_command_executor.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Physical group result remains failing. Fail-closed shared exit remains when node reports are missing. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_grouped_command_failure_projection.py, tests/core/test_runtime_evidence.py]
+      status: passed
+      summary: "35 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-30-project-grouped-command-failures.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

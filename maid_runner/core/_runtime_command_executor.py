@@ -300,6 +300,7 @@ class SubprocessRuntimeCommandExecutor:
                     )
                 ),
                 completeness=completeness,
+                _failed_nodeids=_failed_nodeids_from_payloads(payloads),
             )
 
 
@@ -930,6 +931,36 @@ def _selector_nodeids_from_payloads(
     )
 
 
+def _reports_by_node_from_payloads(payloads: list[dict]) -> dict[str, dict[str, str]]:
+    aggregate: dict[str, dict[str, str]] = {}
+    for payload in payloads:
+        raw_reports = payload.get("reports_by_node", {})
+        if not isinstance(raw_reports, dict):
+            continue
+        for nodeid, reports in raw_reports.items():
+            if not isinstance(nodeid, str) or not isinstance(reports, dict):
+                continue
+            aggregate.setdefault(nodeid, {}).update(
+                {
+                    str(phase): str(outcome)
+                    for phase, outcome in reports.items()
+                    if isinstance(phase, str) and isinstance(outcome, str)
+                }
+            )
+    return aggregate
+
+
+def _failed_nodeids_from_payloads(payloads: list[dict]) -> tuple[str, ...]:
+    failed: list[str] = []
+    for nodeid, reports in _reports_by_node_from_payloads(payloads).items():
+        if reports.get("setup") in {"failed", "error"} or reports.get("call") in {
+            "failed",
+            "error",
+        }:
+            failed.append(nodeid)
+    return tuple(failed)
+
+
 def _completeness_from_payloads(
     payloads: list[dict],
     command: tuple[str, ...],
@@ -1033,7 +1064,8 @@ def _completeness_from_payloads(
                 message="Runtime evidence plugin produced no output",
             )
         )
-    if exit_code != 0 and not diagnostics:
+    reports = _reports_by_node_from_payloads(payloads)
+    if exit_code != 0 and not diagnostics and not reports:
         diagnostics.append(
             ValidationError(
                 code=ErrorCode.INTERNAL_ERROR,

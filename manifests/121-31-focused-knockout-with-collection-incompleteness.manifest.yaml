@@ -1,0 +1,78 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep focused knockout when only collection:global marks evidence incomplete"
+type: refactor
+created: "2026-08-13T10:18:26Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  352 of 353 coverage commands share one grouped pytest union, so 121-08 marks
+  collection:global unresolved on the bundle. Focused knockout currently requires
+  evidence.completeness.complete, so this repo never uses nodeid-focused
+  detectors after grouped collection. collection:global means do not use
+  collection-module coverage for E710; node contexts remain usable for knockout.
+
+  Allow focused knockout when the command has selected nodeids and the remaining
+  completeness fields are clean except collection:global and attributed
+  pytest-exited diagnostics. Unproven fixtures, missing workers, unsupported
+  selectors, and other unresolved contexts still force exact fallback.
+  Ordinary tests-stage reuse is unchanged here.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not treat collection:global incompleteness as missing node evidence."
+    instead: "Ignore collection:global when deciding whether a command can use focused nodeids."
+  - risk: "Do not run focused knockout when workers, selectors, or fixture lifecycles are unproven."
+    instead: "Keep exact fallback for missing_worker_ids, unsupported_selectors, unproven_fixture_lifecycles, and non-collection unresolved contexts."
+files:
+  create:
+    - path: tests/core/test_focused_knockout_with_collection_incompleteness.py
+      artifacts:
+        - kind: test_function
+          name: test_collection_global_bundle_incompleteness_still_uses_focused_knockout
+          args: []
+        - kind: test_function
+          name: test_unproven_lifecycle_still_forces_exact_knockout_fallback
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Private focused-command selection must not require bundle completeness when only collection:global is unresolved."
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/121-12-require-differential-knockout-detection.manifest.yaml
+    - tests/core/test_knockout_differential_detection.py
+validate:
+  - uv run python -m pytest -q tests/core/test_focused_knockout_with_collection_incompleteness.py tests/core/test_knockout_differential_detection.py
+  - uv run maid validate manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T10:30:00Z"
+  summary: "Focused knockout still uses selected nodeids when the only unresolved completeness marker is collection:global. Unproven fixture lifecycles still force exact fallback."
+  rationale: "This repo groups hundreds of coverage commands into one pytest union, so 121-08 marks collection:global unresolved. Requiring bundle completeness therefore disabled nodeid-focused knockout on the production path. collection:global means do not use collection-module coverage, not that node contexts are missing."
+  lessons:
+    - lesson_type: performance
+      summary: "collection:global incompleteness must not disable nodeid-focused knockout when command node contexts are present."
+      tags: [performance, knockout, runtime-evidence]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Unproven lifecycles, missing workers, and unsupported selectors still exact-fallback. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_focused_knockout_with_collection_incompleteness.py, tests/core/test_knockout_differential_detection.py]
+      status: passed
+      summary: "21 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

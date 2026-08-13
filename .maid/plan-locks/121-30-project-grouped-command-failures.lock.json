@@ -1,0 +1,143 @@
+{
+  "manifest_path": "manifests/121-30-project-grouped-command-failures.manifest.yaml",
+  "manifest_hash": "sha256-contract:9f9d0ec9194c286f3488dfe6671e09aa9352b0b5810e91eade58fba24ce68055",
+  "test_hashes": {
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+    "tests/core/test_grouped_command_failure_projection.py": "sha256-pyast:v2:449c34aa426bdac48c3ab36835b0e78c71385139fe3d32bed5f73cfb2127b530"
+  },
+  "created_at": "2026-08-13T10:13:50.428341+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:fbd99729650bf1d6cc153c0b3baf5d045ab407d3582f88431e521552888957ac",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_grouped_command_failure_projection.py": "sha256-pyast:v2:a57f4858e44ed77c29636a6aac32d44e7b4ad11716703490de6a6742c280a8ed"
+      },
+      "revised_at": "2026-08-13T10:14:03.728212+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-30-project-grouped-command-failures.manifest.yaml -> manifests/121-30-project-grouped-command-failures.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-30-project-grouped-command-failures.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-30-project-grouped-command-failures.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f9d0ec9194c286f3488dfe6671e09aa9352b0b5810e91eade58fba24ce68055",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_grouped_command_failure_projection.py": "sha256-pyast:v2:a57f4858e44ed77c29636a6aac32d44e7b4ad11716703490de6a6742c280a8ed"
+      },
+      "revised_at": "2026-08-13T10:16:32.435250+00:00",
+      "reason": "Passing-command evidence must drop the union pytest-exited diagnostic; collection:global still marks multi-command bundles incomplete",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:14:16.852588+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_grouped_command_failure_projection.py tests/core/test_runtime_evidence.py",
+        "exit_code": 1,
+        "output_tail": "        tmp_path: Path,\n    ) -> None:\n        from maid_runner.core.runtime_evidence import collect_runtime_evidence\n    \n        manifests = _write_grouped_pass_and_fail(tmp_path)\n    \n        run = collect_runtime_evidence(manifests, tmp_path)\n        by_path = {item.identity.manifest_path: item for item in run.evidence.commands}\n        alpha = by_path[manifests[0].source_path]\n        beta = by_path[manifests[1].source_path]\n    \n>       assert alpha.result.returncode == 0\nE       AssertionError: assert 1 == 0\nE        +  where 1 = RuntimeCommandRecord(command=('python', '-m', 'pytest', 'tests/test_alpha.py', 'tests/test_beta.py', '-q'), returncode...ileExecution(executed_lines=frozenset({1, 2}), called_qualnames=frozenset({'target', '<module>'}))}), report_errors=()).returncode\nE        +    where RuntimeCommandRecord(command=('python', '-m', 'pytest', 'tests/test_alpha.py', 'tests/test_beta.py', '-q'), returncode...ileExecution(executed_lines=frozenset({1, 2}), called_qualnames=frozenset({'target', '<module>'}))}), report_errors=()) = RuntimeCommandEvidence(identity=RuntimeCommandIdentity(manifest_path='/tmp/pytest-of-atomrem/pytest-5030/test_grouped_...34ca495991b7852b855', effective_environment_digest='973f80dd0cf725cd5259a593d5ebb2832f98e9268389c4106b374a5d3239ac35')).result\n\ntests/core/test_grouped_command_failure_projection.py:25: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_grouped_command_failure_projection.py::test_grouped_sibling_failure_does_not_fail_passing_command_evidence\n1 failed, 34 passed in 12.49s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-30-project-grouped-command-failures.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_grouped_command_failure_projection.py:test_grouped_physical_result_still_reports_union_exit_code",
+      "tests/core/test_grouped_command_failure_projection.py:test_grouped_physical_result_still_reports_union_exit_code:kind=test_function",
+      "tests/core/test_grouped_command_failure_projection.py:test_grouped_sibling_failure_does_not_fail_passing_command_evidence",
+      "tests/core/test_grouped_command_failure_projection.py:test_grouped_sibling_failure_does_not_fail_passing_command_evidence:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_grouped_command_failure_projection.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "scope": [
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_grouped_command_failure_projection.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_grouped_sibling_failure_does_not_fail_passing_command_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_grouped_physical_result_still_reports_union_exit_code"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "reason": "Project per-command returncode and completeness from selected nodeids."
+        },
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "reason": "Attribute failed nodeids from reports_by_node and skip the group-wide exit diagnostic when those reports exist."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_grouped_command_failure_projection.py",
+      "tests/core/test_runtime_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_grouped_command_failure_projection.py tests/core/test_runtime_evidence.py",
+      "uv run maid validate manifests/121-30-project-grouped-command-failures.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
