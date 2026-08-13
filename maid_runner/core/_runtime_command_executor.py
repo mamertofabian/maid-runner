@@ -322,6 +322,8 @@ pytest_args = sys.argv[4:]
 calls: set[tuple[str, str, str, int]] = set()
 exit_code = 1
 monitoring_tool_id = None
+monitoring_ref = None
+monitoring_disable = None
 
 
 def profile_calls(frame, event, arg):
@@ -351,7 +353,10 @@ def monitor_call(code, instruction_offset):
                 code.co_firstlineno,
             )
         )
-    return sys.monitoring.DISABLE
+    # Return the DISABLE sentinel captured at registration, never a live
+    # sys.monitoring read: an instrumented test may swap sys.monitoring for a
+    # stub, and re-reading it here would raise inside the callback.
+    return monitoring_disable
 
 
 def instrumentation_marker(frame, event, arg):
@@ -359,7 +364,7 @@ def instrumentation_marker(frame, event, arg):
 
 
 def start_call_monitoring():
-    global monitoring_tool_id
+    global monitoring_tool_id, monitoring_ref, monitoring_disable
     monitoring = getattr(sys, "monitoring", None)
     if monitoring is not None:
         tool_id = monitoring.PROFILER_ID
@@ -368,6 +373,8 @@ def start_call_monitoring():
             monitoring.register_callback(
                 tool_id, monitoring.events.PY_START, monitor_call
             )
+            monitoring_ref = monitoring
+            monitoring_disable = getattr(monitoring, "DISABLE", None)
             monitoring.set_events(tool_id, monitoring.events.PY_START)
             monitoring_tool_id = tool_id
             # Preserve the legacy observable instrumentation boundary while
@@ -386,7 +393,7 @@ def start_call_monitoring():
 
 def stop_call_monitoring():
     if monitoring_tool_id is not None:
-        monitoring = sys.monitoring
+        monitoring = monitoring_ref
         monitoring.set_events(monitoring_tool_id, 0)
         monitoring.register_callback(
             monitoring_tool_id, monitoring.events.PY_START, None
@@ -449,6 +456,8 @@ _coverage = None
 _calls = set()
 _finished = False
 _monitoring_tool_id = None
+_monitoring_ref = None
+_monitoring_disable = None
 _coverage_data_file = Path(os.environ["MAID_ARTIFACT_COVERAGE_DATA"])
 _call_directory = Path(os.environ["MAID_ARTIFACT_CALL_DIRECTORY"])
 _target_files = set(json.loads(Path(os.environ["MAID_ARTIFACT_TARGET_FILES"]).read_text()))
@@ -586,11 +595,13 @@ def _monitor_call(code, instruction_offset):
                 code.co_firstlineno,
             )
         )
-    return sys.monitoring.DISABLE
+    # Captured at registration so a swapped sys.monitoring cannot make this
+    # callback raise and poison the instrumented session.
+    return _monitoring_disable
 
 
 def _start_call_monitoring():
-    global _monitoring_tool_id
+    global _monitoring_tool_id, _monitoring_ref, _monitoring_disable
     monitoring = getattr(sys, "monitoring", None)
     if monitoring is not None:
         tool_id = monitoring.PROFILER_ID
@@ -599,6 +610,8 @@ def _start_call_monitoring():
             monitoring.register_callback(
                 tool_id, monitoring.events.PY_START, _monitor_call
             )
+            _monitoring_ref = monitoring
+            _monitoring_disable = getattr(monitoring, "DISABLE", None)
             monitoring.set_events(tool_id, monitoring.events.PY_START)
             _monitoring_tool_id = tool_id
             return
@@ -613,7 +626,7 @@ def _start_call_monitoring():
 
 def _stop_call_monitoring():
     if _monitoring_tool_id is not None:
-        monitoring = sys.monitoring
+        monitoring = _monitoring_ref
         monitoring.set_events(_monitoring_tool_id, 0)
         monitoring.register_callback(
             _monitoring_tool_id, monitoring.events.PY_START, None
