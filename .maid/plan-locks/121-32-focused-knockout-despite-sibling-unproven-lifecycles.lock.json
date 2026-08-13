@@ -1,0 +1,116 @@
+{
+  "manifest_path": "manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+  "manifest_hash": "sha256-contract:8eec4e1c5679608dee1ee1dcb59cdb97d13fc10af003cf1b0bfd3e032e7e7e7d",
+  "test_hashes": {
+    "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57",
+    "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1"
+  },
+  "created_at": "2026-08-13T10:31:03.644497+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3cbfba95f33201f9d051bc581ad5c6b8ddfb21855c24c1e6362d68e7dbde5795",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57",
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1"
+      },
+      "revised_at": "2026-08-13T10:31:13.353916+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml -> manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:31:19.714930+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py tests/core/test_focused_knockout_with_collection_incompleteness.py",
+        "exit_code": 1,
+        "output_tail": "        executor = _RecordingExecutor((0, 1, 0))\n    \n        report = run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert report.results[0].proof is not None\n>       assert report.results[0].proof.used_exact_fallback is False\nE       AssertionError: assert True is False\nE        +  where True = KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()).used_exact_fallback\nE        +    where KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()) = KnockoutResult(artifact_name='target', artifact_kind='function', parent_class=None, file_path='src/target.py', detecte...nt_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()), cache_hit=False).proof\n\ntests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py::test_bundle_sibling_unproven_lifecycle_still_uses_focused_knockout\n1 failed, 3 passed in 5.75s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py:test_bundle_sibling_unproven_lifecycle_still_uses_focused_knockout",
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py:test_bundle_sibling_unproven_lifecycle_still_uses_focused_knockout:kind=test_function",
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py:test_command_unproven_lifecycle_still_forces_exact_knockout_fallback",
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py:test_command_unproven_lifecycle_still_forces_exact_knockout_fallback:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_bundle_sibling_unproven_lifecycle_still_uses_focused_knockout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_unproven_lifecycle_still_forces_exact_knockout_fallback"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Focused-command selection must use command completeness, not bundle-merged sibling unproven fixtures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py",
+      "tests/core/test_focused_knockout_with_collection_incompleteness.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py tests/core/test_focused_knockout_with_collection_incompleteness.py",
+      "uv run maid validate manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

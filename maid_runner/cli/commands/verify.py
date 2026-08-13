@@ -1470,7 +1470,7 @@ def _should_reuse_ordinary_tests(
         return False
     if not knockout_report.results:
         return False
-    if not evidence_run.evidence.completeness.complete:
+    if evidence_run.evidence.completeness.missing_worker_ids:
         return False
     from maid_runner.core.chain import get_cached_manifest_chain
     from maid_runner.core.runtime_evidence import runtime_evidence_is_current

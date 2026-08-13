@@ -1,0 +1,136 @@
+{
+  "manifest_path": "manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml",
+  "manifest_hash": "sha256-contract:6955890d86d173be095509c1f6342397b2613b5ce3b0834a2c9400b32ee06c80",
+  "test_hashes": {
+    "tests/cli/test_reuse_ordinary_tests_after_knockout.py": "sha256-pyast:v2:bde69a7828ba6902124e4e80439bebb2eafe6d5fddd9705a06e3086f9728793e",
+    "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py": "sha256-pyast:v2:7a741b5ce62b31d66f0d08c38f0daf48a90d25f037d5ecab998a1fd493cdf018"
+  },
+  "created_at": "2026-08-13T10:32:58.489050+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5fbb305468fd1426216179897e0e377b6c7d711e90caa94a9da1d86a75868031",
+      "prior_test_hashes": {
+        "tests/cli/test_reuse_ordinary_tests_after_knockout.py": "sha256-pyast:v2:bde69a7828ba6902124e4e80439bebb2eafe6d5fddd9705a06e3086f9728793e",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py": "sha256-pyast:v2:7a741b5ce62b31d66f0d08c38f0daf48a90d25f037d5ecab998a1fd493cdf018"
+      },
+      "revised_at": "2026-08-13T10:33:02.313265+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml -> manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:02b769a037bd20756a1fc581fe57eb678d6cbbc11cd851e6afcddba7fd1a8cb8",
+      "prior_test_hashes": {
+        "tests/cli/test_reuse_ordinary_tests_after_knockout.py": "sha256-pyast:v2:bde69a7828ba6902124e4e80439bebb2eafe6d5fddd9705a06e3086f9728793e",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py": "sha256-pyast:v2:7a741b5ce62b31d66f0d08c38f0daf48a90d25f037d5ecab998a1fd493cdf018"
+      },
+      "revised_at": "2026-08-13T10:57:22.192940+00:00",
+      "reason": "Drop files.read of the 121-10 helper test so E230 does not require a pre-existing failing instrumentation test.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_verify_deep_evidence_reuse.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:33:05.974912+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py tests/cli/test_reuse_ordinary_tests_after_knockout.py",
+        "exit_code": 1,
+        "output_tail": "            ),\n        )\n        _install_snapshot_knockout(monkeypatch)\n        executed = _install_implementation_probe(monkeypatch)\n    \n        result = _verify(tmp_path, knockout=True)\n    \n        assert _stage(result, \"artifact_coverage\").success is True\n        assert _stage(result, \"knockout\").success is True\n        assert _stage(result, \"tests\").success is True\n>       assert executed == []\nE       AssertionError: assert [(('python', ..., 'coverage')] == []\nE         \nE         Left contains one more item: (('python', '-m', 'pytest', '-q', 'tests/test_target.py'), 'coverage')\nE         Use -v to get more diff\n\ntests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py::test_collection_global_incompleteness_still_reuses_ordinary_tests\n1 failed, 4 passed in 3.05s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py:test_collection_global_incompleteness_still_reuses_ordinary_tests",
+      "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py:test_collection_global_incompleteness_still_reuses_ordinary_tests:kind=test_function",
+      "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py:test_missing_workers_keep_ordinary_tests_fresh",
+      "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py:test_missing_workers_keep_ordinary_tests_fresh:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "tests/cli/test_reuse_ordinary_tests_after_knockout.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_collection_global_incompleteness_still_reuses_ordinary_tests"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_workers_keep_ordinary_tests_fresh"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/cli/test_reuse_ordinary_tests_after_knockout.py",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Tests-stage reuse must not require bundle completeness.complete when the grouped pytest already ran."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_reuse_ordinary_tests_after_knockout.py",
+      "tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py tests/cli/test_reuse_ordinary_tests_after_knockout.py",
+      "uv run maid validate manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
