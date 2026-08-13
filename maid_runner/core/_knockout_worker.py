@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+from contextlib import nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -125,6 +126,29 @@ def run_knockout_workers(
     """Schedule weighted workers and return input-identity order."""
     _require_positive_integer("jobs", jobs)
     _require_positive_integer("max_processes", max_processes)
+    retain = getattr(snapshot_backend, "retain", None)
+    context = retain() if callable(retain) else nullcontext()
+    with context:
+        return _schedule_knockout_workers(
+            specs,
+            project_root,
+            evidence,
+            snapshot_backend,
+            executor,
+            jobs,
+            max_processes,
+        )
+
+
+def _schedule_knockout_workers(
+    specs: Sequence[KnockoutMutationSpec],
+    project_root: Path,
+    evidence: RuntimeEvidenceBundle | None,
+    snapshot_backend: ProjectSnapshotBackend,
+    executor: KnockoutCommandExecutor,
+    jobs: int,
+    max_processes: int,
+) -> tuple[KnockoutWorkerResult, ...]:
     ordered = tuple(specs)
     prepared: list[tuple[int, KnockoutMutationSpec, int] | KnockoutWorkerResult] = []
     for index, spec in enumerate(ordered):

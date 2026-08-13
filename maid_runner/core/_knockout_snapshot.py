@@ -9,6 +9,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import threading
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from contextlib import AbstractContextManager, contextmanager
@@ -82,101 +83,20 @@ class MaterializedProjectSnapshotBackend(ProjectSnapshotBackend):
         required_paths: Sequence[str],
         worker_id: str,
     ) -> AbstractContextManager[KnockoutProjectSnapshot]:
-        source_root = Path(project_root).resolve()
-        normalized_required = tuple(
-            _validated_relative_path(source_root, path) for path in required_paths
+        opened = _open_materialized_snapshot(
+            Path(project_root).resolve(),
+            required_paths,
+            worker_id,
+            share_dependency_environments=self._share_dependency_environments,
         )
-        source_repository_identity = _repository_identity(source_root)
-        temp_root = Path(
-            tempfile.mkdtemp(prefix=f"maid-knockout-{_safe_worker_id(worker_id)}-")
-        )
-        snapshot: KnockoutProjectSnapshot | None = None
         body_error: BaseException | None = None
-        input_paths: tuple[str, ...] = ()
-        before_state: str | None = None
-        dependency_sources: Mapping[str, Path] = {}
-        dependency_identity: Mapping[str, str] = {}
         try:
-            input_paths = _project_input_paths(source_root, normalized_required)
-            before_state = _input_stat_identity(source_root, input_paths)
-            dependency_sources = _dependency_sources(source_root)
-            dependency_identity = _source_dependency_identity(dependency_sources)
-            copy_file = _copy_strategy(source_root, temp_root, normalized_required)
-            _copy_project_inputs(source_root, temp_root, input_paths, copy_file)
-            if not self._share_dependency_environments:
-                _copy_dependency_environments(
-                    source_root,
-                    temp_root,
-                    dependency_sources,
-                )
-            git_dir, git_common_dir = _copy_git_metadata(
-                source_root,
-                temp_root,
-                copy_file,
-            )
-            after_state = _input_stat_identity(source_root, input_paths)
-            if after_state != before_state:
-                raise RuntimeError(
-                    "Project inputs changed while the knockout snapshot was created"
-                )
-            _verify_dependency_identity(dependency_sources, dependency_identity)
-            source_digests = _required_source_digests(
-                source_root,
-                temp_root,
-                normalized_required,
-            )
-            snapshot = KnockoutProjectSnapshot(
-                root=temp_root,
-                input_digest=_snapshot_input_digest(
-                    temp_root,
-                    input_paths,
-                    dependency_identity,
-                ),
-                source_digests=source_digests,
-                git_dir=git_dir,
-                git_common_dir=git_common_dir,
-                source_repository_identity=source_repository_identity,
-                environment_overrides=_snapshot_environment(
-                    source_root,
-                    temp_root,
-                    shared_dependencies=(
-                        dependency_sources
-                        if self._share_dependency_environments
-                        else None
-                    ),
-                ),
-                environment_removals=tuple(
-                    sorted(
-                        _LOCATION_ENVIRONMENT_NAMES
-                        | {name for name in os.environ if name.startswith("GIT_")}
-                    )
-                ),
-            )
-            try:
-                yield snapshot
-            except BaseException as exc:
-                body_error = exc
-                raise
+            yield opened.snapshot
+        except BaseException as exc:
+            body_error = exc
+            raise
         finally:
-            cleanup_error = _cleanup_snapshot(temp_root)
-            input_error = _input_identity_error(
-                source_root,
-                input_paths,
-                before_state,
-            )
-            identity_error = _verify_repository_identity(
-                source_root,
-                source_repository_identity,
-            )
-            dependency_error = _dependency_identity_error(
-                dependency_sources,
-                dependency_identity,
-            )
-            final_error = (
-                input_error or identity_error or dependency_error or cleanup_error
-            )
-            if final_error is not None:
-                raise RuntimeError(final_error) from body_error
+            _teardown_materialized_snapshot(opened, body_error)
 
 
 class SharedEnvironmentProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
@@ -191,6 +111,270 @@ class SharedEnvironmentProjectSnapshotBackend(MaterializedProjectSnapshotBackend
         worker_id: str,
     ) -> AbstractContextManager[KnockoutProjectSnapshot]:
         return super().create(project_root, required_paths, worker_id)
+
+
+class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
+    """Copy dependency environments once per worker thread; reset source and Git."""
+
+    def __init__(self) -> None:
+        self._retain_lock = threading.Lock()
+        self._retain_count = 0
+        self._opened_by_thread: dict[int, _OpenedSnapshot] = {}
+
+    @contextmanager
+    def retain(self) -> AbstractContextManager[None]:
+        with self._retain_lock:
+            self._retain_count += 1
+        try:
+            yield
+        finally:
+            with self._retain_lock:
+                self._retain_count -= 1
+                opened = (
+                    list(self._opened_by_thread.values())
+                    if self._retain_count == 0
+                    else []
+                )
+                if self._retain_count == 0:
+                    self._opened_by_thread.clear()
+            errors: list[BaseException] = []
+            for item in opened:
+                try:
+                    _teardown_materialized_snapshot(item, None)
+                except BaseException as exc:
+                    errors.append(exc)
+            if errors:
+                raise errors[0]
+
+    @contextmanager
+    def create(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ) -> AbstractContextManager[KnockoutProjectSnapshot]:
+        if self._retain_count < 1:
+            with super().create(project_root, required_paths, worker_id) as snapshot:
+                yield snapshot
+            return
+        source_root = Path(project_root).resolve()
+        thread_id = threading.get_ident()
+        with self._retain_lock:
+            opened = self._opened_by_thread.get(thread_id)
+        if opened is None:
+            opened = _open_materialized_snapshot(
+                source_root,
+                required_paths,
+                worker_id,
+                share_dependency_environments=self._share_dependency_environments,
+            )
+            with self._retain_lock:
+                self._opened_by_thread[thread_id] = opened
+        else:
+            if opened.source_root != source_root:
+                raise RuntimeError(
+                    "Retained knockout snapshot worker changed project root"
+                )
+            _reset_retained_snapshot(opened, required_paths)
+        yield opened.snapshot
+
+
+@dataclass
+class _OpenedSnapshot:
+    snapshot: KnockoutProjectSnapshot
+    source_root: Path
+    input_paths: tuple[str, ...]
+    before_state: str | None
+    dependency_sources: Mapping[str, Path]
+    dependency_identity: Mapping[str, str]
+    source_repository_identity: str | None
+
+
+def _open_materialized_snapshot(
+    source_root: Path,
+    required_paths: Sequence[str],
+    worker_id: str,
+    *,
+    share_dependency_environments: bool,
+) -> _OpenedSnapshot:
+    normalized_required = tuple(
+        _validated_relative_path(source_root, path) for path in required_paths
+    )
+    source_repository_identity = _repository_identity(source_root)
+    temp_root = Path(
+        tempfile.mkdtemp(prefix=f"maid-knockout-{_safe_worker_id(worker_id)}-")
+    )
+    input_paths: tuple[str, ...] = ()
+    before_state: str | None = None
+    dependency_sources: Mapping[str, Path] = {}
+    dependency_identity: Mapping[str, str] = {}
+    try:
+        input_paths = _project_input_paths(source_root, normalized_required)
+        before_state = _input_stat_identity(source_root, input_paths)
+        dependency_sources = _dependency_sources(source_root)
+        dependency_identity = _source_dependency_identity(dependency_sources)
+        copy_file = _copy_strategy(source_root, temp_root, normalized_required)
+        _copy_project_inputs(source_root, temp_root, input_paths, copy_file)
+        if not share_dependency_environments:
+            _copy_dependency_environments(
+                source_root,
+                temp_root,
+                dependency_sources,
+            )
+        git_dir, git_common_dir = _copy_git_metadata(
+            source_root,
+            temp_root,
+            copy_file,
+        )
+        after_state = _input_stat_identity(source_root, input_paths)
+        if after_state != before_state:
+            raise RuntimeError(
+                "Project inputs changed while the knockout snapshot was created"
+            )
+        _verify_dependency_identity(dependency_sources, dependency_identity)
+        source_digests = _required_source_digests(
+            source_root,
+            temp_root,
+            normalized_required,
+        )
+        snapshot = KnockoutProjectSnapshot(
+            root=temp_root,
+            input_digest=_snapshot_input_digest(
+                temp_root,
+                input_paths,
+                dependency_identity,
+            ),
+            source_digests=source_digests,
+            git_dir=git_dir,
+            git_common_dir=git_common_dir,
+            source_repository_identity=source_repository_identity,
+            environment_overrides=_snapshot_environment(
+                source_root,
+                temp_root,
+                shared_dependencies=(
+                    dependency_sources if share_dependency_environments else None
+                ),
+            ),
+            environment_removals=tuple(
+                sorted(
+                    _LOCATION_ENVIRONMENT_NAMES
+                    | {name for name in os.environ if name.startswith("GIT_")}
+                )
+            ),
+        )
+        return _OpenedSnapshot(
+            snapshot=snapshot,
+            source_root=source_root,
+            input_paths=input_paths,
+            before_state=before_state,
+            dependency_sources=dependency_sources,
+            dependency_identity=dependency_identity,
+            source_repository_identity=source_repository_identity,
+        )
+    except BaseException as exc:
+        _teardown_materialized_snapshot(
+            _OpenedSnapshot(
+                snapshot=KnockoutProjectSnapshot(
+                    root=temp_root,
+                    input_digest="",
+                    source_digests={},
+                    git_dir=None,
+                    git_common_dir=None,
+                    source_repository_identity=source_repository_identity,
+                    environment_overrides={},
+                    environment_removals=(),
+                ),
+                source_root=source_root,
+                input_paths=input_paths,
+                before_state=before_state,
+                dependency_sources=dependency_sources,
+                dependency_identity=dependency_identity,
+                source_repository_identity=source_repository_identity,
+            ),
+            exc,
+        )
+        raise
+
+
+def _reset_retained_snapshot(
+    opened: _OpenedSnapshot,
+    required_paths: Sequence[str],
+) -> None:
+    source_root = opened.source_root
+    snapshot_root = opened.snapshot.root
+    normalized_required = tuple(
+        _validated_relative_path(source_root, path) for path in required_paths
+    )
+    input_paths = _project_input_paths(source_root, normalized_required)
+    before_state = _input_stat_identity(source_root, input_paths)
+    copy_file = _copy_strategy(source_root, snapshot_root, normalized_required)
+    _clear_retained_snapshot_tree(snapshot_root)
+    _copy_project_inputs(source_root, snapshot_root, input_paths, copy_file)
+    git_dir, git_common_dir = _copy_git_metadata(
+        source_root,
+        snapshot_root,
+        copy_file,
+    )
+    after_state = _input_stat_identity(source_root, input_paths)
+    if after_state != before_state:
+        raise RuntimeError(
+            "Project inputs changed while the knockout snapshot was reset"
+        )
+    _verify_dependency_identity(opened.dependency_sources, opened.dependency_identity)
+    source_digests = _required_source_digests(
+        source_root,
+        snapshot_root,
+        normalized_required,
+    )
+    opened.input_paths = input_paths
+    opened.before_state = before_state
+    opened.snapshot = KnockoutProjectSnapshot(
+        root=snapshot_root,
+        input_digest=_snapshot_input_digest(
+            snapshot_root,
+            input_paths,
+            opened.dependency_identity,
+        ),
+        source_digests=source_digests,
+        git_dir=git_dir,
+        git_common_dir=git_common_dir,
+        source_repository_identity=opened.source_repository_identity,
+        environment_overrides=opened.snapshot.environment_overrides,
+        environment_removals=opened.snapshot.environment_removals,
+    )
+
+
+def _clear_retained_snapshot_tree(snapshot_root: Path) -> None:
+    for child in snapshot_root.iterdir():
+        if child.name in {".venv", "node_modules"}:
+            continue
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child)
+        else:
+            child.unlink(missing_ok=True)
+
+
+def _teardown_materialized_snapshot(
+    opened: _OpenedSnapshot,
+    body_error: BaseException | None,
+) -> None:
+    cleanup_error = _cleanup_snapshot(opened.snapshot.root)
+    input_error = _input_identity_error(
+        opened.source_root,
+        opened.input_paths,
+        opened.before_state,
+    )
+    identity_error = _verify_repository_identity(
+        opened.source_root,
+        opened.source_repository_identity,
+    )
+    dependency_error = _dependency_identity_error(
+        opened.dependency_sources,
+        opened.dependency_identity,
+    )
+    final_error = input_error or identity_error or dependency_error or cleanup_error
+    if final_error is not None:
+        raise RuntimeError(final_error) from body_error
 
 
 def _safe_worker_id(worker_id: str) -> str:

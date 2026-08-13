@@ -264,7 +264,7 @@ def test_inter_declaration_side_effects_are_isolated_in_parallel_and_serial(tmp_
         )
         assert reports[first.source_path].success is True
         assert reports[second.source_path].success is True
-        assert len(executor.first_seen_roots) == 2
+        assert executor.baselines_without_state == 2
         assert not (tmp_path / "declaration-state").exists()
 
     duplicate = _project_manifest(tmp_path, "duplicate", ("alpha", "beta", "alpha"))
@@ -314,13 +314,21 @@ class _StateWritingExecutor(_OverlapExecutor):
     def __init__(self):
         super().__init__()
         self.first_seen_roots: set[Path] = set()
+        self.baselines_without_state = 0
+        self._after_mutant = False
 
     def execute(self, command, project_root, manifest_slug, *environment):
         root = Path(project_root)
         state = root / "declaration-state"
-        if root not in self.first_seen_roots:
+        mutated = "maid-knockout" in (root / "src/target.py").read_text()
+        if mutated:
+            self._after_mutant = True
+        elif self._after_mutant:
+            self._after_mutant = False
+        else:
             assert not state.exists()
             self.first_seen_roots.add(root)
+            self.baselines_without_state += 1
             state.write_text(manifest_slug)
         return super().execute(command, project_root, manifest_slug, *environment)
 
@@ -329,7 +337,7 @@ def _project_manifest(root: Path, slug: str, artifacts: tuple[str, ...]):
     (root / "src").mkdir(exist_ok=True)
     (root / "src/__init__.py").write_text("")
     (root / "src/target.py").write_text(
-        "def alpha():\n    return 'alpha'\n\n" "def beta():\n    return 'beta'\n"
+        "def alpha():\n    return 'alpha'\n\ndef beta():\n    return 'beta'\n"
     )
     (root / "tests").mkdir(exist_ok=True)
     (root / "tests/test_target.py").write_text("def test_placeholder(): assert True\n")

@@ -12,8 +12,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from maid_runner.core._knockout_snapshot import (
-    MaterializedProjectSnapshotBackend,
     ProjectSnapshotBackend,
+    WorkerRetainedProjectSnapshotBackend,
 )
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
@@ -481,7 +481,7 @@ def run_knockout_batch(
     ordered_manifests = tuple(manifests)
     root = Path(project_root)
     command_executor = executor or KnockoutCommandExecutor()
-    project_snapshots = snapshot_backend or MaterializedProjectSnapshotBackend()
+    project_snapshots = snapshot_backend or WorkerRetainedProjectSnapshotBackend()
     trusted_evidence = None
     if evidence is not None:
         try:
@@ -539,7 +539,10 @@ def run_knockout_batch(
                 spec = next(
                     item for item in pending_specs if item.identity == worker.identity
                 )
-                if not worker.errors:
+                if not worker.errors and not any(
+                    not report.results and report.errors
+                    for report in worker.reports.values()
+                ):
                     _store_knockout_spec_cache(root, spec, worker)
     workers_by_identity = {
         worker.identity: worker for worker in (*cached_workers, *workers)
