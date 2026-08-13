@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
   "manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
   "test_hashes": {
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
     "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
     "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
   },
   "created_at": "2026-08-11T05:21:11.983455+00:00",
-  "revision": 10,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:f9025f6d5a47fb894589f12b0860826ec4183640e5c9f2f07f71ce2db34bf73a",
@@ -209,6 +209,66 @@
       },
       "revised_at": "2026-08-11T06:02:36.389927+00:00",
       "reason": "Close second-review gaps by aggregating xdist phase reports across workers and proving the production adapter preserves ordinary success and import-failure behavior without project-root PYTHONPATH injection.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-12T10:19:48.256629+00:00",
+      "reason": "Accept approved 121-17 shared test isolation correction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-13T03:12:01.234982+00:00",
+      "reason": "Accept the approved shared behavioral-test additions and Black formatting from the grouped deep-verification evidence implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-13T03:17:26.045009+00:00",
+      "reason": "Accept Black-only formatting of the approved shared runtime-evidence behavioral adversary.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

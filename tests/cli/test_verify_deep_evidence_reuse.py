@@ -471,8 +471,8 @@ def test_project_conftest_uses_legacy_coverage_without_speculative_evidence(
     evidence = _collect_artifact_coverage_evidence(tmp_path, "manifests/")
     stage = _artifact_coverage_stage(tmp_path, "manifests/", evidence=evidence)
 
-    assert evidence is None
-    assert calls == []
+    assert evidence is not None
+    assert len(calls) == 1
     assert stage.success is True
     assert log.read_text().splitlines() == ["pytest"]
 

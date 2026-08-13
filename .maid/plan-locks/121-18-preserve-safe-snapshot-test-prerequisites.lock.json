@@ -1,0 +1,176 @@
+{
+  "manifest_path": "manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
+  "manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+  "test_hashes": {
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+  },
+  "created_at": "2026-08-12T14:54:31.272001+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:afbd6c82d0336f02926fd852b81fe72ffa887b7282c869f9baa626c88fe18be6",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:68a09833540db6ae4650a6ed272c4eca1490e0958e0a2586d3303681685853eb",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-12T14:55:16.226225+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml -> manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:68a09833540db6ae4650a6ed272c4eca1490e0958e0a2586d3303681685853eb",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-12T14:57:45.759215+00:00",
+      "reason": "Complete the approved absence-path contract: when either resolved Git author field is unavailable, require an empty snapshot-local config and visible Git failure rather than partial or ambient identity.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:dda50351532eb024869b913b6974b55674e57be78fc7dd06827f33a1a00c4ee8",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-12T15:05:14.196098+00:00",
+      "reason": "Close implementation review's non-Git equivalence gap: require the prior /dev/null environment and no extra project-root file when no copied Git metadata exists.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-12T14:56:06.650571+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py",
+        "exit_code": 1,
+        "output_tail": "            ).stdout.splitlines()\n            result = KnockoutCommandExecutor().execute(\n                (\"git\", \"var\", \"GIT_AUTHOR_IDENT\"),\n                snapshot.root,\n                \"snapshot\",\n                snapshot.environment_overrides,\n                snapshot.environment_removals,\n            )\n    \n            assert isolated_config != global_config\n>           assert isolated_config.is_relative_to(snapshot.root / \".git\")\nE           AssertionError: assert False\nE            +  where False = is_relative_to((PosixPath('/tmp/maid-knockout-git-author-539xqems') / '.git'))\nE            +    where is_relative_to = PosixPath('/dev/null').is_relative_to\nE            +    and   PosixPath('/tmp/maid-knockout-git-author-539xqems') = KnockoutProjectSnapshot(root=PosixPath('/tmp/maid-knockout-git-author-539xqems'), input_digest='612c32828d80359904b888...YSTEM', 'GIT_PAGER', 'NODE_PATH', 'PWD', 'PYTHONPATH', 'PYTHONPYCACHEPREFIX', 'UV_PROJECT_ENVIRONMENT', 'VIRTUAL_ENV')).root\n\ntests/core/test_knockout_snapshot.py:393: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_snapshot.py::test_snapshot_preserves_only_resolved_git_author_identity\n1 failed, 25 passed in 49.67s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_knockout_snapshot.py:test_snapshot_preserves_only_resolved_git_author_identity",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_preserves_only_resolved_git_author_identity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_preserves_only_resolved_git_author_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_preserves_only_resolved_git_author_identity:kind=test_function",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state:arg=tmp_path:type=None:default=None",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py"
+      ],
+      "read": [
+        "maid_runner/core/_knockout_worker.py",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/test_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_preserves_only_resolved_git_author_identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_workers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_independent_mutations_overlap_without_shared_snapshot_state",
+              "args": [
+                {
+                  "name": "tmp_path"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "maid_runner/core/_knockout_worker.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "reason": "Resolve available Git author identity values independently and wire a snapshot-local two-key config without exposing a new public API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_workers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py",
+      "uv run maid validate manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

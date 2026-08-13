@@ -18,7 +18,7 @@ def test_independent_mutations_overlap_without_shared_snapshot_state(tmp_path):
 
     manifests = (_project_manifest(tmp_path, "target", ("alpha", "beta")),)
     original = (tmp_path / "src/target.py").read_bytes()
-    executor = _OverlapExecutor()
+    executor = _OverlapExecutor(start_barrier=threading.Barrier(2))
 
     reports = run_knockout_batch(
         manifests,
@@ -272,8 +272,9 @@ def test_inter_declaration_side_effects_are_isolated_in_parallel_and_serial(tmp_
 
 
 class _OverlapExecutor:
-    def __init__(self, delays=None):
+    def __init__(self, delays=None, start_barrier: threading.Barrier | None = None):
         self.delays = delays or {}
+        self.start_barrier = start_barrier
         self.lock = threading.Lock()
         self.active = 0
         self.peak = 0
@@ -287,9 +288,13 @@ class _OverlapExecutor:
             self.roots.add(root)
             self.active += 1
             self.peak = max(self.peak, self.active)
-        time.sleep(self.delays.get(artifact, 0.02))
-        with self.lock:
-            self.active -= 1
+        try:
+            if self.start_barrier is not None:
+                self.start_barrier.wait(timeout=2)
+            time.sleep(self.delays.get(artifact, 0.02))
+        finally:
+            with self.lock:
+                self.active -= 1
         return _result(command, 1 if _mutated_artifact(source) else 0)
 
 

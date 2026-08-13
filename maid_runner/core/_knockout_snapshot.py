@@ -773,8 +773,9 @@ def _snapshot_input_digest(
 
 
 def _snapshot_environment(source_root: Path, snapshot_root: Path) -> dict[str, str]:
+    git_author_config = _snapshot_git_author_config(source_root, snapshot_root)
     overrides = {
-        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_GLOBAL": str(git_author_config),
         "GIT_CONFIG_NOSYSTEM": "1",
         "GIT_OPTIONAL_LOCKS": "0",
         "PWD": str(snapshot_root),
@@ -806,6 +807,50 @@ def _snapshot_environment(source_root: Path, snapshot_root: Path) -> dict[str, s
             [*(str(path) for path in executable_paths), current_path]
         )
     return overrides
+
+
+def _snapshot_git_author_config(source_root: Path, snapshot_root: Path) -> Path:
+    config_root = snapshot_root / ".git"
+    if not config_root.is_dir():
+        return Path(os.devnull)
+    config_path = config_root / "maid-global-config"
+    name = _resolved_git_config_value(source_root, "user.name")
+    email = _resolved_git_config_value(source_root, "user.email")
+    config_path.write_text("", encoding="utf-8")
+    if name is None or email is None:
+        return config_path
+    for key, value in (("user.name", name), ("user.email", email)):
+        result = subprocess.run(
+            ("git", "config", "--file", str(config_path), key, value),
+            cwd=snapshot_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"Snapshot could not materialize Git author {key}: "
+                f"{result.stderr.strip()}"
+            )
+    return config_path
+
+
+def _resolved_git_config_value(root: Path, key: str) -> str | None:
+    result = subprocess.run(
+        ("git", "config", "--get", key),
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 1:
+        return None
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Snapshot could not resolve Git author {key}: {result.stderr.strip()}"
+        )
+    value = result.stdout.rstrip("\r\n")
+    return value or None
 
 
 def _prepend_path(path: Path, current: str | None) -> str:

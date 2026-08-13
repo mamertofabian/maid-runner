@@ -23,9 +23,12 @@ description: |
   evidence run to the project digest captured before execution. If the
   instrumented command itself changes project content, fail the artifact stage
   visibly because the pre-execution legacy baseline can no longer be replayed.
-  Until a cheap lifecycle preflight can prove fixture-bearing groups reusable,
-  any project-owned conftest.py selects the complete legacy stage before
-  executing contextual evidence, bounding worst-case overhead to legacy cost.
+  A project-owned conftest.py alone does not force legacy execution after
+  121-15 adds runtime lifecycle/source proof and explicit digest-bound
+  approvals. Target-neutral conftests may reach grouped evidence; unproven
+  fixture, hook, collection, mutation, command, or source evidence still
+  selects exact fallback, bounding uncertainty without paying speculative work
+  solely for file presence.
 
   Never reuse the instrumented command as the ordinary tests result. Pytest
   instrumentation, project mutations, and refreshed timing history are
@@ -43,8 +46,8 @@ temptations:
     instead: "Run the complete legacy artifact-coverage stage for preparation errors or unsupported outer command concurrency."
   - risk: "Do not bind evidence to project bytes produced by the instrumented test itself."
     instead: "Compare pre- and post-execution project digests and fail coverage visibly when the evidence command mutates project content."
-  - risk: "Do not pay for speculative contextual execution before predictable fixture-driven exact fallback."
-    instead: "Bypass evidence collection for project-owned conftest.py files until lifecycle preflight can prove reuse cheaply."
+  - risk: "Do not treat conftest file presence alone as either proof of safety or proof of required fallback."
+    instead: "Use 121-15's runtime lifecycle/source evidence and exact digest-bound approvals; retain exact fallback for every unproven context."
 files:
   create:
     - path: tests/cli/test_verify_deep_evidence_reuse.py

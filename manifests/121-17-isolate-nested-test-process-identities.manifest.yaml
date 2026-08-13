@@ -1,0 +1,132 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Make nested test infrastructure deterministic under accepted xdist execution
+type: fix
+created: "2026-08-12T10:15:14Z"
+metadata:
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - xdist
+    - test-isolation
+  priority: high
+description: |
+  Remove the three remaining false failures when the complete repository suite
+  runs under its accepted pinned xdist shape. Owned child test commands must not
+  inherit `PYTEST_XDIST_WORKER` or `PYTEST_XDIST_WORKER_COUNT` from a parent
+  worker because the child establishes its own main/worker topology. A unit test
+  that directly constructs main-process runtime evidence explicitly removes the
+  outer worker identity. Reusable Git-template comparisons normalize only the
+  elapsed-time token in captured pytest summaries, retaining exit status,
+  classification, traceback, and every other lock field.
+
+  These are test-isolation corrections, not gate relaxation. Serial behavior
+  remains covered, and 121-15's immutable full report-equivalence acceptance is
+  still required before the parallel artifact-coverage policy can be enabled.
+  After approval, preserve-revise the shared behavioral-test locks for 121-05,
+  121-08, and 121-10; the test setup and private comparison normalization do not
+  alter their reviewed production contracts.
+temptations:
+  - risk: Ignore nonzero xdist exits or compare only artifact findings.
+    instead: Make the full accepted xdist suite green and retain exact command-error semantics.
+  - risk: Remove all red-evidence output from Git-template comparisons.
+    instead: Normalize only pytest's terminal elapsed-time token and compare the remaining complete lock payload.
+  - risk: Globally delete xdist identity from the current process.
+    instead: Sanitize owned child environments and use per-test monkeypatch restoration for direct main-process construction.
+files:
+  scope:
+    - path: maid_runner/core/_test_command_execution.py
+      reason: Sanitize the private owned subprocess environment boundary without changing public API.
+  edit:
+    - path: tests/core/test_runtime_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_nested_test_command_environment_drops_outer_xdist_identity
+          args:
+            - name: monkeypatch
+        - kind: test_function
+          name: test_missing_runtest_reports_are_incomplete_even_with_success_exit
+          args:
+            - name: tmp_path
+            - name: monkeypatch
+    - path: tests/core/test_git_project_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_stable_lock_payload_ignores_only_pytest_elapsed_time
+          args:
+            - name: tmp_path
+  read:
+    - maid_runner/core/_runtime_evidence_pytest_plugin.py
+    - tests/support/git_project_templates.py
+    - manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py
+  - uv run python -m pytest -q -n 8 --dist loadscope tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py
+  - uv run maid validate manifests/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-12T10:33:30Z"
+  summary: "Made nested test commands independent of an outer xdist worker identity and stabilized reusable Git-template comparisons without masking nonterminal captured output."
+  rationale: "Owned child pytest processes must establish their own controller/worker topology, while fixture lock comparisons may ignore only the nondeterministic elapsed token in the final pytest summary. These narrow isolation corrections let the accepted pinned-xdist repository suite run cleanly without weakening command failures or red-evidence comparisons."
+  lessons:
+    - lesson_type: test-design
+      summary: "Timing normalization must be end-anchored; multiline line anchors alone can silently normalize pytest-shaped text embedded earlier in captured output."
+      tags:
+        - pytest
+        - determinism
+        - red-evidence
+      paths:
+        - tests/core/test_git_project_templates.py
+    - lesson_type: architecture
+      summary: "Nested test execution owns its subprocess environment boundary and must remove both inherited pytest options and xdist worker identity without mutating the parent process."
+      tags:
+        - xdist
+        - subprocess
+        - isolation
+      paths:
+        - maid_runner/core/_test_command_execution.py
+        - tests/core/test_runtime_evidence.py
+  review_notes:
+    - source: review_121_17_implementation
+      severity: ready
+      summary: "Independent review first found over-broad multiline elapsed normalization and then a stale dependent shared-test lock; revision 4 end-anchored normalization, added the adversary, refreshed 121-05, and final re-review returned Ready with all dependent locks OK."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_runtime_evidence.py
+        - tests/core/test_git_project_templates.py
+      status: passed
+      summary: "Declared serial scope passed: 31 tests in 36.92 seconds."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - -n
+        - "8"
+        - --dist
+        - loadscope
+        - tests/core/test_runtime_evidence.py
+        - tests/core/test_git_project_templates.py
+      status: passed
+      summary: "Declared pinned-xdist scope passed: 31 tests in 28.64 seconds."
+    - command:
+        - uv
+        - run
+        - python
+        - instrumented-full-xdist-probe
+      status: passed
+      summary: "The exact complete repository suite under the artifact runtime executor with -n 8 --dist loadscope returned zero in 101.69 seconds."

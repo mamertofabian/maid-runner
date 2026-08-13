@@ -57,6 +57,274 @@ def _project(root: Path) -> None:
         )
 
 
+def test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls(
+    tmp_path,
+):
+    import sys
+
+    if not hasattr(sys, "monitoring"):
+        return
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    manifest = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "alpha",
+            "python -m pytest -q tests/test_alpha.py",
+        )
+    )
+    (tmp_path / "tests/test_alpha.py").write_text(
+        "def test_alpha():\n"
+        "    from src.target import target\n"
+        "    assert target() is True\n"
+    )
+    (tmp_path / "conftest.py").write_text(
+        "import sys\n\n"
+        "def pytest_sessionstart(session):\n"
+        "    assert sys.getprofile() is None\n"
+    )
+
+    run = collect_runtime_evidence([manifest], tmp_path)
+
+    command = run.evidence.commands[0]
+    assert command.result.returncode == 0, command.result.stderr
+    called = {
+        qualname
+        for context in command.contexts
+        for execution in context.execution_data.values()
+        for qualname in execution.called_qualnames
+    }
+    assert "target" in called
+
+
+def test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest(
+    tmp_path,
+):
+    import sys
+
+    if not hasattr(sys, "monitoring"):
+        return
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    manifest = load_manifest(
+        _write_manifest(tmp_path, "alpha", "python -m pytest -q tests/")
+    )
+    (tmp_path / "conftest.py").write_text(
+        "import pytest\n"
+        "from src.target import target\n\n"
+        "@pytest.fixture(scope='session', autouse=True)\n"
+        "def lifecycle():\n"
+        "    target()\n"
+        "    yield\n"
+        "    target()\n"
+    )
+    (tmp_path / "tests/nested_empty.py").write_text("VALUE = True\n")
+    (tmp_path / "tests/test_alpha.py").write_text(
+        "import pytest\n"
+        "from src.target import target\n\n"
+        "def test_alpha():\n"
+        "    assert target() is True\n"
+        "    assert pytest.main(['--collect-only', '-q', 'tests/nested_empty.py']) == 5\n"
+    )
+
+    command = collect_runtime_evidence([manifest], tmp_path).evidence.commands[0]
+
+    node_contexts = [context for context in command.contexts if context.kind == "node"]
+    assert len(node_contexts) == 2
+    assert all(
+        "target"
+        in {
+            name
+            for execution in context.execution_data.values()
+            for name in execution.called_qualnames
+        }
+        for context in node_contexts
+    )
+    fixture = next(context for context in command.contexts if context.kind == "fixture")
+    assert "target" in {
+        name
+        for execution in fixture.execution_data.values()
+        for name in execution.called_qualnames
+    }
+    assert any(
+        item.startswith("nested-pytest:")
+        for item in command.completeness.unresolved_context_ids
+    )
+
+
+def test_monitoring_ownership_failure_falls_back_and_restores_prior_profile(
+    tmp_path, monkeypatch
+):
+    import sys
+    from types import SimpleNamespace
+
+    from maid_runner.core._runtime_evidence_pytest_plugin import RuntimeEvidencePlugin
+
+    def previous(*args):
+        return None
+
+    sys.setprofile(previous)
+
+    class Events:
+        PY_START = 1
+        PY_RETURN = 2
+        PY_RESUME = 4
+        PY_YIELD = 8
+        PY_UNWIND = 16
+        LINE = 32
+
+    class UnavailableMonitoring:
+        events = Events()
+
+        @staticmethod
+        def use_tool_id(*args):
+            raise ValueError("occupied")
+
+    monkeypatch.setattr(sys, "monitoring", UnavailableMonitoring())
+    plugin = RuntimeEvidencePlugin(tmp_path / "evidence", frozenset())
+    assert sys.getprofile() is not previous
+    hook = SimpleNamespace(get_hookimpls=lambda: [])
+    plugin.pytest_sessionfinish(
+        SimpleNamespace(
+            config=SimpleNamespace(hook=SimpleNamespace(pytest_sessionfinish=hook))
+        ),
+        0,
+    )
+    assert sys.getprofile() is previous
+    sys.setprofile(None)
+
+
+def test_monitoring_success_and_post_claim_failure_preserve_tool_ownership(
+    tmp_path, monkeypatch
+):
+    import sys
+    from types import SimpleNamespace
+
+    from maid_runner.core._runtime_evidence_pytest_plugin import RuntimeEvidencePlugin
+
+    class Events:
+        PY_START = 1
+        PY_RETURN = 2
+        PY_RESUME = 4
+        PY_YIELD = 8
+        PY_UNWIND = 16
+        LINE = 32
+
+    class FakeMonitoring:
+        events = Events()
+
+        def __init__(self, *, fail_registration=False, fail_set_events=False):
+            self.fail_registration = fail_registration
+            self.fail_set_events = fail_set_events
+            self.claimed = []
+            self.registered = []
+            self.event_sets = []
+            self.local_event_sets = []
+            self.freed = []
+            self.actions = []
+
+        def use_tool_id(self, tool_id, name):
+            assert tool_id != 5  # unrelated/pre-owned slot
+            self.claimed.append(tool_id)
+            self.actions.append(("claim", tool_id))
+
+        def register_callback(self, tool_id, event, callback):
+            if self.fail_registration and callback is not None:
+                raise RuntimeError("registration failed")
+            self.registered.append((tool_id, event, callback))
+            self.actions.append(("callback", tool_id, event, callback))
+
+        def set_events(self, tool_id, events):
+            if self.fail_set_events and events:
+                raise RuntimeError("set events failed")
+            self.event_sets.append((tool_id, events))
+            self.actions.append(("events", tool_id, events))
+
+        def set_local_events(self, tool_id, code, events):
+            self.local_event_sets.append((tool_id, code, events))
+            self.actions.append(("local-events", tool_id, code, events))
+
+        def free_tool_id(self, tool_id):
+            self.freed.append(tool_id)
+            self.actions.append(("free", tool_id))
+
+    hook = SimpleNamespace(get_hookimpls=lambda: [])
+    session = SimpleNamespace(
+        config=SimpleNamespace(hook=SimpleNamespace(pytest_sessionfinish=hook))
+    )
+
+    def previous(*args):
+        return None
+
+    sys.setprofile(previous)
+
+    successful = FakeMonitoring()
+    monkeypatch.setattr(sys, "monitoring", successful)
+    plugin = RuntimeEvidencePlugin(tmp_path / "success", frozenset())
+    assert sys.getprofile() is previous
+    required = {1, 2, 4, 8, 16, 32}
+    assert {
+        event for _, event, callback in successful.registered if callback
+    } == required
+    plugin.pytest_sessionfinish(session, 0)
+    claimed_id = successful.claimed[0]
+    assert successful.event_sets[-1] == (claimed_id, 0)
+    assert {
+        event
+        for tool_id, event, callback in successful.registered
+        if tool_id == claimed_id and callback is None
+    } == required
+    assert successful.actions[-1] == ("free", claimed_id)
+    assert successful.freed == successful.claimed
+    assert 5 not in successful.freed
+    assert sys.getprofile() is previous
+
+    failing = FakeMonitoring(fail_registration=True)
+    monkeypatch.setattr(sys, "monitoring", failing)
+    fallback = RuntimeEvidencePlugin(tmp_path / "fallback", frozenset())
+    assert failing.freed == failing.claimed
+    assert sys.getprofile() is not previous
+    fallback.pytest_sessionfinish(session, 0)
+    assert sys.getprofile() is previous
+
+    set_events_failure = FakeMonitoring(fail_set_events=True)
+    monkeypatch.setattr(sys, "monitoring", set_events_failure)
+    fallback = RuntimeEvidencePlugin(tmp_path / "set-events-fallback", frozenset())
+    failed_id = set_events_failure.claimed[0]
+    assert set_events_failure.event_sets[-1] == (failed_id, 0)
+    assert {
+        event
+        for tool_id, event, callback in set_events_failure.registered
+        if tool_id == failed_id and callback is None
+    } == required
+    assert set_events_failure.actions[-1] == ("free", failed_id)
+    assert set_events_failure.freed == [failed_id]
+    assert sys.getprofile() is not previous
+    fallback.pytest_sessionfinish(session, 0)
+    assert sys.getprofile() is previous
+
+    no_local = FakeMonitoring()
+    no_local.set_local_events = None
+    monkeypatch.setattr(sys, "monitoring", no_local)
+    unavailable = RuntimeEvidencePlugin(tmp_path / "no-local", frozenset())
+    assert no_local.claimed == []
+    assert sys.getprofile() is not previous
+    unavailable.pytest_sessionfinish(session, 0)
+    assert sys.getprofile() is previous
+
+    missing = FakeMonitoring()
+    missing.events = SimpleNamespace(PY_START=1, PY_RETURN=2)
+    monkeypatch.setattr(sys, "monitoring", missing)
+    unavailable = RuntimeEvidencePlugin(tmp_path / "missing", frozenset())
+    assert missing.claimed == []
+    assert sys.getprofile() is not previous
+    unavailable.pytest_sessionfinish(session, 0)
+    assert sys.getprofile() is previous
+    sys.setprofile(None)
+
+
 def _complete(*, complete: bool = True, **overrides):
     from maid_runner.core.runtime_evidence import RuntimeEvidenceCompleteness
 
@@ -963,8 +1231,429 @@ def test_xdist_requires_every_expected_worker_payload_and_projects_nodes(tmp_pat
     assert missing.evidence.completeness.missing_worker_ids == ("gw1",)
 
 
-def test_missing_runtest_reports_are_incomplete_even_with_success_exit(tmp_path):
+def test_xdist_retains_logical_selectors_after_physical_collapse(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    for name in ("alpha", "beta"):
+        (tmp_path / "tests" / f"test_{name}.py").write_text(
+            f"def test_{name}():\n"
+            "    from src.target import target\n"
+            "    assert target() is True\n"
+        )
+    manifests = [
+        load_manifest(_write_manifest(tmp_path, "all", "python -m pytest tests/")),
+        load_manifest(
+            _write_manifest(tmp_path, "beta", "python -m pytest tests/test_beta.py")
+        ),
+    ]
+
+    run = collect_runtime_evidence(manifests, tmp_path, pytest_workers=2)
+
+    assert run.test_result.success
+    assert run.evidence.completeness.unsupported_selectors == ()
+    assert [command.selected_nodeids for command in run.evidence.commands] == [
+        (
+            "tests/test_alpha.py::test_alpha",
+            "tests/test_beta.py::test_beta",
+        ),
+        ("tests/test_beta.py::test_beta",),
+    ]
+
+
+def test_xdist_merges_disjoint_worker_selector_maps_before_support_decision(tmp_path):
+    from maid_runner.core._runtime_command_executor import (
+        SubprocessRuntimeCommandExecutor,
+    )
+
+    _project(tmp_path)
+    (tmp_path / "conftest.py").write_text(
+        "import json\n"
+        "import os\n"
+        "import pytest\n\n"
+        "@pytest.hookimpl(trylast=True)\n"
+        "def pytest_sessionfinish(session, exitstatus):\n"
+        "    worker = os.environ.get('PYTEST_XDIST_WORKER')\n"
+        "    if worker not in {'gw0', 'gw1'}:\n"
+        "        return\n"
+        "    plugin = session.config.pluginmanager.getplugin('maid-runtime-evidence-plugin')\n"
+        "    if plugin is None:\n"
+        "        return\n"
+        "    path = plugin.output_path / ('evidence-' + worker + '.json')\n"
+        "    payload = json.loads(path.read_text())\n"
+        "    alpha = 'tests/test_alpha.py::test_alpha'\n"
+        "    beta = 'tests/test_beta.py::test_beta'\n"
+        "    missing = 'tests/test_alpha.py::missing_node'\n"
+        "    payload['selector_nodeids'] = {\n"
+        "        'tests/test_alpha.py': [alpha] if worker == 'gw0' else [],\n"
+        "        'tests/test_beta.py': [beta] if worker == 'gw1' else [],\n"
+        "        missing: [],\n"
+        "    }\n"
+        "    payload['completeness']['unsupported_selectors'] = (\n"
+        "        ['tests/test_beta.py', missing] if worker == 'gw0'\n"
+        "        else ['tests/test_alpha.py', missing]\n"
+        "    )\n"
+        "    path.write_text(json.dumps(payload))\n"
+    )
+    executor = SubprocessRuntimeCommandExecutor()
+    selectors = (
+        "tests/test_alpha.py",
+        "tests/test_beta.py",
+        "tests/test_alpha.py::missing_node",
+    )
+
+    group = executor.execute_with_contexts(
+        ("python", "-m", "pytest", "tests/"),
+        {str((tmp_path / "src/target.py").resolve())},
+        tmp_path,
+        30.0,
+        pytest_workers=2,
+        logical_selectors=selectors,
+    )
+
+    assert group.result.returncode == 0
+    assert group.selector_nodeids["tests/test_alpha.py"] == (
+        "tests/test_alpha.py::test_alpha",
+    )
+    assert group.selector_nodeids["tests/test_beta.py"] == (
+        "tests/test_beta.py::test_beta",
+    )
+    assert group.completeness.unsupported_selectors == (
+        "tests/test_alpha.py::missing_node",
+    )
+
+
+def test_dominated_missing_node_selector_remains_incomplete(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    valid = load_manifest(_write_manifest(tmp_path, "valid", "python -m pytest tests/"))
+    invalid = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "invalid",
+            "python -m pytest tests/ tests/test_alpha.py::missing_node",
+        )
+    )
+
+    run = collect_runtime_evidence([valid, invalid], tmp_path, pytest_workers=2)
+
+    assert run.test_result.success
+    assert run.evidence.commands[0].selected_nodeids
+    assert run.evidence.commands[0].completeness.unsupported_selectors == ()
+    assert run.evidence.commands[1].completeness.complete is False
+    assert run.evidence.commands[1].completeness.unsupported_selectors == (
+        "tests/test_alpha.py::missing_node",
+    )
+
+
+def test_dominated_missing_file_selector_remains_incomplete(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    valid = load_manifest(_write_manifest(tmp_path, "valid", "python -m pytest tests/"))
+    invalid = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "invalid",
+            "python -m pytest tests/ tests/missing_test_file.py",
+        )
+    )
+
+    run = collect_runtime_evidence([valid, invalid], tmp_path, pytest_workers=2)
+
+    assert run.test_result.success
+    assert run.evidence.commands[0].selected_nodeids
+    assert run.evidence.commands[0].completeness.unsupported_selectors == ()
+    assert run.evidence.commands[1].completeness.complete is False
+    assert run.evidence.commands[1].completeness.unsupported_selectors == (
+        "tests/missing_test_file.py",
+    )
+
+
+def test_k_deselection_maps_only_nodes_that_will_report(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    manifest = load_manifest(
+        _write_manifest(tmp_path, "alpha", "python -m pytest tests/ -k alpha")
+    )
+
+    run = collect_runtime_evidence([manifest], tmp_path, pytest_workers=2)
+
+    command = run.evidence.commands[0]
+    assert command.selected_nodeids == ("tests/test_alpha.py::test_alpha",)
+    assert not any(
+        value.startswith("report:")
+        for value in command.completeness.unresolved_context_ids
+    )
+    assert command.completeness.complete is True
+
+
+def test_existing_empty_file_selector_is_supported_but_missing_node_is_not(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    (tmp_path / "tests/empty_anchor.py").write_text("ANCHOR = True\n")
+    valid = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "valid",
+            "python -m pytest tests/test_alpha.py tests/empty_anchor.py",
+        )
+    )
+    invalid = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "invalid",
+            "python -m pytest tests/test_alpha.py tests/test_alpha.py::missing_node",
+        )
+    )
+
+    valid_run = collect_runtime_evidence([valid], tmp_path)
+
+    assert valid_run.test_result.success
+    assert valid_run.evidence.commands[0].completeness.unsupported_selectors == ()
+    assert valid_run.evidence.commands[0].completeness.complete is True
+
+    invalid_run = collect_runtime_evidence([invalid], tmp_path)
+    assert invalid_run.evidence.commands[0].completeness.unsupported_selectors == (
+        "tests/test_alpha.py::missing_node",
+    )
+
+
+def test_distribution_fixture_approval_requires_matching_runtime_source(tmp_path):
+    import hashlib
+    import inspect
+
+    import _pytest.tmpdir
+
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    (tmp_path / "tests/test_alpha.py").write_text(
+        "def test_alpha(tmp_path_factory):\n"
+        "    from src.target import target\n"
+        "    assert tmp_path_factory is not None and target() is True\n"
+    )
+    source = Path(inspect.getsourcefile(_pytest.tmpdir)).resolve()
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    (tmp_path / ".maidrc.yaml").write_text(
+        "artifact_coverage:\n"
+        "  distribution_fixture_lifecycle_approvals:\n"
+        "    - context_id: 'fixture::tmp_path_factory:session'\n"
+        "      distribution: pytest\n"
+        "      module_path: _pytest/tmpdir.py\n"
+        f"      sha256: '{digest}'\n"
+    )
+    manifest = load_manifest(
+        _write_manifest(tmp_path, "alpha", "python -m pytest tests/test_alpha.py")
+    )
+
+    approved = collect_runtime_evidence([manifest], tmp_path)
+
+    assert approved.evidence.completeness.unproven_fixture_lifecycles == ()
+    assert approved.evidence.commands[0].completeness.complete is True
+    factory_context = next(
+        context
+        for context in approved.evidence.commands[0].contexts
+        if "tmp_path_factory" in context.context_id
+    )
+    assert factory_context.fixture_definition_source == str(source)
+
+    (tmp_path / "conftest.py").write_text(
+        "import pytest\n\n"
+        "@pytest.fixture(scope='session')\n"
+        "def tmp_path_factory():\n"
+        "    return object()\n"
+    )
+    rejected = collect_runtime_evidence([manifest], tmp_path)
+    assert rejected.test_result.success
+    assert "fixture::tmp_path_factory:session" in (
+        rejected.evidence.completeness.unproven_fixture_lifecycles
+    )
+    shadow_context = next(
+        context
+        for context in rejected.evidence.commands[0].contexts
+        if "tmp_path_factory" in context.context_id
+    )
+    assert shadow_context.fixture_definition_source == str(
+        (tmp_path / "conftest.py").resolve()
+    )
+
+
+def test_test_module_fixture_approval_requires_matching_runtime_source(tmp_path):
+    import hashlib
+
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    test_source = tmp_path / "tests/test_alpha.py"
+    test_source.write_text(
+        "import pytest\n\n"
+        "@pytest.fixture(scope='module')\n"
+        "def reviewed_module():\n"
+        "    return object()\n\n"
+        "def test_alpha(reviewed_module):\n"
+        "    from src.target import target\n"
+        "    assert reviewed_module is not None and target() is True\n"
+    )
+
+    def write_approval() -> None:
+        digest = hashlib.sha256(test_source.read_bytes()).hexdigest()
+        (tmp_path / ".maidrc.yaml").write_text(
+            "artifact_coverage:\n"
+            "  fixture_lifecycle_approvals:\n"
+            "    - context_id: 'fixture:tests/test_alpha.py:reviewed_module:module'\n"
+            "      conftest_path: tests/test_alpha.py\n"
+            f"      sha256: '{digest}'\n"
+        )
+
+    write_approval()
+    manifest = load_manifest(
+        _write_manifest(tmp_path, "alpha", "python -m pytest tests/test_alpha.py")
+    )
+
+    approved = collect_runtime_evidence([manifest], tmp_path)
+
+    assert approved.test_result.success
+    assert approved.evidence.completeness.unproven_fixture_lifecycles == ()
+    assert approved.evidence.commands[0].completeness.complete is True
+    approved_context = next(
+        context
+        for context in approved.evidence.commands[0].contexts
+        if "reviewed_module" in context.context_id
+    )
+    assert approved_context.fixture_definition_source == str(test_source.resolve())
+
+    helper_source = tmp_path / "fixture_helper.py"
+    helper_source.write_text(
+        "import pytest\n\n"
+        "@pytest.fixture(scope='module')\n"
+        "def reviewed_module():\n"
+        "    return object()\n"
+    )
+    test_source.write_text(
+        "from fixture_helper import reviewed_module\n\n"
+        "def test_alpha(reviewed_module):\n"
+        "    from src.target import target\n"
+        "    assert reviewed_module is not None and target() is True\n"
+    )
+    write_approval()
+
+    rejected = collect_runtime_evidence([manifest], tmp_path)
+
+    assert rejected.test_result.success
+    assert "fixture:tests/test_alpha.py:reviewed_module:module" in (
+        rejected.evidence.completeness.unproven_fixture_lifecycles
+    )
+    rejected_context = next(
+        context
+        for context in rejected.evidence.commands[0].contexts
+        if "reviewed_module" in context.context_id
+    )
+    assert rejected_context.fixture_definition_source == str(helper_source.resolve())
+
+
+def test_digest_approval_applies_to_all_function_fixture_instances(tmp_path):
+    import hashlib
+
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    for name in ("alpha", "beta"):
+        (tmp_path / "tests" / f"test_{name}.py").write_text(
+            f"def test_{name}():\n"
+            "    from src.target import target\n"
+            "    assert target() is True\n"
+        )
+    conftest = tmp_path / "tests/conftest.py"
+    conftest.write_text(
+        "import pytest\n\n"
+        "@pytest.fixture(autouse=True)\n"
+        "def reviewed_lifecycle():\n"
+        "    yield\n"
+    )
+    digest = hashlib.sha256(conftest.read_bytes()).hexdigest()
+    (tmp_path / ".maidrc.yaml").write_text(
+        "artifact_coverage:\n"
+        "  fixture_lifecycle_approvals:\n"
+        "    - context_id: 'fixture:tests:reviewed_lifecycle:function'\n"
+        "      conftest_path: tests/conftest.py\n"
+        f"      sha256: '{digest}'\n"
+    )
+    manifests = [
+        load_manifest(
+            _write_manifest(
+                tmp_path,
+                name,
+                f"python -m pytest tests/test_{name}.py",
+            )
+        )
+        for name in ("alpha", "beta")
+    ]
+
+    run = collect_runtime_evidence(manifests, tmp_path)
+
+    assert run.evidence.completeness.unproven_fixture_lifecycles == ()
+    assert all(command.completeness.complete for command in run.evidence.commands)
+
+
+def test_single_logical_multi_selector_collection_context_is_exact_equivalent(tmp_path):
+    from maid_runner.core.runtime_evidence import collect_runtime_evidence
+
+    _project(tmp_path)
+    manifest = load_manifest(
+        _write_manifest(
+            tmp_path,
+            "both",
+            "python -m pytest tests/test_alpha.py tests/test_beta.py",
+        )
+    )
+
+    single = collect_runtime_evidence([manifest], tmp_path)
+
+    assert single.test_result.success
+    assert single.evidence.completeness.unresolved_context_ids == ()
+    assert single.evidence.commands[0].completeness.complete is True
+
+    split = [
+        load_manifest(
+            _write_manifest(
+                tmp_path,
+                name,
+                f"python -m pytest tests/test_{name}.py",
+            )
+        )
+        for name in ("alpha", "beta")
+    ]
+    multiple = collect_runtime_evidence(split, tmp_path)
+    assert "collection:global" in multiple.evidence.completeness.unresolved_context_ids
+
+
+def test_nested_test_command_environment_drops_outer_xdist_identity(monkeypatch):
+    from maid_runner.core._test_command_execution import _test_command_environment
+
+    monkeypatch.setenv("PYTEST_XDIST_WORKER", "gw7")
+    monkeypatch.setenv("PYTEST_XDIST_WORKER_COUNT", "8")
+    monkeypatch.setenv("MAID_UNRELATED", "retained")
+
+    environment = _test_command_environment()
+
+    assert "PYTEST_XDIST_WORKER" not in environment
+    assert "PYTEST_XDIST_WORKER_COUNT" not in environment
+    assert environment["MAID_UNRELATED"] == "retained"
+    assert os.environ["PYTEST_XDIST_WORKER"] == "gw7"
+    assert os.environ["PYTEST_XDIST_WORKER_COUNT"] == "8"
+
+
+def test_missing_runtest_reports_are_incomplete_even_with_success_exit(
+    tmp_path, monkeypatch
+):
     from maid_runner.core._runtime_evidence_pytest_plugin import RuntimeEvidencePlugin
+
+    monkeypatch.delenv("PYTEST_XDIST_WORKER", raising=False)
+    monkeypatch.delenv("PYTEST_XDIST_WORKER_COUNT", raising=False)
 
     probe = tmp_path / "probe.py"
     probe.write_text("value = 1\n")

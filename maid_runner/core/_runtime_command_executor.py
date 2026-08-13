@@ -8,20 +8,26 @@ import subprocess
 import sys
 import tempfile
 from abc import abstractmethod
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Protocol, TYPE_CHECKING
+from typing import Protocol, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from maid_runner.core.runtime_evidence import RuntimeGroupEvidence
+    from maid_runner.core.runtime_evidence import (
+        RuntimeEvidenceCompleteness,
+        RuntimeGroupEvidence,
+    )
 
 from maid_runner.core._test_command_execution import (
     _strict_validation_test_active,
     _test_command_environment,
 )
 from maid_runner.core.result import ErrorCode, ValidationError
+
+
+_ARTIFACT_XDIST_CONTROLLER_PID = "MAID_ARTIFACT_XDIST_CONTROLLER_PID"
 
 
 @dataclass(frozen=True)
@@ -68,6 +74,8 @@ class RuntimeCommandExecutor(Protocol):
         target_files: set[str],
         project_root: Path,
         timeout_seconds: float,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
     ) -> RuntimeCommandRecord: ...
 
     @abstractmethod
@@ -77,7 +85,8 @@ class RuntimeCommandExecutor(Protocol):
         target_files: set[str],
         project_root: Path,
         timeout_seconds: float,
-        pytest_workers: int | str | None = None,
+        pytest_workers: Union[int, str, None] = None,
+        logical_selectors: tuple[str, ...] | None = None,
     ) -> RuntimeGroupEvidence: ...
 
 
@@ -88,7 +97,17 @@ class SubprocessRuntimeCommandExecutor:
         target_files: set[str],
         project_root: Path,
         timeout_seconds: float,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
     ) -> RuntimeCommandRecord:
+        environment = _test_command_environment()
+        for name in environment_removals:
+            environment.pop(name, None)
+        environment.pop(_ARTIFACT_XDIST_CONTROLLER_PID, None)
+        environment.update(environment_overrides or {})
+        uses_pytest_workers = _uses_pytest_workers(command, project_root)
+        if not uses_pytest_workers:
+            environment.setdefault("COVERAGE_CORE", "sysmon")
         with tempfile.TemporaryDirectory(
             prefix="maid-artifact-coverage-command-"
         ) as tmp:
@@ -98,6 +117,31 @@ class SubprocessRuntimeCommandExecutor:
             runner = _coverage_runner_script(tmp_path)
             target_file = tmp_path / "target_files.json"
             target_file.write_text(json.dumps(sorted(target_files)))
+            include_args = (
+                ()
+                if any("," in path for path in target_files)
+                else ("--include", ",".join(sorted(target_files)))
+            )
+            if uses_pytest_workers:
+                plugin_directory = tmp_path / "worker-plugin"
+                plugin_directory.mkdir()
+                plugin_name = "_maid_artifact_coverage_worker"
+                (plugin_directory / f"{plugin_name}.py").write_text(
+                    _coverage_worker_plugin_source(), encoding="utf-8"
+                )
+                environment["PYTHONPATH"] = _prepend_pythonpath(
+                    plugin_directory, environment.get("PYTHONPATH")
+                )
+                environment["PYTEST_PLUGINS"] = _merge_plugins(
+                    environment.get("PYTEST_PLUGINS"), plugin_name
+                )
+                environment.update(
+                    {
+                        "MAID_ARTIFACT_COVERAGE_DATA": str(data_file),
+                        "MAID_ARTIFACT_CALL_DIRECTORY": str(tmp_path),
+                        "MAID_ARTIFACT_TARGET_FILES": str(target_file),
+                    }
+                )
             proc = subprocess.run(
                 (
                     sys.executable,
@@ -106,6 +150,7 @@ class SubprocessRuntimeCommandExecutor:
                     "run",
                     "--data-file",
                     str(data_file),
+                    *include_args,
                     str(runner),
                     str(call_file),
                     str(target_file),
@@ -115,16 +160,20 @@ class SubprocessRuntimeCommandExecutor:
                 cwd=project_root,
                 capture_output=True,
                 text=True,
-                env=_test_command_environment(),
+                env=environment,
                 timeout=timeout_seconds,
             )
-            coverage_json = tmp_path / "coverage.json"
-            report_errors = _write_coverage_json(data_file, coverage_json)
-            execution_data = (
-                _load_execution_data(coverage_json, call_file, project_root)
-                if not report_errors
-                else {}
-            )
+            report_errors = _combine_coverage_data(data_file, tmp_path)
+            if not report_errors:
+                execution_data, load_errors = _load_target_execution_data(
+                    data_file,
+                    call_file,
+                    project_root,
+                    target_files,
+                )
+                report_errors = load_errors
+            else:
+                execution_data = {}
             return RuntimeCommandRecord(
                 command=command,
                 returncode=proc.returncode,
@@ -140,7 +189,8 @@ class SubprocessRuntimeCommandExecutor:
         target_files: set[str],
         project_root: Path,
         timeout_seconds: float,
-        pytest_workers: int | str | None = None,
+        pytest_workers: Union[int, str, None] = None,
+        logical_selectors: tuple[str, ...] | None = None,
     ) -> RuntimeGroupEvidence:
         """Execute one contextual pytest group and combine worker evidence."""
         from maid_runner.core._pytest_command_normalization import (
@@ -161,7 +211,7 @@ class SubprocessRuntimeCommandExecutor:
         normalized = _normalize_pytest_command(command)
         if normalized is None and not _looks_like_pytest_command(command):
             raise ValueError("contextual runtime evidence requires a pytest command")
-        selectors = (
+        selectors = logical_selectors or (
             normalized[1]
             if normalized is not None
             else _lenient_pytest_targets(command)
@@ -260,6 +310,7 @@ def _coverage_runner_script(tmp_path: Path) -> Path:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import threading
 from pathlib import Path
@@ -270,6 +321,7 @@ strict_validation = sys.argv[3] == "1"
 pytest_args = sys.argv[4:]
 calls: set[tuple[str, str, str, int]] = set()
 exit_code = 1
+monitoring_tool_id = None
 
 
 def profile_calls(frame, event, arg):
@@ -289,8 +341,67 @@ def profile_calls(frame, event, arg):
     return profile_calls
 
 
-sys.setprofile(profile_calls)
-threading.setprofile(profile_calls)
+def monitor_call(code, instruction_offset):
+    if code.co_filename in target_files:
+        calls.add(
+            (
+                code.co_filename,
+                code.co_name,
+                getattr(code, "co_qualname", code.co_name),
+                code.co_firstlineno,
+            )
+        )
+    return sys.monitoring.DISABLE
+
+
+def instrumentation_marker(frame, event, arg):
+    return None
+
+
+def start_call_monitoring():
+    global monitoring_tool_id
+    monitoring = getattr(sys, "monitoring", None)
+    if monitoring is not None:
+        tool_id = monitoring.PROFILER_ID
+        try:
+            monitoring.use_tool_id(tool_id, "maid artifact calls")
+            monitoring.register_callback(
+                tool_id, monitoring.events.PY_START, monitor_call
+            )
+            monitoring.set_events(tool_id, monitoring.events.PY_START)
+            monitoring_tool_id = tool_id
+            # Preserve the legacy observable instrumentation boundary while
+            # sys.monitoring owns the actual low-overhead call collection.
+            sys.setprofile(instrumentation_marker)
+            threading.setprofile(instrumentation_marker)
+            return
+        except (RuntimeError, ValueError):
+            try:
+                monitoring.free_tool_id(tool_id)
+            except ValueError:
+                pass
+    sys.setprofile(profile_calls)
+    threading.setprofile(profile_calls)
+
+
+def stop_call_monitoring():
+    if monitoring_tool_id is not None:
+        monitoring = sys.monitoring
+        monitoring.set_events(monitoring_tool_id, 0)
+        monitoring.register_callback(
+            monitoring_tool_id, monitoring.events.PY_START, None
+        )
+        monitoring.free_tool_id(monitoring_tool_id)
+        sys.setprofile(None)
+        threading.setprofile(None)
+        return
+    sys.setprofile(None)
+    threading.setprofile(None)
+
+
+start_call_monitoring()
+if "MAID_ARTIFACT_COVERAGE_DATA" not in os.environ:
+    os.environ.pop("COVERAGE_CORE", None)
 
 try:
     sys.path.insert(0, str(Path.cwd()))
@@ -302,8 +413,7 @@ try:
     with _strict_validation_test_environment(strict_validation, process_wide=True):
         exit_code = pytest.main(pytest_args)
 finally:
-    sys.setprofile(None)
-    threading.setprofile(None)
+    stop_call_monitoring()
     payload = [
         {"file": file, "name": name, "qualname": qualname, "firstlineno": firstlineno}
         for file, name, qualname, firstlineno in sorted(calls)
@@ -314,6 +424,296 @@ raise SystemExit(exit_code)
 """.lstrip()
     )
     return runner
+
+
+def _coverage_worker_plugin_source() -> str:
+    return r"""
+from __future__ import annotations
+
+import json
+import os
+import errno
+import subprocess
+import sys
+import threading
+import time
+from contextlib import contextmanager
+from pathlib import Path
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
+_coverage = None
+_calls = set()
+_finished = False
+_monitoring_tool_id = None
+_coverage_data_file = Path(os.environ["MAID_ARTIFACT_COVERAGE_DATA"])
+_call_directory = Path(os.environ["MAID_ARTIFACT_CALL_DIRECTORY"])
+_target_files = set(json.loads(Path(os.environ["MAID_ARTIFACT_TARGET_FILES"]).read_text()))
+_controller_pid_name = "MAID_ARTIFACT_XDIST_CONTROLLER_PID"
+_plugin_name = "_maid_artifact_coverage_worker"
+
+
+class _ChildProcessPermitPool:
+    def __init__(self, directory, permits=1):
+        self.directory = Path(directory)
+        self.permits = permits
+
+    @contextmanager
+    def acquire(self):
+        if fcntl is None:
+            raise RuntimeError("process-safe child permit is unavailable")
+        lock_file = None
+        while lock_file is None:
+            for index in range(self.permits):
+                candidate = (self.directory / f"child-process-{index}.lock").open("a+")
+                try:
+                    fcntl.flock(candidate, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError as exc:
+                    candidate.close()
+                    if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                        raise
+                else:
+                    lock_file = candidate
+                    break
+            if lock_file is None:
+                time.sleep(0.01)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+
+
+def _permit_wrapped_popen(original_popen, permit_pool):
+    class PermitPopen(original_popen):
+        _maid_child_process_permits = True
+
+        def __init__(self, *args, **kwargs):
+            self._maid_permit = permit_pool.acquire()
+            self._maid_permit.__enter__()
+            self._maid_permit_released = False
+            self._maid_permit_lock = threading.Lock()
+            try:
+                super().__init__(*args, **kwargs)
+            except BaseException:
+                self._maid_release_permit()
+                raise
+            threading.Thread(target=self._maid_reap, daemon=True).start()
+
+        def _maid_release_permit(self):
+            with self._maid_permit_lock:
+                if self._maid_permit_released:
+                    return
+                self._maid_permit_released = True
+            self._maid_permit.__exit__(None, None, None)
+
+        def _maid_reap(self):
+            try:
+                original_popen.wait(self)
+            finally:
+                self._maid_release_permit()
+
+        def wait(self, *args, **kwargs):
+            result = super().wait(*args, **kwargs)
+            self._maid_release_permit()
+            return result
+
+        def communicate(self, *args, **kwargs):
+            result = super().communicate(*args, **kwargs)
+            self._maid_release_permit()
+            return result
+
+        def poll(self):
+            result = super().poll()
+            if result is not None:
+                self._maid_release_permit()
+            return result
+
+        def __exit__(self, *args):
+            try:
+                return super().__exit__(*args)
+            finally:
+                self._maid_release_permit()
+
+    PermitPopen.__name__ = original_popen.__name__
+    PermitPopen.__qualname__ = original_popen.__qualname__
+    PermitPopen.__module__ = original_popen.__module__
+    return PermitPopen
+
+
+if os.environ.get("PYTEST_XDIST_WORKER"):
+    _child_permits = _ChildProcessPermitPool(_call_directory, permits=2)
+    subprocess.Popen = _permit_wrapped_popen(subprocess.Popen, _child_permits)
+    plugins = [
+        name.strip()
+        for name in os.environ.get("PYTEST_PLUGINS", "").split(",")
+        if name.strip() and name.strip() != _plugin_name
+    ]
+    if plugins:
+        os.environ["PYTEST_PLUGINS"] = ",".join(plugins)
+    else:
+        os.environ.pop("PYTEST_PLUGINS", None)
+    for name in tuple(os.environ):
+        if name.startswith("MAID_ARTIFACT_"):
+            os.environ.pop(name, None)
+
+
+def _profile_calls(frame, event, arg):
+    if event == "call":
+        code = frame.f_code
+        if code.co_filename in _target_files:
+            _calls.add(
+                (
+                    code.co_filename,
+                    code.co_name,
+                    getattr(code, "co_qualname", code.co_name),
+                    code.co_firstlineno,
+                )
+            )
+    return _profile_calls
+
+
+def _monitor_call(code, instruction_offset):
+    if code.co_filename in _target_files:
+        _calls.add(
+            (
+                code.co_filename,
+                code.co_name,
+                getattr(code, "co_qualname", code.co_name),
+                code.co_firstlineno,
+            )
+        )
+    return sys.monitoring.DISABLE
+
+
+def _start_call_monitoring():
+    global _monitoring_tool_id
+    monitoring = getattr(sys, "monitoring", None)
+    if monitoring is not None:
+        tool_id = monitoring.PROFILER_ID
+        try:
+            monitoring.use_tool_id(tool_id, "maid artifact calls")
+            monitoring.register_callback(
+                tool_id, monitoring.events.PY_START, _monitor_call
+            )
+            monitoring.set_events(tool_id, monitoring.events.PY_START)
+            _monitoring_tool_id = tool_id
+            return
+        except (RuntimeError, ValueError):
+            try:
+                monitoring.free_tool_id(tool_id)
+            except ValueError:
+                pass
+    sys.setprofile(_profile_calls)
+    threading.setprofile(_profile_calls)
+
+
+def _stop_call_monitoring():
+    if _monitoring_tool_id is not None:
+        monitoring = sys.monitoring
+        monitoring.set_events(_monitoring_tool_id, 0)
+        monitoring.register_callback(
+            _monitoring_tool_id, monitoring.events.PY_START, None
+        )
+        monitoring.free_tool_id(_monitoring_tool_id)
+        return
+    sys.setprofile(None)
+    threading.setprofile(None)
+
+
+def pytest_configure(config):
+    global _coverage
+    if not hasattr(config, "workerinput"):
+        os.environ.setdefault(_controller_pid_name, str(os.getpid()))
+        return
+    if not config.workerinput.get("maid_artifact_coverage_worker"):
+        return
+    import coverage
+
+    _coverage = coverage.Coverage(
+        data_file=str(_coverage_data_file),
+        data_suffix=True,
+        include=sorted(_target_files),
+    )
+    _coverage.start()
+    os.environ.pop("COVERAGE_CORE", None)
+    _start_call_monitoring()
+
+
+def pytest_configure_node(node):
+    if os.environ.get(_controller_pid_name) == str(os.getpid()):
+        node.workerinput["maid_artifact_coverage_worker"] = True
+
+
+def pytest_sessionfinish(session, exitstatus):
+    _finish(session.config)
+
+
+def pytest_unconfigure(config):
+    _finish(config)
+
+
+def _finish(config):
+    global _finished
+    if (
+        _finished
+        or _coverage is None
+        or not hasattr(config, "workerinput")
+        or not config.workerinput.get("maid_artifact_coverage_worker")
+    ):
+        return
+    _finished = True
+    _stop_call_monitoring()
+    _coverage.stop()
+    _coverage.save()
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "worker")
+    output = _call_directory / f"calls-{worker_id}.json"
+    output.write_text(
+        json.dumps(
+            [
+                {"file": file, "name": name, "qualname": qualname, "firstlineno": firstlineno}
+                for file, name, qualname, firstlineno in sorted(_calls)
+            ]
+        )
+    )
+""".lstrip()
+
+
+def _uses_pytest_workers(command: tuple[str, ...], project_root: Path) -> bool:
+    from maid_runner.core._pytest_worker_execution import _configured_workers
+
+    configured = _configured_workers(("pytest", *command), Path(project_root))
+    if configured is None:
+        return False
+    workers, _source = configured
+    if isinstance(workers, str) and workers.startswith("="):
+        workers = workers[1:]
+    return workers not in {0, 1, "0", "1"}
+
+
+def _combine_coverage_data(data_file: Path, directory: Path) -> list[ValidationError]:
+    parallel_files = tuple(directory.glob(f"{data_file.name}.*"))
+    if not parallel_files:
+        return []
+    try:
+        import coverage
+
+        cov = coverage.Coverage(data_file=str(data_file))
+        if data_file.exists():
+            cov.load()
+        cov.combine(data_paths=[str(directory)], strict=True)
+        cov.save()
+    except Exception as exc:
+        return [
+            ValidationError(
+                code=ErrorCode.INTERNAL_ERROR,
+                message=f"Artifact coverage worker data could not be combined: {exc}",
+            )
+        ]
+    return []
 
 
 def _write_coverage_json(
@@ -336,6 +736,54 @@ def _write_coverage_json(
     return []
 
 
+def _load_target_execution_data(
+    data_file: Path,
+    call_path: Path,
+    project_root: Path,
+    target_files: set[str],
+) -> tuple[dict[str, RuntimeFileExecution], list[ValidationError]]:
+    try:
+        import coverage
+
+        data = coverage.CoverageData(basename=str(data_file))
+        data.read()
+        executed_by_file = {
+            _normalized_source_path(path, project_root): set(data.lines(path) or ())
+            for path in target_files
+        }
+    except Exception as exc:
+        return {}, [
+            ValidationError(
+                code=ErrorCode.INTERNAL_ERROR,
+                message=f"Artifact coverage data could not be loaded: {exc}",
+            )
+        ]
+
+    calls_by_file: dict[str, set[str]] = {}
+    call_paths = (call_path, *sorted(call_path.parent.glob("calls-*.json")))
+    try:
+        for current_call_path in call_paths:
+            if not current_call_path.exists():
+                continue
+            for call in json.loads(current_call_path.read_text() or "[]"):
+                normalized_path = _normalized_source_path(call["file"], project_root)
+                calls_by_file.setdefault(normalized_path, set()).add(call["qualname"])
+    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        return {}, [
+            ValidationError(
+                code=ErrorCode.INTERNAL_ERROR,
+                message=f"Artifact call data could not be loaded: {exc}",
+            )
+        ]
+    return {
+        path: RuntimeFileExecution(
+            executed_lines=frozenset(executed_by_file.get(path, set())),
+            called_qualnames=frozenset(calls_by_file.get(path, set())),
+        )
+        for path in executed_by_file.keys() | calls_by_file.keys()
+    }, []
+
+
 def _load_execution_data(
     report_path: Path,
     call_path: Path,
@@ -349,8 +797,11 @@ def _load_execution_data(
             file_data.get("executed_lines", [])
         )
     calls_by_file: dict[str, set[str]] = {}
-    if call_path.exists():
-        for call in json.loads(call_path.read_text() or "[]"):
+    call_paths = (call_path, *sorted(call_path.parent.glob("calls-*.json")))
+    for current_call_path in call_paths:
+        if not current_call_path.exists():
+            continue
+        for call in json.loads(current_call_path.read_text() or "[]"):
             normalized_path = _normalized_source_path(call["file"], project_root)
             calls_by_file.setdefault(normalized_path, set()).add(call["qualname"])
     return {
@@ -430,6 +881,11 @@ def _contexts_from_payloads(payloads: list[dict], combine) -> tuple:
                     fixture_scope=raw.get("fixture_scope"),
                     autouse=bool(raw.get("autouse", False)),
                     lifecycle_equivalent=bool(raw.get("lifecycle_equivalent", False)),
+                    fixture_definition_source=(
+                        str(raw["fixture_definition_source"])
+                        if isinstance(raw.get("fixture_definition_source"), str)
+                        else None
+                    ),
                 )
             )
     contexts = []
@@ -467,7 +923,7 @@ def _completeness_from_payloads(
     exit_code: int,
     expected_worker_ids: tuple[str, ...] = (),
     selected_nodeids: tuple[str, ...] = (),
-):
+) -> RuntimeEvidenceCompleteness:
     from maid_runner.core.runtime_evidence import RuntimeEvidenceCompleteness
 
     fields = {
@@ -490,6 +946,18 @@ def _completeness_from_payloads(
     has_worker_payloads = any(
         payload.get("worker_id") not in {None, "main"} for payload in payloads
     )
+    supported_selectors = {
+        selector
+        for payload in payloads
+        for selector, nodeids in (
+            payload.get("selector_nodeids", {}).items()
+            if isinstance(payload.get("selector_nodeids"), dict)
+            else ()
+        )
+        if isinstance(selector, str)
+        and isinstance(nodeids, list)
+        and any(isinstance(nodeid, str) for nodeid in nodeids)
+    }
     if has_worker_payloads:
         aggregate_reports: dict[str, dict[str, str]] = {}
         for payload in payloads:
@@ -527,6 +995,8 @@ def _completeness_from_payloads(
             ):
                 continue
             for value in raw.get(name, ()):
+                if name == "unsupported_selectors" and value in supported_selectors:
+                    continue
                 if isinstance(value, str) and value not in fields[name]:
                     fields[name].append(value)
         for diagnostic in raw.get("diagnostics", ()):

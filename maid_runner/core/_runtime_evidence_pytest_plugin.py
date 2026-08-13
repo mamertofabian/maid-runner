@@ -32,6 +32,7 @@ class _ContextState:
     fixture_scope: str | None = None
     autouse: bool = False
     lifecycle_equivalent: bool = False
+    fixture_definition_source: str | None = None
 
 
 @dataclass
@@ -80,6 +81,11 @@ class RuntimeEvidencePlugin:
         self._configured_workers = 0
         self._yield_fixture_contexts: dict[tuple[object, str], str] = {}
         self._profile_restore_contexts: dict[int, str] = {}
+        self._monitoring_restore_contexts: dict[object, list[str]] = {}
+        self._monitoring = None
+        self._monitoring_id: int | None = None
+        self._monitoring_events: tuple[int, ...] = ()
+        self._monitoring_local_codes: set[object] = set()
         self._coverage = coverage.Coverage(
             data_file=str(self.output_path.with_suffix(f".{self._worker_id}.coverage")),
             include=sorted(self.target_files),
@@ -88,7 +94,184 @@ class RuntimeEvidencePlugin:
         self._coverage.start()
         self._coverage.switch_context(self._current_context)
         self._previous_profile = sys.getprofile()
-        sys.setprofile(self._profile_calls)
+        monitoring = getattr(sys, "monitoring", None)
+        events = getattr(monitoring, "events", None)
+        required_event_names = (
+            "PY_START",
+            "PY_RETURN",
+            "PY_RESUME",
+            "PY_YIELD",
+            "PY_UNWIND",
+            "LINE",
+        )
+        required_events = tuple(
+            getattr(events, name, None) for name in required_event_names
+        )
+        if (
+            monitoring is None
+            or not callable(getattr(monitoring, "set_local_events", None))
+            or any(not isinstance(event, int) for event in required_events)
+        ):
+            sys.setprofile(self._profile_calls)
+            return
+
+        def _enter(
+            code: object, instruction_offset: int, *args: object
+        ) -> object | None:
+            del instruction_offset, args
+            filename = str(getattr(code, "co_filename", ""))
+            name = str(getattr(code, "co_name", ""))
+            normalized_filename = filename.replace("\\", "/")
+            nested_pytest = name == "main" and normalized_filename.endswith(
+                "/_pytest/config/__init__.py"
+            )
+            if nested_pytest:
+                self._completeness.unresolved_context_ids.add(
+                    f"nested-pytest:{self._current_context}"
+                )
+            nodeid = (
+                self._current_context.removeprefix("node:")
+                if self._current_context.startswith("node:")
+                else ""
+            )
+            fixture_context = self._yield_fixture_contexts.get((code, nodeid))
+            if fixture_context is None:
+                fixture_context = self._yield_fixture_contexts.get((code, ""))
+            set_local_events = getattr(monitoring, "set_local_events", None)
+            if fixture_context is not None and callable(set_local_events):
+                set_local_events(
+                    claimed_id,
+                    code,
+                    required_events[1]
+                    | required_events[2]
+                    | required_events[3]
+                    | required_events[5],
+                )
+                self._monitoring_local_codes.add(code)
+            if fixture_context is not None and fixture_context != self._current_context:
+                self._monitoring_restore_contexts.setdefault(code, []).append(
+                    self._current_context
+                )
+                self._switch_context(fixture_context)
+            if filename not in self.target_files:
+                return None if nested_pytest else getattr(monitoring, "DISABLE", None)
+            context = self._context(
+                self._current_context, _context_kind(self._current_context)
+            )
+            context.called_qualnames.setdefault(filename, set()).add(
+                str(getattr(code, "co_qualname", name))
+            )
+            return None
+
+        def _leave(
+            code: object, instruction_offset: int, *args: object
+        ) -> object | None:
+            del instruction_offset, args
+            restore_contexts = self._monitoring_restore_contexts.get(code)
+            if not restore_contexts:
+                return getattr(monitoring, "DISABLE", None)
+            self._switch_context(restore_contexts.pop())
+            if not restore_contexts:
+                self._monitoring_restore_contexts.pop(code, None)
+            return None
+
+        def _resume(code: object, instruction_offset: int, *args: object) -> None:
+            _enter(code, instruction_offset, *args)
+            nodeid = (
+                self._current_context.removeprefix("node:")
+                if self._current_context.startswith("node:")
+                else ""
+            )
+            fixture_context = self._yield_fixture_contexts.get((code, nodeid))
+            if fixture_context is None:
+                fixture_context = self._yield_fixture_contexts.get((code, ""))
+            co_lines = getattr(code, "co_lines", None)
+            if fixture_context is None or not callable(co_lines):
+                return
+            resumed_line = next(
+                (
+                    line
+                    for start, _end, line in co_lines()
+                    if start > instruction_offset and line is not None
+                ),
+                None,
+            )
+            if resumed_line is None:
+                return
+            filename = str(getattr(code, "co_filename", ""))
+            context = self._context(fixture_context, "fixture")
+            context.executed_lines.setdefault(filename, set()).add(int(resumed_line))
+
+        def _unwind(code: object, instruction_offset: int, *args: object) -> None:
+            _leave(code, instruction_offset, *args)
+
+        def _fixture_line(code: object, line_number: int) -> object | None:
+            nodeid = (
+                self._current_context.removeprefix("node:")
+                if self._current_context.startswith("node:")
+                else ""
+            )
+            fixture_context = self._yield_fixture_contexts.get((code, nodeid))
+            if fixture_context is None:
+                fixture_context = self._yield_fixture_contexts.get((code, ""))
+            if fixture_context is None:
+                return getattr(monitoring, "DISABLE", None)
+            filename = str(getattr(code, "co_filename", ""))
+            context = self._context(fixture_context, "fixture")
+            context.executed_lines.setdefault(filename, set()).add(int(line_number))
+            return None
+
+        callbacks = (
+            (required_events[0], _enter),
+            (required_events[1], _leave),
+            (required_events[2], _resume),
+            (required_events[3], _leave),
+            (required_events[4], _unwind),
+            (required_events[5], _fixture_line),
+        )
+        claimed_id = None
+        for candidate_id in (3, 4, 5, 2, 1, 0):
+            try:
+                monitoring.use_tool_id(candidate_id, "maid-runtime-evidence")
+            except (RuntimeError, ValueError):
+                continue
+            claimed_id = candidate_id
+            break
+        if claimed_id is None:
+            sys.setprofile(self._profile_calls)
+            return
+        try:
+            for event, callback in callbacks:
+                monitoring.register_callback(claimed_id, event, callback)
+            globally_enabled = (
+                required_events[0] | required_events[4]
+                if callable(getattr(monitoring, "set_local_events", None))
+                else required_events[0]
+                | required_events[1]
+                | required_events[2]
+                | required_events[3]
+                | required_events[4]
+            )
+            monitoring.set_events(claimed_id, globally_enabled)
+        except Exception:
+            try:
+                monitoring.set_events(claimed_id, 0)
+            except Exception:
+                pass
+            for event, _callback in callbacks:
+                try:
+                    monitoring.register_callback(claimed_id, event, None)
+                except Exception:
+                    pass
+            try:
+                monitoring.free_tool_id(claimed_id)
+            except Exception:
+                pass
+            sys.setprofile(self._profile_calls)
+            return
+        self._monitoring = monitoring
+        self._monitoring_id = claimed_id
+        self._monitoring_events = required_events
 
     @property
     def contexts(self) -> dict[str, RuntimeContextEvidence]:
@@ -113,6 +296,7 @@ class RuntimeEvidencePlugin:
                 fixture_scope=state.fixture_scope,
                 autouse=state.autouse,
                 lifecycle_equivalent=state.lifecycle_equivalent,
+                fixture_definition_source=state.fixture_definition_source,
             )
             for context_id, state in self._contexts.items()
         }
@@ -147,6 +331,7 @@ class RuntimeEvidencePlugin:
             diagnostics=tuple(diagnostics),
         )
 
+    @pytest.hookimpl(trylast=True)
     def pytest_collection_modifyitems(
         self,
         session: pytest.Session,
@@ -162,8 +347,16 @@ class RuntimeEvidencePlugin:
             )
             for selector in self._selectors
         }
+        any_selected = any(self._selector_nodeids.values())
+        root = Path(str(getattr(config, "rootpath", Path.cwd()))).resolve()
         for selector, selected in self._selector_nodeids.items():
-            if not selected:
+            has_sibling_node_selector = any(
+                other.startswith(selector + "::") for other in self._selectors
+            )
+            if not selected and not (
+                (any_selected or has_sibling_node_selector)
+                and _is_existing_empty_python_selector(selector, root)
+            ):
                 self._completeness.unsupported_selectors.add(selector)
         for item in items:
             for fixture_name in tuple(getattr(item, "fixturenames", ())):
@@ -183,17 +376,24 @@ class RuntimeEvidencePlugin:
         nodeid = str(getattr(item, "nodeid", ""))
         context_id = _fixture_context_id(baseid, name, scope, nodeid)
         fixture_info = getattr(item, "_fixtureinfo", None)
-        explicit_names = set(getattr(fixture_info, "argnames", ()))
         closure_names = set(getattr(fixture_info, "names_closure", ()))
         dynamic = bool(closure_names) and name not in closure_names
-        autouse = name not in explicit_names
+        fixture_manager = getattr(request, "_fixturemanager", None)
+        autouse_names = set()
+        get_autouse_names = getattr(fixture_manager, "_getautousenames", None)
+        if callable(get_autouse_names) and item is not None:
+            autouse_names.update(get_autouse_names(item))
+        autouse = name in autouse_names
         lifecycle_equivalent = scope == "function" and not autouse and not dynamic
+        function = getattr(fixturedef, "func", None)
+        fixture_definition_source = _callable_source_filename(function)
         state = self._context(
             context_id,
             "fixture",
             fixture_scope=scope,
             autouse=autouse,
             lifecycle_equivalent=lifecycle_equivalent,
+            fixture_definition_source=fixture_definition_source,
         )
         if scope == "function":
             if nodeid:
@@ -206,12 +406,32 @@ class RuntimeEvidencePlugin:
             self._completeness.unresolved_context_ids.add(context_id)
         if not lifecycle_equivalent:
             self._completeness.unproven_fixture_lifecycles.add(context_id)
-        function = getattr(fixturedef, "func", None)
         if function is not None and inspect.isgeneratorfunction(function):
             lifecycle_nodeid = nodeid if scope == "function" else ""
             self._yield_fixture_contexts[(function.__code__, lifecycle_nodeid)] = (
                 context_id
             )
+            if self._monitoring is not None and self._monitoring_id is not None:
+                try:
+                    self._monitoring.set_local_events(
+                        self._monitoring_id,
+                        function.__code__,
+                        self._monitoring_events[1]
+                        | self._monitoring_events[2]
+                        | self._monitoring_events[3]
+                        | self._monitoring_events[5],
+                    )
+                    self._monitoring_local_codes.add(function.__code__)
+                except Exception:
+                    self._completeness.diagnostics.append(
+                        {
+                            "code": "E900",
+                            "message": (
+                                "runtime evidence could not enable fixture "
+                                f"lifecycle monitoring for {context_id}"
+                            ),
+                        }
+                    )
         previous = self._current_context
         self._switch_context(context_id)
         try:
@@ -293,7 +513,29 @@ class RuntimeEvidencePlugin:
         """Finalize tracing and atomically write this worker's evidence."""
         if self._consumer_sessionfinish_hook_targets_project(session):
             self._completeness.unresolved_context_ids.add("session:teardown")
-        sys.setprofile(self._previous_profile)
+        if self._monitoring is not None and self._monitoring_id is not None:
+            monitoring = self._monitoring
+            claimed_id = self._monitoring_id
+            try:
+                monitoring.set_events(claimed_id, 0)
+            finally:
+                set_local_events = getattr(monitoring, "set_local_events", None)
+                if callable(set_local_events):
+                    for code in self._monitoring_local_codes:
+                        try:
+                            set_local_events(claimed_id, code, 0)
+                        except Exception:
+                            pass
+                for event in self._monitoring_events:
+                    try:
+                        monitoring.register_callback(claimed_id, event, None)
+                    except Exception:
+                        pass
+                monitoring.free_tool_id(claimed_id)
+                self._monitoring = None
+                self._monitoring_id = None
+        else:
+            sys.setprofile(self._previous_profile)
         self._coverage.stop()
         self._coverage.save()
         self._attach_coverage_lines()
@@ -301,10 +543,6 @@ class RuntimeEvidencePlugin:
         collection = self._contexts.get("collection:global")
         if collection is not None:
             collection.consuming_nodeids.update(self._selected_nodeids)
-            if len(self._selectors) > 1 and (
-                collection.executed_lines or collection.called_qualnames
-            ):
-                self._completeness.unresolved_context_ids.add(collection.context_id)
         session_tail = self._contexts.get("session:teardown")
         if session_tail is not None and (
             session_tail.executed_lines or session_tail.called_qualnames
@@ -368,6 +606,7 @@ class RuntimeEvidencePlugin:
         fixture_scope: str | None = None,
         autouse: bool = False,
         lifecycle_equivalent: bool = False,
+        fixture_definition_source: str | None = None,
     ) -> _ContextState:
         current = self._contexts.get(context_id)
         if current is None:
@@ -377,6 +616,7 @@ class RuntimeEvidencePlugin:
                 fixture_scope=fixture_scope,
                 autouse=autouse,
                 lifecycle_equivalent=lifecycle_equivalent,
+                fixture_definition_source=fixture_definition_source,
             )
             self._contexts[context_id] = current
         return current
@@ -527,6 +767,20 @@ def _selector_matches(selector: str, nodeid: str) -> bool:
     return node_path.startswith(path.rstrip("/") + "/")
 
 
+def _is_existing_empty_python_selector(selector: str, root: Path) -> bool:
+    if "::" in selector:
+        return False
+    candidate = Path(selector)
+    if candidate.is_absolute():
+        return False
+    try:
+        resolved = (root / candidate).resolve(strict=True)
+        resolved.relative_to(root)
+    except (OSError, ValueError):
+        return False
+    return resolved.suffix == ".py" and resolved.is_file()
+
+
 def _fixture_context_id(baseid: str, name: str, scope: str, nodeid: str) -> str:
     suffix = f":{nodeid}" if scope == "function" and nodeid else ""
     return f"fixture:{baseid}:{name}:{scope}{suffix}"
@@ -571,6 +825,7 @@ def _context_payload(context: _ContextState) -> dict:
         "fixture_scope": context.fixture_scope,
         "autouse": context.autouse,
         "lifecycle_equivalent": context.lifecycle_equivalent,
+        "fixture_definition_source": context.fixture_definition_source,
     }
 
 

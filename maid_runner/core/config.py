@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import importlib.metadata
 import math
 from pathlib import Path
 from pathlib import PureWindowsPath
+import re
 from typing import Union
 
 import yaml
@@ -28,8 +30,28 @@ class CoverageRecommendationConfig:
 
 
 @dataclass(frozen=True)
+class FixtureLifecycleApproval:
+    context_id: str
+    conftest_path: str
+    sha256: str
+
+
+@dataclass(frozen=True)
+class DistributionFixtureLifecycleApproval:
+    context_id: str
+    distribution: str
+    module_path: str
+    sha256: str
+
+
+@dataclass(frozen=True)
 class ArtifactCoverageConfig:
     timeout_seconds: float = 900.0
+    fallback_jobs: int = 1
+    fixture_lifecycle_approvals: tuple[FixtureLifecycleApproval, ...] = ()
+    distribution_fixture_lifecycle_approvals: tuple[
+        DistributionFixtureLifecycleApproval, ...
+    ] = ()
 
     def __post_init__(self) -> None:
         raw_timeout = self.timeout_seconds
@@ -48,6 +70,24 @@ class ArtifactCoverageConfig:
                 "artifact_coverage.timeout_seconds must be a positive number"
             )
         object.__setattr__(self, "timeout_seconds", normalized_timeout)
+        if (
+            isinstance(self.fallback_jobs, bool)
+            or not isinstance(self.fallback_jobs, int)
+            or self.fallback_jobs < 1
+        ):
+            raise ValueError(
+                "artifact_coverage.fallback_jobs must be a positive integer"
+            )
+        object.__setattr__(
+            self,
+            "fixture_lifecycle_approvals",
+            tuple(self.fixture_lifecycle_approvals),
+        )
+        object.__setattr__(
+            self,
+            "distribution_fixture_lifecycle_approvals",
+            tuple(self.distribution_fixture_lifecycle_approvals),
+        )
 
 
 @dataclass(frozen=True)
@@ -227,8 +267,17 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         raw_artifact_coverage_timeout, (int, float)
     ):
         raise ValueError("artifact_coverage.timeout_seconds must be a positive number")
+    approvals = _parse_fixture_lifecycle_approvals(
+        artifact_coverage.get("fixture_lifecycle_approvals", ()), root
+    )
+    distribution_approvals = _parse_distribution_fixture_lifecycle_approvals(
+        artifact_coverage.get("distribution_fixture_lifecycle_approvals", ())
+    )
     artifact_coverage_config = ArtifactCoverageConfig(
-        timeout_seconds=raw_artifact_coverage_timeout
+        timeout_seconds=raw_artifact_coverage_timeout,
+        fallback_jobs=artifact_coverage.get("fallback_jobs", 1),
+        fixture_lifecycle_approvals=approvals,
+        distribution_fixture_lifecycle_approvals=distribution_approvals,
     )
     test_execution_config = _parse_test_execution(data.get("test_execution", {}))
     knockout_execution_config = _parse_knockout_execution(
@@ -237,6 +286,11 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
     if knockout_execution_config.jobs > test_execution_config.max_processes:
         raise ValueError(
             "knockout_execution.jobs must not exceed test_execution.max_processes"
+        )
+    if artifact_coverage_config.fallback_jobs > test_execution_config.max_processes:
+        raise ValueError(
+            "artifact_coverage.fallback_jobs must not exceed "
+            "test_execution.max_processes"
         )
 
     return MaidConfig(
@@ -272,6 +326,165 @@ def _parse_knockout_execution(raw: object) -> KnockoutExecutionConfig:
             f"knockout_execution contains unknown keys: {', '.join(sorted(unknown))}"
         )
     return KnockoutExecutionConfig(jobs=raw.get("jobs", 1))
+
+
+def _parse_fixture_lifecycle_approvals(
+    raw: object, project_root: Path
+) -> tuple[FixtureLifecycleApproval, ...]:
+    if raw is None:
+        return ()
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError("artifact_coverage.fixture_lifecycle_approvals must be a list")
+    root = Path(project_root).resolve()
+    approvals = []
+    seen = set()
+    pattern = re.compile(
+        r"^fixture:(?P<baseid>[^:]*):(?P<name>[^:]+):"
+        r"(?P<scope>function|class|module|package|session)$"
+    )
+    for item in raw:
+        if not isinstance(item, dict) or set(item) != {
+            "context_id",
+            "conftest_path",
+            "sha256",
+        }:
+            raise ValueError("fixture lifecycle approval must be an exact mapping")
+        context_id = item["context_id"]
+        relative_value = item["conftest_path"]
+        digest = item["sha256"]
+        if (
+            not isinstance(context_id, str)
+            or (match := pattern.fullmatch(context_id)) is None
+        ):
+            raise ValueError("fixture lifecycle approval context_id is invalid")
+        if context_id in seen:
+            raise ValueError("fixture lifecycle approval context_id must be unique")
+        if not isinstance(relative_value, str) or not relative_value:
+            raise ValueError("fixture lifecycle approval conftest_path is invalid")
+        relative = Path(relative_value)
+        if (
+            relative.is_absolute()
+            or PureWindowsPath(relative_value).is_absolute()
+            or ".." in relative.parts
+            or relative.suffix != ".py"
+        ):
+            raise ValueError(
+                "fixture lifecycle approval must name a contained Python source"
+            )
+        candidate = root / relative
+        try:
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(root)
+        except (OSError, ValueError) as exc:
+            raise ValueError(
+                "fixture lifecycle approval conftest_path escapes project"
+            ) from exc
+        if resolved != candidate.absolute() or not candidate.is_file():
+            raise ValueError(
+                "fixture lifecycle approval conftest_path must be a regular file"
+            )
+        expected_baseid = (
+            relative.parent.as_posix()
+            if relative.name == "conftest.py"
+            else relative.as_posix()
+        )
+        if expected_baseid == ".":
+            expected_baseid = ""
+        if match.group("baseid") != expected_baseid:
+            raise ValueError(
+                "fixture lifecycle approval context baseid does not match path"
+            )
+        if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+            raise ValueError("fixture lifecycle approval sha256 must be lowercase hex")
+        seen.add(context_id)
+        approvals.append(
+            FixtureLifecycleApproval(context_id, relative.as_posix(), digest)
+        )
+    return tuple(approvals)
+
+
+def _parse_distribution_fixture_lifecycle_approvals(
+    raw: object,
+) -> tuple[DistributionFixtureLifecycleApproval, ...]:
+    if raw is None:
+        return ()
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError(
+            "artifact_coverage.distribution_fixture_lifecycle_approvals must be a list"
+        )
+    approvals = []
+    seen = set()
+    pattern = re.compile(
+        r"^fixture::(?P<name>[^:]+):"
+        r"(?P<scope>function|class|module|package|session)$"
+    )
+    for item in raw:
+        if not isinstance(item, dict) or set(item) != {
+            "context_id",
+            "distribution",
+            "module_path",
+            "sha256",
+        }:
+            raise ValueError(
+                "distribution fixture lifecycle approval must be an exact mapping"
+            )
+        context_id = item["context_id"]
+        distribution_name = item["distribution"]
+        module_value = item["module_path"]
+        digest = item["sha256"]
+        if not isinstance(context_id, str) or pattern.fullmatch(context_id) is None:
+            raise ValueError(
+                "distribution fixture lifecycle approval context_id is invalid"
+            )
+        if context_id in seen:
+            raise ValueError(
+                "distribution fixture lifecycle approval context_id must be unique"
+            )
+        if not isinstance(distribution_name, str) or not distribution_name:
+            raise ValueError(
+                "distribution fixture lifecycle approval distribution is invalid"
+            )
+        if not isinstance(module_value, str) or not module_value:
+            raise ValueError(
+                "distribution fixture lifecycle approval module_path is invalid"
+            )
+        relative = Path(module_value)
+        if (
+            relative.is_absolute()
+            or PureWindowsPath(module_value).is_absolute()
+            or ".." in relative.parts
+        ):
+            raise ValueError(
+                "distribution fixture lifecycle approval module_path must be relative"
+            )
+        try:
+            distribution = importlib.metadata.distribution(distribution_name)
+            root = Path(distribution.locate_file("")).resolve(strict=True)
+            candidate = Path(distribution.locate_file(relative))
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(root)
+        except (importlib.metadata.PackageNotFoundError, OSError, ValueError) as exc:
+            raise ValueError(
+                "distribution fixture lifecycle approval module_path is unavailable"
+            ) from exc
+        if resolved != candidate.absolute() or not candidate.is_file():
+            raise ValueError(
+                "distribution fixture lifecycle approval module_path must be a regular contained file"
+            )
+        if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+            raise ValueError(
+                "distribution fixture lifecycle approval sha256 must be lowercase hex"
+            )
+        seen.add(context_id)
+        approvals.append(
+            DistributionFixtureLifecycleApproval(
+                context_id,
+                distribution_name,
+                relative.as_posix(),
+                digest,
+            )
+        )
+    return tuple(approvals)
 
 
 def _parse_test_execution(raw: object) -> TestExecutionConfig:

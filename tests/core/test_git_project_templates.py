@@ -5,6 +5,7 @@ from __future__ import annotations
 import builtins
 import json
 from pathlib import Path
+import re
 import subprocess
 from typing import Any
 
@@ -18,6 +19,13 @@ from tests.cli.test_plan_cmd_stash_import_obstruction import (
     _write_locked_full_stack_project,
 )
 from tests.cli.test_plan_legacy_baseline_cmd import _write_committed_legacy_project
+
+
+_PYTEST_TERMINAL_ELAPSED = re.compile(
+    r"(?m)^(?P<prefix>(?:(?:\d+ (?:failed|passed|skipped|xfailed|xpassed|"
+    r"deselected|error|errors|warning|warnings))(?:, )?)+ in )"
+    r"\d+(?:\.\d+)?s(?P<suffix>[ \t]*=*[ \t]*(?:\r?\n)?)\Z"
+)
 
 
 def _git(project_root: Path, *args: str) -> str:
@@ -38,6 +46,16 @@ def _stable_lock_payload(project_root: Path, slug: str) -> dict[str, Any]:
     red_evidence = payload.get("red_evidence")
     if isinstance(red_evidence, dict):
         red_evidence.pop("captured_at", None)
+        commands = red_evidence.get("commands")
+        if isinstance(commands, list):
+            for command in commands:
+                if not isinstance(command, dict):
+                    continue
+                output_tail = command.get("output_tail")
+                if isinstance(output_tail, str):
+                    command["output_tail"] = _PYTEST_TERMINAL_ELAPSED.sub(
+                        r"\g<prefix><elapsed>s\g<suffix>", output_tail
+                    )
     return payload
 
 
@@ -48,6 +66,64 @@ def _tracked_non_lock_blobs(project_root: Path) -> dict[str, str]:
         for path in paths
         if not path.startswith(".maid/plan-locks/")
     }
+
+
+def test_stable_lock_payload_ignores_only_pytest_elapsed_time(tmp_path: Path) -> None:
+    first = tmp_path / "first" / ".maid" / "plan-locks"
+    second = tmp_path / "second" / ".maid" / "plan-locks"
+    first.mkdir(parents=True)
+    second.mkdir(parents=True)
+    base = {
+        "revision": 4,
+        "red_evidence": {
+            "red": True,
+            "commands": [
+                {
+                    "command": "python -m pytest tests/test_demo.py -q",
+                    "exit_code": 1,
+                    "classification": "red",
+                    "output_tail": (
+                        "1 failed in 12.34s\n" "1 failed, 2 passed in 0.01s"
+                    ),
+                }
+            ],
+        },
+    }
+    (first / "demo.lock.json").write_text(json.dumps(base))
+    changed = json.loads(json.dumps(base))
+    changed["red_evidence"]["commands"][0]["output_tail"] = (
+        "1 failed in 12.34s\n" "1 failed, 2 passed in 1.27s"
+    )
+    (second / "demo.lock.json").write_text(json.dumps(changed))
+
+    assert _stable_lock_payload(tmp_path / "first", "demo") == _stable_lock_payload(
+        tmp_path / "second", "demo"
+    )
+    variants = []
+    for mutate in (
+        lambda value: value.update(revision=5),
+        lambda value: value["red_evidence"]["commands"][0].update(exit_code=2),
+        lambda value: value["red_evidence"]["commands"][0].update(
+            classification="invalid"
+        ),
+        lambda value: value["red_evidence"]["commands"][0].update(
+            command="python -m pytest tests/other.py -q"
+        ),
+        lambda value: value["red_evidence"]["commands"][0].update(
+            output_tail=("1 failed in 12.34s\n" "2 failed, 1 passed in 1.27s")
+        ),
+        lambda value: value["red_evidence"]["commands"][0].update(
+            output_tail=("1 failed in 12.35s\n" "1 failed, 2 passed in 1.27s")
+        ),
+    ):
+        variant = json.loads(json.dumps(changed))
+        mutate(variant)
+        variants.append(variant)
+    for variant in variants:
+        (second / "demo.lock.json").write_text(json.dumps(variant))
+        assert _stable_lock_payload(tmp_path / "first", "demo") != _stable_lock_payload(
+            tmp_path / "second", "demo"
+        )
 
 
 def test_template_clone_has_independent_index_and_worktree(

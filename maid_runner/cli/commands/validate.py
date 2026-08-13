@@ -395,9 +395,11 @@ def _run_artifact_coverage_by_manifest(
         _strict_validation_test_environment,
     )
     from maid_runner.core.result import ErrorCode, Severity, ValidationError
+    from maid_runner.core.config import load_config
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
     active = chain.active_manifests()
+    config = load_config(project_root)
     with _strict_validation_test_environment(strict_context):
         if evidence is None:
             return run_artifact_coverage_batch(active, project_root)
@@ -419,6 +421,8 @@ def _run_artifact_coverage_by_manifest(
                 coverage_manifests,
                 project_root,
                 evidence,
+                fallback_jobs=config.artifact_coverage.fallback_jobs,
+                max_processes=config.test_execution.max_processes,
             ).reports
         )
         for manifest in coverage_manifests:

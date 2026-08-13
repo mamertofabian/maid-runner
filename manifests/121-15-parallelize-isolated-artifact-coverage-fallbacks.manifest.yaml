@@ -1,0 +1,854 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Bound exact artifact-coverage fallback time with isolated proven-equivalent workers"
+type: refactor
+created: "2026-08-12T04:07:08Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - fallback
+    - isolation
+    - parallelism
+description: |
+  The repository-wide grouped evidence fast path must exact-fallback every
+  unproven fixture lifecycle. Maid-runner's root conftest contains two
+  session-scoped autouse fixtures, so correctness-first 121-08/09 may route all
+  365 ordered exact coverage identities to fallback. Make that conservative path fast
+  without weakening it: after 121-13 proves current-byte and Git-metadata
+  snapshot isolation and 121-14 establishes one process budget, run the
+  original exact fallback commands concurrently in independent snapshots.
+
+  Measurement of the first broad exact command proved that outer scheduling
+  alone cannot meet the budget: one `pytest tests/ -v` coverage subprocess
+  exceeded four minutes. Revision 15's per-runtest shared/exclusive lock was
+  rejected by real acceptance: 70 of 355 modules matched the conservative
+  predicate, blocked xdist lanes behind queued hazardous modules, and took
+  374.920 seconds while the exact oracle took 1429.955 seconds. A subsequent
+  isolated failure correctly triggered whole-batch serial replay, proving the
+  design was also not stable enough to enable. Revision 16's single hazardous
+  loadgroup was rejected when a fresh probe exceeded six minutes because all
+  70 conservative matches were forced through one worker. Revision 17's single
+  direct-child permit was rejected after a fresh probe crossed 300 seconds
+  without completing. In the opt-in path, collapse byte-identical pytest
+  argument tuples into one isolated command whose target set is the union of
+  its declarations, and apply only the repository's already accepted pinned
+  pytest worker count and ordinary accepted `--dist loadscope`. Charge those inner workers to the
+  same process budget as outer fallback jobs. A directory selector whose test
+  inventory contains statically visible nested process orchestration must use
+  two process-safe child-controller permits shared by its xdist workers. Tests
+  and fixture lifecycles retain ordinary loadscope scheduling; only the
+  lifetime of actually spawned child processes is bounded. Reserve the full outer process budget for
+  such a directory command so its internal workers do not overlap sibling
+  fallback commands. Keep this a deliberately narrow
+  scheduling predicate rather than behavioral reachability analysis: within
+  the selected directory inventory, coordinate direct calls named
+  `collect_runtime_evidence`, `run_knockout_batch`, `_git`, or
+  `run_validate_commands_for_result`, and for direct `subprocess.run`,
+  `Popen`, `call`, `check_call`, or `check_output` calls. Do not infer aliases
+  or control flow. Treat a selected test file that cannot be read or parsed as
+  requiring child-process coordination; a clean inventory without one of these forms
+  retains ordinary xdist execution. Apply the same narrow scan to every
+  applicable `conftest.py`; any process form or read/parse uncertainty there
+  disables xdist because conftest module code and controller hooks can execute
+  before worker-only coordination. Generated instrumentation leaves the xdist
+  controller's `subprocess.Popen` and routing environment untouched. On worker
+  plugin import, identified by `PYTEST_XDIST_WORKER`, it first copies owned
+  paths, then wraps `subprocess.Popen` before initial conftests bind it, and
+  consumes the worker's generated plugin entry and `MAID_ARTIFACT_*` routing
+  before conftest imports can spawn a child. The wrapper
+  holds one of two file-lock permits
+  from child creation through successful `wait`, `communicate`, terminal
+  `poll`, or context exit; constructor failure releases immediately and
+  repeated completion calls cannot double-release. A daemon reaper observes
+  natural termination and releases even when the caller never invokes a
+  completion method. Acquisition failure is a worker error; abrupt worker
+  death releases its descriptor. If the platform lacks the lock primitive, do
+  not inject xdist. This bounds direct child-controller concurrency rather
+  than claiming arbitrary descendant process-tree accounting; full outer
+  reservation plus two direct controllers is the conservative stability
+  policy. Preserve every selector and
+  evaluate the resulting target evidence through the existing legacy report
+  logic in immutable manifest/command order. The default one-worker path stays
+  byte-for-byte serial and never deduplicates or injects xdist.
+
+  Prove isolation eligibility at runtime. Workers record pre/post observable
+  project and Git identities while excluding only MAID-owned temporary
+  coverage output and explicitly proven cache files. If any command produces
+  an unclassified material project write, loses a worker, uses an unsupported
+  external execution shape, or cannot reproduce current inputs, discard the
+  entire ordered fallback batch and execute it through the legacy serial path;
+  this preserves a later command that observes an earlier command's state
+  without attempting read/write dependency inference. Consumer defaults remain
+  one fallback worker; this repository
+  opts in only after a full serial-versus-isolated-parallel report comparison.
+  Artifact-coverage xdist workers must copy the coverage-data and call-output
+  paths into plugin-owned state, then consume their owned plugin and every
+  `MAID_ARTIFACT_*` routing variable during worker plugin import, before
+  session-start, collection, fixture, or test hooks can spawn nested pytest,
+  runtime-evidence, or knockout processes that attach to the outer controller.
+  Preserve the exact ordered list of every unrelated consumer
+  `PYTEST_PLUGINS` entry; this is instrumentation isolation, not a reason to
+  alter test behavior.
+  The serial oracle itself must contain no artifact-coverage errors; an errored
+  or non-cacheable exact command rejects acceptance rather than becoming a
+  comparison baseline. The acceptance probe must also demonstrate three fresh parallel phases below
+  the 270-second cold-stage budget before the budget becomes enforceable. Each
+  phase must complete entirely in isolated workers: any legacy serial replay,
+  worker diagnostic, or material project write rejects acceptance even when
+  the replayed reports happen to match. The
+  originally planned 180-second ceiling was rejected after the fully safe
+  optimized inventory measured 233.06 seconds with zero fallback, write, or
+  worker errors on the repository's effective eight-core runtime.
+
+  The serial acceptance oracle uses the existing legacy batch evaluator, which
+  executes each unique exact selector once and projects it to every declaring
+  manifest. Persist successful command records in a content-bound advisory
+  checkpoint so interruption resumes rather than discarding hours; failures
+  are never cached. The optimized phase always runs fresh. Emit visible phase
+  and command progress so acceptance cost cannot be confused with production
+  deep-verify latency.
+
+  Revision 18 is also rejected by fresh repository evidence. Full-budget
+  execution, worker-side Popen coordination with one, two, four, six, and
+  eight permits, removal of the wrapper, and a ten-unit weighted reservation
+  all exceeded the 270-second ceiling. The exact inventory contains 309 unique
+  commands, 217 of which repeat overlapping multi-file selectors, so further
+  process-budget tuning cannot remove the dominant pytest startup work.
+
+  Revision 19 restores the grouped runtime-evidence fast path before relying
+  on isolated exact fallback. Collapse selectors already dominated by a
+  selected directory in the physical pytest command while preserving every
+  original selector-to-node mapping used for projection. Instrument only
+  existing Python files declared by active manifests; generated, build, and
+  unrelated automation trees are not artifact-coverage targets and must not be
+  serialized into the child environment. This prevents duplicate collection
+  and the observed 277-KB E2BIG payload without dropping a declared target.
+
+  Keep wide-fixture fallback fail-closed. Absence of target calls cannot prove
+  lifecycle equivalence because a fixture can mutate environment, files, or
+  shared state later observed by target code. Permit reuse only for an exact
+  fixture context ID explicitly approved by repository configuration and bound
+  to the raw SHA-256 of its defining conftest file. Unknown fixtures, indirect
+  state mutation, unapproved setup or teardown, changed/unreadable conftest
+  bytes, missing contexts, collection/session ambiguity, worker loss, nested
+  pytest, command failure, content mutation, or environment mismatch remain
+  exact fallbacks. Approval is an explicit reviewed lifecycle-equivalence
+  attestation for those exact bytes; it may approve fixture code that touches
+  targets or indirect state because equivalence is established by the full
+  serial report oracle, not inferred by tracing. It stays disabled by default
+  for consumers. Approval paths must be root-relative contained regular
+  readable `conftest.py` files with no symlink escape; context IDs must match
+  the canonical fixture baseid/name/scope form, digests must be exactly 64
+  lowercase hex characters, and malformed or duplicate/conflicting entries
+  fail closed.
+
+  This repository opts into the already accepted pinned eight-worker
+  loadscope policy even when duration history is cold; the explicit accepted
+  count, process ceiling, and xdist capability checks remain mandatory. Remove
+  only the blanket conftest early exit after real tests prove target-neutral
+  fixture reuse. Acceptance compares complete normalized reports and command
+  order with the cached legacy oracle, rejects every exact fallback/replay,
+  worker error, or material write, and requires three fresh real
+  grouped-evidence runs below 270 seconds. The probe must not manufacture
+  incomplete evidence or time the rejected isolated fallback engine.
+
+  Revision 20 follows the first real grouped measurement. Selector collapse,
+  declared-target payloads, digest approvals, and cold xdist all worked, but
+  the single grouped phase still exceeded 270 seconds before evaluation.
+  RuntimeEvidencePlugin installs `sys.setprofile` on every call in every xdist
+  worker, while the faster exact worker already uses Python's low-overhead
+  `sys.monitoring`. Replace whole-interpreter profiling with an owned
+  monitoring tool using PY_START, PY_RETURN, PY_RESUME, PY_YIELD, and
+  PY_UNWIND where available. Preserve exact
+  called-qualname capture, nested-pytest incompleteness, generator-fixture
+  context switching/restoration, prior instrumentation ownership, and cleanup;
+  balance fixture context restoration per suspended frame/code lifecycle, and
+  never disable repeat target callbacks because one callable may execute under
+  multiple node contexts. Preserve pre-owned tools/profiles and release only
+  the claimed tool. Fail closed into the legacy profile path, with restoration,
+  when tool claim, event registration, or required events are unavailable.
+
+  Revision 21 follows the first monitoring-backed repository measurement.
+  Selective monitoring reduced grouped collection from more than 285 seconds
+  to 117.906 seconds, versus 58.73 seconds for ordinary eight-worker pytest,
+  but evaluation still exact-fell back because logical selector identities
+  were lost when the physical command collapsed to `tests/`, function-fixture
+  approvals were compared with per-node context IDs, and collection ambiguity
+  was inferred from selector count rather than logical-command count. Preserve
+  the minimized physical command while passing every logical selector to the
+  evidence plugin; recompute selector support only after all xdist payloads are
+  merged. Preserve support for every original selector independently: if any
+  selector is absent from the merged inventory, its logical identity remains
+  incomplete even when another selector in the same command selects nodes or
+  physically dominates it. Normalize function fixture instances to their canonical
+  baseid/name/scope definition solely for digest-bound approval lookup; retain
+  per-node contexts for projection. A single original command with multiple
+  selectors may retain its own collection context, while grouping two or more
+  original commands with target execution during collection remains
+  unresolved. Add locally enabled LINE monitoring for generator fixture code
+  so its first teardown line is explicitly recorded in the fixture context;
+  keep PY_START global and disable irrelevant code locations, never disable
+  repeat target callbacks, and preserve legacy profiling whenever required
+  monitoring or local-event support is unavailable. The full declared test
+  scope includes runtime-evidence tests, and acceptance still rejects every
+  fallback, replay, diagnostic, write, report difference, or ordering change.
+
+  Revision 22 follows the first complete revision-21 repository collection:
+  collection finished in 123.517 seconds, but exact replay remained because
+  pytest's `-k` deselection ran after the evidence selector map, existing
+  anchor-only test files were treated like invalid node selectors, and
+  framework fixtures could not use the project-only approval format. Build
+  selector maps after pytest deselection. Treat an existing root-contained
+  Python file selector with no collected tests as supported only when another
+  selector in that same original command selects a node; missing files and
+  missing node selectors remain incomplete. Generalize project approvals to
+  root-contained defining test modules while retaining exact baseid/path/hash
+  binding. Add a separate distribution-fixture approval that resolves a
+  relative installed distribution module, validates its raw SHA-256, requires
+  an empty-baseid fixture identity, and matches the runtime fixture function's
+  resolved source path before clearing uncertainty. Dependency/environment
+  identity remains part of evidence freshness. Unknown sources, changed
+  installed bytes, custom fixtures shadowing an approved framework name, and
+  selectors absent after complete collection remain fail closed. Distribution
+  module paths must be relative, resolve to regular files contained by the
+  installed distribution root without symlink escape, and reject malformed,
+  duplicate, or conflicting approvals. A physically dominated missing file
+  selector remains unsupported even when a valid sibling selector collects
+  successfully.
+
+  Revision 24 resolves the remaining chain-level conftest contradiction found
+  by the complete declared suite. A present project conftest is no longer, by
+  itself, a reason to bypass grouped evidence before execution: the runtime
+  lifecycle/source evidence and explicit approvals added by this manifest are
+  the fail-closed boundary. A target-neutral conftest therefore reaches grouped
+  collection, while unproven fixture, hook, collection, mutation, command, or
+  source evidence still selects exact fallback. Preserve instrumentation-
+  observable legacy coverage semantics and always run the ordinary tests stage
+  fresh.
+temptations:
+  - risk: "Do not run fallback processes concurrently against one mutable checkout."
+    instead: "Use independently verified current-byte and Git-isolated snapshots for every active worker."
+  - risk: "Do not accept parallel results after an unclassified project write or worker loss."
+    instead: "Discard the whole ordered batch and run the exact legacy serial fallback, or emit visible E900/E712."
+  - risk: "Do not assume repeated selectors or xdist preserve artifact reports, or multiply inner and outer workers beyond the shared budget."
+    instead: "Keep the optimization disabled until complete ordered reports match; reserve the full outer budget for nested-process directories; retain loadscope and limit live direct child controllers with two process-safe permits; consume only the generated artifact plugin and preserve consumer plugin order."
+  - risk: "Do not call a wide fixture safe merely because tracing observed no declared-target call."
+    instead: "Require an exact context-ID approval bound to raw conftest bytes; any unknown or changed lifecycle exact-falls back."
+  - risk: "Do not pass every project Python path or directory-dominated duplicate selector to pytest."
+    instead: "Retain all active declared targets and logical selector mappings while minimizing only the physical command and instrumentation payload."
+files:
+  create:
+    - path: maid_runner/core/_artifact_coverage_fallback_worker.py
+      artifacts:
+        - kind: class
+          name: ArtifactCoverageFallbackWorkerResult
+          description: "One exact fallback command's isolated coverage data, state deltas, and harness diagnostics."
+        - kind: attribute
+          name: identity
+          of: ArtifactCoverageFallbackWorkerResult
+          type: RuntimeCommandIdentity
+        - kind: attribute
+          name: command_run
+          of: ArtifactCoverageFallbackWorkerResult
+          type: RuntimeCommandRecord | None
+        - kind: attribute
+          name: material_project_writes
+          of: ArtifactCoverageFallbackWorkerResult
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: process_cost
+          of: ArtifactCoverageFallbackWorkerResult
+          type: int
+          description: "Conservative outer-budget reservation units, which reserve max_processes for a nested-process directory selector while its xdist workers share two direct child-controller permits."
+        - kind: attribute
+          name: errors
+          of: ArtifactCoverageFallbackWorkerResult
+          type: tuple[ValidationError, Ellipsis]
+        - kind: class
+          name: ArtifactCoverageFallbackRun
+          description: "Ordered exact results plus identities that required legacy serial rerun."
+        - kind: attribute
+          name: results
+          of: ArtifactCoverageFallbackRun
+          type: tuple[ArtifactCoverageFallbackWorkerResult, Ellipsis]
+        - kind: attribute
+          name: serial_fallback_identities
+          of: ArtifactCoverageFallbackRun
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+        - kind: function
+          name: run_isolated_artifact_coverage_fallbacks
+          args:
+            - name: identities
+              type: Sequence[RuntimeCommandIdentity]
+            - name: project_root
+              type: Path
+            - name: target_files
+              type: Mapping[RuntimeCommandIdentity, set[str]]
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend
+            - name: executor
+              type: RuntimeCommandExecutor
+            - name: jobs
+              type: int
+            - name: max_processes
+              type: int
+          returns: ArtifactCoverageFallbackRun
+          description: "Groups identical selectors only in the opt-in path, schedules accepted inner/outer workers within one process budget, requires process-safe child permits for nested-process directory xdist, and expands results back to immutable identity order."
+    - path: tools/check_artifact_coverage_fallback_equivalence.py
+      artifacts:
+        - kind: function
+          name: compare_serial_and_isolated_fallbacks
+          args:
+            - name: project_root
+              type: Path
+            - name: jobs
+              type: int
+            - name: max_processes
+              type: int
+            - name: max_parallel_seconds
+              type: float
+          returns: int
+          description: "Runs the legacy serial oracle and three fresh real grouped-evidence evaluations, compares normalized reports/order, rejects any exact fallback or diagnostic, and enforces only the grouped phase budget."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: Sequence[str] | None
+              default: "None"
+          returns: int
+    - path: tests/core/test_artifact_coverage_fallback_workers.py
+      artifacts:
+        - kind: test_function
+          name: test_root_session_autouse_fixture_commands_keep_exact_process_lifetimes
+          args: []
+        - kind: test_function
+          name: test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order
+          args: []
+        - kind: test_function
+          name: test_disjoint_exact_fallbacks_overlap_within_process_budget
+          args: []
+        - kind: test_function
+          name: test_material_write_discards_entire_batch_and_preserves_later_reader_legacy_order
+          args: []
+        - kind: test_function
+          name: test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics
+          args: []
+        - kind: test_function
+          name: test_worker_loss_snapshot_failure_or_path_remap_gap_is_never_clean_success
+          args: []
+        - kind: test_function
+          name: test_command_config_and_auto_xdist_counts_reduce_fallback_jobs
+          args: []
+        - kind: test_function
+          name: test_identical_selectors_deduplicate_with_accepted_inner_xdist
+          args: []
+        - kind: test_function
+          name: test_pinned_xdist_workers_return_target_calls_and_lines
+          args: []
+        - kind: test_function
+          name: test_generated_xdist_child_process_permits_fail_closed_and_release
+          args: []
+        - kind: test_function
+          name: test_one_fallback_worker_preserves_legacy_execution
+          args: []
+        - kind: test_function
+          name: test_worker_run_discloses_parallel_and_serial_fallback_identities
+          args: []
+        - kind: test_function
+          name: test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection
+          args: []
+        - kind: test_function
+          name: test_runtime_evidence_payload_contains_only_active_declared_python_targets
+          args: []
+        - kind: test_function
+          name: test_only_digest_bound_approved_wide_fixture_reuses_evidence
+          args: []
+        - kind: test_function
+          name: test_indirect_state_or_changed_wide_fixture_approval_falls_back
+          args: []
+        - kind: test_function
+          name: test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers
+          args: []
+    - path: tests/performance/test_artifact_coverage_fallback_equivalence_probe.py
+      artifacts:
+        - kind: test_function
+          name: test_probe_rejects_report_or_order_difference
+          args: []
+        - kind: test_function
+          name: test_probe_enforces_budget_only_after_equivalence
+          args: []
+        - kind: test_function
+          name: test_probe_requires_three_fresh_equivalent_optimized_runs
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_serial_replay_or_worker_diagnostics
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_errored_serial_oracle
+          args: []
+        - kind: test_function
+          name: test_serial_oracle_helper_extracts_artifact_coverage_errors
+          args: []
+        - kind: test_function
+          name: test_probe_never_recursively_runs_repository_acceptance_in_normal_suite
+          args: []
+        - kind: test_function
+          name: test_serial_oracle_checkpoints_success_and_never_failure
+          args: []
+  edit:
+    - path: maid_runner/core/_runtime_evidence_pytest_plugin.py
+      artifacts:
+        - kind: method
+          name: __init__
+          of: RuntimeEvidencePlugin
+          args:
+            - name: output_path
+              type: Path
+            - name: target_files
+              type: frozenset[str]
+            - name: selectors
+              type: tuple[str, Ellipsis]
+              default: "()"
+            - name: expected_workers
+              type: int
+              default: "0"
+          returns: None
+          description: "Starts coverage plus an owned low-overhead global PY_START monitor with local PY_RETURN/PY_RESUME/PY_YIELD/LINE lifecycle events and global PY_UNWIND safety; disables irrelevant code locations but never repeat target callbacks, preserves prior tools/profiles, releases only its claimed ID, and restores the legacy profile path after unavailable events, local-event support, claim, or registration failure."
+        - kind: method
+          name: pytest_sessionfinish
+          of: RuntimeEvidencePlugin
+          args:
+            - name: session
+              type: pytest.Session
+            - name: exitstatus
+              type: int
+          returns: None
+          description: "Stops and releases only owned monitoring before preserving existing session-tail, coverage, completeness, and atomic evidence behavior."
+        - kind: method
+          name: pytest_collection_modifyitems
+          of: RuntimeEvidencePlugin
+          args:
+            - name: session
+              type: pytest.Session
+            - name: config
+              type: pytest.Config
+            - name: items
+              type: list[pytest.Item]
+          returns: None
+          description: "Runs after ordinary pytest deselection, maps every retained logical selector, accepts only root-contained existing empty Python file anchors, and preserves missing-file/node fail-closed status."
+    - path: tests/core/test_runtime_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls
+          args: []
+        - kind: test_function
+          name: test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest
+          args: []
+        - kind: test_function
+          name: test_monitoring_ownership_failure_falls_back_and_restores_prior_profile
+          args: []
+        - kind: test_function
+          name: test_monitoring_success_and_post_claim_failure_preserve_tool_ownership
+          args: []
+        - kind: test_function
+          name: test_function_yield_fixture_setup_and_teardown_are_attributed_per_node
+          args: []
+        - kind: test_function
+          name: test_xdist_retains_logical_selectors_after_physical_collapse
+          args: []
+        - kind: test_function
+          name: test_xdist_merges_disjoint_worker_selector_maps_before_support_decision
+          args: []
+        - kind: test_function
+          name: test_dominated_missing_node_selector_remains_incomplete
+          args: []
+        - kind: test_function
+          name: test_dominated_missing_file_selector_remains_incomplete
+          args: []
+        - kind: test_function
+          name: test_digest_approval_applies_to_all_function_fixture_instances
+          args: []
+        - kind: test_function
+          name: test_single_logical_multi_selector_collection_context_is_exact_equivalent
+          args: []
+        - kind: test_function
+          name: test_k_deselection_maps_only_nodes_that_will_report
+          args: []
+        - kind: test_function
+          name: test_existing_empty_file_selector_is_supported_but_missing_node_is_not
+          args: []
+        - kind: test_function
+          name: test_distribution_fixture_approval_requires_matching_runtime_source
+          args: []
+        - kind: test_function
+          name: test_test_module_fixture_approval_requires_matching_runtime_source
+          args: []
+    - path: tests/cli/test_verify_deep_evidence_reuse.py
+      artifacts:
+        - kind: test_function
+          name: test_instrumentation_observable_test_cannot_create_false_green_tests_stage
+          args: []
+        - kind: test_function
+          name: test_project_conftest_uses_legacy_coverage_without_speculative_evidence
+          args: []
+    - path: maid_runner/core/_test_command_batching.py
+      artifacts:
+        - kind: function
+          name: _batch_compatible_pytest_commands
+          args:
+            - name: commands
+              type: list[tuple[str, Ellipsis]]
+            - name: cwd
+              type: Union[str, Path]
+              default: '"."'
+            - name: resolve_command
+              type: _CommandResolver
+              default: _identity_resolve_command
+            - name: is_uv_project
+              type: _UvProjectPredicate
+              default: _not_uv_project
+          returns: tuple[str, Ellipsis]
+          description: "Builds one compatible physical pytest command, removing only file or node selectors already contained by a selected directory while retaining logical command entries for exact evidence projection."
+    - path: maid_runner/core/runtime_evidence.py
+      artifacts:
+        - kind: attribute
+          name: fixture_definition_source
+          of: RuntimeContextEvidence
+          type: str | None
+          description: "Resolved defining fixture function source used only to bind explicit project or distribution lifecycle approvals."
+        - kind: function
+          name: collect_runtime_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+          returns: RuntimeEvidenceRun
+          description: "Runs minimized compatible physical groups while explicitly forwarding every exact logical selector, normalizing only function-fixture approval identities to their digest-bound definition, and retaining fail-closed per-node lifecycle projection."
+        - kind: function
+          name: _runtime_target_files
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: root
+              type: Path
+          returns: set[str]
+          description: "Returns only existing active-manifest-declared Python files for runtime artifact instrumentation."
+        - kind: function
+          name: _project_completeness
+          args:
+            - name: group
+              type: RuntimeGroupEvidence
+            - name: entry
+              type: _RuntimeCommandEntry
+            - name: selected
+              type: tuple[str, Ellipsis]
+            - name: contexts
+              type: tuple[RuntimeContextEvidence, Ellipsis]
+          returns: RuntimeEvidenceCompleteness
+          description: "Keeps wide lifecycle uncertainty unless the canonical fixture definition ID has a repository approval bound to the current raw conftest digest; all unknown, changed, unresolved, or missing evidence remains fail-closed."
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _collect_artifact_coverage_evidence
+          args:
+            - name: root
+              type: Path
+            - name: manifest_dir
+              type: str
+            - name: test_jobs
+              type: int
+              default: "1"
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+          returns: RuntimeEvidenceBundle | None
+          description: "Attempts grouped evidence in projects with conftests after digest capture, retaining mutation detection and complete legacy fallback on preparation failure."
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: attribute
+          name: isolated_fallback_identities
+          of: EvidenceArtifactCoverageResult
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+          description: "Exact identities completed in isolated workers and consumed in original order."
+        - kind: attribute
+          name: serial_fallback_identities
+          of: EvidenceArtifactCoverageResult
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+          description: "Exact identities executed through the legacy serial boundary, including whole-batch safety fallback."
+        - kind: attribute
+          name: isolated_worker_errors
+          of: EvidenceArtifactCoverageResult
+          type: tuple[ValidationError, Ellipsis]
+          description: "Every isolated worker diagnostic retained separately from legacy report projection so acceptance cannot hide worker failure behind serial replay."
+        - kind: attribute
+          name: isolated_material_project_writes
+          of: EvidenceArtifactCoverageResult
+          type: tuple[str, Ellipsis]
+          description: "Every isolated material project write retained separately from legacy report projection so acceptance rejects unsafe optimized phases."
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+          returns: EvidenceArtifactCoverageResult
+          description: "Uses isolated workers for exact incomplete-lifecycle fallbacks, then reruns the whole ordered legacy batch on any stateful or unproven result."
+    - path: maid_runner/core/_runtime_command_executor.py
+      artifacts:
+        - kind: function
+          name: _completeness_from_payloads
+          args:
+            - name: payloads
+              type: list[dict]
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: exit_code
+              type: int
+            - name: expected_worker_ids
+              type: tuple[str, Ellipsis]
+              default: "()"
+            - name: selected_nodeids
+              type: tuple[str, Ellipsis]
+              default: "()"
+          returns: RuntimeEvidenceCompleteness
+          description: "Merges worker reports and selector support after deselection, retaining unsupported selectors absent from every complete payload."
+        - kind: method
+          name: execute_with_contexts
+          of: RuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+            - name: logical_selectors
+              type: tuple[str, Ellipsis] | None
+              default: "None"
+          returns: RuntimeGroupEvidence
+          description: "Executes one minimized physical pytest command while retaining explicit logical selectors for post-xdist projection and completeness."
+        - kind: method
+          name: execute_with_contexts
+          of: SubprocessRuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: pytest_workers
+              type: int | str | None
+              default: "None"
+            - name: logical_selectors
+              type: tuple[str, Ellipsis] | None
+              default: "None"
+          returns: RuntimeGroupEvidence
+          description: "Combines all expected worker payloads before deciding logical selector support, preserving missing-worker and report fail-closed diagnostics."
+        - kind: method
+          name: execute
+          of: RuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+            - name: environment_removals
+              type: Sequence[str]
+              default: "()"
+          returns: RuntimeCommandRecord
+          description: "Executes exact coverage with optional snapshot-local environment routing while retaining the legacy four-argument call."
+        - kind: method
+          name: execute
+          of: SubprocessRuntimeCommandExecutor
+          args:
+            - name: command
+              type: tuple[str, Ellipsis]
+            - name: target_files
+              type: set[str]
+            - name: project_root
+              type: Path
+            - name: timeout_seconds
+              type: float
+            - name: environment_overrides
+              type: Mapping[str, str] | None
+              default: "None"
+            - name: environment_removals
+              type: Sequence[str]
+              default: "()"
+          returns: RuntimeCommandRecord
+          description: "Applies owned environment removals and overrides without mutating the parent process; the generated plugin wraps Popen before conftest import, workers consume MAID-owned routing, and they share two process-safe direct child-controller permits without changing loadscope scheduling."
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: class
+          name: DistributionFixtureLifecycleApproval
+          description: "One explicit fixture lifecycle approval bound to an installed distribution module's exact bytes."
+        - kind: attribute
+          name: context_id
+          of: DistributionFixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: distribution
+          of: DistributionFixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: module_path
+          of: DistributionFixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: sha256
+          of: DistributionFixtureLifecycleApproval
+          type: str
+        - kind: class
+          name: FixtureLifecycleApproval
+          description: "One repository-approved wide fixture context bound to its root-contained defining project fixture source and raw SHA-256 bytes."
+        - kind: attribute
+          name: context_id
+          of: FixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: conftest_path
+          of: FixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: sha256
+          of: FixtureLifecycleApproval
+          type: str
+        - kind: attribute
+          name: fallback_jobs
+          of: ArtifactCoverageConfig
+          type: int
+          description: "Positive exact-fallback worker count; defaults to one."
+        - kind: attribute
+          name: fixture_lifecycle_approvals
+          of: ArtifactCoverageConfig
+          type: tuple[FixtureLifecycleApproval, Ellipsis]
+          description: "Validated exact context-ID and raw defining project fixture source SHA-256 approvals; empty by default and fail-closed on malformed values or runtime definition-source mismatch."
+        - kind: attribute
+          name: distribution_fixture_lifecycle_approvals
+          of: ArtifactCoverageConfig
+          type: tuple[DistributionFixtureLifecycleApproval, Ellipsis]
+          description: "Validated unique empty-baseid fixture approvals bound to raw bytes of root-contained regular modules inside an installed distribution; malformed, absolute, missing, non-file, duplicate, conflicting, and symlink-escaping entries fail closed; empty by default."
+    - path: .maidrc.yaml
+      artifacts:
+        - kind: attribute
+          name: fallback_jobs
+          of: artifact_coverage
+          type: int
+          description: "Repository opt-in enabled only after full exact report equivalence and timing acceptance."
+        - kind: attribute
+          name: max_processes
+          of: test_execution
+          type: int
+          description: "Shared 16-process ceiling matching the accepted exact-fallback execution shape."
+        - kind: attribute
+          name: parallel_without_history
+          of: test_execution
+          type: bool
+          description: "Repository-proven opt-in that applies the accepted pinned eight-worker loadscope policy to cold grouped evidence runs."
+        - kind: attribute
+          name: fixture_lifecycle_approvals
+          of: artifact_coverage
+          type: list[object]
+          description: "Reviewed exact context/conftest/digest attestations for the repository root fixtures, enabled only after complete serial equivalence acceptance."
+        - kind: attribute
+          name: distribution_fixture_lifecycle_approvals
+          of: artifact_coverage
+          type: list[object]
+          description: "Reviewed exact context/distribution-module/digest attestations for framework fixtures, bound again to runtime definition sources."
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: _run_artifact_coverage_by_manifest
+          args:
+            - name: manifest_dir
+              type: str
+            - name: project_root
+              type: Path
+            - name: strict_context
+              type: bool
+              default: "False"
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Loads the bounded fallback policy while preserving standalone and verify report order."
+    - path: tests/core/test_config.py
+      artifacts:
+        - kind: test_function
+          name: test_artifact_coverage_fallback_jobs_requires_positive_bounded_integer
+          args: []
+        - kind: test_function
+          name: test_fixture_lifecycle_approval_validation_fails_closed
+          args: []
+        - kind: test_function
+          name: test_fixture_lifecycle_approvals_bind_project_and_distribution_sources
+          args: []
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
+    - manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - maid_runner/core/_knockout_worker.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/_pytest_config_addopts.py
+    - maid_runner/core/_pytest_worker_execution.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+acceptance:
+  tests:
+    - uv run python tools/check_artifact_coverage_fallback_equivalence.py --project-root . --jobs 8 --max-processes 16 --max-parallel-seconds 270
+  immutable: true
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py tests/cli/test_verify_deep_evidence_reuse.py
+  - uv run maid validate manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet

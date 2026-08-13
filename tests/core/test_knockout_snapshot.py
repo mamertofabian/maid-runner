@@ -347,6 +347,108 @@ def test_inherited_git_repository_pointer_environment_is_cleared(
     assert Path(result.stdout.strip()).resolve() == snapshot.root.resolve()
 
 
+def test_snapshot_preserves_only_resolved_git_author_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core.knockout import KnockoutCommandExecutor
+
+    root = _project(tmp_path)
+    with MaterializedProjectSnapshotBackend().create(
+        root, ("src/target.py",), "non-git-author"
+    ) as non_git_snapshot:
+        assert non_git_snapshot.git_dir is None
+        assert non_git_snapshot.environment_overrides["GIT_CONFIG_GLOBAL"] == os.devnull
+        assert not (non_git_snapshot.root / "maid-global-config").exists()
+
+    global_config = tmp_path / "source-global.gitconfig"
+    global_config.write_text(
+        "[user]\n"
+        "\tname = Snapshot Global Author\n"
+        "\temail = global-author@example.test\n"
+        "[alias]\n"
+        "\tdangerous = !touch should-not-run\n"
+        "[credential]\n"
+        "\thelper = should-not-copy\n"
+    )
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(global_config))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    subprocess.run(("git", "init", "-q"), cwd=root, check=True)
+    subprocess.run(("git", "add", "."), cwd=root, check=True)
+    subprocess.run(("git", "commit", "-qm", "fixture"), cwd=root, check=True)
+
+    with MaterializedProjectSnapshotBackend().create(
+        root, ("src/target.py",), "git-author"
+    ) as snapshot:
+        isolated_config = Path(snapshot.environment_overrides["GIT_CONFIG_GLOBAL"])
+        config_text = isolated_config.read_text()
+        config_keys = subprocess.run(
+            ("git", "config", "--file", str(isolated_config), "--name-only", "--list"),
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+        result = KnockoutCommandExecutor().execute(
+            ("git", "var", "GIT_AUTHOR_IDENT"),
+            snapshot.root,
+            "snapshot",
+            snapshot.environment_overrides,
+            snapshot.environment_removals,
+        )
+
+        assert isolated_config != global_config
+        assert isolated_config.is_relative_to(snapshot.root / ".git")
+        assert "Snapshot Global Author" in config_text
+        assert "global-author@example.test" in config_text
+        assert "dangerous" not in config_text
+        assert "credential" not in config_text
+        assert set(config_keys) == {"user.name", "user.email"}
+
+    assert result.exit_code == 0, result.stderr
+    assert "Snapshot Global Author <global-author@example.test>" in result.stdout
+
+    global_config.write_text(
+        "[user]\n"
+        "\tname = Changed Snapshot Author\n"
+        "\temail = changed-author@example.test\n"
+    )
+    with MaterializedProjectSnapshotBackend().create(
+        root, ("src/target.py",), "changed-git-author"
+    ) as changed_snapshot:
+        changed_result = KnockoutCommandExecutor().execute(
+            ("git", "var", "GIT_AUTHOR_IDENT"),
+            changed_snapshot.root,
+            "changed-snapshot",
+            changed_snapshot.environment_overrides,
+            changed_snapshot.environment_removals,
+        )
+
+    assert changed_result.exit_code == 0, changed_result.stderr
+    assert (
+        "Changed Snapshot Author <changed-author@example.test>" in changed_result.stdout
+    )
+
+    global_config.write_text("[user]\n\tname = Incomplete Author\n")
+    with MaterializedProjectSnapshotBackend().create(
+        root, ("src/target.py",), "incomplete-git-author"
+    ) as incomplete_snapshot:
+        incomplete_config = Path(
+            incomplete_snapshot.environment_overrides["GIT_CONFIG_GLOBAL"]
+        )
+        incomplete_result = KnockoutCommandExecutor().execute(
+            ("git", "var", "GIT_AUTHOR_IDENT"),
+            incomplete_snapshot.root,
+            "incomplete-snapshot",
+            incomplete_snapshot.environment_overrides,
+            incomplete_snapshot.environment_removals,
+        )
+
+        assert incomplete_config.read_text() == ""
+
+    assert incomplete_result.exit_code != 0
+    assert "Author identity unknown" in incomplete_result.stderr
+
+
 def test_snapshot_dependency_environment_loads_snapshot_project_bytes(
     tmp_path: Path,
 ) -> None:

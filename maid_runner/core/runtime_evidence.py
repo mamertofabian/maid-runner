@@ -4,14 +4,17 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
+import importlib.metadata
+import inspect
 import json
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 from types import MappingProxyType
+from typing import Union
 
 from maid_runner.core._pytest_command_normalization import (
     _looks_like_pytest_invocation,
@@ -103,6 +106,7 @@ class RuntimeContextEvidence:
     fixture_scope: str | None = None
     autouse: bool = False
     lifecycle_equivalent: bool = False
+    fixture_definition_source: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "consuming_nodeids", tuple(self.consuming_nodeids))
@@ -203,6 +207,7 @@ def combine_runtime_contexts(
         or item.fixture_scope != first.fixture_scope
         or item.autouse != first.autouse
         or item.lifecycle_equivalent != first.lifecycle_equivalent
+        or item.fixture_definition_source != first.fixture_definition_source
         for item in contexts[1:]
     ):
         raise ValueError("runtime contexts do not describe the same lifecycle")
@@ -234,6 +239,7 @@ def combine_runtime_contexts(
         fixture_scope=first.fixture_scope,
         autouse=first.autouse,
         lifecycle_equivalent=first.lifecycle_equivalent,
+        fixture_definition_source=first.fixture_definition_source,
     )
 
 
@@ -241,7 +247,7 @@ def collect_runtime_evidence(
     manifests: Sequence[Manifest],
     project_root: Path,
     executor: RuntimeCommandExecutor | None = None,
-    pytest_workers: int | str | None = None,
+    pytest_workers: Union[int, str, None] = None,
 ) -> RuntimeEvidenceRun:
     """Execute each compatible pytest group once and project exact evidence."""
     root = Path(project_root).resolve()
@@ -254,6 +260,27 @@ def collect_runtime_evidence(
         grouped.setdefault(entry.group_key, []).append(entry)
 
     timeout = load_config(root).artifact_coverage.timeout_seconds
+    coverage_config = load_config(root).artifact_coverage
+    approved_fixture_sources: dict[str, str] = {}
+    for approval in coverage_config.fixture_lifecycle_approvals:
+        source = (root / approval.conftest_path).resolve()
+        try:
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        except OSError:
+            continue
+        if digest == approval.sha256:
+            approved_fixture_sources[approval.context_id] = str(source)
+    for approval in coverage_config.distribution_fixture_lifecycle_approvals:
+        try:
+            distribution = importlib.metadata.distribution(approval.distribution)
+            source = Path(distribution.locate_file(approval.module_path)).resolve(
+                strict=True
+            )
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        except (importlib.metadata.PackageNotFoundError, OSError):
+            continue
+        if digest == approval.sha256:
+            approved_fixture_sources[approval.context_id] = str(source)
     target_files = _runtime_target_files(manifests, root)
     physical_results: list[TestRunResult] = []
     command_evidence: list[RuntimeCommandEvidence] = []
@@ -265,16 +292,78 @@ def collect_runtime_evidence(
 
     for group_key, group_entries in grouped.items():
         command = _group_command(group_key, group_entries, root)
+        logical_selectors = tuple(
+            dict.fromkeys(
+                selector for entry in group_entries for selector in entry.selectors
+            )
+        )
         environment = _environment_identity(command, root)
         if environment not in environments:
             environments.append(environment)
+        executor_parameters = inspect.signature(runner.execute_with_contexts).parameters
+        logical_arguments = (
+            {"logical_selectors": logical_selectors}
+            if "logical_selectors" in executor_parameters
+            or any(
+                parameter.kind is inspect.Parameter.VAR_KEYWORD
+                for parameter in executor_parameters.values()
+            )
+            else {}
+        )
         group = runner.execute_with_contexts(
             command,
             target_files,
             root,
             timeout,
             pytest_workers=pytest_workers,
+            **logical_arguments,
         )
+        collection = next(
+            (
+                context
+                for context in group.contexts
+                if context.context_id == "collection:global"
+            ),
+            None,
+        )
+        if (
+            len(group_entries) > 1
+            and collection is not None
+            and collection.execution_data
+            and "collection:global" not in group.completeness.unresolved_context_ids
+        ):
+            unresolved = (
+                *group.completeness.unresolved_context_ids,
+                "collection:global",
+            )
+            group = replace(
+                group,
+                completeness=replace(
+                    group.completeness,
+                    complete=False,
+                    unresolved_context_ids=unresolved,
+                ),
+            )
+        remaining_unproven = tuple(
+            context_id
+            for context_id in group.completeness.unproven_fixture_lifecycles
+            if not _fixture_context_is_approved(
+                context_id, group.contexts, approved_fixture_sources
+            )
+        )
+        if remaining_unproven != group.completeness.unproven_fixture_lifecycles:
+            completeness = replace(
+                group.completeness,
+                complete=not (
+                    group.completeness.missing_worker_ids
+                    or group.completeness.unsupported_selectors
+                    or group.completeness.unresolved_context_ids
+                    or remaining_unproven
+                    or group.completeness.diagnostics
+                ),
+                unproven_fixture_lifecycles=remaining_unproven,
+            )
+            group = replace(group, completeness=completeness)
         group_completeness.append(group.completeness)
         physical_results.append(_test_result_from_group(group, group_entries))
         for worker_id in group.worker_ids:
@@ -463,12 +552,12 @@ def _runtime_target_files(manifests: Sequence[Manifest], root: Path) -> set[str]
         for spec in manifest.all_file_specs
         if spec.path.endswith(".py") and (root / spec.path).is_file()
     }
-    project_python = {
+    lifecycle_sources = {
         str(path.resolve())
-        for path in root.rglob("*.py")
-        if not _excluded_content_path(path.relative_to(root))
+        for path in root.rglob("conftest.py")
+        if path.is_file() and not _excluded_content_path(path.relative_to(root))
     }
-    return declared | project_python
+    return declared | lifecycle_sources
 
 
 def _selected_for_entry(
@@ -481,6 +570,30 @@ def _selected_for_entry(
             if nodeid not in selected:
                 selected.append(nodeid)
     return tuple(selected)
+
+
+def _fixture_definition_context_id(context_id: str) -> str:
+    """Remove only the per-node suffix from a function fixture identity."""
+    parts = context_id.split(":", 4)
+    if len(parts) == 5 and parts[0] == "fixture" and parts[3] == "function":
+        return ":".join(parts[:4])
+    return context_id
+
+
+def _fixture_context_is_approved(
+    context_id: str,
+    contexts: Sequence[RuntimeContextEvidence],
+    approved_sources: Mapping[str, str],
+) -> bool:
+    definition_id = _fixture_definition_context_id(context_id)
+    expected_source = approved_sources.get(definition_id)
+    if expected_source is None:
+        return False
+    return any(
+        context.context_id == context_id
+        and context.fixture_definition_source == expected_source
+        for context in contexts
+    )
 
 
 def _project_contexts(
@@ -511,7 +624,14 @@ def _project_completeness(
         if context_id in context_ids
     )
     if not selected:
-        unsupported = tuple(dict.fromkeys((*unsupported, *entry.selectors)))
+        unsupported = tuple(
+            selector
+            for selector in dict.fromkeys((*unsupported, *entry.selectors))
+            if not any(
+                other != selector and other.startswith(selector + "::")
+                for other in entry.selectors
+            )
+        )
     complete = (
         group.completeness.complete
         and not unsupported

@@ -3,7 +3,7 @@
   "manifest_hash": "sha256-contract:7337cbcab51054b497a8f3ae49aef81580c49ca7e7118988ee8b485184bb11ff",
   "test_hashes": {
     "tests/core/test_knockout.py": "sha256-pyast:v2:9a6eb76bc3855769fa4f3286de9b09f3eca062fa5f28266676dd1377efed7103",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:39afa0dede39a8921089fbfb83a6890b3368c3b8a1c880c022a856b3682e7ee5",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
     "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
     "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
@@ -11,7 +11,7 @@
     "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221"
   },
   "created_at": "2026-08-12T00:39:56.702968+00:00",
-  "revision": 10,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:26cd3fad78495e0616fbd6258b31cc44b10b5d919c48be11adfe2678cc788389",
@@ -218,6 +218,52 @@
       },
       "revised_at": "2026-08-12T02:51:33.827735+00:00",
       "reason": "Refresh finalized pre-launch procfs ownership behavioral hash after 121-14",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7337cbcab51054b497a8f3ae49aef81580c49ca7e7118988ee8b485184bb11ff",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:9a6eb76bc3855769fa4f3286de9b09f3eca062fa5f28266676dd1377efed7103",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:39afa0dede39a8921089fbfb83a6890b3368c3b8a1c880c022a856b3682e7ee5",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/cli/test_verify_knockout_differential_cmd.py": "sha256-pyast:v2:58d4a3b3ccad8f26c1e19bf5c29295c4f55d151e14b5fcb525c1ef305b2c0295",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221"
+      },
+      "revised_at": "2026-08-12T14:57:46.103721+00:00",
+      "reason": "Accept the approved 121-18 shared snapshot behavioral contract for safe Git author equivalence; the reviewed 121-13 production surface and red evidence are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7337cbcab51054b497a8f3ae49aef81580c49ca7e7118988ee8b485184bb11ff",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:9a6eb76bc3855769fa4f3286de9b09f3eca062fa5f28266676dd1377efed7103",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:dda50351532eb024869b913b6974b55674e57be78fc7dd06827f33a1a00c4ee8",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/cli/test_verify_knockout_differential_cmd.py": "sha256-pyast:v2:58d4a3b3ccad8f26c1e19bf5c29295c4f55d151e14b5fcb525c1ef305b2c0295",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221"
+      },
+      "revised_at": "2026-08-12T15:05:14.515262+00:00",
+      "reason": "Refresh the shared snapshot behavioral hash after 121-18 added the reviewer-required non-Git no-extra-file adversary; the reviewed 121-13 contract and red evidence remain unchanged.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

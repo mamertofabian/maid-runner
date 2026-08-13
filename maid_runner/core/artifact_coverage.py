@@ -11,9 +11,11 @@ from types import MappingProxyType
 
 from maid_runner.core._runtime_command_executor import (
     RuntimeCommandExecutor,
+    RuntimeCommandRecord,
     RuntimeFileExecution,
     SubprocessRuntimeCommandExecutor,
 )
+from maid_runner.core._knockout_snapshot import ProjectSnapshotBackend
 from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.result import ErrorCode, Location, ValidationError
@@ -75,11 +77,33 @@ class EvidenceArtifactCoverageResult:
 
     reports: Mapping[str, ArtifactCoverageReport]
     fallback_identities: tuple[RuntimeCommandIdentity, ...]
+    isolated_fallback_identities: tuple[RuntimeCommandIdentity, ...]
+    serial_fallback_identities: tuple[RuntimeCommandIdentity, ...]
     complete: bool
+    isolated_worker_errors: tuple[ValidationError, ...] = ()
+    isolated_material_project_writes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "reports", MappingProxyType(dict(self.reports)))
         object.__setattr__(self, "fallback_identities", tuple(self.fallback_identities))
+        object.__setattr__(
+            self,
+            "isolated_fallback_identities",
+            tuple(self.isolated_fallback_identities),
+        )
+        object.__setattr__(
+            self,
+            "serial_fallback_identities",
+            tuple(self.serial_fallback_identities),
+        )
+        object.__setattr__(
+            self, "isolated_worker_errors", tuple(self.isolated_worker_errors)
+        )
+        object.__setattr__(
+            self,
+            "isolated_material_project_writes",
+            tuple(self.isolated_material_project_writes),
+        )
 
 
 def coverage_is_available() -> bool:
@@ -249,10 +273,20 @@ def evaluate_artifact_coverage_from_evidence(
     project_root: Path,
     evidence: RuntimeEvidenceBundle,
     fallback_executor: RuntimeCommandExecutor | None = None,
+    fallback_jobs: int = 1,
+    max_processes: int = 1,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
 ) -> EvidenceArtifactCoverageResult:
     """Evaluate exact attributed contexts, falling back per unsafe command."""
+    from maid_runner.core._artifact_coverage_fallback_worker import (
+        run_isolated_artifact_coverage_fallbacks,
+    )
+    from maid_runner.core._knockout_snapshot import (
+        MaterializedProjectSnapshotBackend,
+    )
+
     ordered_manifests = list(manifests)
-    root = Path(project_root)
+    root = Path(project_root).resolve()
     current = runtime_evidence_is_current(
         evidence,
         ordered_manifests,
@@ -270,7 +304,90 @@ def evaluate_artifact_coverage_from_evidence(
     timeout_seconds = load_config(root).artifact_coverage.timeout_seconds
     executor = fallback_executor
     fallback_identities: list[RuntimeCommandIdentity] = []
+    targets_by_identity: dict[RuntimeCommandIdentity, set[str]] = {}
+    fallback_runs: dict[RuntimeCommandIdentity, RuntimeCommandRecord] = {}
     reports: dict[str, ArtifactCoverageReport] = {}
+
+    for manifest in ordered_manifests:
+        targets = _coverage_targets(manifest, root)
+        target_files = {
+            str((root / file_path).resolve()) for file_path, _artifact in targets
+        }
+        for index, original_command in enumerate(manifest.validate_commands):
+            if _pytest_args(original_command) is None:
+                continue
+            identity = RuntimeCommandIdentity(
+                manifest.source_path, index, original_command
+            )
+            command_evidence = evidence_by_identity.get(
+                (manifest.source_path, index, tuple(original_command))
+            )
+            if targets and (
+                not current or not _command_evidence_is_reusable(command_evidence)
+            ):
+                fallback_identities.append(identity)
+                targets_by_identity[identity] = target_files
+
+    isolated_identities: tuple[RuntimeCommandIdentity, ...] = ()
+    serial_identities: tuple[RuntimeCommandIdentity, ...] = ()
+    isolated_worker_errors: tuple[ValidationError, ...] = ()
+    isolated_material_project_writes: tuple[str, ...] = ()
+    if fallback_identities:
+        if executor is None:
+            if not coverage_is_available():
+                unavailable = {
+                    item.source_path: _coverage_unavailable_report()
+                    for item in ordered_manifests
+                }
+                return EvidenceArtifactCoverageResult(
+                    unavailable,
+                    tuple(fallback_identities),
+                    (),
+                    (),
+                    False,
+                )
+            executor = SubprocessRuntimeCommandExecutor()
+        if fallback_jobs > 1:
+            isolated_run = run_isolated_artifact_coverage_fallbacks(
+                fallback_identities,
+                root,
+                targets_by_identity,
+                snapshot_backend or MaterializedProjectSnapshotBackend(),
+                executor,
+                fallback_jobs,
+                max_processes,
+            )
+            isolated_worker_errors = tuple(
+                error for result in isolated_run.results for error in result.errors
+            )
+            isolated_material_project_writes = tuple(
+                path
+                for result in isolated_run.results
+                for path in result.material_project_writes
+            )
+            if not isolated_run.serial_fallback_identities:
+                isolated_identities = tuple(fallback_identities)
+                fallback_runs = {
+                    result.identity: result.command_run
+                    for result in isolated_run.results
+                    if result.command_run is not None
+                }
+            else:
+                serial_identities = tuple(fallback_identities)
+        else:
+            serial_identities = tuple(fallback_identities)
+
+        if serial_identities:
+            for identity in serial_identities:
+                pytest_args = _pytest_args(identity.command)
+                if pytest_args is None:  # pragma: no cover - inventoried above
+                    continue
+                fallback_runs[identity] = executor.execute(
+                    pytest_args,
+                    targets_by_identity[identity],
+                    root,
+                    timeout_seconds,
+                )
 
     for manifest in ordered_manifests:
         targets = _coverage_targets(manifest, root)
@@ -296,28 +413,12 @@ def evaluate_artifact_coverage_from_evidence(
             command_evidence = evidence_by_identity.get(
                 (manifest.source_path, index, tuple(original_command))
             )
-            if not current or not _command_evidence_is_reusable(command_evidence):
-                if executor is None:
-                    if not coverage_is_available():
-                        reports = {
-                            item.source_path: _coverage_unavailable_report()
-                            for item in ordered_manifests
-                        }
-                        return EvidenceArtifactCoverageResult(
-                            reports=reports,
-                            fallback_identities=tuple(fallback_identities),
-                            complete=False,
-                        )
-                    executor = SubprocessRuntimeCommandExecutor()
-                command_run = executor.execute(
-                    pytest_args,
-                    target_files,
-                    root,
-                    timeout_seconds,
-                )
-                fallback_identities.append(identity)
+            if identity in fallback_runs:
+                command_run = fallback_runs[identity]
                 command_execution = command_run.execution_data
             else:
+                if command_evidence is None:
+                    continue
                 command_run = command_evidence.result
                 command_execution = _execution_from_attributed_contexts(
                     command_evidence
@@ -346,7 +447,11 @@ def evaluate_artifact_coverage_from_evidence(
     return EvidenceArtifactCoverageResult(
         reports=reports,
         fallback_identities=tuple(fallback_identities),
+        isolated_fallback_identities=isolated_identities,
+        serial_fallback_identities=serial_identities,
         complete=current and not fallback_identities,
+        isolated_worker_errors=isolated_worker_errors,
+        isolated_material_project_writes=isolated_material_project_writes,
     )
 
 

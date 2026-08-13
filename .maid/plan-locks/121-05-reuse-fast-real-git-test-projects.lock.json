@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
   "manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
   "test_hashes": {
-    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:ec0c29968468ddd58bd2a317ba6e2fe6c08d6372594c5e43942dbe82e31afb64",
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea",
     "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
     "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
     "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
   },
   "created_at": "2026-08-11T00:12:44.993729+00:00",
-  "revision": 7,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:589331d922c5249a3b3071253f985f45846bdc6431d4da9bb96fb5624c06459a",
@@ -183,6 +183,46 @@
       },
       "revised_at": "2026-08-11T01:29:26.187352+00:00",
       "reason": "capture reviewed implementation outcome and measured performance limits",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:ec0c29968468ddd58bd2a317ba6e2fe6c08d6372594c5e43942dbe82e31afb64",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-12T10:19:47.896387+00:00",
+      "reason": "Accept approved 121-17 shared test isolation correction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:b1f3fdc870495ecc6b8032cdb38ae44593f65a4dcc745d138d834bd0d39e48e1",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-12T10:32:48.667057+00:00",
+      "reason": "Refresh the shared behavioral-test hash after 121-17 tightened only the private elapsed-time comparison adversary; the reviewed 121-05 production contract and red evidence are unchanged.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

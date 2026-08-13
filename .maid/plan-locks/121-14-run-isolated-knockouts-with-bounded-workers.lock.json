@@ -2,16 +2,16 @@
   "manifest_path": "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
   "manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
   "test_hashes": {
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:2b2f2c6bb92ff54bf2d907ddc43eed9a43a33ca8a302dcab11e7d3dd381aebde",
-    "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8",
+    "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
     "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
     "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:39afa0dede39a8921089fbfb83a6890b3368c3b8a1c880c022a856b3682e7ee5",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
     "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
   },
   "created_at": "2026-08-12T01:39:10.089868+00:00",
-  "revision": 13,
+  "revision": 17,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:03bfd0adfc1d8cf5761890cb9b389e6fdee4dbd5ca381efd3602bec70d9aefc3",
@@ -326,6 +326,98 @@
       },
       "revised_at": "2026-08-12T02:49:48.463476+00:00",
       "reason": "Require procfs ownership preflight before entering the target process boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:2b2f2c6bb92ff54bf2d907ddc43eed9a43a33ca8a302dcab11e7d3dd381aebde",
+        "tests/core/test_config.py": "sha256-pyast:v2:9b22eb288fee1450a62ff915984955c0b5e101138f27765969f26ee933f157d7",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:39afa0dede39a8921089fbfb83a6890b3368c3b8a1c880c022a856b3682e7ee5",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-12T09:14:40.915111+00:00",
+      "reason": "Accept approved 121-15 shared config test extension",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:2b2f2c6bb92ff54bf2d907ddc43eed9a43a33ca8a302dcab11e7d3dd381aebde",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:39afa0dede39a8921089fbfb83a6890b3368c3b8a1c880c022a856b3682e7ee5",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-12T14:57:46.456570+00:00",
+      "reason": "Replace a scheduler-sensitive overlap sleep with the approved 121-18 deterministic barrier while preserving the reviewed bounded-worker production contract and red evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:dda50351532eb024869b913b6974b55674e57be78fc7dd06827f33a1a00c4ee8",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-12T15:07:00.038760+00:00",
+      "reason": "Refresh the shared snapshot behavioral hash after 121-18 added the reviewer-required non-Git no-extra-file adversary; the reviewed 121-14 worker contract and red evidence remain unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-13T03:12:00.767148+00:00",
+      "reason": "Accept the approved shared behavioral-test additions and Black formatting from the grouped deep-verification evidence implementation.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
