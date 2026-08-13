@@ -268,6 +268,16 @@ def _knockout_spec_cache_key(root: Path, spec: KnockoutMutationSpec) -> str | No
         },
         "source_digest": spec.source_digest,
         "mutated_body_digest": mutated_body_digest,
+        "declarations": [
+            {
+                "manifest_path": declaration.manifest_path,
+                "manifest_slug": declaration.manifest_slug,
+                "declaration_index": declaration.declaration_index,
+                "plan_index": declaration.plan_index,
+                "commands": [list(command) for command in declaration.commands],
+            }
+            for declaration in spec.declarations
+        ],
         "content_digest": _content_digest(root),
         "runner_version": __version__,
         "environment": {

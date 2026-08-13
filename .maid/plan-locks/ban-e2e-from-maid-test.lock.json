@@ -2,12 +2,12 @@
   "manifest_path": "manifests/ban-e2e-from-maid-test.manifest.yaml",
   "manifest_hash": "sha256-contract:11ce8e7261cb8e8fb633405051b71ab2f769afad61540e91c86d8988bd627df8",
   "test_hashes": {
-    "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
     "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
     "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a"
   },
   "created_at": "2026-06-25T12:56:08.193055+00:00",
-  "revision": 24,
+  "revision": 25,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:14b0d5c5472c57dc9cf909b2c4e1e7e31fbf27aa60d92fd56dd81e109bb79a22",
@@ -329,6 +329,25 @@
       },
       "revised_at": "2026-08-11T04:03:21.323946+00:00",
       "reason": "accept final approved 121-07 shared implementation and test hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:11ce8e7261cb8e8fb633405051b71ab2f769afad61540e91c86d8988bd627df8",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_test_cmd.py": "sha256-pyast:v2:dd6e61105a17c248a981c3209c000c77335718deb30e50325ad163a1a5b41f9a"
+      },
+      "revised_at": "2026-08-13T13:57:57.148567+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

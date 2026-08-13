@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
   "manifest_hash": "sha256-contract:87b360914c566dd01ef9721d32417fc5adc24fc690ce0374f0e56174f2f0cade",
   "test_hashes": {
-    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
     "tests/cli/test_reuse_ordinary_tests_after_knockout.py": "sha256-pyast:v2:bde69a7828ba6902124e4e80439bebb2eafe6d5fddd9705a06e3086f9728793e"
   },
   "created_at": "2026-08-13T09:29:47.087078+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1e2bb3621b19e2f01562e23962a8125c85e7cdafff33e3493f65c969575a6843",
@@ -16,6 +16,24 @@
       },
       "revised_at": "2026-08-13T09:30:02.135191+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml -> manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:87b360914c566dd01ef9721d32417fc5adc24fc690ce0374f0e56174f2f0cade",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/cli/test_reuse_ordinary_tests_after_knockout.py": "sha256-pyast:v2:bde69a7828ba6902124e4e80439bebb2eafe6d5fddd9705a06e3086f9728793e"
+      },
+      "revised_at": "2026-08-13T13:57:59.481776+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

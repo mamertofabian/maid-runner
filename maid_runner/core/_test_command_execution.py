@@ -33,32 +33,51 @@ status_path = sys.argv[1]
 command = sys.argv[2:]
 child = None
 
-def descendants(parent):
-    children = {}
+def direct_children(parent):
+    task_root = '/proc/' + str(parent) + '/task'
     try:
-        entries = os.listdir('/proc')
+        task_entries = os.listdir(task_root)
+    except FileNotFoundError:
+        # The process exited while its owned tree was being traversed. Any
+        # surviving child is reparented to this subreaper and appears in the
+        # next root scan during cleanup.
+        return set()
     except OSError as exc:
         raise RuntimeError('could not prove descendant ownership') from exc
-    for entry in entries:
-        if not entry.isdigit():
-            continue
+    children = set()
+    for task_entry in task_entries:
         try:
-            with open('/proc/' + entry + '/stat', encoding='utf-8') as stream:
-                stat = stream.read()
-            closing = stat.rfind(')')
-            fields = stat[closing + 2:].split()
-            if closing < 0 or len(fields) < 2:
-                raise ValueError('malformed proc stat')
-            children.setdefault(int(fields[1]), set()).add(int(entry))
-        except FileNotFoundError:
-            continue
-        except (OSError, ValueError, IndexError) as exc:
+            task_id = int(task_entry)
+        except ValueError as exc:
             raise RuntimeError('could not prove descendant ownership') from exc
+        if task_id <= 0:
+            raise RuntimeError('could not prove descendant ownership')
+        path = task_root + '/' + task_entry + '/children'
+        try:
+            with open(path, encoding='utf-8') as stream:
+                payload = stream.read()
+        except FileNotFoundError:
+            # The task exited after enumeration. Its live children are
+            # reparented and become visible from a subsequent root scan.
+            continue
+        except OSError as exc:
+            raise RuntimeError('could not prove descendant ownership') from exc
+        for entry in payload.split():
+            try:
+                child = int(entry)
+            except ValueError as exc:
+                raise RuntimeError('could not prove descendant ownership') from exc
+            if child <= 0:
+                raise RuntimeError('could not prove descendant ownership')
+            children.add(child)
+    return children
+
+def descendants(parent):
     found = set()
     pending = [parent]
     while pending:
         current = pending.pop()
-        for child in children.get(current, ()):
+        for child in direct_children(current):
             if child not in found:
                 found.add(child)
                 pending.append(child)
@@ -108,7 +127,12 @@ def cleanup():
         reap()
         if not descendants(os.getpid()):
             break
+        # A child can be reparented to the subreaper after the first KILL
+        # wave. Rescan and signal until cleanup is positively acknowledged.
+        signal_all(signal.SIGKILL)
         time.sleep(0.01)
+    else:
+        raise RuntimeError('could not prove descendant cleanup')
     reap()
 
 def terminate(_signum, _frame):

@@ -2,9 +2,10 @@
 
 Contract: manifests/drafts/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
 
-Sequential declarations on one worker keep the copied .venv and drop generated
-snapshot files. Concurrent workers stay isolated. Knockout uses this backend by
-default without binding the source interpreter.
+Sequential declarations on one worker keep one copied .venv while receiving
+fresh source/Git roots with no generated-state leakage. Concurrent workers stay
+isolated. Knockout uses this backend by default without binding the source
+interpreter.
 """
 
 from __future__ import annotations
@@ -32,9 +33,10 @@ def test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state(
             first_venv = (first.root / ".venv").resolve()
 
         with backend.create(root, ("src/target.py",), "second") as second:
-            assert second.root == first_root
-            assert (second.root / ".venv").resolve() == first_venv
-            assert (second.root / ".venv/retained-marker").read_text() == "keep\n"
+            assert second.root != first_root
+            second_venv = Path(second.environment_overrides["VIRTUAL_ENV"]).resolve()
+            assert second_venv == first_venv
+            assert (second_venv / "retained-marker").read_text() == "keep\n"
             assert not (second.root / "generated.txt").exists()
             assert (second.root / "src/target.py").read_text() == (
                 "def target():\n    return 'original'\n"
@@ -74,11 +76,10 @@ def test_serial_knockout_reuses_one_snapshot_root_across_identities(
     )
 
     assert all(report.success for report in reports.values())
-    assert len(set(executor.roots)) == 1
+    assert len(set(executor.roots)) == 2
     assert executor.baseline_state_missing == [True, True]
-    venvs = {root / ".venv" for root in executor.roots}
-    assert len(venvs) == 1
-    assert next(iter(venvs)).resolve() != (tmp_path / ".venv").resolve()
+    assert len(set(executor.venvs)) == 1
+    assert executor.venvs[0].resolve() != (tmp_path / ".venv").resolve()
 
 
 def test_knockout_batch_defaults_to_retained_worker_backend(
@@ -177,11 +178,20 @@ class _RootRecordingExecutor:
     def __init__(self, decisions):
         self.decisions = iter(decisions)
         self.roots: list[Path] = []
+        self.venvs: list[Path] = []
         self.baseline_state_missing: list[bool] = []
         self._after_mutant = False
 
-    def execute(self, command, project_root, manifest_slug, *environment):
+    def execute(
+        self,
+        command,
+        project_root,
+        manifest_slug,
+        environment_overrides=None,
+        environment_removals=(),
+    ):
         root = Path(project_root)
+        self.venvs.append(Path(environment_overrides["VIRTUAL_ENV"]))
         mutated = (
             'raise NotImplementedError("maid-knockout")'
             in (root / "src/target.py").read_text()

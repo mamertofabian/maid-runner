@@ -2,11 +2,11 @@
   "manifest_path": "manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml",
   "manifest_hash": "sha256-contract:e077c98e7bbbb6f48b1a6dc2f4af990f784f2f860d9b11b5966ec7aaf05b691a",
   "test_hashes": {
-    "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
     "tests/core/test_pytest_config_addopts.py": "sha256-pyast:v2:fcf643c206db3c8e25b92953011f68ba39b90ecb4d57255f0308c78a5aacb325"
   },
   "created_at": "2026-07-03T22:57:41.152355+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:aca5d1be2164ef583569b5ef6bd6171609a1ad54423eb99d2435600b7b455a41",
@@ -107,6 +107,24 @@
           "read:manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml",
           "read:tests/core/test_test_runner.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e077c98e7bbbb6f48b1a6dc2f4af990f784f2f860d9b11b5966ec7aaf05b691a",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_pytest_config_addopts.py": "sha256-pyast:v2:fcf643c206db3c8e25b92953011f68ba39b90ecb4d57255f0308c78a5aacb325"
+      },
+      "revised_at": "2026-08-13T13:57:57.467677+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

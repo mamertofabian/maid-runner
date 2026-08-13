@@ -535,6 +535,7 @@ def test_fake_runtime_executor_preserves_single_manifest_report(
             }
         ],
         "errors": [],
+        "provenance": "exact",
     }
     assert len(executor.calls) == 1
     assert executor.calls[0][0] == ("-q", "tests/test_target.py")

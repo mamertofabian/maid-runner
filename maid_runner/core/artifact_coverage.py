@@ -213,6 +213,7 @@ def run_artifact_coverage(
     return ArtifactCoverageReport(
         findings=tuple(findings),
         errors=tuple(command_errors + report_errors + execution_errors),
+        provenance="exact",
     )
 
 

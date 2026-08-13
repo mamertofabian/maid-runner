@@ -2,14 +2,14 @@
   "manifest_path": "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
   "manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
   "test_hashes": {
-    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
     "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
     "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
     "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61"
   },
   "created_at": "2026-08-10T22:43:56.286013+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:db8b4adde9b1a672e1307ace20c5c09b675a67915626d5f6b5648eeabcaf03a8",
@@ -74,6 +74,27 @@
       },
       "revised_at": "2026-08-10T23:10:51.126559+00:00",
       "reason": "Strengthen the locked executor contract after independent review: require defensive frozenset coercion and one absolute normalized key containing both real line and call evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61"
+      },
+      "revised_at": "2026-08-13T13:57:56.076771+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

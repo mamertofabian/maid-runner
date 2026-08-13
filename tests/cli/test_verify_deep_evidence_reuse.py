@@ -197,7 +197,13 @@ def test_instrumentation_observable_test_cannot_create_false_green_tests_stage(
     _write_project(
         tmp_path,
         log,
-        assertion=("assert target() and __import__('sys').getprofile() is not None"),
+        assertion=(
+            "assert target() and (lambda sys: "
+            "sys.getprofile() is not None or "
+            "(getattr(sys, 'monitoring', None) is not None and "
+            "any(sys.monitoring.get_tool(i) == 'maid-runtime-evidence' "
+            "for i in range(6))))(__import__('sys'))"
+        ),
     )
     monkeypatch.setenv("MAID_EVIDENCE_EXECUTION_LOG", str(log))
 
@@ -280,7 +286,7 @@ def test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage(
         tmp_path,
         log,
         assertion=(
-            "assert target() and " "log.read_text().splitlines().count('pytest') == 1"
+            "assert target() and log.read_text().splitlines().count('pytest') == 1"
         ),
     )
     monkeypatch.setenv("MAID_EVIDENCE_EXECUTION_LOG", str(log))
@@ -398,9 +404,7 @@ def test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fall
     from maid_runner.cli.commands.validate import _run_artifact_coverage_by_manifest
     from maid_runner.core.runtime_evidence import collect_runtime_evidence
 
-    assertion = (
-        "assert target(); " "__import__('pathlib').Path('src/target.py').unlink()"
-    )
+    assertion = "assert target(); __import__('pathlib').Path('src/target.py').unlink()"
     verify_root = tmp_path / "verify"
     verify_root.mkdir()
     log = tmp_path / "verify.log"

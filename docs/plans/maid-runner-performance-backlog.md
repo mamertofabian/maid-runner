@@ -615,6 +615,72 @@ Git-isolated snapshots and requires full serial/parallel report equivalence
 before enforcing the 180-second budget. The ordered continuation is 121-03
 through 121-15.
 
+## 121 command-supervisor procfs finding (2026-08-13)
+
+The post-121 aggregate gate exposed a confirmed command-supervision hot path.
+The Linux supervisor's `descendants()` helper enumerates every process under
+`/proc` before command launch and again during cleanup. Even a completed command
+therefore pays several repository-wide procfs scans plus the supervisor process.
+
+| Probe | Result | Status |
+| --- | ---: | --- |
+| 100 sequential `_run_test_command(("true",))` calls | 11.19s | pass |
+| `maid test --json`, first corrected run | 134.10s | 280/281 commands passed |
+| Broad 8-worker pytest batch inside that gate | 59.89s | one concurrency-only command-supervisor failure |
+| Isolated failing runner test | 0.37s | pass |
+| `test_test_runner.py` under the same 8-worker topology | 2.98s | 87 passed |
+
+The intermittent aggregate failure occurred when one of two trivial `echo`
+commands lost its supervised completion during high process churn. The exact
+race is not yet proven, but global procfs enumeration is both the measured hot
+path and an avoidable race surface. Linux already exposes each process's direct
+children through `/proc/<pid>/task/<pid>/children`; recursively traversing that
+owned tree preserves subreaper-based detached-child cleanup without scanning
+unrelated processes. The next bounded child should replace only the supervisor's
+global enumeration, prove it works when `/proc` directory listing is denied,
+retain all 121-14 fail-closed cleanup adversaries, and remeasure the 100-command
+probe plus the repository gate.
+
+## 121 cached-validation scheduling barrier (2026-08-13)
+
+After bounded procfs traversal, `maid test --json` passed all 282 command
+results in 125.93 seconds. The reported command durations sum to 105.74 seconds,
+while the broad xdist batch took 54.83 seconds. Source inspection confirmed an
+avoidable serialization barrier in `_run_implementation_commands`: external
+commands are accumulated, but every cacheable `maid validate` command first
+runs synchronously on the main thread and only then flushes the preceding
+external group. This repeats at each cached/external boundary.
+
+The cache itself should remain single-threaded; its `ValidationEngine` and
+manifest-chain scope are process-local shared state. External commands already
+run in isolated subprocesses and may start immediately in the existing bounded
+thread pool while the main thread executes cached validation. Deterministic
+output does not require barrier execution: retain one result slot per command,
+wait and finalize external futures in original slot order, and preserve serial
+fail-fast behavior. A behavioral overlap test must prove that cached validation
+runs while a preceding external command is active, while the existing cached
+serial/thread-identity and result-order tests remain green.
+
+## 121 timing-history advisory-input invalidation (2026-08-13)
+
+Two consecutive green overlap gates took 100.77 and 100.66 seconds, and every
+automatically scheduled pytest command still reported
+`workers:unknown-history-policy`. Inspection showed the timing cache files had
+been written successfully. Between the runs, another local tool created a
+`.claude/insights/...md` advisory file. `build_pytest_timing_identity()` hashes
+every repository file except a short generated-path list, so this unrelated
+advisory invalidated the complete per-test timing history and forced even tiny
+pytest commands to pay eight-worker startup again.
+
+This is not a reason to weaken content binding generally. Tests in this
+repository intentionally inspect distributed `.claude` and `.codex` assets, so
+those roots remain relevant. Exclude only `.claude/insights`, whose timestamped
+agent-session notes are generated advisory state and are not pytest inputs.
+Behavioral coverage must prove that changing an insight preserves the input
+digest while changing a test file still invalidates it. Then rerun the gate
+without production-tree writes between iterations to confirm current timing
+history selects serial execution for sub-threshold commands.
+
 ## Suggested Acceptance Criteria
 
 - Tower Recall strict behavioral validation reduces bridge request cumulative

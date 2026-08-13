@@ -13,7 +13,7 @@ import threading
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from contextlib import AbstractContextManager, contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 
@@ -114,12 +114,12 @@ class SharedEnvironmentProjectSnapshotBackend(MaterializedProjectSnapshotBackend
 
 
 class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
-    """Copy dependency environments once per worker thread; reset source and Git."""
+    """Copy dependencies once per worker; use fresh source and Git roots."""
 
     def __init__(self) -> None:
         self._retain_lock = threading.Lock()
         self._retain_count = 0
-        self._opened_by_thread: dict[int, _OpenedSnapshot] = {}
+        self._opened_by_thread: dict[int, _RetainedWorkerSnapshot] = {}
 
     @contextmanager
     def retain(self) -> AbstractContextManager[None]:
@@ -131,7 +131,7 @@ class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
             with self._retain_lock:
                 self._retain_count -= 1
                 opened = (
-                    list(self._opened_by_thread.values())
+                    [item.opened for item in self._opened_by_thread.values()]
                     if self._retain_count == 0
                     else []
                 )
@@ -160,23 +160,42 @@ class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
         source_root = Path(project_root).resolve()
         thread_id = threading.get_ident()
         with self._retain_lock:
-            opened = self._opened_by_thread.get(thread_id)
-        if opened is None:
+            retained = self._opened_by_thread.get(thread_id)
+        if retained is None:
             opened = _open_materialized_snapshot(
                 source_root,
                 required_paths,
                 worker_id,
                 share_dependency_environments=self._share_dependency_environments,
             )
+            retained = _RetainedWorkerSnapshot(
+                opened=opened,
+                bound_project_root=opened.snapshot.root,
+            )
             with self._retain_lock:
-                self._opened_by_thread[thread_id] = opened
-        else:
-            if opened.source_root != source_root:
-                raise RuntimeError(
-                    "Retained knockout snapshot worker changed project root"
-                )
-            _reset_retained_snapshot(opened, required_paths)
-        yield opened.snapshot
+                self._opened_by_thread[thread_id] = retained
+        if retained.opened.source_root != source_root:
+            raise RuntimeError("Retained knockout snapshot worker changed project root")
+        if retained.leased:
+            raise RuntimeError(
+                "Retained knockout snapshot worker was leased recursively"
+            )
+
+        retained.leased = True
+        try:
+            if not retained.used:
+                retained.used = True
+                yield retained.opened.snapshot
+                return
+            with _fresh_snapshot_using_retained_dependencies(
+                retained,
+                source_root,
+                required_paths,
+                worker_id,
+            ) as snapshot:
+                yield snapshot
+        finally:
+            retained.leased = False
 
 
 @dataclass
@@ -188,6 +207,59 @@ class _OpenedSnapshot:
     dependency_sources: Mapping[str, Path]
     dependency_identity: Mapping[str, str]
     source_repository_identity: str | None
+
+
+@dataclass
+class _RetainedWorkerSnapshot:
+    opened: _OpenedSnapshot
+    bound_project_root: Path
+    used: bool = False
+    leased: bool = False
+
+
+@contextmanager
+def _fresh_snapshot_using_retained_dependencies(
+    retained: _RetainedWorkerSnapshot,
+    source_root: Path,
+    required_paths: Sequence[str],
+    worker_id: str,
+) -> AbstractContextManager[KnockoutProjectSnapshot]:
+    opened = _open_materialized_snapshot(
+        source_root,
+        required_paths,
+        worker_id,
+        share_dependency_environments=True,
+    )
+    body_error: BaseException | None = None
+    try:
+        dependency_root = retained.opened.snapshot.root
+        shared_dependencies = {
+            name: dependency_root / name
+            for name in retained.opened.dependency_sources
+            if (dependency_root / name).is_dir()
+        }
+        virtual_environment = shared_dependencies.get(".venv")
+        if virtual_environment is not None:
+            _rebind_copied_python_project_root(
+                virtual_environment,
+                retained.bound_project_root,
+                opened.snapshot.root,
+            )
+            retained.bound_project_root = opened.snapshot.root
+        opened.snapshot = replace(
+            opened.snapshot,
+            environment_overrides=_snapshot_environment(
+                source_root,
+                opened.snapshot.root,
+                shared_dependencies=shared_dependencies,
+            ),
+        )
+        yield opened.snapshot
+    except BaseException as exc:
+        body_error = exc
+        raise
+    finally:
+        _teardown_materialized_snapshot(opened, body_error)
 
 
 def _open_materialized_snapshot(
@@ -714,6 +786,48 @@ def _rewrite_dependency_paths(venv: Path, replacements: Mapping[str, str]) -> No
             rewritten = content
             for source, target in encoded_replacements:
                 rewritten = rewritten.replace(source, target)
+            if rewritten != content:
+                path.write_bytes(rewritten)
+
+
+def _rebind_copied_python_project_root(
+    venv: Path,
+    previous_root: Path,
+    current_root: Path,
+) -> None:
+    """Repoint editable metadata without changing the retained venv path."""
+    if previous_root == current_root:
+        return
+    metadata_suffixes = frozenset({".cfg", ".egg-link", ".json", ".pth", ".py"})
+    previous = os.fspath(previous_root).encode()
+    current = os.fspath(current_root).encode()
+    retained_environment = os.fspath(venv).encode()
+    sentinel = b"__MAID_RETAINED_VIRTUAL_ENVIRONMENT__"
+    for directory, _directory_names, file_names in os.walk(venv):
+        parent = Path(directory)
+        is_launcher_directory = parent.parent == venv and parent.name in {
+            "bin",
+            "Scripts",
+        }
+        for name in file_names:
+            path = parent / name
+            if path.is_symlink() or not path.is_file():
+                continue
+            if not is_launcher_directory and path.suffix not in metadata_suffixes:
+                continue
+            try:
+                content = path.read_bytes()
+            except OSError as exc:
+                raise RuntimeError(
+                    f"Snapshot could not inspect retained dependency metadata: {path}"
+                ) from exc
+            if sentinel in content:
+                raise RuntimeError(
+                    "Retained dependency metadata contains the reserved rebind marker"
+                )
+            rewritten = content.replace(retained_environment, sentinel)
+            rewritten = rewritten.replace(previous, current)
+            rewritten = rewritten.replace(sentinel, retained_environment)
             if rewritten != content:
                 path.write_bytes(rewritten)
 

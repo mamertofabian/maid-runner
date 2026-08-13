@@ -73,9 +73,7 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     sibling_tests = tmp_path / "tests"
     sibling_tests.mkdir()
     (sibling_tests / "test_gate.py").write_text(
-        "from src.gate import gate\n\n"
-        "def test_gate():\n"
-        "    assert gate() == 'ok'\n"
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
     )
     return project_root, manifest_path
 
@@ -820,6 +818,109 @@ validate:
     assert result.success is True
     assert max_active_cached == 1
     assert worker_threads == ["MainThread", "MainThread"]
+
+
+def test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    contracts_dir = tmp_path / "contracts"
+    manifests_dir.mkdir()
+    contracts_dir.mkdir()
+    (manifests_dir / "a-external.manifest.yaml").write_text(
+        """schema: "2"
+goal: "External"
+files:
+  create:
+    - path: src/external.py
+      artifacts:
+        - kind: function
+          name: external
+validate:
+  - echo external
+"""
+    )
+    (manifests_dir / "b-cached.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Cached"
+files:
+  create:
+    - path: src/cached.py
+      artifacts:
+        - kind: function
+          name: cached
+validate:
+  - maid validate contracts/target.manifest.yaml
+"""
+    )
+    (contracts_dir / "target.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  create:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+validate:
+  - echo target
+"""
+    )
+
+    external_started = threading.Event()
+    release_external = threading.Event()
+    cached_saw_external = False
+
+    def fake_run_command(command, **kwargs):
+        external_started.set()
+        assert release_external.wait(timeout=2)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    def fake_cached_maid_validate_command(command, **kwargs):
+        nonlocal cached_saw_external
+        if command == ("echo", "external"):
+            return None
+        assert threading.current_thread().name == "MainThread"
+        cached_saw_external = external_started.wait(timeout=2)
+        release_external.set()
+        return TestRunResult(
+            manifest_slug=kwargs["manifest_slug"],
+            command=command,
+            exit_code=0,
+            stdout="cached",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs["stream"],
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner._run_cached_maid_validate_command",
+        fake_cached_maid_validate_command,
+    )
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        jobs=2,
+    )
+
+    assert result.success is True
+    assert cached_saw_external is True
+    assert [item.command for item in result.results] == [
+        ("echo", "external"),
+        ("maid", "validate", "contracts/target.manifest.yaml"),
+    ]
 
 
 def test_run_parallel_test_commands_returns_input_order(monkeypatch, tmp_path):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Union
@@ -23,6 +23,7 @@ from maid_runner.core._pytest_worker_execution import (
     prepare_pytest_command,
 )
 from maid_runner.core._maid_validate_command_cache import (
+    _parse_maid_validate_command,
     _run_cached_maid_validate_command,
 )
 from maid_runner.core._test_command_execution import (
@@ -363,33 +364,28 @@ def _run_implementation_commands(
         ordered_impl_commands = [*batched_impl_commands, *sequential_impl_commands]
 
     if jobs > 1 and not fail_fast:
-        pending_external_commands: list[tuple[PreparedPytestCommand, str]] = []
+        has_cached_commands = any(
+            _parse_maid_validate_command(command) is not None
+            for command, _slug in ordered_impl_commands
+        )
+        external_workers = jobs - 1 if has_cached_commands else jobs
+        result_slots: list[
+            TestRunResult | tuple[PreparedPytestCommand, Future[TestRunResult]]
+        ] = []
+        with ThreadPoolExecutor(max_workers=external_workers) as executor:
+            for cmd, slug in ordered_impl_commands:
+                result = _run_cached_maid_validate_command(
+                    cmd,
+                    cwd=project_root,
+                    manifest_slug=slug,
+                    stream=TestStream.IMPLEMENTATION,
+                    cache=maid_validate_cache,
+                    resolve_command=_resolve_command,
+                )
+                if result is not None:
+                    result_slots.append(result)
+                    continue
 
-        def flush_external_commands() -> None:
-            nonlocal passed, failed
-            if not pending_external_commands:
-                return
-            parallel_results = _run_parallel_prepared_commands(
-                pending_external_commands,
-                project_root,
-                jobs,
-                notices,
-            )
-            results.extend(parallel_results)
-            passed += sum(1 for result in parallel_results if result.success)
-            failed += sum(1 for result in parallel_results if not result.success)
-            pending_external_commands.clear()
-
-        for cmd, slug in ordered_impl_commands:
-            result = _run_cached_maid_validate_command(
-                cmd,
-                cwd=project_root,
-                manifest_slug=slug,
-                stream=TestStream.IMPLEMENTATION,
-                cache=maid_validate_cache,
-                resolve_command=_resolve_command,
-            )
-            if result is None:
                 prepared = _prepare_external_test_command(
                     cmd,
                     project_root,
@@ -397,17 +393,32 @@ def _run_implementation_commands(
                     command_jobs=jobs,
                     scheduling_notices=notices,
                 )
-                pending_external_commands.append((prepared, slug))
-                continue
+                future = executor.submit(
+                    _run_prepared_test_command,
+                    prepared,
+                    project_root,
+                    slug,
+                )
+                result_slots.append((prepared, future))
 
-            flush_external_commands()
-            results.append(result)
-            if result.success:
-                passed += 1
-            else:
-                failed += 1
+            for slot in result_slots:
+                if isinstance(slot, TestRunResult):
+                    result = slot
+                else:
+                    prepared, future = slot
+                    result = future.result()
+                    _finalize_prepared_test_command(
+                        prepared,
+                        result,
+                        project_root,
+                        notices,
+                    )
+                results.append(result)
+                if result.success:
+                    passed += 1
+                else:
+                    failed += 1
 
-        flush_external_commands()
         return results, passed, failed, None
 
     for cmd, slug in ordered_impl_commands:

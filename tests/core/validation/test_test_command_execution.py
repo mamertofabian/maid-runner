@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from maid_runner.core._test_command_execution import (
+    _COMMAND_SUPERVISOR_SOURCE,
     _run_test_command,
     _test_command_environment,
 )
@@ -40,6 +41,87 @@ def test_timeout_terminates_and_reaps_descendant_process_group(tmp_path: Path) -
         time.sleep(0.02)
     else:
         pytest.fail(f"timed-out child process {pid} remained alive")
+
+
+@pytest.mark.skipif(
+    os.name != "posix" or not sys.platform.startswith("linux"),
+    reason="The descendant-owning command supervisor is Linux-specific",
+)
+def test_timeout_reaps_detached_child_created_by_non_main_thread(
+    tmp_path: Path,
+) -> None:
+    child_pid = tmp_path / "thread-child.pid"
+    controller = tmp_path / "thread-controller.py"
+    controller.write_text(
+        "import pathlib, signal, subprocess, sys, threading, time\n"
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        "def launch():\n"
+        '    child_code = "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(60)"\n'
+        "    child = subprocess.Popen([sys.executable, '-c', child_code], start_new_session=True)\n"
+        f"    pathlib.Path({str(child_pid)!r}).write_text(str(child.pid))\n"
+        "    time.sleep(60)\n"
+        "threading.Thread(target=launch).start()\n"
+        "while not pathlib.Path(" + repr(str(child_pid)) + ").exists():\n"
+        "    time.sleep(0.01)\n"
+        "time.sleep(60)\n"
+    )
+
+    result = _run_test_command(
+        (sys.executable, str(controller)), cwd=tmp_path, timeout=1
+    )
+
+    assert result.exit_code == -1
+    pid = int(child_pid.read_text())
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.02)
+    else:
+        try:
+            os.kill(pid, 9)
+        except ProcessLookupError:
+            pass
+        pytest.fail(f"non-main-thread child process {pid} remained alive")
+
+
+@pytest.mark.skipif(
+    os.name != "posix" or not sys.platform.startswith("linux"),
+    reason="The descendant-owning command supervisor is Linux-specific",
+)
+def test_supervisor_owns_descendants_without_global_proc_enumeration(
+    tmp_path: Path,
+) -> None:
+    status_path = tmp_path / "supervisor-status.json"
+    deny_global_proc_listing = (
+        "import os\n"
+        "_maid_real_listdir = os.listdir\n"
+        "def _maid_owned_listdir(path):\n"
+        "    if os.fspath(path) == '/proc':\n"
+        "        raise AssertionError('global procfs enumeration is forbidden')\n"
+        "    return _maid_real_listdir(path)\n"
+        "os.listdir = _maid_owned_listdir\n"
+    )
+
+    completed = subprocess.run(
+        (
+            sys.executable,
+            "-c",
+            deny_global_proc_listing + _COMMAND_SUPERVISOR_SOURCE,
+            str(status_path),
+            sys.executable,
+            "-c",
+            "pass",
+        ),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(status_path.read_text()) == {"returncode": 0}
 
 
 def test_test_command_environment_removes_ambient_pytest_addopts(monkeypatch):
