@@ -60,6 +60,28 @@ created: "2026-01-01T00:00:00Z"
 """
 
 
+# frag-a declares artifacts in TWO files: src/foo.py and src/bar.py.
+FRAG_A_MULTI = """schema: "2"
+goal: "frag a multi"
+type: feature
+files:
+  create:
+    - path: src/foo.py
+      artifacts:
+        - kind: function
+          name: alpha
+        - kind: function
+          name: beta
+    - path: src/bar.py
+      artifacts:
+        - kind: function
+          name: zeta
+validate:
+  - pytest
+created: "2026-01-01T00:00:00Z"
+"""
+
+
 def _project(tmp_path, code, manifests):
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "foo.py").write_text(code)
@@ -153,3 +175,29 @@ def test_apply_leaves_source_unchanged(tmp_path):
     )
 
     assert src.read_bytes() == before
+
+
+def test_apply_refuses_multi_file_supersession(tmp_path):
+    from maid_runner.core.chain import ManifestChain
+    from maid_runner.core.chain_merge_apply import apply_chain_merge
+
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "foo.py").write_text(CODE_FULL)
+    (tmp_path / "src" / "bar.py").write_text("def zeta():\n    return 9\n")
+    md = tmp_path / "manifests"
+    md.mkdir()
+    (md / "frag-a.manifest.yaml").write_text(FRAG_A_MULTI)
+    (md / "frag-b.manifest.yaml").write_text(FRAG_B)
+    chain = ManifestChain(md)
+    before = sorted(p.name for p in md.iterdir())
+
+    result = apply_chain_merge(
+        "src/foo.py", chain, project_root=str(tmp_path), output_dir=str(md)
+    )
+
+    # frag-a also declares src/bar.py:zeta, which a src/foo.py snapshot cannot
+    # preserve, so apply must refuse rather than drop it.
+    assert result.applied is False
+    assert result.refused_reason is not None
+    assert "frag-a" in result.refused_reason
+    assert sorted(p.name for p in md.iterdir()) == before

@@ -70,7 +70,14 @@ def build_chain_merge_report(
     Pure aggregation over ManifestChain: no I/O of its own, no knockout or
     coverage execution.
     """
-    active = chain.manifests_for_file(file_path)
+    # Only manifests that actually declare artifacts in this file count — a
+    # scope-only reference is not a contract declaration and must not inflate the
+    # fragmentation verdict.
+    active = [
+        manifest
+        for manifest in chain.manifests_for_file(file_path)
+        if any(fs.path == file_path and fs.artifacts for fs in manifest.all_file_specs)
+    ]
     merged = chain.merged_artifacts_for(file_path)
 
     active_manifest_count = len(active)

@@ -2,11 +2,11 @@
   "manifest_path": "manifests/chain-merge-apply-materialize.manifest.yaml",
   "manifest_hash": "sha256-contract:d24fade11c9a854e7dd9b05ce452eb8f5bf50f9797b494aba97305dcbce07817",
   "test_hashes": {
-    "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:83f1fbb6e859002b032b22295304a442590a589514a8ce7d1424aca2bfc58308",
-    "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:6311e584d2f31f658614b6603c9cbae0795f1a0abeb412b43781e792ecf6bcb2"
+    "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:3dead815b6b912d7480bc5204e8a675e41a543cabea77a73d3d2ad11a7c5f9c6",
+    "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b"
   },
   "created_at": "2026-08-13T23:14:43.264472+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:38738ca6b7222aeb95e0e228e6a9b4ba8df529be0990f779cbf551a42efcbca8",
@@ -28,6 +28,24 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/chain-merge-apply-materialize.manifest.yaml --mode behavioral"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d24fade11c9a854e7dd9b05ce452eb8f5bf50f9797b494aba97305dcbce07817",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:83f1fbb6e859002b032b22295304a442590a589514a8ce7d1424aca2bfc58308",
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:6311e584d2f31f658614b6603c9cbae0795f1a0abeb412b43781e792ecf6bcb2"
+      },
+      "revised_at": "2026-08-13T23:27:17.831021+00:00",
+      "reason": "Add multi-file supersession refusal test and --apply --dry-run read-only test per implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

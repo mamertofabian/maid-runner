@@ -132,10 +132,14 @@ files:
       name: test_apply_refuses_lean_file
     - kind: test_function
       name: test_apply_leaves_source_unchanged
+    - kind: test_function
+      name: test_apply_refuses_multi_file_supersession
   - path: tests/cli/test_chain_merge_apply_command.py
     artifacts:
     - kind: test_function
       name: test_chain_merge_apply_json_writes_snapshot
+    - kind: test_function
+      name: test_chain_merge_apply_dry_run_stays_read_only
   scope:
   - path: maid_runner/cli/commands/chain.py
     reason: Add a private apply dispatch/handler and route --apply without changing cmd_chain's public signature.
@@ -147,6 +151,7 @@ files:
   - maid_runner/core/chain_merge.py
   - maid_runner/core/chain.py
   - maid_runner/core/snapshot.py
+  - maid_runner/core/types.py
   - AGENTS.md
 validate:
 - uv run python -m pytest tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py -v

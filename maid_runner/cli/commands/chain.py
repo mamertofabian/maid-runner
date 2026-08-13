@@ -97,7 +97,7 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
         )
         return 2
 
-    if getattr(args, "apply", False):
+    if getattr(args, "apply", False) and not getattr(args, "dry_run", False):
         from maid_runner.core.chain_merge_apply import apply_chain_merge
 
         result = apply_chain_merge(args.file_path, chain, output_dir=args.manifest_dir)

@@ -66,3 +66,31 @@ def test_chain_merge_apply_json_writes_snapshot(tmp_path, capsys, monkeypatch):
     payload = json.loads(capsys.readouterr().out)
     assert payload["applied"] is True
     assert "snapshot_path" in payload
+
+
+def test_chain_merge_apply_dry_run_stays_read_only(tmp_path, capsys, monkeypatch):
+    from maid_runner.cli.commands._main import main
+
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "foo.py").write_text(CODE_FULL)
+    md = tmp_path / "manifests"
+    md.mkdir()
+    (md / "frag-a.manifest.yaml").write_text(FRAG_A)
+    (md / "frag-b.manifest.yaml").write_text(FRAG_B)
+    monkeypatch.chdir(tmp_path)
+    before = sorted(p.name for p in md.iterdir())
+
+    # --dry-run must win over --apply: report, do not materialize.
+    rc = main(
+        [
+            "chain",
+            "merge",
+            "src/foo.py",
+            "--apply",
+            "--dry-run",
+            "--manifest-dir",
+            "manifests",
+        ]
+    )
+    assert rc == 0
+    assert sorted(p.name for p in md.iterdir()) == before
