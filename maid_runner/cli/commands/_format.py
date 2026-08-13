@@ -18,6 +18,7 @@ from maid_runner.coherence.result import CoherenceResult
 if TYPE_CHECKING:
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.bootstrap import BootstrapReport
+    from maid_runner.core.chain_merge import ChainMergeReport
     from maid_runner.core.supersession_audit import SupersessionViolation
 
 
@@ -1206,6 +1207,63 @@ def format_replay_result(
     for path, artifacts in sorted(result.items()):
         names = [a.name for a in artifacts]
         lines.append(f"{path}: {', '.join(names)}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_report(
+    report: "ChainMergeReport",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeReport for `maid chain merge`.
+
+    Args:
+        report: The read-only report built by build_chain_merge_report.
+        json_mode: If True, output a single JSON document.
+    """
+    acceptance = report.acceptance
+    if json_mode:
+        payload = {
+            "file_path": report.file_path,
+            "verdict": report.verdict.value,
+            "active_manifest_count": report.active_manifest_count,
+            "superseded_manifest_count": report.superseded_manifest_count,
+            "distinct_artifact_count": report.distinct_artifact_count,
+            "total_declaration_count": report.total_declaration_count,
+            "redundant_declaration_count": report.redundant_declaration_count,
+            "blocking_reasons": list(report.blocking_reasons),
+            "acceptance": {
+                "required_artifacts": list(acceptance.required_artifacts),
+                "detection_available": acceptance.detection_available,
+                "required_detecting_nodeids": {
+                    key: list(nodeids)
+                    for key, nodeids in acceptance.required_detecting_nodeids.items()
+                },
+                "unknown_detection_artifacts": list(
+                    acceptance.unknown_detection_artifacts
+                ),
+            },
+        }
+        return json.dumps(payload, indent=2)
+
+    lines = [
+        f"{report.file_path}: {report.verdict.value.upper()}",
+        f"  active manifests:      {report.active_manifest_count}",
+        f"  superseded manifests:  {report.superseded_manifest_count}",
+        f"  distinct artifacts:    {report.distinct_artifact_count}",
+        f"  total declarations:    {report.total_declaration_count}",
+        f"  redundant declarations:{report.redundant_declaration_count}",
+    ]
+    for reason in report.blocking_reasons:
+        lines.append(f"  blocked: {reason}")
+    if acceptance.detection_available:
+        lines.append(
+            f"  detection: recorded for "
+            f"{len(acceptance.required_detecting_nodeids)}/"
+            f"{len(acceptance.required_artifacts)} artifacts"
+        )
+    else:
+        lines.append("  detection: UNKNOWN (no evidence source)")
     return "\n".join(lines)
 
 

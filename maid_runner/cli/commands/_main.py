@@ -1761,6 +1761,22 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
         help="Replay events through this version tag",
     )
 
+    mp = csub.add_parser(
+        "merge", help="Report a file's merged manifest chain (read-only)"
+    )
+    mp.add_argument("file_path")
+    mp.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to read"
+    )
+    mp.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report only; do not materialize (currently the only mode)",
+    )
+    mp.add_argument(
+        "--json", action="store_true", help="Print chain merge report as JSON"
+    )
+
 
 def _register_serve_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.cli.commands.serve import register_serve_subparser

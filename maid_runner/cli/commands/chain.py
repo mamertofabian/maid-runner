@@ -6,6 +6,7 @@ import argparse
 
 from maid_runner.cli.commands._format import (
     format_chain_log,
+    format_chain_merge_report,
     format_replay_result,
     print_error,
 )
@@ -29,6 +30,9 @@ def cmd_chain(args: argparse.Namespace) -> int:
 
     if args.chain_command == "replay":
         return _cmd_chain_replay(chain, args)
+
+    if args.chain_command == "merge":
+        return _cmd_chain_merge(chain, args)
 
     print_error(
         f"Unknown chain subcommand: {args.chain_command}",
@@ -68,5 +72,16 @@ def _cmd_chain_replay(chain, args: argparse.Namespace) -> int:
         return 2
 
     output = format_replay_result(result, json_mode=args.json)
+    print(output)
+    return 0
+
+
+def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
+    from maid_runner.core.chain_merge import build_chain_merge_report
+
+    # Child 1 is read-only and has no persisted evidence source yet, so
+    # detection is reported UNKNOWN (detection_source=None).
+    report = build_chain_merge_report(args.file_path, chain, None)
+    output = format_chain_merge_report(report, json_mode=args.json)
     print(output)
     return 0
