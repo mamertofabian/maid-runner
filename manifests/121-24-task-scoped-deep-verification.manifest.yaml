@@ -1,0 +1,85 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Task-scope coverage and knockout through the changed-manifest closure"
+type: refactor
+created: "2026-08-13T09:23:18Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - verify
+    - artifact-coverage
+    - knockout
+description: |
+  121-01 already narrows the tests stage to changed active manifests when task
+  scope is on. Deep coverage and knockout still run the full chain, so a
+  one-manifest edit still pays for ~310 coverage commands and 554 knockout
+  specs. Reuse the same changed-manifest closure for those stages.
+
+  When _should_scope_tests_to_task is true, compute the closure before coverage
+  and pass it into coverage and knockout. Unresolvable baselines keep the full
+  chain (same widening as tests). Empty selection is not an empty success:
+  those stages still run against the resolved set, which may be empty only when
+  the closure is honestly empty. Repository test scope keeps full-chain
+  coverage and knockout.
+temptations:
+  - risk: "Do not skip coverage or knockout when the closure is unresolvable."
+    instead: "Return None from the existing task-scope helper and keep the full active chain, matching tests-stage widening."
+  - risk: "Do not silently drop unselected manifests from report keys."
+    instead: "Coverage directory reports stay keyed by the active chain; unselected manifests receive empty reports so JSON shape stays stable."
+  - risk: "Do not invent a second changed-path algorithm."
+    instead: "Call _task_scoped_test_manifest_paths before coverage."
+files:
+  create:
+    - path: tests/cli/test_task_scoped_deep_stages.py
+      artifacts:
+        - kind: test_function
+          name: test_coverage_directory_run_limits_batch_to_selected_manifests
+          args: []
+        - kind: test_function
+          name: test_knockout_stage_limits_batch_to_selected_manifests
+          args: []
+        - kind: test_function
+          name: test_unspecified_manifest_paths_keep_full_coverage_chain
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Private _run_artifact_coverage_by_manifest accepts optional manifest_paths and batches only that subset while returning empty reports for other active manifests."
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Compute the task-scope closure before coverage and pass it to coverage and knockout stages; knockout filters run_knockout_batch inputs."
+  read:
+    - tests/cli/test_verify_task_scoped_tests_stage.py
+    - manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/knockout.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_task_scoped_deep_stages.py tests/cli/test_verify_task_scoped_tests_stage.py
+  - uv run maid validate manifests/121-24-task-scoped-deep-verification.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:10:00Z"
+  summary: "Task-scoped deep verification now computes the changed-manifest closure before coverage and passes it into coverage and knockout. Unresolvable baselines keep the full chain. Coverage directory reports stay keyed by every active manifest, with empty reports for unselected paths."
+  rationale: "121-01 already scoped tests. Coverage and knockout still paid for the full ~310-command inventory on a one-manifest edit. Reusing _task_scoped_test_manifest_paths avoids a second changed-path algorithm and preserves tests-stage widening."
+  lessons:
+    - lesson_type: performance
+      summary: "Deep coverage and knockout must consume the same changed-manifest closure as tests, computed before those stages, or a one-manifest edit still pays the full-chain tax."
+      tags: [performance, verify, artifact-coverage, knockout]
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - maid_runner/cli/commands/validate.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "None from the existing helper still means full chain. Report keys stay on the active chain. Knockout filters run_knockout_batch inputs. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_task_scoped_deep_stages.py, tests/cli/test_verify_task_scoped_tests_stage.py]
+      status: passed
+      summary: "12 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-24-task-scoped-deep-verification.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

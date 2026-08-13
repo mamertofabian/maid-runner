@@ -8,6 +8,7 @@ test_execution:
   max_processes: 16
 artifact_coverage:
   fallback_jobs: 8
+  evidence_mode: derived
   fixture_lifecycle_approvals:
     - context_id: fixture:tests:git_project_template_factory:session
       conftest_path: tests/conftest.py

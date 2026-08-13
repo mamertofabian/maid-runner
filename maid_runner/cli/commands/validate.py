@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -361,11 +362,13 @@ def _run_artifact_coverage_for_manifest_dir(
     project_root: Path,
     *,
     strict_context: bool = False,
+    manifest_paths: Sequence[str] | None = None,
 ):
     reports = _run_artifact_coverage_by_manifest(
         manifest_dir,
         project_root,
         strict_context=strict_context,
+        manifest_paths=manifest_paths,
     ).values()
     return _merge_artifact_coverage_reports(reports)
 
@@ -376,6 +379,7 @@ def _run_artifact_coverage_by_manifest(
     *,
     strict_context: bool = False,
     evidence: RuntimeEvidenceBundle | None = None,
+    manifest_paths: Sequence[str] | None = None,
 ) -> dict[str, ArtifactCoverageReport]:
     from maid_runner.core.chain import get_cached_manifest_chain
     from maid_runner.core.artifact_coverage import (
@@ -392,15 +396,31 @@ def _run_artifact_coverage_by_manifest(
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
     active = chain.active_manifests()
+    selected = active
+    if manifest_paths is not None:
+        wanted = {str(Path(path).as_posix()) for path in manifest_paths}
+        selected = tuple(
+            manifest
+            for manifest in active
+            if manifest.source_path in wanted
+            or Path(manifest.source_path).as_posix() in wanted
+        )
     config = load_config(project_root)
     with _strict_validation_test_environment(strict_context):
         if evidence is None:
-            return run_artifact_coverage_batch(
-                active,
+            batched = run_artifact_coverage_batch(
+                selected,
                 project_root,
                 jobs=config.artifact_coverage.fallback_jobs,
                 max_processes=config.test_execution.max_processes,
             )
+            return {
+                manifest.source_path: batched.get(
+                    manifest.source_path,
+                    ArtifactCoverageReport(findings=(), errors=()),
+                )
+                for manifest in active
+            }
         evidence_manifest_paths = {
             command.identity.manifest_path for command in evidence.commands
         }
@@ -410,7 +430,7 @@ def _run_artifact_coverage_by_manifest(
         }
         coverage_manifests = tuple(
             manifest
-            for manifest in active
+            for manifest in selected
             if targets_by_manifest[manifest.source_path]
             or manifest.source_path in evidence_manifest_paths
         )
@@ -421,6 +441,7 @@ def _run_artifact_coverage_by_manifest(
                 evidence,
                 fallback_jobs=config.artifact_coverage.fallback_jobs,
                 max_processes=config.test_execution.max_processes,
+                evidence_mode=config.artifact_coverage.evidence_mode,
             ).reports
         )
         for manifest in coverage_manifests:

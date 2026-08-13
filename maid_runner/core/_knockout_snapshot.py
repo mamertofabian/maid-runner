@@ -73,6 +73,8 @@ class ProjectSnapshotBackend(ABC):
 class MaterializedProjectSnapshotBackend(ProjectSnapshotBackend):
     """Create isolated copies of current inputs and local Git metadata."""
 
+    _share_dependency_environments = False
+
     @contextmanager
     def create(
         self,
@@ -101,11 +103,12 @@ class MaterializedProjectSnapshotBackend(ProjectSnapshotBackend):
             dependency_identity = _source_dependency_identity(dependency_sources)
             copy_file = _copy_strategy(source_root, temp_root, normalized_required)
             _copy_project_inputs(source_root, temp_root, input_paths, copy_file)
-            _copy_dependency_environments(
-                source_root,
-                temp_root,
-                dependency_sources,
-            )
+            if not self._share_dependency_environments:
+                _copy_dependency_environments(
+                    source_root,
+                    temp_root,
+                    dependency_sources,
+                )
             git_dir, git_common_dir = _copy_git_metadata(
                 source_root,
                 temp_root,
@@ -133,7 +136,15 @@ class MaterializedProjectSnapshotBackend(ProjectSnapshotBackend):
                 git_dir=git_dir,
                 git_common_dir=git_common_dir,
                 source_repository_identity=source_repository_identity,
-                environment_overrides=_snapshot_environment(source_root, temp_root),
+                environment_overrides=_snapshot_environment(
+                    source_root,
+                    temp_root,
+                    shared_dependencies=(
+                        dependency_sources
+                        if self._share_dependency_environments
+                        else None
+                    ),
+                ),
                 environment_removals=tuple(
                     sorted(
                         _LOCATION_ENVIRONMENT_NAMES
@@ -166,6 +177,20 @@ class MaterializedProjectSnapshotBackend(ProjectSnapshotBackend):
             )
             if final_error is not None:
                 raise RuntimeError(final_error) from body_error
+
+
+class SharedEnvironmentProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
+    """Copy source and Git metadata; reuse the shared interpreter environments."""
+
+    _share_dependency_environments = True
+
+    def create(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ) -> AbstractContextManager[KnockoutProjectSnapshot]:
+        return super().create(project_root, required_paths, worker_id)
 
 
 def _safe_worker_id(worker_id: str) -> str:
@@ -772,7 +797,11 @@ def _snapshot_input_digest(
     return digest.hexdigest()
 
 
-def _snapshot_environment(source_root: Path, snapshot_root: Path) -> dict[str, str]:
+def _snapshot_environment(
+    source_root: Path,
+    snapshot_root: Path,
+    shared_dependencies: Mapping[str, Path] | None = None,
+) -> dict[str, str]:
     git_author_config = _snapshot_git_author_config(source_root, snapshot_root)
     overrides = {
         "GIT_CONFIG_GLOBAL": str(git_author_config),
@@ -786,16 +815,25 @@ def _snapshot_environment(source_root: Path, snapshot_root: Path) -> dict[str, s
         "PYTHONPYCACHEPREFIX": str(snapshot_root / ".maid-pycache"),
     }
     executable_paths: list[Path] = []
-    virtual_environment = snapshot_root / ".venv"
-    if virtual_environment.is_dir():
+    shared = shared_dependencies or {}
+    virtual_environment = shared.get(".venv")
+    if virtual_environment is None:
+        copied_environment = snapshot_root / ".venv"
+        if copied_environment.is_dir():
+            virtual_environment = copied_environment
+    if virtual_environment is not None and virtual_environment.is_dir():
         overrides["VIRTUAL_ENV"] = str(virtual_environment)
         overrides["UV_PROJECT_ENVIRONMENT"] = str(virtual_environment)
         overrides["UV_NO_SYNC"] = "1"
         executable_paths.append(
             virtual_environment / ("Scripts" if os.name == "nt" else "bin")
         )
-    node_modules = snapshot_root / "node_modules"
-    if node_modules.is_dir():
+    node_modules = shared.get("node_modules")
+    if node_modules is None:
+        copied_node_modules = snapshot_root / "node_modules"
+        if copied_node_modules.is_dir():
+            node_modules = copied_node_modules
+    if node_modules is not None and node_modules.is_dir():
         overrides["NODE_PATH"] = _prepend_path(
             node_modules,
             None,

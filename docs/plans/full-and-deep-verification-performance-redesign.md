@@ -376,3 +376,20 @@ threshold to keep small dir-level batches serial is a follow-up, relevant once
 121-24 task-scopes the coverage and knockout stages. The full known-green deep
 budget stays gated behind the independent 1,680 E710 debt and the sysmon
 coverage-under-coverage meta-test conflicts, both pre-existing.
+
+## 2026-08-13 full-batch probe and 121-27
+
+Inventory of the current tree (432 active manifests):
+
+- 310 unique coverage-instrumented pytest tuples
+- process-cost histogram `{1: 308, 8: 1, 16: 1}` so exclusive-budget stalls are
+  not the dominant amplifier (one command reserves the full 16-process budget)
+- `fallback_jobs: 8` can overlap the 308 cost-1 commands
+
+A live `MaterializedProjectSnapshotBackend.create` of this repository, including
+`.venv` and `node_modules`, ran for more than 310 seconds with no pytest yet
+and was stopped. That per-lane clone tax is why 121-19/20 stayed break-even on
+small samples. 121-27 switches coverage lanes to
+`SharedEnvironmentProjectSnapshotBackend`: source and Git metadata are still
+copied; `.venv` and `node_modules` are reused through environment overrides;
+a write into those shared trees still fails closed.

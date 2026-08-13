@@ -828,6 +828,33 @@ def _digest_file(digest, path: Path, root: Path) -> None:
     digest.update(b"\0")
 
 
+def grouped_evidence_preflight(project_root: Path, evidence_mode: str) -> bool:
+    """Return whether grouped coverage collection should run for this tree."""
+    root = Path(project_root).resolve()
+    conftests = tuple(
+        path
+        for path in root.rglob("conftest.py")
+        if path.is_file() and not _excluded_content_path(path.relative_to(root))
+    )
+    if not conftests:
+        return True
+    if evidence_mode != "derived":
+        return False
+    from maid_runner.core.config import load_config
+
+    approvals = load_config(root).artifact_coverage.fixture_lifecycle_approvals
+    approved: set[Path] = set()
+    for approval in approvals:
+        source = (root / approval.conftest_path).resolve()
+        try:
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        except OSError:
+            continue
+        if digest == approval.sha256:
+            approved.add(source)
+    return all(path.resolve() in approved for path in conftests)
+
+
 def _excluded_content_path(relative: Path) -> bool:
     parts = relative.parts
     if parts[:2] == (".maid", "cache"):

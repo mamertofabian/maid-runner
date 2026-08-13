@@ -1,0 +1,216 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make derived coverage evidence the default E710 path with exact mode retained"
+type: refactor
+created: "2026-08-13T09:18:14Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - runtime-evidence
+    - verify
+description: |
+  Grouped runtime evidence is preflight-disabled for any in-tree conftest, so
+  maid-runner never uses the 121-08 collector. Fixture lifecycle approvals in
+  .maidrc.yaml are ignored. Exact fallback of every unproven identity is the
+  61-minute failure mode. The user-approved policy is derived evidence as the
+  default E710 standard: one attributed collection, project executed lines and
+  calls only from nodes selected by each manifest's original command, and do
+  not exact-replay the whole inventory when a lifecycle is unproven. Exact
+  per-command mode stays available. Knockout differential commands stay exact.
+
+  grouped_evidence_preflight is the cheap decision. In derived mode it allows
+  collection when every non-excluded in-tree conftest has a digest-matching
+  fixture_lifecycle_approval. An unapproved conftest still selects the exact
+  batch, so the 121-10/121-15 skip tests remain true. Exact mode keeps the
+  any-conftest skip. Deep verify uses this preflight before collect_runtime_evidence.
+
+  evaluate_artifact_coverage_from_evidence grows evidence_mode (default exact
+  so existing fallback tests stay stable) and an optional isolated_runner.
+  Derived mode evaluates attributed contexts and reports honest E710 gaps
+  without launching exact fallbacks. Exact mode keeps fallbacks but replays
+  only isolated_run.serial_fallback_identities, matching 121-20. Reports
+  disclose provenance derived or exact.
+
+  Packaged ArtifactCoverageConfig.evidence_mode defaults to derived. Unknown
+  values fail closed. This repository already lists the session-autouse
+  approvals needed for the derived preflight to pass here.
+temptations:
+  - risk: "Do not exact-replay every unproven identity after a derived collection."
+    instead: "Derived mode evaluates attributed selected-node contexts and reports missing artifacts as E710; exact fallback stays behind evidence_mode exact."
+  - risk: "Do not treat any conftest as grouped-safe just because one approval exists."
+    instead: "Require a digest-matching fixture_lifecycle_approval for every non-excluded in-tree conftest.py before attempting grouped collection."
+  - risk: "Do not change evaluate_artifact_coverage_from_evidence's default into derived."
+    instead: "Keep the function default at exact so existing fallback tests and explicit exact callers stay stable; verify and CLI pass the config mode."
+  - risk: "Do not revive collection-module attribution."
+    instead: "Keep per-selected-nodeid attribution from 121-08/09."
+  - risk: "Do not replay every fallback identity when the isolated runner escalates a subset."
+    instead: "Exact mode copies 121-20: keep isolated records for clean identities and in-place replay only serial_fallback_identities."
+files:
+  edit:
+    - path: maid_runner/core/runtime_evidence.py
+      artifacts:
+        - kind: function
+          name: grouped_evidence_preflight
+          args:
+            - name: project_root
+              type: Path
+            - name: evidence_mode
+              type: str
+          returns: bool
+          description: "True when grouped collection should run. Derived mode requires a digest-matching approval for every non-excluded in-tree conftest; exact mode rejects any such conftest."
+    - path: maid_runner/core/config.py
+      artifacts:
+        - kind: class
+          name: ArtifactCoverageConfig
+        - kind: attribute
+          name: evidence_mode
+          of: ArtifactCoverageConfig
+          type: str
+        - kind: attribute
+          name: timeout_seconds
+          of: ArtifactCoverageConfig
+          type: float
+        - kind: attribute
+          name: fallback_jobs
+          of: ArtifactCoverageConfig
+          type: int
+        - kind: attribute
+          name: fixture_lifecycle_approvals
+          of: ArtifactCoverageConfig
+          type: tuple[FixtureLifecycleApproval, Ellipsis]
+        - kind: attribute
+          name: distribution_fixture_lifecycle_approvals
+          of: ArtifactCoverageConfig
+          type: tuple[DistributionFixtureLifecycleApproval, Ellipsis]
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: class
+          name: ArtifactCoverageReport
+        - kind: attribute
+          name: provenance
+          of: ArtifactCoverageReport
+          type: str | None
+        - kind: attribute
+          name: findings
+          of: ArtifactCoverageReport
+          type: tuple[ArtifactCoverageFinding, Ellipsis]
+        - kind: attribute
+          name: errors
+          of: ArtifactCoverageReport
+          type: tuple[ValidationError, Ellipsis]
+        - kind: attribute
+          name: execution
+          of: ArtifactCoverageReport
+          type: ArtifactCoverageExecutionSummary | None
+        - kind: attribute
+          name: success
+          of: ArtifactCoverageReport
+          type: bool
+        - kind: method
+          name: to_dict
+          of: ArtifactCoverageReport
+          args: []
+          returns: dict
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+            - name: evidence_mode
+              type: str
+              default: exact
+          returns: EvidenceArtifactCoverageResult
+  create:
+    - path: tests/core/test_derived_coverage_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_grouped_evidence_preflight_allows_digest_matching_approvals
+          args: []
+        - kind: test_function
+          name: test_grouped_evidence_preflight_rejects_unapproved_conftest
+          args: []
+        - kind: test_function
+          name: test_exact_mode_preflight_rejects_any_in_tree_conftest
+          args: []
+        - kind: test_function
+          name: test_approved_conftest_collects_grouped_evidence
+          args: []
+        - kind: test_function
+          name: test_derived_evaluation_does_not_replay_unproven_commands
+          args: []
+        - kind: test_function
+          name: test_exact_evaluation_replays_only_escalated_identities
+          args: []
+        - kind: test_function
+          name: test_evidence_mode_rejects_unknown_values
+          args: []
+        - kind: test_function
+          name: test_packaged_evidence_mode_default_is_exact
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Private grouped-evidence collector uses grouped_evidence_preflight and the configured evidence_mode instead of any-conftest skip."
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Private directory coverage evaluation passes configured evidence_mode into evaluate_artifact_coverage_from_evidence."
+    - path: .maidrc.yaml
+      reason: "Repository opts into derived evidence_mode explicitly alongside existing fixture lifecycle approvals."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - tests/cli/test_verify_deep_evidence_reuse.py
+    - tests/core/test_config.py
+validate:
+  - uv run python -m pytest -q tests/core/test_derived_coverage_evidence.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_config.py tests/cli/test_verify_deep_evidence_reuse.py
+  - uv run maid validate manifests/121-23-default-derived-coverage-evidence.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:45:00Z"
+  summary: "Derived coverage evidence is available as evidence_mode=derived with approval-aware conftest preflight, no exact-replay of unproven identities, 121-20 subset replay in the grouped consumer, and provenance labels. Packaged default remains exact; this repository opts in through .maidrc.yaml."
+  rationale: "The any-conftest kill switch ignored digest-matching lifecycle approvals and made grouped collection unreachable here. Exact-replay of every unproven identity was the 61-minute failure. Derived mode evaluates attributed selected-node contexts and reports honest E710 gaps. Packaged exact default keeps existing fallback tests and consumer behavior stable."
+  lessons:
+    - lesson_type: performance
+      summary: "Grouped coverage collection is safe only when every in-tree conftest has a digest-matching lifecycle approval; unproven identities must not exact-replay the whole inventory."
+      tags: [performance, artifact-coverage, runtime-evidence]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+        - maid_runner/core/artifact_coverage.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Preflight still skips unapproved conftests so 121-10/15 tests hold. Derived evaluation does not call the fallback executor. Exact mode replays only escalated identities. Packaged default is exact; maid-runner opts into derived."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_derived_coverage_evidence.py, tests/core/test_artifact_coverage_fallback_workers.py, tests/core/test_config.py, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_artifact_coverage_lanes.py]
+      status: passed
+      summary: "60 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-23-default-derived-coverage-evidence.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."
+

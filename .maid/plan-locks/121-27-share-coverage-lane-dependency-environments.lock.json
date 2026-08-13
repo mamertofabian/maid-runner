@@ -1,0 +1,213 @@
+{
+  "manifest_path": "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+  "manifest_hash": "sha256-contract:93bb8929d51f2facab7f8f440e5db4e21c32e655c9780ecfbece060f2b9901e1",
+  "test_hashes": {
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+    "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
+  },
+  "created_at": "2026-08-13T09:10:51.160902+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:96343f8e239a635cde4fea9f13f21cee3718c94abd30ef8ac1a2685ef5f6702e",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
+      },
+      "revised_at": "2026-08-13T09:11:27.542494+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-27-share-coverage-lane-dependency-environments.manifest.yaml -> manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:12:01.300571+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_lanes.py",
+        "exit_code": 1,
+        "output_tail": "__________ test_coverage_batch_defaults_to_shared_environment_backend __________\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-4684/test_coverage_batch_defaults_t0')\n\n    def test_coverage_batch_defaults_to_shared_environment_backend(tmp_path: Path) -> None:\n        from maid_runner.core._artifact_coverage_fallback_worker import (\n            ArtifactCoverageFallbackRun,\n            ArtifactCoverageFallbackWorkerResult,\n        )\n>       from maid_runner.core._knockout_snapshot import (\n            SharedEnvironmentProjectSnapshotBackend,\n        )\nE       ImportError: cannot import name 'SharedEnvironmentProjectSnapshotBackend' from 'maid_runner.core._knockout_snapshot' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/_knockout_snapshot.py)\n\ntests/core/test_shared_environment_snapshots.py:93: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_shared_environment_snapshots.py::test_shared_environment_snapshot_reuses_source_venv_without_copying\nFAILED tests/core/test_shared_environment_snapshots.py::test_shared_environment_write_to_source_venv_fails_closed\nFAILED tests/core/test_shared_environment_snapshots.py::test_coverage_batch_defaults_to_shared_environment_backend\n3 failed, 25 passed in 32.67s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:class:MaterializedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:class:MaterializedProjectSnapshotBackend:kind=class",
+      "maid_runner/core/_knockout_snapshot.py:class:SharedEnvironmentProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:class:SharedEnvironmentProjectSnapshotBackend:kind=class",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:of=MaterializedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:MaterializedProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:of=SharedEnvironmentProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "tests/core/test_shared_environment_snapshots.py:test_coverage_batch_defaults_to_shared_environment_backend",
+      "tests/core/test_shared_environment_snapshots.py:test_coverage_batch_defaults_to_shared_environment_backend:kind=test_function",
+      "tests/core/test_shared_environment_snapshots.py:test_knockout_backend_still_copies_dependency_environments",
+      "tests/core/test_shared_environment_snapshots.py:test_knockout_backend_still_copies_dependency_environments:kind=test_function",
+      "tests/core/test_shared_environment_snapshots.py:test_shared_environment_snapshot_reuses_source_venv_without_copying",
+      "tests/core/test_shared_environment_snapshots.py:test_shared_environment_snapshot_reuses_source_venv_without_copying:kind=test_function",
+      "tests/core/test_shared_environment_snapshots.py:test_shared_environment_write_to_source_venv_fails_closed",
+      "tests/core/test_shared_environment_snapshots.py:test_shared_environment_write_to_source_venv_fails_closed:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "read": [
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "tests/core/test_artifact_coverage_lanes.py",
+        "tests/core/test_knockout_snapshot.py"
+      ],
+      "scope": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_shared_environment_snapshots.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_shared_environment_snapshot_reuses_source_venv_without_copying"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_environment_write_to_source_venv_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_backend_still_copies_dependency_environments"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_coverage_batch_defaults_to_shared_environment_backend"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "SharedEnvironmentProjectSnapshotBackend",
+              "description": "Coverage snapshot backend that copies source and Git metadata and reuses the shared .venv and node_modules through environment overrides."
+            },
+            {
+              "kind": "method",
+              "name": "create",
+              "description": "Yield an isolated project snapshot whose VIRTUAL_ENV and NODE_PATH point at the source dependency environments rather than copied trees.",
+              "of": "SharedEnvironmentProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            },
+            {
+              "kind": "class",
+              "name": "MaterializedProjectSnapshotBackend",
+              "description": "Existing knockout snapshot backend. Unchanged default still copies .venv and node_modules into the snapshot."
+            },
+            {
+              "kind": "method",
+              "name": "create",
+              "of": "MaterializedProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_artifact_coverage_lanes.py",
+        "maid_runner/core/_artifact_coverage_fallback_worker.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Private isolated-coverage helpers default snapshot_backend to SharedEnvironmentProjectSnapshotBackend when the caller does not inject one; run_artifact_coverage_batch signature is unchanged."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_lanes.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_shared_environment_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_lanes.py",
+      "uv run maid validate manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

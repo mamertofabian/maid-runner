@@ -48,6 +48,7 @@ class DistributionFixtureLifecycleApproval:
 class ArtifactCoverageConfig:
     timeout_seconds: float = 900.0
     fallback_jobs: int = 1
+    evidence_mode: str = "exact"
     fixture_lifecycle_approvals: tuple[FixtureLifecycleApproval, ...] = ()
     distribution_fixture_lifecycle_approvals: tuple[
         DistributionFixtureLifecycleApproval, ...
@@ -78,6 +79,10 @@ class ArtifactCoverageConfig:
             raise ValueError(
                 "artifact_coverage.fallback_jobs must be a positive integer"
             )
+        mode = self.evidence_mode
+        if mode not in {"derived", "exact"}:
+            raise ValueError("artifact_coverage.evidence_mode must be derived or exact")
+        object.__setattr__(self, "evidence_mode", mode)
         object.__setattr__(
             self,
             "fixture_lifecycle_approvals",
@@ -276,6 +281,7 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
     artifact_coverage_config = ArtifactCoverageConfig(
         timeout_seconds=raw_artifact_coverage_timeout,
         fallback_jobs=artifact_coverage.get("fallback_jobs", 1),
+        evidence_mode=artifact_coverage.get("evidence_mode", "exact"),
         fixture_lifecycle_approvals=approvals,
         distribution_fixture_lifecycle_approvals=distribution_approvals,
     )

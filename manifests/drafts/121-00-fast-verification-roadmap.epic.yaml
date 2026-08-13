@@ -131,18 +131,25 @@ description: |
       recycling on material writes, red-command in-place confirmation, and
       shared-queue handover from failed lanes; remeasure the cold coverage
       stage as the budget decision gate.
-  19. `121-21-persist-artifact-coverage-evidence-cache` - persistent
-      deep-evidence store for coverage command records keyed by the hermetic
-      content plus resolved-environment identity, with mandatory disclosure,
-      cached red results, and a no-cache escape hatch.
-  20. `121-22-persist-knockout-evidence-cache` - extend the store to
-      per-spec differential knockout results with mutated-body digests.
+  19. `121-26-bind-coverage-runner-monitoring-disable` - bind sys.monitoring
+      DISABLE once so instrumented tests cannot fabricate E710 gaps.
+  20. `121-27-share-coverage-lane-dependency-environments` - coverage lanes
+      copy source and Git only and reuse the shared .venv and node_modules.
   21. `121-23-default-derived-coverage-evidence` - the user-approved derived
       evidence mode as default with per-stage provenance labels; exact mode
       retained by flag/config; knockout differential commands stay exact.
+      Includes approval-aware conftest preflight and grouped-path subset replay.
   22. `121-24-task-scoped-deep-verification` - optional task scoping of the
       coverage and knockout stages through the changed-manifest closure.
-  23. `121-25-tune-maid-test-command-jobs` - measured command_jobs tuning
+  23. `121-28-reuse-ordinary-tests-after-isolated-knockout` - reuse matching
+      pytest groups at the tests stage when knockout did not mutate the checkout.
+  24. `121-21-persist-artifact-coverage-evidence-cache` - persistent
+      deep-evidence store for coverage command records keyed by the hermetic
+      content plus resolved-environment identity, with mandatory disclosure,
+      cached red results, and a no-cache escape hatch.
+  25. `121-22-persist-knockout-evidence-cache` - extend the store to
+      per-spec differential knockout results with mutated-body digests.
+  26. `121-25-tune-maid-test-command-jobs` - measured command_jobs tuning
       toward the 60-second maid test budget.
 
   Promotion prerequisites are strict. 121-07 cannot enable workers until the

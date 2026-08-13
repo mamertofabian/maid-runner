@@ -619,6 +619,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         help="Write a failure packet JSON file on verification failure",
     )
     p.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Skip persistent artifact-coverage evidence cache reads and writes",
+    )
+    p.add_argument(
         "--sarif",
         default=None,
         help="Write a SARIF 2.1.0 report to the given path",
