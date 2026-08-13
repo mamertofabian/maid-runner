@@ -1,0 +1,114 @@
+{
+  "manifest_path": "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+  "manifest_hash": "sha256-contract:90f25ab143c1a2f215c3671858591a48636939ee478ed2f09db4395d74b12c9e",
+  "test_hashes": {
+    "tests/core/test_focused_knockout_broad_selector_sibling_unproven.py": "sha256-pyast:v2:f4e311f340fefc616d0b3298ad9673206c41c941ceb06cf5e908c8628c80bfcc",
+    "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783"
+  },
+  "created_at": "2026-08-13T11:07:26.421826+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c38fa3286ac3b0a9da526af1464e3c15fbdb08fb8f4ce235a9d28dc94dab84e6",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_broad_selector_sibling_unproven.py": "sha256-pyast:v2:f4e311f340fefc616d0b3298ad9673206c41c941ceb06cf5e908c8628c80bfcc",
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783"
+      },
+      "revised_at": "2026-08-13T11:07:33.199719+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml -> manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T11:07:39.735837+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py tests/core/test_focused_knockout_broad_selector_sibling_unproven.py",
+        "exit_code": 1,
+        "output_tail": "        executor = _RecordingExecutor((0, 1, 0))\n    \n        report = run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert report.results[0].proof is not None\n>       assert report.results[0].proof.used_exact_fallback is False\nE       AssertionError: assert True is False\nE        +  where True = KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()).used_exact_fallback\nE        +    where KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()) = KnockoutResult(artifact_name='target', artifact_kind='function', parent_class=None, file_path='src/target.py', detecte...nt_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()), cache_hit=False).proof\n\ntests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py:50: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py::test_unproven_subset_of_detecting_nodeids_still_uses_focused_knockout\n1 failed, 3 passed in 5.92s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py:test_all_detecting_nodeids_unproven_still_forces_exact_fallback",
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py:test_all_detecting_nodeids_unproven_still_forces_exact_fallback:kind=test_function",
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py:test_unproven_subset_of_detecting_nodeids_still_uses_focused_knockout",
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py:test_unproven_subset_of_detecting_nodeids_still_uses_focused_knockout:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml",
+        "tests/core/test_focused_knockout_broad_selector_sibling_unproven.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_unproven_subset_of_detecting_nodeids_still_uses_focused_knockout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_all_detecting_nodeids_unproven_still_forces_exact_fallback"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml",
+        "tests/core/test_focused_knockout_broad_selector_sibling_unproven.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Focused knockout must drop detecting nodeids that consume unproven fixtures instead of exact-falling back the whole command."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_broad_selector_sibling_unproven.py",
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py tests/core/test_focused_knockout_broad_selector_sibling_unproven.py",
+      "uv run maid validate manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

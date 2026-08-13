@@ -1,0 +1,106 @@
+{
+  "manifest_path": "manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml",
+  "manifest_hash": "sha256-contract:38e5381087d8723e24f3b64d2c3e6f1ec768b7c208cdf3fddff23cc2b21f0322",
+  "test_hashes": {
+    "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783",
+    "tests/core/test_focused_knockout_bounds_detecting_nodeids.py": "sha256-pyast:v2:613d0b74e6aaf40cb97a3712d6d9dfa0c73421c86dc738a0dc0e8d3fd09346d6"
+  },
+  "created_at": "2026-08-13T11:08:43.822564+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e347cf494c298e17d9a83d49bfd55fe51076f1fd81a7f043188d3c61a87af686",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783",
+        "tests/core/test_focused_knockout_bounds_detecting_nodeids.py": "sha256-pyast:v2:613d0b74e6aaf40cb97a3712d6d9dfa0c73421c86dc738a0dc0e8d3fd09346d6"
+      },
+      "revised_at": "2026-08-13T11:08:49.396572+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-37-bound-focused-knockout-nodeids.manifest.yaml -> manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-37-bound-focused-knockout-nodeids.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T11:08:54.667915+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_focused_knockout_bounds_detecting_nodeids.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+        "exit_code": 1,
+        "output_tail": "        report = run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )[manifest.source_path]\n    \n        proof = report.results[0].proof\n        assert proof is not None\n        assert proof.used_exact_fallback is False\n>       assert len(proof.detecting_nodeids) == 8\nE       AssertionError: assert 10 == 8\nE        +  where 10 = len(('tests/test_target.py::test_00', 'tests/test_target.py::test_01', 'tests/test_target.py::test_02', 'tests/test_target.py::test_03', 'tests/test_target.py::test_04', 'tests/test_target.py::test_05', ...))\nE        +    where ('tests/test_target.py::test_00', 'tests/test_target.py::test_01', 'tests/test_target.py::test_02', 'tests/test_target.py::test_03', 'tests/test_target.py::test_04', 'tests/test_target.py::test_05', ...) = KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac...test_07', 'tests/test_target.py::test_08', 'tests/test_target.py::test_09'), used_exact_fallback=False, diagnostics=()).detecting_nodeids\n\ntests/core/test_focused_knockout_bounds_detecting_nodeids.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_focused_knockout_bounds_detecting_nodeids.py::test_focused_knockout_uses_at_most_eight_detecting_nodeids\n1 failed, 2 passed in 4.64s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_focused_knockout_bounds_detecting_nodeids.py:test_focused_knockout_uses_at_most_eight_detecting_nodeids",
+      "tests/core/test_focused_knockout_bounds_detecting_nodeids.py:test_focused_knockout_uses_at_most_eight_detecting_nodeids:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_focused_knockout_bounds_detecting_nodeids.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_focused_knockout_bounds_detecting_nodeids.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_focused_knockout_uses_at_most_eight_detecting_nodeids"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Focused knockout must cap proven detecting nodeids so popular artifacts do not rerun thousands of tests."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_bounds_detecting_nodeids.py",
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_focused_knockout_bounds_detecting_nodeids.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+      "uv run maid validate manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

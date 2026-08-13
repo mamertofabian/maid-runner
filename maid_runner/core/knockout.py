@@ -36,6 +36,8 @@ from maid_runner.core.runtime_evidence import (
 )
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 
+_FOCUSED_KNOCKOUT_NODEID_LIMIT = 8
+
 
 @dataclass(frozen=True)
 class KnockoutResult:
@@ -966,6 +968,10 @@ def _focused_command(
     nodeids = _artifact_nodeids(command_evidence, identity, root)
     if not nodeids:
         return None
+    nodeids = _detecting_nodeids_without_unproven_fixtures(command_evidence, nodeids)
+    if not nodeids:
+        return None
+    nodeids = nodeids[:_FOCUSED_KNOCKOUT_NODEID_LIMIT]
     if not _completeness_supports_focused_knockout(
         command_evidence.completeness,
         contexts=command_evidence.contexts,
@@ -1016,6 +1022,18 @@ def _completeness_supports_focused_knockout(
         or unproven
         or diagnostics
     )
+
+
+def _detecting_nodeids_without_unproven_fixtures(
+    evidence: RuntimeCommandEvidence,
+    nodeids: tuple[str, ...],
+) -> tuple[str, ...]:
+    unproven = set(evidence.completeness.unproven_fixture_lifecycles)
+    blocked: set[str] = set()
+    for context in evidence.contexts:
+        if context.context_id in unproven:
+            blocked.update(context.consuming_nodeids)
+    return tuple(nodeid for nodeid in nodeids if nodeid not in blocked)
 
 
 def _artifact_nodeids(

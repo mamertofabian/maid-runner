@@ -1,0 +1,73 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Focus knockout on detecting nodeids that do not consume unproven fixtures"
+type: refactor
+created: "2026-08-13T11:07:33Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  121-35 still exact-fallbacks when any unproven fixture consumes a detecting
+  nodeid. Core helpers such as slug_from_path are called by ~1500 tests, so 21
+  unproven fixtures on a subset of those nodeids disable focused knockout and
+  restore pytest tests/ -v for the first plan-order artifacts.
+
+  Drop detecting nodeids that consume unproven fixtures and focus on the
+  remaining callers. Exact-fallback only when no detecting nodeid remains.
+  121-35 still exact-fallbacks when the only detecting nodeid is unproven.
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not exact-fallback a broad command because some detecting nodeids consume unproven fixtures."
+    instead: "Remove those nodeids from the focused command and keep the detecting nodeids whose fixture lifecycles are proven."
+  - risk: "Do not keep a detecting nodeid that consumes an unproven fixture."
+    instead: "Exact-fallback only when every remaining detecting nodeid is blocked by unproven fixture consumption."
+files:
+  create:
+    - path: tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py
+      artifacts:
+        - kind: test_function
+          name: test_unproven_subset_of_detecting_nodeids_still_uses_focused_knockout
+          args: []
+        - kind: test_function
+          name: test_all_detecting_nodeids_unproven_still_forces_exact_fallback
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Focused knockout must drop detecting nodeids that consume unproven fixtures instead of exact-falling back the whole command."
+  read:
+    - manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml
+    - tests/core/test_focused_knockout_broad_selector_sibling_unproven.py
+    - maid_runner/core/runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py tests/core/test_focused_knockout_broad_selector_sibling_unproven.py
+  - uv run maid validate manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T11:20:00Z"
+  summary: "Focused knockout drops detecting nodeids that consume unproven fixtures and keeps the remaining callers. Exact fallback remains only when every detecting nodeid is blocked."
+  rationale: "slug_from_path and other core helpers are called by ~1500 tests. Twenty-one unproven fixtures on a subset of those nodeids made 121-35 exact-fallback the whole pytest tests/ command. Removing the blocked nodeids unblocks focused knockout for the lead plan-order artifacts."
+  lessons:
+    - lesson_type: performance
+      summary: "Unproven fixtures on a subset of detecting nodeids must drop those nodeids, not disable focused knockout for the artifact."
+      tags: [performance, knockout, runtime-evidence]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "121-35 still exact-fallbacks when the only detecting nodeid is unproven. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py, tests/core/test_focused_knockout_broad_selector_sibling_unproven.py, tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py, tests/core/test_focused_knockout_with_collection_incompleteness.py]
+      status: passed
+      summary: "8 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."
