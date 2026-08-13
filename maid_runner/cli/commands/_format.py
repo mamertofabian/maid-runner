@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.bootstrap import BootstrapReport
     from maid_runner.core.chain_merge import ChainMergeReport
+    from maid_runner.core.chain_merge_sweep import ChainMergeSweepSummary
     from maid_runner.core.supersession_audit import SupersessionViolation
 
 
@@ -1264,6 +1265,35 @@ def format_chain_merge_report(
         )
     else:
         lines.append("  detection: UNKNOWN (no evidence source)")
+    return "\n".join(lines)
+
+
+def format_chain_merge_summary(
+    summary: "ChainMergeSweepSummary",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeSweepSummary for `maid chain merge --all`."""
+    if json_mode:
+        payload = {
+            "defrag_count": summary.defrag_count,
+            "lean_count": summary.lean_count,
+            "blocked_count": summary.blocked_count,
+            "swept_file_count": summary.swept_file_count,
+            "worst_offenders": list(summary.worst_offenders),
+        }
+        return json.dumps(payload, indent=2)
+
+    lines = [
+        f"swept {summary.swept_file_count} file(s): "
+        f"{summary.defrag_count} DEFRAG, "
+        f"{summary.lean_count} LEAN, "
+        f"{summary.blocked_count} BLOCKED",
+    ]
+    if summary.worst_offenders:
+        lines.append("worst offenders (by redundant declarations):")
+        for path in summary.worst_offenders:
+            lines.append(f"  {path}")
     return "\n".join(lines)
 
 

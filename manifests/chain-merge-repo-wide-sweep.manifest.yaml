@@ -1,0 +1,102 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add `maid chain merge --all` that runs the fragmentation report across every tracked production file and emits an aggregate DEFRAG/LEAN/BLOCKED summary — the finish-line view for a defrag program.
+type: feature
+created: '2026-08-13T22:56:23Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - defragmentation
+  - report
+  - summary
+  priority: low
+description: |
+  Child 6 of the chain-merge-defragmentation epic. Repo-wide read-only sweep:
+  build_repo_merge_summary iterates the repo's writable production files
+  (all_tracked_paths minus read-only), builds each file's ChainMergeReport via
+  child 1's builder, and aggregates DEFRAG/LEAN/BLOCKED counts plus a
+  deterministic worst-offenders ranking by redundant_declaration_count. Surfaced
+  as `maid chain merge --all [--json]`. Read-only; no knockout/coverage; reuses
+  child 1's builder with no detection source (detection stays UNKNOWN here).
+
+  ADVERSARIAL SELF-REVIEW
+  - Mutation: a sweep quietly applies. Defense: read-only; a manifest-directory-
+    unchanged test pins it.
+  - Nondeterminism: unordered iteration. Defense: sorted file order and a
+    stable redundancy-desc/path-asc ranking; a determinism test pins it.
+temptations:
+- risk: Do not let `--all` apply or materialize anything.
+  instead: Reuse child 1's read-only builder per file; pin a manifest-directory- unchanged test.
+- risk: Do not emit a nondeterministic ordering or aggregate.
+  instead: Sort swept files and rank worst offenders deterministically; pin a repeated-run equality test.
+- risk: Do not run knockout or coverage during the sweep.
+  instead: Reuse build_chain_merge_report with no detection source; the summary is structural only.
+files:
+  create:
+  - path: maid_runner/core/chain_merge_sweep.py
+    artifacts:
+    - kind: class
+      name: ChainMergeSweepSummary
+      description: Aggregate repo-wide summary of chain-merge verdicts.
+    - kind: attribute
+      name: defrag_count
+      of: ChainMergeSweepSummary
+      type: int
+    - kind: attribute
+      name: lean_count
+      of: ChainMergeSweepSummary
+      type: int
+    - kind: attribute
+      name: blocked_count
+      of: ChainMergeSweepSummary
+      type: int
+    - kind: attribute
+      name: swept_file_count
+      of: ChainMergeSweepSummary
+      type: int
+    - kind: attribute
+      name: worst_offenders
+      of: ChainMergeSweepSummary
+      type: tuple[str, Ellipsis]
+    - kind: function
+      name: build_repo_merge_summary
+      args:
+      - name: chain
+        type: ManifestChain
+      returns: ChainMergeSweepSummary
+  - path: tests/core/test_chain_merge_sweep.py
+    artifacts:
+    - kind: test_function
+      name: test_sweep_counts_defrag_and_lean_verdicts
+    - kind: test_function
+      name: test_sweep_worst_offenders_ranked_by_redundancy
+    - kind: test_function
+      name: test_sweep_swept_file_count_matches_writable_files
+    - kind: test_function
+      name: test_sweep_is_deterministic
+  - path: tests/cli/test_chain_merge_sweep_command.py
+    artifacts:
+    - kind: test_function
+      name: test_chain_merge_all_json_emits_summary
+    - kind: test_function
+      name: test_chain_merge_all_is_read_only
+  scope:
+  - path: maid_runner/cli/commands/chain.py
+    reason: Add a private sweep dispatch/handler and route --all without changing cmd_chain's public signature.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Make the merge file_path optional and add the --all flag without changing build_parser/main signatures.
+  - path: maid_runner/cli/commands/_format.py
+    reason: Add a private chain-merge summary formatter without changing existing public formatters.
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_sweep.py tests/cli/test_chain_merge_sweep_command.py -v
+- uv run maid validate manifests/chain-merge-repo-wide-sweep.manifest.yaml --mode behavioral

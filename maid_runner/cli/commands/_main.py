@@ -1764,7 +1764,12 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
     mp = csub.add_parser(
         "merge", help="Report a file's merged manifest chain (read-only)"
     )
-    mp.add_argument("file_path")
+    mp.add_argument("file_path", nargs="?", default=None)
+    mp.add_argument(
+        "--all",
+        action="store_true",
+        help="Report every tracked production file as an aggregate summary",
+    )
     mp.add_argument(
         "--manifest-dir", default="manifests/", help="Directory of manifests to read"
     )

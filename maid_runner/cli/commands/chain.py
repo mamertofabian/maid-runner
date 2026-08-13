@@ -7,6 +7,7 @@ import argparse
 from maid_runner.cli.commands._format import (
     format_chain_log,
     format_chain_merge_report,
+    format_chain_merge_summary,
     format_replay_result,
     print_error,
 )
@@ -79,8 +80,22 @@ def _cmd_chain_replay(chain, args: argparse.Namespace) -> int:
 def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
     from maid_runner.core.chain_merge import build_chain_merge_report
 
-    # Child 1 is read-only and has no persisted evidence source yet, so
-    # detection is reported UNKNOWN (detection_source=None).
+    # Read-only, and no persisted evidence source yet, so detection is
+    # reported UNKNOWN (detection_source=None).
+    if getattr(args, "all", False):
+        from maid_runner.core.chain_merge_sweep import build_repo_merge_summary
+
+        summary = build_repo_merge_summary(chain)
+        print(format_chain_merge_summary(summary, json_mode=args.json))
+        return 0
+
+    if not args.file_path:
+        print_error(
+            "chain merge requires a file path, or use --all",
+            json_mode=args.json,
+        )
+        return 2
+
     report = build_chain_merge_report(args.file_path, chain, None)
     output = format_chain_merge_report(report, json_mode=args.json)
     print(output)
