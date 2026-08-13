@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.bootstrap import BootstrapReport
     from maid_runner.core.chain_merge import ChainMergeReport
+    from maid_runner.core.chain_merge_apply import ChainMergeApplyResult
     from maid_runner.core.chain_merge_sweep import ChainMergeSweepSummary
     from maid_runner.core.supersession_audit import SupersessionViolation
 
@@ -1294,6 +1295,36 @@ def format_chain_merge_summary(
         lines.append("worst offenders (by redundant declarations):")
         for path in summary.worst_offenders:
             lines.append(f"  {path}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_apply_result(
+    result: "ChainMergeApplyResult",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeApplyResult for `maid chain merge --apply`."""
+    if json_mode:
+        payload = {
+            "applied": result.applied,
+            "snapshot_path": result.snapshot_path,
+            "superseded_slugs": list(result.superseded_slugs),
+            "refused_reason": result.refused_reason,
+            "missing_artifacts": list(result.missing_artifacts),
+        }
+        return json.dumps(payload, indent=2)
+
+    if result.applied:
+        lines = [
+            f"applied: wrote {result.snapshot_path}",
+            f"  superseded {len(result.superseded_slugs)} manifest(s): "
+            f"{', '.join(result.superseded_slugs)}",
+        ]
+        return "\n".join(lines)
+
+    lines = [f"refused: {result.refused_reason}"]
+    for key in result.missing_artifacts:
+        lines.append(f"  missing: {key}")
     return "\n".join(lines)
 
 

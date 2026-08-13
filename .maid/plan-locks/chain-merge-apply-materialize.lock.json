@@ -1,0 +1,243 @@
+{
+  "manifest_path": "manifests/chain-merge-apply-materialize.manifest.yaml",
+  "manifest_hash": "sha256-contract:d24fade11c9a854e7dd9b05ce452eb8f5bf50f9797b494aba97305dcbce07817",
+  "test_hashes": {
+    "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:83f1fbb6e859002b032b22295304a442590a589514a8ce7d1424aca2bfc58308",
+    "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:6311e584d2f31f658614b6603c9cbae0795f1a0abeb412b43781e792ecf6bcb2"
+  },
+  "created_at": "2026-08-13T23:14:43.264472+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:38738ca6b7222aeb95e0e228e6a9b4ba8df529be0990f779cbf551a42efcbca8",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:83f1fbb6e859002b032b22295304a442590a589514a8ce7d1424aca2bfc58308",
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:6311e584d2f31f658614b6603c9cbae0795f1a0abeb412b43781e792ecf6bcb2"
+      },
+      "revised_at": "2026-08-13T23:14:45.270893+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/chain-merge-apply-materialize.manifest.yaml -> manifests/chain-merge-apply-materialize.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/chain-merge-apply-materialize.manifest.yaml --mode behavioral"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/chain-merge-apply-materialize.manifest.yaml --mode behavioral"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T23:14:47.027834+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py -v",
+        "exit_code": 1,
+        "output_tail": "self = _NoAbbrevArgumentParser(prog='maid', usage=None, description=\"MAID Runner - Manifest-driven AI Development validator\\n...st-win path.\", formatter_class=<class 'argparse.RawDescriptionHelpFormatter'>, conflict_handler='error', add_help=True)\nstatus = 2, message = 'maid: error: unrecognized arguments: --apply\\n'\n\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: unrecognized arguments: --apply\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_apply.py::test_apply_writes_snapshot_superseding_chain\nFAILED tests/core/test_chain_merge_apply.py::test_apply_refuses_when_snapshot_drops_declared_artifact\nFAILED tests/core/test_chain_merge_apply.py::test_apply_refuses_lean_file - M...\nFAILED tests/core/test_chain_merge_apply.py::test_apply_leaves_source_unchanged\nFAILED tests/cli/test_chain_merge_apply_command.py::test_chain_merge_apply_json_writes_snapshot\n============================== 5 failed in 0.18s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/chain-merge-apply-materialize.manifest.yaml --mode behavioral",
+        "exit_code": 0,
+        "output_tail": "PASS chain-merge-apply-materialize\n  Mode: behavioral\n  Duration: 1173ms",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:type=bool",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:type=tuple[str, Ellipsis]",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:type=Union[str, None]",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:type=Union[str, None]",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:type=tuple[str, Ellipsis]",
+      "maid_runner/core/chain_merge_apply.py:class:ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:class:ChainMergeApplyResult:kind=class",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=output_dir:type=str:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=project_root:type=str:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:kind=function",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:returns=ChainMergeApplyResult",
+      "tests/cli/test_chain_merge_apply_command.py:test_chain_merge_apply_json_writes_snapshot",
+      "tests/cli/test_chain_merge_apply_command.py:test_chain_merge_apply_json_writes_snapshot:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_leaves_source_unchanged",
+      "tests/core/test_chain_merge_apply.py:test_apply_leaves_source_unchanged:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_lean_file",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_lean_file:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_when_snapshot_drops_declared_artifact",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_when_snapshot_drops_declared_artifact:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_writes_snapshot_superseding_chain",
+      "tests/core/test_chain_merge_apply.py:test_apply_writes_snapshot_superseding_chain:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/chain_merge_apply.py",
+        "tests/cli/test_chain_merge_apply_command.py",
+        "tests/core/test_chain_merge_apply.py"
+      ],
+      "edit": [],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/snapshot.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/chain.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/chain_merge_apply.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ChainMergeApplyResult",
+              "description": "Outcome of an apply attempt."
+            },
+            {
+              "kind": "attribute",
+              "name": "applied",
+              "of": "ChainMergeApplyResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "snapshot_path",
+              "of": "ChainMergeApplyResult",
+              "type": "Union[str, None]"
+            },
+            {
+              "kind": "attribute",
+              "name": "superseded_slugs",
+              "of": "ChainMergeApplyResult",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "refused_reason",
+              "of": "ChainMergeApplyResult",
+              "type": "Union[str, None]"
+            },
+            {
+              "kind": "attribute",
+              "name": "missing_artifacts",
+              "of": "ChainMergeApplyResult",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "apply_chain_merge",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str"
+                },
+                {
+                  "name": "output_dir",
+                  "type": "str"
+                }
+              ],
+              "returns": "ChainMergeApplyResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_chain_merge_apply.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_apply_writes_snapshot_superseding_chain"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_when_snapshot_drops_declared_artifact"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_lean_file"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_leaves_source_unchanged"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_chain_merge_apply_command.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_apply_json_writes_snapshot"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/snapshot.py",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/chain.py",
+          "reason": "Add a private apply dispatch/handler and route --apply without changing cmd_chain's public signature."
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Add the --apply flag to the merge subparser without changing build_parser/main signatures."
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "reason": "Add a private apply-result formatter without changing existing public formatters."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_apply_command.py",
+      "tests/core/test_chain_merge_apply.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py -v",
+      "uv run maid validate manifests/chain-merge-apply-materialize.manifest.yaml --mode behavioral"
+    ]
+  }
+}

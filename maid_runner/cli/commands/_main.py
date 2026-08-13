@@ -1776,7 +1776,12 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
     mp.add_argument(
         "--dry-run",
         action="store_true",
-        help="Report only; do not materialize (currently the only mode)",
+        help="Report only; do not materialize (default)",
+    )
+    mp.add_argument(
+        "--apply",
+        action="store_true",
+        help="Materialize the merged contract as a snapshot that supersedes the chain",
     )
     mp.add_argument(
         "--json", action="store_true", help="Print chain merge report as JSON"

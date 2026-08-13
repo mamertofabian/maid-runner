@@ -78,10 +78,12 @@ description: |
      nodeids + coverage, and add the coverage/E710-derived BLOCKED verdict.
      Depends on children 1 and 2 (evolves child 1's contract).
   4. `chain-merge-apply-materialize` — `maid chain merge <file> --apply`:
-     materialize the merged contract via the existing `maid snapshot` primitive,
-     supersede the prior chain, and migrate plan-lock / red-evidence / outcome
-     provenance the way `maid manifest promote` does. Manifest-side defrag; tests
-     untouched. Depends on child 1.
+     materialize the merged contract via the existing snapshot primitive and
+     supersede the prior chain. Snapshots are not plan-locked, so there is no
+     plan-lock/red-evidence to migrate; the real safety property is the
+     artifact-preservation audit — apply refuses (writes nothing) if the fresh
+     snapshot would drop a declared artifact, never auto-sealing the Grandfather
+     lock. Manifest-side defrag; tests untouched. Depends on child 1.
   5. `chain-merge-equivalence-gate` — given the recorded acceptance bar and a
      candidate test state, assert coverage superset AND detection superset; a
      surviving gap is a blocking, error-coded finding. The safety gate for

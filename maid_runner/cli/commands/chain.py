@@ -6,6 +6,7 @@ import argparse
 
 from maid_runner.cli.commands._format import (
     format_chain_log,
+    format_chain_merge_apply_result,
     format_chain_merge_report,
     format_chain_merge_summary,
     format_replay_result,
@@ -95,6 +96,13 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
             json_mode=args.json,
         )
         return 2
+
+    if getattr(args, "apply", False):
+        from maid_runner.core.chain_merge_apply import apply_chain_merge
+
+        result = apply_chain_merge(args.file_path, chain, output_dir=args.manifest_dir)
+        print(format_chain_merge_apply_result(result, json_mode=args.json))
+        return 0 if result.applied else 1
 
     report = build_chain_merge_report(args.file_path, chain, None)
     output = format_chain_merge_report(report, json_mode=args.json)
