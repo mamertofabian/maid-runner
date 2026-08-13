@@ -1,0 +1,123 @@
+{
+  "manifest_path": "manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml",
+  "manifest_hash": "sha256-contract:caaecc60256a7e552cbf6f42d5ef3a05989dd54c8813f15a218059f8e03bc88f",
+  "test_hashes": {
+    "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024",
+    "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+    "tests/core/test_grouped_coverage_under_command_jobs.py": "sha256-pyast:v2:95c1e37e924193b79e3fa668d46f3ee9641949e9095f569aac423e9a11366b93"
+  },
+  "created_at": "2026-08-13T10:03:48.931023+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:33c6ab6a9833bb55fdc4337d8b33b980a1af987db6722b9ae9564629bfb76638",
+      "prior_test_hashes": {
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024",
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+        "tests/core/test_grouped_coverage_under_command_jobs.py": "sha256-pyast:v2:95c1e37e924193b79e3fa668d46f3ee9641949e9095f569aac423e9a11366b93"
+      },
+      "revised_at": "2026-08-13T10:03:50.011123+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml -> manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:03:50.883163+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_grouped_coverage_under_command_jobs.py tests/core/test_derived_coverage_evidence.py tests/core/test_repository_command_jobs.py",
+        "exit_code": 1,
+        "output_tail": "        sentinel = object()\n        observed: list[object] = []\n    \n        def fake_collect(manifests, root, pytest_workers=None):\n            observed.append((tuple(manifests), root, pytest_workers))\n            return SimpleNamespace(evidence=sentinel)\n    \n        monkeypatch.setattr(runtime_evidence, \"collect_runtime_evidence\", fake_collect)\n    \n        evidence = _collect_artifact_coverage_evidence(\n            tmp_path, \"manifests\", test_jobs=2, pytest_workers=8\n        )\n    \n>       assert evidence is sentinel\nE       assert None is <object object at 0x7f336717a570>\n\ntests/core/test_grouped_coverage_under_command_jobs.py:38: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_grouped_coverage_under_command_jobs.py::test_leftover_command_jobs_still_collect_grouped_evidence\n1 failed, 10 passed in 0.18s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_grouped_coverage_under_command_jobs.py:test_leftover_command_jobs_still_collect_grouped_evidence",
+      "tests/core/test_grouped_coverage_under_command_jobs.py:test_leftover_command_jobs_still_collect_grouped_evidence:kind=test_function",
+      "tests/core/test_grouped_coverage_under_command_jobs.py:test_unapproved_conftest_still_skips_grouped_evidence_when_command_jobs_exceed_one",
+      "tests/core/test_grouped_coverage_under_command_jobs.py:test_unapproved_conftest_still_skips_grouped_evidence_when_command_jobs_exceed_one:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_grouped_coverage_under_command_jobs.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+        "tests/core/test_derived_coverage_evidence.py",
+        "tests/core/test_repository_command_jobs.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_grouped_coverage_under_command_jobs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_leftover_command_jobs_still_collect_grouped_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unapproved_conftest_still_skips_grouped_evidence_when_command_jobs_exceed_one"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+        "tests/core/test_derived_coverage_evidence.py",
+        "tests/core/test_repository_command_jobs.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Private grouped collector must not treat leftover command_jobs / test_jobs as unsupported concurrency."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_derived_coverage_evidence.py",
+      "tests/core/test_grouped_coverage_under_command_jobs.py",
+      "tests/core/test_repository_command_jobs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_grouped_coverage_under_command_jobs.py tests/core/test_derived_coverage_evidence.py tests/core/test_repository_command_jobs.py",
+      "uv run maid validate manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

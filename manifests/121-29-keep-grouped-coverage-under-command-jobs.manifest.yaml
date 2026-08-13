@@ -1,0 +1,85 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep grouped derived coverage when leftover command_jobs exceed one"
+type: refactor
+created: "2026-08-13T10:03:49Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - runtime-evidence
+    - verify
+description: |
+  121-23 made derived grouped coverage the repository path, but
+  _collect_artifact_coverage_evidence_run still returns None whenever
+  test_jobs != 1. maid verify maps leftover test_execution.command_jobs onto
+  that argument, so 121-25's command_jobs: 2 silently restores the exact
+  ~297-command coverage batch on this repo.
+
+  Leftover command_jobs only parallelize residual non-pytest groups at the
+  tests stage. Grouped collection already uses one pytest group with xdist
+  internally (command_jobs=1 inside the runtime executor). 121-10's
+  "unsupported outer command concurrency" skip must not treat leftover
+  command_jobs as that concurrency.
+
+  Keep the approval-aware preflight. Unapproved in-tree conftests still select
+  the exact batch. Do not raise pytest_workers or claim the 180-second coverage
+  budget in this contract.
+temptations:
+  - risk: "Do not revert repository command_jobs to 1 to make grouped collection reachable."
+    instead: "Collect grouped evidence even when leftover test_jobs / command_jobs exceed one."
+  - risk: "Do not skip the digest-matching conftest preflight while removing the jobs kill switch."
+    instead: "Keep grouped_evidence_preflight; only stop using test_jobs != 1 as a complete-legacy selector."
+  - risk: "Do not exact-replay the coverage inventory because leftover jobs are greater than one."
+    instead: "Derived evaluation stays on attributed selected-node contexts; leftover jobs affect residual tests-stage groups only."
+files:
+  create:
+    - path: tests/core/test_grouped_coverage_under_command_jobs.py
+      artifacts:
+        - kind: test_function
+          name: test_leftover_command_jobs_still_collect_grouped_evidence
+          args: []
+        - kind: test_function
+          name: test_unapproved_conftest_still_skips_grouped_evidence_when_command_jobs_exceed_one
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Private grouped collector must not treat leftover command_jobs / test_jobs as unsupported concurrency."
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - manifests/121-23-default-derived-coverage-evidence.manifest.yaml
+    - manifests/121-25-tune-maid-test-command-jobs.manifest.yaml
+    - tests/core/test_derived_coverage_evidence.py
+    - tests/core/test_repository_command_jobs.py
+validate:
+  - uv run python -m pytest -q tests/core/test_grouped_coverage_under_command_jobs.py tests/core/test_derived_coverage_evidence.py tests/core/test_repository_command_jobs.py
+  - uv run maid validate manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T10:15:00Z"
+  summary: "Grouped derived coverage still collects when leftover test_jobs / command_jobs are 2. Unapproved in-tree conftests still select the exact batch. Repository command_jobs stays 2."
+  rationale: "121-25 mapped leftover command_jobs onto verify test_jobs, which 121-10 used as a complete-legacy concurrency skip. That skip restored the ~297-command exact coverage batch on this repo after 121-23. Leftover jobs only parallelize residual tests-stage groups."
+  lessons:
+    - lesson_type: performance
+      summary: "Leftover command_jobs must not disable grouped coverage collection; treat only unapproved conftests as the complete-legacy selector."
+      tags: [performance, artifact-coverage, runtime-evidence]
+      paths:
+        - maid_runner/cli/commands/verify.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Scope stayed on the private collector. Preflight still skips unapproved conftests. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_grouped_coverage_under_command_jobs.py, tests/core/test_derived_coverage_evidence.py, tests/core/test_repository_command_jobs.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "25 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

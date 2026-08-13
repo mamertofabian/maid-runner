@@ -1037,8 +1037,7 @@ def _collect_artifact_coverage_evidence_run(
     manifest_paths: Sequence[str] | None = None,
 ) -> RuntimeEvidenceRun | None:
     """Collect grouped coverage evidence, or select the complete legacy path."""
-    if test_jobs != 1:
-        return None
+    del test_jobs
     try:
         from maid_runner.core.artifact_coverage import _coverage_targets
         from maid_runner.core.chain import get_cached_manifest_chain
