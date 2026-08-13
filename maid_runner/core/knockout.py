@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import inspect
+import json
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -16,10 +17,18 @@ from maid_runner.core._knockout_snapshot import (
 )
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
-from maid_runner.core.result import ErrorCode, Location, TestRunResult, ValidationError
+from maid_runner.core.result import (
+    ErrorCode,
+    Location,
+    Severity,
+    TestRunResult,
+    ValidationError,
+)
 from maid_runner.core.runtime_evidence import (
     RuntimeCommandEvidence,
     RuntimeEvidenceBundle,
+    _content_digest,
+    _environment_identity,
     runtime_evidence_is_current,
 )
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
@@ -34,6 +43,7 @@ class KnockoutResult:
     detected: bool
     duration_ms: float
     proof: KnockoutDifferentialProof | None = None
+    cache_hit: bool = False
 
 
 @dataclass(frozen=True)
@@ -237,6 +247,191 @@ def rewrite_artifact_body(
     return "".join(lines)
 
 
+def _knockout_spec_cache_key(root: Path, spec: KnockoutMutationSpec) -> str | None:
+    mutated_body_digest = _knockout_mutated_body_digest(root, spec)
+    if mutated_body_digest is None:
+        return None
+    from maid_runner import __version__
+
+    environment = _environment_identity(("python", "-m", "pytest"), root)
+    payload = {
+        "identity": {
+            "file_path": spec.identity.file_path,
+            "artifact_name": spec.identity.artifact_name,
+            "artifact_kind": spec.identity.artifact_kind,
+            "parent_class": spec.identity.parent_class,
+        },
+        "source_digest": spec.source_digest,
+        "mutated_body_digest": mutated_body_digest,
+        "content_digest": _content_digest(root),
+        "runner_version": __version__,
+        "environment": {
+            "resolved_command_prefix": list(environment.resolved_command_prefix),
+            "working_directory": environment.working_directory,
+            "python_identity": environment.python_identity,
+            "pytest_version": environment.pytest_version,
+            "coverage_version": environment.coverage_version,
+            "xdist_version": environment.xdist_version,
+            "configuration_digest": environment.configuration_digest,
+            "dependency_digest": environment.dependency_digest,
+            "effective_environment_digest": environment.effective_environment_digest,
+        },
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode()
+    ).hexdigest()
+
+
+def _knockout_mutated_body_digest(root: Path, spec: KnockoutMutationSpec) -> str | None:
+    try:
+        source = (root / spec.identity.file_path).read_text(encoding="utf-8")
+        mutant = rewrite_artifact_body(
+            source,
+            spec.identity.artifact_name,
+            spec.identity.artifact_kind,
+            spec.identity.parent_class,
+        )
+    except Exception:
+        return None
+    return hashlib.sha256(mutant.encode("utf-8")).hexdigest()
+
+
+def _knockout_spec_cache_path(root: Path, cache_key: str) -> Path:
+    return root / ".maid" / "cache" / "knockout-evidence-v1" / f"{cache_key}.json"
+
+
+def _load_knockout_spec_cache(root: Path, spec: KnockoutMutationSpec):
+    cache_key = _knockout_spec_cache_key(root, spec)
+    if cache_key is None:
+        return None
+    path = _knockout_spec_cache_path(root, cache_key)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return _knockout_worker_from_cache(payload, spec.identity)
+
+
+def _store_knockout_spec_cache(root: Path, spec: KnockoutMutationSpec, worker) -> None:
+    cache_key = _knockout_spec_cache_key(root, spec)
+    if cache_key is None:
+        return
+    path = _knockout_spec_cache_path(root, cache_key)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(_knockout_worker_to_cache(worker), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _knockout_worker_to_cache(worker) -> dict:
+    return {
+        "identity": {
+            "file_path": worker.identity.file_path,
+            "artifact_name": worker.identity.artifact_name,
+            "artifact_kind": worker.identity.artifact_kind,
+            "parent_class": worker.identity.parent_class,
+        },
+        "process_cost": worker.process_cost,
+        "errors": [error.to_dict() for error in worker.errors],
+        "reports": {key: report.to_dict() for key, report in worker.reports.items()},
+    }
+
+
+def _knockout_worker_from_cache(payload: dict, identity: KnockoutArtifactIdentity):
+    from maid_runner.core._knockout_worker import KnockoutWorkerResult
+
+    reports = {}
+    raw_reports = payload.get("reports", {})
+    if isinstance(raw_reports, dict):
+        for key, report in raw_reports.items():
+            if isinstance(report, dict):
+                reports[str(key)] = _knockout_report_from_cache(report)
+    return KnockoutWorkerResult(
+        identity=identity,
+        reports=reports,
+        process_cost=int(payload.get("process_cost", 1)),
+        errors=tuple(
+            _knockout_error_from_cache(item)
+            for item in payload.get("errors", ())
+            if isinstance(item, dict)
+        ),
+    )
+
+
+def _knockout_report_from_cache(payload: dict) -> KnockoutReport:
+    return KnockoutReport(
+        results=tuple(
+            _knockout_result_from_cache(item)
+            for item in payload.get("results", ())
+            if isinstance(item, dict)
+        ),
+        errors=tuple(
+            _knockout_error_from_cache(item)
+            for item in payload.get("errors", ())
+            if isinstance(item, dict)
+        ),
+    )
+
+
+def _knockout_result_from_cache(payload: dict) -> KnockoutResult:
+    return KnockoutResult(
+        artifact_name=str(payload["artifact_name"]),
+        artifact_kind=str(payload["artifact_kind"]),
+        parent_class=payload.get("parent_class"),
+        file_path=str(payload["file_path"]),
+        detected=bool(payload["detected"]),
+        duration_ms=float(payload.get("duration_ms", 0.0)),
+        proof=_knockout_proof_from_cache(payload.get("proof")),
+        cache_hit=True,
+    )
+
+
+def _knockout_proof_from_cache(payload) -> KnockoutDifferentialProof | None:
+    if not isinstance(payload, dict):
+        return None
+    raw_identity = payload.get("identity", {})
+    return KnockoutDifferentialProof(
+        identity=KnockoutArtifactIdentity(
+            file_path=str(raw_identity.get("file_path", "")),
+            artifact_name=str(raw_identity.get("artifact_name", "")),
+            artifact_kind=str(raw_identity.get("artifact_kind", "")),
+            parent_class=raw_identity.get("parent_class"),
+        ),
+        command=tuple(payload.get("command", ())),
+        baseline_exit_code=int(payload["baseline_exit_code"]),
+        mutant_exit_code=int(payload["mutant_exit_code"]),
+        restored_exit_code=int(payload["restored_exit_code"]),
+        detecting_nodeids=tuple(payload.get("detecting_nodeids", ())),
+        used_exact_fallback=bool(payload.get("used_exact_fallback", False)),
+        diagnostics=tuple(
+            _knockout_error_from_cache(item)
+            for item in payload.get("diagnostics", ())
+            if isinstance(item, dict)
+        ),
+    )
+
+
+def _knockout_error_from_cache(payload: dict) -> ValidationError:
+    location = None
+    raw_location = payload.get("location")
+    if isinstance(raw_location, dict) and raw_location.get("file"):
+        location = Location(
+            file=str(raw_location["file"]),
+            line=raw_location.get("line"),
+            column=raw_location.get("column"),
+        )
+    return ValidationError(
+        code=ErrorCode(payload["code"]),
+        message=str(payload.get("message", "")),
+        severity=Severity(payload.get("severity", Severity.ERROR.value)),
+        location=location,
+        suggestion=payload.get("suggestion"),
+    )
+
+
 def _source_newline(source: str) -> str:
     """Preserve the source's first observed newline convention."""
     newline_index = source.find("\n")
@@ -275,6 +470,7 @@ def run_knockout_batch(
     snapshot_backend: ProjectSnapshotBackend | None = None,
     jobs: int = 1,
     max_processes: int = 1,
+    no_cache: bool = False,
 ) -> dict[str, KnockoutReport]:
     """Run declarations independently with focused proof or exact fallback."""
     ordered_manifests = tuple(manifests)
@@ -314,16 +510,35 @@ def run_knockout_batch(
     )
     from maid_runner.core._knockout_worker import run_knockout_workers
 
-    workers = run_knockout_workers(
-        specs,
-        root,
-        trusted_evidence,
-        project_snapshots,
-        command_executor,
-        jobs,
-        max_processes,
-    )
-    workers_by_identity = {worker.identity: worker for worker in workers}
+    pending_specs = []
+    cached_workers = []
+    for spec in specs:
+        cached = None if no_cache else _load_knockout_spec_cache(root, spec)
+        if cached is None:
+            pending_specs.append(spec)
+        else:
+            cached_workers.append(cached)
+    workers = ()
+    if pending_specs:
+        workers = run_knockout_workers(
+            pending_specs,
+            root,
+            trusted_evidence,
+            project_snapshots,
+            command_executor,
+            jobs,
+            max_processes,
+        )
+        if not no_cache:
+            for worker in workers:
+                spec = next(
+                    item for item in pending_specs if item.identity == worker.identity
+                )
+                if not worker.errors:
+                    _store_knockout_spec_cache(root, spec, worker)
+    workers_by_identity = {
+        worker.identity: worker for worker in (*cached_workers, *workers)
+    }
     for _plan_index, spec, declaration in planned:
         worker = workers_by_identity.get(spec.identity)
         if worker is None:
@@ -904,7 +1119,7 @@ def _content_hash(content: bytes) -> str:
 
 
 def _result_to_dict(result: KnockoutResult) -> dict:
-    return {
+    payload = {
         "artifact_name": result.artifact_name,
         "artifact_kind": result.artifact_kind,
         "parent_class": result.parent_class,
@@ -913,6 +1128,9 @@ def _result_to_dict(result: KnockoutResult) -> dict:
         "duration_ms": result.duration_ms,
         "proof": _proof_to_dict(result.proof) if result.proof is not None else None,
     }
+    if result.cache_hit:
+        payload["cache_hit"] = True
+    return payload
 
 
 def _proof_to_dict(proof: KnockoutDifferentialProof) -> dict:

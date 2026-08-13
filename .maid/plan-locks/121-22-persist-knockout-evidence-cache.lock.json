@@ -1,0 +1,239 @@
+{
+  "manifest_path": "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+  "manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
+  "test_hashes": {
+    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:5e079656fd4b4685c04de4d7c698ae5db24b67293f13ffd92014484016260e97",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:25800d161c5cfdddcde6fc7c49cca8290c005998f0043cdbef10c277d9e8de0a"
+  },
+  "created_at": "2026-08-13T09:48:31.652060+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:8b6f526afe9762ce227c79ab88a7ca87ab11cf9557a8985de68bfcf63d49b926",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:9b3fed5db748bb62f373bb3ad5324dc473c732d5073a046ea18fe50340ad55d8",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-13T09:49:29.257391+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-22-persist-knockout-evidence-cache.manifest.yaml -> manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:9b3fed5db748bb62f373bb3ad5324dc473c732d5073a046ea18fe50340ad55d8",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-13T09:54:23.807013+00:00",
+      "reason": "Accept undetected-result call count and no_cache on live isolation tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:50:27.037477+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py",
+        "exit_code": 1,
+        "output_tail": "        executor = _RecordingExecutor((0, 0, 0))\n    \n        first = run_knockout_batch((manifest,), tmp_path, executor=executor)\n        second = run_knockout_batch((manifest,), tmp_path, executor=executor)\n        report = second[manifest.source_path]\n    \n        assert first[manifest.source_path].results[0].detected is False\n        assert report.results[0].detected is False\n>       assert report.results[0].cache_hit is True\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'KnockoutResult' object has no attribute 'cache_hit'\n\ntests/core/test_knockout_evidence_cache.py:104: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_evidence_cache.py::test_repeat_knockout_spec_reuses_cached_result\nFAILED tests/core/test_knockout_evidence_cache.py::test_source_digest_change_misses_knockout_cache\nFAILED tests/core/test_knockout_evidence_cache.py::test_mutated_body_digest_change_misses_knockout_cache\nFAILED tests/core/test_knockout_evidence_cache.py::test_no_cache_bypasses_knockout_store\nFAILED tests/core/test_knockout_evidence_cache.py::test_red_knockout_results_are_cached\n5 failed, 28 passed in 57.15s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-22-persist-knockout-evidence-cache.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.cache_hit",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.cache_hit:kind=attribute",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.cache_hit:of=KnockoutResult",
+      "maid_runner/core/knockout.py:attribute:KnockoutResult.cache_hit:type=bool",
+      "maid_runner/core/knockout.py:function:run_knockout_batch",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=jobs:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=max_processes:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=no_cache:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:returns=dict[str, KnockoutReport]",
+      "tests/core/test_knockout_evidence_cache.py:test_mutated_body_digest_change_misses_knockout_cache",
+      "tests/core/test_knockout_evidence_cache.py:test_mutated_body_digest_change_misses_knockout_cache:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_no_cache_bypasses_knockout_store",
+      "tests/core/test_knockout_evidence_cache.py:test_no_cache_bypasses_knockout_store:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_red_knockout_results_are_cached",
+      "tests/core/test_knockout_evidence_cache.py:test_red_knockout_results_are_cached:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_repeat_knockout_spec_reuses_cached_result",
+      "tests/core/test_knockout_evidence_cache.py:test_repeat_knockout_spec_reuses_cached_result:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_source_digest_change_misses_knockout_cache",
+      "tests/core/test_knockout_evidence_cache.py:test_source_digest_change_misses_knockout_cache:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_evidence_cache.py"
+      ],
+      "edit": [
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "maid_runner/core/_knockout_worker.py",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "tests/core/test_knockout_differential_detection.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_evidence_cache.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repeat_knockout_spec_reuses_cached_result"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_source_digest_change_misses_knockout_cache"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mutated_body_digest_change_misses_knockout_cache"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_cache_bypasses_knockout_store"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_red_knockout_results_are_cached"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "cache_hit",
+              "of": "KnockoutResult",
+              "type": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "run_knockout_batch",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "no_cache",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "dict[str, KnockoutReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_knockout_worker.py",
+        "maid_runner/__version__.py",
+        "tests/core/test_knockout_differential_detection.py",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Pass verify --no-cache through to run_knockout_batch."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_differential_detection.py",
+      "tests/core/test_knockout_evidence_cache.py",
+      "tests/core/test_knockout_workers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py",
+      "uv run maid validate manifests/121-22-persist-knockout-evidence-cache.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

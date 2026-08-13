@@ -1,0 +1,105 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Persist knockout results per unique spec and mutated-body digest"
+type: feature
+created: "2026-08-13T09:49:29Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - cache
+    - verify
+description: |
+  121-21 caches coverage reports. Repeat deep runs still re-execute every
+  knockout spec. Persist per unique KnockoutMutationSpec plus the mutated-body
+  digest, content digest, resolved-environment identity, and runner version.
+  Cache red or undetected results too. Disclose hits on KnockoutResult.cache_hit.
+  run_knockout_batch no_cache and maid verify --no-cache skip read and write.
+  Never key on Git commit, mtime, or a test-file list.
+temptations:
+  - risk: "Do not key knockout cache on Git commit or the unmutated source digest alone."
+    instead: "Hash spec identity, mutated-body digest from rewrite_artifact_body, content digest, environment identity, and runner version."
+  - risk: "Do not cache only detected-green specs."
+    instead: "Store undetected and error-free reports and replay them with cache_hit set."
+  - risk: "Do not hide knockout cache hits."
+    instead: "Set KnockoutResult.cache_hit True on reconstructed results and include it in to_dict."
+files:
+  create:
+    - path: tests/core/test_knockout_evidence_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_repeat_knockout_spec_reuses_cached_result
+          args: []
+        - kind: test_function
+          name: test_source_digest_change_misses_knockout_cache
+          args: []
+        - kind: test_function
+          name: test_mutated_body_digest_change_misses_knockout_cache
+          args: []
+        - kind: test_function
+          name: test_no_cache_bypasses_knockout_store
+          args: []
+        - kind: test_function
+          name: test_red_knockout_results_are_cached
+          args: []
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: attribute
+          name: cache_hit
+          of: KnockoutResult
+          type: bool
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - {name: manifests, type: "Sequence[Manifest]"}
+            - {name: project_root, type: Path}
+            - {name: evidence, type: "RuntimeEvidenceBundle | None", default: "None"}
+            - {name: limit, type: "int | None", default: "None"}
+            - {name: allow_dirty, type: bool, default: "False"}
+            - {name: executor, type: "KnockoutCommandExecutor | None", default: "None"}
+            - {name: snapshot_backend, type: "ProjectSnapshotBackend | None", default: "None"}
+            - {name: jobs, type: int, default: "1"}
+            - {name: max_processes, type: int, default: "1"}
+            - {name: no_cache, type: bool, default: "False"}
+          returns: "dict[str, KnockoutReport]"
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Pass verify --no-cache through to run_knockout_batch."
+  read:
+    - maid_runner/core/_knockout_worker.py
+    - maid_runner/__version__.py
+    - tests/core/test_knockout_differential_detection.py
+    - manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py
+  - uv run maid validate manifests/121-22-persist-knockout-evidence-cache.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:55:00Z"
+  summary: "Knockout specs persist under identity, mutated-body digest, content digest, environment identity, and runner version. Undetected results are cached. Hits set KnockoutResult.cache_hit. no_cache skips read and write. Live isolation tests pass no_cache so they still execute workers."
+  rationale: "Repeat deep runs were re-executing every snapshot spec. Source digest alone is not the mutation recipe; the mutated-body digest misses when rewrite_artifact_body changes. Worker isolation tests on a shared tmp tree must opt out or the second run would skip execution."
+  lessons:
+    - lesson_type: performance
+      summary: "Knockout cache keys must include the mutated-body digest, and tests that prove live isolation must pass no_cache."
+      tags: [performance, knockout, cache]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/cli/commands/verify.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Error-bearing workers are not stored. verify --no-cache reaches run_knockout_batch. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_evidence_cache.py, tests/core/test_knockout_differential_detection.py, tests/core/test_knockout_workers.py]
+      status: passed
+      summary: "33 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-22-persist-knockout-evidence-cache.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

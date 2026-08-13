@@ -151,10 +151,20 @@ def test_parallel_and_serial_reports_match_except_durations(tmp_path):
 
     manifest = _project_manifest(tmp_path, "target", ("alpha", "beta"))
     serial = run_knockout_batch(
-        (manifest,), tmp_path, jobs=1, max_processes=2, executor=_OverlapExecutor()
+        (manifest,),
+        tmp_path,
+        jobs=1,
+        max_processes=2,
+        executor=_OverlapExecutor(),
+        no_cache=True,
     )[manifest.source_path]
     parallel = run_knockout_batch(
-        (manifest,), tmp_path, jobs=2, max_processes=2, executor=_OverlapExecutor()
+        (manifest,),
+        tmp_path,
+        jobs=2,
+        max_processes=2,
+        executor=_OverlapExecutor(),
+        no_cache=True,
     )[manifest.source_path]
 
     assert _without_durations(serial.to_dict()) == _without_durations(
@@ -250,6 +260,7 @@ def test_inter_declaration_side_effects_are_isolated_in_parallel_and_serial(tmp_
             jobs=jobs,
             max_processes=2,
             executor=executor,
+            no_cache=True,
         )
         assert reports[first.source_path].success is True
         assert reports[second.source_path].success is True
@@ -263,6 +274,7 @@ def test_inter_declaration_side_effects_are_isolated_in_parallel_and_serial(tmp_
         jobs=2,
         max_processes=2,
         executor=_OverlapExecutor(),
+        no_cache=True,
     )[duplicate.source_path]
     assert [result.artifact_name for result in duplicate_report.results] == [
         "alpha",

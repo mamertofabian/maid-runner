@@ -2,7 +2,7 @@
   "manifest_path": "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
   "manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
   "test_hashes": {
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:25800d161c5cfdddcde6fc7c49cca8290c005998f0043cdbef10c277d9e8de0a",
     "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
     "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
     "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
@@ -11,7 +11,7 @@
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
   },
   "created_at": "2026-08-12T01:39:10.089868+00:00",
-  "revision": 17,
+  "revision": 18,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:03bfd0adfc1d8cf5761890cb9b389e6fdee4dbd5ca381efd3602bec70d9aefc3",
@@ -418,6 +418,29 @@
       },
       "revised_at": "2026-08-13T03:12:00.767148+00:00",
       "reason": "Accept the approved shared behavioral-test additions and Black formatting from the grouped deep-verification evidence implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:85b076bbd885030fd5a32cde99ed7400ef428b9dca534e498524f38b91672221",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-13T09:57:22.928885+00:00",
+      "reason": "Live isolation tests pass no_cache so knockout evidence cache does not skip worker execution",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

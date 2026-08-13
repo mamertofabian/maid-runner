@@ -4,7 +4,7 @@ test_execution:
   accepted_pytest_worker_counts: [8]
   parallel_threshold_seconds: 30
   parallel_without_history: true
-  command_jobs: 1
+  command_jobs: 2
   max_processes: 16
 artifact_coverage:
   fallback_jobs: 8

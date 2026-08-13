@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
   "test_hashes": {
     "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:25800d161c5cfdddcde6fc7c49cca8290c005998f0043cdbef10c277d9e8de0a"
   },
   "created_at": "2026-08-12T14:54:31.272001+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:afbd6c82d0336f02926fd852b81fe72ffa887b7282c869f9baa626c88fe18be6",
@@ -56,6 +56,24 @@
       },
       "revised_at": "2026-08-12T15:05:14.196098+00:00",
       "reason": "Close implementation review's non-Git equivalence gap: require the prior /dev/null environment and no extra project-root file when no copied Git metadata exists.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:04902458e65fd8f8a01e9a43efa7f74662eb0738959b600d302278c1def31ef8"
+      },
+      "revised_at": "2026-08-13T09:57:23.174168+00:00",
+      "reason": "Live isolation tests pass no_cache so knockout evidence cache does not skip worker execution",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

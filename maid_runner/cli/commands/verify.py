@@ -620,6 +620,7 @@ def _run_verify_cached(
                     allow_dirty=knockout_allow_dirty,
                     evidence=evidence,
                     manifest_paths=test_manifest_paths,
+                    no_cache=no_cache,
                 )
             )
             if not _should_continue(stages[-1], fail_fast):
@@ -1147,6 +1148,7 @@ def _knockout_stage(
     allow_dirty: bool,
     evidence: RuntimeEvidenceBundle | None = None,
     manifest_paths: Sequence[str] | None = None,
+    no_cache: bool = False,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
@@ -1178,6 +1180,7 @@ def _knockout_stage(
             allow_dirty=allow_dirty,
             jobs=config.knockout_execution.jobs,
             max_processes=config.test_execution.max_processes,
+            no_cache=no_cache,
         )
         for report in reports.values():
             results.extend(report.results)
