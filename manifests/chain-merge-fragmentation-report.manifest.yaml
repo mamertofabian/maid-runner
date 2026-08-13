@@ -189,3 +189,42 @@ files:
 validate:
 - uv run python -m pytest tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py -v
 - uv run maid validate manifests/chain-merge-fragmentation-report.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Shipped the read-only `maid chain merge <file> --dry-run` fragmentation report."
+  rationale: "Child 1 of the chain-merge-defragmentation epic. Pure aggregation over ManifestChain (merged_artifacts_for); detection is UNKNOWN until a persisted evidence source lands in a later child. The active-manifest filter was refined during review so scope-only references do not inflate the DEFRAG verdict."
+  lessons:
+    - lesson_type: manifest-contract
+      summary: "MAID models Python Protocols as kind: class (nothing else in the repo uses kind: interface), and optional tuples canonicalize to Union[tuple[str, Ellipsis], None] in artifact type declarations."
+      tags:
+        - manifest-contract
+        - type-normalization
+      paths:
+        - maid_runner/core/chain_merge.py
+        - manifests/chain-merge-fragmentation-report.manifest.yaml
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Batch review found the report contract-faithful; the scope-only DEFRAG-inflation minor was fixed to match apply's supersede predicate."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge.py
+        - tests/cli/test_chain_merge_command.py
+      status: passed
+      summary: "10 behavioral tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-fragmentation-report.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed."

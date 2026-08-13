@@ -100,3 +100,41 @@ files:
 validate:
 - uv run python -m pytest tests/core/test_chain_merge_sweep.py tests/cli/test_chain_merge_sweep_command.py -v
 - uv run maid validate manifests/chain-merge-repo-wide-sweep.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Shipped `maid chain merge --all`: a read-only repo-wide DEFRAG/LEAN/BLOCKED sweep with a deterministic worst-offenders ranking."
+  rationale: "Child 6 of the chain-merge-defragmentation epic. Reuses child 1's builder per file over the writable set (all_tracked_paths minus all_read_only_paths); the finish-line scoreboard for a defrag program. On maid-runner itself it reports 747 files, 298 DEFRAG, 449 LEAN."
+  lessons:
+    - lesson_type: design
+      summary: "A deterministic structural scoreboard (counts of redundant work) gives a defrag program a real finish line without a wall-clock benchmark; ordering must be sorted to stay reproducible."
+      tags:
+        - defragmentation
+        - determinism
+      paths:
+        - maid_runner/core/chain_merge_sweep.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Review found the sweep read-only, deterministic, and correct in its writable-file selection and ranking."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_sweep.py
+        - tests/cli/test_chain_merge_sweep_command.py
+      status: passed
+      summary: "6 behavioral tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed."

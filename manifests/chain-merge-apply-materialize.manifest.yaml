@@ -156,3 +156,53 @@ files:
 validate:
 - uv run python -m pytest tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py -v
 - uv run maid validate manifests/chain-merge-apply-materialize.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Shipped `maid chain merge <file> --apply`: materialize the merged contract as a snapshot that supersedes the chain, refusing rather than ever violating the artifact-preservation audit."
+  rationale: "Child 4 of the chain-merge-defragmentation epic. Corrected from the draft's inaccurate premise: snapshots are not plan-locked, so there is no plan-lock/red-evidence to migrate — the real safety property is the anti-gaming artifact-preservation audit. Apply reuses generate_snapshot/save_snapshot and refuses on BLOCKED/LEAN, on multi-file supersession, and on any dropped declared artifact, never auto-sealing the Grandfather lock."
+  lessons:
+    - lesson_type: review-loop
+      summary: "Green behavioral tests missed that superseding a whole manifest drops artifacts it declares in OTHER files; the independent review reproduced the supersession-audit violation. Single-file preservation checks are insufficient when supersession retires multi-file manifests."
+      tags:
+        - implementation-review
+        - supersession
+        - anti-gaming
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+        - tests/core/test_chain_merge_apply.py
+    - lesson_type: cli-design
+      summary: "Independent store_true flags (--apply, --dry-run) let a documented dry run mutate; a read-only flag must gate the mutating branch."
+      tags:
+        - cli-design
+        - safety
+      paths:
+        - maid_runner/cli/commands/chain.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: blocker
+      summary: "Apply produced applied=True while dropping other-file artifacts of superseded multi-file manifests (reproduced against the real SupersessionAuditor). Fixed by refusing multi-file supersession; re-verified with zero audit violations."
+    - source: implementation-review-subagent
+      severity: important
+      summary: "`--apply --dry-run` mutated. Fixed so --dry-run wins (read-only). Re-review verdict: ready to merge."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_apply.py
+        - tests/cli/test_chain_merge_apply_command.py
+      status: passed
+      summary: "5 behavioral tests passed (incl. multi-file refusal and --apply --dry-run read-only)."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-apply-materialize.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed."
