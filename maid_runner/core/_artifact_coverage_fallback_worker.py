@@ -161,6 +161,7 @@ def run_isolated_artifact_coverage_fallbacks(
         )
         lane_results = tuple(future.result() for future in futures)
 
+    red_identities: set[RuntimeCommandIdentity] = set()
     for lane in lane_results:
         for _index, group_identities, cost, result in lane:
             identity = group_identities[0]
@@ -171,14 +172,15 @@ def run_isolated_artifact_coverage_fallbacks(
             for grouped_identity in group_identities:
                 result_index = ordered.index(grouped_identity)
                 results[result_index] = replace(result, identity=grouped_identity)
-            unsafe = unsafe or bool(
-                result.errors
-                or result.material_project_writes
-                or (
-                    result.command_run is not None
-                    and result.command_run.returncode != 0
-                )
-            )
+            # A material write or a harness/worker error can corrupt later
+            # readers in the shared checkout, so it fails the whole batch
+            # closed. A command that merely exited non-zero without writing
+            # left its lane snapshot clean, so it escalates only itself to
+            # in-place replay while proven-clean commands keep their result.
+            if result.errors or result.material_project_writes:
+                unsafe = True
+            elif result.command_run is not None and result.command_run.returncode != 0:
+                red_identities.update(group_identities)
 
     for index, result in enumerate(results):
         if result is None:
@@ -187,7 +189,9 @@ def run_isolated_artifact_coverage_fallbacks(
             )
             unsafe = True
     final = tuple(result for result in results if result is not None)
-    return ArtifactCoverageFallbackRun(final, ordered if unsafe else ())
+    # Preserve deterministic chain/command order for serial replay.
+    serial = ordered if unsafe else tuple(i for i in ordered if i in red_identities)
+    return ArtifactCoverageFallbackRun(final, serial)
 
 
 def _execute_lane(
@@ -717,8 +721,7 @@ def _prepared_command(
         raise ValueError("artifact coverage workers require --dist loadscope")
     if workers > max_processes:
         raise ValueError(
-            f"artifact-coverage process cost {workers} exceeds budget "
-            f"{max_processes}"
+            f"artifact-coverage process cost {workers} exceeds budget {max_processes}"
         )
     capabilities = capability_cache.get("pytest")
     if capabilities is None:
