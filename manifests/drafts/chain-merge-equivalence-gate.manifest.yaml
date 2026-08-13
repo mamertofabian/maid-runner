@@ -1,0 +1,139 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add a knockout+coverage equivalence gate for chain-merge that proves a
+  candidate consolidated test state is a superset of the recorded acceptance bar
+  before old tests are retired; a surviving gap is a blocking, error-coded finding.
+type: feature
+created: '2026-08-13T22:05:00Z'
+metadata:
+  status: planning
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - knockout
+  - artifact-coverage
+  - equivalence
+  - anti-gaming
+  priority: medium
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  Hardening agent writes tests, confirms red, validates, plan-reviews, and locks.
+
+  ORIGIN
+
+  The design note's load-bearing rule: retiring the old tests after a collapse is
+  safe ONLY if the new (consolidated) test state loses no coverage and no fault
+  detection. Green-on-green proves nothing — on correct code every test passes.
+  The acceptance bar is a SUPERSET check, not identity: the candidate must cover
+  a superset of artifacts AND detect a superset of the knockouts the old union
+  detected. This child is that gate.
+
+  WHY THIS FITS THE HARDENING CONSTRAINTS
+
+  Runtime-backed evidence: it compares recorded detecting-nodeids + coverage
+  (from the child-2 sources) against the candidate test state's detecting-nodeids
+  + coverage. No static reasoning about tests. A surviving gap is surfaced loudly
+  as a blocking finding — fail-closed, never advisory.
+
+  WHAT
+
+  - check_merge_equivalence(file, acceptance_bar, candidate_evidence) -> result:
+    returns the artifacts whose detection or coverage REGRESSED (present in the
+    old bar, absent in the candidate). An empty regression set = pass; any entry =
+    a blocking, error-coded finding with a repair recipe.
+  - Surfaced as `maid chain merge <file> --verify-equivalence` (exact flag name an
+    open question), text and single-document JSON.
+
+  SCOPE BOUNDARIES
+
+  IN: the superset comparison (coverage + detection) between the recorded bar and
+    a candidate test state; blocking error-coded regression finding; text/JSON.
+
+  OUT: producing evidence (children 2, 121-21/22); authoring the consolidated
+    tests; auto-retiring tests; materializing the manifest (child 4); equivalence-
+    mutant analysis or any static reasoning.
+
+  EXPECTED RED PHASE
+
+  Tests call check_merge_equivalence with a bar and a candidate whose detection is
+  weaker, asserting a blocking regression finding. Red: the gate does not exist.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a candidate that detects every knockout the bar recorded and covers a superset
+    passes with an empty regression set;
+  - a candidate missing one detecting-nodeid the bar recorded yields a blocking,
+    error-coded regression finding naming that artifact;
+  - a candidate that drops coverage of a declared artifact yields a coverage
+    regression finding;
+  - superset (not identity): a candidate that detects MORE than the bar still
+    passes;
+  - a regression is fail-closed: it is a blocking finding, never advisory
+    (observable in the exit code / finding severity);
+  - determinism: the same bar + candidate yield the same regression set.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest tests/core/test_chain_merge_equivalence.py -v
+  - uv run maid validate manifests/drafts/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (hardening / plan review)
+
+  - How the candidate test state's detection/coverage is obtained: a bounded
+    focused knockout+coverage run over the candidate module vs a recorded probe.
+    Prefer bounded and explicit; this is the one place execution is justified.
+  - Error-code identity and repair recipe in the diagnostics registry for a merge
+    detection/coverage regression.
+  - CLI surface: a `--verify-equivalence` flag on `chain merge` vs a subcommand.
+
+  ADVERSARIAL SELF-REVIEW
+
+  - Green-on-green hazard: treat both-green as equivalence. Defense: compare
+    recorded detecting-nodeids, not pass/fail on current code.
+  - Fail-open hazard: a regression passes as advisory. Defense: blocking, error-
+    coded finding with non-zero exit.
+  - Identity hazard: superset mistaken for identity. Defense: a MORE-detecting
+    candidate passes; only regressions fail.
+temptations:
+- risk: Do not treat both test states being green on current code as proof of
+    equivalence.
+  instead: Compare recorded detecting-nodeids and coverage sets; only a superset
+    passes.
+- risk: Do not report a detection/coverage regression as advisory to keep verify
+    green.
+  instead: Emit a blocking, error-coded finding with a repair recipe and non-zero
+    exit.
+- risk: Do not require identity (reject a stronger candidate).
+  instead: Pass any candidate whose detection/coverage is a superset of the bar.
+files:
+  create:
+  - path: maid_runner/core/chain_merge_equivalence.py
+    artifacts:
+    - kind: class
+      name: MergeEquivalenceResult
+      description: The outcome of an equivalence check — the set of artifacts whose
+        detection or coverage regressed versus the recorded bar (empty = pass) and
+        the blocking-finding payload. Exact field types finalized during hardening.
+    - kind: function
+      name: check_merge_equivalence
+      description: Compares a candidate test state's detection/coverage against the
+        recorded acceptance bar and returns the regression set as a blocking,
+        error-coded result; superset passes, any regression fails closed. Exact
+        signature finalized during hardening.
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain_merge_evidence.py
+  - maid_runner/core/knockout.py
+  - maid_runner/core/artifact_coverage.py
+  - manifests/drafts/chain-merge-evidence-sources.manifest.yaml
+  - docs/plans/maid-runner-manifest-test-consolidation.md
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_equivalence.py -v
+- uv run maid validate manifests/drafts/chain-merge-equivalence-gate.manifest.yaml
+  --mode schema --quiet

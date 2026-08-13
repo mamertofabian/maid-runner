@@ -1,0 +1,237 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add a deterministic `maid chain merge <file> --dry-run` report that tells a
+  mature MAID repo whether a production file's manifest chain is fragmented
+  (collapsible) and emits the merged target contract plus a machine-readable
+  acceptance spec, so the chain can later be defragmented without losing coverage
+  or fault detection.
+type: feature
+created: '2026-08-13T21:30:00Z'
+metadata:
+  status: planning
+  origin: manifest-test-consolidation-design-2026-08-13
+  tags:
+  - chain-merge
+  - defragmentation
+  - manifest-consolidation
+  - knockout
+  - report
+  priority: medium
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  The contract-hardening agent writes the behavioral tests, confirms the red
+  phase, runs behavioral validation, plan-review, and (after approval) plan
+  lock + promote. Do not lock or implement from this file as-is.
+
+  ORIGIN
+
+  From the 2026-08-13 manifest & test consolidation design note
+  (docs/plans/maid-runner-manifest-test-consolidation.md). A mature MAID repo
+  accumulates a long, fragmented manifest chain per file (maid-runner: 570
+  active manifests, ~6x redundant artifact declarations). The spec's
+  "Merging Validator" already merges a file's active chain into one effective
+  contract in memory (ManifestChain.merged_artifacts_for); `maid chain replay`
+  previews it. Nothing MATERIALIZES that merge, and nothing decides WHERE a
+  merge is worth doing. This child adds the read-only decision/report layer that
+  `maid chain merge` (materialize, a later child) and a human/agent collapse will
+  consume.
+
+  WHY THIS FITS THE HARDENING CONSTRAINTS (preferred, not merely allowed)
+
+  This is pure aggregation over data MAID already computes deterministically:
+  the manifest chain graph (ManifestChain) and, when available, recorded knockout
+  detecting-nodeids. There is NO new static/control-flow/AST analyzer — the
+  AGENTS.md Validator Hardening Constraints forbid that as a default, and this
+  child does not need it. Every count derives from existing chain primitives.
+
+  WHAT (first slice)
+
+  `maid chain merge <file> --dry-run` (beside `maid chain log` / `maid chain
+  replay`) prints a deterministic ChainMergeReport for one production file:
+  - active vs superseded manifest counts declaring the file;
+  - distinct vs total artifact declarations (the redundancy the merge removes);
+  - the merged target contract (from ManifestChain.merged_artifacts_for) that a
+    future snapshot must declare;
+  - a DEFRAG / LEAN / BLOCKED verdict (structural only in this child);
+  - an acceptance spec: required_artifacts (the merge target) plus, WHEN a
+    DetectionEvidenceSource is available, the per-artifact detecting-nodeids the
+    collapsed tests must preserve. When no source is available, detection is
+    reported UNKNOWN — never fabricated.
+  Human text and single-document `--json` output. Read-only: `--dry-run` writes
+  nothing and supersedes nothing.
+
+  DETERMINISM / EVIDENCE BOUNDARY (the load-bearing rule)
+
+  The report merges the manifest contract deterministically and cheaply. It does
+  NOT run knockout or coverage to produce numbers — that would turn a cheap
+  report into a deep-verify pass. Detecting-nodeids come only through an injected
+  DetectionEvidenceSource interface. In this child the concrete, persisted source
+  does not exist yet (detecting-nodeids are transient and, on release/v2.next,
+  absent entirely — this branch is based on perf/full-deep-verification-speedups
+  precisely so the detecting-nodeids types exist). So the first slice ships the
+  interface and an "unavailable" default that reports detection UNKNOWN. A
+  SEPARATE sibling child persists knockout evidence and provides a real source;
+  another later child adds `--apply` (materialize via snapshot + provenance
+  migration + the knockout superset gate). This child neither certifies a
+  collapse is safe nor generates the characterization test module.
+
+  SCOPE BOUNDARIES (first slice)
+
+  IN: a read-only `maid chain merge <file> --dry-run` subcommand; a deterministic
+  structural fragmentation report over ManifestChain (counts, merged target,
+  DEFRAG/LEAN/BLOCKED with structural reasons only); an injected
+  DetectionEvidenceSource interface with an "unavailable" default; text and JSON
+  output; Python-first.
+
+  OUT (later children or explicitly rejected): `--apply` / materialize (snapshot,
+  provenance migration, knockout superset gate); the persisted knockout-evidence
+  store that backs a real DetectionEvidenceSource; a coverage/E710-derived BLOCKED
+  reason (needs a recorded coverage-status source that does not exist yet);
+  repo-wide `--all` sweep; auto-generating the consolidated characterization test
+  module; any claim that a specific collapse is safe; any new static/AST analyzer.
+
+  EXPECTED RED PHASE
+
+  Behavioral tests import build_chain_merge_report and the report/verdict/
+  acceptance types inside the test bodies and drive `maid chain merge --dry-run`.
+  Red is: the module, types, and subcommand do not exist yet, so tests fail on a
+  real assertion / ImportError-from-within-test / non-zero CLI exit.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - a file whose active chain has multiple manifests with repeated artifact
+    re-declarations reports verdict DEFRAG with correct active/superseded/
+    distinct/total/redundant counts;
+  - a file with a single active manifest and no repeated declarations reports
+    verdict LEAN (nothing to merge);
+  - a file with no active writable manifest reports verdict BLOCKED with a
+    structural blocking_reason (cannot be snapshot-merged);
+  - the report's required_artifacts equals ManifestChain.merged_artifacts_for for
+    that file (no artifact dropped or invented by the merge target);
+  - redundant_declaration_count equals total_declaration_count minus
+    distinct_artifact_count (observable);
+  - with no DetectionEvidenceSource (unavailable default), acceptance
+    detection_available is False and every merged artifact is listed in
+    unknown_detection_artifacts (honest UNKNOWN, no fabricated nodeids);
+  - with a fake DetectionEvidenceSource yielding nodeids, acceptance
+    required_detecting_nodeids maps each artifact to exactly those nodeids;
+  - `maid chain merge <file> --dry-run --json` emits one JSON document carrying
+    the declared report fields;
+  - `--dry-run` is read-only: the manifest directory is byte-unchanged after the
+    command (no snapshot written, nothing superseded);
+  - determinism: the same chain yields an equal ChainMergeReport across repeated
+    builds.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py -v
+  - uv run maid validate manifests/drafts/chain-merge-fragmentation-report.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (decide in contract hardening / plan review)
+
+  - Exact build_chain_merge_report signature and the field types of
+    ChainMergeReport / ChainMergeAcceptanceSpec (finalized in hardening).
+  - DetectionEvidenceSource method shape (e.g. detecting_nodeids_for(artifact_key)
+    -> tuple[str, ...] | None) must be forward-compatible with the persisted
+    knockout-evidence store planned as the sibling child, and with the perf
+    branch's KnockoutArtifactIdentity keying.
+  - Whether BLOCKED carries any structural reasons beyond "no active writable
+    manifest" in this child; coverage/E710 BLOCKED is explicitly deferred.
+  - read vs edit for the CLI glue (chain.py dispatch + private handler, _main.py
+    subparser, _format.py formatter): confirm none of them change a public
+    surface, so files.read is correct; move to files.edit only if a public
+    artifact is intentionally contracted.
+  - Integration path: this branch is based on perf/full-deep-verification-
+    speedups and cannot merge to release/v2.next until perf lands. Confirm the
+    intended sequence.
+
+  ADVERSARIAL SELF-REVIEW (planning agent)
+
+  - Fabrication hazard: the report implies coverage/detection when none was
+    measured. Defense: detection is UNKNOWN unless an injected source supplies it;
+    required_artifacts come only from the deterministic merge; no coverage claim
+    is made in this child.
+  - Cost hazard: the report secretly runs knockout/coverage. Defense: numbers come
+    only from ManifestChain and an injected source; pin a test that the report
+    never invokes knockout, and a determinism test.
+  - Scope-creep hazard: the report quietly starts materializing. Defense:
+    `--dry-run` is read-only; `--apply` is a named later child; pin a
+    manifest-directory-unchanged test.
+  - Over-broad-verdict hazard: everything reports DEFRAG. Defense: LEAN for a
+    single-manifest / no-redundancy file, BLOCKED for a file with no writable
+    manifest; tests pin each verdict boundary.
+  - Coupling blindspot: building on perf means release cannot consume this until
+    perf merges. Defense: recorded as an open question / integration constraint.
+temptations:
+- risk: Do not compute detecting-nodeids by running knockout inside the report;
+    that turns a cheap deterministic report into a deep-verify pass.
+  instead: Read detecting-nodeids only through the injected DetectionEvidenceSource;
+    when it is unavailable, report detection UNKNOWN and never run knockout.
+- risk: Do not fabricate coverage/detection evidence or default to a
+    "looks covered" acceptance when no evidence exists.
+  instead: Populate required_artifacts from the deterministic merge only, and mark
+    detection UNKNOWN; the superset gate is enforced later by `--apply`.
+- risk: Do not build a new static/AST/control-flow analyzer to judge fragmentation.
+  instead: Derive every count from ManifestChain primitives (manifests_for_file,
+    merged_artifacts_for, superseded_manifests).
+- risk: Do not let `--dry-run` write, snapshot, or supersede anything.
+  instead: Keep the report pure and read-only; pin a test that the manifest
+    directory is byte-unchanged after the command.
+- risk: Do not auto-generate the characterization test module or claim a specific
+    collapse is safe from the report alone.
+  instead: Emit only the acceptance bar; authoring the tests and enforcing the
+    knockout superset belong to later children.
+files:
+  create:
+  - path: maid_runner/core/chain_merge.py
+    artifacts:
+    - kind: enum
+      name: ChainMergeVerdict
+      description: Structural verdict for a file's manifest chain — DEFRAG
+        (collapsible, has redundant/multi-manifest history), LEAN (single active
+        manifest, nothing to merge), or BLOCKED (structural reason such as no
+        active writable manifest). Coverage/E710 BLOCKED reasons are out of scope
+        for this child.
+    - kind: interface
+      name: DetectionEvidenceSource
+      description: Narrow injected interface the report reads recorded knockout
+        detecting-nodeids through, keyed by artifact contract key; returns None
+        when no evidence is recorded. Insulates the report from the (volatile)
+        knockout engine and from the not-yet-built persisted evidence store. Exact
+        method shape finalized during contract hardening.
+    - kind: class
+      name: ChainMergeAcceptanceSpec
+      description: The deterministic bar a future collapse must clear —
+        required_artifacts (the merged target contract) plus, when detection
+        evidence is available, the per-artifact detecting-nodeids that must be
+        preserved, and the artifacts whose detection is UNKNOWN. Exact field types
+        finalized during hardening.
+    - kind: class
+      name: ChainMergeReport
+      description: The full read-only report for one production file — file path,
+        ChainMergeVerdict, active/superseded manifest counts, distinct/total/
+        redundant declaration counts, structural blocking reasons, and the
+        ChainMergeAcceptanceSpec. Exact field types finalized during hardening.
+    - kind: function
+      name: build_chain_merge_report
+      description: Pure builder that composes a ChainMergeReport for one file from
+        a ManifestChain and an optional DetectionEvidenceSource; performs no I/O
+        of its own and never runs knockout or coverage. Exact signature finalized
+        during contract hardening.
+  read:
+  - maid_runner/core/chain.py
+  - maid_runner/core/knockout.py
+  - maid_runner/cli/commands/chain.py
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/_format.py
+  - docs/plans/maid-runner-manifest-test-consolidation.md
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py
+  -v
+- uv run maid validate manifests/drafts/chain-merge-fragmentation-report.manifest.yaml
+  --mode schema --quiet

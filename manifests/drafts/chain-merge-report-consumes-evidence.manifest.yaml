@@ -1,0 +1,129 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Wire the concrete detection and coverage evidence sources into
+  build_chain_merge_report so the acceptance spec carries real detecting-nodeids
+  and coverage, and add the coverage/E710-derived BLOCKED verdict.
+type: feature
+created: '2026-08-13T21:55:00Z'
+metadata:
+  status: planning
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - artifact-coverage
+  - knockout
+  - report
+  priority: medium
+description: |
+  PLANNING HANDOFF DRAFT (inventory). Design + adversarial self-review only.
+  Hardening agent writes tests, confirms red, validates, plan-reviews, and locks.
+  This child EVOLVES child 1's contract (chain-merge-fragmentation-report); the
+  hardening agent decides chain-merge vs maid-evolver for chain_merge.py.
+
+  ORIGIN
+
+  Child 1 emits an UNKNOWN acceptance bar and a structural-only verdict. Child 2
+  provides RecordedDetectionEvidenceSource + RecordedCoverageEvidenceSource. This
+  child connects them: the report populates real detecting-nodeids and coverage in
+  the acceptance spec, and gains a coverage/E710-derived BLOCKED verdict (a file
+  with recorded coverage gaps cannot be safely merged until the debt is cleared).
+
+  WHAT
+
+  - build_chain_merge_report consumes the injected concrete sources when present:
+    acceptance.detection_available becomes True and required_detecting_nodeids is
+    populated; unknown_detection_artifacts holds only genuinely unrecorded ones.
+  - ChainMergeAcceptanceSpec carries the required coverage set from the coverage
+    source.
+  - ChainMergeVerdict.BLOCKED is returned with a coverage-debt reason when the
+    coverage source reports E710 gaps on the file, in addition to the structural
+    BLOCKED reasons from child 1.
+  - When a source is absent, behavior is exactly child 1's UNKNOWN path
+    (backward compatible).
+
+  SCOPE BOUNDARIES
+
+  IN: consuming the concrete sources in the report; populated detection/coverage
+  acceptance; coverage/E710 BLOCKED verdict; preserved UNKNOWN fallback.
+
+  OUT: producing/reading the caches (child 2); the equivalence gate (child 5);
+  apply/materialize (child 4); repo-wide sweep (child 6).
+
+  EXPECTED RED PHASE
+
+  Tests drive build_chain_merge_report with a fake detection/coverage source and
+  assert populated acceptance + the coverage BLOCKED verdict. Red: the report does
+  not yet consume sources / lacks the coverage-BLOCKED path.
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - with a fake detection source, required_detecting_nodeids is populated and
+    detection_available is True; unknown set holds only unrecorded artifacts;
+  - with a fake coverage source reporting full coverage, required coverage equals
+    the merged artifact set and the verdict is not coverage-BLOCKED;
+  - with a fake coverage source reporting an E710 gap, the verdict is BLOCKED with
+    a coverage-debt reason;
+  - with no sources supplied, the report is byte-equivalent to child 1's UNKNOWN
+    behavior (regression);
+  - determinism: same chain + same sources yield an equal report.
+
+  PLANNED VALIDATE COMMANDS
+
+  - uv run python -m pytest tests/core/test_chain_merge.py -v
+  - uv run maid validate manifests/drafts/chain-merge-report-consumes-evidence.manifest.yaml --mode schema --quiet
+
+  OPEN QUESTIONS (hardening / plan review)
+
+  - Whether this merges into child 1's manifest chain or supersedes it via
+    maid-evolver (contract evolution of build_chain_merge_report / the spec types).
+  - Exact new field types on ChainMergeAcceptanceSpec for required coverage.
+
+  ADVERSARIAL SELF-REVIEW
+
+  - Regression hazard: breaking child 1's UNKNOWN path. Defense: absent-source
+    behavior pinned as byte-equivalent to child 1.
+  - False-green hazard: coverage gap not surfaced. Defense: E710 forces BLOCKED,
+    asserted by test.
+  - Fabrication hazard: implying detection when the source has none. Defense:
+    unknown set holds unrecorded artifacts; detection_available reflects reality.
+temptations:
+- risk: Do not silence a recorded coverage/E710 gap to keep the verdict green.
+  instead: Return BLOCKED with a coverage-debt reason when the coverage source
+    reports uncovered declared artifacts.
+- risk: Do not regress child 1's UNKNOWN behavior when no source is injected.
+  instead: Pin an absent-source test that matches child 1 byte-for-byte.
+- risk: Do not mark detection available when the source only partially covers the
+    merged artifacts.
+  instead: Populate unknown_detection_artifacts for every unrecorded artifact.
+files:
+  edit:
+  - path: maid_runner/core/chain_merge.py
+    artifacts:
+    - kind: function
+      name: build_chain_merge_report
+      description: Evolved to consume optional concrete detection/coverage sources
+        and populate real acceptance + a coverage/E710 BLOCKED verdict, preserving
+        the UNKNOWN fallback when sources are absent. Exact signature finalized
+        during hardening.
+    - kind: class
+      name: ChainMergeAcceptanceSpec
+      description: Extended with the required coverage set alongside
+        required_artifacts and detecting-nodeids. Exact field types finalized
+        during hardening.
+  read:
+  - maid_runner/core/chain_merge_evidence.py
+  - maid_runner/core/chain.py
+  - maid_runner/core/knockout.py
+  - maid_runner/core/artifact_coverage.py
+  - manifests/drafts/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/drafts/chain-merge-evidence-sources.manifest.yaml
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge.py -v
+- uv run maid validate manifests/drafts/chain-merge-report-consumes-evidence.manifest.yaml
+  --mode schema --quiet
