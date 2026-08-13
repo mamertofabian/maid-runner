@@ -1463,37 +1463,26 @@ def test_indirect_state_or_changed_wide_fixture_approval_falls_back(tmp_path):
     assert changed_result.fallback_identities == (changed.commands[0].identity,)
 
 
-def test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers(
-    tmp_path, monkeypatch
-):
+def test_deep_conftest_preflight_skips_speculative_evidence(tmp_path, monkeypatch):
     from maid_runner.cli.commands.verify import _collect_artifact_coverage_evidence
     from maid_runner.core import runtime_evidence
-    from maid_runner.core.config import load_config
-    from maid_runner.core.runtime_evidence import (
-        RuntimeEvidenceBundle,
-        RuntimeEvidenceCompleteness,
-    )
 
     _write_project(tmp_path, ("alpha",))
     (tmp_path / "conftest.py").write_text("# target-neutral project conftest\n")
-    sentinel = RuntimeEvidenceBundle(
-        commands=(),
-        content_digest="sentinel",
-        environment_identities=(),
-        worker_ids=(),
-        completeness=RuntimeEvidenceCompleteness(complete=True),
-    )
-    observed = {}
+    sentinel = object()
+    observed = []
 
     def fake_collect(manifests, root, pytest_workers=None):
-        observed["workers"] = pytest_workers
+        observed.append((manifests, root, pytest_workers))
         return SimpleNamespace(evidence=sentinel)
 
     monkeypatch.setattr(runtime_evidence, "collect_runtime_evidence", fake_collect)
 
-    assert (
-        _collect_artifact_coverage_evidence(tmp_path, "manifests", pytest_workers=8)
-        is sentinel
+    evidence = _collect_artifact_coverage_evidence(
+        tmp_path,
+        "manifests",
+        pytest_workers=8,
     )
-    assert observed == {"workers": 8}
-    assert load_config(Path.cwd()).test_execution.parallel_without_history is True
+
+    assert evidence is None
+    assert observed == []

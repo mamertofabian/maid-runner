@@ -23,12 +23,17 @@ description: |
   evidence run to the project digest captured before execution. If the
   instrumented command itself changes project content, fail the artifact stage
   visibly because the pre-execution legacy baseline can no longer be replayed.
-  A project-owned conftest.py alone does not force legacy execution after
-  121-15 adds runtime lifecycle/source proof and explicit digest-bound
-  approvals. Target-neutral conftests may reach grouped evidence; unproven
-  fixture, hook, collection, mutation, command, or source evidence still
-  selects exact fallback, bounding uncertainty without paying speculative work
-  solely for file presence.
+  Bound speculative overhead before execution. A root-contained project
+  conftest.py selects the complete legacy coverage path before chain loading,
+  digest capture, or instrumented pytest: the repository's approved fixture
+  set still left 131 runtime lifecycle contexts unresolved, and a fresh
+  optimized probe exceeded the five-minute decision bound after already paying
+  about 132 seconds for grouped collection. Fixture-free projects retain the
+  proven grouped fast path. Apply the same canonical exclusion boundary as the
+  evidence content digest: `.maid/cache`, `.git`, `.pytest_cache`, `.venv`,
+  `venv`, `node_modules`, and `__pycache__` path components do not count as
+  project conftests. Any non-excluded in-tree conftest file at any depth,
+  including a symlinked file, selects legacy coverage before chain/digest work.
 
   Never reuse the instrumented command as the ordinary tests result. Pytest
   instrumentation, project mutations, and refreshed timing history are
@@ -46,8 +51,8 @@ temptations:
     instead: "Run the complete legacy artifact-coverage stage for preparation errors or unsupported outer command concurrency."
   - risk: "Do not bind evidence to project bytes produced by the instrumented test itself."
     instead: "Compare pre- and post-execution project digests and fail coverage visibly when the evidence command mutates project content."
-  - risk: "Do not treat conftest file presence alone as either proof of safety or proof of required fallback."
-    instead: "Use 121-15's runtime lifecycle/source evidence and exact digest-bound approvals; retain exact fallback for every unproven context."
+  - risk: "Do not pay for grouped fixture evidence before discovering that exact fallback is still required."
+    instead: "Preflight root-contained project conftests and select legacy coverage before chain, digest, or pytest work; keep the grouped path for fixture-free projects."
 files:
   create:
     - path: tests/cli/test_verify_deep_evidence_reuse.py
@@ -87,6 +92,9 @@ files:
           args: []
         - kind: test_function
           name: test_project_conftest_uses_legacy_coverage_without_speculative_evidence
+          args: []
+        - kind: test_function
+          name: test_excluded_or_symlinked_conftest_preflight_is_bounded
           args: []
         - kind: test_function
           name: test_knockout_keeps_ordinary_tests_fresh_after_coverage
@@ -169,9 +177,9 @@ validate:
   - uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet
 outcome:
   status: completed
-  completed_at: "2026-08-11T14:45:02Z"
-  summary: "Deep artifact coverage now uses grouped runtime evidence only for fixture-free projects, always executes ordinary tests fresh, fails closed on stale/incomplete/mutating evidence, and selects the complete legacy coverage stage before speculative execution when a project owns conftest.py. This establishes a safe fast path without regressing the known fixture-heavy repository worst case."
-  rationale: "Independent review disproved reusing instrumented pytest results as ordinary results because profiler observability, project mutation, scheduler history, and notices can change behavior. A subsequent real deep benchmark showed that collecting incomplete fixture evidence before exact fallback more than doubled wall time, so revision 17 added a conservative conftest guard until a cheap lifecycle preflight can distinguish reusable fixture-bearing groups."
+  completed_at: "2026-08-13T04:15:00Z"
+  summary: "Deep artifact coverage now selects complete legacy coverage before chain, digest, or pytest work for fixture-bearing projects, while retaining grouped runtime evidence for fixture-free projects and always running ordinary tests fresh. On maid-runner the decision fell from about 132 seconds of speculative collection to 0.0108 seconds."
+  rationale: "The attempted repository-wide grouped path left 131 lifecycle contexts unresolved, exceeded the agreed five-minute decision bound, and a proposed collection-attribution refinement failed independent safety review because grouped selectors could change import behavior. Restoring the canonical-exclusion-aware conftest preflight removes known wasted work without claiming that the remaining 24–30-minute legacy artifact stage is solved."
   lessons:
     - lesson_type: design
       summary: "Instrumented evidence can safely accelerate coverage attribution but is not observationally equivalent to fresh ordinary tests; those execution boundaries must remain separate."
@@ -195,6 +203,11 @@ outcome:
       paths:
         - maid_runner/core/runtime_evidence.py
         - maid_runner/core/artifact_coverage.py
+    - lesson_type: performance
+      summary: "A bounded optimization attempt must be removed when it cannot beat its kill criterion; avoiding a 132-second speculative prepass is a real bound improvement but is not an end-to-end deep verification speedup."
+      tags: [performance, rollback, measurement]
+      paths:
+        - maid_runner/cli/commands/verify.py
   review_notes:
     - source: review_121_10_implementation
       severity: warning
@@ -205,6 +218,9 @@ outcome:
     - source: review_121_10_safe_redesign
       severity: ready
       summary: "Revision 17 bounds the known repository regression by detecting project conftests before chain/evidence work; final performance re-review found no blocking issues."
+    - source: review_121_rollback_impl
+      severity: ready
+      summary: "Independent review confirmed canonical exclusion consistency, nested and symlink fail-closed handling, fixture-free preservation, and early return ordering after the active-task marker was cleared."
   validation:
     - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py]
       status: passed
@@ -230,3 +246,12 @@ outcome:
     - command: [uv, run, ruff, check, maid_runner/cli/commands/verify.py, maid_runner/cli/commands/validate.py, tests/cli/test_verify_deep_evidence_reuse.py]
       status: passed
       summary: "Focused Ruff, repository Black check, and git diff check passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_from_runtime_evidence.py, tests/core/test_test_runner.py, tests/cli/test_artifact_coverage_cmd.py, tests/cli/test_verify_cmd.py]
+      status: passed
+      summary: "Revision-22 declared regression scope passed: 189 tests in 44.28 seconds."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, fecaac0, --summary, --packet]
+      status: passed
+      summary: "All nine handoff stages passed in 54.981 seconds with only pre-existing E307 missing-validator warnings. Assessment recommended deep, but the known 24–30-minute legacy stage was intentionally not rerun after the rejected optimized probe exceeded five minutes."
+    - command: [uv, run, python, -c, "real repository revision-22 conftest preflight probe"]
+      status: passed
+      summary: "Selected complete legacy coverage with no grouped evidence in 0.0108 seconds, before chain, digest, or pytest work."

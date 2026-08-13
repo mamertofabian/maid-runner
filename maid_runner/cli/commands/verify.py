@@ -820,9 +820,16 @@ def _collect_artifact_coverage_evidence(
         from maid_runner.core.chain import get_cached_manifest_chain
         from maid_runner.core.runtime_evidence import (
             _content_digest,
+            _excluded_content_path,
             collect_runtime_evidence,
         )
 
+        if any(
+            not _excluded_content_path(path.relative_to(root))
+            for path in root.rglob("conftest.py")
+            if path.is_file()
+        ):
+            return None
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
         coverage_manifests = tuple(
             manifest

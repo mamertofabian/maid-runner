@@ -1,16 +1,16 @@
 {
   "manifest_path": "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
-  "manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+  "manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
   "test_hashes": {
     "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
     "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
     "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
     "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
     "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
-    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87"
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a"
   },
   "created_at": "2026-08-11T09:54:08.840657+00:00",
-  "revision": 20,
+  "revision": 22,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:73a70a579499174395c1046abcb186f941ad946d9901876bd9993dc5d0257e81",
@@ -580,16 +580,60 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87"
+      },
+      "revised_at": "2026-08-13T04:08:45.454329+00:00",
+      "reason": "Restore the bounded project-conftest preflight after the repository grouped-evidence path exceeded five minutes and the proposed collection-attribution optimization failed safety review; retain the fixture-free fast path and fresh ordinary tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a"
+      },
+      "revised_at": "2026-08-13T04:09:56.656240+00:00",
+      "reason": "Align the companion lock after the approved multi-manifest revision completed; contract and behavioral red evidence are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-08-13T03:02:46.868909+00:00",
+    "captured_at": "2026-08-13T04:09:30.570381+00:00",
     "commands": [
       {
         "command": "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py",
         "exit_code": 1,
-        "output_tail": "        monkeypatch.setenv(\"MAID_EVIDENCE_EXECUTION_LOG\", str(log))\n        calls = []\n        real_collect = evidence_module.collect_runtime_evidence\n    \n        def recording_collect(*args, **kwargs):\n            calls.append((args, kwargs))\n            return real_collect(*args, **kwargs)\n    \n        monkeypatch.setattr(evidence_module, \"collect_runtime_evidence\", recording_collect)\n    \n        evidence = _collect_artifact_coverage_evidence(tmp_path, \"manifests/\")\n        stage = _artifact_coverage_stage(tmp_path, \"manifests/\", evidence=evidence)\n    \n>       assert evidence is not None\nE       assert None is not None\n\ntests/cli/test_verify_deep_evidence_reuse.py:474: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_project_conftest_uses_legacy_coverage_without_speculative_evidence\n1 failed, 187 passed in 52.44s",
+        "output_tail": "    \n        assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is sentinel\n        assert len(calls) == 1\n    \n        outside = tmp_path.parent / f\"{tmp_path.name}-outside-conftest.py\"\n        outside.write_text(\"# outside project\\n\")\n        link = tmp_path / \"tests\" / \"linked\" / \"conftest.py\"\n        link.parent.mkdir(parents=True)\n        link.symlink_to(outside)\n        calls.clear()\n    \n>       assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is None\nE       AssertionError: assert RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) is None\nE        +  where RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) = <function _collect_artifact_coverage_evidence at 0x7c014ffc9580>(PosixPath('/tmp/pytest-of-atomrem/pytest-4170/test_excluded_or_symlinked_con0'), 'manifests/')\n\ntests/cli/test_verify_deep_evidence_reuse.py:551: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_project_conftest_uses_legacy_coverage_without_speculative_evidence\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_excluded_or_symlinked_conftest_preflight_is_bounded\n2 failed, 187 passed in 44.40s",
         "classification": "red"
       },
       {
@@ -664,6 +708,8 @@
       "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations:kind=test_function",
       "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_preserves_artifact_coverage_before_tests_stage_output",
       "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_preserves_artifact_coverage_before_tests_stage_output:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded:kind=test_function",
       "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage",
       "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage:kind=test_function",
       "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback",
@@ -758,6 +804,10 @@
             {
               "kind": "test_function",
               "name": "test_project_conftest_uses_legacy_coverage_without_speculative_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_excluded_or_symlinked_conftest_preflight_is_bounded"
             },
             {
               "kind": "test_function",

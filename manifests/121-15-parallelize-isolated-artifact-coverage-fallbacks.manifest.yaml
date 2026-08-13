@@ -223,15 +223,18 @@ description: |
   selector remains unsupported even when a valid sibling selector collects
   successfully.
 
-  Revision 24 resolves the remaining chain-level conftest contradiction found
-  by the complete declared suite. A present project conftest is no longer, by
-  itself, a reason to bypass grouped evidence before execution: the runtime
-  lifecycle/source evidence and explicit approvals added by this manifest are
-  the fail-closed boundary. A target-neutral conftest therefore reaches grouped
-  collection, while unproven fixture, hook, collection, mutation, command, or
-  source evidence still selects exact fallback. Preserve instrumentation-
-  observable legacy coverage semantics and always run the ordinary tests stage
-  fresh.
+  Revision 26 rejects the repository-wide grouped path after the bounded live
+  decision probe exceeded five minutes without completing and independent plan
+  review found that proposed collection-module attribution could false-green
+  command-dependent import behavior. Restore 121-10's cheap project-conftest
+  preflight: fixture-bearing projects select complete legacy coverage before
+  speculative collection, while fixture-free projects retain grouped evidence.
+  Keep the isolated fallback engine and runtime proof APIs available for future
+  explicitly accepted consumers, but do not add their cost to this repository's
+  deep path until a real three-run acceptance completes below budget with exact
+  report/order parity, no fallback/replay, no diagnostic, and no material
+  write. Preserve instrumentation-observable legacy coverage semantics and
+  always run the ordinary tests stage fresh.
 temptations:
   - risk: "Do not run fallback processes concurrently against one mutable checkout."
     instead: "Use independently verified current-byte and Git-isolated snapshots for every active worker."
@@ -374,7 +377,7 @@ files:
           name: test_indirect_state_or_changed_wide_fixture_approval_falls_back
           args: []
         - kind: test_function
-          name: test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers
+          name: test_deep_conftest_preflight_skips_speculative_evidence
           args: []
     - path: tests/performance/test_artifact_coverage_fallback_equivalence_probe.py
       artifacts:
@@ -498,6 +501,9 @@ files:
         - kind: test_function
           name: test_project_conftest_uses_legacy_coverage_without_speculative_evidence
           args: []
+        - kind: test_function
+          name: test_excluded_or_symlinked_conftest_preflight_is_bounded
+          args: []
     - path: maid_runner/core/_test_command_batching.py
       artifacts:
         - kind: function
@@ -576,7 +582,7 @@ files:
               type: int | str | None
               default: "None"
           returns: RuntimeEvidenceBundle | None
-          description: "Attempts grouped evidence in projects with conftests after digest capture, retaining mutation detection and complete legacy fallback on preparation failure."
+          description: "Returns None before chain, digest, or pytest work when any non-excluded in-tree conftest file exists, including symlinks; shares `_excluded_content_path` with the content digest, otherwise attempts grouped evidence with mutation detection and complete legacy fallback on preparation failure."
     - path: maid_runner/core/artifact_coverage.py
       artifacts:
         - kind: attribute
@@ -852,3 +858,43 @@ acceptance:
 validate:
   - uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py tests/cli/test_verify_deep_evidence_reuse.py
   - uv run maid validate manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T04:15:00Z"
+  summary: "Retained the isolated fallback and grouped-evidence APIs, but removed their speculative cost from maid-runner's fixture-bearing deep path after the live optimized phase exceeded five minutes. Deep now selects the exact legacy artifact stage through 121-10's 0.0108-second preflight."
+  rationale: "Multiple safe parallel fallback and grouped-evidence designs improved individual phases but did not produce a stable accepted repository-wide result below the budget. The final collection-attribution proposal also admitted a selector-dependent import false green. Revision 26 therefore preserves the hardened machinery for separately accepted consumers while restoring the bounded production path for this repository."
+  lessons:
+    - lesson_type: performance
+      summary: "Phase-level speedups do not count as an accepted optimization when incomplete evidence or worker safety causes replay; measure and enforce the complete production decision path."
+      tags: [performance, artifact-coverage, replay]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - maid_runner/cli/commands/verify.py
+    - lesson_type: design
+      summary: "Unique collection-module attribution is not exact-command equivalence because grouped selectors and pytest options can change import-time behavior."
+      tags: [runtime-evidence, fail-closed, command-equivalence]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+  review_notes:
+    - source: review_121_15_revision19_plan
+      severity: rejected
+      summary: "Rejected module collection attribution because grouped command state could produce coverage absent from each exact command; approved the conservative rollback plan after nested, excluded, symlink, and early-order adversaries were added."
+    - source: review_121_rollback_impl
+      severity: ready
+      summary: "Independent implementation review found only a transient active-task marker; after task stop, re-review returned Ready to merge with deep performance verification as the sole advisory limitation."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_fallback_workers.py, tests/performance/test_artifact_coverage_fallback_equivalence_probe.py, tests/core/test_artifact_coverage_from_runtime_evidence.py, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/test_config.py, tests/core/test_runtime_evidence.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "Revision-26 declared regression scope passed: 123 tests in 53.84 seconds."
+    - command: [uv, run, maid, validate, manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed with only the existing E307 advisory for .maidrc.yaml."
+    - command: [uv, run, maid, validate, --quiet, --packet]
+      status: passed
+      summary: "Repository-wide manifest validation passed."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, fecaac0, --summary, --packet]
+      status: passed
+      summary: "All nine handoff stages passed in 54.981 seconds; complete deep verification was intentionally not rerun because this rollback restores the known 24–30-minute legacy artifact stage rather than claiming to optimize it."
+    - command: [uv, run, python, tools/check_artifact_coverage_fallback_equivalence.py, --project-root, ., --jobs, "8", --max-processes, "16", --max-parallel-seconds, "270"]
+      status: failed
+      summary: "The bounded live optimized phase exceeded five minutes and was stopped around 6.5 minutes without an accepted result; no report-equivalence or production speedup claim is made."

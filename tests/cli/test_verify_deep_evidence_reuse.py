@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import replace
 import json
 from pathlib import Path
+import subprocess
+from types import SimpleNamespace
 
 import yaml
 
@@ -449,6 +451,7 @@ def test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fall
 def test_project_conftest_uses_legacy_coverage_without_speculative_evidence(
     tmp_path, monkeypatch
 ):
+    import maid_runner.core.chain as chain_module
     import maid_runner.core.runtime_evidence as evidence_module
     from maid_runner.cli.commands.verify import (
         _artifact_coverage_stage,
@@ -457,24 +460,96 @@ def test_project_conftest_uses_legacy_coverage_without_speculative_evidence(
 
     log = tmp_path.parent / f"{tmp_path.name}-executions.log"
     _write_project(tmp_path, log)
-    (tmp_path / "conftest.py").write_text("# Project-owned pytest behavior.\n")
+    nested = tmp_path / "tests" / "nested"
+    nested.mkdir()
+    (nested / "conftest.py").write_text("# Project-owned pytest behavior.\n")
     monkeypatch.setenv("MAID_EVIDENCE_EXECUTION_LOG", str(log))
     calls = []
     real_collect = evidence_module.collect_runtime_evidence
+    real_chain = chain_module.get_cached_manifest_chain
+    real_digest = evidence_module._content_digest
+    chain_calls = []
+    digest_calls = []
 
     def recording_collect(*args, **kwargs):
         calls.append((args, kwargs))
         return real_collect(*args, **kwargs)
 
+    def recording_chain(*args, **kwargs):
+        chain_calls.append((args, kwargs))
+        return real_chain(*args, **kwargs)
+
+    def recording_digest(*args, **kwargs):
+        digest_calls.append((args, kwargs))
+        return real_digest(*args, **kwargs)
+
     monkeypatch.setattr(evidence_module, "collect_runtime_evidence", recording_collect)
+    monkeypatch.setattr(chain_module, "get_cached_manifest_chain", recording_chain)
+    monkeypatch.setattr(evidence_module, "_content_digest", recording_digest)
 
     evidence = _collect_artifact_coverage_evidence(tmp_path, "manifests/")
+    monkeypatch.setattr(chain_module, "get_cached_manifest_chain", real_chain)
+    monkeypatch.setattr(evidence_module, "_content_digest", real_digest)
     stage = _artifact_coverage_stage(tmp_path, "manifests/", evidence=evidence)
 
-    assert evidence is not None
-    assert len(calls) == 1
+    assert evidence is None
+    assert calls == []
+    assert chain_calls == []
+    assert digest_calls == []
     assert stage.success is True
     assert log.read_text().splitlines() == ["pytest"]
+
+
+def test_excluded_or_symlinked_conftest_preflight_is_bounded(tmp_path, monkeypatch):
+    from maid_runner.cli.commands.verify import _collect_artifact_coverage_evidence
+    from maid_runner.core import runtime_evidence
+    from maid_runner.core.runtime_evidence import (
+        RuntimeEvidenceBundle,
+        RuntimeEvidenceCompleteness,
+    )
+
+    log = tmp_path.parent / f"{tmp_path.name}-excluded-executions.log"
+    _write_project(tmp_path, log)
+    subprocess.run(("git", "init", "-q"), cwd=tmp_path, check=True)
+    for relative in (
+        ".maid/cache/conftest.py",
+        ".git/conftest.py",
+        ".pytest_cache/conftest.py",
+        ".venv/conftest.py",
+        "venv/conftest.py",
+        "node_modules/conftest.py",
+        "build/__pycache__/conftest.py",
+    ):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("# excluded environment content\n")
+    sentinel = RuntimeEvidenceBundle(
+        commands=(),
+        content_digest="sentinel",
+        environment_identities=(),
+        worker_ids=(),
+        completeness=RuntimeEvidenceCompleteness(complete=True),
+    )
+    calls = []
+
+    def fake_collect(manifests, root, pytest_workers=None):
+        calls.append((manifests, root, pytest_workers))
+        return SimpleNamespace(evidence=sentinel)
+
+    monkeypatch.setattr(runtime_evidence, "collect_runtime_evidence", fake_collect)
+
+    assert _collect_artifact_coverage_evidence(tmp_path, "manifests/") is sentinel
+    assert len(calls) == 1
+
+    outside = tmp_path.parent / f"{tmp_path.name}-outside-conftest.py"
+    outside.write_text("# outside project\n")
+    link = tmp_path / "tests" / "linked" / "conftest.py"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(outside)
+    calls.clear()
+
+    assert _collect_artifact_coverage_evidence(tmp_path, "manifests/") is None
+    assert calls == []
 
 
 def test_knockout_keeps_ordinary_tests_fresh_after_coverage(tmp_path, monkeypatch):
