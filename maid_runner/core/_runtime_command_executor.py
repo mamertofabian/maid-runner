@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
 import tempfile
 from abc import abstractmethod
@@ -21,6 +20,7 @@ if TYPE_CHECKING:
     )
 
 from maid_runner.core._test_command_execution import (
+    _run_test_command,
     _strict_validation_test_active,
     _test_command_environment,
 )
@@ -142,41 +142,50 @@ class SubprocessRuntimeCommandExecutor:
                         "MAID_ARTIFACT_TARGET_FILES": str(target_file),
                     }
                 )
-            proc = subprocess.run(
-                (
-                    sys.executable,
-                    "-m",
-                    "coverage",
-                    "run",
-                    "--data-file",
-                    str(data_file),
-                    *include_args,
-                    str(runner),
-                    str(call_file),
-                    str(target_file),
-                    "1" if _strict_validation_test_active() else "0",
-                    *command,
-                ),
-                cwd=project_root,
-                capture_output=True,
-                text=True,
-                env=environment,
-                timeout=timeout_seconds,
+            owned_command = (
+                sys.executable,
+                "-m",
+                "coverage",
+                "run",
+                "--data-file",
+                str(data_file),
+                *include_args,
+                str(runner),
+                str(call_file),
+                str(target_file),
+                "1" if _strict_validation_test_active() else "0",
+                *command,
             )
-            report_errors = _combine_coverage_data(data_file, tmp_path)
-            if not report_errors:
-                execution_data, load_errors = _load_target_execution_data(
-                    data_file,
-                    call_file,
-                    project_root,
-                    target_files,
-                )
-                report_errors = load_errors
-            else:
+            proc = _run_test_command(
+                owned_command,
+                cwd=project_root,
+                timeout=timeout_seconds,
+                environment_overrides=environment,
+                environment_removals=tuple(
+                    dict.fromkeys(
+                        (*environment_removals, _ARTIFACT_XDIST_CONTROLLER_PID)
+                    )
+                ),
+                require_descendant_ownership=True,
+            )
+            if proc.exit_code < 0:
                 execution_data = {}
+                report_errors = []
+            else:
+                report_errors = _combine_coverage_data(data_file, tmp_path)
+                if not report_errors:
+                    execution_data, load_errors = _load_target_execution_data(
+                        data_file,
+                        call_file,
+                        project_root,
+                        target_files,
+                    )
+                    report_errors = load_errors
+                else:
+                    execution_data = {}
             return RuntimeCommandRecord(
                 command=command,
-                returncode=proc.returncode,
+                returncode=proc.exit_code,
                 stdout=proc.stdout,
                 stderr=proc.stderr,
                 execution_data=execution_data,

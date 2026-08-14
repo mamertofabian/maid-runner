@@ -2,13 +2,13 @@
   "manifest_path": "manifests/configure-artifact-coverage-timeout.manifest.yaml",
   "manifest_hash": "sha256-contract:26ec04e4fdce6fe4b7bb8b63acb87a0dc276be3b3b3d344c5719f45bbdae38a3",
   "test_hashes": {
-    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
-    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
     "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
     "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
   },
   "created_at": "2026-08-10T04:13:37.448078+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:afafb778b15fdb3b0ba675ce4c1b1363c48a110d30eb7dd5d7a6084b81c14213",
@@ -166,6 +166,26 @@
       },
       "revised_at": "2026-08-13T13:57:55.802845+00:00",
       "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:26ec04e4fdce6fe4b7bb8b63acb87a0dc276be3b3b3d344c5719f45bbdae38a3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-14T10:32:27.323688+00:00",
+      "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
