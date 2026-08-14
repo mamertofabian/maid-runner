@@ -1235,3 +1235,42 @@ def _proof_to_dict(proof: KnockoutDifferentialProof) -> dict:
         "used_exact_fallback": proof.used_exact_fallback,
         "diagnostics": [item.to_dict() for item in proof.diagnostics],
     }
+
+
+def cached_detecting_nodeids(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+) -> dict[str, tuple[str, ...]]:
+    """Return recorded detecting-nodeids per artifact merge_key from the persisted
+    knockout evidence cache, without running knockout.
+
+    Only fresh cache entries are read: ``_load_knockout_spec_cache`` keys on the
+    current source/mutant digest, so a changed source misses and its artifact is
+    omitted (callers treat a missing key as UNKNOWN). Stale evidence is never
+    returned.
+    """
+    root = Path(project_root)
+    collected: dict[str, set[str]] = {}
+    for spec in build_knockout_mutation_specs(manifests, root):
+        worker = _load_knockout_spec_cache(root, spec)
+        if worker is None:
+            continue
+        nodeids: set[str] = set()
+        for report in worker.reports.values():
+            for result in report.results:
+                if result.proof is not None:
+                    nodeids.update(result.proof.detecting_nodeids)
+        if nodeids:
+            collected.setdefault(_identity_merge_key(spec.identity), set()).update(
+                nodeids
+            )
+    return {key: tuple(sorted(values)) for key, values in collected.items()}
+
+
+def _identity_merge_key(identity: KnockoutArtifactIdentity) -> str:
+    """Match ArtifactSpec.merge_key() for a knockout artifact identity."""
+    if identity.parent_class and identity.artifact_kind in ("method", "attribute"):
+        return (
+            f"{identity.artifact_kind}:{identity.parent_class}.{identity.artifact_name}"
+        )
+    return f"{identity.artifact_kind}:{identity.artifact_name}"

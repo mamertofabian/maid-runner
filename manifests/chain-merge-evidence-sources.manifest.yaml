@@ -1,0 +1,111 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Provide a concrete DetectionEvidenceSource backed by the persisted knockout evidence cache (121-22), so the chain-merge report and equivalence gate consume real per-artifact detecting-nodeids instead of UNKNOWN — reading only fresh cache entries, never running knockout.
+type: feature
+created: '2026-08-14T04:13:27Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - knockout
+  - evidence
+  priority: medium
+description: |
+  Child 2 of the chain-merge-defragmentation epic (rescoped to DETECTION only;
+  the coverage source is a follow-up). The 121-22 knockout evidence cache is
+  implemented and stores KnockoutDifferentialProof.detecting_nodeids per spec at
+  .maid/cache/knockout-evidence-v1/. This child adds the read path:
+
+  1. A public freshness-correct accessor cached_detecting_nodeids in knockout.py
+     (it owns the internal result types): build_knockout_mutation_specs for the
+     given manifests, _load_knockout_spec_cache per spec (which matches the
+     current source/mutant digest, so a changed source misses and is omitted),
+     traverse reports -> results -> proof.detecting_nodeids, and key the union by
+     the artifact's merge_key. Stale/absent entries are omitted (caller treats a
+     missing key as UNKNOWN).
+  2. RecordedDetectionEvidenceSource wraps that map and implements the child 1
+     DetectionEvidenceSource protocol: detecting_nodeids_for(artifact_key) maps a
+     chain contract_key back to its merge_key and returns the recorded nodeids or
+     None.
+
+  DETERMINISM / EVIDENCE BOUNDARY
+  No knockout runs here — this is a pure read of already-recorded evidence. A
+  cold cache yields UNKNOWN for every artifact (the source's designed behavior).
+  A changed source yields a cache miss, so stale detecting-nodeids are never
+  returned.
+
+  ADVERSARIAL SELF-REVIEW
+  - Stale-data hazard: return evidence for a changed source. Defense: read via the
+    content-digest cache key (_load_knockout_spec_cache), which misses on change.
+  - Fabrication hazard: default missing to empty/covered. Defense: missing key ->
+    None (UNKNOWN), asserted by test.
+  - Coupling hazard: consumers traverse knockout internals. Defense: the traversal
+    lives in knockout.py (which owns the types); the source depends only on the
+    public accessor.
+temptations:
+- risk: Do not return detecting-nodeids for an artifact whose source changed since the cache was written.
+  instead: Read through _load_knockout_spec_cache so the content-digest key misses on change; omit the entry (UNKNOWN).
+- risk: Do not default a missing artifact to empty detection or a fabricated bar.
+  instead: Return None from detecting_nodeids_for for any unrecorded merge_key.
+- risk: Do not run knockout to fill the cache from this read path.
+  instead: Only read already-persisted 121-22 evidence; population stays in the deep-verify knockout stage.
+files:
+  create:
+  - path: maid_runner/core/chain_merge_evidence.py
+    artifacts:
+    - kind: class
+      name: RecordedDetectionEvidenceSource
+      description: Concrete DetectionEvidenceSource reading recorded knockout detecting-nodeids (keyed by merge_key) from the 121-22 cache; returns None for any unrecorded artifact. Pure reader.
+    - kind: method
+      name: detecting_nodeids_for
+      of: RecordedDetectionEvidenceSource
+      args:
+      - name: artifact_key
+        type: str
+      returns: Union[tuple[str, Ellipsis], None]
+    - kind: method
+      name: from_cache
+      of: RecordedDetectionEvidenceSource
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: str
+      returns: RecordedDetectionEvidenceSource
+  - path: tests/core/test_chain_merge_evidence.py
+    artifacts:
+    - kind: test_function
+      name: test_returns_recorded_nodeids_for_known_merge_key
+    - kind: test_function
+      name: test_returns_none_for_unrecorded_artifact
+    - kind: test_function
+      name: test_exact_contract_key_maps_to_merge_key
+    - kind: test_function
+      name: test_satisfies_detection_evidence_source_protocol
+    - kind: test_function
+      name: test_from_cache_cold_cache_is_all_unknown
+    - kind: test_function
+      name: test_from_cache_reads_recorded_detecting_nodeids
+  edit:
+  - path: maid_runner/core/knockout.py
+    artifacts:
+    - kind: function
+      name: cached_detecting_nodeids
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      returns: dict[str, tuple[str, Ellipsis]]
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/types.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_evidence.py -v
+- uv run maid validate manifests/chain-merge-evidence-sources.manifest.yaml --mode behavioral
