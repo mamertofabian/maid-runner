@@ -51,16 +51,19 @@ description: |
   The report and verdicts are pure aggregation over ManifestChain plus RECORDED
   runtime evidence. No child runs knockout or coverage to build a report; the
   execution-derived acceptance bar is read from the persisted evidence caches
-  planned in 121-21 / 121-22. No child introduces a static/AST/control-flow
+  implemented in 121-21 / 121-22 (both promoted on this perf-based branch:
+  .maid/cache/knockout-evidence-v1/*.json and .maid/cache/coverage-risk-v1.json).
+  No child introduces a static/AST/control-flow
   analyzer (AGENTS.md Validator Hardening Constraints). No child auto-generates
   tests or claims a specific collapse is safe without the equivalence gate.
 
   BRANCH / INTEGRATION COUPLING
 
   This work is based on perf/full-deep-verification-speedups because
-  detecting-nodeids exist only there. It cannot merge to release/v2.next until
-  perf (and the 121-21/121-22 evidence caches it depends on) lands. Confirm the
-  integration sequence during hardening.
+  detecting-nodeids AND the 121-21/121-22 evidence caches it reads exist there
+  (all implemented on perf, absent on release/v2.next). It cannot merge to
+  release/v2.next until perf lands. Confirm the integration sequence during
+  hardening.
 
   Planned child order:
 
@@ -95,11 +98,12 @@ description: |
      (Consolidated Snapshots section), add a command reference, and reconcile the
      design note. Last.
 
-  Promotion prerequisites: child 3 cannot populate real acceptance until child 2
-  provides sources and 121-21/121-22 persist evidence; child 5 cannot certify a
-  collapse until children 2/3 supply the recorded bar; child 4 may materialize
-  the manifest side independently but must never claim the tests are safe. No
-  child weakens an existing gate; each strengthens or is additive.
+  Promotion prerequisites: the 121-21/121-22 evidence caches are already
+  implemented, so child 2 is buildable now (an adapter that reads them); child 3
+  cannot populate real acceptance until child 2 provides the sources; child 5
+  cannot certify a collapse until children 2/3 supply the recorded bar; child 4
+  may materialize the manifest side independently but must never claim the tests
+  are safe. No child weakens an existing gate; each strengthens or is additive.
 temptations:
   - risk: Do not let any child compute the acceptance bar by running knockout or
       coverage inline, turning a cheap report into a deep-verify pass.
