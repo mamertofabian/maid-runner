@@ -1,0 +1,81 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Wire a per-file-scoped RecordedDetectionEvidenceSource into the `maid chain merge <file>` report so it surfaces recorded detecting-nodeids for the file's own artifacts and never another file's.
+type: feature
+created: '2026-08-14T04:45:37Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - knockout
+  - detection-evidence
+  priority: medium
+description: |
+  Child 3a of the chain-merge-defragmentation epic (detection wiring only; the
+  coverage/E710 BLOCKED verdict is deferred to child 3b because its evidence
+  lives in the actively-churning artifact_coverage.py as an evaluation, not a
+  keyed lookup).
+
+  Child 1 already gave build_chain_merge_report a DetectionEvidenceSource
+  injection seam; the CLI currently passes None (detection UNKNOWN). This child
+  builds a source from ONLY the manifests that declare the target file
+  (chain.manifests_for_file(file_path)) and passes it, so the report shows real
+  detecting-nodeids when the knockout cache is warm.
+
+  WHY PER-FILE SCOPING (closes implementation-review finding #1): merge_key omits
+  file_path, so a source built from a multi-file manifest set could return one
+  file's detecting-nodeids under a colliding key for another file. Building the
+  source from the single file's manifests keeps cached_detecting_nodeids limited
+  to that file's artifacts, so no cross-file bleed is possible.
+
+  DETERMINISM / EVIDENCE BOUNDARY
+  No knockout runs; the source reads recorded evidence only. A cold cache leaves
+  detection_available True but every artifact UNKNOWN (a source was provided, but
+  nothing is recorded yet) — never fabricated.
+
+  ADVERSARIAL SELF-REVIEW
+  - Cross-file bleed: scope the source to the file's own manifests; a test asserts
+    another file's nodeids never appear.
+  - Fabrication: cold cache yields UNKNOWN per artifact, not a covered bar.
+temptations:
+- risk: Do not build the detection source from all manifests; merge_key omits file_path, so another file's detecting-nodeids could bleed in.
+  instead: Build it from chain.manifests_for_file(file_path) only; pin a per-file isolation test.
+- risk: Do not run knockout to populate detection in the report path.
+  instead: Read recorded evidence via RecordedDetectionEvidenceSource; a cold cache is UNKNOWN.
+files:
+  edit:
+  - path: maid_runner/core/chain_merge_evidence.py
+    artifacts:
+    - kind: function
+      name: detection_source_for_file
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: file_path
+        type: str
+      - name: project_root
+        type: str
+      returns: RecordedDetectionEvidenceSource
+  create:
+  - path: tests/core/test_chain_merge_detection_wiring.py
+    artifacts:
+    - kind: test_function
+      name: test_detection_source_for_file_scopes_to_that_file
+    - kind: test_function
+      name: test_chain_merge_report_marks_detection_available
+  scope:
+  - path: maid_runner/cli/commands/chain.py
+    reason: Pass a per-file-scoped detection source to build_chain_merge_report instead of None, without changing cmd_chain's public signature.
+  read:
+  - maid_runner/core/chain.py
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/types.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_detection_wiring.py -v
+- uv run maid validate manifests/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral

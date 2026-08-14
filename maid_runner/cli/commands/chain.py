@@ -81,8 +81,8 @@ def _cmd_chain_replay(chain, args: argparse.Namespace) -> int:
 def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
     from maid_runner.core.chain_merge import build_chain_merge_report
 
-    # Read-only, and no persisted evidence source yet, so detection is
-    # reported UNKNOWN (detection_source=None).
+    # Read-only. The single-file report reads recorded detecting-nodeids through a
+    # per-file-scoped source (UNKNOWN when the knockout cache is cold).
     if getattr(args, "all", False):
         from maid_runner.core.chain_merge_sweep import build_repo_merge_summary
 
@@ -104,7 +104,10 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
         print(format_chain_merge_apply_result(result, json_mode=args.json))
         return 0 if result.applied else 1
 
-    report = build_chain_merge_report(args.file_path, chain, None)
+    from maid_runner.core.chain_merge_evidence import detection_source_for_file
+
+    detection_source = detection_source_for_file(chain, args.file_path)
+    report = build_chain_merge_report(args.file_path, chain, detection_source)
     output = format_chain_merge_report(report, json_mode=args.json)
     print(output)
     return 0
