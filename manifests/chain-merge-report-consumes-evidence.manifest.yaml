@@ -79,3 +79,42 @@ files:
 validate:
 - uv run python -m pytest tests/core/test_chain_merge_detection_wiring.py -v
 - uv run maid validate manifests/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Wired a per-file-scoped RecordedDetectionEvidenceSource into the maid chain merge report; detection_available is now true on real files."
+  rationale: "Child 3a of the chain-merge-defragmentation epic (detection wiring; coverage/E710 BLOCKED deferred to 3b, whose evidence lives in the churning artifact_coverage.py as an evaluation, not a keyed lookup). The source is scoped to the file's own manifests, closing implementation-review finding #1 (merge_key omits file_path)."
+  lessons:
+    - lesson_type: regression
+      summary: "Building the detection source reads the source file (build_knockout_mutation_specs), so wiring it into the read-only report broke report tests whose fixtures declare a file without creating it on disk. Advisory evidence must degrade to UNKNOWN (catch the ValueError) rather than fail the report."
+      tags:
+        - advisory-evidence
+        - read-only-report
+        - regression
+      paths:
+        - maid_runner/core/chain_merge_evidence.py
+        - maid_runner/cli/commands/chain.py
+  review_notes:
+    - source: self-review
+      severity: info
+      summary: "No independent review run for this small wiring change. Review-worthy point: detection_source_for_file catches ValueError broadly to degrade to UNKNOWN; a reviewer may want it narrowed. The regression it caused was caught by the child-1 CLI tests and fixed."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_detection_wiring.py
+      status: passed
+      summary: "2 behavioral tests passed (per-file scoping + detection_available wiring)."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed; 22 chain-merge regression tests pass."
