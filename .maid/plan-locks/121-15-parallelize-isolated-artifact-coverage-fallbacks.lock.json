@@ -7,12 +7,12 @@
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
     "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
     "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
     "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
   },
   "created_at": "2026-08-12T04:06:47.558013+00:00",
-  "revision": 28,
+  "revision": 29,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:329a13d1c57338835f133e118369253a621b04f1a63261704d80c3eb38942170",
@@ -882,6 +882,30 @@
       },
       "revised_at": "2026-08-14T10:32:27.034107+00:00",
       "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-14T11:51:37.626358+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

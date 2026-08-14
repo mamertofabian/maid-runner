@@ -2,12 +2,12 @@
   "manifest_path": "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
   "manifest_hash": "sha256-contract:93bb8929d51f2facab7f8f440e5db4e21c32e655c9780ecfbece060f2b9901e1",
   "test_hashes": {
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84",
     "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
     "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
   },
   "created_at": "2026-08-13T09:10:51.160902+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:96343f8e239a635cde4fea9f13f21cee3718c94abd30ef8ac1a2685ef5f6702e",
@@ -30,6 +30,25 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:93bb8929d51f2facab7f8f440e5db4e21c32e655c9780ecfbece060f2b9901e1",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
+      },
+      "revised_at": "2026-08-14T11:51:39.320804+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

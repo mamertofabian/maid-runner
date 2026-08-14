@@ -11,6 +11,19 @@ from pathlib import Path
 import pytest
 
 
+def test_snapshot_backend_default_create_rejects_unimplemented_boundary(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core._knockout_snapshot import ProjectSnapshotBackend
+
+    class IncompleteSnapshotBackend(ProjectSnapshotBackend):
+        def create(self, project_root, required_paths, worker_id):
+            return super().create(project_root, required_paths, worker_id)
+
+    with pytest.raises(NotImplementedError):
+        IncompleteSnapshotBackend().create(tmp_path, (), "unimplemented")
+
+
 def test_snapshot_source_and_ast_reader_observes_mutated_bytes(tmp_path: Path) -> None:
     from maid_runner.core._knockout_snapshot import (
         KnockoutProjectSnapshot,
