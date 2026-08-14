@@ -498,8 +498,11 @@ class _ChildProcessPermitPool:
 
 
 def _permit_wrapped_popen(original_popen, permit_pool):
+    base_popen = getattr(original_popen, "_maid_original_popen", original_popen)
+
     class PermitPopen(original_popen):
         _maid_child_process_permits = True
+        _maid_original_popen = base_popen
 
         def __init__(self, *args, **kwargs):
             self._maid_permit = permit_pool.acquire()

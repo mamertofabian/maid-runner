@@ -1,0 +1,147 @@
+{
+  "manifest_path": "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+  "manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+    "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+    "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+  },
+  "created_at": "2026-08-14T06:52:23.479487+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:549ade75028be574cb39c72579e8d39bd170a814d926cd837d37433b53674057",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+      },
+      "revised_at": "2026-08-14T06:52:54.751753+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml -> manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+      },
+      "revised_at": "2026-08-14T07:00:04.364564+00:00",
+      "reason": "Apply Black formatting to the locked behavioral regression without changing its scenario or assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-14T07:00:31.460666+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_resolver_permits.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_ts_compiler_resolver_session.py",
+        "exit_code": 1,
+        "output_tail": "                \"2\",\n                \"--dist\",\n                \"loadscope\",\n            ),\n            {str(source.resolve()) for source in sources},\n            project,\n            timeout_seconds=15,\n        )\n    \n>       assert record.returncode == 0, record.stderr or record.stdout\nE       AssertionError: /home/atomrem/projects/codefrost-dev/maid-runner/.venv/lib/python3.12/site-packages/coverage/control.py:958: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.1/messages.html#warning-no-data-collected\nE           self._warn(\"No data was collected.\", slug=\"no-data-collected\")\nE         \nE       assert 1 == 0\nE        +  where 1 = RuntimeCommandRecord(command=('tests/', '-q', '-n', '2', '--dist', 'loadscope'), returncode=1, stdout='bringing up nod...py': RuntimeFileExecution(executed_lines=frozenset({1}), called_qualnames=frozenset({'<module>'}))}), report_errors=()).returncode\n\ntests/core/test_artifact_coverage_resolver_permits.py:82: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_resolver_permits.py::test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers\n1 failed, 29 passed in 26.90s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_artifact_coverage_resolver_permits.py:test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers",
+      "tests/core/test_artifact_coverage_resolver_permits.py:test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_resolver_permits.py:test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers:kind=test_function",
+      "tests/core/test_artifact_coverage_resolver_permits.py:test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_resolver_permits.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_ts_compiler_resolver_session.py"
+      ],
+      "scope": [
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/ts_compiler_resolver.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_resolver_permits.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A real artifact-coverage command runs in two xdist workers; each opens a persistent TypeScript compiler resolver session, synchronizes after both sessions are live, then starts an ordinary nested Python subprocess.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SubprocessRuntimeCommandExecutor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The nested subprocess starts without permit starvation, the pytest command exits successfully within its bounded timeout, and target execution evidence is retained."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_ts_compiler_resolver_session.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "reason": "Record the unwrapped Popen implementation on the private lifetime-permit wrapper without changing the executor API."
+        },
+        {
+          "path": "maid_runner/core/ts_compiler_resolver.py",
+          "reason": "Launch the owned persistent compiler bridge through the recorded base Popen implementation when nested-test permits are active."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_artifact_coverage_resolver_permits.py",
+      "tests/core/test_ts_compiler_resolver_session.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_resolver_permits.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_ts_compiler_resolver_session.py"
+    ]
+  }
+}
