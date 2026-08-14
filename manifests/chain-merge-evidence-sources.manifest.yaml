@@ -109,3 +109,54 @@ files:
 validate:
 - uv run python -m pytest tests/core/test_chain_merge_evidence.py -v
 - uv run maid validate manifests/chain-merge-evidence-sources.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Shipped RecordedDetectionEvidenceSource plus the public knockout.cached_detecting_nodeids accessor, reading recorded detecting-nodeids from the implemented 121-22 cache."
+  rationale: "Child 2 of the chain-merge-defragmentation epic (detection half; coverage source deferred). Corrects an earlier false status that called this 'blocked on unbuilt 121-21/122 caches' — the caches are implemented and passing on this perf-based branch. The accessor reads only fresh cache entries (content-digest key), so stale evidence is never returned and a cold cache yields UNKNOWN."
+  lessons:
+    - lesson_type: root-cause
+      summary: "The false 'blocked' status came from grepping the release/v2.next worktree for the persisted evidence store instead of the perf-based branch the work is on. Verify a dependency's build state on the actual branch, and check manifests/ (promoted) vs the epic's deferral text."
+      tags:
+        - branch-verification
+        - dependency-analysis
+        - trust
+      paths:
+        - manifests/chain-merge-evidence-sources.manifest.yaml
+        - manifests/121-22-persist-knockout-evidence-cache.manifest.yaml
+    - lesson_type: design
+      summary: "merge_key omits file_path, so cached_detecting_nodeids unions across files while a per-file report is scoped to one file. The wiring child (child 3) MUST scope the source per file or key by file+merge_key, or one file's detecting-nodeids could bleed into another's acceptance bar."
+      tags:
+        - detection-evidence
+        - key-scoping
+        - chain-merge
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/chain_merge_evidence.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Verdict ready to merge. No blockers/important findings. Freshness, contract_key inversion, merge_key mapping, and the warm round-trip test verified correct against their reference implementations."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Four advisories folded forward to children 3/5: cross-file merge_key collision (scope per file), recorded-but-empty proof vs no-evidence semantics, an inert test_function branch, and an untested method/parent-class mapping branch."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_evidence.py
+      status: passed
+      summary: "6 behavioral tests passed, including a real cache round-trip."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-evidence-sources.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed."
