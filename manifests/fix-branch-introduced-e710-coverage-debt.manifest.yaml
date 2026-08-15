@@ -1,0 +1,154 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Remove branch-introduced E710 failures without weakening executable artifact coverage"
+type: fix
+created: "2026-08-14T11:51:02Z"
+metadata:
+  priority: critical
+  epic: 121-00-fast-verification-roadmap
+  tags: [artifact-coverage, E710, runtime-evidence, regression]
+description: |
+  Repair the branch-specific artifact coverage debt exposed by deep
+  verification. Methodless public class artifacts currently have an impossible
+  E710 obligation: the evaluator marks a class executed only when a separately
+  declared source method runs, so dataclasses and value records that correctly
+  declare only fields can never turn green. Exclude only those methodless class
+  declarations from the runtime body gate while retaining E710 for every class
+  that declares executable methods.
+
+  Execute the remaining real branch-introduced method obligations through
+  behavioral tests: drive the public runtime-evidence pytest hook lifecycle and
+  prove the abstract snapshot backend rejects an unimplemented create boundary.
+  The shared tests are already part of the owning 121 manifest commands; after
+  approval their dependent plan locks must be revised with preserved original
+  red evidence. No production public signature changes.
+temptations:
+  - risk: "Do not delete public class declarations from existing manifests merely to silence E710."
+    instead: "Make the runtime gate omit only class artifacts that have no declared source method capable of producing body evidence."
+  - risk: "Do not exempt every class artifact from runtime execution."
+    instead: "Keep the existing class-plus-method red behavior and prove it in a focused regression test."
+  - risk: "Do not keep asserting that hook methods are merely callable."
+    instead: "Drive the hookwrapper generators, finalizer, report, and worker-configuration hooks through observable lifecycle state and guaranteed cleanup."
+  - risk: "Do not hand-edit historical manifests or locks after shared tests change."
+    instead: "Use maid plan revise with preserved red evidence for every reported dependent lock after the plan is approved."
+files:
+  create:
+    - path: tests/core/test_branch_e710_coverage_repair.py
+      artifacts:
+        - kind: test_function
+          name: test_methodless_class_has_no_runtime_body_obligation
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          source_scenario: "A valid manifest declares a public value class and typed field but no executable source method."
+          actions:
+            - type: api_call
+              subject: {export: run_artifact_coverage}
+          expected:
+            behavior: "The runtime body gate succeeds without launching a coverage command because the class has no satisfiable body obligation."
+        - kind: test_function
+          name: test_class_with_declared_method_still_requires_runtime_execution
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          source_scenario: "A class and its public source method are declared but the method has no runtime evidence."
+          actions:
+            - type: api_call
+              subject: {export: run_artifact_coverage}
+          expected:
+            behavior: "Both class and method remain red with E710, preventing a broad class exemption."
+  edit:
+    - path: tests/core/test_runtime_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_runtime_evidence_plugin_executes_declared_hook_lifecycles
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          source_scenario: "A runtime evidence plugin receives fixture setup/finalization, teardown, report, and worker-configuration lifecycle events."
+          actions:
+            - type: api_call
+              subject: {export: RuntimeEvidencePlugin}
+          expected:
+            behavior: "Hookwrappers complete, fixture/report state remains complete, private worker instrumentation is cleared, and session cleanup always runs."
+    - path: tests/core/test_knockout_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_backend_default_create_rejects_unimplemented_boundary
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          source_scenario: "A concrete incomplete snapshot adapter delegates to the abstract ProjectSnapshotBackend.create default."
+          actions:
+            - type: api_call
+              subject: {export: ProjectSnapshotBackend}
+          expected:
+            behavior: "The default create boundary executes and raises NotImplementedError instead of silently providing a snapshot."
+  scope:
+    - path: maid_runner/core/artifact_coverage.py
+      reason: "Narrow the runtime target set to executable class contracts without changing public APIs or method coverage semantics."
+  read:
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - maid_runner/core/_runtime_command_executor.py
+    - maid_runner/core/_runtime_evidence_pytest_plugin.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/runtime_evidence.py
+    - tests/core/test_artifact_coverage.py
+validate:
+- uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py tests/core/test_knockout_snapshot.py
+- uv run maid validate manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-14T12:05:20Z"
+  summary: "Runtime artifact coverage now omits methodless class declarations that cannot produce body evidence while retaining E710 obligations for functions, methods, and classes with declared methods. Behavioral tests execute the remaining branch-owned pytest hook and abstract snapshot boundaries, leaving zero unexecuted artifacts across the eleven branch-owned manifests."
+  rationale: "Fresh deep verification showed that the repository-wide E710 backlog predated this branch, but identity comparison found branch-added debt. The repair preserves manifest declarations and executable coverage semantics instead of deleting artifacts or broadly exempting classes."
+  lessons:
+    - lesson_type: design
+      summary: "A runtime body gate must create obligations only for declarations with executable bodies; value classes whose contract consists solely of typed fields need structural validation, not impossible execution evidence."
+      tags: [artifact-coverage, E710, fail-closed]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+    - lesson_type: testing
+      summary: "Coverage-debt repairs need a paired negative guard so a narrow exemption cannot silently become a broad class exemption."
+      tags: [behavioral-testing, regression, anti-gaming]
+      paths:
+        - tests/core/test_branch_e710_coverage_repair.py
+    - lesson_type: workflow
+      summary: "Approved edits to shared behavioral tests require every dependent plan lock to be revised through MAID while preserving its original red evidence."
+      tags: [plan-lock, shared-tests, red-evidence]
+      paths:
+        - tests/core/test_runtime_evidence.py
+        - tests/core/test_knockout_snapshot.py
+  review_notes:
+    - source: e710_repair_review
+      severity: ready
+      summary: "Independent review found no blocking issues, confirmed the target-selection semantics and genuine body execution, and accepted the inherited deep E710 backlog because exact branch-owned coverage reported zero unexecuted artifacts."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage.py, tests/core/test_branch_e710_coverage_repair.py, tests/core/test_runtime_evidence.py, tests/core/test_knockout_snapshot.py]
+      status: passed
+      summary: "All 70 focused artifact coverage, runtime evidence, and snapshot tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against the locked repair contract."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 457 active applicable manifests passed; 117 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 285 deduplicated manifest validation commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 66e309d, --no-cache, --summary]
+      status: failed
+      summary: "Schema, behavioral, and implementation stages passed. Artifact coverage remained blocked only by the inherited repository-wide E710 backlog; methodless-class repair reduced total findings to 1,508."
+    - command: [uv, run, python, -c, branch-owned-artifact-coverage-batch]
+      status: passed
+      summary: "Fresh exact runtime coverage across branch-owned manifests 121-03, 04, 05, 06, 07, 08, 09, 11, 13, 14, and 15 reported UNEXECUTED 0."
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: "Repository Ruff checks passed; git diff whitespace validation also passed."

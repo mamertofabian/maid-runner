@@ -3,13 +3,13 @@
   "manifest_hash": "sha256-contract:9f6056adbb51ea3e65ca38378b1c623ce8840f7056a90fb2e793c81ab063125c",
   "test_hashes": {
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84",
     "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a",
     "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
     "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
   },
   "created_at": "2026-08-13T12:33:31.421780+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:468f95297e2ee30261e2ff2ca9c69c6d7694a8bd2da94cefe58724a326a2a7d7",
@@ -34,6 +34,27 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f6056adbb51ea3e65ca38378b1c623ce8840f7056a90fb2e793c81ab063125c",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
+      },
+      "revised_at": "2026-08-14T11:51:39.576253+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

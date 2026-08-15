@@ -1,0 +1,125 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prevent persistent TypeScript resolver sessions from starving artifact-coverage worker child-process permits"
+type: fix
+created: "2026-08-14T06:52:54Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [artifact-coverage, pytest-xdist, process-budget, typescript-resolver]
+description: |
+  Artifact-coverage xdist workers replace subprocess.Popen with a process-budget
+  wrapper whose permits remain held for each child process lifetime. Persistent
+  TypeScript compiler resolver sessions therefore consume the complete two-slot
+  child budget before an ordinary test subprocess can start, leaving sequential
+  full-suite runs blocked indefinitely in the permit regression test.
+
+  Keep ordinary nested test subprocesses lifetime-bound to the existing permit
+  pool, but let the owned TypeScript compiler bridge use the wrapper's recorded
+  base Popen implementation. The bridge is validation infrastructure rather
+  than nested test work; bypassing the nested-test permit prevents starvation
+  while retaining explicit resolver-session shutdown and all existing xdist
+  coverage behavior. No public signatures change.
+temptations:
+  - risk: "Do not weaken child-process budgeting for every subprocess just to unblock the compiler bridge."
+    instead: "Expose the wrapped base Popen implementation as private metadata and consume it only at the owned TypeScript resolver boundary."
+  - risk: "Do not make the regression depend on the entire repository test order or an unbounded hang."
+    instead: "Exercise one real xdist coverage command whose two persistent resolver sessions deterministically saturate the permit pool and use a bounded signal guard."
+  - risk: "Do not close or disable compiler sessions globally during artifact coverage."
+    instead: "Preserve session-backed compiler resolution and its explicit cleanup while separating infrastructure processes from nested test permits."
+files:
+  create:
+    - path: tests/core/test_artifact_coverage_resolver_permits.py
+      artifacts:
+        - kind: test_function
+          name: test_xdist_coverage_keeps_nested_process_capacity_with_persistent_resolvers
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          source_scenario: "A real artifact-coverage command runs in two xdist workers; each opens a persistent TypeScript compiler resolver session, synchronizes after both sessions are live, then starts an ordinary nested Python subprocess."
+          actions:
+            - type: api_call
+              subject: {export: SubprocessRuntimeCommandExecutor}
+          expected:
+            behavior: "The nested subprocess starts without permit starvation, the pytest command exits successfully within its bounded timeout, and target execution evidence is retained."
+  scope:
+    - path: maid_runner/core/_runtime_command_executor.py
+      reason: "Record the unwrapped Popen implementation on the private lifetime-permit wrapper without changing the executor API."
+    - path: maid_runner/core/ts_compiler_resolver.py
+      reason: "Launch the owned persistent compiler bridge through the recorded base Popen implementation when nested-test permits are active."
+  read:
+    - manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml
+    - manifests/121-17-isolate-nested-test-process-identities.manifest.yaml
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - tests/core/test_ts_compiler_resolver_session.py
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_resolver_permits.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_ts_compiler_resolver_session.py
+outcome:
+  status: completed
+  completed_at: "2026-08-14T15:08:28+08:00"
+  summary: >-
+    Persistent TypeScript compiler resolver sessions no longer consume the two
+    lifetime permits reserved for nested test subprocesses in artifact-coverage
+    xdist workers. Ordinary nested subprocesses remain permit-bound, and the
+    previously hanging sequential repository suite now completes.
+  rationale: >-
+    The generated Popen wrapper records its original unwrapped launcher as
+    private metadata. Only the owned compiler bridge uses that launcher;
+    resolver session caching and explicit shutdown remain unchanged, while all
+    other worker subprocesses retain the existing process-budget wrapper.
+  lessons:
+    - lesson_type: performance
+      summary: >-
+        A lifetime process permit must distinguish bounded test work from owned
+        persistent infrastructure. Otherwise two cached service processes can
+        exhaust a correct nested-work budget and deadlock later test subprocesses.
+      tags: [artifact-coverage, process-budget, pytest-xdist, typescript-resolver, maid-runner-feedback]
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - maid_runner/core/ts_compiler_resolver.py
+        - tests/core/test_artifact_coverage_resolver_permits.py
+    - lesson_type: test-design
+      summary: >-
+        Synchronizing two real xdist workers after their resolver sessions were
+        live turned an order-dependent full-suite hang into a bounded four-second
+        red phase without weakening the existing nested-process concurrency tests.
+      tags: [regression-coverage, concurrency, deterministic-tests]
+      paths:
+        - tests/core/test_artifact_coverage_resolver_permits.py
+  review_notes:
+    - source: review_resolver_permit_fix
+      severity: ready
+      summary: >-
+        Independent read-only review found no actionable findings. Residual
+        advisories cover many simultaneous project roots, the absence of a
+        direct double-wrap unit assertion, and POSIX/Node-dependent regression
+        coverage; none blocks the current bounded lifecycle behavior.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_resolver_permits.py, tests/core/test_artifact_coverage_fallback_workers.py, tests/core/test_ts_compiler_resolver_session.py]
+      status: passed
+      summary: "All 30 focused and adjacent resolver/permit tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "Sequential full suite completed with 4284 passed and 14 skipped in 318.08 seconds, passing the former 58% hang point."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 455 active manifests passed; 117 superseded manifests were skipped and none failed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 283 manifest-declared commands passed."
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: "Ruff passed for the repository."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, HEAD]
+      status: passed
+      summary: "All nine task-scoped handoff stages passed in 52.21 seconds with only existing E307 advisories."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: failed-unrelated
+      summary: >-
+        Schema, behavioral, and implementation stages passed; artifact coverage
+        remained blocked by the same 1841 repository-wide E710 findings present
+        before this task.

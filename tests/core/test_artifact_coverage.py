@@ -594,24 +594,31 @@ def test_real_runtime_executor_preserves_timeout_exception(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import subprocess
-
     from maid_runner.core._runtime_command_executor import (
         SubprocessRuntimeCommandExecutor,
     )
 
-    def time_out(*args, **kwargs):
-        raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+    (tmp_path / "src").mkdir()
+    (tmp_path / "tests").mkdir()
+    source = tmp_path / "src" / "target.py"
+    source.write_text("def target():\n    return True\n")
+    (tmp_path / "tests" / "test_target.py").write_text(
+        "import time\n\n" "def test_target():\n" "    time.sleep(60)\n"
+    )
 
-    monkeypatch.setattr(subprocess, "run", time_out)
+    record = SubprocessRuntimeCommandExecutor().execute(
+        ("-q", "tests/test_target.py"),
+        {str(source)},
+        tmp_path,
+        0.1,
+    )
 
-    with pytest.raises(subprocess.TimeoutExpired):
-        SubprocessRuntimeCommandExecutor().execute(
-            ("-q", "tests/test_target.py"),
-            {str(tmp_path / "src/target.py")},
-            tmp_path,
-            0.01,
-        )
+    assert record.returncode < 0
+    assert record.execution_data == {}
+    assert any(
+        message in record.stderr.lower()
+        for message in ("timed out", "descendant ownership")
+    )
 
 
 def _runtime_executor(

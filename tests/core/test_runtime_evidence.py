@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 from types import MappingProxyType, SimpleNamespace
 
+import pytest
+
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode, ValidationError
 
@@ -323,6 +325,66 @@ def test_monitoring_success_and_post_claim_failure_preserve_tool_ownership(
     unavailable.pytest_sessionfinish(session, 0)
     assert sys.getprofile() is previous
     sys.setprofile(None)
+
+
+def test_runtime_evidence_plugin_executes_declared_hook_lifecycles(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from maid_runner.core._runtime_evidence_pytest_plugin import RuntimeEvidencePlugin
+
+    plugin = RuntimeEvidencePlugin(
+        tmp_path / "hook-evidence.json",
+        frozenset(),
+        expected_workers=1,
+    )
+    node = SimpleNamespace(
+        nodeid="tests/test_sample.py::test_ok",
+        _fixtureinfo=SimpleNamespace(names_closure=("sample",)),
+    )
+    fixturedef = SimpleNamespace(
+        argname="sample",
+        scope="function",
+        baseid="tests/test_sample.py",
+        func=lambda: None,
+    )
+    request = SimpleNamespace(
+        node=node,
+        _fixturemanager=SimpleNamespace(_getautousenames=lambda item: ()),
+    )
+    session_hook = SimpleNamespace(get_hookimpls=lambda: [])
+    session = SimpleNamespace(
+        config=SimpleNamespace(
+            hook=SimpleNamespace(pytest_sessionfinish=session_hook),
+        )
+    )
+
+    try:
+        setup = plugin.pytest_fixture_setup(fixturedef, request)
+        next(setup)
+        with pytest.raises(StopIteration):
+            next(setup)
+
+        teardown = plugin.pytest_runtest_teardown(node, None)
+        next(teardown)
+        with pytest.raises(StopIteration):
+            next(teardown)
+
+        plugin.pytest_fixture_post_finalizer(fixturedef, request)
+        plugin.pytest_runtest_logreport(
+            SimpleNamespace(
+                nodeid=node.nodeid,
+                when="call",
+                outcome="passed",
+            )
+        )
+        monkeypatch.setenv("MAID_RUNTIME_EVIDENCE_OUTPUT", "private")
+        plugin.pytest_configure_node(SimpleNamespace())
+
+        assert "MAID_RUNTIME_EVIDENCE_OUTPUT" not in os.environ
+        assert plugin.completeness.complete is True
+    finally:
+        plugin.pytest_sessionfinish(session, 0)
 
 
 def _complete(*, complete: bool = True, **overrides):

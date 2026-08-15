@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
   "manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
   "test_hashes": {
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84",
     "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a"
   },
   "created_at": "2026-08-12T14:54:31.272001+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:afbd6c82d0336f02926fd852b81fe72ffa887b7282c869f9baa626c88fe18be6",
@@ -92,6 +92,24 @@
       },
       "revised_at": "2026-08-13T11:56:41.220649+00:00",
       "reason": "accept 121-39 shared knockout worker test isolation update",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a"
+      },
+      "revised_at": "2026-08-14T11:51:39.067889+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

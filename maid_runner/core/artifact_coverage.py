@@ -875,11 +875,17 @@ def _coverage_targets(manifest: Manifest, root: Path) -> list[tuple[str, Artifac
             continue
         if not (root / file_spec.path).exists():
             continue
+        classes_with_declared_methods = {
+            artifact.of
+            for artifact in file_spec.artifacts
+            if artifact.kind == ArtifactKind.METHOD and artifact.of is not None
+        }
         for artifact in file_spec.artifacts:
-            if artifact.kind in (
-                ArtifactKind.CLASS,
-                ArtifactKind.FUNCTION,
-                ArtifactKind.METHOD,
+            if artifact.kind in (ArtifactKind.FUNCTION, ArtifactKind.METHOD):
+                targets.append((file_spec.path, artifact))
+            elif (
+                artifact.kind == ArtifactKind.CLASS
+                and artifact.name in classes_with_declared_methods
             ):
                 targets.append((file_spec.path, artifact))
     return targets

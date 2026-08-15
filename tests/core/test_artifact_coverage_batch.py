@@ -99,11 +99,11 @@ def test_batch_attributes_shared_command_failure_to_every_declaring_manifest(
 
     manifest_paths = _write_two_manifest_project(tmp_path, failing_test=True)
     manifests = [load_manifest(path) for path in manifest_paths]
-    coverage_calls = _record_coverage_subprocesses(monkeypatch)
+    executor = _CountingSubprocessExecutor()
 
-    reports = run_artifact_coverage_batch(manifests, tmp_path)
+    reports = run_artifact_coverage_batch(manifests, tmp_path, executor=executor)
 
-    assert len(coverage_calls) == 1
+    assert len(executor.calls) == 1
     assert list(reports) == [manifest.source_path for manifest in manifests]
     assert [[error.code for error in report.errors] for report in reports.values()] == [
         [ErrorCode.INTERNAL_ERROR],
@@ -418,6 +418,31 @@ class _SequenceExecutor(_RecordingExecutor):
     ) -> object:
         self.calls.append((command, set(target_files), project_root, timeout_seconds))
         return next(self._records)
+
+
+class _CountingSubprocessExecutor:
+    def __init__(self) -> None:
+        from maid_runner.core._runtime_command_executor import (
+            SubprocessRuntimeCommandExecutor,
+        )
+
+        self._delegate = SubprocessRuntimeCommandExecutor()
+        self.calls: list[tuple[str, ...]] = []
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.calls.append(command)
+        return self._delegate.execute(
+            command,
+            target_files,
+            project_root,
+            timeout_seconds,
+        )
 
 
 def _record_coverage_subprocesses(monkeypatch) -> list[tuple[str, ...]]:

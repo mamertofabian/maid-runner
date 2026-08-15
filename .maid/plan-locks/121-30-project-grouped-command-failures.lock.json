@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-30-project-grouped-command-failures.manifest.yaml",
   "manifest_hash": "sha256-contract:9f9d0ec9194c286f3488dfe6671e09aa9352b0b5810e91eade58fba24ce68055",
   "test_hashes": {
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
     "tests/core/test_grouped_command_failure_projection.py": "sha256-pyast:v2:449c34aa426bdac48c3ab36835b0e78c71385139fe3d32bed5f73cfb2127b530"
   },
   "created_at": "2026-08-13T10:13:50.428341+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:fbd99729650bf1d6cc153c0b3baf5d045ab407d3582f88431e521552888957ac",
@@ -38,6 +38,24 @@
       },
       "revised_at": "2026-08-13T10:16:32.435250+00:00",
       "reason": "Passing-command evidence must drop the union pytest-exited diagnostic; collection:global still marks multi-command bundles incomplete",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f9d0ec9194c286f3488dfe6671e09aa9352b0b5810e91eade58fba24ce68055",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_grouped_command_failure_projection.py": "sha256-pyast:v2:449c34aa426bdac48c3ab36835b0e78c71385139fe3d32bed5f73cfb2127b530"
+      },
+      "revised_at": "2026-08-14T11:51:38.195343+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
