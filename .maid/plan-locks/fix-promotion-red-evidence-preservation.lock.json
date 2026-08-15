@@ -1,0 +1,802 @@
+{
+  "manifest_path": "manifests/fix-promotion-red-evidence-preservation.manifest.yaml",
+  "manifest_hash": "sha256-contract:cb1867c7f57b70de1a71f67fa75a7253ab224e21d958e29b1a4a56a433a4dda9",
+  "test_hashes": {
+    "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+    "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+    "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+    "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+    "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+    "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:f3a174e1bd378926b8a826a4661bc73b8cf55ead65dd992c9b6f988d68bf35b3",
+    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+  },
+  "created_at": "2026-08-15T13:19:25.004696+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:54983fc538b45be5b21748bd2064deecf6bb1fafda3a7e52cfa05a072b9f4387",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:763b4c004b33d9356f820c7b9e002c686fb4344fffa156dd28216723becc26be",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:19:28.200233+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-promotion-red-evidence-preservation.manifest.yaml -> manifests/fix-promotion-red-evidence-preservation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-promotion-red-evidence-preservation.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-promotion-red-evidence-preservation.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af423943715c09b478f6ae393617de158014219ab86d4c23cb776b23234ede86",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:763b4c004b33d9356f820c7b9e002c686fb4344fffa156dd28216723becc26be",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:23:13.006608+00:00",
+      "reason": "Preserve E707 command binding during promotion evidence migration",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_self_referencing_validate_path_is_rewritten",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_self_referencing_validate_path_is_rewritten:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:06afc0c167a1170a8c96433c3dceb48631475c1fb932608c49149c5cba8e47bd",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:61978efae89b3d932d6c3c3d6ddb1e371fd90e902dbc1e66cb65a9f2b6ef5f43",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:29:41.622727+00:00",
+      "reason": "Include packaged workflow documentation and sync coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section",
+          "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:kind=attribute",
+          "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:of=documentation",
+          "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:type=markdown section"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/docs/draft-manifest-workflow.md",
+          "read:tests/cli/test_095_epic_completion.py",
+          "read:tests/test_init_draft_workflow_payload.py",
+          "read:tests/test_learning_loop_init_payload.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:92a05f7fad07f5b8c6fd825449be3c76dbae922cfb9266694c82830e285c104f",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:8cbbe050f3e05123d7e257fdfc9f33007485f431e12d4e53834ae7ace0769669",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:40:23.580822+00:00",
+      "reason": "Reject internally inconsistent red evidence during preservation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=existing:type=PlanLock:default=None",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=manifest_path:type=Path:default=None",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=prior_contract:type=dict | None:default=None",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=project_root:type=Path:default=None",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:kind=function",
+          "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:returns=bool",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_inconsistent_red_command_payload",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_inconsistent_red_command_payload:kind=test_function",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_inconsistent_red_command_payload",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_inconsistent_red_command_payload:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/plan_lock.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/plan_lock.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5606cbe66cf4c2b685e7cba8f5de022878e592fc35ff98f65b92c90a582abdeb",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:282750b474325de5565c4547f3bf0efc281aab1c15a46dff188de6d778d78b90",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:42:23.464774+00:00",
+      "reason": "Preserve explicit-revise diagnostics after consistency hardening",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/plan.py",
+          "read:tests/cli/test_plan_revise_preserve_command_mismatch.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_preserve_command_mismatch.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7cefac226b33a1532159c2808fcd9c44a780e69f9420faf3064695d527147d91",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:282750b474325de5565c4547f3bf0efc281aab1c15a46dff188de6d778d78b90",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:49:49.551134+00:00",
+      "reason": "Enforce exact evidence types and exclusive evidence modes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_consistent_test_only_evidence",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_consistent_test_only_evidence:kind=test_function",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_contradictory_evidence_mode",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_contradictory_evidence_mode:kind=test_function",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_requires_consistent_test_only_commands",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_requires_consistent_test_only_commands:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4d6b2427735ec65bd9a78910e1b0dc4ed5dd9a1182722e19588f5b3dfdda0785",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:48573d57467d7ec293f04cc75a87850773934d88985f798978a43fc044f9f113",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T13:59:53.637166+00:00",
+      "reason": "Add approved command-splice evidence binding regressions from final review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_command_spliced_red_evidence",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_command_spliced_red_evidence:kind=test_function",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_spliced_special_mode_commands",
+          "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_spliced_special_mode_commands:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cb1867c7f57b70de1a71f67fa75a7253ab224e21d958e29b1a4a56a433a4dda9",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:8758be0ddb30fdfcfad96914192e4c04e85541383688f0d3d4973e08d5366d43",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/test_learning_loop_init_payload.py": "sha256-pyast:v2:88db7021e8de79f1dc527e0d8f7d053b63d4e999c9c6741ceec0c9222ff14aff",
+        "tests/cli/test_095_epic_completion.py": "sha256-pyast:v2:e735e02097eb863ae9b6a12e75c0b4d4510e6e1393c11747e718dca259071f5a",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:f3a174e1bd378926b8a826a4661bc73b8cf55ead65dd992c9b6f988d68bf35b3",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2"
+      },
+      "revised_at": "2026-08-15T14:00:59.634853+00:00",
+      "reason": "Refresh approved command-binding tests after formatting",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-15T14:01:03.620604+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_preserve_command_mismatch.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py",
+        "exit_code": 1,
+        "output_tail": "        project_root = Path(__file__).resolve().parents[2]\n        workflow = (project_root / \"docs\" / \"draft-manifest-workflow.md\").read_text()\n        packaged_workflow = (\n            project_root / \"maid_runner\" / \"docs\" / \"draft-manifest-workflow.md\"\n        ).read_text()\n    \n>       assert \"preserves valid red-phase evidence\" in workflow\nE       AssertionError: assert 'preserves valid red-phase evidence' in '# Draft Manifest Workflow\\n\\nDraft manifests are MAID planning inventory. Promoted manifests are active\\ncontracts.\\n...ake the known plan enumerable, reviewable, and machine-checkable before each\\npiece becomes an active MAID contract.\\n'\n\ntests/cli/test_manifest_promote_red_evidence_preservation.py:462: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_promote_preserves_valid_red_evidence_when_activation_turns_green\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_promote_no_run_preserves_valid_red_evidence\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_revision_preservation_rejects_inconsistent_red_command_payload\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_revision_preservation_rejects_contradictory_evidence_mode\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_revision_preservation_requires_consistent_test_only_commands\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_revision_preservation_rejects_spliced_special_mode_commands\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_promote_preserves_consistent_test_only_evidence\nFAILED tests/cli/test_manifest_promote_red_evidence_preservation.py::test_promotion_docs_describe_valid_evidence_preservation\n8 failed, 78 passed in 1.99s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:kind=attribute",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:of=documentation",
+      "CLAUDE.md:attribute:documentation._promotion_lock_migration_workflow_note:type=markdown section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:kind=attribute",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:of=documentation",
+      "docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:type=markdown section",
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=prior_contract:type=dict | None:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:returns=bool",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:kind=attribute",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:of=documentation",
+      "maid_runner/docs/draft-manifest-workflow.md:attribute:documentation._promotion_lock_migration_doc_section:type=markdown section",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_migrates_lock_to_promoted_path",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_migrates_lock_to_promoted_path:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_no_run_records_null_red_evidence",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_no_run_records_null_red_evidence:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_parser_accepts_no_run_and_project_root",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_parser_accepts_no_run_and_project_root:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_recaptures_red_evidence_by_default",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_recaptures_red_evidence_by_default:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_mismatched_lock",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_mismatched_lock:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_unreadable_lock",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_refuses_unreadable_lock:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rewrites_self_referencing_validate_paths",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rewrites_self_referencing_validate_paths:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rolls_back_when_lock_migration_fails",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_rolls_back_when_lock_migration_fails:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_warns_about_other_manifests_referencing_draft_path",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_warns_about_other_manifests_referencing_draft_path:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_without_lock_keeps_existing_behavior",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promote_without_lock_keeps_existing_behavior:kind=test_function",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable",
+      "tests/cli/test_manifest_promote_lock_cmd.py:test_promotion_lock_migration_docs_are_discoverable:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_command_spliced_red_evidence",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_command_spliced_red_evidence:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_inconsistent_red_command_payload",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_does_not_preserve_inconsistent_red_command_payload:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_no_run_clears_evidence_when_locked_tests_changed",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_no_run_clears_evidence_when_locked_tests_changed:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_no_run_preserves_valid_red_evidence",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_no_run_preserves_valid_red_evidence:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_consistent_test_only_evidence",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_consistent_test_only_evidence:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_valid_red_evidence_when_activation_turns_green",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_preserves_valid_red_evidence_when_activation_turns_green:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_locked_validate_commands_changed",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_locked_validate_commands_changed:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_self_referencing_validate_path_is_rewritten",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promote_recaptures_when_self_referencing_validate_path_is_rewritten:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promotion_docs_describe_valid_evidence_preservation",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_promotion_docs_describe_valid_evidence_preservation:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_contradictory_evidence_mode",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_contradictory_evidence_mode:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_inconsistent_red_command_payload",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_inconsistent_red_command_payload:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_spliced_special_mode_commands",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_rejects_spliced_special_mode_commands:kind=test_function",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_requires_consistent_test_only_commands",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py:test_revision_preservation_requires_consistent_test_only_commands:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py"
+      ],
+      "edit": [
+        "CLAUDE.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "tests/cli/test_manifest_promote_lock_cmd.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/plan.py",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml",
+        "tests/cli/test_095_epic_completion.py",
+        "tests/cli/test_manifest_cmd.py",
+        "tests/cli/test_plan_cmd.py",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+        "tests/test_init_draft_workflow_payload.py",
+        "tests/test_learning_loop_init_payload.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_manifest_promote_red_evidence_preservation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_preserves_valid_red_evidence_when_activation_turns_green",
+              "source_scenario": "A locked draft has valid red evidence because its activation-only validate command fails until the promoted manifest exists.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion succeeds and preserves the exact original red evidence rather than overwriting it with the now-green post-activation result."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_no_run_preserves_valid_red_evidence",
+              "source_scenario": "A locked draft has valid red evidence and is promoted with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion succeeds without executing commands and preserves the exact valid red evidence payload."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_recaptures_when_locked_validate_commands_changed",
+              "source_scenario": "A draft's validate command changes after valid red evidence was locked, then ordinary promotion runs.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stale evidence is not preserved; promotion recaptures evidence for the current command and stores its current red output."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_no_run_clears_evidence_when_locked_tests_changed",
+              "source_scenario": "A locked behavioral test changes after red evidence capture, then promotion runs with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stale evidence is not preserved and no command is run, so the migrated lock records null evidence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_recaptures_when_self_referencing_validate_path_is_rewritten",
+              "source_scenario": "Promotion rewrites a locked validate command from its self-referencing draft path to the active manifest path.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion recaptures evidence for the rewritten active-path command rather than preserving draft-path evidence that would violate E707 command binding."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revision_preservation_rejects_inconsistent_red_command_payload",
+              "source_scenario": "A direct preservation check receives forged red evidence whose exit code is zero but classification is red.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "revision_preserves_red_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The shared public predicate returns false because the serialized command payload is internally inconsistent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_does_not_preserve_inconsistent_red_command_payload",
+              "source_scenario": "A locked draft carries command-matching but internally inconsistent red evidence and is promoted with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion rejects preservation and records null evidence rather than carrying the forged payload through the handoff gate."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_does_not_preserve_command_spliced_red_evidence",
+              "source_scenario": "A locked draft carries shape-valid red evidence whose command text was substituted after capture.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion rejects the command-spliced payload and records null evidence under --no-run rather than creating an E707-invalid migrated lock."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revision_preservation_rejects_contradictory_evidence_mode",
+              "source_scenario": "A red:true payload also claims the mutually exclusive test_only_green mode.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "revision_preserves_red_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The shared predicate rejects the contradictory evidence channel instead of treating it as ordinary red evidence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revision_preservation_requires_consistent_test_only_commands",
+              "source_scenario": "Test-only-green evidence is checked with a valid command, a Boolean false exit code, and a missing output tail.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "revision_preserves_red_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only the fully shaped command with an exact integer zero exit code is preservable; Boolean and incomplete command payloads are rejected."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revision_preservation_rejects_spliced_special_mode_commands",
+              "source_scenario": "Shape-valid stash-restoration and test-only-green evidence carries command text that differs from the persisted contract snapshot.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "revision_preserves_red_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The shared predicate rejects command-spliced evidence in both sanctioned special modes."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_preserves_consistent_test_only_evidence",
+              "source_scenario": "A test-only manifest carries internally consistent test_only_green evidence and is promoted with --no-run.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_manifest"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Promotion preserves the exact valid test-only evidence payload, proving hardening did not disable the sanctioned channel."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promotion_docs_describe_valid_evidence_preservation",
+              "source_scenario": "A reader checks the promotion workflow after the evidence-preservation fix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "Path"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The source and packaged workflows match and document valid evidence preservation, recapture after contract or test changes, and --no-run behavior."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "The manifest promote subparser continues to accept --no-run and --project-root (default '.') alongside its existing options.",
+              "returns": "argparse.ArgumentParser"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "revision_preserves_red_evidence",
+              "description": "Returns true only for internally consistent red/test-only evidence whose contract and behavioral tests remain unchanged; ordinary red command payloads must bind classification to exit code through the existing consistency validator.",
+              "args": [
+                {
+                  "name": "existing",
+                  "type": "PlanLock"
+                },
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "prior_contract",
+                  "type": "dict | None"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Explicit --preserve-red-evidence rejection continues to identify the existing plan lock when stronger payload consistency checks reject malformed stored evidence.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_promotion_lock_migration_doc_section",
+              "description": "The Plan Locks at Promotion section explains valid evidence preservation, fail-closed recapture/null fallback, transactional migration, and warnings for other manifests referencing the draft path.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_promotion_lock_migration_doc_section",
+              "description": "The packaged Plan Locks at Promotion section exactly mirrors the source workflow documentation so installed MAID guidance describes valid evidence preservation and fail-closed fallback behavior.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "CLAUDE.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_promotion_lock_migration_workflow_note",
+              "description": "The plan-lock workflow paragraph states that maid manifest promote migrates the promoted manifest's plan lock.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_manifest_promote_lock_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_promote_migrates_lock_to_promoted_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_rewrites_self_referencing_validate_paths"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_recaptures_red_evidence_by_default"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_no_run_records_null_red_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_refuses_mismatched_lock"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_refuses_unreadable_lock"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_rolls_back_when_lock_migration_fails"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_without_lock_keeps_existing_behavior"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_warns_about_other_manifests_referencing_draft_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promote_parser_accepts_no_run_and_project_root"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_promotion_lock_migration_docs_are_discoverable"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/plan.py",
+        "tests/cli/test_manifest_cmd.py",
+        "tests/cli/test_plan_cmd.py",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+        "tests/test_learning_loop_init_payload.py",
+        "tests/cli/test_095_epic_completion.py",
+        "tests/test_init_draft_workflow_payload.py",
+        "manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml",
+        "manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml",
+        "manifests/085-05-stash-implementation-session-robustness.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_095_epic_completion.py",
+      "tests/cli/test_manifest_cmd.py",
+      "tests/cli/test_manifest_promote_lock_cmd.py",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py",
+      "tests/cli/test_plan_cmd.py",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+      "tests/test_init_draft_workflow_payload.py",
+      "tests/test_learning_loop_init_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_preserve_command_mismatch.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py",
+      "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
