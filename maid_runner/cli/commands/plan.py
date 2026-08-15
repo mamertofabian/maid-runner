@@ -284,7 +284,8 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
     if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
             "--preserve-red-evidence requires existing valid red or "
-            "test-only-green evidence, or a valid legacy baseline.",
+            "test-only-green evidence, or a valid legacy baseline in the "
+            "existing plan lock.",
             json_mode=ctx.json_mode,
         )
         return 2
@@ -626,8 +627,12 @@ def _test_only_green_payload_is_valid(evidence: object) -> bool:
         and isinstance(commands, list)
         and all(
             isinstance(command, dict)
+            and isinstance(command.get("command"), str)
+            and bool(command.get("command"))
             and command.get("classification") == "not_red"
+            and type(command.get("exit_code")) is int
             and command.get("exit_code") == 0
+            and isinstance(command.get("output_tail"), str)
             for command in commands
         )
     )

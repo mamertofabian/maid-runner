@@ -1,0 +1,361 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Preserve valid draft red evidence when migrating a plan lock during manifest promotion"
+type: fix
+created: "2026-08-15T13:19:28Z"
+supersedes:
+  - 073-01-migrate-plan-locks-on-draft-promotion
+metadata:
+  status: implementation-ready
+  tags:
+    - plan-lock
+    - draft-promotion
+    - red-evidence
+    - contract-activation
+  priority: high
+description: |
+  Fix the independently reproduced promotion bug recorded in
+  `/home/atomrem/.maid/bug-report/20260815-202918-maid-chain-merge-promotion-red-evidence.md`.
+  A draft can carry valid red-phase evidence whose failure is the absence of
+  the active contract itself. Promotion activates that contract before lock
+  migration captures evidence, so unconditional recapture turns the genuine
+  historical red run green and overwrites it with `red: false`. The `--no-run`
+  path likewise discards valid evidence by leaving the revised lock's evidence
+  null.
+
+  Supersede 073-01 because its public `cmd_manifest` behavior and documentation
+  explicitly require unconditional recapture/nulling. The replacement keeps
+  every prior promotion behavior and test contract, but changes evidence
+  migration as follows:
+
+  1. Preserve an existing valid red-evidence or test-only-green payload only
+     when the existing revision predicate finds an empty contract delta, all
+     locked behavioral test
+     hashes still match, and no behavioral test was added.
+  2. Treat a self-referencing validate-path rewrite as a command-identity
+     change rather than normalizing it away. This keeps preserved evidence
+     command strings bound to the migrated lock snapshot and prevents E707.
+  3. If the preservation check fails, retain the existing fail-closed behavior:
+     ordinary promotion recaptures evidence against the promoted manifest and
+     `--no-run` records null evidence.
+  4. Keep the promotion transaction, rollback, mismatch rejection, self-path
+     rewriting, parser options, and cross-manifest warnings unchanged.
+  5. Harden the shared public preservation predicate so ordinary red evidence
+     is valid only when every serialized command's exact-integer exit code,
+     classification, command text, and output tail are internally consistent.
+     Reject contradictory or unknown evidence modes, and apply the same full
+     command-shape rule to test-only-green evidence. This closes the
+     independent-review finding where forged exit-code-0/classification-red
+     evidence survived promotion and the handoff gate.
+
+  Rationale: promotion is a path migration, not implementation. Genuine
+  historical evidence remains bound to the same contract, command strings, and
+  test bytes. Reusing `revision_preserves_red_evidence` keeps validity, evidence
+  channel exclusivity, contract-delta, and behavioral-hash policy centralized;
+  the CLI only normalizes the one path rewrite it owns.
+temptations:
+  - risk: "Do not preserve evidence merely because a lock contains a red:true field."
+    instead: "Use revision_preserves_red_evidence against the unmodified prior locked contract so evidence validity, command identity, contract delta, and behavioral test hashes remain bound together."
+  - risk: "Do not keep unconditional post-promotion recapture for contract-activation fixes."
+    instead: "Carry the original evidence payload forward when the preservation predicate passes, even if the promoted validate command would now be green."
+  - risk: "Do not let --no-run preserve stale evidence after contract or test changes."
+    instead: "When the preservation predicate fails, keep --no-run fail-closed by saving null evidence; recapture only when command execution is allowed."
+  - risk: "Do not normalize self-referencing validate-command rewrites away during the preservation check."
+    instead: "Let a changed command fail the preservation predicate, then recapture it or record null under --no-run so E707 command binding remains intact."
+  - risk: "Do not weaken or delete the original promotion migration regression suite."
+    instead: "Re-declare and run every 073-01 behavioral test alongside the dedicated evidence-preservation regressions."
+files:
+  edit:
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          source_scenario: "A locked draft manifest is promoted with or without --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion rewrites self-referencing paths and migrates the matching lock transactionally; it preserves valid evidence when the contract, command strings, and behavioral tests are unchanged, otherwise recaptures by default or records null under --no-run; unreadable or mismatched locks fail closed and other active draft references are warned."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "The manifest promote subparser continues to accept --no-run and --project-root (default '.') alongside its existing options."
+    - path: maid_runner/core/plan_lock.py
+      artifacts:
+        - kind: function
+          name: revision_preserves_red_evidence
+          args:
+            - name: existing
+              type: PlanLock
+            - name: manifest_path
+              type: Path
+            - name: project_root
+              type: Path
+            - name: prior_contract
+              type: dict | None
+          returns: bool
+          description: "Returns true only for internally consistent red/test-only evidence whose contract and behavioral tests remain unchanged; ordinary red command payloads must bind classification to exit code through the existing consistency validator."
+    - path: maid_runner/cli/commands/plan.py
+      artifacts:
+        - kind: function
+          name: cmd_plan_revise
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Explicit --preserve-red-evidence rejection continues to identify the existing plan lock when stronger payload consistency checks reject malformed stored evidence."
+    - path: docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _promotion_lock_migration_doc_section
+          of: documentation
+          type: markdown section
+          description: "The Plan Locks at Promotion section explains valid evidence preservation, fail-closed recapture/null fallback, transactional migration, and warnings for other manifests referencing the draft path."
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      artifacts:
+        - kind: attribute
+          name: _promotion_lock_migration_doc_section
+          of: documentation
+          type: markdown section
+          description: "The packaged Plan Locks at Promotion section exactly mirrors the source workflow documentation so installed MAID guidance describes valid evidence preservation and fail-closed fallback behavior."
+    - path: CLAUDE.md
+      artifacts:
+        - kind: attribute
+          name: _promotion_lock_migration_workflow_note
+          of: documentation
+          type: markdown section
+          description: "The plan-lock workflow paragraph states that maid manifest promote migrates the promoted manifest's plan lock."
+    - path: tests/cli/test_manifest_promote_lock_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_promote_migrates_lock_to_promoted_path
+        - kind: test_function
+          name: test_promote_rewrites_self_referencing_validate_paths
+        - kind: test_function
+          name: test_promote_recaptures_red_evidence_by_default
+        - kind: test_function
+          name: test_promote_no_run_records_null_red_evidence
+        - kind: test_function
+          name: test_promote_refuses_mismatched_lock
+        - kind: test_function
+          name: test_promote_refuses_unreadable_lock
+        - kind: test_function
+          name: test_promote_rolls_back_when_lock_migration_fails
+        - kind: test_function
+          name: test_promote_without_lock_keeps_existing_behavior
+        - kind: test_function
+          name: test_promote_warns_about_other_manifests_referencing_draft_path
+        - kind: test_function
+          name: test_promote_parser_accepts_no_run_and_project_root
+        - kind: test_function
+          name: test_promotion_lock_migration_docs_are_discoverable
+  create:
+    - path: tests/cli/test_manifest_promote_red_evidence_preservation.py
+      artifacts:
+        - kind: test_function
+          name: test_promote_preserves_valid_red_evidence_when_activation_turns_green
+          source_scenario: "A locked draft has valid red evidence because its activation-only validate command fails until the promoted manifest exists."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion succeeds and preserves the exact original red evidence rather than overwriting it with the now-green post-activation result."
+        - kind: test_function
+          name: test_promote_no_run_preserves_valid_red_evidence
+          source_scenario: "A locked draft has valid red evidence and is promoted with --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion succeeds without executing commands and preserves the exact valid red evidence payload."
+        - kind: test_function
+          name: test_promote_recaptures_when_locked_validate_commands_changed
+          source_scenario: "A draft's validate command changes after valid red evidence was locked, then ordinary promotion runs."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The stale evidence is not preserved; promotion recaptures evidence for the current command and stores its current red output."
+        - kind: test_function
+          name: test_promote_no_run_clears_evidence_when_locked_tests_changed
+          source_scenario: "A locked behavioral test changes after red evidence capture, then promotion runs with --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "The stale evidence is not preserved and no command is run, so the migrated lock records null evidence."
+        - kind: test_function
+          name: test_promote_recaptures_when_self_referencing_validate_path_is_rewritten
+          source_scenario: "Promotion rewrites a locked validate command from its self-referencing draft path to the active manifest path."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion recaptures evidence for the rewritten active-path command rather than preserving draft-path evidence that would violate E707 command binding."
+        - kind: test_function
+          name: test_revision_preservation_rejects_inconsistent_red_command_payload
+          source_scenario: "A direct preservation check receives forged red evidence whose exit code is zero but classification is red."
+          actions:
+            - type: api_call
+              subject:
+                function: revision_preserves_red_evidence
+          expected:
+            behavior: "The shared public predicate returns false because the serialized command payload is internally inconsistent."
+        - kind: test_function
+          name: test_promote_does_not_preserve_inconsistent_red_command_payload
+          source_scenario: "A locked draft carries command-matching but internally inconsistent red evidence and is promoted with --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion rejects preservation and records null evidence rather than carrying the forged payload through the handoff gate."
+        - kind: test_function
+          name: test_promote_does_not_preserve_command_spliced_red_evidence
+          source_scenario: "A locked draft carries shape-valid red evidence whose command text was substituted after capture."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion rejects the command-spliced payload and records null evidence under --no-run rather than creating an E707-invalid migrated lock."
+        - kind: test_function
+          name: test_revision_preservation_rejects_contradictory_evidence_mode
+          source_scenario: "A red:true payload also claims the mutually exclusive test_only_green mode."
+          actions:
+            - type: api_call
+              subject:
+                function: revision_preserves_red_evidence
+          expected:
+            behavior: "The shared predicate rejects the contradictory evidence channel instead of treating it as ordinary red evidence."
+        - kind: test_function
+          name: test_revision_preservation_requires_consistent_test_only_commands
+          source_scenario: "Test-only-green evidence is checked with a valid command, a Boolean false exit code, and a missing output tail."
+          actions:
+            - type: api_call
+              subject:
+                function: revision_preserves_red_evidence
+          expected:
+            behavior: "Only the fully shaped command with an exact integer zero exit code is preservable; Boolean and incomplete command payloads are rejected."
+        - kind: test_function
+          name: test_revision_preservation_rejects_spliced_special_mode_commands
+          source_scenario: "Shape-valid stash-restoration and test-only-green evidence carries command text that differs from the persisted contract snapshot."
+          actions:
+            - type: api_call
+              subject:
+                function: revision_preserves_red_evidence
+          expected:
+            behavior: "The shared predicate rejects command-spliced evidence in both sanctioned special modes."
+        - kind: test_function
+          name: test_promote_preserves_consistent_test_only_evidence
+          source_scenario: "A test-only manifest carries internally consistent test_only_green evidence and is promoted with --no-run."
+          actions:
+            - type: api_call
+              subject:
+                function: cmd_manifest
+          expected:
+            behavior: "Promotion preserves the exact valid test-only evidence payload, proving hardening did not disable the sanctioned channel."
+        - kind: test_function
+          name: test_promotion_docs_describe_valid_evidence_preservation
+          source_scenario: "A reader checks the promotion workflow after the evidence-preservation fix."
+          actions:
+            - type: api_call
+              subject:
+                export: Path
+          expected:
+            behavior: "The source and packaged workflows match and document valid evidence preservation, recapture after contract or test changes, and --no-run behavior."
+  read:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_manifest_cmd.py
+    - tests/cli/test_plan_cmd.py
+    - tests/cli/test_plan_revise_preserve_command_mismatch.py
+    - tests/test_learning_loop_init_payload.py
+    - tests/cli/test_095_epic_completion.py
+    - tests/test_init_draft_workflow_payload.py
+    - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+    - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+    - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_cmd.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_preserve_command_mismatch.py tests/test_learning_loop_init_payload.py tests/cli/test_095_epic_completion.py tests/test_init_draft_workflow_payload.py
+  - uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/fix-promotion-red-evidence-preservation.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-15T14:05:11Z"
+  summary: "Draft promotion now preserves exact valid red-phase or test-only-green evidence when activation leaves the locked contract and behavioral tests unchanged. Changed, malformed, contradictory, or command-spliced evidence is recaptured during ordinary promotion or cleared under --no-run, preventing migrated locks from carrying stale evidence or immediately failing E707."
+  rationale: "Promotion previously revised the lock before deciding whether draft-time red evidence remained reusable, so activation could replace genuine red proof with green evidence or null. Reusing the shared revision predicate keeps preservation bound to payload consistency, exact command multisets, contract identity, and behavioral test hashes."
+  lessons:
+    - lesson_type: design
+      summary: "Evidence reuse must validate both serialized payload integrity and exact multiset binding to the persisted and current validate-command snapshots; shape checks alone permit command splicing."
+      tags: [red-evidence, E707, fail-closed]
+      paths:
+        - maid_runner/core/plan_lock.py
+        - maid_runner/cli/commands/manifest.py
+    - lesson_type: testing
+      summary: "Adversarial evidence tests need exact JSON type checks because Python Boolean values satisfy isinstance(value, int), and mutually exclusive evidence modes must be rejected explicitly."
+      tags: [regression, anti-gaming, json-types]
+      paths:
+        - tests/cli/test_manifest_promote_red_evidence_preservation.py
+    - lesson_type: workflow
+      summary: "A self-referencing draft validate path changes command identity during promotion, so its evidence must be recaptured rather than normalized and preserved in conflict with E707."
+      tags: [promotion, plan-lock, command-identity]
+      paths:
+        - maid_runner/cli/commands/manifest.py
+  review_notes:
+    - source: promotion_evidence_review
+      severity: warning
+      summary: "Initial independent review found internally inconsistent exit-code/classification payloads could be preserved; shared command consistency validation now rejects them."
+    - source: promotion_evidence_rereview
+      severity: warning
+      summary: "Re-review found Boolean exit codes, contradictory modes, and incomplete test-only payloads; exact integer checks and shared payload validation closed those bypasses."
+    - source: promotion_evidence_final_review
+      severity: warning
+      summary: "Final review found shape-valid command-spliced evidence and duplicate multiplicity could be preserved; exact Counter binding across evidence, persisted, and current commands closed the gap."
+    - source: promotion_evidence_final_review
+      severity: ready
+      summary: "Independent re-review reported no findings and confirmed ordinary red, test-only-green, stash-restoration, duplicate-command, and legacy-baseline behavior."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_manifest_promote_red_evidence_preservation.py, tests/cli/test_plan_revise_auto_preserve.py, tests/cli/test_plan_revise_test_only_green.py, tests/cli/test_plan_revise_preserve_command_mismatch.py, tests/cli/test_plan_revise_legacy_baseline.py, tests/cli/test_plan_cmd_stash_implementation.py, tests/core/test_plan_lock_red_evidence.py, tests/core/test_plan_lock_enforcement.py, tests/core/test_plan_lock_evidence_integrity.py]
+      status: passed
+      summary: "All 98 focused promotion and evidence-compatibility tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8", --dist, loadscope]
+      status: passed
+      summary: "The full suite passed with 4,305 tests passing and 14 skipped."
+    - command: [uv, run, maid, validate, manifests/fix-promotion-red-evidence-preservation.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 9."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 457 active applicable manifests passed; 118 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 285 deduplicated manifest commands passed."
+    - command: [uv, run, maid, verify, --profile, handoff, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All nine handoff stages passed with only inherited advisory E307 warnings."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: failed
+      summary: "Deep verification remained blocked only by the documented inherited repository-wide backlog of 1,508 E710 artifact-coverage findings; the existing fix-branch-introduced-e710-coverage-debt Outcome records zero branch-owned unexecuted artifacts."
+    - command: [uv, run, black, --check, .]
+      status: passed
+      summary: "All 571 Python files matched Black formatting."
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: "Ruff checks passed; git diff whitespace validation also passed."

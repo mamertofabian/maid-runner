@@ -153,10 +153,13 @@ promoted, promote:
 - re-locks the promoted manifest through the sanctioned revision path: the
   prior hashes are preserved in the lock's revision history and the revision
   reason records the promotion;
-- recaptures red-phase evidence by running the promoted manifest's validate
-  commands, matching `maid plan lock`; pass `--no-run` to skip capture and
-  record null evidence. Evidence capture is lock-gated: promoting an unlocked
-  draft never runs validate commands;
+- preserves valid red-phase evidence when the locked contract, validate-command
+  strings, and behavioral test hashes are unchanged. Otherwise it
+  recaptures evidence when the locked contract or tests changed; pass `--no-run` to skip
+  that fallback capture and record null evidence. A self-referencing validate
+  path rewritten from drafts/ to manifests/ changes the command identity and is
+  therefore recaptured rather than preserved. Evidence handling is lock-gated:
+  promoting an unlocked draft never runs validate commands;
 - resolves the lock directory from `--project-root` (default `.`), mirroring
   the `maid plan` subcommands.
 
