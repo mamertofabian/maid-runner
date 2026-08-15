@@ -35,6 +35,65 @@ class RecordedDetectionEvidenceSource:
         return self._by_merge_key.get(_merge_key_from_contract_key(artifact_key))
 
 
+class RecordedCoverageEvidenceSource:
+    """File-qualified coverage evidence read from the persisted deep cache."""
+
+    def __init__(
+        self,
+        coverage_by_artifact: dict[tuple[str, str], bool],
+    ) -> None:
+        self._by_artifact = dict(coverage_by_artifact)
+
+    @classmethod
+    def from_cache(
+        cls,
+        manifests: Sequence[Manifest],
+        project_root: str,
+        manifest_dir: str,
+    ) -> "RecordedCoverageEvidenceSource":
+        """Read current full-repository/default-worker coverage evidence."""
+        from maid_runner.core._artifact_coverage_cache import (
+            _load_artifact_coverage_cache,
+        )
+
+        report = _load_artifact_coverage_cache(
+            Path(project_root),
+            manifest_dir=manifest_dir,
+            pytest_workers=None,
+            manifest_paths=None,
+        )
+        if report is None:
+            return cls({})
+
+        paths = {
+            file_spec.path
+            for manifest in manifests
+            for file_spec in manifest.all_file_specs
+            if file_spec.artifacts
+        }
+        indexed: dict[tuple[str, str], bool] = {}
+        for finding in report.findings:
+            if finding.file_path not in paths:
+                continue
+            key = (
+                finding.file_path,
+                _coverage_finding_merge_key(
+                    finding.artifact_kind,
+                    finding.artifact_name,
+                    finding.parent_class,
+                ),
+            )
+            # A fragmented chain may produce duplicate findings. Any E710 must
+            # dominate covered evidence so iteration order cannot hide debt.
+            indexed[key] = indexed.get(key, True) and finding.executed
+        return cls(indexed)
+
+    def coverage_for(self, file_path: str, artifact_key: str) -> bool | None:
+        return self._by_artifact.get(
+            (file_path, _merge_key_from_contract_key(artifact_key))
+        )
+
+
 def detection_source_for_file(
     chain: ManifestChain,
     file_path: str,
@@ -59,6 +118,20 @@ def detection_source_for_file(
         return RecordedDetectionEvidenceSource({})
 
 
+def coverage_source_for_file(
+    chain: ManifestChain,
+    file_path: str,
+    project_root: str = ".",
+    manifest_dir: str = "manifests",
+) -> RecordedCoverageEvidenceSource:
+    """Build a recorded coverage source scoped to one file's manifests."""
+    return RecordedCoverageEvidenceSource.from_cache(
+        chain.manifests_for_file(file_path),
+        project_root,
+        manifest_dir,
+    )
+
+
 def _merge_key_from_contract_key(contract_key: str) -> str:
     """Recover the merge_key embedded in a contract_key.
 
@@ -72,3 +145,13 @@ def _merge_key_from_contract_key(contract_key: str) -> str:
     if not sep or not length_str.isdigit():
         return contract_key
     return remainder[: int(length_str)]
+
+
+def _coverage_finding_merge_key(
+    artifact_kind: str,
+    artifact_name: str,
+    parent_class: str | None,
+) -> str:
+    if parent_class:
+        return f"{artifact_kind}:{parent_class}.{artifact_name}"
+    return f"{artifact_kind}:{artifact_name}"

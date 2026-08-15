@@ -9,6 +9,7 @@ report marks detection UNKNOWN and never fabricates evidence.
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, runtime_checkable
@@ -35,6 +36,15 @@ class DetectionEvidenceSource(Protocol):
     def detecting_nodeids_for(self, artifact_key: str) -> tuple[str, ...] | None: ...
 
 
+@runtime_checkable
+class CoverageEvidenceSource(Protocol):
+    """Reads recorded execution coverage for one file-qualified artifact."""
+
+    @abstractmethod
+    def coverage_for(self, file_path: str, artifact_key: str) -> bool | None:
+        raise NotImplementedError
+
+
 @dataclass(frozen=True)
 class ChainMergeAcceptanceSpec:
     """The deterministic bar a future collapse must clear."""
@@ -43,6 +53,10 @@ class ChainMergeAcceptanceSpec:
     detection_available: bool
     required_detecting_nodeids: dict[str, tuple[str, ...]]
     unknown_detection_artifacts: tuple[str, ...]
+    coverage_available: bool = False
+    required_covered_artifacts: tuple[str, ...] = ()
+    uncovered_coverage_artifacts: tuple[str, ...] = ()
+    unknown_coverage_artifacts: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -64,6 +78,7 @@ def build_chain_merge_report(
     file_path: str,
     chain: ManifestChain,
     detection_source: DetectionEvidenceSource | None,
+    coverage_source: CoverageEvidenceSource | None = None,
 ) -> ChainMergeReport:
     """Build the merge report for ``file_path`` from ``chain``.
 
@@ -109,7 +124,18 @@ def build_chain_merge_report(
     else:
         verdict = ChainMergeVerdict.DEFRAG
 
-    acceptance = _build_acceptance(required_artifacts, detection_source)
+    acceptance = _build_acceptance(
+        file_path,
+        required_artifacts,
+        detection_source,
+        coverage_source,
+    )
+    if acceptance.uncovered_coverage_artifacts:
+        verdict = ChainMergeVerdict.BLOCKED
+        blocking_reasons.append(
+            "Recorded artifact coverage has E710 gaps: "
+            + ", ".join(acceptance.uncovered_coverage_artifacts)
+        )
 
     return ChainMergeReport(
         file_path=file_path,
@@ -125,28 +151,47 @@ def build_chain_merge_report(
 
 
 def _build_acceptance(
+    file_path: str,
     required_artifacts: tuple[str, ...],
     detection_source: DetectionEvidenceSource | None,
+    coverage_source: CoverageEvidenceSource | None,
 ) -> ChainMergeAcceptanceSpec:
     if detection_source is None:
-        return ChainMergeAcceptanceSpec(
-            required_artifacts=required_artifacts,
-            detection_available=False,
-            required_detecting_nodeids={},
-            unknown_detection_artifacts=required_artifacts,
-        )
+        detection_found: dict[str, tuple[str, ...]] = {}
+        detection_unknown = required_artifacts
+    else:
+        detection_found = {}
+        unknown: list[str] = []
+        for key in required_artifacts:
+            nodeids = detection_source.detecting_nodeids_for(key)
+            if nodeids is None:
+                unknown.append(key)
+            else:
+                detection_found[key] = tuple(nodeids)
+        detection_unknown = tuple(unknown)
 
-    found: dict[str, tuple[str, ...]] = {}
-    unknown: list[str] = []
-    for key in required_artifacts:
-        nodeids = detection_source.detecting_nodeids_for(key)
-        if nodeids is None:
-            unknown.append(key)
-        else:
-            found[key] = tuple(nodeids)
+    covered: list[str] = []
+    uncovered: list[str] = []
+    coverage_unknown: list[str] = []
+    if coverage_source is None:
+        coverage_unknown.extend(required_artifacts)
+    else:
+        for key in required_artifacts:
+            status = coverage_source.coverage_for(file_path, key)
+            if status is True:
+                covered.append(key)
+            elif status is False:
+                uncovered.append(key)
+            else:
+                coverage_unknown.append(key)
+
     return ChainMergeAcceptanceSpec(
         required_artifacts=required_artifacts,
-        detection_available=True,
-        required_detecting_nodeids=found,
-        unknown_detection_artifacts=tuple(unknown),
+        detection_available=detection_source is not None,
+        required_detecting_nodeids=detection_found,
+        unknown_detection_artifacts=detection_unknown,
+        coverage_available=coverage_source is not None,
+        required_covered_artifacts=tuple(covered),
+        uncovered_coverage_artifacts=tuple(uncovered),
+        unknown_coverage_artifacts=tuple(coverage_unknown),
     )

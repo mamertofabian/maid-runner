@@ -104,10 +104,23 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
         print(format_chain_merge_apply_result(result, json_mode=args.json))
         return 0 if result.applied else 1
 
-    from maid_runner.core.chain_merge_evidence import detection_source_for_file
+    from maid_runner.core.chain_merge_evidence import (
+        coverage_source_for_file,
+        detection_source_for_file,
+    )
 
     detection_source = detection_source_for_file(chain, args.file_path)
-    report = build_chain_merge_report(args.file_path, chain, detection_source)
+    coverage_source = coverage_source_for_file(
+        chain,
+        args.file_path,
+        manifest_dir=str(args.manifest_dir),
+    )
+    report = build_chain_merge_report(
+        args.file_path,
+        chain,
+        detection_source,
+        coverage_source,
+    )
     output = format_chain_merge_report(report, json_mode=args.json)
     print(output)
     return 0

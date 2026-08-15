@@ -1244,6 +1244,16 @@ def format_chain_merge_report(
                 "unknown_detection_artifacts": list(
                     acceptance.unknown_detection_artifacts
                 ),
+                "coverage_available": acceptance.coverage_available,
+                "required_covered_artifacts": list(
+                    acceptance.required_covered_artifacts
+                ),
+                "uncovered_coverage_artifacts": list(
+                    acceptance.uncovered_coverage_artifacts
+                ),
+                "unknown_coverage_artifacts": list(
+                    acceptance.unknown_coverage_artifacts
+                ),
             },
         }
         return json.dumps(payload, indent=2)
@@ -1266,6 +1276,18 @@ def format_chain_merge_report(
         )
     else:
         lines.append("  detection: UNKNOWN (no evidence source)")
+    if acceptance.coverage_available:
+        lines.append(
+            f"  coverage: recorded for "
+            f"{len(acceptance.required_covered_artifacts)}/"
+            f"{len(acceptance.required_artifacts)} artifacts"
+        )
+        if acceptance.uncovered_coverage_artifacts:
+            lines.append(
+                "  coverage E710: " + ", ".join(acceptance.uncovered_coverage_artifacts)
+            )
+    else:
+        lines.append("  coverage: UNKNOWN (no evidence source)")
     return "\n".join(lines)
 
 

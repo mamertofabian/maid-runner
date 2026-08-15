@@ -1,0 +1,254 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Read current recorded artifact-coverage evidence into the chain-merge acceptance bar and return a coverage/E710-derived BLOCKED verdict without running tests or coverage.
+type: feature
+created: '2026-08-15T22:16:13Z'
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: written-red-confirmed
+  status: implementation-ready
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  child: 3b
+  tags:
+  - chain-merge
+  - artifact-coverage
+  - e710
+  - recorded-evidence
+  priority: medium
+description: |
+  Child 3b completes the coverage half deferred by child 2 and child 3a. The
+  live perf-derived cache is `.maid/cache/artifact-coverage-evidence-v2`, not
+  the roadmap's older `coverage-risk-v1.json` wording. Reuse the existing
+  hermetic cache loader so stale, malformed, task-scoped, or non-default-worker
+  evidence is never presented as a complete full-repository acceptance bar. The
+  private cache helpers move from the CLI module into one private core module so
+  verification and chain merge share the implementation without a core-to-CLI
+  dependency or duplicated cache-key logic.
+
+  This is an additive contract evolution. Existing detection behavior and the
+  three-argument build_chain_merge_report call remain valid; an optional
+  CoverageEvidenceSource adds recorded covered, uncovered (E710), and UNKNOWN
+  artifact sets. A recorded uncovered artifact changes either DEFRAG or LEAN to
+  BLOCKED with a deterministic E710 reason. Missing or stale coverage evidence
+  remains UNKNOWN and does not fabricate a green result.
+
+  The CLI wires both recorded sources into the single-file report and the text
+  and JSON formatters disclose coverage state. The report path only reads the
+  cache: it never runs pytest, coverage, deep verification, or a new static
+  analyzer. Child 5's candidate-state equivalence gate remains out of scope.
+
+  Outcome guidance applied: reuse the hermetic identity and cache-integrity
+  behavior proven by 121-21 and fix-deep-verification-cache-and-timeout-hardening;
+  keep the new test file dedicated to avoid sibling plan-lock hash cascades;
+  preserve explicit UNKNOWN for advisory evidence gaps as learned in child 3a.
+temptations:
+- risk: Do not scan arbitrary artifact-coverage cache files or accept task-scoped evidence as a complete acceptance bar.
+  instead: Reuse the current full-repository/default-worker hermetic cache loader; any key mismatch or malformed payload yields UNKNOWN.
+- risk: Do not run pytest, coverage, or deep verification from `maid chain merge` to fill a cold cache.
+  instead: Read recorded evidence only and leave every uncovered cache miss UNKNOWN.
+- risk: Do not treat UNKNOWN coverage as covered or suppress a recorded E710 to preserve DEFRAG/LEAN.
+  instead: Track covered, uncovered, and unknown artifacts separately; any recorded uncovered artifact forces BLOCKED with an E710 reason, including when a duplicate declaration also has covered evidence.
+- risk: Do not implement child 5's candidate equivalence comparison in this child.
+  instead: Emit the recorded current-state acceptance bar only; candidate superset certification remains in chain-merge-equivalence-gate.
+files:
+  edit:
+  - path: maid_runner/core/chain_merge.py
+    artifacts:
+    - kind: class
+      name: CoverageEvidenceSource
+      description: Narrow injected Protocol returning recorded execution coverage for one file-qualified artifact, or None when evidence is unknown.
+    - kind: method
+      name: coverage_for
+      of: CoverageEvidenceSource
+      args:
+      - name: file_path
+        type: str
+      - name: artifact_key
+        type: str
+      returns: Union[bool, None]
+    - kind: attribute
+      name: coverage_available
+      of: ChainMergeAcceptanceSpec
+      type: bool
+    - kind: attribute
+      name: required_covered_artifacts
+      of: ChainMergeAcceptanceSpec
+      type: tuple[str, ...]
+    - kind: attribute
+      name: uncovered_coverage_artifacts
+      of: ChainMergeAcceptanceSpec
+      type: tuple[str, ...]
+    - kind: attribute
+      name: unknown_coverage_artifacts
+      of: ChainMergeAcceptanceSpec
+      type: tuple[str, ...]
+    - kind: function
+      name: build_chain_merge_report
+      args:
+      - name: file_path
+        type: str
+      - name: chain
+        type: ManifestChain
+      - name: detection_source
+        type: DetectionEvidenceSource | None
+      - name: coverage_source
+        type: CoverageEvidenceSource | None
+        default: None
+      returns: ChainMergeReport
+      description: Preserve the existing detection report while optionally recording coverage acceptance and forcing BLOCKED for recorded E710 gaps.
+  - path: maid_runner/core/chain_merge_evidence.py
+    artifacts:
+    - kind: class
+      name: RecordedCoverageEvidenceSource
+      description: File-qualified CoverageEvidenceSource backed only by a current validated artifact-coverage report.
+    - kind: method
+      name: coverage_for
+      of: RecordedCoverageEvidenceSource
+      args:
+      - name: file_path
+        type: str
+      - name: artifact_key
+        type: str
+      returns: Union[bool, None]
+    - kind: method
+      name: from_cache
+      of: RecordedCoverageEvidenceSource
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: str
+      - name: manifest_dir
+        type: str
+      returns: RecordedCoverageEvidenceSource
+    - kind: function
+      name: coverage_source_for_file
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: file_path
+        type: str
+      - name: project_root
+        type: str
+        default: "'.'"
+      - name: manifest_dir
+        type: str
+        default: "'manifests'"
+      returns: RecordedCoverageEvidenceSource
+  create:
+  - path: tests/core/test_chain_merge_coverage_wiring.py
+    artifacts:
+    - kind: test_function
+      name: test_recorded_coverage_source_distinguishes_covered_uncovered_and_unknown
+    - kind: test_function
+      name: test_recorded_coverage_source_satisfies_protocol
+    - kind: test_function
+      name: test_recorded_coverage_cache_reader_rejects_stale_evidence
+    - kind: test_function
+      name: test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts
+    - kind: test_function
+      name: test_report_records_covered_and_unknown_coverage
+    - kind: test_function
+      name: test_report_blocks_recorded_e710_gap
+    - kind: test_function
+      name: test_absent_coverage_source_preserves_unknown_fallback
+    - kind: test_function
+      name: test_chain_merge_cli_emits_recorded_coverage_acceptance
+  scope:
+  - path: maid_runner/core/_artifact_coverage_cache.py
+    reason: Extract the existing private hermetic key, validated reader/writer, and payload reconstruction from verify.py so verification and chain merge reuse one implementation; expose no public artifacts.
+  - path: maid_runner/cli/commands/verify.py
+    reason: Import the extracted private cache helpers without changing verification behavior or public signatures; existing 121-21 and hardening tests pin the producer contract.
+  - path: maid_runner/cli/commands/chain.py
+    reason: Wire the per-file recorded coverage source into the existing single-file report without changing cmd_chain's public signature.
+  - path: maid_runner/cli/commands/_format.py
+    reason: Extend the existing public formatter's JSON and text payload with the new coverage acceptance fields without changing its signature.
+  read:
+  - maid_runner/core/artifact_coverage.py
+  - maid_runner/core/chain.py
+  - maid_runner/core/result.py
+  - maid_runner/core/types.py
+  - manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml
+  - manifests/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/chain-merge-evidence-sources.manifest.yaml
+  - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+  - manifests/drafts/chain-merge-equivalence-gate.manifest.yaml
+  - AGENTS.md
+validate:
+- uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py
+- uv run python -m pytest -q tests/core/test_chain_merge.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py tests/cli/test_chain_merge_command.py tests/cli/test_artifact_coverage_evidence_cache.py
+outcome:
+  status: completed
+  completed_at: '2026-08-16T06:31:00+08:00'
+  summary: Child 3b reads current full-repository artifact-coverage evidence into the chain-merge acceptance bar, keeps stale or partial evidence UNKNOWN, and returns BLOCKED with an E710 reason for any recorded uncovered artifact.
+  rationale: |
+    Reused the existing hermetic artifact-coverage cache implementation by
+    extracting its private reader/writer from the verify CLI into a private core
+    module. The cache key now normalizes the project root so relative producer
+    paths and absolute reader paths share one identity. Coverage remains keyed by
+    file plus artifact merge key, and false dominates duplicate findings so one
+    covered declaration cannot hide another declaration's E710. Child 5's
+    candidate-state equivalence comparison remains deliberately out of scope.
+  lessons:
+  - lesson_type: regression
+    summary: Persisted evidence keys must normalize project-root identity; otherwise a CLI producer using `.` and a library reader using an absolute path miss the same current cache and silently degrade to UNKNOWN.
+    tags:
+    - artifact-coverage
+    - cache
+    - evidence-integrity
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_artifact_coverage_cache.py
+    - maid_runner/core/chain_merge_evidence.py
+  - lesson_type: validation-trust
+    summary: Fragmented manifest chains can emit conflicting duplicate coverage findings, so recorded E710 must dominate covered evidence independently of report order.
+    tags:
+    - artifact-coverage
+    - e710
+    - chain-merge
+    paths:
+    - maid_runner/core/chain_merge_evidence.py
+    - tests/core/test_chain_merge_coverage_wiring.py
+  - lesson_type: test-design
+    summary: An uncovered-artifact fixture must reference the symbol behaviorally without executing its body; `assert callable(target)` reaches E710, while import-only stops earlier at E200 and a constant-return target stops at E310.
+    tags:
+    - red-phase
+    - artifact-coverage
+    - behavioral-tests
+    paths:
+    - tests/core/test_chain_merge_coverage_wiring.py
+  review_notes:
+  - source: independent-implementation-reviewer-child3b_review
+    severity: ready
+    summary: No blocking or advisory findings. The reviewer confirmed scope fidelity, cache extraction and normalization, stale/partial rejection, duplicate false-dominance, signature mapping, E710 blocking, CLI wiring, imports, and 31 focused/regression tests.
+  - source: independent-implementation-reviewer-child3b_review
+    severity: info
+    summary: Pre-change warm cache keys intentionally miss once after root normalization and safely degrade to UNKNOWN; concurrent repository mutation during a cache read retains the pre-existing TOCTOU risk.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_coverage_wiring.py]
+    status: passed
+    summary: 8 focused tests passed, covering current/stale cache reads, duplicate E710 dominance, covered/uncovered/UNKNOWN acceptance, and CLI JSON/text output.
+  - command: [uv, run, maid, test, --manifest, manifests/chain-merge-coverage-evidence.manifest.yaml]
+    status: passed
+    summary: Both declared commands passed, including 23 chain-merge and cache regressions.
+  - command: [uv, run, maid, validate, manifests/chain-merge-coverage-evidence.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: The promoted child 3b contract passed implementation validation.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Full validation passed 464 active manifests with zero failures; 118 were superseded.
+  - command: [uv, run, maid, test]
+    status: failed-unrelated
+    summary: 289 of 290 commands passed; the shared full-suite command retained the branch's known TypeScript resolver and live epic inventory failures.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: failed-unrelated
+    summary: 4319 passed and 34 skipped; seven known branch-baseline tests failed (six TypeScript resolver/identity cases and the live planning epic inventory case).
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, d1e66ec]
+    status: failed-unrelated
+    summary: Assessment-selected deep verify reached implementation and was blocked only by pre-existing E307 warnings for ts_compiler_resolver.cjs/Makefile and E310 for DetectionEvidenceSource.detecting_nodeids_for; child 3b introduced no remaining warning.
