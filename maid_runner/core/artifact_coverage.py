@@ -19,6 +19,7 @@ from maid_runner.core._runtime_command_executor import (
 from maid_runner.core._knockout_snapshot import ProjectSnapshotBackend
 from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
+from maid_runner.core.module_paths import file_to_module_path, resolve_reexport
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 from maid_runner.core.runtime_evidence import (
@@ -176,9 +177,7 @@ def run_artifact_coverage(
     if not coverage_targets:
         return ArtifactCoverageReport(findings=(), errors=())
 
-    target_files = {
-        str((root / file_path).resolve()) for file_path, _artifact in coverage_targets
-    }
+    target_files = _coverage_target_files(root, coverage_targets)
     command_errors: list[ValidationError] = []
     report_errors: list[ValidationError] = []
     execution_data: dict[str, RuntimeFileExecution] = {}
@@ -278,9 +277,7 @@ def run_artifact_coverage_batch(
         targets = targets_by_manifest[manifest.source_path]
         command_entries: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
         if targets:
-            target_files = {
-                str((root / file_path).resolve()) for file_path, _artifact in targets
-            }
+            target_files = _coverage_target_files(root, targets)
             for command in manifest.validate_commands:
                 pytest_args = _pytest_args(command)
                 if pytest_args is None:
@@ -532,9 +529,7 @@ def evaluate_artifact_coverage_from_evidence(
 
     for manifest in ordered_manifests:
         targets = _coverage_targets(manifest, root)
-        target_files = {
-            str((root / file_path).resolve()) for file_path, _artifact in targets
-        }
+        target_files = _coverage_target_files(root, targets)
         for index, original_command in enumerate(manifest.validate_commands):
             if _pytest_args(original_command) is None:
                 continue
@@ -622,9 +617,7 @@ def evaluate_artifact_coverage_from_evidence(
         if not targets:
             reports[manifest.source_path] = ArtifactCoverageReport((), ())
             continue
-        target_files = {
-            str((root / file_path).resolve()) for file_path, _artifact in targets
-        }
+        target_files = _coverage_target_files(root, targets)
         command_errors: list[ValidationError] = []
         report_errors: list[ValidationError] = []
         execution_data: dict[str, RuntimeFileExecution] = {}
@@ -891,6 +884,47 @@ def _coverage_targets(manifest: Manifest, root: Path) -> list[tuple[str, Artifac
     return targets
 
 
+def _coverage_target_files(
+    root: Path,
+    targets: Sequence[tuple[str, ArtifactSpec]],
+) -> set[str]:
+    """Return declared files plus safely resolved one-level re-export targets."""
+    files = {str((root / file_path).resolve()) for file_path, _artifact in targets}
+    for file_path, artifact in targets:
+        resolved = _resolved_reexport_target(root, file_path, artifact)
+        if resolved is not None:
+            resolved_file, _resolved_name = resolved
+            files.add(str((root / resolved_file).resolve()))
+    return files
+
+
+def _resolved_reexport_target(
+    root: Path,
+    file_path: str,
+    artifact: ArtifactSpec,
+) -> tuple[str, str] | None:
+    """Resolve a direct package function export to its source file and name."""
+    declaration = Path(file_path)
+    if artifact.kind != ArtifactKind.FUNCTION or declaration.name != "__init__.py":
+        return None
+    module = file_to_module_path(declaration, root)
+    resolved = resolve_reexport(module, artifact.name, root)
+    if resolved is None:
+        return None
+    resolved_module, resolved_name = resolved
+    module_path = root / Path(*resolved_module.split("."))
+    source_path = module_path.with_suffix(".py")
+    if not source_path.is_file():
+        source_path = module_path / "__init__.py"
+    if not source_path.is_file():
+        return None
+    try:
+        relative = source_path.relative_to(root).as_posix()
+    except ValueError:
+        return None
+    return relative, resolved_name
+
+
 def _pytest_args(command: tuple[str, ...]) -> tuple[str, ...] | None:
     parts = list(command)
     if len(parts) >= 2 and parts[:2] == ["uv", "run"]:
@@ -935,6 +969,23 @@ def _evaluate_targets(
             )
         elif artifact.kind == ArtifactKind.FUNCTION:
             span = index.functions.get(artifact.name)
+            if span is None:
+                resolved = _resolved_reexport_target(root, file_path, artifact)
+                if resolved is not None:
+                    resolved_file, resolved_name = resolved
+                    resolved_index = ast_cache.setdefault(
+                        resolved_file,
+                        _build_line_index(root / resolved_file),
+                    )
+                    resolved_execution = executed_cache.setdefault(
+                        resolved_file,
+                        _execution_data_for_file(
+                            resolved_file,
+                            execution_data_by_file,
+                        ),
+                    )
+                    span = resolved_index.functions.get(resolved_name)
+                    execution_data = resolved_execution
             executed = _span_executed(span, execution_data)
         else:
             executed = False

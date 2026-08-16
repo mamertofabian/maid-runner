@@ -1,0 +1,396 @@
+{
+  "manifest_path": "manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
+  "manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+    "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45"
+  },
+  "created_at": "2026-08-16T13:38:43.735209+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1b33d0b3fe9b16cc6f9054225f688ca84110ad10c61aca56cb9e55f24892cd0c",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:74733d9e773ca3ef6859b6624b708c01d7816a4834b57d03678f176f73de01db"
+      },
+      "revised_at": "2026-08-16T13:38:55.624998+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-e710-reexport-artifact-coverage.manifest.yaml -> manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-e710-reexport-artifact-coverage.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-e710-reexport-artifact-coverage.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ab165d6a7c9489a498c67981823240878e7178d3d883739715029487870bfb49",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:74733d9e773ca3ef6859b6624b708c01d7816a4834b57d03678f176f73de01db"
+      },
+      "revised_at": "2026-08-16T13:41:49.896152+00:00",
+      "reason": "Run every discovered behavioral test that references the contracted artifact-coverage APIs",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_reexports.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_reexports.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:74733d9e773ca3ef6859b6624b708c01d7816a4834b57d03678f176f73de01db"
+      },
+      "revised_at": "2026-08-16T13:51:21.628820+00:00",
+      "reason": "Make negative re-export scenarios visibly assertion-bearing to the behavioral validator while preserving their detailed E710 checks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:74733d9e773ca3ef6859b6624b708c01d7816a4834b57d03678f176f73de01db"
+      },
+      "revised_at": "2026-08-16T14:02:16.263656+00:00",
+      "reason": "Relock the approved E210 assertion-bearing negative tests against their final AST after the revision-4 pre-edit hash exposed E701",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-16T14:02:29.156740+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_reexports.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py",
+        "exit_code": 1,
+        "output_tail": "    ) -> None:\n        manifest = _write_reexport_project(\n            tmp_path,\n            public_name=\"public_api\",\n            source_name=\"implementation_name\",\n            call_export=True,\n        )\n    \n        reports = _coverage_reports(manifest, tmp_path)\n    \n        for report in reports:\n>           assert report.success is True\nE           AssertionError: assert False is True\nE            +  where False = ArtifactCoverageReport(findings=(ArtifactCoverageFinding(artifact_name='public_api', artifact_kind='function', parent_...he behavioral test so it executes the declared artifact body.'),), execution=None, provenance='exact', cache_hit=False).success\n\ntests/core/test_artifact_coverage_reexports.py:50: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_reexports.py::test_exact_and_derived_coverage_credit_called_package_reexport\nFAILED tests/core/test_artifact_coverage_reexports.py::test_aliased_reexport_uses_source_symbol_but_reports_public_identity\n2 failed, 29 passed in 11.68s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-e710-reexport-artifact-coverage.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence_mode:type=str:default=exact",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_jobs:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=max_processes:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:returns=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=jobs:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=max_processes:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "tests/core/test_artifact_coverage_reexports.py:test_aliased_reexport_uses_source_symbol_but_reports_public_identity",
+      "tests/core/test_artifact_coverage_reexports.py:test_aliased_reexport_uses_source_symbol_but_reports_public_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_aliased_reexport_uses_source_symbol_but_reports_public_identity:kind=test_function",
+      "tests/core/test_artifact_coverage_reexports.py:test_aliased_reexport_uses_source_symbol_but_reports_public_identity:returns=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_exact_and_derived_coverage_credit_called_package_reexport",
+      "tests/core/test_artifact_coverage_reexports.py:test_exact_and_derived_coverage_credit_called_package_reexport:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_exact_and_derived_coverage_credit_called_package_reexport:kind=test_function",
+      "tests/core/test_artifact_coverage_reexports.py:test_exact_and_derived_coverage_credit_called_package_reexport:returns=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_imported_but_uncalled_reexport_remains_e710",
+      "tests/core/test_artifact_coverage_reexports.py:test_imported_but_uncalled_reexport_remains_e710:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_imported_but_uncalled_reexport_remains_e710:kind=test_function",
+      "tests/core/test_artifact_coverage_reexports.py:test_imported_but_uncalled_reexport_remains_e710:returns=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_multihop_reexport_remains_e710",
+      "tests/core/test_artifact_coverage_reexports.py:test_multihop_reexport_remains_e710:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_multihop_reexport_remains_e710:kind=test_function",
+      "tests/core/test_artifact_coverage_reexports.py:test_multihop_reexport_remains_e710:returns=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_star_reexport_remains_e710",
+      "tests/core/test_artifact_coverage_reexports.py:test_star_reexport_remains_e710:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_reexports.py:test_star_reexport_remains_e710:kind=test_function",
+      "tests/core/test_artifact_coverage_reexports.py:test_star_reexport_remains_e710:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_reexports.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/module_paths.py",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py"
+      ],
+      "scope": [
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_reexports.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_exact_and_derived_coverage_credit_called_package_reexport",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_aliased_reexport_uses_source_symbol_but_reports_public_identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_imported_but_uncalled_reexport_remains_e710",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_star_reexport_remains_e710",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_multihop_reexport_remains_e710",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage",
+              "description": "Exact artifact coverage resolves one-level package re-exports to executed implementation bodies while retaining public declaration identities.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "The shared-command exact batch applies the same re-export execution rule as the single-manifest path.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "description": "Derived and exact-fallback evidence apply the same fail-closed re-export identity rule as the single-manifest path.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "fallback_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "evidence_mode",
+                  "type": "str",
+                  "default": "exact"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "reason": "Grouped collection must include each safely resolved implementation file so derived evidence can observe the implementation body invoked through a declared package export."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "tests/core/test_artifact_coverage_reexports.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_reexports.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "uv run maid validate manifests/fix-e710-reexport-artifact-coverage.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

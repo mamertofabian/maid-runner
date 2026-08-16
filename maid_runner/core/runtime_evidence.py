@@ -548,18 +548,31 @@ def _lenient_pytest_targets(command: tuple[str, ...]) -> tuple[str, ...]:
 
 
 def _runtime_target_files(manifests: Sequence[Manifest], root: Path) -> set[str]:
+    from maid_runner.core.artifact_coverage import (
+        _coverage_target_files,
+        _coverage_targets,
+    )
+
     declared = {
         str((root / spec.path).resolve())
         for manifest in manifests
         for spec in manifest.all_file_specs
         if spec.path.endswith(".py") and (root / spec.path).is_file()
     }
+    resolved_reexports = {
+        file_path
+        for manifest in manifests
+        for file_path in _coverage_target_files(
+            root,
+            _coverage_targets(manifest, root),
+        )
+    }
     lifecycle_sources = {
         str(path.resolve())
         for path in root.rglob("conftest.py")
         if path.is_file() and not _excluded_content_path(path.relative_to(root))
     }
-    return declared | lifecycle_sources
+    return declared | resolved_reexports | lifecycle_sources
 
 
 def _selected_for_entry(
