@@ -33,7 +33,9 @@ class DetectionEvidenceSource(Protocol):
     UNKNOWN, never an empty success.
     """
 
-    def detecting_nodeids_for(self, artifact_key: str) -> tuple[str, ...] | None: ...
+    @abstractmethod
+    def detecting_nodeids_for(self, artifact_key: str) -> tuple[str, ...] | None:
+        raise NotImplementedError
 
 
 @runtime_checkable
