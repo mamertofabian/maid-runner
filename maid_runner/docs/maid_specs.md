@@ -130,18 +130,67 @@ output tail for human inspection, but it does not parse text output to decide
 whether evidence is red. `maid plan lock --no-run` records
 `red_evidence: null`.
 
+When one behavioral test is shared by several manifests, use
+`maid plan dependents <test-path>` before revising any lock. The read-only
+query inspects the persisted test hashes of active manifests, excludes
+superseded manifests, reports whether each dependent lock currently matches,
+and prints one explicit `maid plan revise ... --preserve-red-evidence` command
+per lock. The query never changes locks or assumes preservation is valid: each
+explicit revise still runs the existing evidence and validate-command checks.
+Unreadable active locks and paths outside the project fail the whole query
+instead of producing a partial dependency report. E701 diagnostics point to
+this query using the structured changed-test path.
+
+When two or more active manifests emit the same E701 dependency-query
+suggestion, `maid verify --summary` keeps every manifest failure visible but
+moves the repeated suggestion into one `RECOVERY` group naming all contributing
+manifest paths. Summary JSON exposes the same group under
+`findings.recovery`. Default verify text, raw JSON, and SARIF retain every
+per-manifest E701 suggestion. A single E701 remains inline without creating a
+singleton recovery section.
+
+##### **Repository-Owned Django Test Wrappers**
+
+Command-integrity checks recognize standard Django entry points by default. A
+repository that must run Django tests through its own safety or isolation script
+can register that reviewed executable in `.maidrc.yaml`:
+
+```yaml
+test_runner_wrappers:
+  - command: ./scripts/test
+    runner: django
+```
+
+The command must be an exact project-relative path to an existing file. Absolute
+paths, parent-directory escapes, duplicate normalized paths, missing files, and
+unsupported runner kinds fail configuration loading. Registration does not skip
+E230: MAID interprets only the registered command's remaining arguments as Django
+test arguments, maps whole-module dotted labels to existing in-project test files,
+and retains the normal selector, malformed-option, and Python-path-shadowing
+guards. Unregistered or differently named scripts remain opaque and fail closed.
+
+Wrapper registration is an explicit repository policy and review boundary. MAID
+does not infer trust by executable basename or attempt to prove arbitrary shell
+control flow by parsing the wrapper source.
+
 Completed manifests that predate plan-lock adoption have a separate migration
 path: `maid plan lock <manifest-path> --legacy-baseline --reason "<text>"`.
-The manifest must be tracked and already present at Git HEAD. The command
-rejects every dirty path except the manifest, requires identical declared
-artifacts and file sections relative to HEAD, permits behavioral-test discovery
-only to grow, and requires every prior validate argv to remain exact, gain only
-appended behavioral-test paths discovered from the current command set, or be
-preserved exactly under `acceptance.tests` for an audited validate-to-acceptance
-cleanup. Acceptance-preserved commands are not run while capturing the green
-baseline; they remain explicit opt-in evidence outside default `maid test` and
-`maid verify` gates. Suffix extension is refused when the committed argv ends in
-an option token, because the path could be consumed as that option's value.
+The normal path compares a tracked manifest with its blob at Git HEAD. A
+manifest absent from HEAD may instead bootstrap its first commit from the Git
+index, but only when the manifest is staged, its worktree bytes match the staged
+blob exactly, every declared non-deletion path and discovered behavioral test
+already exists cleanly at HEAD, and every declared deletion is already absent
+there. An unstaged manifest or a staged implementation/test change is therefore
+not eligible. The command rejects every dirty path except the manifest,
+requires identical declared artifacts and file sections relative to its chosen
+manifest baseline, permits behavioral-test discovery only to grow, and requires
+every prior validate argv to remain exact, gain only appended behavioral-test
+paths discovered from the current command set, or be preserved exactly under
+`acceptance.tests` for an audited validate-to-acceptance cleanup.
+Acceptance-preserved commands are not run while capturing the green baseline;
+they remain explicit opt-in evidence outside default `maid test` and `maid
+verify` gates. Suffix extension is refused when the committed argv ends in an
+option token, because the path could be consumed as that option's value.
 Overlapping command prefixes are matched one-to-one, and additional validate
 commands are allowed. It then runs every current command and requires a green
 exit code of zero.
@@ -156,12 +205,14 @@ valid competing lock is likewise preserved for explicit operator review.
 
 The resulting lock keeps `red_evidence: null` and stores an independent
 `legacy_baseline` record containing the required reason, baseline commit and
-manifest hash, contract delta, bounded green command results, and capture time.
+manifest hash, explicit `baseline_manifest_source` (`head` or `index`), contract
+delta, bounded green command results, and capture time. Historical records
+without the source field are interpreted as `head` for compatibility.
 A structurally valid, command-snapshot-bound legacy baseline satisfies
 `--require-red-evidence` as an explicit brownfield exception. New or untracked
-manifests, ordinary `--no-run` locks, non-green commands, contract changes,
-mutated contract files, and malformed or command-mismatched legacy records
-continue to fail E704 or E705. A later metadata-only revision carries the
+and unstaged manifests, ordinary `--no-run` locks, non-green commands, contract
+changes, mutated contract files, and malformed or command-mismatched legacy
+records continue to fail E704 or E705. A later metadata-only revision carries the
 legacy baseline forward only while its command contract remains unchanged.
 Explicit `--preserve-red-evidence` may refresh hashes for a shared behavioral
 test while retaining that audited baseline. A revision that captures genuine
@@ -433,7 +484,7 @@ still apply.
 
       * **Python** - Full support via Python AST (built-in)
         - File extensions: `.py`
-        - Artifact types: `class`, `function`, `attribute`
+        - Artifact types: `class`, `function`, `attribute`, `enum`
         - Features: Type hints, async/await, decorators, class inheritance
 
       * **TypeScript/JavaScript** - Production-ready support via tree-sitter
@@ -470,8 +521,18 @@ still apply.
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
     **Supported Artifact Types:**
-    - **Common (Python & TypeScript):** `class`, `function`, `attribute`
-    - **TypeScript-Specific:** `interface`, `type`, `enum`, `namespace`
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`
+    - **TypeScript-Specific:** `interface`, `type`, `namespace`
+
+    Python enum artifacts use a deliberately narrow syntactic boundary. A class
+    directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,
+    `Flag`, or `IntFlag` base validates as one `kind: enum` artifact when the
+    base comes from a direct `from enum import ...` or `import enum` statement,
+    including aliases. Its class-body member assignments belong to that enum
+    artifact and need not be declared separately. For backward compatibility,
+    historical snapshots that declare the same enum as a class plus member
+    attributes continue to validate. Indirect custom enum inheritance and
+    dynamic base expressions remain ordinary class contracts.
 
   * **Context-Aware Validation Modes**
     The structural validator operates in two modes based on the manifest's intent, providing a balance between strictness and flexibility:
@@ -524,7 +585,7 @@ still apply.
 
       This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements. The existing manifest's tests serve as the documentation of the change.
 
-    * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
+    * **Consolidated Snapshots:** For mature modules with a long manifest history, `maid chain merge <file>` reports whether the active per-file chain is DEFRAG, LEAN, or BLOCKED. The report consumes current recorded evidence and never runs coverage or knockout inline; missing or stale evidence remains UNKNOWN, and recorded E710 debt blocks behavioral certification and test retirement, not structural snapshotting by itself. `--apply` evaluates structural safety without evidence, materializes one complete snapshot that supersedes the prior chain while refusing artifact loss, and never retires tests. `--all` provides the repository-wide structural sweep. Test retirement is a separate evidence gate: `--verify-equivalence BASELINE_REPORT` requires a complete saved pre-consolidation report, preserves an artifact-level coverage superset and knockout-detection superset, permits consolidated tests to use new nodeids, and fails closed with E715 when proof is incomplete or weaker. See `docs/maid-chain-merge.md`.
 
     * **Transitioning from Snapshots to Natural Evolution:** Snapshot manifests are designed for "frozen" code—capturing a complete baseline. Once code needs to evolve, you must transition to the natural MAID flow:
 

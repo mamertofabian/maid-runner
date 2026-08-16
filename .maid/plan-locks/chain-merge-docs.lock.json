@@ -1,0 +1,215 @@
+{
+  "manifest_path": "manifests/chain-merge-docs.manifest.yaml",
+  "manifest_hash": "sha256-contract:14f5787f8ece0d435cde3fd32dada49b11293d6f350ab27800abe838fd289ece",
+  "test_hashes": {
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+  },
+  "created_at": "2026-08-16T07:15:34.329147+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:36234b2bf9f67d78814b98d4952fd1c5338fdd869c6c90551e75d4e6bf2a5ac8",
+      "prior_test_hashes": {
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-08-16T07:15:40.207263+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/chain-merge-docs.manifest.yaml -> manifests/chain-merge-docs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/chain-merge-docs.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/chain-merge-docs.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-16T07:15:45.885039+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/docs/test_chain_merge_docs.py -v",
+        "exit_code": 1,
+        "output_tail": "    def test_chain_merge_spec_mirrors_and_epic_closeout_are_current() -> None:\n        canonical = Path(\"docs/maid_specs.md\").read_bytes()\n>       assert Path(\"maid_runner/docs/maid_specs.md\").read_bytes() == canonical\nE       AssertionError: assert b'### **MAID:...n parallel.\\n' == b'### **MAID:...n parallel.\\n'\nE         \nE         At index 9373 diff: b'C' != b'W'\nE         \nE         Full diff:\nE           (b'### **MAID: The Manifest-driven AI Development Methodology**\\n\\n**Version:'\nE            b'** 1.3\\n**Date:** October 30, 2025\\n\\n#### **Abstract**\\n\\nThe Manifest-d'\nE            b'riven AI Development (MAID) methodology is a structured approach to software'...\nE         \nE         ...Full output truncated (1210 lines hidden), use '-vv' to show\n\ntests/docs/test_chain_merge_docs.py:113: AssertionError\n=========================== short test summary info ============================\nFAILED tests/docs/test_chain_merge_docs.py::test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries\nFAILED tests/docs/test_chain_merge_docs.py::test_chain_merge_spec_and_design_record_the_implemented_workflow\nFAILED tests/docs/test_chain_merge_docs.py::test_chain_merge_spec_mirrors_and_epic_closeout_are_current\n============================== 3 failed in 5.29s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/chain-merge-docs.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:kind=attribute",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:of=documentation",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:type=markdown document",
+      "docs/maid_specs.md:attribute:documentation._chain_merge_consolidated_snapshots_spec",
+      "docs/maid_specs.md:attribute:documentation._chain_merge_consolidated_snapshots_spec:kind=attribute",
+      "docs/maid_specs.md:attribute:documentation._chain_merge_consolidated_snapshots_spec:of=documentation",
+      "docs/maid_specs.md:attribute:documentation._chain_merge_consolidated_snapshots_spec:type=markdown section",
+      "docs/plans/maid-runner-manifest-test-consolidation.md:attribute:documentation._chain_merge_consolidation_design_resolution",
+      "docs/plans/maid-runner-manifest-test-consolidation.md:attribute:documentation._chain_merge_consolidation_design_resolution:kind=attribute",
+      "docs/plans/maid-runner-manifest-test-consolidation.md:attribute:documentation._chain_merge_consolidation_design_resolution:of=documentation",
+      "docs/plans/maid-runner-manifest-test-consolidation.md:attribute:documentation._chain_merge_consolidation_design_resolution:type=markdown document",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries:kind=test_function",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries:returns=None",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_and_design_record_the_implemented_workflow",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_and_design_record_the_implemented_workflow:kind=test_function",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_and_design_record_the_implemented_workflow:returns=None",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_mirrors_and_epic_closeout_are_current",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_mirrors_and_epic_closeout_are_current:kind=test_function",
+      "tests/docs/test_chain_merge_docs.py:test_chain_merge_spec_mirrors_and_epic_closeout_are_current:returns=None"
+    ],
+    "files": {
+      "create": [
+        "docs/plans/maid-runner-manifest-test-consolidation.md",
+        "tests/docs/test_chain_merge_docs.py"
+      ],
+      "edit": [
+        "docs/maid-chain-merge.md",
+        "docs/maid_specs.md"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_equivalence.py",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "maid_runner/docs/maid_specs.md",
+        "manifests/drafts/chain-merge-defragmentation.epic.yaml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/docs/test_chain_merge_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries",
+              "description": "Public help and the command reference agree on every shipped option as a unit, and named sections pin the evidence, apply, artifact-identity superset, changed-nodeid, complete-baseline, and E715 boundaries.",
+              "args": [
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_spec_and_design_record_the_implemented_workflow",
+              "description": "The MAID spec and restored design record describe the shipped report, apply, equivalence, and sweep workflow, preserve the original measured rationale and coverage-only counterexample, and name remaining limits.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_spec_mirrors_and_epic_closeout_are_current",
+              "description": "All tracked spec mirrors are byte-identical and the epic is completed with every implemented child path active and no child reference pointing at a deleted draft.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "docs/plans/maid-runner-manifest-test-consolidation.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_chain_merge_consolidation_design_resolution",
+              "description": "Restored design decision record reconciled with the shipped chain-merge commands, evidence caches, safety gates, and operational limits.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "docs/maid-chain-merge.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_chain_merge_command_reference",
+              "description": "Complete command reference for report, recorded acceptance, apply, equivalence, and repository sweep behavior.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_chain_merge_consolidated_snapshots_spec",
+              "description": "Consolidated Snapshots specification for structural defrag and evidence-certified test consolidation.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_equivalence.py",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep the packaged MAID specification byte-identical to the canonical docs copy."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Keep the initialized MAID specification byte-identical to the canonical docs copy."
+        },
+        {
+          "path": "manifests/drafts/chain-merge-defragmentation.epic.yaml",
+          "reason": "Mark the mutable split-before-promote epic inventory completed and replace obsolete child draft references with active manifest paths."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/docs/test_chain_merge_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/docs/test_chain_merge_docs.py -v",
+      "uv run maid validate manifests/chain-merge-docs.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

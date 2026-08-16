@@ -1,92 +1,114 @@
 # `maid chain merge` — manifest-chain defragmentation
 
-`maid chain merge` materializes the merge that MAID's Merging Validator already
-performs in memory. A mature repo accumulates a long, fragmented per-file
-manifest chain; this command family reports which files are fragmented and
-collapses a file's chain into a single current-state snapshot — without losing
-coverage or fault detection.
+`maid chain merge` turns MAID's in-memory merged contract into an explicit,
+reviewable workflow for mature repositories. It reports fragmentation, consumes
+recorded runtime evidence, can materialize a safe single-file snapshot, and can
+prove that replacement tests preserve the old test union's protection.
 
-It sits beside `maid chain log` and `maid chain replay`: `replay` previews the
-merged view, `merge` reports on and materializes it.
-
-```
-maid chain merge [--all] [--manifest-dir DIR] [--dry-run] [--apply] [--json] [file_path]
+```text
+maid chain merge [--all] [--manifest-dir DIR] [--dry-run] [--apply] [--verify-equivalence BASELINE_REPORT] [--json] [file_path]
 ```
 
 ## Modes
 
 ### Report (default / `--dry-run`)
 
-```
+```bash
 maid chain merge maid_runner/core/knockout.py --json
 ```
 
-Prints a deterministic `ChainMergeReport` for one file: active/superseded
-manifest counts, distinct vs total artifact declarations (the redundancy a merge
-removes), the merged target contract, and a verdict:
+The single-file report includes active and superseded manifest counts, distinct
+and repeated artifact declarations, a DEFRAG/LEAN/BLOCKED verdict, blocking
+reasons, and an acceptance section. DEFRAG means consolidation would remove
+structural redundancy; LEAN means no useful merge remains; BLOCKED means either
+the chain is structurally unsafe to snapshot or the recorded evidence is not
+strong enough to certify test retirement.
 
-- **DEFRAG** — more than one active manifest declares the file, or the same
-  artifact is re-declared across active manifests.
-- **LEAN** — at most one active manifest and no redundant declarations; nothing
-  to merge.
-- **BLOCKED** — no active writable manifest declares the file; cannot be
-  snapshot-merged.
+The report reads current recorded evidence from the persisted coverage and
+knockout caches. It never runs coverage or knockout. Missing, stale, or partial
+evidence remains UNKNOWN, and recorded E710 coverage debt makes the report
+BLOCKED rather than inventing a green acceptance bar. That evidence verdict
+blocks behavioral certification and test retirement; by itself it does not
+prevent the separate structural `--apply` operation.
 
-The report is pure aggregation over the manifest chain: it never runs knockout
-or coverage. Only manifests that actually declare artifacts in the file count —
-scope-only references do not inflate the verdict.
+`--dry-run` is explicit documentation of the default read-only behavior. When
+combined with `--apply`, it wins and no manifest is written.
 
-### Repo-wide sweep (`--all`)
+### Repository sweep (`--all`)
 
+```bash
+maid chain merge --all --json
 ```
-maid chain merge --all
-```
 
-Runs the report across every tracked production file and prints an aggregate
-DEFRAG/LEAN/BLOCKED summary with a deterministic worst-offenders ranking (by
-redundant declarations). This is the finish-line scoreboard for a defrag
-program: run it, then stop when every file is LEAN.
+The sweep visits every tracked production file and returns aggregate
+DEFRAG/LEAN/BLOCKED counts plus a deterministic worst-offenders list ordered by
+redundant declarations. It is a structural program view; it does not apply
+snapshots or generate evidence.
 
 ### Materialize (`--apply`)
 
-```
+```bash
 maid chain merge maid_runner/core/knockout.py --apply
 ```
 
-Writes a single current-state snapshot manifest (via the snapshot primitive)
-that supersedes the file's active chain. `--apply` **only touches manifests** —
-it never rewrites source or tests, so coverage is unchanged.
+Apply reuses the snapshot primitive to write one complete current-state manifest
+that supersedes the file's active chain. It evaluates the structural report
+without loading coverage or knockout evidence, and refuses a structurally
+BLOCKED or LEAN chain, multi-file supersession that a single-file snapshot
+cannot preserve, and any result that would drop a declared artifact. It never
+auto-seals the Grandfather lock and never retires tests. Source and test files
+are not rewritten.
 
-Apply is fail-closed around the anti-gaming artifact-preservation audit. It
-**refuses, writing nothing**, when:
+Snapshot materialization is therefore independently useful for structural
+defragmentation, but it is not permission to delete redundant-looking tests.
 
-- the verdict is BLOCKED or LEAN;
-- a manifest it would supersede also declares artifacts in **other files** (a
-  single-file snapshot cannot preserve those); or
-- the current code has dropped an artifact the chain declared for this file.
+### Verify test equivalence (`--verify-equivalence BASELINE_REPORT`)
 
-It never auto-seals the Grandfather lock; reconcile such conflicts manually. If
-`--dry-run` and `--apply` are both given, `--dry-run` wins (read-only report).
+Before editing tests, save the complete baseline report while the old test union
+and its current recorded evidence are still present:
 
-## Determinism / evidence boundary
+```bash
+maid chain merge src/service.py --json > before-consolidation.json
+```
 
-The report and verdicts are cheap, deterministic structural facts. Detecting
-which tests would catch a regression (the behavioral half of a safe collapse) is
-runtime evidence, not a manifest fact — so the report reads it only through an
-injected evidence source and never runs knockout itself. Until a persisted
-evidence source exists, detection is reported **UNKNOWN**, never fabricated.
+After authoring and running the candidate characterization tests through the
+existing deep evidence workflow, compare current evidence with that complete
+baseline report:
 
-## Not yet shipped (dependency-gated)
+```bash
+maid chain merge src/service.py \
+  --verify-equivalence before-consolidation.json \
+  --json
+```
 
-These parts of the epic depend on the persisted knockout/coverage evidence
-caches and are not in the current command:
+Equivalence is an artifact identity comparison, not literal old/new test-nodeid
+identity. Every previously covered artifact must satisfy the coverage superset,
+and every previously detected artifact knockout must satisfy the
+knockout-detection superset. Consolidated tests may have new nodeids; at least
+one current nodeid must still detect each baseline artifact's knockout. Stronger
+candidate coverage or detection is allowed.
 
-- evidence-backed detection acceptance (per-artifact detecting-nodeids) and a
-  coverage/E710-derived BLOCKED reason;
-- the knockout+coverage **equivalence gate** that proves a consolidated test
-  module is a superset of the old tests' fault detection before old tests are
-  retired.
+The gate exits 0 only for a complete superset. It exits 1 with blocking E715
+diagnostics for a blocked or incomplete baseline, unavailable or malformed
+evidence, a missing artifact, lost coverage, or lost knockout detection. An
+unreadable, mismatched, or structurally invalid baseline file is a usage error
+and exits 2. `--verify-equivalence` cannot be combined with `--all` or `--apply`;
+`--dry-run` is harmless because equivalence is read-only.
 
-Materializing the manifest chain (`--apply`) is safe on its own because it never
-touches tests; retiring tests after a collapse still requires that equivalence
-gate.
+Only retire old tests after this gate passes. The command certifies evidence; it
+does not author characterization tests or remove files automatically.
+
+## Common options
+
+- `--manifest-dir DIR` selects the manifest directory (default `manifests/`).
+- `--json` emits one machine-readable document for reports, sweeps, apply, and
+  equivalence results.
+- `file_path` is required for report, apply, and equivalence modes; omit it only
+  with `--all`.
+
+## Evidence lifecycle
+
+Evidence freshness is owned by the existing deep verification caches. Run the
+appropriate deep evidence workflow before capturing the baseline and again after
+the candidate tests change. A cold or stale cache is deliberately UNKNOWN. The
+chain-merge command never performs an expensive probe as a hidden side effect.

@@ -7,7 +7,7 @@ goal: Materialize the manifest-chain merge as a first-class `maid chain merge`
 type: feature
 created: "2026-08-13T21:45:00Z"
 metadata:
-  status: planning
+  status: completed
   priority: medium
   origin: manifest-test-consolidation-design-2026-08-13
   backlog: docs/plans/maid-runner-manifest-test-consolidation.md
@@ -19,10 +19,9 @@ metadata:
     - artifact-coverage
     - snapshot
 description: |
-  PLANNING HANDOFF EPIC (split-before-promote). Each child is designed to the
-  handoff-packet boundary only (design + adversarial self-review); the
-  contract-hardening agent writes tests, confirms red, validates, plan-reviews,
-  and locks each child before implementation.
+  COMPLETED EPIC. Every functional child and the final documentation child has
+  been promoted with plan locks, behavioral contracts, implementation review,
+  and Outcome evidence.
 
   ORIGIN
 
@@ -65,7 +64,7 @@ description: |
   release/v2.next until perf lands. Confirm the integration sequence during
   hardening.
 
-  Planned child order:
+  Implemented child order:
 
   1. `chain-merge-fragmentation-report` — read-only `maid chain merge
      <file> --dry-run`: deterministic structural report (active/superseded/
@@ -97,6 +96,16 @@ description: |
   7. `chain-merge-docs` — document the `maid chain merge` family in maid_specs.md
      (Consolidated Snapshots section), add a command reference, and reconcile the
      design note. Last.
+
+  Completed child manifests:
+  - manifests/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/chain-merge-evidence-sources.manifest.yaml
+  - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+  - manifests/chain-merge-coverage-evidence.manifest.yaml
+  - manifests/chain-merge-apply-materialize.manifest.yaml
+  - manifests/chain-merge-equivalence-gate.manifest.yaml
+  - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+  - manifests/chain-merge-docs.manifest.yaml
 
   Promotion prerequisites: the 121-21/121-22 evidence caches are already
   implemented, so child 2 is buildable now (an adapter that reads them); child 3
@@ -133,7 +142,14 @@ files:
             coverage equivalence gate, repo-wide sweep, and docs).
   read:
     - docs/plans/maid-runner-manifest-test-consolidation.md
-    - manifests/drafts/chain-merge-fragmentation-report.manifest.yaml
+    - manifests/chain-merge-fragmentation-report.manifest.yaml
+    - manifests/chain-merge-evidence-sources.manifest.yaml
+    - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+    - manifests/chain-merge-coverage-evidence.manifest.yaml
+    - manifests/chain-merge-apply-materialize.manifest.yaml
+    - manifests/chain-merge-equivalence-gate.manifest.yaml
+    - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+    - manifests/chain-merge-docs.manifest.yaml
     - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
     - maid_runner/core/chain.py
     - maid_runner/core/knockout.py
