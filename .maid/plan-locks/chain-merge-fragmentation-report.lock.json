@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/chain-merge-fragmentation-report.manifest.yaml",
-  "manifest_hash": "sha256-contract:92268be276becb9bb4bcb06ddf5dffad037fe2c3bf18fa826d5aa532a931878d",
+  "manifest_hash": "sha256-contract:125d92e174807854c0502e984e136da78180cc98b6fc7aebe574a92fa9945783",
   "test_hashes": {
     "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
     "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580"
   },
   "created_at": "2026-08-13T14:40:09.865861+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:333483d4066d2c19d0028c8f8866afef64259d59e3766da713e37e51047f4077",
@@ -28,6 +28,32 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/chain-merge-fragmentation-report.manifest.yaml --mode behavioral"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:92268be276becb9bb4bcb06ddf5dffad037fe2c3bf18fa826d5aa532a931878d",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580"
+      },
+      "revised_at": "2026-08-16T08:30:33.211290+00:00",
+      "reason": "Record the reviewed Outcome metadata without changing the locked child-1 contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource",
+          "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource:kind=class",
+          "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=Union[tuple[str, Ellipsis], None]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/chain_merge.py:interface:DetectionEvidenceSource",
+          "maid_runner/core/chain_merge.py:interface:DetectionEvidenceSource:kind=interface",
+          "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=tuple[str, ...] | None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],
@@ -109,6 +135,8 @@
       "maid_runner/core/chain_merge.py:class:ChainMergeAcceptanceSpec:kind=class",
       "maid_runner/core/chain_merge.py:class:ChainMergeReport",
       "maid_runner/core/chain_merge.py:class:ChainMergeReport:kind=class",
+      "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource",
+      "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource:kind=class",
       "maid_runner/core/chain_merge.py:enum:ChainMergeVerdict",
       "maid_runner/core/chain_merge.py:enum:ChainMergeVerdict:kind=enum",
       "maid_runner/core/chain_merge.py:function:build_chain_merge_report",
@@ -117,13 +145,11 @@
       "maid_runner/core/chain_merge.py:function:build_chain_merge_report:arg=file_path:type=str:default=None",
       "maid_runner/core/chain_merge.py:function:build_chain_merge_report:kind=function",
       "maid_runner/core/chain_merge.py:function:build_chain_merge_report:returns=ChainMergeReport",
-      "maid_runner/core/chain_merge.py:interface:DetectionEvidenceSource",
-      "maid_runner/core/chain_merge.py:interface:DetectionEvidenceSource:kind=interface",
       "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for",
       "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:arg=artifact_key:type=str:default=None",
       "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:kind=method",
       "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:of=DetectionEvidenceSource",
-      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=tuple[str, ...] | None",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=Union[tuple[str, Ellipsis], None]",
       "tests/cli/test_chain_merge_command.py:test_chain_merge_dry_run_is_read_only",
       "tests/cli/test_chain_merge_command.py:test_chain_merge_dry_run_is_read_only:kind=test_function",
       "tests/cli/test_chain_merge_command.py:test_chain_merge_dry_run_json_emits_report",
@@ -177,9 +203,9 @@
               "description": "Structural verdict for a file's manifest chain \u2014 DEFRAG, LEAN, or BLOCKED."
             },
             {
-              "kind": "interface",
+              "kind": "class",
               "name": "DetectionEvidenceSource",
-              "description": "Narrow injected interface the report reads recorded knockout detecting-nodeids through; returns None when no evidence is recorded."
+              "description": "Narrow injected Protocol the report reads recorded knockout detecting-nodeids through; returns None when no evidence is recorded."
             },
             {
               "kind": "method",
@@ -191,7 +217,7 @@
                   "type": "str"
                 }
               ],
-              "returns": "tuple[str, ...] | None"
+              "returns": "Union[tuple[str, Ellipsis], None]"
             },
             {
               "kind": "class",
