@@ -1,0 +1,425 @@
+{
+  "manifest_path": "manifests/chain-merge-equivalence-gate.manifest.yaml",
+  "manifest_hash": "sha256-contract:bbcae7535bc7f73149020a0a55dd5223867112d05a3fc54eae66c9bfbce54289",
+  "test_hashes": {
+    "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+    "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
+  },
+  "created_at": "2026-08-15T22:55:57.775201+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:39e8174223bc2c9d9f97ba6c713c04b59c2a83f7a27932bc3d9c9c35fafa08d3",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:a5015767a0be6f4c4182679abb113ec73ebf54b413c6eb96910faca2726978a3",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:d961e7035ee9dd102422c7739b457b4caff7324338e46e80d9dcb0cc5e539b25",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
+      },
+      "revised_at": "2026-08-15T22:55:58.699231+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/chain-merge-equivalence-gate.manifest.yaml -> manifests/chain-merge-equivalence-gate.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:930daa2fe70ae7e6734fd1b16985d1b812e8b734801b2c276020151c84241148",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:a5015767a0be6f4c4182679abb113ec73ebf54b413c6eb96910faca2726978a3",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:d961e7035ee9dd102422c7739b457b4caff7324338e46e80d9dcb0cc5e539b25",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
+      },
+      "revised_at": "2026-08-15T23:04:01.872999+00:00",
+      "reason": "Implementation review found the baseline proof boundary accepted incomplete report envelopes and internally inconsistent evidence; strengthen locked behavioral coverage for full-report, green-baseline, duplicate-key, and cross-field invariants.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:930daa2fe70ae7e6734fd1b16985d1b812e8b734801b2c276020151c84241148",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:a5015767a0be6f4c4182679abb113ec73ebf54b413c6eb96910faca2726978a3",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:d961e7035ee9dd102422c7739b457b4caff7324338e46e80d9dcb0cc5e539b25",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
+      },
+      "revised_at": "2026-08-15T23:05:24.134592+00:00",
+      "reason": "Implementation review found the baseline proof boundary accepted incomplete report envelopes and internally inconsistent evidence; add full-report, green-baseline, duplicate-key, and cross-field invariant coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline",
+          "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline:kind=test_function",
+          "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence",
+          "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3254c701daaaa97ea5389c83d6a43a5a4592da02a07b10411526195420f41147",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:d47c3751e280b2353967f31d20b3ae2b29ca6f68523ef975043232b07ec9db79",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f4185603eb1f700d0c9589d06458d74246dddaea476fe1092f09136e0085dad4",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
+      },
+      "revised_at": "2026-08-15T23:10:31.506599+00:00",
+      "reason": "Round-two implementation review found blocked report eligibility was discarded and the public comparator trusted malformed direct evidence; add explicit blocked-baseline input and core invariant cases.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:arg=baseline_blocked:type=bool:default=False"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-15T23:10:32.359335+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py tests/core/test_diagnostics_registry.py -v",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline4-candidate4-baseline:coverage:function:beta]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline5-candidate5-candidate:detection]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline6-candidate6-candidate:detection:function:beta]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline7-candidate7-candidate:coverage]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline8-candidate8-candidate:coverage:function:beta]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline9-candidate9-candidate:contract:function:beta]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline10-candidate10-baseline:contract]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline11-candidate11-baseline:detection:function:alpha]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline12-candidate12-candidate:detection:function:beta]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline13-candidate13-baseline:contract]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_fails_closed_for_incomplete_baseline_or_candidate[baseline14-candidate14-candidate:contract]\nFAILED tests/core/test_chain_merge_equivalence.py::test_equivalence_result_is_deterministic\nFAILED tests/cli/test_chain_merge_equivalence_command.py::test_chain_merge_verify_equivalence_json_passes_for_current_superset\nFAILED tests/cli/test_chain_merge_equivalence_command.py::test_chain_merge_verify_equivalence_returns_one_for_regression\nFAILED tests/cli/test_chain_merge_equivalence_command.py::test_chain_merge_verify_equivalence_rejects_invalid_baseline_or_conflicting_mode\nFAILED tests/cli/test_chain_merge_equivalence_command.py::test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence\nFAILED tests/cli/test_chain_merge_equivalence_command.py::test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline\nFAILED tests/core/test_diagnostics_registry.py::test_pinned_codes_have_structured_repair_recipes\nFAILED tests/core/test_diagnostics_registry.py::test_recipe_templates_render_with_actual_diagnostic_values\n========================= 26 failed, 6 passed in 0.42s =========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/chain-merge-coverage-evidence.lock.json",
+      "manifests/drafts/chain-merge-docs.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_equivalence_result",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_equivalence_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_equivalence_result:arg=result:type=MergeEquivalenceResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_equivalence_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_equivalence_result:returns=str",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.coverage_regressions",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.coverage_regressions:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.coverage_regressions:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.coverage_regressions:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.detection_regressions",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.detection_regressions:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.detection_regressions:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.detection_regressions:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.errors",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.errors:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.errors:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.errors:type=tuple[ValidationError, ...]",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.evidence_regressions",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.evidence_regressions:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.evidence_regressions:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.evidence_regressions:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.file_path",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.file_path:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.file_path:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.file_path:type=str",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.success",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.success:kind=attribute",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.success:of=MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:attribute:MergeEquivalenceResult.success:type=bool",
+      "maid_runner/core/chain_merge_equivalence.py:class:MergeEquivalenceResult",
+      "maid_runner/core/chain_merge_equivalence.py:class:MergeEquivalenceResult:kind=class",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:arg=acceptance_bar:type=ChainMergeAcceptanceSpec:default=None",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:arg=baseline_blocked:type=bool:default=False",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:arg=candidate:type=ChainMergeAcceptanceSpec:default=None",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:kind=function",
+      "maid_runner/core/chain_merge_equivalence.py:function:check_merge_equivalence:returns=MergeEquivalenceResult",
+      "maid_runner/core/result.py:attribute:ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION",
+      "maid_runner/core/result.py:attribute:ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION:type=str",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline:kind=test_function",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_json_passes_for_current_superset",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_json_passes_for_current_superset:kind=test_function",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_invalid_baseline_or_conflicting_mode",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_invalid_baseline_or_conflicting_mode:kind=test_function",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence:kind=test_function",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_returns_one_for_regression",
+      "tests/cli/test_chain_merge_equivalence_command.py:test_chain_merge_verify_equivalence_returns_one_for_regression:kind=test_function",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_accepts_different_candidate_nodeids_and_superset_evidence",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_accepts_different_candidate_nodeids_and_superset_evidence:kind=test_function",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_blocks_lost_artifact_coverage",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_blocks_lost_artifact_coverage:kind=test_function",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_blocks_lost_knockout_detection",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_blocks_lost_knockout_detection:kind=test_function",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_fails_closed_for_incomplete_baseline_or_candidate",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_fails_closed_for_incomplete_baseline_or_candidate:kind=test_function",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_result_is_deterministic",
+      "tests/core/test_chain_merge_equivalence.py:test_equivalence_result_is_deterministic:kind=test_function",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:kind=test_function",
+      "tests/core/test_diagnostics_registry.py:test_pinned_codes_have_structured_repair_recipes:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/chain_merge_equivalence.py",
+        "tests/cli/test_chain_merge_equivalence_command.py",
+        "tests/core/test_chain_merge_equivalence.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/core/result.py",
+        "tests/core/test_diagnostics_registry.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "docs/plans/maid-runner-manifest-test-consolidation.md",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "maid_runner/core/knockout.py",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/chain.py",
+        "maid_runner/core/diagnostics_registry.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/chain_merge_equivalence.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "MergeEquivalenceResult",
+              "description": "Deterministic artifact-level equivalence result with blocking diagnostics and categorized detection, coverage, and evidence regressions."
+            },
+            {
+              "kind": "attribute",
+              "name": "file_path",
+              "of": "MergeEquivalenceResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "MergeEquivalenceResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "detection_regressions",
+              "of": "MergeEquivalenceResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_regressions",
+              "of": "MergeEquivalenceResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "evidence_regressions",
+              "of": "MergeEquivalenceResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "MergeEquivalenceResult",
+              "type": "tuple[ValidationError, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "check_merge_equivalence",
+              "description": "Compare complete recorded baseline and candidate evidence by artifact identity; allow stronger evidence and changed test nodeids, but emit deterministic blocking E715 findings for every safety regression.",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "acceptance_bar",
+                  "type": "ChainMergeAcceptanceSpec"
+                },
+                {
+                  "name": "candidate",
+                  "type": "ChainMergeAcceptanceSpec"
+                },
+                {
+                  "name": "baseline_blocked",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "MergeEquivalenceResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_chain_merge_equivalence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_equivalence_accepts_different_candidate_nodeids_and_superset_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_equivalence_blocks_lost_knockout_detection"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_equivalence_blocks_lost_artifact_coverage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_equivalence_fails_closed_for_incomplete_baseline_or_candidate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_equivalence_result_is_deterministic"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_chain_merge_equivalence_command.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_verify_equivalence_json_passes_for_current_superset"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_verify_equivalence_returns_one_for_regression"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_verify_equivalence_rejects_invalid_baseline_or_conflicting_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "CHAIN_MERGE_EQUIVALENCE_REGRESSION",
+              "description": "E715: chain-merge candidate evidence is incomplete or weaker than its recorded pre-consolidation acceptance bar.",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_chain_merge_equivalence_result",
+              "description": "Render one deterministic text or JSON equivalence result, including E715 diagnostics and categorized artifact regressions.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "MergeEquivalenceResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_diagnostics_registry.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_pinned_codes_have_structured_repair_recipes",
+              "description": "Pin E715 as a blocking diagnostic with a structured repair recipe.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/artifact_coverage.py",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml",
+        "docs/plans/maid-runner-manifest-test-consolidation.md",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "reason": "Register the private E715 description and edit-tests repair template; no public registry API changes."
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the private --verify-equivalence parser argument."
+        },
+        {
+          "path": "maid_runner/cli/commands/chain.py",
+          "reason": "Privately load and strictly validate the baseline report, build current recorded candidate evidence, reject conflicting modes, and route exit codes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_equivalence_command.py",
+      "tests/core/test_chain_merge_equivalence.py",
+      "tests/core/test_diagnostics_registry.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py tests/core/test_diagnostics_registry.py -v",
+      "uv run maid validate manifests/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

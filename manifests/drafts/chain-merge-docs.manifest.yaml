@@ -107,7 +107,7 @@ files:
   - docs/plans/maid-runner-manifest-test-consolidation.md
   - manifests/drafts/chain-merge-fragmentation-report.manifest.yaml
   - manifests/drafts/chain-merge-apply-materialize.manifest.yaml
-  - manifests/drafts/chain-merge-equivalence-gate.manifest.yaml
+  - manifests/chain-merge-equivalence-gate.manifest.yaml
   - AGENTS.md
 validate:
 - uv run python -m pytest tests/docs/test_chain_merge_docs.py -v

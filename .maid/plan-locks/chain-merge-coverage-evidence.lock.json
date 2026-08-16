@@ -1,6 +1,6 @@
 {
   "manifest_path": "manifests/chain-merge-coverage-evidence.manifest.yaml",
-  "manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+  "manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
   "test_hashes": {
     "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
     "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
@@ -10,7 +10,7 @@
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
   },
   "created_at": "2026-08-15T22:15:58.356351+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:0933e6ecb8aa123d70e26f2c04adc29ad5b6f87da2f02613b70db7c16bd1b65f",
@@ -96,6 +96,32 @@
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T23:06:49.299178+00:00",
+      "reason": "Replace the child 5 draft read dependency with its sanctioned promoted manifest path after promotion.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/chain-merge-equivalence-gate.manifest.yaml"
+        ],
+        "files_removed": [
+          "read:manifests/drafts/chain-merge-equivalence-gate.manifest.yaml"
+        ],
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
@@ -208,10 +234,10 @@
         "maid_runner/core/result.py",
         "maid_runner/core/types.py",
         "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
         "manifests/chain-merge-evidence-sources.manifest.yaml",
         "manifests/chain-merge-fragmentation-report.manifest.yaml",
-        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
-        "manifests/drafts/chain-merge-equivalence-gate.manifest.yaml"
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml"
       ],
       "scope": [
         "maid_runner/cli/commands/_format.py",
@@ -419,7 +445,7 @@
         "manifests/chain-merge-fragmentation-report.manifest.yaml",
         "manifests/chain-merge-evidence-sources.manifest.yaml",
         "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
-        "manifests/drafts/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
         "AGENTS.md"
       ],
       "scope": [

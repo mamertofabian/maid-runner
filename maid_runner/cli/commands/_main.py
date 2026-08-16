@@ -1784,6 +1784,12 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
         help="Materialize the merged contract as a snapshot that supersedes the chain",
     )
     mp.add_argument(
+        "--verify-equivalence",
+        metavar="BASELINE_REPORT",
+        default=None,
+        help="Compare current recorded evidence with a saved pre-consolidation report",
+    )
+    mp.add_argument(
         "--json", action="store_true", help="Print chain merge report as JSON"
     )
 

@@ -178,7 +178,7 @@ files:
   - manifests/chain-merge-fragmentation-report.manifest.yaml
   - manifests/chain-merge-evidence-sources.manifest.yaml
   - manifests/chain-merge-report-consumes-evidence.manifest.yaml
-  - manifests/drafts/chain-merge-equivalence-gate.manifest.yaml
+  - manifests/chain-merge-equivalence-gate.manifest.yaml
   - AGENTS.md
 validate:
 - uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py

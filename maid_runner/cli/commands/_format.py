@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from maid_runner.core.bootstrap import BootstrapReport
     from maid_runner.core.chain_merge import ChainMergeReport
     from maid_runner.core.chain_merge_apply import ChainMergeApplyResult
+    from maid_runner.core.chain_merge_equivalence import MergeEquivalenceResult
     from maid_runner.core.chain_merge_sweep import ChainMergeSweepSummary
     from maid_runner.core.supersession_audit import SupersessionViolation
 
@@ -1317,6 +1318,32 @@ def format_chain_merge_summary(
         lines.append("worst offenders (by redundant declarations):")
         for path in summary.worst_offenders:
             lines.append(f"  {path}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_equivalence_result(
+    result: "MergeEquivalenceResult",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a chain-merge artifact-evidence equivalence result."""
+    if json_mode:
+        payload = {
+            "file_path": result.file_path,
+            "success": result.success,
+            "detection_regressions": list(result.detection_regressions),
+            "coverage_regressions": list(result.coverage_regressions),
+            "evidence_regressions": list(result.evidence_regressions),
+            "errors": [error.to_dict() for error in result.errors],
+        }
+        return json.dumps(payload, indent=2)
+
+    if result.success:
+        return f"{result.file_path}: EQUIVALENT"
+
+    lines = [f"{result.file_path}: NOT EQUIVALENT"]
+    for error in result.errors:
+        lines.append(f"  {error.code.value} {error.message}")
     return "\n".join(lines)
 
 

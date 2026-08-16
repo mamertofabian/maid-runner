@@ -24,6 +24,7 @@ PINNED_RECIPE_CODES = {
     "E310",
     "E713",
     "E714",
+    "E715",
 }
 
 IMPLEMENTATION_FAILURE_CODES = {"E114", "E115", "E300", "E301", "E302", "E303"}
@@ -88,6 +89,7 @@ def test_type_mismatch_help_uri_does_not_point_to_signature_mismatch() -> None:
 
 
 def test_pinned_codes_have_structured_repair_recipes() -> None:
+    assert ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION.value in PINNED_RECIPE_CODES
     recipes_by_code = {
         rule.code: rule.next_action
         for rule in all_rules()
