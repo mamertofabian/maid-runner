@@ -105,15 +105,123 @@ def test_red_knockout_results_are_cached(tmp_path: Path) -> None:
     assert len(executor.calls) == 2
 
 
-def _write_project(root: Path):
+def test_interrupted_knockout_batch_retains_completed_spec_cache(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from maid_runner.core import _knockout_worker
+    from maid_runner.core.knockout import run_knockout_batch
+
+    manifest = _write_project(tmp_path, artifacts=("alpha", "beta"))
+    executor = _RecordingExecutor((0, 1, 0, 0, 1, 0))
+    original = _knockout_worker.run_knockout_workers
+    interrupted = False
+
+    def interrupt_after_first_result(
+        specs,
+        project_root,
+        evidence,
+        snapshot_backend,
+        command_executor,
+        jobs,
+        max_processes,
+        on_result=None,
+    ):
+        nonlocal interrupted
+        assert on_result is not None
+        if interrupted:
+            return original(
+                specs,
+                project_root,
+                evidence,
+                snapshot_backend,
+                command_executor,
+                jobs,
+                max_processes,
+                on_result=on_result,
+            )
+        completed = original(
+            specs[:1],
+            project_root,
+            evidence,
+            snapshot_backend,
+            command_executor,
+            jobs,
+            max_processes,
+        )[0]
+        on_result(completed)
+        interrupted = True
+        raise RuntimeError("batch interrupted")
+
+    monkeypatch.setattr(
+        _knockout_worker, "run_knockout_workers", interrupt_after_first_result
+    )
+    try:
+        run_knockout_batch((manifest,), tmp_path, executor=executor)
+    except RuntimeError as exc:
+        assert str(exc) == "batch interrupted"
+    else:
+        raise AssertionError("expected the simulated batch interruption")
+
+    report = run_knockout_batch((manifest,), tmp_path, executor=executor)[
+        manifest.source_path
+    ]
+
+    assert report.success is True
+    assert report.results[0].cache_hit is True
+    assert report.results[1].cache_hit is False
+    assert [result.artifact_name for result in report.results] == ["alpha", "beta"]
+    assert len(executor.calls) == 6
+
+
+def test_no_cache_run_does_not_checkpoint_completed_spec(tmp_path: Path) -> None:
+    from maid_runner.core.knockout import run_knockout_batch
+
+    manifest = _write_project(tmp_path)
+    executor = _RecordingExecutor((0, 1, 0, 0, 1, 0))
+
+    run_knockout_batch((manifest,), tmp_path, executor=executor, no_cache=True)
+    report = run_knockout_batch((manifest,), tmp_path, executor=executor)[
+        manifest.source_path
+    ]
+
+    assert report.results[0].cache_hit is False
+    assert len(executor.calls) == 6
+
+
+def test_harness_failure_without_result_is_not_checkpointed(tmp_path: Path) -> None:
+    from maid_runner.core.knockout import run_knockout_batch
+
+    manifest = _write_project(tmp_path)
+
+    class FailingSnapshotBackend:
+        def __init__(self):
+            self.calls = 0
+
+        def create(self, *_args, **_kwargs):
+            self.calls += 1
+            raise RuntimeError("harness failed")
+
+    backend = FailingSnapshotBackend()
+    first = run_knockout_batch((manifest,), tmp_path, snapshot_backend=backend)
+    second = run_knockout_batch((manifest,), tmp_path, snapshot_backend=backend)
+
+    assert first[manifest.source_path].errors
+    assert second[manifest.source_path].errors
+    assert backend.calls == 2
+
+
+def _write_project(root: Path, artifacts=("target",)):
     (root / "src").mkdir()
     (root / "tests").mkdir()
     (root / "manifests").mkdir()
-    (root / "src" / "target.py").write_text(ORIGINAL)
+    source = "\n\n".join(f"def {name}() -> str:\n    return 'ok'" for name in artifacts)
+    (root / "src" / "target.py").write_text(source + "\n")
     (root / "tests" / "test_target.py").write_text(
-        "from src.target import target\n\n"
-        "def test_target():\n"
-        "    assert target() == 'ok'\n"
+        "from src import target as module\n\n"
+        + "\n".join(
+            f"def test_{name}():\n    assert module.{name}() == 'ok'\n"
+            for name in artifacts
+        )
     )
     path = root / "manifests" / "target.manifest.yaml"
     path.write_text(
@@ -125,10 +233,15 @@ files:
   edit:
     - path: src/target.py
       artifacts:
-        - kind: function
-          name: target
-          args: []
-          returns: str
+"""
+        + "".join(
+            f"        - kind: function\n"
+            f"          name: {name}\n"
+            f"          args: []\n"
+            f"          returns: str\n"
+            for name in artifacts
+        )
+        + """
   read:
     - tests/test_target.py
 validate:

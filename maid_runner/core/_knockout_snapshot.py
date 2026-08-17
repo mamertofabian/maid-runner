@@ -32,6 +32,7 @@ _EXCLUDED_TREE_NAMES = frozenset(
     }
 )
 _GIT_CONTROL_FILES = ("HEAD", "index", "ORIG_HEAD", "config.worktree")
+_UNTRACKED_KNOCKOUT_CACHE_STATUS_PREFIX = b"?? .maid/cache/knockout-evidence-v1/"
 _LOCATION_ENVIRONMENT_NAMES = frozenset(
     {
         "NODE_PATH",
@@ -1232,6 +1233,8 @@ def _repository_identity(root: Path) -> str | None:
                 "Snapshot could not capture source repository identity: "
                 + " ".join(args)
             )
+        if args[0] == "status":
+            output = _repository_status_without_untracked_knockout_cache(output)
         digest.update(output)
         digest.update(b"\0")
     for control in (
@@ -1255,6 +1258,17 @@ def _repository_identity(root: Path) -> str | None:
             )
             digest.update(b"\0")
     return digest.hexdigest()
+
+
+def _repository_status_without_untracked_knockout_cache(output: bytes) -> bytes:
+    entries = tuple(
+        entry
+        for entry in output.split(b"\0")
+        if entry and not entry.startswith(_UNTRACKED_KNOCKOUT_CACHE_STATUS_PREFIX)
+    )
+    if not entries:
+        return b""
+    return b"\0".join(entries) + b"\0"
 
 
 def _verify_repository_identity(root: Path, expected: str | None) -> str | None:

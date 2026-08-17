@@ -1,0 +1,158 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Checkpoint each completed knockout worker before the full batch returns"
+type: fix
+created: "2026-08-17T10:59:33Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - cache
+    - interruption
+description: |
+  Persistent knockout evidence is currently written only after
+  `run_knockout_workers` returns the entire batch. A three-hour repository run
+  was interrupted with hundreds of workers already executed, but retained no
+  new cache entries. Add an optional completion callback to the bounded worker
+  scheduler and have `run_knockout_batch` checkpoint each cache-eligible worker
+  immediately. The callback fires exactly once for every finalized result in
+  serial and parallel scheduling, after identity and process-cost normalization;
+  this includes synthesized failures, and callback exceptions propagate. Cache
+  eligibility preserves the existing precise rule: worker-level failures and
+  report failures without a result are not cached, while an undetected result
+  with its blocking E711 evidence remains cacheable. Preserve tuple result
+  ordering, the process budget, `--no-cache`, and declaration-bound
+  content/environment keys. Retained snapshot integrity must permit only the
+  untracked `.maid/cache/knockout-evidence-v1/**` entry created by a checkpoint;
+  tracked cache-path changes and every other source/Git mutation remain part of
+  the repository identity guard.
+temptations:
+  - risk: "Do not split the batch into tiny scheduler calls and lose retained snapshot environments or process-budget utilization."
+    instead: "Publish validated results from the existing scheduling lifetime through one optional completion callback."
+  - risk: "Do not cache a worker before identity, process-cost, and report validation completes."
+    instead: "Invoke the checkpoint only with the same validated worker result that will occupy the deterministic result slot."
+  - risk: "Do not write checkpoints when no_cache is true, cache harness-only failures, or discard cacheable undetected E711 results."
+    instead: "Keep the existing cache eligibility predicate in run_knockout_batch: reject worker errors and reports with errors but no result, while retaining red results that carry mutation evidence."
+  - risk: "Do not let checkpoint completion order change returned report ordering."
+    instead: "Persist opportunistically but continue assembling the public tuple and manifest reports in original spec/declaration order."
+  - risk: "Do not disable repository identity checks or ignore all .maid/cache changes to accommodate checkpoint writes."
+    instead: "Filter only untracked porcelain-status entries beneath the knockout evidence cache; keep tracked changes, refs, config, objects, and all other untracked paths guarded."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_worker.py
+      artifacts:
+        - kind: function
+          name: run_knockout_workers
+          args:
+            - name: specs
+              type: Sequence[KnockoutMutationSpec]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend
+            - name: executor
+              type: KnockoutCommandExecutor
+            - name: jobs
+              type: int
+            - name: max_processes
+              type: int
+            - name: on_result
+              type: Callable[[KnockoutWorkerResult], None] | None
+              default: None
+          returns: tuple[KnockoutWorkerResult, Ellipsis]
+    - path: tests/core/test_knockout_workers.py
+      artifacts:
+        - kind: test_function
+          name: test_workers_publish_each_validated_result_before_batch_finishes
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_worker_result_callback_exception_propagates
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_worker_callback_publishes_prescheduling_failure
+          args: []
+          returns: None
+    - path: tests/core/test_knockout_evidence_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_interrupted_knockout_batch_retains_completed_spec_cache
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_no_cache_run_does_not_checkpoint_completed_spec
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_harness_failure_without_result_is_not_checkpointed
+          args: []
+          returns: None
+    - path: tests/cli/test_verify_knockout_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_knockout_dirty_source_needs_no_override_in_snapshot
+          args: []
+          returns: None
+    - path: tests/core/test_knockout_snapshot.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints
+          args: []
+          returns: None
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: Pass a cache-eligibility checkpoint callback into the worker scheduler without changing run_knockout_batch's public signature.
+    - path: maid_runner/core/_knockout_snapshot.py
+      reason: Keep the source-repository identity guard stable across controlled untracked knockout evidence checkpoints while retaining every other mutation signal.
+  read:
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/121-22-persist-knockout-evidence-cache.manifest.yaml
+    - manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
+    - manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml
+    - tests/core/test_knockout_batch.py
+    - tests/core/test_retained_worker_snapshots.py
+    - tests/core/test_knockout_cache_declaration_identity.py
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_cache_declaration_identity.py tests/core/test_knockout_snapshot.py tests/cli/test_verify_knockout_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T11:29:03Z"
+  summary: Completed knockout workers are checkpointed immediately and reused after a batch abort without weakening snapshot isolation.
+  rationale: |
+    The scheduler now publishes each normalized finalized result exactly once
+    in serial and parallel execution, and run_knockout_batch persists every
+    cache-eligible result before the full batch returns. No-cache runs,
+    result-less harness failures, declaration-bound keys, E711 red evidence,
+    process budgets, retained environments, and deterministic returned order
+    remain intact. A full-gate regression exposed that controlled cache writes
+    changed Git porcelain status while retained snapshots were alive; the
+    repository identity digest now excludes only exact untracked
+    knockout-evidence-v1 entries. Tracked cache changes, lookalikes, unrelated
+    untracked paths, refs, configuration, indexes, and objects remain guarded.
+    Evidence: the 66-test declared suite passed; implementation validation and
+    Ruff/Black passed; all 265 active manifests validated; maid test passed all
+    294 commands, including 4,404 pytest passes and 9 skips; two independent
+    implementation reviews found no remaining issues.
+  lessons:
+    - lesson_type: performance
+      summary: Long-running parallel evidence caches must checkpoint at each finalized worker, because batch-end persistence loses hours of valid work after interruption.
+      tags: [knockout, cache, interruption, resumability]
+      paths:
+        - maid_runner/core/_knockout_worker.py
+        - maid_runner/core/knockout.py
+    - lesson_type: security
+      summary: Controlled source-side cache writes during retained snapshot lifetimes need an exact untracked-status exception; broad cache or status exclusions weaken repository tamper detection.
+      tags: [snapshot-isolation, git, cache, fail-closed]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_snapshot.py

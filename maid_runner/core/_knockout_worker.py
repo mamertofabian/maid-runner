@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import nullcontext
 from dataclasses import dataclass, replace
@@ -122,6 +122,7 @@ def run_knockout_workers(
     executor: KnockoutCommandExecutor,
     jobs: int,
     max_processes: int,
+    on_result: Callable[[KnockoutWorkerResult], None] | None = None,
 ) -> tuple[KnockoutWorkerResult, ...]:
     """Schedule weighted workers and return input-identity order."""
     _require_positive_integer("jobs", jobs)
@@ -137,6 +138,7 @@ def run_knockout_workers(
             executor,
             jobs,
             max_processes,
+            on_result,
         )
 
 
@@ -148,6 +150,7 @@ def _schedule_knockout_workers(
     executor: KnockoutCommandExecutor,
     jobs: int,
     max_processes: int,
+    on_result: Callable[[KnockoutWorkerResult], None] | None,
 ) -> tuple[KnockoutWorkerResult, ...]:
     ordered = tuple(specs)
     prepared: list[tuple[int, KnockoutMutationSpec, int] | KnockoutWorkerResult] = []
@@ -167,12 +170,14 @@ def _schedule_knockout_workers(
     for index, item in enumerate(prepared):
         if isinstance(item, KnockoutWorkerResult):
             results[index] = item
+            if on_result is not None:
+                on_result(item)
         else:
             runnable.append(item)
 
     if jobs == 1:
         for index, spec, cost in runnable:
-            results[index] = _execute_safely(
+            result = _execute_safely(
                 spec,
                 Path(project_root),
                 evidence,
@@ -180,6 +185,9 @@ def _schedule_knockout_workers(
                 executor,
                 cost,
             )
+            results[index] = result
+            if on_result is not None:
+                on_result(result)
         return tuple(result for result in results if result is not None)
 
     active: dict[
@@ -220,13 +228,19 @@ def _schedule_knockout_workers(
                     result = future.result()
                 except Exception as exc:
                     result = _failed_worker(spec, cost, str(exc))
-                results[index] = _validated_worker_result(spec, cost, result)
+                validated = _validated_worker_result(spec, cost, result)
+                results[index] = validated
+                if on_result is not None:
+                    on_result(validated)
 
     for index, result in enumerate(results):
         if result is None:
-            results[index] = _failed_worker(
+            failed = _failed_worker(
                 ordered[index], 1, "Knockout worker produced no result"
             )
+            results[index] = failed
+            if on_result is not None:
+                on_result(failed)
     return tuple(result for result in results if result is not None)
 
 

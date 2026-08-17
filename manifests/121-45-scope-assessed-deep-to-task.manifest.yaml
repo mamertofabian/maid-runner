@@ -1,0 +1,75 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep assessment-selected deep verification bounded to the changed-manifest task"
+type: fix
+created: "2026-08-17T10:45:16Z"
+metadata:
+  priority: critical
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - assess
+    - deep-verification
+    - task-scope
+description: |
+  `maid assess` requires an explicit Git baseline, but its deep recommendation
+  currently emits only the deep profile and handoff evidence flags. Because a
+  baseline does not itself activate task test selection, the recommended
+  command sends all active manifests to artifact coverage and knockout. Emit
+  `--test-scope task` for deep recommendations so the shipped 121-24
+  changed-manifest closure applies to coverage, knockout, and ordinary tests.
+  Keep an explicitly invoked `maid verify --profile deep` repository-wide.
+
+  On the 2026-08-17 tree this changes the assessed workload from 263 manifests
+  and 636 mutations to 2 manifests and 2 mutations; the correctly scoped
+  command passed all eleven stages in 58.15 seconds after the unscoped command
+  was stopped after roughly 3 hours 17 minutes.
+temptations:
+  - risk: "Do not redefine the deep profile as task-scoped for explicit repository audits."
+    instead: "Add the task-scope flag only to the exact baseline-bound command emitted by maid assess."
+  - risk: "Do not scope only the ordinary tests stage while leaving coverage and knockout repository-wide."
+    instead: "Use the existing --test-scope task path that threads the selected manifest closure through all three expensive stages."
+  - risk: "Do not drop plan-lock or red-evidence requirements while repairing the command."
+    instead: "Preserve both existing handoff flags and add task scoping alongside them."
+files:
+  scope:
+    - path: maid_runner/cli/commands/assess.py
+      reason: Add the shipped task-scope option to deep recommendation argv without changing cmd_assess's public signature.
+  edit:
+    - path: tests/cli/test_assess_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_deep_recommendation_command_retains_handoff_gates
+          args: []
+          returns: None
+          description: Deep assessment emits an exact --since or --base-ref command that retains both handoff gates and selects task scope for tests, coverage, and knockout.
+  read:
+    - maid_runner/core/verify_profiles.py
+    - maid_runner/cli/commands/verify.py
+    - tests/cli/test_task_scoped_deep_stages.py
+    - manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml
+    - manifests/121-24-task-scoped-deep-verification.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_assess_cmd.py tests/cli/test_task_scoped_deep_stages.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T10:47:25Z"
+  summary: Assessment-selected deep verification now scopes tests, artifact coverage, and knockout to the changed-manifest task.
+  rationale: |
+    Deep recommendations now add `--test-scope task` without changing the
+    repository-wide semantics of an explicitly invoked deep profile. Exact
+    behavioral coverage proves both `--since` and `--base-ref` commands retain
+    their baseline and the plan-lock and red-evidence gates. The focused suite
+    passed 18 tests, implementation validation passed, and repository
+    validation passed all 264 active manifests. Independent implementation
+    review found no scope, behavior, test, or lock issues.
+  lessons:
+    - lesson_type: performance
+      summary: Baseline selection and task scoping are separate controls; emitted deep commands must request both explicitly.
+      tags: [assessment, deep-verification, task-scope]
+      paths:
+        - maid_runner/cli/commands/assess.py

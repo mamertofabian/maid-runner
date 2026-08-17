@@ -2,12 +2,12 @@
   "manifest_path": "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
   "manifest_hash": "sha256-contract:adca2899fd6f8312a886a74e7c35bc1f4432d414ed83b2c090581c2960b25b40",
   "test_hashes": {
-    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:5e079656fd4b4685c04de4d7c698ae5db24b67293f13ffd92014484016260e97",
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
     "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca"
   },
   "created_at": "2026-08-13T12:33:19.834282+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:905e74a14af75a66769855b083a10989cd4b1a3b0352a4b7451d9567d8b8fe7b",
@@ -30,6 +30,25 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/121-41-bind-knockout-cache-to-declarations.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:adca2899fd6f8312a886a74e7c35bc1f4432d414ed83b2c090581c2960b25b40",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:5e079656fd4b4685c04de4d7c698ae5db24b67293f13ffd92014484016260e97",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca"
+      },
+      "revised_at": "2026-08-17T11:31:48.921416+00:00",
+      "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

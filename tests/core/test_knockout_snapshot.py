@@ -335,6 +335,49 @@ def test_snapshot_git_commands_cannot_change_original_head_refs_stash_config_ind
             _git(root, "config", "--worktree", "snapshot.external", "changed")
 
 
+@pytest.mark.parametrize(
+    ("case", "permitted"),
+    [
+        ("untracked-knockout-checkpoint", True),
+        ("unrelated-untracked", False),
+        ("lookalike-cache-prefix", False),
+        ("tracked-knockout-checkpoint", False),
+    ],
+)
+def test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints(
+    tmp_path: Path, case: str, permitted: bool
+) -> None:
+    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+
+    root = _project(tmp_path, git=True)
+    checkpoint = root / ".maid/cache/knockout-evidence-v1/result.json"
+    if case == "tracked-knockout-checkpoint":
+        checkpoint.parent.mkdir(parents=True)
+        checkpoint.write_text("before\n")
+        _git(root, "add", checkpoint.relative_to(root).as_posix())
+        _git(root, "commit", "-m", "track checkpoint fixture")
+
+    def mutate_source_repository() -> None:
+        if case in {"untracked-knockout-checkpoint", "tracked-knockout-checkpoint"}:
+            checkpoint.parent.mkdir(parents=True, exist_ok=True)
+            checkpoint.write_text("after\n")
+        elif case == "lookalike-cache-prefix":
+            lookalike = root / ".maid/cache/knockout-evidence-v10/result.json"
+            lookalike.parent.mkdir(parents=True)
+            lookalike.write_text("after\n")
+        else:
+            (root / "unrelated-untracked.txt").write_text("after\n")
+
+    backend = MaterializedProjectSnapshotBackend()
+    if permitted:
+        with backend.create(root, ("src/target.py",), case):
+            mutate_source_repository()
+    else:
+        with pytest.raises(RuntimeError, match="input|metadata|repository"):
+            with backend.create(root, ("src/target.py",), case):
+                mutate_source_repository()
+
+
 def test_inherited_git_repository_pointer_environment_is_cleared(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

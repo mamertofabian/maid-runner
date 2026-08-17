@@ -5,10 +5,10 @@
     "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
     "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
     "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84"
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897"
   },
   "created_at": "2026-08-14T11:51:02.129117+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:f44190d98446b2ed7f359f6040241c802073a9e7e541bc54da608693d11a0763",
@@ -56,6 +56,26 @@
         "validate_commands_removed": [
           "uv run python -m pytest -q tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py::test_runtime_evidence_plugin_executes_declared_hook_lifecycles tests/core/test_knockout_snapshot.py::test_snapshot_backend_default_create_rejects_unimplemented_boundary"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:730f69abac90ee35953aa0b811f3a9cb4d6e5cff5fd7d35141110b1aa63a9c8f",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84"
+      },
+      "revised_at": "2026-08-17T11:31:49.478461+00:00",
+      "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

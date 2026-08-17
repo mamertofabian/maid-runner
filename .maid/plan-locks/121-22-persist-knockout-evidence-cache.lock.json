@@ -3,11 +3,11 @@
   "manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
   "test_hashes": {
     "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
-    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:5e079656fd4b4685c04de4d7c698ae5db24b67293f13ffd92014484016260e97",
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a"
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748"
   },
   "created_at": "2026-08-13T09:48:31.652060+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:8b6f526afe9762ce227c79ab88a7ca87ab11cf9557a8985de68bfcf63d49b926",
@@ -56,6 +56,25 @@
       },
       "revised_at": "2026-08-13T11:56:41.454897+00:00",
       "reason": "accept 121-39 shared knockout worker test isolation update",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:5e079656fd4b4685c04de4d7c698ae5db24b67293f13ffd92014484016260e97",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a"
+      },
+      "revised_at": "2026-08-17T11:31:48.701064+00:00",
+      "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

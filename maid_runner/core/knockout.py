@@ -533,6 +533,20 @@ def run_knockout_batch(
             pending_specs.append(spec)
         else:
             cached_workers.append(cached)
+    pending_by_identity = {spec.identity: spec for spec in pending_specs}
+
+    def checkpoint_worker(worker) -> None:
+        if no_cache:
+            return
+        spec = pending_by_identity.get(worker.identity)
+        if spec is None or worker.errors:
+            return
+        if any(
+            not report.results and report.errors for report in worker.reports.values()
+        ):
+            return
+        _store_knockout_spec_cache(root, spec, worker)
+
     workers = ()
     if pending_specs:
         workers = run_knockout_workers(
@@ -543,17 +557,8 @@ def run_knockout_batch(
             command_executor,
             jobs,
             max_processes,
+            on_result=checkpoint_worker,
         )
-        if not no_cache:
-            for worker in workers:
-                spec = next(
-                    item for item in pending_specs if item.identity == worker.identity
-                )
-                if not worker.errors and not any(
-                    not report.results and report.errors
-                    for report in worker.reports.values()
-                ):
-                    _store_knockout_spec_cache(root, spec, worker)
     workers_by_identity = {
         worker.identity: worker for worker in (*cached_workers, *workers)
     }

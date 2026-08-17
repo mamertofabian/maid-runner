@@ -6,6 +6,7 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
 import yaml
 
 from maid_runner.core.manifest import load_manifest
@@ -144,6 +145,128 @@ def test_worker_completion_order_preserves_manifest_declaration_order(tmp_path):
 
     assert [result.artifact_name for result in report.results] == ["alpha", "beta"]
     assert [error.code.value for error in report.errors] == []
+
+
+@pytest.mark.parametrize("jobs", [1, 2])
+def test_workers_publish_each_validated_result_before_batch_finishes(
+    tmp_path, monkeypatch, jobs
+):
+    from maid_runner.core import _knockout_worker
+    from maid_runner.core._knockout_worker import (
+        KnockoutWorkerResult,
+        run_knockout_workers,
+    )
+
+    specs = (
+        _spec(tmp_path, "alpha", (("python", "check.py"),)),
+        _spec(tmp_path, "beta", (("python", "check.py"),)),
+    )
+    release_beta = threading.Event()
+    alpha_published = threading.Event()
+    finished = threading.Event()
+    results = []
+
+    def execute(spec, *_args):
+        if spec.identity.artifact_name == "beta":
+            assert release_beta.wait(timeout=2)
+            return KnockoutWorkerResult(spec.identity, {}, 99, ())
+        return KnockoutWorkerResult(
+            replace(spec.identity, artifact_name="wrong"), {}, 99, ()
+        )
+
+    def publish(result):
+        results.append(result)
+        if result.identity.artifact_name == "alpha":
+            alpha_published.set()
+
+    def schedule():
+        try:
+            results.extend(
+                run_knockout_workers(
+                    specs,
+                    tmp_path,
+                    None,
+                    object(),
+                    object(),
+                    jobs=jobs,
+                    max_processes=2,
+                    on_result=publish,
+                )
+            )
+        finally:
+            finished.set()
+
+    monkeypatch.setattr(_knockout_worker, "execute_knockout_worker", execute)
+    scheduler = threading.Thread(target=schedule)
+    scheduler.start()
+    try:
+        assert alpha_published.wait(timeout=2)
+        assert not finished.is_set()
+    finally:
+        release_beta.set()
+        scheduler.join(timeout=2)
+
+    assert finished.is_set()
+    published = results[:2]
+    returned = results[2:]
+    assert [result.identity.artifact_name for result in published] == ["alpha", "beta"]
+    assert tuple(published) == tuple(returned)
+    assert published[0].process_cost == 1
+    assert [error.code.value for error in published[0].errors] == ["E712"]
+    assert published[1].process_cost == 1
+
+
+@pytest.mark.parametrize("jobs", [1, 2])
+def test_worker_result_callback_exception_propagates(tmp_path, monkeypatch, jobs):
+    from maid_runner.core import _knockout_worker
+    from maid_runner.core._knockout_worker import (
+        KnockoutWorkerResult,
+        run_knockout_workers,
+    )
+
+    spec = _spec(tmp_path, "alpha", (("python", "check.py"),))
+
+    def execute(spec, *_args):
+        return KnockoutWorkerResult(spec.identity, {}, 1, ())
+
+    def reject(_result):
+        raise RuntimeError("checkpoint failed")
+
+    monkeypatch.setattr(_knockout_worker, "execute_knockout_worker", execute)
+
+    with pytest.raises(RuntimeError, match="checkpoint failed"):
+        run_knockout_workers(
+            (spec,),
+            tmp_path,
+            None,
+            object(),
+            object(),
+            jobs=jobs,
+            max_processes=1,
+            on_result=reject,
+        )
+
+
+def test_worker_callback_publishes_prescheduling_failure(tmp_path):
+    from maid_runner.core._knockout_worker import run_knockout_workers
+
+    spec = _spec(tmp_path, "alpha", (("pytest", "-n", "3", "tests"),))
+    published = []
+
+    returned = run_knockout_workers(
+        (spec,),
+        tmp_path,
+        None,
+        object(),
+        object(),
+        jobs=2,
+        max_processes=1,
+        on_result=published.append,
+    )
+
+    assert tuple(published) == returned
+    assert [error.code.value for error in published[0].errors] == ["E712"]
+    assert "exceeds budget" in published[0].errors[0].message
 
 
 def test_parallel_and_serial_reports_match_except_durations(tmp_path):

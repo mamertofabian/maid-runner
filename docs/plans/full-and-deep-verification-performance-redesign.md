@@ -393,3 +393,36 @@ small samples. 121-27 switches coverage lanes to
 `SharedEnvironmentProjectSnapshotBackend`: source and Git metadata are still
 copied; `.venv` and `node_modules` are reused through environment overrides;
 a write into those shared trees still fails closed.
+
+## 2026-08-17 assessed-deep scope and interruption diagnosis
+
+The first known-green repository artifact-coverage report exposed a new
+orchestration failure after coverage itself completed: the exact command from
+`maid assess --since 8110ca1` selected `deep` plus the handoff evidence flags,
+but omitted `--test-scope task`. A baseline alone does not activate
+`_task_scoped_test_manifest_paths`; therefore coverage and knockout received
+`manifest_paths=None` and selected every active manifest.
+
+Measured amplification on the same committed tree:
+
+- assessed command: 263 active manifests and 636 unique knockout mutations;
+- task-scoped command: 2 changed manifests and 2 unique knockout mutations;
+- amplification caused by the missing scope flag: **318x**;
+- unscoped deep: manually stopped after about 3 hours 17 minutes while eight
+  workers were still cycling, with no failure emitted;
+- `deep --test-scope task` control: all 11 stages passed in **58.15 seconds**.
+
+The interruption also proved that the persistent knockout cache is not a
+checkpoint. `run_knockout_batch` waits for `run_knockout_workers` to return the
+entire tuple before calling `_store_knockout_spec_cache`; after the multi-hour
+interruption the cache still contained only its two August 16 entries. This
+means a repository-wide run loses every completed worker on interruption,
+whereas running manifests individually would persist progress after each
+return.
+
+Two isolated closures follow. 121-45 makes assessment-emitted deep commands
+task-scoped while keeping manually requested `maid verify --profile deep`
+repository-wide. 121-46 adds a completion callback/checkpoint boundary so each
+validated worker is persisted immediately, preserving `--no-cache`, content
+and environment identities, deterministic result ordering, and fail-closed
+error handling.

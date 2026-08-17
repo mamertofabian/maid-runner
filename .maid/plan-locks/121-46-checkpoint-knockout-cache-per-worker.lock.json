@@ -1,0 +1,345 @@
+{
+  "manifest_path": "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+  "manifest_hash": "sha256-contract:93e028c2852d4caf9a7a6c7fe8ce1612b8c01652e470476a874d4e7b5b624100",
+  "test_hashes": {
+    "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+    "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+    "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897"
+  },
+  "created_at": "2026-08-17T10:58:57.560446+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:9ffafdd4603eaa313dc73c007004d938bb80ebf5646764ec5c4a9afc9e4281b7",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:74e01b49ef28549c0280015a56844e1bf3b8743f3b7707ad9fd9e1bb40e4e968"
+      },
+      "revised_at": "2026-08-17T10:59:33.846202+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml -> manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:73f20e856cb2df3608efda11ea74c3569e887ee40779e37e614838122c5357d7",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:74e01b49ef28549c0280015a56844e1bf3b8743f3b7707ad9fd9e1bb40e4e968"
+      },
+      "revised_at": "2026-08-17T11:02:05.686913+00:00",
+      "reason": "Replace the KeyboardInterrupt test sentinel with a normal batch-abort exception so pytest can finish while preserving the checkpoint-before-return contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:73f20e856cb2df3608efda11ea74c3569e887ee40779e37e614838122c5357d7",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237"
+      },
+      "revised_at": "2026-08-17T11:03:04.006865+00:00",
+      "reason": "Replace the KeyboardInterrupt test sentinel with a normal batch-abort exception so pytest can finish while preserving the checkpoint-before-return contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:73f20e856cb2df3608efda11ea74c3569e887ee40779e37e614838122c5357d7",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237"
+      },
+      "revised_at": "2026-08-17T11:14:56.369862+00:00",
+      "reason": "Add fail-closed snapshot identity coverage for controlled untracked knockout checkpoint writes discovered by maid test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot",
+          "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot:kind=test_function",
+          "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot:returns=None",
+          "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints",
+          "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints:kind=test_function",
+          "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_verify_knockout_cmd.py",
+          "edit:tests/core/test_knockout_snapshot.py",
+          "read:manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+          "scope:maid_runner/core/_knockout_snapshot.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_cache_declaration_identity.py tests/core/test_knockout_snapshot.py tests/cli/test_verify_knockout_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_cache_declaration_identity.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T11:16:20.541738+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_cache_declaration_identity.py tests/core/test_knockout_snapshot.py tests/cli/test_verify_knockout_cmd.py",
+        "exit_code": 1,
+        "output_tail": "    File \"/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/threading.py\", line 1012, in run\n      self._target(*self._args, **self._kwargs)\n    File \"/home/atomrem/projects/codefrost-dev/maid-runner/tests/core/test_knockout_workers.py\", line 185, in schedule\n      run_knockout_workers(\n  TypeError: run_knockout_workers() got an unexpected keyword argument 'on_result'\n  \n  Enable tracemalloc to get traceback where the object was allocated.\n  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.\n    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_workers.py::test_workers_publish_each_validated_result_before_batch_finishes[1]\nFAILED tests/core/test_knockout_workers.py::test_workers_publish_each_validated_result_before_batch_finishes[2]\nFAILED tests/core/test_knockout_workers.py::test_worker_result_callback_exception_propagates[1]\nFAILED tests/core/test_knockout_workers.py::test_worker_result_callback_exception_propagates[2]\nFAILED tests/core/test_knockout_workers.py::test_worker_callback_publishes_prescheduling_failure\nFAILED tests/core/test_knockout_evidence_cache.py::test_interrupted_knockout_batch_retains_completed_spec_cache\nFAILED tests/core/test_knockout_snapshot.py::test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints[untracked-knockout-checkpoint-True]\n7 failed, 59 passed, 2 warnings in 83.96s (0:01:23)",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/121-45-scope-assessed-deep-to-task.lock.json",
+      "docs/plans/full-and-deep-verification-performance-redesign.md",
+      "maid_runner/cli/commands/assess.py",
+      "manifests/121-45-scope-assessed-deep-to-task.manifest.yaml",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+      "tests/cli/test_assess_cmd.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=executor:type=KnockoutCommandExecutor:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=jobs:type=int:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=max_processes:type=int:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=on_result:type=Callable[[KnockoutWorkerResult], None] | None:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=snapshot_backend:type=ProjectSnapshotBackend:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:arg=specs:type=Sequence[KnockoutMutationSpec]:default=None",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:kind=function",
+      "maid_runner/core/_knockout_worker.py:function:run_knockout_workers:returns=tuple[KnockoutWorkerResult, Ellipsis]",
+      "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot",
+      "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot:kind=test_function",
+      "tests/cli/test_verify_knockout_cmd.py:test_verify_knockout_dirty_source_needs_no_override_in_snapshot:returns=None",
+      "tests/core/test_knockout_evidence_cache.py:test_harness_failure_without_result_is_not_checkpointed",
+      "tests/core/test_knockout_evidence_cache.py:test_harness_failure_without_result_is_not_checkpointed:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_harness_failure_without_result_is_not_checkpointed:returns=None",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:returns=None",
+      "tests/core/test_knockout_evidence_cache.py:test_no_cache_run_does_not_checkpoint_completed_spec",
+      "tests/core/test_knockout_evidence_cache.py:test_no_cache_run_does_not_checkpoint_completed_spec:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_no_cache_run_does_not_checkpoint_completed_spec:returns=None",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints:kind=test_function",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints:returns=None",
+      "tests/core/test_knockout_workers.py:test_worker_callback_publishes_prescheduling_failure",
+      "tests/core/test_knockout_workers.py:test_worker_callback_publishes_prescheduling_failure:kind=test_function",
+      "tests/core/test_knockout_workers.py:test_worker_callback_publishes_prescheduling_failure:returns=None",
+      "tests/core/test_knockout_workers.py:test_worker_result_callback_exception_propagates",
+      "tests/core/test_knockout_workers.py:test_worker_result_callback_exception_propagates:kind=test_function",
+      "tests/core/test_knockout_workers.py:test_worker_result_callback_exception_propagates:returns=None",
+      "tests/core/test_knockout_workers.py:test_workers_publish_each_validated_result_before_batch_finishes",
+      "tests/core/test_knockout_workers.py:test_workers_publish_each_validated_result_before_batch_finishes:kind=test_function",
+      "tests/core/test_knockout_workers.py:test_workers_publish_each_validated_result_before_batch_finishes:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_knockout_worker.py",
+        "tests/cli/test_verify_knockout_cmd.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py"
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_cache_declaration_identity.py",
+        "tests/core/test_retained_worker_snapshots.py"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_worker.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_knockout_workers",
+              "args": [
+                {
+                  "name": "specs",
+                  "type": "Sequence[KnockoutMutationSpec]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int"
+                },
+                {
+                  "name": "on_result",
+                  "type": "Callable[[KnockoutWorkerResult], None] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[KnockoutWorkerResult, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_workers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_workers_publish_each_validated_result_before_batch_finishes",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_result_callback_exception_propagates",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_callback_publishes_prescheduling_failure",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_evidence_cache.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_interrupted_knockout_batch_retains_completed_spec_cache",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_cache_run_does_not_checkpoint_completed_spec",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_harness_failure_without_result_is_not_checkpointed",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_knockout_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_knockout_dirty_source_needs_no_override_in_snapshot",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_retained_worker_snapshots.py",
+        "tests/core/test_knockout_cache_declaration_identity.py",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Pass a cache-eligibility checkpoint callback into the worker scheduler without changing run_knockout_batch's public signature."
+        },
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "reason": "Keep the source-repository identity guard stable across controlled untracked knockout evidence checkpoints while retaining every other mutation signal."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_knockout_cmd.py",
+      "tests/core/test_knockout_batch.py",
+      "tests/core/test_knockout_cache_declaration_identity.py",
+      "tests/core/test_knockout_evidence_cache.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_workers.py",
+      "tests/core/test_retained_worker_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_cache_declaration_identity.py tests/core/test_knockout_snapshot.py tests/cli/test_verify_knockout_cmd.py"
+    ]
+  }
+}

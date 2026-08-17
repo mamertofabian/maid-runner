@@ -151,6 +151,12 @@ description: |
       per-spec differential knockout results with mutated-body digests.
   26. `121-25-tune-maid-test-command-jobs` - measured command_jobs tuning
       toward the 60-second maid test budget.
+  27. `121-45-scope-assessed-deep-to-task` - make the exact deep command
+      emitted by `maid assess --since/--base-ref` opt into the shipped
+      changed-manifest scope for coverage, knockout, and ordinary tests.
+  28. `121-46-checkpoint-knockout-cache-per-worker` - persist each completed
+      knockout worker immediately so interruption and timeout preserve proven
+      progress instead of discarding the entire multi-hour batch.
 
   Promotion prerequisites are strict. 121-07 cannot enable workers until the
   121-03 full-suite probe is green. 121-09 cannot consume evidence until
