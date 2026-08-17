@@ -2,10 +2,10 @@
   "manifest_path": "manifests/website-maid-in-practice-section.manifest.yaml",
   "manifest_hash": "sha256-contract:b64131d096d82cecf10f5f2ab21db49fc8e5c7a3f25a028962cf5558f0da9190",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:6de1e125d69789fc72ae0b3e6609872315b0472629813984aafd1c3d0e81bb19"
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:36ca2906f3154b501e9c8cd3c096078838e4f435eaf73b835841b3428db1fb15"
   },
   "created_at": "2026-08-03T23:30:14.720084+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:5d551390dcc6a9abedc61f40f0a48eaafce7b0c03a4d928f1cc4dd9719077855",
@@ -38,6 +38,30 @@
       "revised_at": "2026-08-09T14:11:33.355774+00:00",
       "reason": "Accept approved shared-test change from hero reposition; practice-section concern unchanged",
       "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b64131d096d82cecf10f5f2ab21db49fc8e5c7a3f25a028962cf5558f0da9190",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:6de1e125d69789fc72ae0b3e6609872315b0472629813984aafd1c3d0e81bb19"
+      },
+      "revised_at": "2026-08-17T14:43:34.835001+00:00",
+      "reason": "Accept additive shared-test change: surface-knockout-strength adds test_homepage_surfaces_knockout_strength; the MAID-in-practice contract is unchanged",
+      "agent": {
+        "model": "claude-opus-4-8",
+        "client": "claude-code",
+        "skills": [
+          "maid-evolver"
+        ],
+        "source": "flags"
+      },
       "contract_delta": {
         "artifacts_added": [],
         "artifacts_removed": [],
