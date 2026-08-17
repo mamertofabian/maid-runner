@@ -3,23 +3,18 @@ import re
 from pathlib import Path
 from xml.etree import ElementTree
 
-import yaml
-
-
 ROOT = Path(__file__).resolve().parents[1]
 WEBSITE = ROOT / "website"
 HOMEPAGE = WEBSITE / "index.html"
 PRACTICE_STATS = WEBSITE / "data" / "practice-stats.json"
-WORKFLOW = ROOT / ".github/workflows/deploy-website.yml"
+VERCEL_CONFIG = ROOT / "vercel.json"
+DEPLOYMENT_DOCS = WEBSITE / "README.md"
+PAGES_WORKFLOW = ROOT / ".github/workflows/deploy-website.yml"
+WORKFLOWS = ROOT / ".github/workflows"
 
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
-
-def _workflow_trigger(workflow: dict) -> dict:
-    """Read the YAML 1.2 `on` key across PyYAML loader versions."""
-    return workflow.get("on", workflow.get(True, {}))
 
 
 def test_homepage_matches_mockup_story_and_navigation() -> None:
@@ -317,54 +312,49 @@ def test_static_fallback_and_search_metadata_target_canonical_domain() -> None:
     assert locations == {"https://maidrunner.dev/"}
 
 
-def test_pages_workflow_is_path_scoped_and_uploads_website_root() -> None:
-    workflow = yaml.load(_read(WORKFLOW), Loader=yaml.BaseLoader)
-    trigger = _workflow_trigger(workflow)
-    push = trigger["push"]
+def test_vercel_is_the_only_declared_website_deployment() -> None:
+    config = json.loads(_read(VERCEL_CONFIG))
+    deployment_docs = _read(DEPLOYMENT_DOCS)
+    homepage = _read(HOMEPAGE)
+    fallback = _read(WEBSITE / "404.html")
+    robots = _read(WEBSITE / "robots.txt")
+    sitemap = _read(WEBSITE / "sitemap.xml")
 
-    assert push["branches"] == ["main"]
-    assert set(push["paths"]) == {
-        "website/**",
-        ".github/workflows/deploy-website.yml",
+    assert config == {
+        "$schema": "https://openapi.vercel.sh/vercel.json",
+        "outputDirectory": "website",
     }
-    assert "workflow_dispatch" in trigger
-    assert workflow["permissions"] == {
-        "contents": "read",
-        "pages": "write",
-        "id-token": "write",
-    }
+    assert not PAGES_WORKFLOW.exists()
 
-    deploy_job = workflow["jobs"]["deploy"]
-    steps = deploy_job["steps"]
-    expected_actions = {
-        "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
-        "actions/configure-pages": "983d7736d9b0ae728b81ab479565c72886d7745b",
-        "actions/upload-pages-artifact": "7b1f4a764d45c48632c6b24a0339c27f5614fb0b",
-        "actions/deploy-pages": "d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e",
-    }
-    uses_steps = [step["uses"] for step in steps if "uses" in step]
-    assert {uses.rsplit("@", 1)[0] for uses in uses_steps} == set(expected_actions)
-    assert all(
-        re.fullmatch(r"[0-9a-f]{40}", uses.rsplit("@", 1)[1]) for uses in uses_steps
+    pages_markers = (
+        "actions/configure-pages",
+        "actions/upload-pages-artifact",
+        "actions/deploy-pages",
+        "pages: write",
+        "github-pages",
     )
+    for workflow in (*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")):
+        content = _read(workflow)
+        for marker in pages_markers:
+            assert marker not in content, (workflow, marker)
 
-    for step in steps:
-        uses = step.get("uses", "")
-        if "@" not in uses:
-            continue
-        action, revision = uses.rsplit("@", 1)
-        if action in expected_actions:
-            assert revision == expected_actions[action]
+    for crawl_surface in (homepage, fallback, robots, sitemap):
+        assert "http://maidrunner.dev" not in crawl_surface
+        assert "://www.maidrunner.dev" not in crawl_surface
 
-    upload_step = next(
-        step
-        for step in steps
-        if step.get("uses")
-        == "actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b"
-    )
-    assert upload_step["with"]["path"] == "website"
-    assert any(
-        step.get("uses")
-        == "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"
-        for step in steps
-    )
+    for phrase in (
+        "Vercel",
+        "https://maidrunner.dev/",
+        "Root Directory",
+        "Output Directory",
+        '"website"',
+        "Page with redirect",
+        "www",
+        "HTTP",
+        "308",
+    ):
+        assert phrase in deployment_docs
+
+    assert "GitHub Pages" in deployment_docs
+    assert "Deleting the workflow does not disable GitHub Pages" in deployment_docs
+    assert "Settings → Pages" in deployment_docs

@@ -1,0 +1,655 @@
+{
+  "manifest_path": "manifests/fix-google-search-vercel-deployment.manifest.yaml",
+  "manifest_hash": "sha256-contract:457137f101a22914770254b890dffc3d1c0be34a5e74ac78e3d743e60a68137f",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:6361439f470966221453204649077517f8856bd6dc2b17d51bb798334385d753",
+    "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2",
+    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1"
+  },
+  "created_at": "2026-08-17T00:09:12.364180+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ed8ff84175eec600fbdafee7eee4f69114d0bbff5bb7fb989d411571d1459dc4",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:72a5237bff8120a56ae0a5d1fe0e5e70a841e698d8e1cda05814b46967d0d0d1"
+      },
+      "revised_at": "2026-08-17T00:09:17.616045+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-google-search-vercel-deployment.manifest.yaml -> manifests/fix-google-search-vercel-deployment.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f44db06b29ed77ff2a41f9d4ed1f299c3ea1cf2d007212863dccdaa3a4f8b6cb",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:72a5237bff8120a56ae0a5d1fe0e5e70a841e698d8e1cda05814b46967d0d0d1"
+      },
+      "revised_at": "2026-08-17T00:09:35.007717+00:00",
+      "reason": "mark the promoted approved contract implementation-ready",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7dc3ac143edc9ddc0eb736fef292548d9a5905611db124d7050bc883f991f882",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:72a5237bff8120a56ae0a5d1fe0e5e70a841e698d8e1cda05814b46967d0d0d1"
+      },
+      "revised_at": "2026-08-17T00:46:59.496886+00:00",
+      "reason": "address independent review: retire stale active Pages contracts and strengthen deployment/canonical coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+          "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:returns=None",
+          "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed",
+          "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:returns=None",
+          "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+          "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:returns=None",
+          "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing",
+          "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:returns=None",
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck",
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:returns=None",
+          "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures",
+          "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:returns=None",
+          "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+          "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:returns=None",
+          "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+          "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:kind=test_function",
+          "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:returns=None",
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag",
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+          "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/test_bootstrap_installers.py",
+          "edit:tests/test_website_google_analytics.py",
+          "scope:.github/workflows/test-installers.yml",
+          "scope:README.md",
+          "scope:website/install.ps1",
+          "scope:website/install.sh"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/test_website_static_contract.py tests/test_website_google_analytics.py tests/test_bootstrap_installers.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/test_website_static_contract.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T00:47:01.301160+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_static_contract.py tests/test_website_google_analytics.py tests/test_bootstrap_installers.py",
+        "exit_code": 1,
+        "output_tail": "\nself = PosixPath('/home/atomrem/projects/codefrost-dev/maid-runner-google-search-redirect/vercel.json')\nmode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/home/atomrem/projects/codefrost-dev/maid-runner-google-search-redirect/vercel.json'\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_vercel_is_the_only_declared_website_deployment\n1 failed, 17 passed in 0.12s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-google-search-vercel-deployment.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-google-search-vercel-deployment.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/095-01-wire-guidance-to-cli-entry-points.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:returns=None",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:returns=None",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:returns=None",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:kind=test_function",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:returns=None",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:kind=test_function",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:returns=None",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:kind=test_function",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:returns=None",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment:kind=test_function",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/test_bootstrap_installers.py",
+        "tests/test_website_google_analytics.py",
+        "tests/test_website_static_contract.py"
+      ],
+      "read": [
+        "README.md",
+        "manifests/add-bootstrap-installers.manifest.yaml",
+        "manifests/add-google-analytics.manifest.yaml",
+        "pyproject.toml"
+      ],
+      "scope": [
+        ".github/workflows/test-installers.yml",
+        "README.md",
+        "vercel.json",
+        "website/404.html",
+        "website/README.md",
+        "website/assets/logo.png",
+        "website/assets/social-card.png",
+        "website/data/practice-stats.json",
+        "website/index.html",
+        "website/install.ps1",
+        "website/install.sh",
+        "website/robots.txt",
+        "website/script.js",
+        "website/sitemap.xml",
+        "website/styles.css"
+      ],
+      "delete": [
+        ".github/workflows/deploy-website.yml",
+        "website/assets/logo.svg",
+        "website/assets/mockup-redesign.png",
+        "website/assets/social-card-v2.png"
+      ],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/test_website_static_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_homepage_matches_mockup_story_and_navigation",
+              "returns": "None",
+              "source_scenario": "A visitor opens the canonical MAID Runner homepage and scans the product story.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The homepage exposes the hero, primary actions, navigation anchors, validation panels, problem cards, and semantic page sections."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_leads_with_core_strengths",
+              "returns": "None",
+              "source_scenario": "A visitor scans the top of the homepage for MAID Runner's differentiated value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page leads with machine-checkable contracts, tamper-evident planning, agent portability, and evidence-backed handoff."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+              "returns": "None",
+              "source_scenario": "A visitor scrolls through the homepage to understand the MAID loop and how to start.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page renders the plan-to-evidence workflow, capability cards, tool compatibility, and supported quick-start commands."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_maid_in_practice_section",
+              "returns": "None",
+              "source_scenario": "A visitor looks for evidence that MAID is used on real software.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The practice section renders JSON-mirrored public stats, private-production language, and inspectable project links without unsupported ecosystem claims."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_uses_final_local_brand_and_social_assets",
+              "returns": "None",
+              "source_scenario": "A browser or social crawler loads the canonical homepage assets.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "All local asset references resolve to final PNG assets and disposable design inputs remain absent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+              "returns": "None",
+              "source_scenario": "A visitor uses compact navigation with JavaScript enabled or disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Navigation supports open, close, link dismissal, Escape dismissal, focus return, and a usable no-JavaScript fallback."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dark_surface_accessibility_contract_is_declared",
+              "returns": "None",
+              "source_scenario": "A visitor reads and navigates the dark site across desktop and mobile.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stylesheet retains readable tokens, visible focus states, responsive rules, and reduced-motion handling."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_static_fallback_and_search_metadata_target_canonical_domain",
+              "returns": "None",
+              "source_scenario": "A crawler reads canonical metadata, robots policy, and the sitemap.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The fallback links home, robots points to the HTTPS apex sitemap, and the homepage canonical plus sitemap locations contain only https://maidrunner.dev/."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vercel_is_the_only_declared_website_deployment",
+              "returns": "None",
+              "source_scenario": "A website change is deployed and a maintainer audits the repository's hosting contract.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "json.loads"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Root vercel.json serves website/ as the output directory; deployment docs distinguish repository automation from external Pages settings; every workflow is free of Pages deployment markers; and crawl surfaces never advertise HTTP or www aliases."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_website_google_analytics.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_every_html_page_loads_configured_google_analytics_tag",
+              "returns": "None",
+              "source_scenario": "A visitor loads any HTML page published by Vercel.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every shipped HTML page loads gtag.js asynchronously and initializes Google Analytics exactly once inside its head with measurement ID G-B6F335E4MM."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_bootstrap_installers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user already has uv and requests a reproducible MAID Runner version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer keeps existing uv, installs the requested version with Python 3.12, refreshes PATH, and verifies maid before succeeding."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_bootstraps_uv_when_missing",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user runs the installer without uv.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer retrieves Astral's official uv installer, discovers uv, installs MAID Runner, and verifies the command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+              "returns": "None",
+              "source_scenario": "A caller supplies an unsafe version, omits a value, or uses an unsupported option.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero with usage guidance before invoking uv."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_propagates_download_and_tool_failures",
+              "returns": "None",
+              "source_scenario": "The uv download or MAID Runner installation fails.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero, skips later verification, and never prints success."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_powershell_installer_contract_is_auditable_and_fail_closed",
+              "returns": "None",
+              "source_scenario": "A reviewer inspects the Windows bootstrapper without PowerShell execution support.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The script validates versions, uses Astral's HTTPS installer, checks exits, installs with Python 3.12, refreshes PATH, and verifies maid before success."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_passes_shellcheck",
+              "returns": "None",
+              "source_scenario": "A maintainer validates the POSIX bootstrapper.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "ShellCheck accepts the installer with no diagnostics."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+              "returns": "None",
+              "source_scenario": "A newcomer scans the README or landing page for installation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both surfaces present first-party shell and PowerShell installers before uv and pip alternatives and include first-run commands."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+              "returns": "None",
+              "source_scenario": "An installer or installer-workflow change is proposed or lands on main.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "A path-scoped workflow executes checked-out shell installers on Ubuntu/macOS and PowerShell on Windows with least-privilege contents access."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "README.md",
+        "pyproject.toml",
+        "manifests/add-google-analytics.manifest.yaml",
+        "manifests/add-bootstrap-installers.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Existing homepage and canonical metadata remain part of the complete superseding website contract."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Existing responsive and accessible presentation remains part of the complete website contract."
+        },
+        {
+          "path": "website/script.js",
+          "reason": "Existing progressive-enhancement navigation remains part of the complete website contract."
+        },
+        {
+          "path": "website/404.html",
+          "reason": "Existing static fallback remains part of the complete website contract."
+        },
+        {
+          "path": "website/robots.txt",
+          "reason": "Crawler policy must continue pointing only to the canonical HTTPS apex sitemap."
+        },
+        {
+          "path": "website/sitemap.xml",
+          "reason": "Search discovery must continue listing only the final 200-status canonical homepage."
+        },
+        {
+          "path": "website/assets/logo.png",
+          "reason": "The production PNG remains the authoritative brand asset."
+        },
+        {
+          "path": "website/assets/social-card.png",
+          "reason": "The social preview remains part of the website asset contract."
+        },
+        {
+          "path": "website/data/practice-stats.json",
+          "reason": "The evidence-backed practice statistics remain the canonical data source for homepage copy."
+        },
+        {
+          "path": "website/install.sh",
+          "reason": "The existing POSIX bootstrap endpoint remains part of the complete website contract."
+        },
+        {
+          "path": "website/install.ps1",
+          "reason": "The existing PowerShell bootstrap endpoint remains part of the complete website contract."
+        },
+        {
+          "path": "README.md",
+          "reason": "The existing bootstrap installer onboarding hierarchy remains part of the superseded installer contract."
+        },
+        {
+          "path": ".github/workflows/test-installers.yml",
+          "reason": "The cross-platform installer smoke workflow remains active and distinct from website publishing."
+        },
+        {
+          "path": "vercel.json",
+          "reason": "Repository-owned Vercel configuration serves the static website/ directory without relying on stale Pages automation."
+        },
+        {
+          "path": "website/README.md",
+          "reason": "Deployment documentation records Vercel as the only publisher and explains intentional canonical-domain redirects."
+        }
+      ],
+      "delete": [
+        {
+          "path": ".github/workflows/deploy-website.yml",
+          "reason": "The GitHub Pages publisher is obsolete now that Vercel serves the production domain."
+        },
+        {
+          "path": "website/assets/logo.svg",
+          "reason": "The removed generated logo variant must remain absent."
+        },
+        {
+          "path": "website/assets/mockup-redesign.png",
+          "reason": "The disposable design reference must remain absent."
+        },
+        {
+          "path": "website/assets/social-card-v2.png",
+          "reason": "The disposable social-card source variant must remain absent."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_bootstrap_installers.py",
+      "tests/test_website_google_analytics.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_static_contract.py tests/test_website_google_analytics.py tests/test_bootstrap_installers.py",
+      "uv run maid validate manifests/fix-google-search-vercel-deployment.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-google-search-vercel-deployment.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
