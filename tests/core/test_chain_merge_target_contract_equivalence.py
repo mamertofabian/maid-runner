@@ -310,13 +310,8 @@ def test_apply_preserves_ordered_target_specs_and_private_only_paths(tmp_path):
     before_chain = ManifestChain(manifest_dir)
     assert before_chain.load_errors == []
     before_target = tuple(before_chain.merged_artifacts_for("src/target.py"))
-    assert [artifact.name for artifact in before_target] == [
-        "beta",
-        "alpha",
-        "Worker",
-        "process",
-        "state",
-    ]
+    before_keys = [artifact.contract_key() for artifact in before_target]
+    assert before_keys == sorted(before_keys)
     before_paths = before_chain.all_tracked_paths()
     inferred = (
         generate_snapshot(source_dir / "target.py", project_root=str(tmp_path))
@@ -342,15 +337,6 @@ def test_apply_preserves_ordered_target_specs_and_private_only_paths(tmp_path):
     target_spec = replacement.file_spec_for("src/target.py")
     assert target_spec is not None
     assert target_spec.artifacts[: len(before_target)] == before_target
-    assert [artifact.name for artifact in target_spec.artifacts] == [
-        "beta",
-        "alpha",
-        "Worker",
-        "process",
-        "state",
-        "zulu_new",
-        "gamma_new",
-    ]
     assert target_spec.artifacts[len(before_target) :] == inferred_new
     assert target_spec.imports == ("legacy.target", "latest.target")
     private_spec = replacement.file_spec_for("src/private_helpers.py")
@@ -370,16 +356,11 @@ def test_apply_preserves_ordered_target_specs_and_private_only_paths(tmp_path):
 
     after_chain = ManifestChain(manifest_dir)
     after_target = tuple(after_chain.merged_artifacts_for("src/target.py"))
-    assert after_target[: len(before_target)] == before_target
-    assert [artifact.name for artifact in after_target] == [
-        "beta",
-        "alpha",
-        "Worker",
-        "process",
-        "state",
-        "zulu_new",
-        "gamma_new",
-    ]
+    after_keys = [artifact.contract_key() for artifact in after_target]
+    assert after_keys == sorted(after_keys)
+    assert {artifact.contract_key(): artifact for artifact in after_target} == {
+        artifact.contract_key(): artifact for artifact in target_spec.artifacts
+    }
     assert before_paths <= after_chain.all_tracked_paths()
 
     (manifest_dir / "followup.manifest.yaml").write_text(FOLLOWUP_OWNER)

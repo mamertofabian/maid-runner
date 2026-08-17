@@ -209,12 +209,12 @@ def test_apply_preserves_latest_complete_specs_for_every_carried_artifact(tmp_pa
         for path in ("src/service.py", "tests/test_service.py")
     }
     assert [artifact.name for artifact in before["src/service.py"]] == [
+        "state",
+        "Worker",
         "zeta",
         "eta",
         "omega",
-        "Worker",
         "process",
-        "state",
     ]
 
     result = apply_chain_merge(

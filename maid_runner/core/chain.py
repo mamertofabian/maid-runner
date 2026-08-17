@@ -303,7 +303,7 @@ class ManifestChain:
                     for artifact in fs.artifacts:
                         merged[artifact.contract_key()] = artifact
 
-        return list(merged.values())
+        return sorted(merged.values(), key=lambda artifact: artifact.contract_key())
 
     def file_mode_for(self, path: str) -> Optional[FileMode]:
         modes: set[FileMode] = set()

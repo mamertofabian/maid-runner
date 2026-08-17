@@ -495,16 +495,16 @@ def test_apply_preserves_multi_file_contract_and_validation_union(tmp_path):
     ]
     bar_artifacts = replacement.artifacts_for("src/bar.py")
     assert [artifact.contract_key() for artifact in bar_artifacts] == [
-        "function:zeta",
         "function:eta",
+        "function:zeta",
     ]
-    assert bar_artifacts[0].args[0].name == "value"
-    assert bar_artifacts[0].args[0].type == "int"
-    assert bar_artifacts[0].args[0].default == "1"
-    assert bar_artifacts[0].returns == "int"
-    assert bar_artifacts[0].raises == ("ValueError",)
-    assert bar_artifacts[1].args == ()
-    assert bar_artifacts[1].returns == "str"
+    assert bar_artifacts[0].args == ()
+    assert bar_artifacts[0].returns == "str"
+    assert bar_artifacts[1].args[0].name == "value"
+    assert bar_artifacts[1].args[0].type == "int"
+    assert bar_artifacts[1].args[0].default == "1"
+    assert bar_artifacts[1].returns == "int"
+    assert bar_artifacts[1].raises == ("ValueError",)
     assert [spec.path for spec in replacement.files_create] == ["src/bar.py"]
     assert [spec.path for spec in replacement.files_snapshot] == [
         "src/foo.py",
@@ -520,8 +520,8 @@ def test_apply_preserves_multi_file_contract_and_validation_union(tmp_path):
     snap_spec = replacement.file_spec_for("src/snap.py")
     assert snap_spec is not None
     assert [artifact.contract_key() for artifact in snap_spec.artifacts] == [
-        "function:theta",
         "function:iota",
+        "function:theta",
     ]
     assert snap_spec.imports == ("typing.Mapping", "typing.Sequence")
     assert replacement.validate_commands == (
@@ -547,7 +547,7 @@ def test_apply_preserves_multi_file_contract_and_validation_union(tmp_path):
     assert [
         artifact.contract_key()
         for artifact in refreshed.merged_artifacts_for("src/bar.py")
-    ] == ["function:zeta", "function:eta"]
+    ] == ["function:eta", "function:zeta"]
     assert refreshed.audit_supersession_artifacts() == []
 
 
