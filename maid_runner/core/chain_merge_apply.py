@@ -21,7 +21,6 @@ from maid_runner.core.chain_merge import ChainMergeVerdict, build_chain_merge_re
 from maid_runner.core.snapshot import generate_snapshot, save_snapshot
 from maid_runner.core.types import (
     AcceptanceConfig,
-    ArtifactSpec,
     FileMode,
     FileSpec,
     Manifest,
@@ -93,7 +92,7 @@ def apply_chain_merge(
             missing_artifacts=missing,
         )
 
-    carried_specs = _carried_file_specs(to_supersede, file_path)
+    carried_specs = _carried_file_specs(to_supersede, file_path, chain)
     artifact_paths = {file_path, *(spec.path for spec in carried_specs)}
     delete_paths = {
         deleted.path for manifest in to_supersede for deleted in manifest.files_delete
@@ -193,7 +192,7 @@ def _declares_artifacts_in(manifest: Manifest, file_path: str) -> bool:
 
 
 def _carried_file_specs(
-    manifests: list[Manifest], target_path: str
+    manifests: list[Manifest], target_path: str, chain: ManifestChain
 ) -> tuple[FileSpec, ...]:
     by_path: dict[str, list[FileSpec]] = {}
     for manifest in manifests:
@@ -208,10 +207,9 @@ def _carried_file_specs(
     }
     carried: list[FileSpec] = []
     for path, specs in by_path.items():
-        artifacts = _first_artifacts(
+        artifacts = tuple(
             artifact
-            for spec in specs
-            for artifact in spec.artifacts
+            for artifact in chain.merged_artifacts_for(path)
             if not artifact.is_private
         )
         imports = _first_strings(item for spec in specs for item in spec.imports)
@@ -228,13 +226,6 @@ def _carried_file_specs(
             )
         )
     return tuple(carried)
-
-
-def _first_artifacts(artifacts) -> tuple[ArtifactSpec, ...]:
-    by_key: dict[str, ArtifactSpec] = {}
-    for artifact in artifacts:
-        by_key.setdefault(artifact.contract_key(), artifact)
-    return tuple(by_key.values())
 
 
 def _first_strings(items) -> tuple[str, ...]:

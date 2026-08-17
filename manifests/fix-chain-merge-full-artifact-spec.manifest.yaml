@@ -1,0 +1,259 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Preserve the latest effective complete ArtifactSpec for every unrelated public artifact carried by file-scoped chain merge"
+type: fix
+created: "2026-08-17T03:09:18Z"
+supersedes:
+  - chain-merge-file-scoped-apply
+metadata:
+  priority: critical
+  tags:
+    - chain-merge
+    - supersession
+    - contract-equivalence
+    - validation-trust
+description: |
+  File-scoped apply currently preserves unrelated artifact identities but keeps
+  the first matching ArtifactSpec found only among directly superseded owners.
+  Because the generated snapshot is newest, an older partial carried spec can
+  then override a later complete declaration, including one in a still-active
+  owner. Real consolidation weakened public parameters and behavioral metadata
+  while implementation validation and the identity-only supersession audit
+  remained green.
+
+  Evolve the file-scoped apply contract so every carried artifact uses the
+  latest effective complete ArtifactSpec from the full active ManifestChain.
+  The self-contained replacement preserves the pre-apply chain's first-seen
+  contract-key order while replacing values with their latest effective
+  declarations; the post-apply active chain must preserve the same complete
+  identity-to-spec mapping even when still-active owners determine a different
+  iteration order. Complete value preservation covers args, defaults, return
+  and raise contracts, async/default-hook flags, class bases and type
+  parameters, owners and attribute types, descriptions, exact signatures, and
+  every test-function detail. A second materialization after another target
+  owner arrives must preserve the same values again. Target snapshot behavior,
+  private filtering, file-mode
+  policy, imports, commands, acceptance, removals, path precedence, atomic
+  refusals, and non-colliding repeated apply remain unchanged.
+temptations:
+  - risk: "Do not fix only the concrete missing parameters observed in repository snapshots."
+    instead: "Select each carried value from ManifestChain.merged_artifacts_for(path) and prove whole ArtifactSpec equality before and after apply."
+  - risk: "Do not preserve latest values by removing and re-appending duplicate keys, which changes deterministic artifact order."
+    instead: "Keep first-seen contract-key positions and replace their values with the latest effective specs."
+  - risk: "Do not limit the lookup to directly superseded owners."
+    instead: "Include still-active owners because the newly dated snapshot would otherwise override their newer effective declarations."
+  - risk: "Do not weaken implementation validation or the supersession audit to bless partial specs."
+    instead: "Correct materialization and verify observable active-chain equivalence through public APIs."
+files:
+  edit:
+    - path: maid_runner/core/chain_merge_apply.py
+      artifacts:
+        - kind: class
+          name: ChainMergeApplyResult
+        - kind: attribute
+          name: applied
+          of: ChainMergeApplyResult
+          type: bool
+        - kind: attribute
+          name: snapshot_path
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: superseded_slugs
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: refused_reason
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: missing_artifacts
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: function
+          name: apply_chain_merge
+          args:
+            - name: file_path
+              type: str
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: str
+              default: '"."'
+            - name: output_dir
+              type: str
+              default: '"manifests/"'
+          returns: ChainMergeApplyResult
+          description: "Materialize the target snapshot while preserving latest effective complete public ArtifactSpecs and all existing whole-manifest obligations without changing first-seen artifact order."
+    - path: tests/core/test_chain_merge_apply.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_writes_snapshot_superseding_chain
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_when_snapshot_drops_declared_artifact
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_lean_file
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_leaves_source_unchanged
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_repeatedly_uses_noncolliding_snapshot_slug
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_multi_file_contract_and_validation_union
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_omits_legacy_private_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_scope_read_and_delete_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_keeps_snapshot_inferred_companion_reads
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_artifact_delete_path_conflict_atomically
+          args: []
+          returns: None
+  create:
+    - path: tests/core/test_chain_merge_full_artifact_specs.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_preserves_latest_complete_specs_for_every_carried_artifact
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/types.py
+    - tests/cli/test_chain_merge_apply_command.py
+    - tests/core/test_chain_merge_coverage_wiring.py
+    - tests/core/test_chain_merge_equivalence.py
+    - manifests/chain-merge-file-scoped-apply.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merge_full_artifact_specs.py tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py
+  - uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T03:23:05Z"
+  summary: "File-scoped chain merge now carries the active chain's latest complete ordered ArtifactSpecs, preventing newly generated snapshots from weakening unrelated public signatures or behavioral metadata."
+  rationale: "Artifact identity preservation was insufficient because a newly dated snapshot could make an older partial declaration authoritative. Reading effective specs from ManifestChain preserves complete values from both superseded and still-active owners while retaining existing private filtering and whole-manifest obligations."
+  lessons:
+    - lesson_type: test-design
+      summary: "Materializer equivalence must compare complete value objects and the generated replacement itself; identity-only audits and post-merge effective keys can both pass when carried contracts are partial or omitted."
+      tags:
+        - chain-merge
+        - contract-equivalence
+        - anti-gaming
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+        - tests/core/test_chain_merge_full_artifact_specs.py
+    - lesson_type: design
+      summary: "Repeated materialization preserves the first-seen order of the active chain immediately before each apply, not the order of owners already made inactive by an earlier apply."
+      tags:
+        - ordering
+        - supersession
+        - plan-revision
+      paths:
+        - tests/core/test_chain_merge_full_artifact_specs.py
+    - lesson_type: validation
+      summary: "A real nine-target reproduction covered 331 carried paths and closed structural and metadata losses that per-manifest implementation validation and identity-only supersession auditing could not detect."
+      tags:
+        - real-reproduction
+        - validation-trust
+        - artifact-spec
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+  review_notes:
+    - source: e710-owner-consolidation-implementation-review
+      severity: P1
+      summary: "Generated snapshots passed ordinary gates but introduced 34 public structural spec changes and 52 carried description/test-detail changes; this isolated fix was required before consolidation could continue."
+    - source: chain-merge-full-spec-plan-review
+      severity: approved
+      summary: "After revision, the behavioral contract covered self-contained output, complete ArtifactSpec fields, stable replacement order, superseded-owner-only artifacts, audit integrity, and repeated apply."
+    - source: chain-merge-full-spec-implementation-review
+      severity: ready
+      summary: "No findings; scope, lock revision 3, full-spec behavior, ordering, still-active owners, private filtering, and repeated apply were correct."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_full_artifact_specs.py
+        - tests/core/test_chain_merge_apply.py
+        - tests/cli/test_chain_merge_apply_command.py
+      status: passed
+      summary: "All 13 focused apply and CLI tests passed."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_coverage_wiring.py
+        - tests/core/test_chain_merge_equivalence.py
+      status: passed
+      summary: "All 27 adjacent coverage and equivalence tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-chain-merge-full-artifact-spec.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 3."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All 470 active manifests passed repository validation."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 294 declared commands passed on rerun; the complete pytest suite independently passed 4396 tests with 14 skips."
+    - command:
+        - real-nine-target-chain-merge-reproduction
+      status: passed
+      summary: "Nine sequential targets preserved exact pre-apply full specs across 331 carried paths; supersession integrity was clean and audit output contained only 11 existing informational grandfathered records."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - f031015
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation passed; artifact coverage remained blocked only by the pre-existing 89-owner E710 debt."
