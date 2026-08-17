@@ -953,15 +953,26 @@ def _evaluate_targets(
     ast_cache: dict[str, _ArtifactLineIndex] = {}
     executed_cache: dict[str, RuntimeFileExecution] = {}
     class_method_executed: dict[tuple[str, str], bool] = {}
+    classes_with_runtime_methods: set[tuple[str, str]] = set()
 
     for file_path, artifact in targets:
-        index = ast_cache.setdefault(file_path, _build_line_index(root / file_path))
+        if artifact.kind != ArtifactKind.METHOD or artifact.of is None:
+            continue
+        index = _line_index_for_file(ast_cache, root, file_path)
+        span = index.methods.get((artifact.of, artifact.name))
+        if span is None or not span.abstract_contract:
+            classes_with_runtime_methods.add((file_path, artifact.of))
+
+    for file_path, artifact in targets:
+        index = _line_index_for_file(ast_cache, root, file_path)
         execution_data = executed_cache.setdefault(
             file_path,
             _execution_data_for_file(file_path, execution_data_by_file),
         )
         if artifact.kind == ArtifactKind.METHOD:
             span = index.methods.get((artifact.of or "", artifact.name))
+            if span is not None and span.abstract_contract:
+                continue
             executed = _span_executed(span, execution_data)
             class_method_executed[(file_path, artifact.of or "")] = (
                 class_method_executed.get((file_path, artifact.of or ""), False)
@@ -973,9 +984,8 @@ def _evaluate_targets(
                 resolved = _resolved_reexport_target(root, file_path, artifact)
                 if resolved is not None:
                     resolved_file, resolved_name = resolved
-                    resolved_index = ast_cache.setdefault(
-                        resolved_file,
-                        _build_line_index(root / resolved_file),
+                    resolved_index = _line_index_for_file(
+                        ast_cache, root, resolved_file
                     )
                     resolved_execution = executed_cache.setdefault(
                         resolved_file,
@@ -987,6 +997,11 @@ def _evaluate_targets(
                     span = resolved_index.functions.get(resolved_name)
                     execution_data = resolved_execution
             executed = _span_executed(span, execution_data)
+        elif (
+            artifact.kind == ArtifactKind.CLASS
+            and (file_path, artifact.name) not in classes_with_runtime_methods
+        ):
+            continue
         else:
             executed = False
         findings.append(_finding(file_path, artifact, executed))
@@ -1055,11 +1070,24 @@ class _ArtifactLineIndex:
 class _ArtifactLineSpan:
     body_lines: set[int]
     qualname: str
+    abstract_contract: bool = False
+
+
+def _line_index_for_file(
+    cache: dict[str, _ArtifactLineIndex],
+    root: Path,
+    file_path: str,
+) -> _ArtifactLineIndex:
+    index = cache.get(file_path)
+    if index is None:
+        index = _build_line_index(root / file_path)
+        cache[file_path] = index
+    return index
 
 
 def _build_line_index(file_path: Path) -> _ArtifactLineIndex:
     tree = ast.parse(file_path.read_text(), filename=str(file_path))
-    visitor = _LineIndexVisitor()
+    visitor = _LineIndexVisitor(_stdlib_abstractmethod_bindings(tree))
     visitor.visit(tree)
     return _ArtifactLineIndex(
         functions=visitor.functions,
@@ -1068,10 +1096,11 @@ def _build_line_index(file_path: Path) -> _ArtifactLineIndex:
 
 
 class _LineIndexVisitor(ast.NodeVisitor):
-    def __init__(self) -> None:
+    def __init__(self, abstractmethod_bindings: frozenset[str]) -> None:
         self.functions: dict[str, _ArtifactLineSpan] = {}
         self.methods: dict[tuple[str, str], _ArtifactLineSpan] = {}
         self._class_stack: list[str] = []
+        self._abstractmethod_bindings = abstractmethod_bindings
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         self._class_stack.append(node.name)
@@ -1087,7 +1116,11 @@ class _LineIndexVisitor(ast.NodeVisitor):
 
     def _record_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         qualname = ".".join([*self._class_stack, node.name])
-        lines = _body_lines(node, qualname=qualname)
+        lines = _body_lines(
+            node,
+            qualname=qualname,
+            abstractmethod_bindings=self._abstractmethod_bindings,
+        )
         if self._class_stack:
             self.methods[(self._class_stack[-1], node.name)] = lines
         else:
@@ -1098,6 +1131,7 @@ def _body_lines(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
     *,
     qualname: str,
+    abstractmethod_bindings: frozenset[str],
 ) -> _ArtifactLineSpan:
     statements = list(node.body)
     if (
@@ -1118,7 +1152,167 @@ def _body_lines(
     return _ArtifactLineSpan(
         body_lines=body_lines,
         qualname=qualname,
+        abstract_contract=_is_abstract_contract(node, abstractmethod_bindings),
     )
+
+
+def _is_abstract_contract(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    bindings: frozenset[str],
+) -> bool:
+    """Recognize exact decorator spellings bound directly to stdlib abc."""
+    for decorator in node.decorator_list:
+        if (
+            "abstractmethod" in bindings
+            and isinstance(decorator, ast.Name)
+            and decorator.id == "abstractmethod"
+        ):
+            return True
+        if (
+            "abc" in bindings
+            and isinstance(decorator, ast.Attribute)
+            and decorator.attr == "abstractmethod"
+            and isinstance(decorator.value, ast.Name)
+            and decorator.value.id == "abc"
+        ):
+            return True
+    return False
+
+
+def _stdlib_abstractmethod_bindings(tree: ast.Module) -> frozenset[str]:
+    """Return unshadowed direct bindings to ``abc`` contract decorators."""
+    visitor = _ModuleBindingVisitor()
+    visitor.visit(tree)
+    bindings: set[str] = set()
+    if visitor.sources.get("abstractmethod") == ["abc.abstractmethod"]:
+        bindings.add("abstractmethod")
+    if visitor.sources.get("abc") == ["abc"]:
+        bindings.add("abc")
+    return frozenset(bindings)
+
+
+class _ModuleBindingVisitor(ast.NodeVisitor):
+    """Collect module-scope bindings while ignoring nested lexical scopes."""
+
+    def __init__(self) -> None:
+        self.sources: dict[str, list[str]] = {}
+
+    def _record(self, name: str, source: str) -> None:
+        if name in {"abc", "abstractmethod"}:
+            self.sources.setdefault(name, []).append(source)
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            bound = alias.asname or alias.name.split(".", 1)[0]
+            source = "abc" if alias.name == "abc" and bound == "abc" else "other"
+            self._record(bound, source)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        for alias in node.names:
+            bound = alias.asname or alias.name
+            source = (
+                "abc.abstractmethod"
+                if node.level == 0
+                and node.module == "abc"
+                and alias.name == "abstractmethod"
+                and bound == "abstractmethod"
+                else "other"
+            )
+            self._record(bound, source)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._record(node.name, "other")
+        self._visit_function_definition_expressions(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._record(node.name, "other")
+        self._visit_function_definition_expressions(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self._record(node.name, "other")
+        for expression in [*node.decorator_list, *node.bases, *node.keywords]:
+            self.visit(expression)
+        for type_parameter in getattr(node, "type_params", ()):
+            self.visit(type_parameter)
+
+    def _visit_function_definition_expressions(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        self.visit(node.args)
+        if node.returns is not None:
+            self.visit(node.returns)
+        for type_parameter in getattr(node, "type_params", ()):
+            self.visit(type_parameter)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        self.visit(node.args)
+
+    def visit_Name(self, node: ast.Name) -> None:
+        if isinstance(node.ctx, (ast.Store, ast.Del)):
+            self._record(node.id, "other")
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if (
+            isinstance(node.ctx, (ast.Store, ast.Del))
+            and node.attr == "abstractmethod"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "abc"
+        ):
+            self._record("abc", "other")
+        self.generic_visit(node)
+
+    def visit_ListComp(self, node: ast.ListComp) -> None:
+        self._visit_comprehension(node.generators, (node.elt,))
+
+    def visit_SetComp(self, node: ast.SetComp) -> None:
+        self._visit_comprehension(node.generators, (node.elt,))
+
+    def visit_DictComp(self, node: ast.DictComp) -> None:
+        self._visit_comprehension(node.generators, (node.key, node.value))
+
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> None:
+        self._visit_comprehension(node.generators, (node.elt,))
+
+    def _visit_comprehension(
+        self,
+        generators: list[ast.comprehension],
+        values: tuple[ast.expr, ...],
+    ) -> None:
+        for generator in generators:
+            self.visit(generator.iter)
+            for condition in generator.ifs:
+                self.visit(condition)
+        for value in values:
+            self.visit(value)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
+        if node.name is not None:
+            self._record(node.name, "other")
+        if node.type is not None:
+            self.visit(node.type)
+        for statement in node.body:
+            self.visit(statement)
+
+    def visit_MatchAs(self, node: ast.MatchAs) -> None:
+        if node.name is not None:
+            self._record(node.name, "other")
+        if node.pattern is not None:
+            self.visit(node.pattern)
+
+    def visit_MatchStar(self, node: ast.MatchStar) -> None:
+        if node.name is not None:
+            self._record(node.name, "other")
+
+    def visit_MatchMapping(self, node: ast.MatchMapping) -> None:
+        if node.rest is not None:
+            self._record(node.rest, "other")
+        for key in node.keys:
+            self.visit(key)
+        for pattern in node.patterns:
+            self.visit(pattern)
 
 
 def _span_executed(
