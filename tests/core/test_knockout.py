@@ -452,10 +452,8 @@ def beta() -> str:
 
 
 def test_knockout_rechecks_dirty_state_before_each_artifact_rewrite(
-    monkeypatch,
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core import knockout
     from maid_runner.core.knockout import run_knockout
 
     manifest_path = _write_two_file_project(tmp_path)
@@ -463,32 +461,39 @@ def test_knockout_rechecks_dirty_state_before_each_artifact_rewrite(
     original_second = second_path.read_text()
     prior_states = []
 
-    def dirty_second_after_first(command, **kwargs):
-        snapshot_root = Path(kwargs["cwd"])
-        first_source = (snapshot_root / "src" / "first.py").read_text()
-        second_source = (snapshot_root / "src" / "second.py").read_text()
-        state_path = snapshot_root / "command-state.log"
-        prior = state_path.read_text() if state_path.exists() else ""
-        prior_states.append(prior)
-        state_path.write_text(prior + "called\n")
-        return _test_result(
-            command,
-            exit_code=(
-                1
-                if 'raise NotImplementedError("maid-knockout")'
-                in first_source + second_source
-                else 0
-            ),
-        )
+    class DirtyStateExecutor:
+        def execute(self, command, project_root, _manifest_slug):
+            snapshot_root = Path(project_root)
+            first_source = (snapshot_root / "src" / "first.py").read_text()
+            second_source = (snapshot_root / "src" / "second.py").read_text()
+            state_path = snapshot_root / "command-state.log"
+            prior = state_path.read_text() if state_path.exists() else ""
+            prior_states.append(prior)
+            state_path.write_text(prior + "called\n")
+            return _test_result(
+                command,
+                exit_code=(
+                    1
+                    if 'raise NotImplementedError("maid-knockout")'
+                    in first_source + second_source
+                    else 0
+                ),
+            )
 
-    monkeypatch.setattr(knockout, "_run_test_command", dirty_second_after_first)
-
-    report = run_knockout(load_manifest(manifest_path), tmp_path)
+    report = run_knockout(
+        load_manifest(manifest_path), tmp_path, executor=DirtyStateExecutor()
+    )
 
     assert [result.artifact_name for result in report.results] == ["first", "second"]
     assert report.success is True
     assert second_path.read_text() == original_second
-    assert prior_states == ["", "called\n", "called\ncalled\n"] * 2
+    assert prior_states == [
+        "",
+        "called\n",
+        "called\ncalled\n",
+        "called\n",
+        "called\ncalled\n",
+    ]
     assert not (tmp_path / "command-state.log").exists()
 
 

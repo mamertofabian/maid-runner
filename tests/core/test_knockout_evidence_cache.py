@@ -106,63 +106,20 @@ def test_red_knockout_results_are_cached(tmp_path: Path) -> None:
 
 
 def test_interrupted_knockout_batch_retains_completed_spec_cache(
-    tmp_path: Path, monkeypatch
+    tmp_path: Path,
 ) -> None:
-    from maid_runner.core import _knockout_worker
     from maid_runner.core.knockout import run_knockout_batch
 
     manifest = _write_project(tmp_path, artifacts=("alpha", "beta"))
-    executor = _RecordingExecutor((0, 1, 0, 0, 1, 0))
-    original = _knockout_worker.run_knockout_workers
-    interrupted = False
+    interrupted_executor = _InterruptingExecutor((0, 1, 0))
 
-    def interrupt_after_first_result(
-        specs,
-        project_root,
-        evidence,
-        snapshot_backend,
-        command_executor,
-        jobs,
-        max_processes,
-        on_result=None,
-    ):
-        nonlocal interrupted
-        assert on_result is not None
-        if interrupted:
-            return original(
-                specs,
-                project_root,
-                evidence,
-                snapshot_backend,
-                command_executor,
-                jobs,
-                max_processes,
-                on_result=on_result,
-            )
-        completed = original(
-            specs[:1],
-            project_root,
-            evidence,
-            snapshot_backend,
-            command_executor,
-            jobs,
-            max_processes,
-        )[0]
-        on_result(completed)
-        interrupted = True
-        raise RuntimeError("batch interrupted")
+    interrupted = run_knockout_batch(
+        (manifest,), tmp_path, executor=interrupted_executor
+    )[manifest.source_path]
+    assert interrupted.success is False
 
-    monkeypatch.setattr(
-        _knockout_worker, "run_knockout_workers", interrupt_after_first_result
-    )
-    try:
-        run_knockout_batch((manifest,), tmp_path, executor=executor)
-    except RuntimeError as exc:
-        assert str(exc) == "batch interrupted"
-    else:
-        raise AssertionError("expected the simulated batch interruption")
-
-    report = run_knockout_batch((manifest,), tmp_path, executor=executor)[
+    resumed_executor = _RecordingExecutor((0, 1, 0))
+    report = run_knockout_batch((manifest,), tmp_path, executor=resumed_executor)[
         manifest.source_path
     ]
 
@@ -170,7 +127,7 @@ def test_interrupted_knockout_batch_retains_completed_spec_cache(
     assert report.results[0].cache_hit is True
     assert report.results[1].cache_hit is False
     assert [result.artifact_name for result in report.results] == ["alpha", "beta"]
-    assert len(executor.calls) == 6
+    assert len(interrupted_executor.calls) + len(resumed_executor.calls) == 6
 
 
 def test_no_cache_run_does_not_checkpoint_completed_spec(tmp_path: Path) -> None:
@@ -269,3 +226,11 @@ class _RecordingExecutor:
             duration_ms=1.0,
             stream=TestStream.IMPLEMENTATION,
         )
+
+
+class _InterruptingExecutor(_RecordingExecutor):
+    def execute(self, command, project_root, manifest_slug):
+        mutated = MUTANT_MARKER in (Path(project_root) / "src/target.py").read_text()
+        if mutated and len(self.calls) == 3:
+            raise RuntimeError("batch interrupted")
+        return super().execute(command, project_root, manifest_slug)

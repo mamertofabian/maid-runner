@@ -157,6 +157,15 @@ description: |
   28. `121-46-checkpoint-knockout-cache-per-worker` - persist each completed
       knockout worker immediately so interruption and timeout preserve proven
       progress instead of discarding the entire multi-hour batch.
+  29. `121-47-template-fresh-knockout-roots` - capture one immutable
+      invocation template and clone each declaration's distinct source/Git
+      root from it, eliminating concurrent rescans and copies of the live
+      repository while retaining fresh-root and fail-closed cache semantics.
+  30. `121-48-share-knockout-command-controls` - group exact one-command
+      knockout declarations by command, slug, environment, and captured input
+      identity; run one green baseline in a stable-path root, reset that root
+      from an immutable post-baseline checkpoint before each mutant, and retain
+      a separate restored-green command for every artifact.
 
   Promotion prerequisites are strict. 121-07 cannot enable workers until the
   121-03 full-suite probe is green. 121-09 cannot consume evidence until

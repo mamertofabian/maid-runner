@@ -1,0 +1,155 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Compute knockout cache-key shared inputs once per batch instead of once per mutation"
+type: fix
+created: "2026-08-17T13:10:10Z"
+metadata:
+  priority: critical
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - cache
+    - deep-verification
+description: |
+  A release-baseline deep verify with 487 selected mutations spent more than
+  nine minutes inside knockout cache lookup before launching workers. Every
+  `_knockout_spec_cache_key` call recomputes the full repository content digest
+  and resolved environment, and each cacheable spec computes the same values
+  again when its result is checkpointed. Build those invocation-stable inputs
+  once in `run_knockout_batch`, reuse them for every cache read and write in
+  that batch, and compute a fresh context for every public invocation.
+
+  Cache identity remains content-, declaration-, environment-, mutation-, and
+  runner-version-bound. This is invocation-scoped memoization only: changing
+  project content between calls must still miss persisted evidence, `no_cache`
+  and empty mutation plans must avoid cache-key preparation entirely, and
+  returned report ordering and diagnostics must remain unchanged. Bind worker
+  snapshots to the content and dependency identity captured with the shared
+  context; if inputs drift before a worker snapshot is created, fail that
+  worker closed and do not checkpoint its result under the earlier identity.
+temptations:
+  - risk: "Do not remove repository content or resolved-environment identity from the persistent cache key to make lookup fast."
+    instead: "Precompute the same hermetic values once at the public batch boundary and pass them through every read and checkpoint write."
+  - risk: "Do not process-memoize the context across run_knockout_batch calls."
+    instead: "Create a fresh invocation context after specs are built so source, test, configuration, dependency, and environment changes invalidate the next call."
+  - risk: "Do not compute cache identity when no_cache is true."
+    instead: "Bypass context construction together with all persistent cache reads and writes."
+  - risk: "Do not prove the optimization with wall-clock thresholds alone."
+    instead: "Assert one repository digest and resolved-environment lookup per cached public invocation, zero for no_cache, content-change invalidation, and equivalent public reports."
+  - risk: "Do not checkpoint a later worker snapshot under an earlier invocation identity after project or dependency drift."
+    instead: "Capture one snapshot input identity with the cache context and reject any worker snapshot whose input identity differs before it can execute or checkpoint."
+files:
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - {name: manifests, type: "Sequence[Manifest]"}
+            - {name: project_root, type: Path}
+            - {name: evidence, type: "RuntimeEvidenceBundle | None", default: "None"}
+            - {name: limit, type: "int | None", default: "None"}
+            - {name: allow_dirty, type: bool, default: "False"}
+            - {name: executor, type: "KnockoutCommandExecutor | None", default: "None"}
+            - {name: snapshot_backend, type: "ProjectSnapshotBackend | None", default: "None"}
+            - {name: jobs, type: int, default: "1"}
+            - {name: max_processes, type: int, default: "1"}
+            - {name: no_cache, type: bool, default: "False"}
+          returns: "dict[str, KnockoutReport]"
+          description: "Reuses one hermetic cache-key context across all mutation reads and checkpoint writes in one batch while rebuilding it for every invocation."
+  scope:
+    - path: maid_runner/core/_knockout_snapshot.py
+      reason: "Keep non-Git snapshot input identity stable across the same exact knockout checkpoint-cache path already excluded from Git repository identity, without excluding broader .maid state or tracked Git paths."
+  create:
+    - path: tests/core/test_knockout_cache_key_context.py
+      artifacts:
+        - kind: test_function
+          name: test_cached_batch_computes_repository_identity_once
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+        - kind: test_function
+          name: test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+        - kind: test_function
+          name: test_no_cache_skips_repository_cache_identity
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+        - kind: test_function
+          name: test_empty_batch_skips_repository_cache_identity
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+        - kind: test_function
+          name: test_checkpoint_rejects_inputs_that_drift_after_context_capture
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+        - kind: test_function
+          name: test_git_project_without_cache_ignore_reuses_untracked_checkpoint
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/_knockout_worker.py
+    - tests/core/test_knockout_evidence_cache.py
+    - tests/core/test_knockout_cache_declaration_identity.py
+    - manifests/121-22-persist-knockout-evidence-cache.manifest.yaml
+    - manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml
+    - manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_cache_key_context.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_declaration_identity.py
+  - uv run maid validate manifests/fix-knockout-cache-key-context.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T13:36:50Z"
+  summary: "Knockout cache reads and checkpoints now reuse one invocation-scoped hermetic key context, reject drifted worker inputs, skip empty and no-cache work, and tolerate only exact untracked checkpoint paths."
+  rationale: "A 487-mutation release gate spent more than nine minutes recomputing the full repository and environment identity per cache read. Review hardened the optimization against mid-run input drift, empty plans, non-Git checkpoint identity, and Git repositories that do not ignore the cache."
+  lessons:
+    - lesson_type: performance
+      summary: "Persistent per-spec caches should compute invocation-stable hermetic inputs once, while retaining per-spec mutation and declaration dimensions."
+      tags: [knockout, cache, deep-verification]
+      paths:
+        - maid_runner/core/knockout.py
+    - lesson_type: validation-trust
+      summary: "Shared cache identity widens the drift window, so worker snapshots must prove they match the captured project and dependency inputs before checkpoint callbacks can persist evidence."
+      tags: [cache-integrity, snapshot-isolation, fail-closed]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/_knockout_snapshot.py
+  review_notes:
+    - source: knockout_cache_context_impl_review
+      severity: blocking-fixed
+      summary: "Review required empty-plan bypass and worker snapshot identity binding to prevent stale checkpoints after mid-invocation drift."
+    - source: knockout_cache_context_impl_review
+      severity: blocking-fixed
+      summary: "Re-review reproduced Git repositories without cache ignores; exact untracked cache filtering now preserves checkpoint reuse while tracked and lookalike paths remain guarded."
+    - source: knockout_cache_context_impl_review
+      severity: ready
+      summary: "Final review found no actionable findings; release deep timing remained the only residual advisory."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_cache_key_context.py, tests/core/test_knockout_evidence_cache.py, tests/core/test_knockout_cache_declaration_identity.py, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_workers.py]
+      status: passed
+      summary: "All 51 cache-context, persistence, declaration, snapshot-isolation, and worker tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-knockout-cache-key-context.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 6."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 268 active manifests passed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 297 declared command groups passed."

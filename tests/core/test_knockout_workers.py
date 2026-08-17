@@ -17,7 +17,10 @@ from maid_runner.core.types import TestStream
 def test_independent_mutations_overlap_without_shared_snapshot_state(tmp_path):
     from maid_runner.core.knockout import run_knockout_batch
 
-    manifests = (_project_manifest(tmp_path, "target", ("alpha", "beta")),)
+    manifests = (
+        _project_manifest(tmp_path, "first", ("alpha", "beta")),
+        _project_manifest(tmp_path, "second", ("gamma", "delta")),
+    )
     original = (tmp_path / "src/target.py").read_bytes()
     executor = _OverlapExecutor(start_barrier=threading.Barrier(2))
 
@@ -29,7 +32,7 @@ def test_independent_mutations_overlap_without_shared_snapshot_state(tmp_path):
         executor=executor,
     )
 
-    assert reports[manifests[0].source_path].success is True
+    assert all(reports[manifest.source_path].success for manifest in manifests)
     assert executor.peak >= 2
     assert len(executor.roots) == 2
     assert all(root != tmp_path for root in executor.roots)
@@ -460,7 +463,11 @@ def _project_manifest(root: Path, slug: str, artifacts: tuple[str, ...]):
     (root / "src").mkdir(exist_ok=True)
     (root / "src/__init__.py").write_text("")
     (root / "src/target.py").write_text(
-        "def alpha():\n    return 'alpha'\n\ndef beta():\n    return 'beta'\n"
+        "\n\n".join(
+            f"def {name}():\n    return {name!r}"
+            for name in ("alpha", "beta", "gamma", "delta")
+        )
+        + "\n"
     )
     (root / "tests").mkdir(exist_ok=True)
     (root / "tests/test_target.py").write_text("def test_placeholder(): assert True\n")
@@ -513,12 +520,15 @@ def _mutated_artifact(source: str) -> str | None:
     if marker not in source:
         return None
     before = source[: source.index(marker)]
-    return "beta" if before.rfind("def beta") > before.rfind("def alpha") else "alpha"
+    return max(
+        ("alpha", "beta", "gamma", "delta"),
+        key=lambda name: before.rfind(f"def {name}"),
+    )
 
 
 def _command_artifact(command) -> str:
     value = " ".join(command)
-    return "beta" if "beta" in value else "alpha"
+    return next(name for name in ("alpha", "beta", "gamma", "delta") if name in value)
 
 
 def _result(command, exit_code):

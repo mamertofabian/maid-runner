@@ -3,7 +3,7 @@
   "manifest_hash": "sha256-contract:a98403f5505c0cae4ec23d4f1893e347bfc0b6ababc9c341ca7d926693d9eb5c",
   "test_hashes": {
     "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
-    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a",
     "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
     "tests/core/test_chain_artifact_canonical_order.py": "sha256-pyast:v2:a597a59ec55ad9cf39e94149218fe260caef878531d171c76d1c89383512b45d",
     "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:6708852bfea17f3c6f4e34eb10ae9c6329fb3399b02894ddec0baf9a5bfd029c",
@@ -12,7 +12,7 @@
     "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f"
   },
   "created_at": "2026-08-17T05:07:56.936912+00:00",
-  "revision": 2,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:2211ba268a15056024834294d6ef0e60b4d5c5b5fc694f8c32bbb3998ccb4c9e",
@@ -28,6 +28,78 @@
       },
       "revised_at": "2026-08-17T05:08:03.898642+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/canonicalize-merged-artifact-order.manifest.yaml -> manifests/canonicalize-merged-artifact-order.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a98403f5505c0cae4ec23d4f1893e347bfc0b6ababc9c341ca7d926693d9eb5c",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_artifact_canonical_order.py": "sha256-pyast:v2:a597a59ec55ad9cf39e94149218fe260caef878531d171c76d1c89383512b45d",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:6708852bfea17f3c6f4e34eb10ae9c6329fb3399b02894ddec0baf9a5bfd029c",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:2ba0f3ebcd5d7a84ef8e0e68eb542279ff1603ee96b286af74501b7ffeafd8b4",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:a307658bb24491dd85e02851016eb6dea61ee132f3719259a6261ab259962a23",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f"
+      },
+      "revised_at": "2026-08-17T12:12:19.891702+00:00",
+      "reason": "Accept approved duplicate-owner E710 union regression evolution from fix-e710-chain-merged-coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a98403f5505c0cae4ec23d4f1893e347bfc0b6ababc9c341ca7d926693d9eb5c",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:043d1553075ce9460a8299cf136e49e74287eeeb32f29e8d26b4ab44cdc2b39e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_artifact_canonical_order.py": "sha256-pyast:v2:a597a59ec55ad9cf39e94149218fe260caef878531d171c76d1c89383512b45d",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:6708852bfea17f3c6f4e34eb10ae9c6329fb3399b02894ddec0baf9a5bfd029c",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:2ba0f3ebcd5d7a84ef8e0e68eb542279ff1603ee96b286af74501b7ffeafd8b4",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:a307658bb24491dd85e02851016eb6dea61ee132f3719259a6261ab259962a23",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f"
+      },
+      "revised_at": "2026-08-17T12:13:12.241141+00:00",
+      "reason": "Accept approved aggregate-pass and persisted-conflict-UNKNOWN regression evolution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a98403f5505c0cae4ec23d4f1893e347bfc0b6ababc9c341ca7d926693d9eb5c",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:5a6274e0945c05b118d74ee8f73fa213effe25ea7aab7dd3518d48105cd62783",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_artifact_canonical_order.py": "sha256-pyast:v2:a597a59ec55ad9cf39e94149218fe260caef878531d171c76d1c89383512b45d",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:6708852bfea17f3c6f4e34eb10ae9c6329fb3399b02894ddec0baf9a5bfd029c",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:2ba0f3ebcd5d7a84ef8e0e68eb542279ff1603ee96b286af74501b7ffeafd8b4",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:a307658bb24491dd85e02851016eb6dea61ee132f3719259a6261ab259962a23",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f"
+      },
+      "revised_at": "2026-08-17T12:13:53.320742+00:00",
+      "reason": "Accept corrected approved duplicate-owner UNKNOWN assertion placement.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

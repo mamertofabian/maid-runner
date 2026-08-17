@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 import re
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
@@ -116,6 +116,98 @@ class ArtifactCoverageReport:
         if self.cache_hit:
             payload["cache_hit"] = True
         return payload
+
+
+def merge_artifact_coverage_reports(
+    reports: Iterable[ArtifactCoverageReport],
+) -> ArtifactCoverageReport:
+    """Union coverage findings while retaining fail-closed diagnostics."""
+    findings_by_identity: dict[
+        tuple[str, str, str | None, str], ArtifactCoverageFinding
+    ] = {}
+    preserved_errors: list[ValidationError] = []
+    execution: ArtifactCoverageExecutionSummary | None = None
+
+    for report in reports:
+        if execution is None and report.execution is not None:
+            execution = report.execution
+
+        false_finding_counts: dict[tuple[str, str], int] = {}
+        for finding in report.findings:
+            if finding.executed:
+                continue
+            diagnostic_identity = (
+                finding.file_path,
+                _display_artifact_name(finding),
+            )
+            false_finding_counts[diagnostic_identity] = (
+                false_finding_counts.get(diagnostic_identity, 0) + 1
+            )
+
+        e710_identities: list[tuple[str, str] | None] = []
+        e710_counts: dict[tuple[str, str], int] = {}
+        for error in report.errors:
+            if error.code != ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS:
+                e710_identities.append(None)
+                continue
+            identity = next(
+                (
+                    candidate
+                    for candidate in false_finding_counts
+                    if error.location is not None
+                    and error.location.file == candidate[0]
+                    and f"'{candidate[1]}'" in error.message
+                ),
+                None,
+            )
+            e710_identities.append(identity)
+            if identity is not None:
+                e710_counts[identity] = e710_counts.get(identity, 0) + 1
+
+        for error, identity in zip(report.errors, e710_identities):
+            if error.code != ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS:
+                preserved_errors.append(error)
+                continue
+            if (
+                identity is None
+                or e710_counts[identity] != false_finding_counts[identity]
+            ):
+                preserved_errors.append(error)
+
+        for finding in report.findings:
+            identity = (
+                finding.file_path,
+                finding.artifact_kind,
+                finding.parent_class,
+                finding.artifact_name,
+            )
+            existing = findings_by_identity.get(identity)
+            if existing is None or (finding.executed and not existing.executed):
+                findings_by_identity[identity] = finding
+
+    merged_findings = tuple(findings_by_identity.values())
+    for finding in merged_findings:
+        if not finding.executed:
+            preserved_errors.append(
+                ValidationError(
+                    code=ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS,
+                    message=(
+                        "No body line of declared artifact "
+                        f"'{_display_artifact_name(finding)}' was executed by tests"
+                    ),
+                    location=Location(file=finding.file_path),
+                    suggestion=(
+                        "Strengthen the behavioral test so it executes the "
+                        "declared artifact body."
+                    ),
+                )
+            )
+
+    return ArtifactCoverageReport(
+        findings=merged_findings,
+        errors=tuple(preserved_errors),
+        execution=execution,
+    )
 
 
 @dataclass(frozen=True)
@@ -691,10 +783,9 @@ def _execution_from_attributed_contexts(
     for context in command.contexts:
         if not selected.intersection(context.consuming_nodeids):
             continue
-        if context.kind == "fixture" and not (
-            context.fixture_scope == "function"
-            and not context.autouse
-            and context.lifecycle_equivalent
+        if (
+            context.kind == "fixture"
+            and context.context_id in command.completeness.unproven_fixture_lifecycles
         ):
             continue
         if context.kind not in {"node", "fixture", "collection"}:

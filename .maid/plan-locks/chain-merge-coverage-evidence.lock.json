@@ -2,7 +2,7 @@
   "manifest_path": "manifests/chain-merge-coverage-evidence.manifest.yaml",
   "manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
   "test_hashes": {
-    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a",
     "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
     "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
     "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
@@ -10,7 +10,7 @@
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
   },
   "created_at": "2026-08-15T22:15:58.356351+00:00",
-  "revision": 6,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:0933e6ecb8aa123d70e26f2c04adc29ad5b6f87da2f02613b70db7c16bd1b65f",
@@ -122,6 +122,72 @@
         "files_removed": [
           "read:manifests/drafts/chain-merge-equivalence-gate.manifest.yaml"
         ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:12:19.572147+00:00",
+      "reason": "Accept approved duplicate-owner E710 union regression evolution from fix-e710-chain-merged-coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:043d1553075ce9460a8299cf136e49e74287eeeb32f29e8d26b4ab44cdc2b39e",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:13:11.971511+00:00",
+      "reason": "Accept approved aggregate-pass and persisted-conflict-UNKNOWN regression evolution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:5a6274e0945c05b118d74ee8f73fa213effe25ea7aab7dd3518d48105cd62783",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:13:53.058992+00:00",
+      "reason": "Accept corrected approved duplicate-owner UNKNOWN assertion placement.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
       }

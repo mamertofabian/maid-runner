@@ -8,11 +8,13 @@ import inspect
 import json
 import time
 from collections.abc import Mapping, Sequence
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
 
 from maid_runner.core._knockout_snapshot import (
     ProjectSnapshotBackend,
+    SharedEnvironmentProjectSnapshotBackend,
     WorkerRetainedProjectSnapshotBackend,
 )
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
@@ -27,6 +29,7 @@ from maid_runner.core.result import (
 from maid_runner.core.runtime_evidence import (
     RuntimeCommandEvidence,
     RuntimeContextEvidence,
+    RuntimeEnvironmentIdentity,
     RuntimeEvidenceBundle,
     RuntimeEvidenceCompleteness,
     _content_digest,
@@ -99,6 +102,98 @@ class KnockoutMutationSpec:
 
 
 @dataclass(frozen=True)
+class _KnockoutCacheKeyContext:
+    content_digest: str
+    runner_version: str
+    environment: RuntimeEnvironmentIdentity
+    repository_identity: str | None
+
+
+class _CacheIdentityProjectSnapshotBackend(ProjectSnapshotBackend):
+    def __init__(
+        self,
+        delegate: ProjectSnapshotBackend,
+        *,
+        input_digest: str,
+        repository_identity: str | None,
+    ) -> None:
+        self._delegate = delegate
+        self._input_digest = input_digest
+        self._repository_identity = repository_identity
+
+    def retain(self):
+        retain = getattr(self._delegate, "retain", None)
+        return retain() if callable(retain) else nullcontext()
+
+    @contextmanager
+    def create(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ):
+        with self._delegate.create(
+            project_root,
+            required_paths,
+            worker_id,
+        ) as snapshot:
+            yield snapshot
+        if (
+            snapshot.input_digest != self._input_digest
+            or snapshot.source_repository_identity != self._repository_identity
+        ):
+            raise RuntimeError(
+                "Knockout project inputs changed after cache identity capture"
+            )
+
+    def _stable_group(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ):
+        stable_group = getattr(self._delegate, "_stable_group", None)
+        if not callable(stable_group):
+            raise RuntimeError("Snapshot backend does not support stable groups")
+        return stable_group(project_root, required_paths, worker_id)
+
+
+class _BatchRequiredPathsProjectSnapshotBackend(ProjectSnapshotBackend):
+    def __init__(
+        self,
+        delegate: ProjectSnapshotBackend,
+        required_paths: Sequence[str],
+    ) -> None:
+        self._delegate = delegate
+        self._required_paths = tuple(dict.fromkeys(required_paths))
+
+    def retain(self):
+        retain = getattr(self._delegate, "retain", None)
+        return retain() if callable(retain) else nullcontext()
+
+    def create(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ):
+        complete_paths = tuple(dict.fromkeys((*self._required_paths, *required_paths)))
+        return self._delegate.create(project_root, complete_paths, worker_id)
+
+    def _stable_group(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ):
+        stable_group = getattr(self._delegate, "_stable_group", None)
+        if not callable(stable_group):
+            raise RuntimeError("Snapshot backend does not support stable groups")
+        complete_paths = tuple(dict.fromkeys((*self._required_paths, *required_paths)))
+        return stable_group(project_root, complete_paths, worker_id)
+
+
+@dataclass(frozen=True)
 class KnockoutDifferentialProof:
     """Three-point mutation evidence for one command and artifact."""
 
@@ -110,6 +205,22 @@ class KnockoutDifferentialProof:
     detecting_nodeids: tuple[str, ...]
     used_exact_fallback: bool
     diagnostics: tuple[ValidationError, ...]
+
+
+@dataclass(frozen=True)
+class _KnockoutCommandGroupMember:
+    spec: KnockoutMutationSpec
+    declaration: KnockoutDeclaration
+    command: tuple[str, ...]
+    nodeids: tuple[str, ...]
+    focused: bool
+
+
+@dataclass(frozen=True)
+class _KnockoutCommandGroup:
+    manifest_slug: str
+    command: tuple[str, ...]
+    members: tuple[_KnockoutCommandGroupMember, ...]
 
 
 class KnockoutCommandExecutor:
@@ -137,7 +248,7 @@ def build_knockout_mutation_specs(
     manifests: Sequence[Manifest],
     project_root: Path,
     limit: int | None = None,
-) -> tuple[KnockoutMutationSpec, ...]:
+) -> "tuple[KnockoutMutationSpec, ...]":
     """Deduplicate selected declarations without changing legacy execution order."""
     root = Path(project_root)
     selected_limit = None if limit is None else max(limit, 0)
@@ -252,13 +363,16 @@ def rewrite_artifact_body(
     return "".join(lines)
 
 
-def _knockout_spec_cache_key(root: Path, spec: KnockoutMutationSpec) -> str | None:
+def _knockout_spec_cache_key(
+    root: Path,
+    spec: KnockoutMutationSpec,
+    context: _KnockoutCacheKeyContext | None = None,
+) -> str | None:
     mutated_body_digest = _knockout_mutated_body_digest(root, spec)
     if mutated_body_digest is None:
         return None
-    from maid_runner import __version__
-
-    environment = _environment_identity(("python", "-m", "pytest"), root)
+    if context is None:
+        context = _knockout_cache_key_context(root)
     payload = {
         "identity": {
             "file_path": spec.identity.file_path,
@@ -278,23 +392,42 @@ def _knockout_spec_cache_key(root: Path, spec: KnockoutMutationSpec) -> str | No
             }
             for declaration in spec.declarations
         ],
-        "content_digest": _content_digest(root),
-        "runner_version": __version__,
+        "content_digest": context.content_digest,
+        "repository_identity": context.repository_identity,
+        "runner_version": context.runner_version,
         "environment": {
-            "resolved_command_prefix": list(environment.resolved_command_prefix),
-            "working_directory": environment.working_directory,
-            "python_identity": environment.python_identity,
-            "pytest_version": environment.pytest_version,
-            "coverage_version": environment.coverage_version,
-            "xdist_version": environment.xdist_version,
-            "configuration_digest": environment.configuration_digest,
-            "dependency_digest": environment.dependency_digest,
-            "effective_environment_digest": environment.effective_environment_digest,
+            "resolved_command_prefix": list(
+                context.environment.resolved_command_prefix
+            ),
+            "working_directory": context.environment.working_directory,
+            "python_identity": context.environment.python_identity,
+            "pytest_version": context.environment.pytest_version,
+            "coverage_version": context.environment.coverage_version,
+            "xdist_version": context.environment.xdist_version,
+            "configuration_digest": context.environment.configuration_digest,
+            "dependency_digest": context.environment.dependency_digest,
+            "effective_environment_digest": (
+                context.environment.effective_environment_digest
+            ),
         },
     }
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, default=str).encode()
     ).hexdigest()
+
+
+def _knockout_cache_key_context(
+    root: Path,
+    repository_identity: str | None = None,
+) -> _KnockoutCacheKeyContext:
+    from maid_runner import __version__
+
+    return _KnockoutCacheKeyContext(
+        content_digest=_content_digest(root),
+        runner_version=__version__,
+        environment=_environment_identity(("python", "-m", "pytest"), root),
+        repository_identity=repository_identity,
+    )
 
 
 def _knockout_mutated_body_digest(root: Path, spec: KnockoutMutationSpec) -> str | None:
@@ -315,8 +448,12 @@ def _knockout_spec_cache_path(root: Path, cache_key: str) -> Path:
     return root / ".maid" / "cache" / "knockout-evidence-v1" / f"{cache_key}.json"
 
 
-def _load_knockout_spec_cache(root: Path, spec: KnockoutMutationSpec):
-    cache_key = _knockout_spec_cache_key(root, spec)
+def _load_knockout_spec_cache(
+    root: Path,
+    spec: KnockoutMutationSpec,
+    context: _KnockoutCacheKeyContext | None = None,
+):
+    cache_key = _knockout_spec_cache_key(root, spec, context)
     if cache_key is None:
         return None
     path = _knockout_spec_cache_path(root, cache_key)
@@ -329,8 +466,13 @@ def _load_knockout_spec_cache(root: Path, spec: KnockoutMutationSpec):
     return _knockout_worker_from_cache(payload, spec.identity)
 
 
-def _store_knockout_spec_cache(root: Path, spec: KnockoutMutationSpec, worker) -> None:
-    cache_key = _knockout_spec_cache_key(root, spec)
+def _store_knockout_spec_cache(
+    root: Path,
+    spec: KnockoutMutationSpec,
+    worker,
+    context: _KnockoutCacheKeyContext | None = None,
+) -> None:
+    cache_key = _knockout_spec_cache_key(root, spec, context)
     if cache_key is None:
         return
     path = _knockout_spec_cache_path(root, cache_key)
@@ -491,6 +633,7 @@ def run_knockout_batch(
     ordered_manifests = tuple(manifests)
     root = Path(project_root)
     command_executor = executor or KnockoutCommandExecutor()
+    grouping_enabled = snapshot_backend is None
     project_snapshots = snapshot_backend or WorkerRetainedProjectSnapshotBackend()
     trusted_evidence = None
     if evidence is not None:
@@ -515,6 +658,13 @@ def run_knockout_batch(
             for manifest in ordered_manifests
         }
 
+    required_paths = tuple(dict.fromkeys(spec.identity.file_path for spec in specs))
+    if required_paths:
+        project_snapshots = _BatchRequiredPathsProjectSnapshotBackend(
+            project_snapshots,
+            required_paths,
+        )
+
     planned = sorted(
         (
             (declaration.plan_index, spec, declaration)
@@ -523,16 +673,43 @@ def run_knockout_batch(
         ),
         key=lambda item: item[0],
     )
-    from maid_runner.core._knockout_worker import run_knockout_workers
+    from maid_runner.core._knockout_worker import (
+        _run_knockout_command_groups,
+        run_knockout_workers,
+    )
 
     pending_specs = []
     cached_workers = []
-    for spec in specs:
-        cached = None if no_cache else _load_knockout_spec_cache(root, spec)
-        if cached is None:
-            pending_specs.append(spec)
-        else:
-            cached_workers.append(cached)
+    cache_context = None
+    cache_snapshot_identity: tuple[str, str | None] | None = None
+    if specs and not no_cache:
+        cache_snapshot_backend = SharedEnvironmentProjectSnapshotBackend()
+        with cache_snapshot_backend.create(
+            root,
+            required_paths,
+            "maid-cache-context",
+        ) as cache_snapshot:
+            cache_context = _knockout_cache_key_context(
+                root,
+                cache_snapshot.source_repository_identity,
+            )
+            cache_snapshot_identity = (
+                cache_snapshot.input_digest,
+                cache_snapshot.source_repository_identity,
+            )
+            for spec in specs:
+                cached = _load_knockout_spec_cache(root, spec, cache_context)
+                if cached is None:
+                    pending_specs.append(spec)
+                else:
+                    cached_workers.append(cached)
+        project_snapshots = _CacheIdentityProjectSnapshotBackend(
+            project_snapshots,
+            input_digest=cache_snapshot_identity[0],
+            repository_identity=cache_snapshot_identity[1],
+        )
+    else:
+        pending_specs.extend(specs)
     pending_by_identity = {spec.identity: spec for spec in pending_specs}
 
     def checkpoint_worker(worker) -> None:
@@ -542,15 +719,25 @@ def run_knockout_batch(
         if spec is None or worker.errors:
             return
         if any(
-            not report.results and report.errors for report in worker.reports.values()
+            error.code == ErrorCode.KNOCKOUT_HARNESS_FAILURE
+            for report in worker.reports.values()
+            for error in report.errors
         ):
             return
-        _store_knockout_spec_cache(root, spec, worker)
+        _store_knockout_spec_cache(root, spec, worker, cache_context)
 
-    workers = ()
-    if pending_specs:
-        workers = run_knockout_workers(
+    command_groups: tuple[_KnockoutCommandGroup, ...] = ()
+    legacy_pending = tuple(pending_specs)
+    if grouping_enabled:
+        command_groups, legacy_pending = _plan_knockout_command_groups(
             pending_specs,
+            trusted_evidence,
+            root,
+        )
+    grouped_workers = ()
+    if command_groups:
+        grouped_workers = _run_knockout_command_groups(
+            command_groups,
             root,
             trusted_evidence,
             project_snapshots,
@@ -559,8 +746,35 @@ def run_knockout_batch(
             max_processes,
             on_result=checkpoint_worker,
         )
+    workers = ()
+    if legacy_pending:
+        workers = run_knockout_workers(
+            legacy_pending,
+            root,
+            trusted_evidence,
+            project_snapshots,
+            command_executor,
+            jobs,
+            max_processes,
+            on_result=checkpoint_worker,
+        )
+    if cache_snapshot_identity is not None:
+        with SharedEnvironmentProjectSnapshotBackend().create(
+            root,
+            tuple(dict.fromkeys(spec.identity.file_path for spec in specs)),
+            "maid-cache-context-final",
+        ) as final_snapshot:
+            if (
+                final_snapshot.input_digest != cache_snapshot_identity[0]
+                or final_snapshot.source_repository_identity
+                != cache_snapshot_identity[1]
+            ):
+                raise RuntimeError(
+                    "Knockout project inputs changed during cache-backed execution"
+                )
     workers_by_identity = {
-        worker.identity: worker for worker in (*cached_workers, *workers)
+        worker.identity: worker
+        for worker in (*cached_workers, *grouped_workers, *workers)
     }
     for _plan_index, spec, declaration in planned:
         worker = workers_by_identity.get(spec.identity)
@@ -594,6 +808,67 @@ def run_knockout_batch(
         )
         for manifest in ordered_manifests
     }
+
+
+def _plan_knockout_command_groups(
+    specs: Sequence[KnockoutMutationSpec],
+    evidence: RuntimeEvidenceBundle | None,
+    root: Path,
+) -> tuple[tuple[_KnockoutCommandGroup, ...], tuple[KnockoutMutationSpec, ...]]:
+    grouped: dict[tuple[str, tuple[str, ...]], list[_KnockoutCommandGroupMember]] = {}
+    ineligible: list[KnockoutMutationSpec] = []
+    for spec in specs:
+        if len(spec.declarations) != 1:
+            ineligible.append(spec)
+            continue
+        declaration = spec.declarations[0]
+        if len(declaration.commands) != 1:
+            ineligible.append(spec)
+            continue
+        exact = declaration.commands[0]
+        focused = _focused_command(
+            evidence,
+            declaration,
+            0,
+            spec.identity,
+            root,
+        )
+        if focused is None:
+            command = exact
+            nodeids: tuple[str, ...] = ()
+            used_focus = False
+        else:
+            command, nodeids = focused
+            used_focus = True
+        grouped.setdefault((declaration.manifest_slug, command), []).append(
+            _KnockoutCommandGroupMember(
+                spec=spec,
+                declaration=declaration,
+                command=command,
+                nodeids=nodeids,
+                focused=used_focus,
+            )
+        )
+
+    groups: list[_KnockoutCommandGroup] = []
+    for (manifest_slug, command), members in grouped.items():
+        if len(members) < 2:
+            ineligible.extend(member.spec for member in members)
+            continue
+        groups.append(
+            _KnockoutCommandGroup(
+                manifest_slug=manifest_slug,
+                command=command,
+                members=tuple(members),
+            )
+        )
+    plan_index = {
+        spec.identity: min(declaration.plan_index for declaration in spec.declarations)
+        for spec in specs
+    }
+    groups.sort(key=lambda group: plan_index[group.members[0].spec.identity])
+    ineligible.sort(key=lambda spec: plan_index[spec.identity])
+    return tuple(groups), tuple(ineligible)
 
 
 def _knockout_evidence_is_current(
@@ -850,6 +1125,37 @@ def _execute_transition(
         )
     if baseline.exit_code != 0:
         return (baseline,), None
+
+    return _execute_after_shared_baseline(
+        command,
+        manifest_slug,
+        root,
+        target_path,
+        file_path,
+        original,
+        original_hash,
+        rewritten,
+        executor,
+        environment_overrides,
+        environment_removals,
+        baseline,
+    )
+
+
+def _execute_after_shared_baseline(
+    command: tuple[str, ...],
+    manifest_slug: str,
+    root: Path,
+    target_path: Path,
+    file_path: str,
+    original: bytes,
+    original_hash: str,
+    rewritten: bytes,
+    executor: KnockoutCommandExecutor,
+    environment_overrides: Mapping[str, str],
+    environment_removals: Sequence[str],
+    baseline: TestRunResult,
+) -> tuple[tuple[TestRunResult, ...], ValidationError | None]:
 
     mutation_error: ValidationError | None = None
     mutant: TestRunResult | None = None

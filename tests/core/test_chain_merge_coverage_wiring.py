@@ -11,12 +11,12 @@ def _write_manifest(root: Path, *, covered: bool = True) -> None:
     (root / "src").mkdir()
     (root / "tests").mkdir()
     (root / "src" / "target.py").write_text(
-        "def target() -> bool:\n" "    values = [True]\n" "    return all(values)\n",
+        "def target() -> bool:\n    values = [True]\n    return all(values)\n",
         encoding="utf-8",
     )
     assertion = "assert target() is True" if covered else "assert callable(target)"
     (root / "tests" / "test_target.py").write_text(
-        "from src.target import target\n\n" "def test_target():\n" f"    {assertion}\n",
+        f"from src.target import target\n\ndef test_target():\n    {assertion}\n",
         encoding="utf-8",
     )
     (root / "manifests" / "target.manifest.yaml").write_text(
@@ -152,13 +152,13 @@ def test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts(
     _write_manifest(tmp_path)
     _add_duplicate_uncovered_manifest(tmp_path)
     monkeypatch.chdir(tmp_path)
-    assert _warm_coverage_cache(tmp_path) == 1
+    assert _warm_coverage_cache(tmp_path) == 0
     capsys.readouterr()
 
     source = coverage_source_for_file(
         _chain(tmp_path), "src/target.py", str(tmp_path), "manifests"
     )
-    assert source.coverage_for("src/target.py", "function:target") is False
+    assert source.coverage_for("src/target.py", "function:target") is None
 
 
 def test_report_records_covered_and_unknown_coverage(tmp_path):

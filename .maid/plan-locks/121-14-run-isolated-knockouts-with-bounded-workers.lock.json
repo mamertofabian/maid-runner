@@ -2,7 +2,7 @@
   "manifest_path": "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
   "manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
   "test_hashes": {
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
     "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
     "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
     "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:ee67eef82160778a6404e3a9316673fc70f491b829a132cada8f88ecffc9bdc3",
@@ -11,7 +11,7 @@
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
   },
   "created_at": "2026-08-12T01:39:10.089868+00:00",
-  "revision": 22,
+  "revision": 23,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:03bfd0adfc1d8cf5761890cb9b389e6fdee4dbd5ca381efd3602bec70d9aefc3",
@@ -533,6 +533,29 @@
       },
       "revised_at": "2026-08-17T11:31:47.943303+00:00",
       "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2d473e365bf79ad9d1fe5b23aaa79a1a67811f5f646917250189e59635938e4",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:40696fdc5565e17557b537c2aba576771baa03d20d2ee302d327a68ce44ea3e8",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:ee67eef82160778a6404e3a9316673fc70f491b829a132cada8f88ecffc9bdc3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-17T23:15:34.619876+00:00",
+      "reason": "Accept approved shared-command worker test evolution from 121-48.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

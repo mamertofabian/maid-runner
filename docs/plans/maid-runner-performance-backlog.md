@@ -727,3 +727,27 @@ Commands run during the 2026-05-29 refresh:
 - stage-level `ValidationEngine.validate_all(...)` probes for `maid-runner`,
   `tower-recall`, and `life-dashboard`
 - cProfile probe for Tower Recall behavioral validation with assertion checks
+## 2026-08-17 Knockout fresh-root template finding
+
+The exact task-scoped release gate against `release/v2.next` selected 60 active
+manifests and 487 unique mutations, cleared artifact coverage, and was stopped
+after about 40 minutes with only about 105 new knockout checkpoints. Focused
+tests and small real knockout batches complete in seconds; the long batch
+creates a sustained snapshot convoy.
+
+`WorkerRetainedProjectSnapshotBackend` correctly preserves distinct source/Git
+roots, but every declaration still rescans the live repository and dependency
+identities and recopies source/Git metadata. A fresh root takes about 1.23s on
+one worker but 13.4-14.2s when eight workers create roots together. The repeated
+I/O also stretches green-red-green commands that take seconds alone into
+multi-minute proofs. A 16-identity sample took 88.5s; serializing snapshot
+enter/cleanup improved it to 76.8s but does not close the budget.
+
+Confirmed closure: build one immutable invocation-level source/Git template,
+clone distinct declaration roots from that template, retain isolated copied
+dependencies per worker, and verify live content/repository/dependency identity
+at the retained boundary. Bind persisted spec keys to the captured repository
+identity so interrupted evidence cannot survive Git-only drift. Preserve
+three-point differential proof and exact fallback. Acceptance must use
+constant-call assertions and a bounded representative batch rather than a
+reference run longer than ten minutes.

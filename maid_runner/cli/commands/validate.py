@@ -472,21 +472,9 @@ def _run_artifact_coverage_by_manifest(
 
 
 def _merge_artifact_coverage_reports(reports):
-    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
+    from maid_runner.core.artifact_coverage import merge_artifact_coverage_reports
 
-    findings = []
-    errors = []
-    execution = None
-    for report in reports:
-        findings.extend(report.findings)
-        errors.extend(report.errors)
-        if execution is None:
-            execution = report.execution
-    return ArtifactCoverageReport(
-        findings=tuple(findings),
-        errors=tuple(errors),
-        execution=execution,
-    )
+    return merge_artifact_coverage_reports(reports)
 
 
 def _append_artifact_coverage_output(

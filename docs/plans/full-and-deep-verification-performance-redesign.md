@@ -426,3 +426,43 @@ repository-wide. 121-46 adds a completion callback/checkpoint boundary so each
 validated worker is persisted immediately, preserving `--no-cache`, content
 and environment identities, deterministic result ordering, and fail-closed
 error handling.
+
+## 2026-08-17 release-delta knockout convoy and 121-47
+
+The first exact post-merge gate against `release/v2.next` selected 60 changed
+active manifests and 487 unique knockout mutations. Artifact coverage cleared,
+but knockout remained active after roughly 40 minutes and had produced only
+about 105 new spec checkpoints. This was not the old cache-key loop: the run
+reached eight rotating workers around minute five.
+
+Measured evidence isolates the new amplification:
+
+- one direct focused pytest node completed in 0.28s;
+- the same node in one retained snapshot took 1.39s to create the first holder
+  and 0.38s to execute;
+- two real green-red-green mutations completed in 5.06s;
+- one worker's subsequent fresh roots took about 1.23s each;
+- eight workers creating fresh roots together inflated those roots to
+  13.4-14.2s each;
+- 16 of the worst completed identities took 88.5s at eight lanes and exceeded
+  the configured ceiling with 19 observed descendants;
+- serializing only snapshot enter/cleanup reduced that sample to 76.8s and
+  avoided a source-repository identity race, but cannot meet the five-minute
+  budget by itself;
+- one fresh-root profile was dominated by repeated live `_repository_identity`,
+  `_source_dependency_identity`, `_copy_git_metadata`, and
+  `_copy_project_inputs` work at creation and teardown.
+
+The 121-42 fresh-root invariant remains correct: source/Git state must never
+leak between declarations, and copied dependency environments must not import
+an earlier root. The next safe closure is therefore not stable-root reuse.
+121-47 captures one immutable source/Git template for the retained batch and
+clones every distinct declaration root from that template. The live tree,
+repository metadata, and source dependencies are captured before execution and
+verified after the retained lifetime. Cache keys also bind the captured
+repository identity so an interrupted batch cannot reuse a checkpoint after a
+ref/config/index/object change that left source bytes unchanged. Bounded tests
+must prove constant live-repository probes across multiple declarations,
+distinct roots with no generated-state leakage, editable-import mutation
+visibility, and fail-closed source/repository/dependency drift. No acceptance
+step may rerun the multi-hour reference; use a bounded representative batch.

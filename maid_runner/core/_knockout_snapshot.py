@@ -13,7 +13,7 @@ import threading
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from contextlib import AbstractContextManager, contextmanager
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -33,6 +33,8 @@ _EXCLUDED_TREE_NAMES = frozenset(
 )
 _GIT_CONTROL_FILES = ("HEAD", "index", "ORIG_HEAD", "config.worktree")
 _UNTRACKED_KNOCKOUT_CACHE_STATUS_PREFIX = b"?? .maid/cache/knockout-evidence-v1/"
+_UNTRACKED_KNOCKOUT_CACHE_PATH_PREFIX = b".maid/cache/knockout-evidence-v1/"
+_KNOCKOUT_CACHE_PATH_PARTS = (".maid", "cache", "knockout-evidence-v1")
 _LOCATION_ENVIRONMENT_NAMES = frozenset(
     {
         "NODE_PATH",
@@ -115,12 +117,13 @@ class SharedEnvironmentProjectSnapshotBackend(MaterializedProjectSnapshotBackend
 
 
 class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
-    """Copy dependencies once per worker; use fresh source and Git roots."""
+    """Clone fresh declaration roots from one immutable batch template."""
 
     def __init__(self) -> None:
         self._retain_lock = threading.Lock()
         self._retain_count = 0
-        self._opened_by_thread: dict[int, _RetainedWorkerSnapshot] = {}
+        self._template: _OpenedSnapshot | None = None
+        self._dependencies_by_thread: dict[int, _RetainedWorkerDependencies] = {}
 
     @contextmanager
     def retain(self) -> AbstractContextManager[None]:
@@ -131,19 +134,24 @@ class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
         finally:
             with self._retain_lock:
                 self._retain_count -= 1
-                opened = (
-                    [item.opened for item in self._opened_by_thread.values()]
-                    if self._retain_count == 0
-                    else []
-                )
                 if self._retain_count == 0:
-                    self._opened_by_thread.clear()
+                    template = self._template
+                    dependencies = list(self._dependencies_by_thread.values())
+                    self._template = None
+                    self._dependencies_by_thread.clear()
+                else:
+                    template = None
+                    dependencies = []
             errors: list[BaseException] = []
-            for item in opened:
+            if template is not None:
                 try:
-                    _teardown_materialized_snapshot(item, None)
+                    _teardown_materialized_snapshot(template, None)
                 except BaseException as exc:
                     errors.append(exc)
+            for retained in dependencies:
+                cleanup_error = _cleanup_snapshot(retained.root)
+                if cleanup_error is not None:
+                    errors.append(RuntimeError(cleanup_error))
             if errors:
                 raise errors[0]
 
@@ -161,22 +169,25 @@ class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
         source_root = Path(project_root).resolve()
         thread_id = threading.get_ident()
         with self._retain_lock:
-            retained = self._opened_by_thread.get(thread_id)
-        if retained is None:
-            opened = _open_materialized_snapshot(
-                source_root,
-                required_paths,
-                worker_id,
-                share_dependency_environments=self._share_dependency_environments,
-            )
-            retained = _RetainedWorkerSnapshot(
-                opened=opened,
-                bound_project_root=opened.snapshot.root,
-            )
-            with self._retain_lock:
-                self._opened_by_thread[thread_id] = retained
-        if retained.opened.source_root != source_root:
+            template = self._template
+            if template is None:
+                template = _open_materialized_snapshot(
+                    source_root,
+                    required_paths,
+                    "maid-batch-template",
+                    share_dependency_environments=True,
+                )
+                self._template = template
+            retained = self._dependencies_by_thread.get(thread_id)
+        if template.source_root != source_root:
             raise RuntimeError("Retained knockout snapshot worker changed project root")
+        if retained is None:
+            retained = _open_retained_worker_dependencies(template, worker_id)
+            with self._retain_lock:
+                existing = self._dependencies_by_thread.setdefault(thread_id, retained)
+            if existing is not retained:
+                _cleanup_snapshot(retained.root)
+                retained = existing
         if retained.leased:
             raise RuntimeError(
                 "Retained knockout snapshot worker was leased recursively"
@@ -184,17 +195,60 @@ class WorkerRetainedProjectSnapshotBackend(MaterializedProjectSnapshotBackend):
 
         retained.leased = True
         try:
-            if not retained.used:
-                retained.used = True
-                yield retained.opened.snapshot
-                return
-            with _fresh_snapshot_using_retained_dependencies(
-                retained,
-                source_root,
-                required_paths,
-                worker_id,
+            with _fresh_snapshot_from_template(
+                template, retained, required_paths, worker_id
             ) as snapshot:
                 yield snapshot
+        finally:
+            retained.leased = False
+
+    @contextmanager
+    def _stable_group(
+        self,
+        project_root: Path,
+        required_paths: Sequence[str],
+        worker_id: str,
+    ) -> AbstractContextManager[_StableCommandGroupRoot]:
+        """Yield one resettable stable-path root inside a retained lifetime."""
+        if self._retain_count < 1:
+            raise RuntimeError("Stable knockout groups require a retained lifetime")
+        source_root = Path(project_root).resolve()
+        thread_id = threading.get_ident()
+        with self._retain_lock:
+            template = self._template
+            if template is None:
+                template = _open_materialized_snapshot(
+                    source_root,
+                    required_paths,
+                    "maid-batch-template",
+                    share_dependency_environments=True,
+                )
+                self._template = template
+            retained = self._dependencies_by_thread.get(thread_id)
+        if template.source_root != source_root:
+            raise RuntimeError("Retained knockout snapshot worker changed project root")
+        if retained is None:
+            retained = _open_retained_worker_dependencies(template, worker_id)
+            with self._retain_lock:
+                existing = self._dependencies_by_thread.setdefault(thread_id, retained)
+            if existing is not retained:
+                _cleanup_snapshot(retained.root)
+                retained = existing
+        if retained.leased:
+            raise RuntimeError(
+                "Retained knockout snapshot worker was leased recursively"
+            )
+
+        retained.leased = True
+        try:
+            with _fresh_snapshot_from_template(
+                template, retained, required_paths, worker_id
+            ) as snapshot:
+                group = _StableCommandGroupRoot(snapshot, template, retained)
+                try:
+                    yield group
+                finally:
+                    group.close()
         finally:
             retained.leased = False
 
@@ -211,56 +265,248 @@ class _OpenedSnapshot:
 
 
 @dataclass
-class _RetainedWorkerSnapshot:
-    opened: _OpenedSnapshot
+class _RetainedWorkerDependencies:
+    root: Path
     bound_project_root: Path
-    used: bool = False
     leased: bool = False
 
 
+class _StableCommandGroupRoot:
+    """Stable pathname reset from an immutable post-baseline checkpoint."""
+
+    def __init__(
+        self,
+        snapshot: KnockoutProjectSnapshot,
+        template: _OpenedSnapshot,
+        retained: _RetainedWorkerDependencies,
+    ) -> None:
+        self.snapshot = snapshot
+        self._template = template
+        self._retained = retained
+        self._checkpoint_parent: Path | None = None
+        self._checkpoint_root: Path | None = None
+        self._checkpoint_digest: str | None = None
+        self._dependency_sources = {
+            name: retained.root / name
+            for name in template.dependency_sources
+            if (retained.root / name).is_dir()
+        }
+        self._dependency_identity = _source_dependency_identity(
+            self._dependency_sources
+        )
+        self._repository_control_identity = _repository_control_identity(
+            template.source_root
+        )
+
+    def freeze(self) -> None:
+        if self._checkpoint_root is not None:
+            raise RuntimeError("Knockout command-group baseline was frozen twice")
+        parent = Path(tempfile.mkdtemp(prefix="maid-knockout-control-"))
+        checkpoint = parent / "state"
+        try:
+            shutil.copytree(
+                self.snapshot.root,
+                checkpoint,
+                symlinks=True,
+                copy_function=shutil.copy2,
+            )
+            digest = _stable_group_tree_digest(checkpoint)
+        except BaseException:
+            _cleanup_snapshot(parent)
+            raise
+        self._checkpoint_parent = parent
+        self._checkpoint_root = checkpoint
+        self._checkpoint_digest = digest
+
+    def reset(self) -> KnockoutProjectSnapshot:
+        checkpoint = self._checkpoint_root
+        expected = self._checkpoint_digest
+        if checkpoint is None or expected is None:
+            raise RuntimeError("Knockout command-group baseline is not frozen")
+        root = self.snapshot.root
+        discarded = root.with_name(root.name + "-discarded")
+        if discarded.exists() or discarded.is_symlink():
+            cleanup_error = _cleanup_snapshot(discarded)
+            if cleanup_error is not None:
+                raise RuntimeError(cleanup_error)
+        try:
+            root.rename(discarded)
+            shutil.copytree(
+                checkpoint,
+                root,
+                symlinks=True,
+                copy_function=shutil.copy2,
+            )
+        except BaseException:
+            if not root.exists() and discarded.exists():
+                discarded.rename(root)
+            raise
+        cleanup_error = _cleanup_snapshot(discarded)
+        if cleanup_error is not None:
+            raise RuntimeError(cleanup_error)
+        if _stable_group_tree_digest(root) != expected:
+            raise RuntimeError(
+                "Knockout command-group root reset did not match its baseline"
+            )
+        return self.snapshot
+
+    def verify_identities(self) -> None:
+        input_error = _input_identity_error(
+            self._template.source_root,
+            self._template.input_paths,
+            self._template.before_state,
+        )
+        repository_error = None
+        if (
+            _repository_control_identity(self._template.source_root)
+            != self._repository_control_identity
+        ):
+            repository_error = (
+                "Knockout snapshot command changed source repository metadata"
+            )
+        dependency_error = _dependency_identity_error(
+            self._dependency_sources,
+            self._dependency_identity,
+        )
+        error = input_error or repository_error or dependency_error
+        if error is not None:
+            raise RuntimeError(error)
+
+    def close(self) -> None:
+        if self._checkpoint_parent is None:
+            return
+        cleanup_error = _cleanup_snapshot(self._checkpoint_parent)
+        self._checkpoint_parent = None
+        self._checkpoint_root = None
+        self._checkpoint_digest = None
+        if cleanup_error is not None:
+            raise RuntimeError(cleanup_error)
+
+
+def _open_retained_worker_dependencies(
+    template: _OpenedSnapshot,
+    worker_id: str,
+) -> _RetainedWorkerDependencies:
+    root = Path(
+        tempfile.mkdtemp(prefix=f"maid-knockout-deps-{_safe_worker_id(worker_id)}-")
+    )
+    try:
+        _copy_dependency_environments(
+            template.source_root,
+            root,
+            template.dependency_sources,
+        )
+        _verify_dependency_identity(
+            template.dependency_sources,
+            template.dependency_identity,
+        )
+        return _RetainedWorkerDependencies(
+            root=root,
+            bound_project_root=root,
+        )
+    except BaseException:
+        _cleanup_snapshot(root)
+        raise
+
+
 @contextmanager
-def _fresh_snapshot_using_retained_dependencies(
-    retained: _RetainedWorkerSnapshot,
-    source_root: Path,
+def _fresh_snapshot_from_template(
+    template: _OpenedSnapshot,
+    retained: _RetainedWorkerDependencies,
     required_paths: Sequence[str],
     worker_id: str,
 ) -> AbstractContextManager[KnockoutProjectSnapshot]:
-    opened = _open_materialized_snapshot(
-        source_root,
-        required_paths,
-        worker_id,
-        share_dependency_environments=True,
+    source_root = template.source_root
+    normalized_required = tuple(
+        _validated_relative_path(source_root, path) for path in required_paths
+    )
+    for relative in normalized_required:
+        if not (template.snapshot.root / relative).is_file():
+            raise RuntimeError(f"Snapshot required path is not a file: {relative}")
+    snapshot_root = Path(
+        tempfile.mkdtemp(prefix=f"maid-knockout-{_safe_worker_id(worker_id)}-")
     )
     body_error: BaseException | None = None
     try:
-        dependency_root = retained.opened.snapshot.root
         shared_dependencies = {
-            name: dependency_root / name
-            for name in retained.opened.dependency_sources
-            if (dependency_root / name).is_dir()
+            name: retained.root / name
+            for name in template.dependency_sources
+            if (retained.root / name).is_dir()
         }
+        copy_file = _copy_strategy(
+            template.snapshot.root,
+            snapshot_root,
+            normalized_required,
+        )
+        _copy_project_inputs(
+            template.snapshot.root,
+            snapshot_root,
+            template.input_paths,
+            copy_file,
+        )
+        git_dir, git_common_dir = _copy_git_metadata(
+            template.snapshot.root,
+            snapshot_root,
+            copy_file,
+        )
+        for name, dependency_root in shared_dependencies.items():
+            _link_retained_dependency(snapshot_root / name, dependency_root)
         virtual_environment = shared_dependencies.get(".venv")
         if virtual_environment is not None:
             _rebind_copied_python_project_root(
                 virtual_environment,
                 retained.bound_project_root,
-                opened.snapshot.root,
+                snapshot_root,
             )
-            retained.bound_project_root = opened.snapshot.root
-        opened.snapshot = replace(
-            opened.snapshot,
+            retained.bound_project_root = snapshot_root
+        snapshot = KnockoutProjectSnapshot(
+            root=snapshot_root,
+            input_digest=_snapshot_input_digest(
+                snapshot_root,
+                template.input_paths,
+                template.dependency_identity,
+            ),
+            source_digests=_required_source_digests(
+                template.snapshot.root,
+                snapshot_root,
+                normalized_required,
+            ),
+            git_dir=git_dir,
+            git_common_dir=git_common_dir,
+            source_repository_identity=template.source_repository_identity,
             environment_overrides=_snapshot_environment(
                 source_root,
-                opened.snapshot.root,
+                snapshot_root,
                 shared_dependencies=shared_dependencies,
+                git_author_source_root=template.snapshot.root,
             ),
+            environment_removals=template.snapshot.environment_removals,
         )
-        yield opened.snapshot
+        yield snapshot
     except BaseException as exc:
         body_error = exc
         raise
     finally:
-        _teardown_materialized_snapshot(opened, body_error)
+        cleanup_error = _cleanup_snapshot(snapshot_root)
+        if cleanup_error is not None:
+            raise RuntimeError(cleanup_error) from body_error
+
+
+def _link_retained_dependency(link: Path, target: Path) -> None:
+    if os.name != "nt":
+        link.symlink_to(target, target_is_directory=True)
+        return
+    result = subprocess.run(
+        ("cmd", "/c", "mklink", "/J", str(link), str(target)),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Snapshot could not link retained dependency {link.name}: "
+            f"{result.stderr.strip()}"
+        )
 
 
 def _open_materialized_snapshot(
@@ -369,64 +615,6 @@ def _open_materialized_snapshot(
         raise
 
 
-def _reset_retained_snapshot(
-    opened: _OpenedSnapshot,
-    required_paths: Sequence[str],
-) -> None:
-    source_root = opened.source_root
-    snapshot_root = opened.snapshot.root
-    normalized_required = tuple(
-        _validated_relative_path(source_root, path) for path in required_paths
-    )
-    input_paths = _project_input_paths(source_root, normalized_required)
-    before_state = _input_stat_identity(source_root, input_paths)
-    copy_file = _copy_strategy(source_root, snapshot_root, normalized_required)
-    _clear_retained_snapshot_tree(snapshot_root)
-    _copy_project_inputs(source_root, snapshot_root, input_paths, copy_file)
-    git_dir, git_common_dir = _copy_git_metadata(
-        source_root,
-        snapshot_root,
-        copy_file,
-    )
-    after_state = _input_stat_identity(source_root, input_paths)
-    if after_state != before_state:
-        raise RuntimeError(
-            "Project inputs changed while the knockout snapshot was reset"
-        )
-    _verify_dependency_identity(opened.dependency_sources, opened.dependency_identity)
-    source_digests = _required_source_digests(
-        source_root,
-        snapshot_root,
-        normalized_required,
-    )
-    opened.input_paths = input_paths
-    opened.before_state = before_state
-    opened.snapshot = KnockoutProjectSnapshot(
-        root=snapshot_root,
-        input_digest=_snapshot_input_digest(
-            snapshot_root,
-            input_paths,
-            opened.dependency_identity,
-        ),
-        source_digests=source_digests,
-        git_dir=git_dir,
-        git_common_dir=git_common_dir,
-        source_repository_identity=opened.source_repository_identity,
-        environment_overrides=opened.snapshot.environment_overrides,
-        environment_removals=opened.snapshot.environment_removals,
-    )
-
-
-def _clear_retained_snapshot_tree(snapshot_root: Path) -> None:
-    for child in snapshot_root.iterdir():
-        if child.name in {".venv", "node_modules"}:
-            continue
-        if child.is_dir() and not child.is_symlink():
-            shutil.rmtree(child)
-        else:
-            child.unlink(missing_ok=True)
-
-
 def _teardown_materialized_snapshot(
     opened: _OpenedSnapshot,
     body_error: BaseException | None,
@@ -488,21 +676,37 @@ def _project_input_paths(root: Path, required_paths: Sequence[str]) -> tuple[str
 
 def _git_project_paths(root: Path) -> tuple[str, ...] | None:
     _reject_gitlinks(root)
-    result = _run_git(
+    tracked = _run_git(
         root,
         "ls-files",
         "--cached",
+        "-z",
+        check=False,
+    )
+    untracked = _run_git(
+        root,
+        "ls-files",
         "--others",
         "--exclude-standard",
         "-z",
         check=False,
     )
-    if result is None or result.returncode != 0:
+    if (
+        tracked is None
+        or tracked.returncode != 0
+        or untracked is None
+        or untracked.returncode != 0
+    ):
         return None
+    tracked_paths = tuple(part for part in tracked.stdout.split(b"\0") if part)
+    untracked_paths = tuple(
+        part
+        for part in untracked.stdout.split(b"\0")
+        if part and not part.startswith(_UNTRACKED_KNOCKOUT_CACHE_PATH_PREFIX)
+    )
     return tuple(
         part.decode("utf-8", errors="surrogateescape")
-        for part in result.stdout.split(b"\0")
-        if part
+        for part in (*tracked_paths, *untracked_paths)
     )
 
 
@@ -526,6 +730,14 @@ def _bounded_tree_paths(root: Path) -> tuple[str, ...]:
         for name in directory_names:
             candidate = current / name
             if name in _EXCLUDED_TREE_NAMES:
+                continue
+            relative_parts = candidate.relative_to(root).parts
+            if (
+                relative_parts[: len(_KNOCKOUT_CACHE_PATH_PARTS)]
+                == _KNOCKOUT_CACHE_PATH_PARTS
+                and candidate.is_dir()
+                and not candidate.is_symlink()
+            ):
                 continue
             if candidate.is_symlink():
                 _validate_materializable_symlink(
@@ -899,6 +1111,32 @@ def _dependency_identity_error(
     return None
 
 
+def _stable_group_tree_digest(root: Path) -> str:
+    digest = hashlib.sha256()
+    for directory, directory_names, file_names in os.walk(root, followlinks=False):
+        directory_names.sort()
+        file_names.sort()
+        current = Path(directory)
+        for name in (*directory_names, *file_names):
+            path = current / name
+            relative = path.relative_to(root).as_posix()
+            metadata = path.lstat()
+            digest.update(relative.encode("utf-8", errors="surrogateescape"))
+            digest.update(
+                f"\0{stat.S_IFMT(metadata.st_mode)}:{stat.S_IMODE(metadata.st_mode)}\0".encode()
+            )
+            if path.is_symlink():
+                digest.update(
+                    os.readlink(path).encode("utf-8", errors="surrogateescape")
+                )
+            elif path.is_file():
+                with path.open("rb") as stream:
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                        digest.update(chunk)
+            digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def _is_relative_to(path: Path, root: Path) -> bool:
     try:
         path.relative_to(root)
@@ -1100,8 +1338,14 @@ def _snapshot_environment(
     source_root: Path,
     snapshot_root: Path,
     shared_dependencies: Mapping[str, Path] | None = None,
+    *,
+    git_author_source_root: Path | None = None,
+    pycache_root: Path | None = None,
 ) -> dict[str, str]:
-    git_author_config = _snapshot_git_author_config(source_root, snapshot_root)
+    git_author_config = _snapshot_git_author_config(
+        git_author_source_root or source_root,
+        snapshot_root,
+    )
     overrides = {
         "GIT_CONFIG_GLOBAL": str(git_author_config),
         "GIT_CONFIG_NOSYSTEM": "1",
@@ -1111,7 +1355,11 @@ def _snapshot_environment(
             snapshot_root,
             _paths_outside_root(os.environ.get("PYTHONPATH"), source_root),
         ),
-        "PYTHONPYCACHEPREFIX": str(snapshot_root / ".maid-pycache"),
+        "PYTHONPYCACHEPREFIX": str(
+            pycache_root
+            if pycache_root is not None
+            else snapshot_root / ".maid-pycache"
+        ),
     }
     executable_paths: list[Path] = []
     shared = shared_dependencies or {}
@@ -1279,6 +1527,54 @@ def _verify_repository_identity(root: Path, expected: str | None) -> str | None:
     if actual != expected:
         return "Knockout snapshot command changed source repository metadata"
     return None
+
+
+def _repository_control_identity(root: Path) -> str | None:
+    """Hash Git control state directly for inexpensive between-command checks."""
+    marker = root / ".git"
+    if marker.is_dir():
+        git_dir = marker.resolve()
+    elif marker.is_file():
+        content = marker.read_text(encoding="utf-8", errors="replace").strip()
+        if not content.startswith("gitdir:"):
+            return None
+        git_dir = Path(content.removeprefix("gitdir:").strip())
+        if not git_dir.is_absolute():
+            git_dir = (root / git_dir).resolve()
+    else:
+        return None
+    common_dir = git_dir
+    common_marker = git_dir / "commondir"
+    if common_marker.is_file():
+        common_dir = Path(common_marker.read_text(encoding="utf-8").strip())
+        if not common_dir.is_absolute():
+            common_dir = (git_dir / common_dir).resolve()
+
+    digest = hashlib.sha256()
+    controls = (
+        git_dir / "HEAD",
+        git_dir / "index",
+        git_dir / "config.worktree",
+        common_dir / "config",
+        common_dir / "packed-refs",
+    )
+    for path in controls:
+        digest.update(str(path).encode())
+        digest.update(b"\0")
+        if path.is_file():
+            digest.update(path.read_bytes())
+        digest.update(b"\0")
+    for directory in (git_dir / "refs", common_dir / "refs", common_dir / "objects"):
+        if not directory.is_dir():
+            continue
+        for path in sorted(item for item in directory.rglob("*") if item.is_file()):
+            metadata = path.stat()
+            digest.update(path.relative_to(directory).as_posix().encode())
+            digest.update(
+                f":{metadata.st_size}:{metadata.st_mtime_ns}:{metadata.st_ctime_ns}".encode()
+            )
+            digest.update(b"\0")
+    return digest.hexdigest()
 
 
 def _cleanup_snapshot(root: Path) -> str | None:

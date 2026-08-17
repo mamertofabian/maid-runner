@@ -7,6 +7,7 @@ from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
+import time
 
 from maid_runner.core._knockout_snapshot import ProjectSnapshotBackend
 from maid_runner.core._pytest_worker_execution import (
@@ -19,9 +20,20 @@ from maid_runner.core.knockout import (
     KnockoutCommandExecutor,
     KnockoutMutationSpec,
     KnockoutReport,
+    KnockoutResult,
+    _KnockoutCommandGroup,
+    _KnockoutCommandGroupMember,
+    _content_hash,
+    _exact_transition_error,
+    _execute_after_shared_baseline,
+    _execute_snapshot_command,
     _harness_error,
+    _is_positive_transition,
+    _not_detected_error,
+    _proof,
     _run_differential_declaration,
     _target_path_or_error,
+    rewrite_artifact_body,
 )
 from maid_runner.core.result import ValidationError
 from maid_runner.core.runtime_evidence import RuntimeEvidenceBundle
@@ -140,6 +152,393 @@ def run_knockout_workers(
             max_processes,
             on_result,
         )
+
+
+def _run_knockout_command_groups(
+    groups: Sequence[_KnockoutCommandGroup],
+    project_root: Path,
+    evidence: RuntimeEvidenceBundle | None,
+    snapshot_backend: ProjectSnapshotBackend,
+    executor: KnockoutCommandExecutor,
+    jobs: int,
+    max_processes: int,
+    on_result: Callable[[KnockoutWorkerResult], None] | None = None,
+) -> tuple[KnockoutWorkerResult, ...]:
+    """Schedule exact-command groups within the weighted process budget."""
+    _require_positive_integer("jobs", jobs)
+    _require_positive_integer("max_processes", max_processes)
+    del evidence
+    ordered = tuple(groups)
+    retain = getattr(snapshot_backend, "retain", None)
+    context = retain() if callable(retain) else nullcontext()
+    try:
+        with context:
+            return _schedule_knockout_command_groups(
+                ordered,
+                Path(project_root),
+                snapshot_backend,
+                executor,
+                jobs,
+                max_processes,
+                on_result,
+            )
+    except Exception as exc:
+        return tuple(
+            _failed_worker(member.spec, 1, str(exc))
+            for group in ordered
+            for member in group.members
+        )
+
+
+def _schedule_knockout_command_groups(
+    groups: tuple[_KnockoutCommandGroup, ...],
+    root: Path,
+    snapshot_backend: ProjectSnapshotBackend,
+    executor: KnockoutCommandExecutor,
+    jobs: int,
+    max_processes: int,
+    on_result: Callable[[KnockoutWorkerResult], None] | None,
+) -> tuple[KnockoutWorkerResult, ...]:
+    prepared: list[tuple[int, _KnockoutCommandGroup, int]] = []
+    immediate: list[KnockoutWorkerResult] = []
+    for index, group in enumerate(groups):
+        try:
+            cost = resolve_knockout_process_cost(group.command, root)
+            if cost > max_processes:
+                raise ValueError(
+                    f"knockout process cost {cost} exceeds budget {max_processes}"
+                )
+            prepared.append((index, group, cost))
+        except Exception as exc:
+            immediate.extend(
+                _failed_worker(member.spec, 1, str(exc)) for member in group.members
+            )
+
+    by_identity = {worker.identity: worker for worker in immediate}
+    active: dict[
+        Future[tuple[KnockoutWorkerResult, ...]],
+        tuple[int, _KnockoutCommandGroup, int],
+    ] = {}
+    reserved = 0
+    with ThreadPoolExecutor(max_workers=min(jobs, len(prepared) or 1)) as pool:
+        while prepared or active:
+            while len(active) < jobs:
+                selected = next(
+                    (
+                        position
+                        for position, (_index, _group, cost) in enumerate(prepared)
+                        if reserved + cost <= max_processes
+                    ),
+                    None,
+                )
+                if selected is None:
+                    break
+                item = prepared.pop(selected)
+                index, group, cost = item
+                future = pool.submit(
+                    _execute_knockout_command_group,
+                    group,
+                    root,
+                    snapshot_backend,
+                    executor,
+                    cost,
+                    on_result,
+                )
+                active[future] = item
+                reserved += cost
+            if not active:
+                break
+            completed, _pending = wait(active, return_when=FIRST_COMPLETED)
+            for future in completed:
+                _index, group, cost = active.pop(future)
+                reserved -= cost
+                try:
+                    workers = future.result()
+                except Exception as exc:
+                    workers = tuple(
+                        _failed_worker(member.spec, cost, str(exc))
+                        for member in group.members
+                    )
+                by_identity.update((worker.identity, worker) for worker in workers)
+
+    for _index, group, cost in prepared:
+        for member in group.members:
+            failed = _failed_worker(
+                member.spec, cost, "Knockout command group produced no result"
+            )
+            by_identity[failed.identity] = failed
+            if on_result is not None:
+                on_result(failed)
+    ordered_members = sorted(
+        (member for group in groups for member in group.members),
+        key=lambda member: member.declaration.plan_index,
+    )
+    return tuple(
+        by_identity.get(member.spec.identity)
+        or _failed_worker(member.spec, 1, "Knockout command group result is missing")
+        for member in ordered_members
+    )
+
+
+def _execute_knockout_command_group(
+    group: _KnockoutCommandGroup,
+    root: Path,
+    snapshot_backend: ProjectSnapshotBackend,
+    executor: KnockoutCommandExecutor,
+    process_cost: int,
+    on_result: Callable[[KnockoutWorkerResult], None] | None,
+) -> tuple[KnockoutWorkerResult, ...]:
+    stable_group = getattr(snapshot_backend, "_stable_group", None)
+    if not callable(stable_group):
+        return tuple(
+            _failed_worker(
+                member.spec,
+                process_cost,
+                "Snapshot backend does not support stable command groups",
+            )
+            for member in group.members
+        )
+    required_paths = tuple(
+        dict.fromkeys(member.spec.identity.file_path for member in group.members)
+    )
+    worker_id = (
+        f"group-{group.members[0].declaration.plan_index:06d}-" f"{group.manifest_slug}"
+    )
+    completed: list[KnockoutWorkerResult] = []
+    try:
+        with stable_group(root, required_paths, worker_id) as stable:
+            snapshot = stable.snapshot
+            for member in group.members:
+                if (
+                    snapshot.source_digests.get(member.spec.identity.file_path)
+                    != member.spec.source_digest
+                ):
+                    raise RuntimeError(
+                        "Knockout source bytes changed before grouped execution: "
+                        f"{member.spec.identity.file_path}"
+                    )
+            baseline = _execute_snapshot_command(
+                executor,
+                group.command,
+                snapshot.root,
+                group.manifest_slug,
+                snapshot.environment_overrides,
+                snapshot.environment_removals,
+            )
+            for member in group.members:
+                target_path, target_error = _target_path_or_error(
+                    snapshot.root, member.spec.identity.file_path
+                )
+                if target_error is not None:
+                    raise RuntimeError(target_error.message)
+                if _content_hash(target_path.read_bytes()) != member.spec.source_digest:
+                    raise RuntimeError(
+                        "Knockout baseline command changed target bytes before "
+                        f"mutation: {member.spec.identity.file_path}"
+                    )
+            stable.verify_identities()
+            if baseline.exit_code != 0:
+                return tuple(
+                    _baseline_failure_worker(member, baseline, process_cost)
+                    for member in group.members
+                )
+            stable.freeze()
+            for position, member in enumerate(group.members):
+                stable.reset()
+                worker, fatal = _execute_group_member(
+                    member,
+                    baseline,
+                    snapshot,
+                    root,
+                    executor,
+                    process_cost,
+                )
+                stable.verify_identities()
+                completed.append(worker)
+                if on_result is not None:
+                    on_result(worker)
+                if fatal:
+                    for remaining in group.members[position + 1 :]:
+                        completed.append(
+                            _failed_worker(
+                                remaining.spec,
+                                process_cost,
+                                "Knockout command group stopped after a prior "
+                                "mutation could not complete safely",
+                            )
+                        )
+                    break
+            stable.verify_identities()
+    except Exception as exc:
+        return tuple(
+            _failed_worker(member.spec, process_cost, str(exc))
+            for member in group.members
+        )
+    return tuple(completed)
+
+
+def _execute_group_member(
+    member: _KnockoutCommandGroupMember,
+    baseline,
+    snapshot,
+    evidence_root: Path,
+    executor: KnockoutCommandExecutor,
+    process_cost: int,
+) -> tuple[KnockoutWorkerResult, bool]:
+    started = time.monotonic()
+    identity = member.spec.identity
+    errors: list[ValidationError] = []
+    proof = None
+    fatal = False
+    try:
+        target_path, target_error = _target_path_or_error(
+            snapshot.root, identity.file_path
+        )
+        if target_error is not None:
+            raise RuntimeError(target_error.message)
+        original = target_path.read_bytes()
+        original_hash = _content_hash(original)
+        if original_hash != member.spec.source_digest:
+            raise RuntimeError(
+                "Knockout reset source bytes do not match the planned mutation: "
+                f"{identity.file_path}"
+            )
+        rewritten = rewrite_artifact_body(
+            original.decode("utf-8"),
+            identity.artifact_name,
+            identity.artifact_kind,
+            identity.parent_class,
+        ).encode("utf-8")
+        transition, transition_error = _execute_after_shared_baseline(
+            member.command,
+            member.declaration.manifest_slug,
+            snapshot.root,
+            target_path,
+            identity.file_path,
+            original,
+            original_hash,
+            rewritten,
+            executor,
+            snapshot.environment_overrides,
+            snapshot.environment_removals,
+            baseline,
+        )
+        if transition_error is not None:
+            errors.append(transition_error)
+            fatal = True
+        elif (
+            member.focused
+            and len(transition) == 3
+            and _is_positive_transition(*transition)
+        ):
+            proof = _proof(
+                identity,
+                member.command,
+                *transition,
+                member.nodeids,
+                used_exact_fallback=False,
+            )
+        elif member.focused:
+            exact_command = member.declaration.commands[0]
+            from maid_runner.core.knockout import _execute_transition
+
+            exact, exact_transition_error = _execute_transition(
+                exact_command,
+                member.declaration.manifest_slug,
+                snapshot.root,
+                target_path,
+                identity.file_path,
+                original,
+                original_hash,
+                rewritten,
+                executor,
+                snapshot.environment_overrides,
+                snapshot.environment_removals,
+            )
+            if exact_transition_error is not None:
+                errors.append(exact_transition_error)
+                fatal = True
+            else:
+                exact_error = _exact_transition_error(
+                    identity.file_path, exact_command, exact
+                )
+                if exact_error is not None:
+                    errors.append(exact_error)
+                elif len(exact) == 3:
+                    proof = _proof(
+                        identity,
+                        exact_command,
+                        *exact,
+                        (),
+                        used_exact_fallback=True,
+                    )
+        else:
+            exact_error = _exact_transition_error(
+                identity.file_path, member.command, transition
+            )
+            if exact_error is not None:
+                errors.append(exact_error)
+            elif len(transition) == 3:
+                proof = _proof(
+                    identity,
+                    member.command,
+                    *transition,
+                    (),
+                    used_exact_fallback=True,
+                )
+    except Exception as exc:
+        errors.append(_harness_error(identity.file_path, str(exc)))
+        fatal = True
+    detected = proof is not None and proof.mutant_exit_code != 0 and not errors
+    if not detected and not errors:
+        errors.append(_not_detected_error(identity))
+    result = KnockoutResult(
+        artifact_name=identity.artifact_name,
+        artifact_kind=identity.artifact_kind,
+        parent_class=identity.parent_class,
+        file_path=identity.file_path,
+        detected=detected,
+        duration_ms=(time.monotonic() - started) * 1000,
+        proof=proof,
+    )
+    report = KnockoutReport(results=(result,), errors=tuple(errors))
+    return (
+        KnockoutWorkerResult(
+            identity,
+            {str(member.declaration.plan_index): report},
+            process_cost,
+            (),
+        ),
+        fatal,
+    )
+
+
+def _baseline_failure_worker(
+    member: _KnockoutCommandGroupMember,
+    baseline,
+    process_cost: int,
+) -> KnockoutWorkerResult:
+    identity = member.spec.identity
+    result = KnockoutResult(
+        artifact_name=identity.artifact_name,
+        artifact_kind=identity.artifact_kind,
+        parent_class=identity.parent_class,
+        file_path=identity.file_path,
+        detected=False,
+        duration_ms=baseline.duration_ms,
+    )
+    error = _exact_transition_error(identity.file_path, member.command, (baseline,))
+    assert error is not None
+    return KnockoutWorkerResult(
+        identity,
+        {
+            str(member.declaration.plan_index): KnockoutReport(
+                results=(result,), errors=(error,)
+            )
+        },
+        process_cost,
+        (),
+    )
 
 
 def _schedule_knockout_workers(

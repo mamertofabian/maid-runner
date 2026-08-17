@@ -1,0 +1,788 @@
+{
+  "manifest_path": "manifests/121-48-share-knockout-command-controls.manifest.yaml",
+  "manifest_hash": "sha256-contract:a8b35ad5e916347af8d516bd1d0420811d80c2db03360f7c37437e6f50c6225c",
+  "test_hashes": {
+    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+    "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+    "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+    "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:281d0e0679338317e4ddd9663b8b83676fb839ef5bb9382657b9707f19668eff",
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+    "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf",
+    "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997"
+  },
+  "created_at": "2026-08-17T22:13:06.859385+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d62e6440f2e93d61653641a8f7b7ff50125676e24b2a7599bef8c59a169b1b58",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf"
+      },
+      "revised_at": "2026-08-17T22:16:03.929300+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-48-share-knockout-command-controls.manifest.yaml -> manifests/121-48-share-knockout-command-controls.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-48-share-knockout-command-controls.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-48-share-knockout-command-controls.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:086d24fdc34f8f8f4009eb85707a05990759892cecf1787dd56b3849d54cfd44",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf"
+      },
+      "revised_at": "2026-08-17T22:32:53.143808+00:00",
+      "reason": "Full regression exposed inherited cache tests that contract the superseded per-spec worker seam and pre-optimization command count; evolve them to grouped checkpointing and 1+2N execution while preserving cache safety.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:086d24fdc34f8f8f4009eb85707a05990759892cecf1787dd56b3849d54cfd44",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf"
+      },
+      "revised_at": "2026-08-17T22:36:43.541751+00:00",
+      "reason": "Evolve inherited cache contracts to observe grouped interruption through public execution and require 1+2N command counts on cache misses.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes",
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:kind=test_function",
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:returns=None",
+          "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache",
+          "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:kind=test_function",
+          "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_knockout_cache_key_context.py",
+          "edit:tests/core/test_knockout_evidence_cache.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cfbc4e47feae3a4e54a5abde750428f436b08a1dabd30a426f8621960d97510c",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:0d4505a3610d2ccef684cdc4c0fb58f351c236bfb1cc7ce6bffd45872174f91b",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf"
+      },
+      "revised_at": "2026-08-17T22:44:14.521175+00:00",
+      "reason": "Remove private cache-helper spying from the evolved cache-invalidation contract; public cache states and grouped command count provide the behavioral evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e0f02485bf2b58f043daa98a6a6e35bf265f9e5fbe6117650970725927402d31",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:281d0e0679338317e4ddd9663b8b83676fb839ef5bb9382657b9707f19668eff",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf"
+      },
+      "revised_at": "2026-08-17T22:57:50.327658+00:00",
+      "reason": "Evolve the inherited dirty-state test from two independent roots to the approved shared-baseline reset lifecycle and replace its private command monkeypatch with the public executor boundary.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite",
+          "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:kind=test_function",
+          "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_knockout.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a8b35ad5e916347af8d516bd1d0420811d80c2db03360f7c37437e6f50c6225c",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:281d0e0679338317e4ddd9663b8b83676fb839ef5bb9382657b9707f19668eff",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997"
+      },
+      "revised_at": "2026-08-17T23:11:46.326476+00:00",
+      "reason": "Capture the evidence-backed completed Outcome after ready implementation review.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T23:00:20.125848+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_knockout_shared_controls.py::test_focused_groups_share_only_equal_selected_commands\nFAILED tests/core/test_knockout_shared_controls.py::test_grouped_focused_green_member_keeps_exact_fallback\nFAILED tests/core/test_knockout_shared_controls.py::test_command_groups_do_not_cross_manifest_slug_identity\nFAILED tests/core/test_knockout_shared_controls.py::test_shared_baseline_failure_is_projected_fail_closed_once\nFAILED tests/core/test_knockout_shared_controls.py::test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order\nFAILED tests/core/test_knockout_shared_controls.py::test_dependency_drift_between_group_mutations_fails_closed\nFAILED tests/core/test_knockout_shared_controls.py::test_live_input_drift_during_group_returns_e712_reports[source]\nFAILED tests/core/test_knockout_shared_controls.py::test_live_input_drift_during_group_returns_e712_reports[repository]\nFAILED tests/core/test_knockout_shared_controls.py::test_mixed_cache_hits_group_only_remaining_exact_commands\nFAILED tests/core/test_knockout_shared_controls.py::test_group_checkpoints_completed_artifact_before_later_failure\nFAILED tests/core/test_knockout_workers.py::test_independent_mutations_overlap_without_shared_snapshot_state\nFAILED tests/core/test_knockout_snapshot_template.py::test_live_repository_capture_count_is_constant_across_declarations\nFAILED tests/core/test_knockout_snapshot_template.py::test_repository_identity_change_invalidates_interrupted_spec_checkpoint\nFAILED tests/core/test_knockout_snapshot_template.py::test_bounded_template_batch_matches_reports_without_snapshot_convoy\nFAILED tests/core/test_knockout_evidence_cache.py::test_interrupted_knockout_batch_retains_completed_spec_cache\nFAILED tests/core/test_knockout_cache_key_context.py::test_cached_batch_computes_repository_identity_once\nFAILED tests/core/test_knockout_cache_key_context.py::test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes\nFAILED tests/core/test_knockout_cache_key_context.py::test_checkpoint_rejects_inputs_that_drift_after_context_capture\nFAILED tests/core/test_knockout.py::test_knockout_rechecks_dirty_state_before_each_artifact_rewrite\n20 failed, 97 passed in 149.32s (0:02:29)",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-48-share-knockout-command-controls.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/active-manifest",
+      ".maid/plan-locks/121-47-template-fresh-knockout-roots.lock.json",
+      ".maid/plan-locks/canonicalize-merged-artifact-order.lock.json",
+      ".maid/plan-locks/chain-merge-coverage-evidence.lock.json",
+      ".maid/plan-locks/fix-approved-fixture-derived-coverage.lock.json",
+      ".maid/plan-locks/fix-e710-chain-merged-coverage.lock.json",
+      ".maid/plan-locks/fix-knockout-cache-key-context.lock.json",
+      "docs/plans/full-and-deep-verification-performance-redesign.md",
+      "docs/plans/maid-runner-performance-backlog.md",
+      "maid_runner/cli/commands/validate.py",
+      "maid_runner/core/artifact_coverage.py",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+      "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+      "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+      "manifests/fix-knockout-cache-key-context.manifest.yaml",
+      "tests/core/test_approved_fixture_artifact_coverage.py",
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merged_artifact_coverage.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend:kind=class",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=self:type=None:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:arg=self:type=None:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:returns=AbstractContextManager[None]",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:kind=function",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:returns=tuple[KnockoutMutationSpec, ...]",
+      "maid_runner/core/knockout.py:function:run_knockout_batch",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=jobs:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=max_processes:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=no_cache:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:returns=dict[str, KnockoutReport]",
+      "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite",
+      "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:kind=test_function",
+      "tests/core/test_knockout.py:test_knockout_rechecks_dirty_state_before_each_artifact_rewrite:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:returns=None",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:kind=test_function",
+      "tests/core/test_knockout_evidence_cache.py:test_interrupted_knockout_batch_retains_completed_spec_cache:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_command_groups_do_not_cross_manifest_slug_identity",
+      "tests/core/test_knockout_shared_controls.py:test_command_groups_do_not_cross_manifest_slug_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_command_groups_do_not_cross_manifest_slug_identity:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_command_groups_do_not_cross_manifest_slug_identity:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_custom_snapshot_backend_keeps_independent_transitions",
+      "tests/core/test_knockout_shared_controls.py:test_custom_snapshot_backend_keeps_independent_transitions:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_custom_snapshot_backend_keeps_independent_transitions:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_custom_snapshot_backend_keeps_independent_transitions:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_dependency_drift_between_group_mutations_fails_closed",
+      "tests/core/test_knockout_shared_controls.py:test_dependency_drift_between_group_mutations_fails_closed:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_dependency_drift_between_group_mutations_fails_closed:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_dependency_drift_between_group_mutations_fails_closed:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_exact_command_group_runs_one_baseline_and_resets_generated_state",
+      "tests/core/test_knockout_shared_controls.py:test_exact_command_group_runs_one_baseline_and_resets_generated_state:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_exact_command_group_runs_one_baseline_and_resets_generated_state:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_exact_command_group_runs_one_baseline_and_resets_generated_state:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_focused_groups_share_only_equal_selected_commands",
+      "tests/core/test_knockout_shared_controls.py:test_focused_groups_share_only_equal_selected_commands:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_focused_groups_share_only_equal_selected_commands:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_focused_groups_share_only_equal_selected_commands:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_group_checkpoints_completed_artifact_before_later_failure",
+      "tests/core/test_knockout_shared_controls.py:test_group_checkpoints_completed_artifact_before_later_failure:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_group_checkpoints_completed_artifact_before_later_failure:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_group_checkpoints_completed_artifact_before_later_failure:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_focused_green_member_keeps_exact_fallback",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_focused_green_member_keeps_exact_fallback:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_focused_green_member_keeps_exact_fallback:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_grouped_focused_green_member_keeps_exact_fallback:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_live_input_drift_during_group_returns_e712_reports",
+      "tests/core/test_knockout_shared_controls.py:test_live_input_drift_during_group_returns_e712_reports:arg=drift:type=str:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_live_input_drift_during_group_returns_e712_reports:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_live_input_drift_during_group_returns_e712_reports:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_live_input_drift_during_group_returns_e712_reports:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_mixed_cache_hits_group_only_remaining_exact_commands",
+      "tests/core/test_knockout_shared_controls.py:test_mixed_cache_hits_group_only_remaining_exact_commands:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_mixed_cache_hits_group_only_remaining_exact_commands:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_mixed_cache_hits_group_only_remaining_exact_commands:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_multi_command_declarations_keep_independent_transitions",
+      "tests/core/test_knockout_shared_controls.py:test_multi_command_declarations_keep_independent_transitions:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_multi_command_declarations_keep_independent_transitions:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_multi_command_declarations_keep_independent_transitions:returns=None",
+      "tests/core/test_knockout_shared_controls.py:test_shared_baseline_failure_is_projected_fail_closed_once",
+      "tests/core/test_knockout_shared_controls.py:test_shared_baseline_failure_is_projected_fail_closed_once:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_shared_controls.py:test_shared_baseline_failure_is_projected_fail_closed_once:kind=test_function",
+      "tests/core/test_knockout_shared_controls.py:test_shared_baseline_failure_is_projected_fail_closed_once:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:returns=None",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state:arg=tmp_path:type=None:default=None",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state:kind=test_function",
+      "tests/core/test_knockout_workers.py:test_independent_mutations_overlap_without_shared_snapshot_state:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_shared_controls.py"
+      ],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/knockout.py",
+        "tests/core/test_knockout.py",
+        "tests/core/test_knockout_cache_key_context.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_knockout_snapshot_template.py",
+        "tests/core/test_knockout_workers.py"
+      ],
+      "read": [
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_cache_key_context.py",
+        "tests/core/test_knockout_differential_detection.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_snapshot_template.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_retained_worker_snapshots.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_worker.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_shared_controls.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_exact_command_group_runs_one_baseline_and_resets_generated_state",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_groups_do_not_cross_manifest_slug_identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_focused_groups_share_only_equal_selected_commands",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_grouped_focused_green_member_keeps_exact_fallback",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_baseline_failure_is_projected_fail_closed_once",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_multi_command_declarations_keep_independent_transitions",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_custom_snapshot_backend_keeps_independent_transitions",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dependency_drift_between_group_mutations_fails_closed",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_live_input_drift_during_group_returns_e712_reports",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "drift",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mixed_cache_hits_group_only_remaining_exact_commands",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_group_checkpoints_completed_artifact_before_later_failure",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "WorkerRetainedProjectSnapshotBackend",
+              "description": "Retain isolated dependencies and immutable input state while supporting exact reset of a stable-path command-group root."
+            },
+            {
+              "kind": "method",
+              "name": "retain",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "self"
+                }
+              ],
+              "returns": "AbstractContextManager[None]"
+            },
+            {
+              "kind": "method",
+              "name": "create",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "self"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_knockout_mutation_specs",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[KnockoutMutationSpec, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "run_knockout_batch",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "no_cache",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "dict[str, KnockoutReport]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_workers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_independent_mutations_overlap_without_shared_snapshot_state",
+              "description": "Independent exact-command groups overlap within the weighted budget while each group resets its mutations from isolated state.",
+              "args": [
+                {
+                  "name": "tmp_path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_snapshot_template.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_bounded_template_batch_matches_reports_without_snapshot_convoy",
+              "description": "The real Git-backed default path shares one exact-command group root and remains report-equivalent to the ungrouped materialized backend.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_evidence_cache.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_interrupted_knockout_batch_retains_completed_spec_cache",
+              "description": "A grouped command interruption checkpoints only the completed artifact and resumes the unfinished singleton through the legacy lifecycle.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_cache_key_context.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes",
+              "description": "Fresh cache identity still invalidates changed inputs while each three-artifact cache miss uses the grouped 1+2N command lifecycle.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_knockout_rechecks_dirty_state_before_each_artifact_rewrite",
+              "description": "A shared baseline checkpoint restores its generated state before each artifact while mutant-local state remains visible to that artifact's restored control.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "tests/core/test_knockout_differential_detection.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_snapshot_template.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_retained_worker_snapshots.py",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_cache_key_context.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_knockout_worker.py",
+          "reason": "Schedule exact command groups under the existing weighted process budget and project finalized per-spec reports to checkpointing."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout.py",
+      "tests/core/test_knockout_batch.py",
+      "tests/core/test_knockout_cache_key_context.py",
+      "tests/core/test_knockout_differential_detection.py",
+      "tests/core/test_knockout_evidence_cache.py",
+      "tests/core/test_knockout_shared_controls.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_snapshot_template.py",
+      "tests/core/test_knockout_workers.py",
+      "tests/core/test_retained_worker_snapshots.py",
+      "tests/core/test_shared_environment_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout.py",
+      "uv run maid validate manifests/121-48-share-knockout-command-controls.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
