@@ -234,6 +234,20 @@ def test_session_fixture_exposes_factory_contract(tmp_path: Path) -> None:
     assert callable(git_project_template_factory)
 
 
+def test_session_fixture_executes_factory_body(tmp_path_factory) -> None:
+    from tests.conftest import git_project_template_factory
+    from tests.support.git_project_templates import GitProjectTemplateFactory
+
+    fixture_body = git_project_template_factory.__wrapped__(tmp_path_factory)
+    factory = next(fixture_body)
+
+    assert isinstance(factory, GitProjectTemplateFactory)
+    assert factory.root.parent == tmp_path_factory.getbasetemp()
+    assert factory.root.name.startswith("git-project-templates")
+    with pytest.raises(StopIteration):
+        next(fixture_body)
+
+
 def test_fixture_loader_reraises_transitive_module_import_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

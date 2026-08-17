@@ -1,0 +1,199 @@
+{
+  "manifest_path": "manifests/cover-remaining-deep-artifacts.manifest.yaml",
+  "manifest_hash": "sha256-contract:1c5c96bf7dc8bfec6b48805b81f252b5ebb79e696f59ced9b302e0276ffb9bd8",
+  "test_hashes": {
+    "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
+    "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f",
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+    "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493",
+    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232"
+  },
+  "created_at": "2026-08-17T06:34:59.686759+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:510a044fc7c26033ba0af3561ec08040e6d692f23540154af63cea24b3867075",
+      "prior_test_hashes": {
+        "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
+        "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+        "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232"
+      },
+      "revised_at": "2026-08-17T06:35:13.772817+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/cover-remaining-deep-artifacts.manifest.yaml -> manifests/cover-remaining-deep-artifacts.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T06:35:08.560167+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/core/validation/test_assertion_checking.py tests/core/test_git_project_templates.py tests/ci/test_claude_maid_loop.py tests/ci/test_codex_maid_loop.py",
+        "exit_code": 1,
+        "output_tail": "=================================== FAILURES ===================================\n______ test_coherence_facade_get_checks_has_local_executable_entry_point _______\n\n    def test_coherence_facade_get_checks_has_local_executable_entry_point():\n        from maid_runner.coherence import get_checks\n    \n        enabled_checks = get_checks(enabled=[\"duplicate\"])\n        disabled_checks = get_checks(disabled=[\"duplicate\"])\n    \n>       assert get_checks.__module__ == \"maid_runner.coherence\"\nE       AssertionError: assert 'maid_runner....e.checks.base' == 'maid_runner.coherence'\nE         \nE         - maid_runner.coherence\nE         + maid_runner.coherence.checks.base\nE         ?                      ++++++++++++\n\ntests/coherence/test_coherence_v2.py:233: AssertionError\n=========================== short test summary info ============================\nFAILED tests/coherence/test_coherence_v2.py::test_coherence_facade_get_checks_has_local_executable_entry_point\n1 failed, 160 passed in 8.61s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/coherence/__init__.py:function:get_checks",
+      "maid_runner/coherence/__init__.py:function:get_checks:arg=disabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/__init__.py:function:get_checks:arg=enabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/__init__.py:function:get_checks:kind=function",
+      "maid_runner/coherence/__init__.py:function:get_checks:returns=list[BaseCheck]",
+      "tests/ci/test_claude_maid_loop.py:test_public_automation_wrappers_execute_delegates_and_stream_process",
+      "tests/ci/test_claude_maid_loop.py:test_public_automation_wrappers_execute_delegates_and_stream_process:kind=test_function",
+      "tests/ci/test_claude_maid_loop.py:test_public_automation_wrappers_execute_delegates_and_stream_process:returns=None",
+      "tests/ci/test_codex_maid_loop.py:test_public_automation_wrappers_execute_core_delegates",
+      "tests/ci/test_codex_maid_loop.py:test_public_automation_wrappers_execute_core_delegates:kind=test_function",
+      "tests/ci/test_codex_maid_loop.py:test_public_automation_wrappers_execute_core_delegates:returns=None",
+      "tests/coherence/test_coherence_v2.py:test_coherence_facade_get_checks_has_local_executable_entry_point",
+      "tests/coherence/test_coherence_v2.py:test_coherence_facade_get_checks_has_local_executable_entry_point:kind=test_function",
+      "tests/coherence/test_coherence_v2.py:test_coherence_facade_get_checks_has_local_executable_entry_point:returns=None",
+      "tests/core/test_git_project_templates.py:test_session_fixture_executes_factory_body",
+      "tests/core/test_git_project_templates.py:test_session_fixture_executes_factory_body:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_session_fixture_executes_factory_body:returns=None",
+      "tests/core/validation/test_assertion_checking.py:test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior",
+      "tests/core/validation/test_assertion_checking.py:test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior:kind=test_function",
+      "tests/core/validation/test_assertion_checking.py:test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/coherence/__init__.py",
+        "tests/ci/test_claude_maid_loop.py",
+        "tests/ci/test_codex_maid_loop.py",
+        "tests/coherence/test_coherence_v2.py",
+        "tests/core/test_git_project_templates.py",
+        "tests/core/validation/test_assertion_checking.py"
+      ],
+      "read": [
+        "maid_runner/coherence/checks/base.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/_test_assertions.py",
+        "manifests/consolidate-coherence-contracts.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml",
+        "tests/conftest.py",
+        "tests/support/git_project_templates.py",
+        "tools/claude_maid_loop.py",
+        "tools/codex_maid_loop.py",
+        "tools/maid_loop_core.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/coherence/__init__.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "get_checks",
+              "description": "Return filtered coherence checks through an executable package-facade entry point.",
+              "args": [
+                {
+                  "name": "enabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                },
+                {
+                  "name": "disabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[BaseCheck]"
+            }
+          ]
+        },
+        {
+          "path": "tests/coherence/test_coherence_v2.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_coherence_facade_get_checks_has_local_executable_entry_point",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_assertion_checking.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_git_project_templates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_session_fixture_executes_factory_body",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_claude_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_public_automation_wrappers_execute_delegates_and_stream_process",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_codex_maid_loop.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_public_automation_wrappers_execute_core_delegates",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/coherence/checks/base.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/_test_assertions.py",
+        "tests/conftest.py",
+        "tests/support/git_project_templates.py",
+        "tools/maid_loop_core.py",
+        "tools/claude_maid_loop.py",
+        "tools/codex_maid_loop.py",
+        "manifests/consolidate-coherence-contracts.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_claude_maid_loop.py",
+      "tests/ci/test_codex_maid_loop.py",
+      "tests/coherence/test_coherence_v2.py",
+      "tests/core/test_git_project_templates.py",
+      "tests/core/validation/test_assertion_checking.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/core/validation/test_assertion_checking.py tests/core/test_git_project_templates.py tests/ci/test_claude_maid_loop.py tests/ci/test_codex_maid_loop.py"
+    ]
+  }
+}

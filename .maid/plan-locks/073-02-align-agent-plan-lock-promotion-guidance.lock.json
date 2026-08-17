@@ -2,11 +2,11 @@
   "manifest_path": "manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml",
   "manifest_hash": "sha256-contract:5f2a80c6406c1c1dd5a2f2edfb23a2d403af4ae8268eb78aad469caef4f5edd7",
   "test_hashes": {
-    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
-    "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:32a252e591b991591d957e0159eed0ee6f222b5b901ccd85ec81a3df673bb99e"
+    "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232",
+    "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493"
   },
   "created_at": "2026-06-14T21:48:44.034717+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:f6e33ea2c76b5c106606a669ca22e2438817e6b92c45d1c3a89d52197e67192b",
@@ -76,6 +76,24 @@
           "read:docs/draft-manifest-workflow.md",
           "read:manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5f2a80c6406c1c1dd5a2f2edfb23a2d403af4ae8268eb78aad469caef4f5edd7",
+      "prior_test_hashes": {
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:53f332913dc2e58ef0a951a1a2a66b595ff8944427601c30a960a58fdc380f60",
+        "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:32a252e591b991591d957e0159eed0ee6f222b5b901ccd85ec81a3df673bb99e"
+      },
+      "revised_at": "2026-08-17T10:03:51.549522+00:00",
+      "reason": "accept approved shared-test coverage for remaining E710 owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
