@@ -1,0 +1,408 @@
+{
+  "manifest_path": "manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml",
+  "manifest_hash": "sha256-contract:368b3b4da50531123cbe7d2a0ec9505656735ad3585fb365caa2b1c81988101c",
+  "test_hashes": {
+    "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+    "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+    "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:3019cc241f8685d89075408b3d1d2ee817a28722511c0c1d876aaaa5039c2c89",
+    "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:74a3650fa835a3f3a038dd323e3f1037f66aaf9d50ccc849fc959b48a57db4e5",
+    "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:05c06c58cea6aa34f228f41e43259bdc51ffbd87f9f3990d53901db93ab2ec3d"
+  },
+  "created_at": "2026-08-17T04:18:45.657012+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0faf7c5ef03fe908727dd697f10bd7b2ca25aef5192773821469f5904dc94ece",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:68fb801e01ac1f45f0d7824b1459de00bd24c3f33fe8ba4fd7533977d25f067b",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:74a3650fa835a3f3a038dd323e3f1037f66aaf9d50ccc849fc959b48a57db4e5",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:05c06c58cea6aa34f228f41e43259bdc51ffbd87f9f3990d53901db93ab2ec3d"
+      },
+      "revised_at": "2026-08-17T04:18:49.591865+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-chain-merge-target-contract-equivalence.manifest.yaml -> manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8c15fc4ea3705196d043aac02873f471b2024a89d7cdb89e0ac03aa02c8f7d8e",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:68fb801e01ac1f45f0d7824b1459de00bd24c3f33fe8ba4fd7533977d25f067b",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:74a3650fa835a3f3a038dd323e3f1037f66aaf9d50ccc849fc959b48a57db4e5",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:05c06c58cea6aa34f228f41e43259bdc51ffbd87f9f3990d53901db93ab2ec3d"
+      },
+      "revised_at": "2026-08-17T04:28:18.047097+00:00",
+      "reason": "Implementation review requires signature-aware inferred overload deduplication and fresh hashes after behavioral-test formatting",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8c15fc4ea3705196d043aac02873f471b2024a89d7cdb89e0ac03aa02c8f7d8e",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_apply_command.py": "sha256-pyast:v2:eb479001181a15047c026452ca22343ad0c88a7339468639bf3c7589afb6008b",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/core/test_chain_merge_target_contract_equivalence.py": "sha256-pyast:v2:b592c6e07c666998f3b454cc004f9d4e75bd36c8d8d545fcee17214b3456032c",
+        "tests/core/test_chain_merge_apply.py": "sha256-pyast:v2:74a3650fa835a3f3a038dd323e3f1037f66aaf9d50ccc849fc959b48a57db4e5",
+        "tests/core/test_chain_merge_full_artifact_specs.py": "sha256-pyast:v2:05c06c58cea6aa34f228f41e43259bdc51ffbd87f9f3990d53901db93ab2ec3d"
+      },
+      "revised_at": "2026-08-17T04:31:08.569506+00:00",
+      "reason": "Add public registry evidence for signature-aware inferred overload preservation and deduplication",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=registry:type=ValidatorRegistry | None:default=None",
+          "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once",
+          "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once:kind=test_function",
+          "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/validators/base.py",
+          "read:maid_runner/validators/registry.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T04:31:12.191125+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge_target_contract_equivalence.py tests/core/test_chain_merge_full_artifact_specs.py tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py",
+        "exit_code": 1,
+        "output_tail": "            artifact\n            for artifact in inferred\n            if artifact.signature == \"parse(System.String)\"\n        )\n    \n>       result = apply_chain_merge(\n            \"src/parser.signed\",\n            before_chain,\n            project_root=str(tmp_path),\n            output_dir=str(manifest_dir),\n            registry=registry,\n        )\nE       TypeError: apply_chain_merge() got an unexpected keyword argument 'registry'\n\ntests/core/test_chain_merge_target_contract_equivalence.py:498: TypeError\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_target_contract_equivalence.py::test_apply_preserves_ordered_target_specs_and_private_only_paths\nFAILED tests/core/test_chain_merge_target_contract_equivalence.py::test_apply_preserves_complete_target_test_details\nFAILED tests/core/test_chain_merge_target_contract_equivalence.py::test_apply_appends_distinct_inferred_overloads_once\n3 failed, 14 passed in 0.53s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py",
+        "exit_code": 0,
+        "output_tail": "...........................                                              [100%]\n27 passed in 2.67s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.applied:type=bool",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.missing_artifacts:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.refused_reason:type=str | None",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.snapshot_path:type=str | None",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:kind=attribute",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:of=ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:attribute:ChainMergeApplyResult.superseded_slugs:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge_apply.py:class:ChainMergeApplyResult",
+      "maid_runner/core/chain_merge_apply.py:class:ChainMergeApplyResult:kind=class",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=output_dir:type=str:default=\"manifests/\"",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=project_root:type=str:default=\".\"",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:arg=registry:type=ValidatorRegistry | None:default=None",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:kind=function",
+      "maid_runner/core/chain_merge_apply.py:function:apply_chain_merge:returns=ChainMergeApplyResult",
+      "tests/core/test_chain_merge_apply.py:test_apply_keeps_snapshot_inferred_companion_reads",
+      "tests/core/test_chain_merge_apply.py:test_apply_keeps_snapshot_inferred_companion_reads:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_keeps_snapshot_inferred_companion_reads:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_leaves_source_unchanged",
+      "tests/core/test_chain_merge_apply.py:test_apply_leaves_source_unchanged:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_leaves_source_unchanged:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_omits_legacy_private_artifacts",
+      "tests/core/test_chain_merge_apply.py:test_apply_omits_legacy_private_artifacts:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_omits_legacy_private_artifacts:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_multi_file_contract_and_validation_union",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_multi_file_contract_and_validation_union:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_multi_file_contract_and_validation_union:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_scope_read_and_delete_paths",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_scope_read_and_delete_paths:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_preserves_scope_read_and_delete_paths:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_artifact_delete_path_conflict_atomically",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_artifact_delete_path_conflict_atomically:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_artifact_delete_path_conflict_atomically:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_lean_file",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_lean_file:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_lean_file:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_when_snapshot_drops_declared_artifact",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_when_snapshot_drops_declared_artifact:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_refuses_when_snapshot_drops_declared_artifact:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_repeatedly_uses_noncolliding_snapshot_slug",
+      "tests/core/test_chain_merge_apply.py:test_apply_repeatedly_uses_noncolliding_snapshot_slug:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_repeatedly_uses_noncolliding_snapshot_slug:returns=None",
+      "tests/core/test_chain_merge_apply.py:test_apply_writes_snapshot_superseding_chain",
+      "tests/core/test_chain_merge_apply.py:test_apply_writes_snapshot_superseding_chain:kind=test_function",
+      "tests/core/test_chain_merge_apply.py:test_apply_writes_snapshot_superseding_chain:returns=None",
+      "tests/core/test_chain_merge_full_artifact_specs.py:test_apply_preserves_latest_complete_specs_for_every_carried_artifact",
+      "tests/core/test_chain_merge_full_artifact_specs.py:test_apply_preserves_latest_complete_specs_for_every_carried_artifact:kind=test_function",
+      "tests/core/test_chain_merge_full_artifact_specs.py:test_apply_preserves_latest_complete_specs_for_every_carried_artifact:returns=None",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once:kind=test_function",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_appends_distinct_inferred_overloads_once:returns=None",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_complete_target_test_details",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_complete_target_test_details:kind=test_function",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_complete_target_test_details:returns=None",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_ordered_target_specs_and_private_only_paths",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_ordered_target_specs_and_private_only_paths:kind=test_function",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_preserves_ordered_target_specs_and_private_only_paths:returns=None",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_refuses_unmatched_exact_target_signature_atomically",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_refuses_unmatched_exact_target_signature_atomically:kind=test_function",
+      "tests/core/test_chain_merge_target_contract_equivalence.py:test_apply_refuses_unmatched_exact_target_signature_atomically:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merge_target_contract_equivalence.py"
+      ],
+      "edit": [
+        "maid_runner/core/chain_merge_apply.py",
+        "tests/core/test_chain_merge_apply.py",
+        "tests/core/test_chain_merge_full_artifact_specs.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py",
+        "manifests/fix-chain-merge-full-artifact-spec.manifest.yaml",
+        "tests/cli/test_chain_merge_apply_command.py",
+        "tests/core/test_chain_merge_coverage_wiring.py",
+        "tests/core/test_chain_merge_equivalence.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merge_target_contract_equivalence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_apply_preserves_ordered_target_specs_and_private_only_paths",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_preserves_complete_target_test_details",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_unmatched_exact_target_signature_atomically",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_appends_distinct_inferred_overloads_once",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/chain_merge_apply.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ChainMergeApplyResult"
+            },
+            {
+              "kind": "attribute",
+              "name": "applied",
+              "of": "ChainMergeApplyResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "snapshot_path",
+              "of": "ChainMergeApplyResult",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "superseded_slugs",
+              "of": "ChainMergeApplyResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "refused_reason",
+              "of": "ChainMergeApplyResult",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "missing_artifacts",
+              "of": "ChainMergeApplyResult",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "apply_chain_merge",
+              "description": "Materialize a self-contained replacement that preserves complete ordered public contracts and whole-manifest path obligations while appending newly discovered target artifacts.",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str",
+                  "default": "\".\""
+                },
+                {
+                  "name": "output_dir",
+                  "type": "str",
+                  "default": "\"manifests/\""
+                },
+                {
+                  "name": "registry",
+                  "type": "ValidatorRegistry | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "ChainMergeApplyResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_chain_merge_apply.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_apply_writes_snapshot_superseding_chain",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_when_snapshot_drops_declared_artifact",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_lean_file",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_leaves_source_unchanged",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_repeatedly_uses_noncolliding_snapshot_slug",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_preserves_multi_file_contract_and_validation_union",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_omits_legacy_private_artifacts",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_preserves_scope_read_and_delete_paths",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_keeps_snapshot_inferred_companion_reads",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_apply_refuses_artifact_delete_path_conflict_atomically",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_chain_merge_full_artifact_specs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_apply_preserves_latest_complete_specs_for_every_carried_artifact",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py",
+        "tests/cli/test_chain_merge_apply_command.py",
+        "tests/core/test_chain_merge_coverage_wiring.py",
+        "tests/core/test_chain_merge_equivalence.py",
+        "manifests/fix-chain-merge-full-artifact-spec.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_apply_command.py",
+      "tests/core/test_chain_merge_apply.py",
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merge_equivalence.py",
+      "tests/core/test_chain_merge_full_artifact_specs.py",
+      "tests/core/test_chain_merge_target_contract_equivalence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_chain_merge_target_contract_equivalence.py tests/core/test_chain_merge_full_artifact_specs.py tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py",
+      "uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py"
+    ]
+  }
+}

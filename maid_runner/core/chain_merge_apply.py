@@ -21,10 +21,14 @@ from maid_runner.core.chain_merge import ChainMergeVerdict, build_chain_merge_re
 from maid_runner.core.snapshot import generate_snapshot, save_snapshot
 from maid_runner.core.types import (
     AcceptanceConfig,
+    ArtifactKind,
+    ArtifactSpec,
     FileMode,
     FileSpec,
     Manifest,
+    ScopeSpec,
 )
+from maid_runner.validators.registry import ValidatorRegistry
 
 
 @dataclass(frozen=True)
@@ -43,6 +47,7 @@ def apply_chain_merge(
     chain: ManifestChain,
     project_root: str = ".",
     output_dir: str = "manifests/",
+    registry: ValidatorRegistry | None = None,
 ) -> ChainMergeApplyResult:
     """Materialize the merged contract for ``file_path`` as a snapshot manifest.
 
@@ -67,19 +72,27 @@ def apply_chain_merge(
     ]
 
     snapshot = generate_snapshot(
-        Path(project_root) / file_path, project_root=project_root
+        Path(project_root) / file_path,
+        project_root=project_root,
+        registry=registry,
     )
-    snapshot_keys = {
-        artifact.contract_key()
+    snapshot_artifacts = tuple(
+        artifact
         for file_spec in snapshot.files_snapshot
         for artifact in file_spec.artifacts
-    }
-    declared_keys = {
-        artifact.contract_key()
+    )
+    declared_artifacts = tuple(
+        artifact
         for artifact in chain.merged_artifacts_for(file_path)
         if not artifact.is_private
-    }
-    missing = tuple(sorted(declared_keys - snapshot_keys))
+    )
+    missing = tuple(
+        sorted(
+            artifact.contract_key()
+            for artifact in declared_artifacts
+            if not _snapshot_contains_artifact(snapshot_artifacts, artifact)
+        )
+    )
     if missing:
         return ChainMergeApplyResult(
             applied=False,
@@ -105,10 +118,18 @@ def apply_chain_merge(
             "conflicting whole-manifest obligations first."
         )
 
-    files_create = tuple(spec for spec in carried_specs if spec.mode is FileMode.CREATE)
-    files_edit = tuple(spec for spec in carried_specs if spec.mode is FileMode.EDIT)
+    private_only_paths = tuple(
+        spec.path for spec in carried_specs if not spec.artifacts
+    )
+    materialized_specs = tuple(spec for spec in carried_specs if spec.artifacts)
+    files_create = tuple(
+        spec for spec in materialized_specs if spec.mode is FileMode.CREATE
+    )
+    files_edit = tuple(
+        spec for spec in materialized_specs if spec.mode is FileMode.EDIT
+    )
     files_snapshot = snapshot.files_snapshot + tuple(
-        spec for spec in carried_specs if spec.mode is FileMode.SNAPSHOT
+        spec for spec in materialized_specs if spec.mode is FileMode.SNAPSHOT
     )
     writable_artifact_paths = {spec.path for spec in files_create}
     writable_artifact_paths.update(spec.path for spec in files_edit)
@@ -120,8 +141,19 @@ def apply_chain_merge(
     deleted_paths = {deleted.path for deleted in files_delete}
     files_scope = _first_by_path(
         scoped
-        for manifest in to_supersede
-        for scoped in manifest.files_scope
+        for scoped in (
+            *(scoped for manifest in to_supersede for scoped in manifest.files_scope),
+            *(
+                ScopeSpec(
+                    path=path,
+                    reason=(
+                        "Preserve ownership of a private-only writable path "
+                        "during chain merge."
+                    ),
+                )
+                for path in private_only_paths
+            ),
+        )
         if scoped.path not in writable_artifact_paths
         and scoped.path not in deleted_paths
     )
@@ -138,6 +170,10 @@ def apply_chain_merge(
     )
 
     target_spec = files_snapshot[0]
+    target_artifacts = _merge_target_artifacts(
+        declared_artifacts,
+        target_spec.artifacts,
+    )
     target_imports = _first_strings(
         item
         for item in (
@@ -152,7 +188,11 @@ def apply_chain_merge(
         )
     )
     files_snapshot = (
-        dataclasses.replace(target_spec, imports=target_imports),
+        dataclasses.replace(
+            target_spec,
+            artifacts=target_artifacts,
+            imports=target_imports,
+        ),
         *files_snapshot[1:],
     )
 
@@ -213,8 +253,6 @@ def _carried_file_specs(
             if not artifact.is_private
         )
         imports = _first_strings(item for spec in specs for item in spec.imports)
-        if not artifacts and not imports:
-            continue
         strictest = min(specs, key=lambda spec: priority[spec.mode])
         carried.append(
             FileSpec(
@@ -226,6 +264,55 @@ def _carried_file_specs(
             )
         )
     return tuple(carried)
+
+
+def _snapshot_contains_artifact(
+    snapshot_artifacts: tuple[ArtifactSpec, ...],
+    declared: ArtifactSpec,
+) -> bool:
+    if declared.signature is not None:
+        return any(
+            candidate.contract_key() == declared.contract_key()
+            for candidate in snapshot_artifacts
+        )
+    return any(
+        _artifacts_structurally_match(declared, candidate)
+        for candidate in snapshot_artifacts
+    )
+
+
+def _artifacts_structurally_match(
+    declared: ArtifactSpec,
+    candidate: ArtifactSpec,
+) -> bool:
+    if declared.signature is not None or candidate.signature is not None:
+        return declared.contract_key() == candidate.contract_key()
+    if declared.merge_key() == candidate.merge_key():
+        return True
+    function_kinds = {ArtifactKind.FUNCTION, ArtifactKind.TEST_FUNCTION}
+    return (
+        declared.kind in function_kinds
+        and candidate.kind in function_kinds
+        and declared.of is None
+        and candidate.of is None
+        and declared.name == candidate.name
+    )
+
+
+def _merge_target_artifacts(
+    declared: tuple[ArtifactSpec, ...],
+    inferred: tuple[ArtifactSpec, ...],
+) -> tuple[ArtifactSpec, ...]:
+    merged = list(declared)
+    for candidate in inferred:
+        if candidate.is_private:
+            continue
+        if any(
+            _artifacts_structurally_match(existing, candidate) for existing in merged
+        ):
+            continue
+        merged.append(candidate)
+    return tuple(merged)
 
 
 def _first_strings(items) -> tuple[str, ...]:
