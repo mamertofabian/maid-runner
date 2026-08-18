@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:e9d0faab1369045cf049422a935e1df4017ac67d31e375d794c606dc1dc9a287",
   "test_hashes": {
     "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:f3ce34c0af282b48c52b940faaf21458750e33e326db3da408bb422e3edeec73",
-    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a"
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:ca084737f48b674c42e30c09389da06391fdc7e5dbb409b4f2791d3c30707fc8"
   },
   "created_at": "2026-08-17T12:02:51.849884+00:00",
-  "revision": 9,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:56ac9f046a0eef1912f4b53ff75e8d7a1c33bc061260db443ea220dc5a821461",
@@ -164,6 +164,24 @@
       },
       "revised_at": "2026-08-17T13:37:40.473567+00:00",
       "reason": "Capture reviewed implementation Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e9d0faab1369045cf049422a935e1df4017ac67d31e375d794c606dc1dc9a287",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:f3ce34c0af282b48c52b940faaf21458750e33e326db3da408bb422e3edeec73",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a"
+      },
+      "revised_at": "2026-08-18T10:34:43.568925+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

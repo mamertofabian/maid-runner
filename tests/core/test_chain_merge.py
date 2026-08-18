@@ -7,6 +7,8 @@ collection error (exit 2), keeping red evidence valid.
 
 from __future__ import annotations
 
+import pytest
+
 
 def _manifests_dir(tmp_path):
     d = tmp_path / "manifests"
@@ -205,6 +207,20 @@ def test_detection_source_populates_required_nodeids(tmp_path):
         assert report.acceptance.required_detecting_nodeids[key] == (
             "tests/test_foo.py::test_alpha",
         )
+
+
+def test_detection_protocol_owner_command_rejects_knockout_sentinel():
+    from maid_runner.core.chain_merge import DetectionEvidenceSource
+
+    class RecordedSource:
+        def detecting_nodeids_for(self, artifact_key: str):
+            return (artifact_key,)
+
+    source: DetectionEvidenceSource = RecordedSource()
+    with pytest.raises(NotImplementedError) as exc_info:
+        DetectionEvidenceSource.detecting_nodeids_for(source, "function:alpha")
+
+    assert exc_info.value.args == ()
 
 
 def test_report_is_deterministic(tmp_path):

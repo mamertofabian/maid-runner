@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 
 def _write_manifest(root: Path, *, covered: bool = True) -> None:
     (root / "manifests").mkdir()
@@ -111,6 +113,20 @@ def test_recorded_coverage_source_satisfies_protocol():
     source: CoverageEvidenceSource = RecordedCoverageEvidenceSource({})
 
     assert isinstance(source, CoverageEvidenceSource)
+
+
+def test_coverage_protocol_owner_command_rejects_knockout_sentinel():
+    from maid_runner.core.chain_merge import CoverageEvidenceSource
+
+    class RecordedSource:
+        def coverage_for(self, file_path: str, artifact_key: str):
+            return bool(file_path and artifact_key)
+
+    source: CoverageEvidenceSource = RecordedSource()
+    with pytest.raises(NotImplementedError) as exc_info:
+        CoverageEvidenceSource.coverage_for(source, "src/target.py", "function:target")
+
+    assert exc_info.value.args == ()
 
 
 def test_recorded_coverage_cache_reader_rejects_stale_evidence(

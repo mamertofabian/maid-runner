@@ -29,9 +29,12 @@ from maid_runner.core.knockout import (
     _execute_snapshot_command,
     _harness_error,
     _is_positive_transition,
+    _mutation_artifact_name,
+    _mutation_file_path,
     _not_detected_error,
     _proof,
     _run_differential_declaration,
+    _spec_required_paths,
     _target_path_or_error,
     rewrite_artifact_body,
 )
@@ -69,25 +72,27 @@ def execute_knockout_worker(
             )
             with snapshot_backend.create(
                 root,
-                (identity.file_path,),
+                _spec_required_paths(spec),
                 worker_id,
             ) as snapshot:
+                mutation_file_path = _mutation_file_path(spec)
                 if (
-                    snapshot.source_digests.get(identity.file_path)
+                    snapshot.source_digests.get(mutation_file_path)
                     != spec.source_digest
                 ):
                     raise RuntimeError(
                         "Knockout source bytes changed before isolated execution: "
-                        f"{identity.file_path}"
+                        f"{mutation_file_path}"
                     )
                 target_path, target_error = _target_path_or_error(
                     snapshot.root,
-                    identity.file_path,
+                    mutation_file_path,
                 )
                 if target_error is not None:
                     raise RuntimeError(target_error.message)
                 result, errors = _run_differential_declaration(
                     identity,
+                    _mutation_artifact_name(spec),
                     declaration,
                     snapshot.root,
                     target_path,
@@ -299,7 +304,11 @@ def _execute_knockout_command_group(
             for member in group.members
         )
     required_paths = tuple(
-        dict.fromkeys(member.spec.identity.file_path for member in group.members)
+        dict.fromkeys(
+            path
+            for member in group.members
+            for path in _spec_required_paths(member.spec)
+        )
     )
     worker_id = (
         f"group-{group.members[0].declaration.plan_index:06d}-" f"{group.manifest_slug}"
@@ -309,13 +318,14 @@ def _execute_knockout_command_group(
         with stable_group(root, required_paths, worker_id) as stable:
             snapshot = stable.snapshot
             for member in group.members:
+                mutation_file_path = _mutation_file_path(member.spec)
                 if (
-                    snapshot.source_digests.get(member.spec.identity.file_path)
+                    snapshot.source_digests.get(mutation_file_path)
                     != member.spec.source_digest
                 ):
                     raise RuntimeError(
                         "Knockout source bytes changed before grouped execution: "
-                        f"{member.spec.identity.file_path}"
+                        f"{mutation_file_path}"
                     )
             baseline = _execute_snapshot_command(
                 executor,
@@ -326,15 +336,16 @@ def _execute_knockout_command_group(
                 snapshot.environment_removals,
             )
             for member in group.members:
+                mutation_file_path = _mutation_file_path(member.spec)
                 target_path, target_error = _target_path_or_error(
-                    snapshot.root, member.spec.identity.file_path
+                    snapshot.root, mutation_file_path
                 )
                 if target_error is not None:
                     raise RuntimeError(target_error.message)
                 if _content_hash(target_path.read_bytes()) != member.spec.source_digest:
                     raise RuntimeError(
                         "Knockout baseline command changed target bytes before "
-                        f"mutation: {member.spec.identity.file_path}"
+                        f"mutation: {mutation_file_path}"
                     )
             stable.verify_identities()
             if baseline.exit_code != 0:
@@ -391,8 +402,9 @@ def _execute_group_member(
     proof = None
     fatal = False
     try:
+        mutation_file_path = _mutation_file_path(member.spec)
         target_path, target_error = _target_path_or_error(
-            snapshot.root, identity.file_path
+            snapshot.root, mutation_file_path
         )
         if target_error is not None:
             raise RuntimeError(target_error.message)
@@ -401,11 +413,11 @@ def _execute_group_member(
         if original_hash != member.spec.source_digest:
             raise RuntimeError(
                 "Knockout reset source bytes do not match the planned mutation: "
-                f"{identity.file_path}"
+                f"{mutation_file_path}"
             )
         rewritten = rewrite_artifact_body(
             original.decode("utf-8"),
-            identity.artifact_name,
+            _mutation_artifact_name(member.spec),
             identity.artifact_kind,
             identity.parent_class,
         ).encode("utf-8")

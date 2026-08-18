@@ -11,6 +11,7 @@ from collections.abc import Mapping, Sequence
 from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
+from threading import Lock
 
 from maid_runner.core._knockout_snapshot import (
     ProjectSnapshotBackend,
@@ -19,6 +20,7 @@ from maid_runner.core._knockout_snapshot import (
 )
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
+from maid_runner.core.module_paths import file_to_module_path, resolve_reexport
 from maid_runner.core.result import (
     ErrorCode,
     Location,
@@ -99,6 +101,8 @@ class KnockoutMutationSpec:
     identity: KnockoutArtifactIdentity
     source_digest: str
     declarations: tuple[KnockoutDeclaration, ...]
+    mutation_file_path: str | None = None
+    mutation_artifact_name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -244,6 +248,34 @@ class KnockoutCommandExecutor:
         )
 
 
+class _CommandSerializedKnockoutExecutor:
+    """Prevent equal owned commands from contending across isolated workers."""
+
+    def __init__(self, delegate: KnockoutCommandExecutor) -> None:
+        self._delegate = delegate
+        self._guard = Lock()
+        self._command_locks: dict[tuple[str, ...], Lock] = {}
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        project_root: Path,
+        manifest_slug: str,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
+    ) -> TestRunResult:
+        with self._guard:
+            command_lock = self._command_locks.setdefault(command, Lock())
+        with command_lock:
+            return self._delegate.execute(
+                command,
+                project_root,
+                manifest_slug,
+                environment_overrides,
+                environment_removals,
+            )
+
+
 def build_knockout_mutation_specs(
     manifests: Sequence[Manifest],
     project_root: Path,
@@ -254,7 +286,7 @@ def build_knockout_mutation_specs(
     selected_limit = None if limit is None else max(limit, 0)
     grouped: dict[
         KnockoutArtifactIdentity,
-        tuple[str, list[KnockoutDeclaration]],
+        tuple[str, str, str, list[KnockoutDeclaration]],
     ] = {}
     plan_index = 0
 
@@ -265,7 +297,12 @@ def build_knockout_mutation_specs(
             if selected_limit is not None and plan_index >= selected_limit:
                 break
             normalized_path = _normalize_project_path(root, file_path)
-            target_path, target_error = _target_path_or_error(root, normalized_path)
+            mutation_file_path, mutation_artifact_name = _mutation_target(
+                root,
+                normalized_path,
+                artifact,
+            )
+            target_path, target_error = _target_path_or_error(root, mutation_file_path)
             if target_error is not None:
                 raise ValueError(target_error.message)
             try:
@@ -292,10 +329,24 @@ def build_knockout_mutation_specs(
             )
             existing = grouped.get(identity)
             if existing is None:
-                grouped[identity] = (source_digest, [declaration])
+                grouped[identity] = (
+                    source_digest,
+                    mutation_file_path,
+                    mutation_artifact_name,
+                    [declaration],
+                )
             else:
-                existing_digest, declarations = existing
-                if existing_digest != source_digest:
+                (
+                    existing_digest,
+                    existing_file_path,
+                    existing_artifact_name,
+                    declarations,
+                ) = existing
+                if (
+                    existing_digest != source_digest
+                    or existing_file_path != mutation_file_path
+                    or existing_artifact_name != mutation_artifact_name
+                ):
                     raise ValueError(
                         "Knockout source changed while building mutation plan for "
                         f"{normalized_path}"
@@ -310,9 +361,54 @@ def build_knockout_mutation_specs(
             identity=identity,
             source_digest=source_digest,
             declarations=tuple(declarations),
+            mutation_file_path=mutation_file_path,
+            mutation_artifact_name=mutation_artifact_name,
         )
-        for identity, (source_digest, declarations) in grouped.items()
+        for identity, (
+            source_digest,
+            mutation_file_path,
+            mutation_artifact_name,
+            declarations,
+        ) in grouped.items()
     )
+
+
+def _mutation_target(
+    root: Path,
+    file_path: str,
+    artifact: ArtifactSpec,
+) -> tuple[str, str]:
+    declaration = Path(file_path)
+    if artifact.kind != ArtifactKind.FUNCTION or declaration.name != "__init__.py":
+        return file_path, artifact.name
+    module = file_to_module_path(declaration, root)
+    resolved = resolve_reexport(module, artifact.name, root)
+    if resolved is None:
+        return file_path, artifact.name
+    resolved_module, resolved_name = resolved
+    module_path = root / Path(*resolved_module.split("."))
+    source_path = module_path.with_suffix(".py")
+    if not source_path.is_file():
+        source_path = module_path / "__init__.py"
+    if not source_path.is_file():
+        return file_path, artifact.name
+    try:
+        relative = source_path.resolve().relative_to(root.resolve()).as_posix()
+    except (OSError, RuntimeError, ValueError):
+        return file_path, artifact.name
+    return relative, resolved_name
+
+
+def _mutation_file_path(spec: KnockoutMutationSpec) -> str:
+    return spec.mutation_file_path or spec.identity.file_path
+
+
+def _mutation_artifact_name(spec: KnockoutMutationSpec) -> str:
+    return spec.mutation_artifact_name or spec.identity.artifact_name
+
+
+def _spec_required_paths(spec: KnockoutMutationSpec) -> tuple[str, ...]:
+    return tuple(dict.fromkeys((spec.identity.file_path, _mutation_file_path(spec))))
 
 
 def knockout_mutation_spec_is_current(
@@ -321,7 +417,7 @@ def knockout_mutation_spec_is_current(
 ) -> bool:
     """Return whether a planned mutation still matches current target bytes."""
     root = Path(project_root)
-    target_path, target_error = _target_path_or_error(root, spec.identity.file_path)
+    target_path, target_error = _target_path_or_error(root, _mutation_file_path(spec))
     if target_error is not None:
         return False
     try:
@@ -381,6 +477,8 @@ def _knockout_spec_cache_key(
             "parent_class": spec.identity.parent_class,
         },
         "source_digest": spec.source_digest,
+        "mutation_file_path": _mutation_file_path(spec),
+        "mutation_artifact_name": _mutation_artifact_name(spec),
         "mutated_body_digest": mutated_body_digest,
         "declarations": [
             {
@@ -432,10 +530,10 @@ def _knockout_cache_key_context(
 
 def _knockout_mutated_body_digest(root: Path, spec: KnockoutMutationSpec) -> str | None:
     try:
-        source = (root / spec.identity.file_path).read_text(encoding="utf-8")
+        source = (root / _mutation_file_path(spec)).read_text(encoding="utf-8")
         mutant = rewrite_artifact_body(
             source,
-            spec.identity.artifact_name,
+            _mutation_artifact_name(spec),
             spec.identity.artifact_kind,
             spec.identity.parent_class,
         )
@@ -632,7 +730,13 @@ def run_knockout_batch(
     """Run declarations independently with focused proof or exact fallback."""
     ordered_manifests = tuple(manifests)
     root = Path(project_root)
-    command_executor = executor or KnockoutCommandExecutor()
+    owned_default_executor = executor is None
+    command_executor = (
+        _CommandSerializedKnockoutExecutor(KnockoutCommandExecutor())
+        if owned_default_executor
+        else executor
+    )
+    assert command_executor is not None
     grouping_enabled = snapshot_backend is None
     project_snapshots = snapshot_backend or WorkerRetainedProjectSnapshotBackend()
     trusted_evidence = None
@@ -658,7 +762,9 @@ def run_knockout_batch(
             for manifest in ordered_manifests
         }
 
-    required_paths = tuple(dict.fromkeys(spec.identity.file_path for spec in specs))
+    required_paths = tuple(
+        dict.fromkeys(path for spec in specs for path in _spec_required_paths(spec))
+    )
     if required_paths:
         project_snapshots = _BatchRequiredPathsProjectSnapshotBackend(
             project_snapshots,
@@ -733,6 +839,7 @@ def run_knockout_batch(
             pending_specs,
             trusted_evidence,
             root,
+            share_across_manifest_slugs=owned_default_executor,
         )
     grouped_workers = ()
     if command_groups:
@@ -761,7 +868,7 @@ def run_knockout_batch(
     if cache_snapshot_identity is not None:
         with SharedEnvironmentProjectSnapshotBackend().create(
             root,
-            tuple(dict.fromkeys(spec.identity.file_path for spec in specs)),
+            required_paths,
             "maid-cache-context-final",
         ) as final_snapshot:
             if (
@@ -814,8 +921,12 @@ def _plan_knockout_command_groups(
     specs: Sequence[KnockoutMutationSpec],
     evidence: RuntimeEvidenceBundle | None,
     root: Path,
+    *,
+    share_across_manifest_slugs: bool = False,
 ) -> tuple[tuple[_KnockoutCommandGroup, ...], tuple[KnockoutMutationSpec, ...]]:
-    grouped: dict[tuple[str, tuple[str, ...]], list[_KnockoutCommandGroupMember]] = {}
+    grouped: dict[
+        tuple[str | None, tuple[str, ...]], list[_KnockoutCommandGroupMember]
+    ] = {}
     ineligible: list[KnockoutMutationSpec] = []
     for spec in specs:
         if len(spec.declarations) != 1:
@@ -840,7 +951,8 @@ def _plan_knockout_command_groups(
         else:
             command, nodeids = focused
             used_focus = True
-        grouped.setdefault((declaration.manifest_slug, command), []).append(
+        group_slug = None if share_across_manifest_slugs else declaration.manifest_slug
+        grouped.setdefault((group_slug, command), []).append(
             _KnockoutCommandGroupMember(
                 spec=spec,
                 declaration=declaration,
@@ -851,13 +963,13 @@ def _plan_knockout_command_groups(
         )
 
     groups: list[_KnockoutCommandGroup] = []
-    for (manifest_slug, command), members in grouped.items():
+    for (_group_slug, command), members in grouped.items():
         if len(members) < 2:
             ineligible.extend(member.spec for member in members)
             continue
         groups.append(
             _KnockoutCommandGroup(
-                manifest_slug=manifest_slug,
+                manifest_slug=members[0].declaration.manifest_slug,
                 command=command,
                 members=tuple(members),
             )
@@ -973,6 +1085,7 @@ def _target_path_or_error(
 
 def _run_differential_declaration(
     identity: KnockoutArtifactIdentity,
+    mutation_artifact_name: str,
     declaration: KnockoutDeclaration,
     root: Path,
     target_path: Path,
@@ -995,7 +1108,7 @@ def _run_differential_declaration(
         original_hash = _content_hash(original_bytes)
         rewritten = rewrite_artifact_body(
             original,
-            identity.artifact_name,
+            mutation_artifact_name,
             identity.artifact_kind,
             identity.parent_class,
         ).encode("utf-8")

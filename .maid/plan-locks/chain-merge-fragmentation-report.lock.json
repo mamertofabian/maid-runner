@@ -2,11 +2,11 @@
   "manifest_path": "manifests/chain-merge-fragmentation-report.manifest.yaml",
   "manifest_hash": "sha256-contract:125d92e174807854c0502e984e136da78180cc98b6fc7aebe574a92fa9945783",
   "test_hashes": {
-    "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+    "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
     "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580"
   },
   "created_at": "2026-08-13T14:40:09.865861+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:333483d4066d2c19d0028c8f8866afef64259d59e3766da713e37e51047f4077",
@@ -50,6 +50,24 @@
           "maid_runner/core/chain_merge.py:interface:DetectionEvidenceSource:kind=interface",
           "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=tuple[str, ...] | None"
         ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:125d92e174807854c0502e984e136da78180cc98b6fc7aebe574a92fa9945783",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580"
+      },
+      "revised_at": "2026-08-18T10:34:42.742608+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
