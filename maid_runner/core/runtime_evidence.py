@@ -9,6 +9,7 @@ import hashlib
 import importlib.metadata
 import inspect
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -858,7 +859,15 @@ def _mapping_digest(values: Mapping[str, str]) -> str:
 
 def _content_digest(root: Path) -> str:
     digest = hashlib.sha256()
-    for path in sorted(root.rglob("*")):
+    git_content = _git_content_paths(root)
+    if git_content is None:
+        paths = root.rglob("*")
+    else:
+        paths, ignore_metadata = git_content
+        digest.update(b"git-ignore-metadata\0")
+        digest.update(ignore_metadata)
+        digest.update(b"\0")
+    for path in sorted(paths):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
@@ -866,6 +875,216 @@ def _content_digest(root: Path) -> str:
             continue
         _digest_file(digest, path, root)
     return digest.hexdigest()
+
+
+def _git_content_paths(root: Path) -> tuple[tuple[Path, ...], bytes] | None:
+    environment = os.environ.copy()
+    for name in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_COMMON_DIR",
+        "GIT_PREFIX",
+        "GIT_OBJECT_DIRECTORY",
+    ):
+        environment.pop(name, None)
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+                "-z",
+            ],
+            check=False,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+
+    paths: set[Path] = set()
+    for encoded in result.stdout.split(b"\0"):
+        if not encoded:
+            continue
+        relative = Path(os.fsdecode(encoded))
+        if relative.is_absolute() or ".." in relative.parts:
+            return None
+        if _excluded_content_path(relative):
+            continue
+        path = root / relative
+        if path.is_file():
+            paths.add(path)
+
+    try:
+        exclude_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "rev-parse",
+                "--path-format=absolute",
+                "--git-path",
+                "info/exclude",
+            ],
+            check=False,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+
+    try:
+        effective_config_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "config",
+                "--null",
+                "--list",
+                "--show-origin",
+            ],
+            check=False,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    if effective_config_result.returncode != 0:
+        return None
+    if exclude_result.returncode != 0:
+        return None
+    exclude_output = exclude_result.stdout.rstrip(b"\r\n")
+    if not exclude_output:
+        return None
+    exclude_path = Path(os.fsdecode(exclude_output))
+    try:
+        local_exclude_content = exclude_path.read_bytes()
+    except FileNotFoundError:
+        local_exclude_content = b""
+    except OSError:
+        return None
+
+    try:
+        configured_exclude_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "config",
+                "--path",
+                "--get",
+                "core.excludesFile",
+            ],
+            check=False,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    if configured_exclude_result.returncode not in {0, 1}:
+        return None
+    configured_output = configured_exclude_result.stdout.rstrip(b"\r\n")
+    if configured_exclude_result.returncode == 0:
+        if not configured_output:
+            return None
+        configured_exclude_path = Path(os.fsdecode(configured_output))
+        if not configured_exclude_path.is_absolute():
+            configured_exclude_path = root / configured_exclude_path
+        exclude_source = b"configured\0" + configured_output
+    else:
+        xdg_config_home = environment.get("XDG_CONFIG_HOME")
+        if xdg_config_home:
+            configured_exclude_path = Path(xdg_config_home) / "git" / "ignore"
+        else:
+            configured_exclude_path = Path.home() / ".config" / "git" / "ignore"
+        exclude_source = b"default\0" + os.fsencode(str(configured_exclude_path))
+    try:
+        configured_exclude_content = configured_exclude_path.read_bytes()
+    except FileNotFoundError:
+        configured_exclude_content = b""
+    except OSError:
+        return None
+
+    try:
+        ignored_gitignore_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "ls-files",
+                "--others",
+                "--ignored",
+                "--exclude-standard",
+                "-z",
+                "--",
+                ".gitignore",
+                "**/.gitignore",
+            ],
+            check=False,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    if ignored_gitignore_result.returncode != 0:
+        return None
+
+    ignore_paths = {path for path in paths if path.name == ".gitignore"}
+    for encoded in ignored_gitignore_result.stdout.split(b"\0"):
+        if not encoded:
+            continue
+        relative_ignore = Path(os.fsdecode(encoded))
+        if relative_ignore.is_absolute() or ".." in relative_ignore.parts:
+            return None
+        if _excluded_content_path(relative_ignore):
+            continue
+        ignore_path = root / relative_ignore
+        if ignore_path.is_file():
+            ignore_paths.add(ignore_path)
+
+    in_tree_ignore_metadata = bytearray()
+    for ignore_path in sorted(ignore_paths):
+        relative_ignore = ignore_path.relative_to(root)
+        try:
+            ignore_content = ignore_path.read_bytes()
+        except OSError:
+            return None
+        in_tree_ignore_metadata.extend(relative_ignore.as_posix().encode())
+        in_tree_ignore_metadata.extend(b"\0")
+        in_tree_ignore_metadata.extend(ignore_content)
+        in_tree_ignore_metadata.extend(b"\0")
+
+    ignore_metadata = b"".join(
+        (
+            b"info-exclude\0",
+            exclude_output,
+            b"\0",
+            local_exclude_content,
+            b"\0effective-config\0",
+            effective_config_result.stdout,
+            b"\0core-excludes\0",
+            exclude_source,
+            b"\0",
+            configured_exclude_content,
+            b"\0in-tree\0",
+            bytes(in_tree_ignore_metadata),
+        )
+    )
+
+    return tuple(sorted(paths)), ignore_metadata
 
 
 def _digest_file(digest, path: Path, root: Path) -> None:
