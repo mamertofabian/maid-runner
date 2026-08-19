@@ -17,6 +17,7 @@ from maid_runner.core._knockout_snapshot import (
     ProjectSnapshotBackend,
     SharedEnvironmentProjectSnapshotBackend,
     WorkerRetainedProjectSnapshotBackend,
+    _repository_identity,
 )
 from maid_runner.core._pytest_command_normalization import _normalize_pytest_command
 from maid_runner.core._test_command_execution import _run_test_command
@@ -1674,9 +1675,45 @@ def cached_detecting_nodeids(
     returned.
     """
     root = Path(project_root)
+    return _cached_detecting_nodeids_for_specs(
+        build_knockout_mutation_specs(manifests, root),
+        root,
+    )
+
+
+def cached_detecting_nodeids_for_file(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    file_path: str,
+) -> dict[str, tuple[str, ...]]:
+    """Return fresh recorded detecting-nodeids for one file.
+
+    Mutation specs are built from the complete manifest sequence so declaration
+    indices match the repository-wide producer plan. File filtering happens only
+    after that plan exists, and cache reads use the producer's repository-aware
+    key context.
+    """
+    root = Path(project_root)
+    specs = build_knockout_mutation_specs(manifests, root)
+    normalized_file_path = _normalize_project_path(root, file_path)
+    context = _knockout_cache_key_context(root, _repository_identity(root))
+    return _cached_detecting_nodeids_for_specs(
+        tuple(
+            spec for spec in specs if spec.identity.file_path == normalized_file_path
+        ),
+        root,
+        context,
+    )
+
+
+def _cached_detecting_nodeids_for_specs(
+    specs: Sequence[KnockoutMutationSpec],
+    root: Path,
+    context: _KnockoutCacheKeyContext | None = None,
+) -> dict[str, tuple[str, ...]]:
     collected: dict[str, set[str]] = {}
-    for spec in build_knockout_mutation_specs(manifests, root):
-        worker = _load_knockout_spec_cache(root, spec)
+    for spec in specs:
+        worker = _load_knockout_spec_cache(root, spec, context)
         if worker is None:
             continue
         nodeids: set[str] = set()

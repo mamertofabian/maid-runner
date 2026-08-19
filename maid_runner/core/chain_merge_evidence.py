@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Sequence
 
 from maid_runner.core.chain import ManifestChain
-from maid_runner.core.knockout import cached_detecting_nodeids
+from maid_runner.core.knockout import (
+    cached_detecting_nodeids,
+    cached_detecting_nodeids_for_file,
+)
 from maid_runner.core.types import Manifest
 
 
@@ -99,20 +102,24 @@ def detection_source_for_file(
     file_path: str,
     project_root: str = ".",
 ) -> RecordedDetectionEvidenceSource:
-    """Build a detection source scoped to a single file's manifests.
+    """Build a detection source scoped to one file from the full active plan.
 
-    Scoping to ``chain.manifests_for_file(file_path)`` keeps
-    ``cached_detecting_nodeids`` limited to that file's artifacts, so a merge_key
-    shared with another file cannot leak that other file's detecting-nodeids into
-    this file's acceptance bar.
+    The cache key is reconstructed from every active manifest before the
+    requested file is selected. This preserves repository-wide declaration
+    indices while preventing a merge_key shared by another file from leaking
+    into this file's acceptance bar.
 
     Detection is advisory: if knockout specs cannot be built (e.g. a declared
     source file is missing on disk), this degrades to an empty (UNKNOWN) source
     rather than failing the read-only report.
     """
     try:
-        return RecordedDetectionEvidenceSource.from_cache(
-            chain.manifests_for_file(file_path), project_root
+        return RecordedDetectionEvidenceSource(
+            cached_detecting_nodeids_for_file(
+                chain.active_manifests(),
+                Path(project_root),
+                file_path,
+            )
         )
     except ValueError:
         return RecordedDetectionEvidenceSource({})
