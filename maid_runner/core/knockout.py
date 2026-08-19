@@ -306,6 +306,13 @@ def build_knockout_mutation_specs(
             target_path, target_error = _target_path_or_error(root, mutation_file_path)
             if target_error is not None:
                 raise ValueError(target_error.message)
+            if _knockout_target_is_abstract_contract(
+                target_path,
+                mutation_artifact_name,
+                artifact.kind.value,
+                artifact.of,
+            ):
+                continue
             try:
                 source_digest = hashlib.sha256(target_path.read_bytes()).hexdigest()
             except Exception as exc:
@@ -371,6 +378,34 @@ def build_knockout_mutation_specs(
             mutation_artifact_name,
             declarations,
         ) in grouped.items()
+    )
+
+
+def _knockout_target_is_abstract_contract(
+    target_path: Path,
+    artifact_name: str,
+    artifact_kind: str,
+    parent_class: str | None,
+) -> bool:
+    if target_path.suffix != ".py":
+        return False
+    from maid_runner.core.artifact_coverage import (
+        _is_abstract_contract,
+        _stdlib_abstractmethod_bindings,
+    )
+
+    try:
+        tree = ast.parse(target_path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeError):
+        return False
+    node = _find_artifact_node(
+        tree,
+        artifact_name,
+        artifact_kind,
+        parent_class,
+    )
+    return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+        _is_abstract_contract(node, _stdlib_abstractmethod_bindings(tree))
     )
 
 

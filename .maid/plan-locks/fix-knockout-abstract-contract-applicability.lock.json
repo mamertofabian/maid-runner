@@ -1,0 +1,130 @@
+{
+  "manifest_path": "manifests/fix-knockout-abstract-contract-applicability.manifest.yaml",
+  "manifest_hash": "sha256-contract:690f516cb4310bd4264a11eebeb89b5f617f0af658c121a2a0d9e29a7033ca54",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:fe774dba9089a3c45e121f58fc68811d9e59a34a62eac322de4f48a7853a555c",
+    "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+    "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6"
+  },
+  "created_at": "2026-08-19T20:12:39.995866+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b3299ae6d8f3b678fdb6d17b985aefee2fef51743a6d54228a083eded857a51e",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:fe774dba9089a3c45e121f58fc68811d9e59a34a62eac322de4f48a7853a555c",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6"
+      },
+      "revised_at": "2026-08-19T20:13:10.395243+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-knockout-abstract-contract-applicability.manifest.yaml -> manifests/fix-knockout-abstract-contract-applicability.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T20:13:10.151927+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_abstract_contracts.py tests/core/test_knockout.py tests/core/test_artifact_coverage_abstract_contracts.py",
+        "exit_code": 1,
+        "output_tail": "        )\n        manifest = _manifest(\n            project,\n            \"        - {kind: method, name: run, of: Base, returns: str}\\n\"\n            \"        - {kind: method, name: qualified, of: Base, returns: str}\\n\"\n            \"        - {kind: method, name: concrete, of: Base, returns: str}\\n\",\n        )\n    \n        specs = build_knockout_mutation_specs((manifest,), project, limit=1)\n    \n>       assert [spec.identity.artifact_name for spec in specs] == [\"concrete\"]\nE       AssertionError: assert ['run'] == ['concrete']\nE         \nE         At index 0 diff: 'run' != 'concrete'\nE         Use -v to get more diff\n\ntests/core/test_knockout_abstract_contracts.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_abstract_contracts.py::test_knockout_plan_omits_exact_stdlib_abstract_contract_only\n1 failed, 24 passed in 29.98s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators:kind=test_function",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators:returns=None",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_omits_exact_stdlib_abstract_contract_only",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_omits_exact_stdlib_abstract_contract_only:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_omits_exact_stdlib_abstract_contract_only:kind=test_function",
+      "tests/core/test_knockout_abstract_contracts.py:test_knockout_plan_omits_exact_stdlib_abstract_contract_only:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_abstract_contracts.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "manifests/fix-e710-abstract-contract-coverage.manifest.yaml",
+        "manifests/snapshot-coherence-checks-dependency-2.manifest.yaml",
+        "tests/core/test_artifact_coverage_abstract_contracts.py",
+        "tests/core/test_knockout.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_abstract_contracts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_knockout_plan_omits_exact_stdlib_abstract_contract_only",
+              "description": "Public knockout planning omits qualified and unqualified exact stdlib abstract methods without consuming the eligible mutation limit before a concrete sibling.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators",
+              "description": "Fake and locally rebound decorator spellings remain fail-closed knockout mutation targets.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "tests/core/test_artifact_coverage_abstract_contracts.py",
+        "tests/core/test_knockout.py",
+        "manifests/fix-e710-abstract-contract-coverage.manifest.yaml",
+        "manifests/snapshot-coherence-checks-dependency-2.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Apply the established exact abstract-contract applicability rule before grouping public knockout mutation specs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_abstract_contracts.py",
+      "tests/core/test_knockout.py",
+      "tests/core/test_knockout_abstract_contracts.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_abstract_contracts.py tests/core/test_knockout.py tests/core/test_artifact_coverage_abstract_contracts.py"
+    ]
+  }
+}
