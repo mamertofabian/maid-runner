@@ -268,6 +268,108 @@ def test_verify_rejects_runtime_ignore_case_configuration_mutation(
     assert "Artifact coverage evidence command changed project content" in output.out
 
 
+@pytest.mark.parametrize(
+    ("config_key", "config_value"),
+    [
+        ("branch.unrelated.vscode-merge-base", "origin/main"),
+        ("user.email", "instrumented-test@example.invalid"),
+        ("core.fsmonitor", "false"),
+        ("core.untrackedCache", "true"),
+    ],
+)
+def test_verify_accepts_runtime_mutation_of_unrelated_git_configuration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    config_key: str,
+    config_value: str,
+) -> None:
+    generated_path = "generated/ignored.txt"
+    _write_runtime_mutating_project(
+        tmp_path,
+        generated_path,
+        unrelated_git_config=(config_key, config_value),
+    )
+    (tmp_path / ".gitignore").write_text(f"/{generated_path}\n")
+    _git(tmp_path, "init")
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-m", "baseline")
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = _run_artifact_coverage_verify()
+    output = capsys.readouterr()
+
+    assert exit_code == 0, output.out + output.err
+    assert "VERIFY: PASS" in output.out
+    assert (
+        _git_output(
+            tmp_path,
+            "config",
+            "--local",
+            "--get",
+            config_key,
+        )
+        == config_value
+    )
+
+
+def test_verify_rejects_runtime_precompose_unicode_configuration_mutation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    generated_path = "generated/precompose-hidden.txt"
+    _write_runtime_mutating_project(
+        tmp_path,
+        generated_path,
+        mutate_precompose_unicode=True,
+    )
+    (tmp_path / ".gitignore").write_text(f"/{generated_path}\n")
+    _git(tmp_path, "init")
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-m", "baseline")
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = _run_artifact_coverage_verify()
+    output = capsys.readouterr()
+
+    assert exit_code == 1
+    assert "FAIL artifact_coverage" in output.out
+    assert "Artifact coverage evidence command changed project content" in output.out
+
+
+def test_verify_accepts_shadowed_runtime_git_configuration_mutation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    generated_path = "generated/case-hidden.txt"
+    global_config = tmp_path / "global.gitconfig"
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(global_config))
+    _git_config_file(global_config, "core.ignoreCase", "false")
+    _write_runtime_mutating_project(
+        project,
+        generated_path,
+        shadowed_global_git_config=("core.ignoreCase", "true"),
+    )
+    (project / ".gitignore").write_text("/generated/CASE-HIDDEN.txt\n")
+    _git(project, "init")
+    _git(project, "config", "--local", "core.ignoreCase", "true")
+    _git(project, "add", ".")
+    _git(project, "commit", "-m", "baseline")
+    monkeypatch.chdir(project)
+
+    exit_code = _run_artifact_coverage_verify()
+    output = capsys.readouterr()
+
+    assert exit_code == 0, output.out + output.err
+    assert "VERIFY: PASS" in output.out
+    assert _git_output(project, "config", "--get", "core.ignoreCase") == "true"
+    assert _git_config_file_output(global_config, "core.ignoreCase") == "true"
+
+
 def _run_artifact_coverage_verify(*, keep_going: bool = False) -> int:
     fail_fast_option = "--keep-going" if keep_going else "--fail-fast"
     return main(
@@ -291,6 +393,9 @@ def _write_runtime_mutating_project(
     mutate_core_excludes: bool = False,
     mutate_self_ignored_gitignore: bool = False,
     mutate_ignore_case: bool = False,
+    mutate_precompose_unicode: bool = False,
+    unrelated_git_config: tuple[str, str] | None = None,
+    shadowed_global_git_config: tuple[str, str] | None = None,
 ) -> None:
     (root / "manifests").mkdir()
     (root / "src").mkdir()
@@ -331,6 +436,35 @@ def _write_runtime_mutating_project(
             "check=True\n"
             "    )\n"
         )
+    precompose_unicode_mutation = ""
+    if mutate_precompose_unicode:
+        precompose_unicode_mutation = (
+            "    import subprocess\n"
+            "    subprocess.run(\n"
+            "        ['git', 'config', '--local', 'core.precomposeUnicode', "
+            "'true'], check=True\n"
+            "    )\n"
+        )
+    unrelated_config_mutation = ""
+    if unrelated_git_config is not None:
+        config_key, config_value = unrelated_git_config
+        unrelated_config_mutation = (
+            "    import subprocess\n"
+            "    subprocess.run(\n"
+            f"        ['git', 'config', '--local', {config_key!r}, "
+            f"{config_value!r}], check=True\n"
+            "    )\n"
+        )
+    shadowed_global_config_mutation = ""
+    if shadowed_global_git_config is not None:
+        config_key, config_value = shadowed_global_git_config
+        shadowed_global_config_mutation = (
+            "    import subprocess\n"
+            "    subprocess.run(\n"
+            f"        ['git', 'config', '--global', {config_key!r}, "
+            f"{config_value!r}], check=True\n"
+            "    )\n"
+        )
     (root / "tests" / "test_target.py").write_text(
         "from pathlib import Path\n"
         "from src.target import transform\n\n"
@@ -339,6 +473,9 @@ def _write_runtime_mutating_project(
         f"{core_excludes_mutation}"
         f"{gitignore_mutation}"
         f"{ignore_case_mutation}"
+        f"{precompose_unicode_mutation}"
+        f"{unrelated_config_mutation}"
+        f"{shadowed_global_config_mutation}"
         f"    generated = Path({generated_path!r})\n"
         "    generated.parent.mkdir(parents=True, exist_ok=True)\n"
         "    generated.write_text('generated advisory insight\\n')\n"
@@ -392,3 +529,32 @@ def _git(root: Path, *args: str) -> None:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+
+
+def _git_output(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    ).stdout.strip()
+
+
+def _git_config_file(path: Path, key: str, value: str) -> None:
+    subprocess.run(
+        ["git", "config", "--file", str(path), key, value],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def _git_config_file_output(path: Path, key: str) -> str:
+    return subprocess.run(
+        ["git", "config", "--file", str(path), "--get", key],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    ).stdout.strip()

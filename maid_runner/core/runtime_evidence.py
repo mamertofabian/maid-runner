@@ -942,26 +942,33 @@ def _git_content_paths(root: Path) -> tuple[tuple[Path, ...], bytes] | None:
     except OSError:
         return None
 
-    try:
-        effective_config_result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(root),
-                "config",
-                "--null",
-                "--list",
-                "--show-origin",
-            ],
-            check=False,
-            env=environment,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-    except OSError:
-        return None
-    if effective_config_result.returncode != 0:
-        return None
+    effective_config = bytearray()
+    for config_key in ("core.ignoreCase", "core.precomposeUnicode"):
+        try:
+            config_result = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "config",
+                    "--null",
+                    "--bool",
+                    "--get",
+                    config_key,
+                ],
+                check=False,
+                env=environment,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+        except OSError:
+            return None
+        if config_result.returncode not in {0, 1}:
+            return None
+        effective_config.extend(config_key.encode())
+        effective_config.extend(b"\0")
+        effective_config.extend(config_result.stdout)
+        effective_config.extend(b"\0")
     if exclude_result.returncode != 0:
         return None
     exclude_output = exclude_result.stdout.rstrip(b"\r\n")
@@ -1073,8 +1080,8 @@ def _git_content_paths(root: Path) -> tuple[tuple[Path, ...], bytes] | None:
             exclude_output,
             b"\0",
             local_exclude_content,
-            b"\0effective-config\0",
-            effective_config_result.stdout,
+            b"\0ignore-config\0",
+            bytes(effective_config),
             b"\0core-excludes\0",
             exclude_source,
             b"\0",
