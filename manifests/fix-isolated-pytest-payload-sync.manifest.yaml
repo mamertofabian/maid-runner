@@ -1,0 +1,104 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep isolated no-sync pytest evidence runs from generating ignored package payloads"
+type: fix
+created: "2026-08-19T19:37:14Z"
+metadata:
+  priority: high
+  tags: [tests, snapshots, chain-merge, isolation, generated-files]
+description: |
+  The repository's root autouse pytest fixture regenerates packaged Claude,
+  Codex, Cursor, documentation, and user-skill payloads whenever the ignored
+  Claude manifest is absent. Isolated project snapshots intentionally omit
+  Git-ignored files and already set `UV_NO_SYNC=1`, so every pytest-backed
+  chain-evidence refresh currently performs material writes and fails E712.
+
+  Honor the existing no-sync child-environment policy in the test fixture:
+  when `UV_NO_SYNC=1`, do not generate missing distribution payloads. Preserve
+  the ordinary developer and CI behavior when the variable is absent. Tests
+  that actually require an unavailable generated payload must continue to fail
+  visibly rather than receiving fabricated placeholder files.
+temptations:
+  - risk: "Do not classify all Git-ignored writes as non-material."
+    instead: "Prevent this known test bootstrap write before evidence collection while retaining the fail-closed material-write guard."
+  - risk: "Do not create an empty Claude manifest sentinel in the snapshot."
+    instead: "Honor the already-established no-sync policy and let tests that require missing payloads fail visibly."
+  - risk: "Do not disable payload synchronization for ordinary developer or CI pytest sessions."
+    instead: "Skip only when the explicit inherited `UV_NO_SYNC` value is exactly `1`."
+files:
+  create:
+    - path: tests/test_conftest_no_sync.py
+      artifacts:
+        - kind: test_function
+          name: test_payload_sync_fixture_honors_explicit_no_sync_policy
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: uv_no_sync, type: str | None}
+            - {name: expect_sync, type: bool}
+          returns: None
+          description: "A real nested pytest session leaves generated payloads absent under UV_NO_SYNC=1 but performs the existing bootstrap synchronization when the policy is absent."
+  scope:
+    - path: tests/conftest.py
+      reason: "Make the repository-owned autouse payload bootstrap respect isolated snapshot no-sync policy without changing production APIs."
+    - path: .maidrc.yaml
+      reason: "Refresh the exact approved lifecycle digest for the intentionally changed session fixture."
+  read:
+    - manifests/fix-test-git-environment-isolation.manifest.yaml
+    - manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml
+    - manifests/add-chain-merge-target-evidence-refresh.manifest.yaml
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/chain_merge_evidence.py
+    - tests/cli/test_chain_merge_refresh_evidence_command.py
+validate:
+  - uv run python -m pytest -q tests/test_conftest_no_sync.py tests/test_git_environment_isolation.py tests/core/test_knockout_snapshot.py tests/cli/test_chain_merge_refresh_evidence_command.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T03:46:42+08:00"
+  summary: >-
+    Repository pytest bootstrap now honors the isolated snapshot's exact
+    UV_NO_SYNC=1 policy and avoids generating ignored distribution payloads,
+    while ordinary and UV_NO_SYNC=0 sessions retain automatic synchronization.
+  rationale: >-
+    The fix prevents a known test-harness write before evidence collection
+    instead of weakening E712 or treating Git-ignored content as universally
+    non-material. Missing generated assets remain missing under no-sync, so any
+    test that genuinely requires them still fails visibly.
+  lessons:
+    - lesson_type: test-design
+      summary: >-
+        Environment-policy tests need active, absent, and present-but-inactive
+        controls; adding UV_NO_SYNC=0 prevented a truthiness implementation from
+        silently changing ordinary bootstrap behavior.
+      tags: [pytest, snapshots, generated-files, fail-closed]
+      paths:
+        - tests/conftest.py
+        - tests/test_conftest_no_sync.py
+    - lesson_type: validation-trust
+      summary: >-
+        Isolated evidence must prevent setup writes at their source rather than
+        excluding all ignored paths from material-write detection.
+      tags: [chain-merge, E712, isolation, generated-files]
+      paths:
+        - tests/conftest.py
+        - .maidrc.yaml
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Final read-only review found no blockers or advisories, verified all
+        lifecycle approval digests, and confirmed the separate pytest-timing
+        cache E712 does not belong in this fixture-scoped fix.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/test_conftest_no_sync.py, tests/test_git_environment_isolation.py, tests/core/test_knockout_snapshot.py, tests/cli/test_chain_merge_refresh_evidence_command.py]
+      status: passed
+      summary: "All 36 focused and adjacent tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-isolated-pytest-payload-sync.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 2."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 1086e98]
+      status: passed
+      summary: "The assessed deep gate passed all 11 stages in 62.677 seconds with only existing non-blocking E307 notices."

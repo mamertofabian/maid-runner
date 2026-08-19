@@ -85,7 +85,7 @@ def ensure_claude_files_synced():
     claude_manifest = _project_root / "maid_runner" / "claude" / "manifest.json"
 
     # Only sync if the manifest doesn't exist (indicates files need syncing)
-    if not claude_manifest.exists():
+    if not claude_manifest.exists() and os.environ.get("UV_NO_SYNC") != "1":
         from scripts.sync_claude_files import main as sync_claude_files
 
         sync_claude_files()
