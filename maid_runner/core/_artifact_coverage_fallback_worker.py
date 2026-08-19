@@ -6,6 +6,7 @@ import ast
 import hashlib
 import inspect
 import os
+import re
 import threading
 import ctypes
 import struct
@@ -41,6 +42,10 @@ _NON_MATERIAL_PARTS = frozenset(
     }
 )
 _DEPENDENCY_ENVIRONMENT_PARTS = frozenset({".tox", ".venv", "node_modules"})
+_PYTEST_TIMING_CACHE_NAME = re.compile(r"pytest-timing-[0-9a-f]{64}\.json")
+_PYTEST_TIMING_CACHE_TEMP_NAME = re.compile(
+    r"\.pytest-timing-[0-9a-f]{64}\.json\.[A-Za-z0-9_-]+\.tmp"
+)
 
 
 @dataclass(frozen=True)
@@ -752,7 +757,15 @@ def _selects_directory(pytest_args: tuple[str, ...], root: Path) -> bool:
 
 
 def _is_non_material(path: str) -> bool:
-    return bool(set(Path(path).parts) & _NON_MATERIAL_PARTS)
+    parts = Path(path).parts
+    if set(parts) & _NON_MATERIAL_PARTS:
+        return True
+    if len(parts) != 3 or parts[:2] != (".maid", "cache"):
+        return False
+    return bool(
+        _PYTEST_TIMING_CACHE_NAME.fullmatch(parts[2])
+        or _PYTEST_TIMING_CACHE_TEMP_NAME.fullmatch(parts[2])
+    )
 
 
 def _relative_to_root(root: Path, raw_path: str) -> str:

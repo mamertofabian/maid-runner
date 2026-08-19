@@ -280,6 +280,65 @@ def test_chain_merge_refresh_isolates_and_rejects_material_test_writes(
     assert not (project / "material-write.txt").exists()
 
 
+def test_chain_merge_refresh_discards_only_owned_pytest_timing_cache(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from maid_runner.cli.commands._main import main
+
+    project = _initialize_project(tmp_path, monkeypatch, include_sibling=False)
+    (project / ".maidrc.yaml").write_text(
+        "test_execution:\n"
+        "  pytest_workers: 2\n"
+        "  accepted_pytest_worker_counts: [2]\n"
+        "  parallel_without_history: true\n"
+        "  max_processes: 2\n",
+        encoding="utf-8",
+    )
+
+    exit_code = main(["chain", "merge", "src/a.py", "--refresh-evidence", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0, payload
+    assert payload["acceptance"]["unknown_coverage_artifacts"] == []
+    assert not list((project / ".maid/cache").glob("pytest-timing-*.json"))
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        ".maid/cache/project-state.json",
+        ".maid/cache/pytest-timing-not-a-digest.json",
+        f".maid/cache/nested/pytest-timing-{'a' * 64}.json",
+        f".maid/cache/pytest-timing-{'a' * 64}.json.backup",
+        f".maid/cache/.pytest-timing-{'a' * 64}.json.tmp",
+    ],
+)
+def test_chain_merge_refresh_rejects_unowned_maid_cache_write(
+    relative_path: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from maid_runner.cli.commands._main import main
+
+    project = _initialize_structural_write_project(
+        tmp_path,
+        monkeypatch,
+        restore_write=False,
+        relative_path=relative_path,
+    )
+    monkeypatch.setenv("GIT_WORK_TREE", str(project))
+
+    exit_code = main(["chain", "merge", "src/model.py", "--refresh-evidence", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert {error["code"] for error in payload["errors"]} == {"E712"}
+    assert any(relative_path in error["message"] for error in payload["errors"])
+
+
 def test_snapshot_runtime_executor_applies_environment_to_both_execution_modes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -435,6 +494,7 @@ def _initialize_structural_write_project(
     monkeypatch: pytest.MonkeyPatch,
     *,
     restore_write: bool,
+    relative_path: str = "material-write.txt",
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
@@ -450,7 +510,8 @@ def _initialize_structural_write_project(
         "import os\nfrom pathlib import Path\nfrom src.model import Model\n\n"
         "def test_model():\n"
         "    material_path = Path(os.environ.get('GIT_WORK_TREE', '.')) / "
-        "'material-write.txt'\n"
+        f"{relative_path!r}\n"
+        "    material_path.parent.mkdir(parents=True, exist_ok=True)\n"
         "    material_path.write_text('changed', encoding='utf-8')\n"
         f"{restore}"
         "    assert Model.enabled is True\n",
