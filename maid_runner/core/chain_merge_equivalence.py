@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from maid_runner.core.chain_merge import ChainMergeAcceptanceSpec
+from maid_runner.core.chain_merge import (
+    ChainMergeAcceptanceSpec,
+    artifact_requires_knockout_detection,
+)
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 
 
@@ -29,6 +32,16 @@ def check_merge_equivalence(
     """Require current evidence to preserve the complete recorded baseline bar."""
     baseline_required = set(acceptance_bar.required_artifacts)
     candidate_required = set(candidate.required_artifacts)
+    baseline_detection_required = {
+        artifact
+        for artifact in baseline_required
+        if artifact_requires_knockout_detection(artifact)
+    }
+    candidate_detection_required = {
+        artifact
+        for artifact in candidate_required
+        if artifact_requires_knockout_detection(artifact)
+    }
 
     evidence = _spec_evidence_regressions(
         "baseline", acceptance_bar, require_artifacts=True
@@ -38,11 +51,11 @@ def check_merge_equivalence(
     )
     if baseline_blocked and baseline_required:
         evidence.add("baseline:verdict")
-    if not acceptance_bar.detection_available:
+    if baseline_detection_required and not acceptance_bar.detection_available:
         evidence.add("baseline:detection")
     if not acceptance_bar.coverage_available:
         evidence.add("baseline:coverage")
-    if not candidate.detection_available:
+    if candidate_detection_required and not candidate.detection_available:
         evidence.add("candidate:detection")
     if not candidate.coverage_available:
         evidence.add("candidate:coverage")
@@ -64,6 +77,8 @@ def check_merge_equivalence(
 
     baseline_detected = set()
     for artifact in acceptance_bar.required_artifacts:
+        if artifact not in baseline_detection_required:
+            continue
         nodeids = acceptance_bar.required_detecting_nodeids.get(artifact)
         if nodeids:
             baseline_detected.add(artifact)
@@ -170,15 +185,20 @@ def _spec_evidence_regressions(
 
     detection_keys = set(spec.required_detecting_nodeids)
     detection_unknown = set(spec.unknown_detection_artifacts)
+    detection_required = {
+        artifact
+        for artifact in required_set
+        if artifact_requires_knockout_detection(artifact)
+    }
     if (
         not _valid_identity_tuple(spec.unknown_detection_artifacts)
-        or not detection_keys <= required_set
-        or not detection_unknown <= required_set
+        or not detection_keys <= detection_required
+        or not detection_unknown <= detection_required
         or detection_keys & detection_unknown
-        or detection_keys | detection_unknown != required_set
+        or detection_keys | detection_unknown != detection_required
         or (
             not spec.detection_available
-            and (detection_keys or detection_unknown != required_set)
+            and (detection_keys or detection_unknown != detection_required)
         )
     ):
         evidence.add(f"{role}:contract")

@@ -1225,6 +1225,12 @@ def format_chain_merge_report(
         json_mode: If True, output a single JSON document.
     """
     acceptance = report.acceptance
+    from maid_runner.core.chain_merge import artifact_requires_knockout_detection
+
+    detection_artifact_count = sum(
+        artifact_requires_knockout_detection(artifact)
+        for artifact in acceptance.required_artifacts
+    )
     if json_mode:
         payload = {
             "file_path": report.file_path,
@@ -1273,7 +1279,7 @@ def format_chain_merge_report(
         lines.append(
             f"  detection: recorded for "
             f"{len(acceptance.required_detecting_nodeids)}/"
-            f"{len(acceptance.required_artifacts)} artifacts"
+            f"{detection_artifact_count} artifacts"
         )
     else:
         lines.append("  detection: UNKNOWN (no evidence source)")

@@ -6,6 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
+from maid_runner.core.chain_merge import artifact_requires_knockout_detection
+
 from maid_runner.cli.commands._format import (
     format_chain_log,
     format_chain_merge_apply_result,
@@ -262,14 +264,23 @@ def _load_equivalence_baseline(
     )
     detection_keys = set(detecting_nodeids)
     detection_unknown_set = set(detection_unknown)
+    detection_required_set = {
+        artifact
+        for artifact in required_set
+        if artifact_requires_knockout_detection(artifact)
+    }
     if detection_keys & detection_unknown_set:
         raise ValueError("detection evidence categories must not overlap")
-    if detection_keys | detection_unknown_set != required_set:
-        raise ValueError("detection evidence must partition required_artifacts")
+    if detection_keys | detection_unknown_set != detection_required_set:
+        raise ValueError(
+            "detection evidence must partition knockout-capable required_artifacts"
+        )
     if not detection_available and (
-        detection_keys or detection_unknown_set != required_set
+        detection_keys or detection_unknown_set != detection_required_set
     ):
-        raise ValueError("unavailable detection must mark every artifact unknown")
+        raise ValueError(
+            "unavailable detection must mark every knockout-capable artifact unknown"
+        )
 
     covered = _string_tuple(
         acceptance["required_covered_artifacts"],

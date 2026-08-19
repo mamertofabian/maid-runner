@@ -76,6 +76,21 @@ class ChainMergeReport:
     acceptance: ChainMergeAcceptanceSpec
 
 
+def artifact_requires_knockout_detection(artifact_key: str) -> bool:
+    """Return whether ``artifact_key`` identifies a knockout-capable artifact."""
+    merge_key = artifact_key
+    if artifact_key.startswith("exact:"):
+        encoded = artifact_key.removeprefix("exact:")
+        length_text, separator, payload = encoded.partition(":")
+        if not separator or not length_text.isdigit():
+            return False
+        merge_key_length = int(length_text)
+        if merge_key_length <= 0 or len(payload) < merge_key_length:
+            return False
+        merge_key = payload[:merge_key_length]
+    return merge_key.startswith(("function:", "method:"))
+
+
 def build_chain_merge_report(
     file_path: str,
     chain: ManifestChain,
@@ -158,13 +173,16 @@ def _build_acceptance(
     detection_source: DetectionEvidenceSource | None,
     coverage_source: CoverageEvidenceSource | None,
 ) -> ChainMergeAcceptanceSpec:
+    detection_artifacts = tuple(
+        key for key in required_artifacts if artifact_requires_knockout_detection(key)
+    )
     if detection_source is None:
         detection_found: dict[str, tuple[str, ...]] = {}
-        detection_unknown = required_artifacts
+        detection_unknown = detection_artifacts
     else:
         detection_found = {}
         unknown: list[str] = []
-        for key in required_artifacts:
+        for key in detection_artifacts:
             nodeids = detection_source.detecting_nodeids_for(key)
             if nodeids is None:
                 unknown.append(key)
