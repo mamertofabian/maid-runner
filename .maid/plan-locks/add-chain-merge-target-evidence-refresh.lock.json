@@ -1,0 +1,640 @@
+{
+  "manifest_path": "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+  "manifest_hash": "sha256-contract:a492ba87c671fd04fe476ebe873916d7d26083c4d4d73a553b112737ba08fd27",
+  "test_hashes": {
+    "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+    "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+    "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+    "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+  },
+  "created_at": "2026-08-19T15:15:51.858164+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0cf9f6988ddb08df6fd98e53f3c84a9b73dd1c0724612b1927b6a6c075428ca1",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:000544b6a453d79204d4f3ed37294668ef9a2bb9b35ca7118d8c597c6f37888b",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:16:03.873548+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-chain-merge-target-evidence-refresh.manifest.yaml -> manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ede7d707609e99e4be8ea0935bd80f2473a401dd40b3e00f6d8b04839b8d24bb",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:000544b6a453d79204d4f3ed37294668ef9a2bb9b35ca7118d8c597c6f37888b",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:22:28.829660+00:00",
+      "reason": "Clarify structural coverage evidence and require executable-body E710 without excluding concurrent E711",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:de1275f1458c9c6668f0a986b9d741867d8ab8285618c422fa5ba9d4ebe95e47",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:463c3a6ee2df54b071247139c6f4f26e2b831011864a75c5fc86f16384b27b00",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:31:05.455332+00:00",
+      "reason": "Isolate coverage refresh, reject material test writes, and fail closed on late knockout snapshot errors",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:kind=test_function",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f563ed95233333cf5b73dd6a168837d78f1f34a5cba41e045b1c3b3a2e8a734c",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:367ddfc2874b636e501550448121ba7669ce1d5f53eb28910de6e04be364bc41",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:38:06.570627+00:00",
+      "reason": "Apply snapshot environment to runtime commands and detect byte-changing plus transient material writes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=restore_write:type=bool:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/_artifact_coverage_fallback_worker.py",
+          "read:maid_runner/core/_knockout_snapshot.py",
+          "scope:maid_runner/core/_runtime_command_executor.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8eb69175cfd224ea654464a584531c244b79852e150b3e1ebb211e0c331bdfe1",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:6f96385d63737c6819a3df4c682ef4d85192d1f825174a2cc88c41cf1040d3c7",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:42:59.152976+00:00",
+      "reason": "Isolate material-write coverage from knockout and contract executor environment in ordinary plus contextual modes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:kind=test_function",
+          "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5a528fac8a34f6778fca70bffe8018964dddec185c05d2e9685fa75d76b4231a",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-19T15:47:35.818469+00:00",
+      "reason": "Use watchdog native backends for mandatory cross-platform material-write journaling",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T15:47:44.776007+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py",
+        "exit_code": 1,
+        "output_tail": "            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: unrecognized arguments: --refresh-evidence\n=========================== short test summary info ============================\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refreshes_only_requested_file_with_complete_evidence\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_fails_closed_when_knockout_survives\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_fails_closed_with_coverage_diagnostic\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_fails_closed_with_harness_diagnostic\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_isolates_and_rejects_material_test_writes[False]\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_isolates_and_rejects_material_test_writes[True]\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_snapshot_runtime_executor_applies_environment_to_both_execution_modes\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_rejects_structural_modes[mode_args0]\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_rejects_structural_modes[mode_args1]\n10 failed in 0.55s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py",
+        "exit_code": 0,
+        "output_tail": "................................                                         [100%]\n32 passed in 8.03s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:kind=attribute",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:of=documentation",
+      "docs/maid-chain-merge.md:attribute:documentation._maid_chain_merge_command_reference:type=markdown document",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.coverage_source",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.coverage_source:kind=attribute",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.coverage_source:of=ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.coverage_source:type=RecordedCoverageEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.detection_source",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.detection_source:kind=attribute",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.detection_source:of=ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.detection_source:type=RecordedDetectionEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.errors",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.errors:kind=attribute",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.errors:of=ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.success",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.success:kind=attribute",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.success:of=ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/chain_merge_evidence.py:attribute:ChainMergeEvidenceRefreshResult.success:type=bool",
+      "maid_runner/core/chain_merge_evidence.py:class:ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/chain_merge_evidence.py:class:ChainMergeEvidenceRefreshResult:kind=class",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence:arg=project_root:type=str:default=\".\"",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence:kind=function",
+      "maid_runner/core/chain_merge_evidence.py:function:refresh_chain_merge_evidence:returns=ChainMergeEvidenceRefreshResult",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=file_path:type=str:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=jobs:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=max_processes:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=no_cache:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout_for_file:returns=KnockoutReport",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_when_knockout_survives:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_coverage_diagnostic:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_fails_closed_with_harness_diagnostic:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=restore_write:type=bool:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_isolates_and_rejects_material_test_writes:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:arg=mode_args:type=tuple[str, Ellipsis]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_structural_modes:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refreshes_only_requested_file_with_complete_evidence:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_snapshot_runtime_executor_applies_environment_to_both_execution_modes:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_chain_merge_refresh_evidence_command.py"
+      ],
+      "edit": [
+        "docs/maid-chain-merge.md",
+        "maid_runner/core/chain_merge_evidence.py",
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_equivalence.py",
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/types.py",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml",
+        "manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+        "tests/cli/test_chain_merge_equivalence_command.py",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/chain.py",
+        "maid_runner/core/_runtime_command_executor.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_chain_merge_refresh_evidence_command.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refreshes_only_requested_file_with_complete_evidence",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_fails_closed_when_knockout_survives",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_fails_closed_with_coverage_diagnostic",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_fails_closed_with_harness_diagnostic",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_isolates_and_rejects_material_test_writes",
+              "args": [
+                {
+                  "name": "restore_write",
+                  "type": "bool"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_runtime_executor_applies_environment_to_both_execution_modes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_rejects_structural_modes",
+              "args": [
+                {
+                  "name": "mode_args",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_knockout_for_file",
+              "description": "Plan knockout identities from every supplied active manifest while executing only mutation specs for the requested file.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "no_cache",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "KnockoutReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain_merge_evidence.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ChainMergeEvidenceRefreshResult",
+              "description": "Live file-scoped coverage and knockout sources plus any fail-closed diagnostics."
+            },
+            {
+              "kind": "attribute",
+              "name": "detection_source",
+              "of": "ChainMergeEvidenceRefreshResult",
+              "type": "RecordedDetectionEvidenceSource"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_source",
+              "of": "ChainMergeEvidenceRefreshResult",
+              "type": "RecordedCoverageEvidenceSource"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ChainMergeEvidenceRefreshResult",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "ChainMergeEvidenceRefreshResult",
+              "type": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "refresh_chain_merge_evidence",
+              "description": "Collect live coverage from the target owners and live knockout evidence from full-plan file-filtered mutations.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str",
+                  "default": "\".\""
+                }
+              ],
+              "returns": "ChainMergeEvidenceRefreshResult"
+            }
+          ]
+        },
+        {
+          "path": "docs/maid-chain-merge.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_chain_merge_command_reference",
+              "description": "Document opt-in file-scoped evidence refresh, conflicts, failure behavior, and baseline/equivalence examples.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_equivalence.py",
+        "maid_runner/core/types.py",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+        "manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py",
+        "tests/cli/test_chain_merge_equivalence_command.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "reason": "Allow a subprocess runtime executor instance to apply snapshot-provided environment overrides and removals to both ordinary and contextual evidence commands."
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the private --refresh-evidence chain-merge parser flag without changing the public main signature."
+        },
+        {
+          "path": "maid_runner/cli/commands/chain.py",
+          "reason": "Route explicit refresh through the public evidence collector, preserve default cache-only behavior, enforce mode conflicts, and render structured diagnostics."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_equivalence_command.py",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py",
+      "tests/core/test_chain_merge_equivalence.py",
+      "tests/core/test_chain_merge_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py",
+      "uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py"
+    ]
+  }
+}

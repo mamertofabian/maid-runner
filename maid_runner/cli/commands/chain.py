@@ -87,9 +87,18 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
     from maid_runner.core.chain_merge import build_chain_merge_report
 
     baseline_path = getattr(args, "verify_equivalence", None)
+    refresh_evidence = getattr(args, "refresh_evidence", False)
     if baseline_path and (getattr(args, "all", False) or getattr(args, "apply", False)):
         print_error(
             "--verify-equivalence cannot be combined with --all or --apply",
+            json_mode=args.json,
+        )
+        return 2
+    if refresh_evidence and (
+        getattr(args, "all", False) or getattr(args, "apply", False)
+    ):
+        print_error(
+            "--refresh-evidence cannot be combined with --all or --apply",
             json_mode=args.json,
         )
         return 2
@@ -117,17 +126,39 @@ def _cmd_chain_merge(chain, args: argparse.Namespace) -> int:
         print(format_chain_merge_apply_result(result, json_mode=args.json))
         return 0 if result.applied else 1
 
-    from maid_runner.core.chain_merge_evidence import (
-        coverage_source_for_file,
-        detection_source_for_file,
-    )
+    if refresh_evidence:
+        from maid_runner.core.chain_merge_evidence import refresh_chain_merge_evidence
 
-    detection_source = detection_source_for_file(chain, args.file_path)
-    coverage_source = coverage_source_for_file(
-        chain,
-        args.file_path,
-        manifest_dir=str(args.manifest_dir),
-    )
+        refreshed = refresh_chain_merge_evidence(chain, args.file_path)
+        if not refreshed.success:
+            if args.json:
+                print(
+                    json.dumps(
+                        {
+                            "success": False,
+                            "errors": [error.to_dict() for error in refreshed.errors],
+                        },
+                        indent=2,
+                    )
+                )
+            else:
+                for error in refreshed.errors:
+                    print_error(f"{error.code.value}: {error.message}")
+            return 1
+        detection_source = refreshed.detection_source
+        coverage_source = refreshed.coverage_source
+    else:
+        from maid_runner.core.chain_merge_evidence import (
+            coverage_source_for_file,
+            detection_source_for_file,
+        )
+
+        detection_source = detection_source_for_file(chain, args.file_path)
+        coverage_source = coverage_source_for_file(
+            chain,
+            args.file_path,
+            manifest_dir=str(args.manifest_dir),
+        )
     report = build_chain_merge_report(
         args.file_path,
         chain,

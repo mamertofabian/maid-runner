@@ -1790,6 +1790,11 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
         help="Compare current recorded evidence with a saved pre-consolidation report",
     )
     mp.add_argument(
+        "--refresh-evidence",
+        action="store_true",
+        help="Collect live coverage and knockout evidence for the requested file",
+    )
+    mp.add_argument(
         "--json", action="store_true", help="Print chain merge report as JSON"
     )
 

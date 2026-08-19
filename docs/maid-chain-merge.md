@@ -6,7 +6,7 @@ recorded runtime evidence, can materialize a safe single-file snapshot, and can
 prove that replacement tests preserve the old test union's protection.
 
 ```text
-maid chain merge [--all] [--manifest-dir DIR] [--dry-run] [--apply] [--verify-equivalence BASELINE_REPORT] [--json] [file_path]
+maid chain merge [--all] [--manifest-dir DIR] [--dry-run] [--apply] [--refresh-evidence] [--verify-equivalence BASELINE_REPORT] [--json] [file_path]
 ```
 
 ## Modes
@@ -62,13 +62,42 @@ are not rewritten.
 Snapshot materialization is therefore independently useful for structural
 defragmentation, but it is not permission to delete redundant-looking tests.
 
-### Verify test equivalence (`--verify-equivalence BASELINE_REPORT`)
-
-Before editing tests, save the complete baseline report while the old test union
-and its current recorded evidence are still present:
+### Refresh one file's evidence (`--refresh-evidence`)
 
 ```bash
-maid chain merge src/service.py --json > before-consolidation.json
+maid chain merge src/service.py --refresh-evidence --json
+```
+
+Refresh is the explicit, proportionate evidence producer for an unchanged
+consolidation target. It plans knockout identities from the complete active
+manifest chain, then executes only the requested file's mutation specs and only
+the artifact-coverage commands owned by manifests that declare that file. A
+successful invocation prints the ordinary complete chain-merge report, which
+can be saved directly as the pre-consolidation baseline.
+
+The default report remains cache-only and never triggers test execution.
+Targeted coverage is consumed live and is not stored under the full-repository
+coverage-cache identity. Successful knockout specs use the existing per-spec
+cache, so a later default report can reuse fresh detection evidence for the
+requested file without warming siblings.
+
+Coverage commands run inside a disposable snapshot, with native filesystem
+write monitoring on Linux, macOS, and Windows; material test writes are
+discarded and fail the refresh closed.
+
+Refresh fails with exit 1 and structured E710/E711/E712 diagnostics if coverage
+is incomplete, a mutation survives, or the knockout harness fails. In that case
+it does not emit a baseline-shaped acceptance report. It cannot be combined
+with `--all` or `--apply`; `--dry-run` is harmless because production and
+manifest files are never modified.
+
+### Verify test equivalence (`--verify-equivalence BASELINE_REPORT`)
+
+Before editing tests, collect and save the complete baseline report while the
+old test union is still present:
+
+```bash
+maid chain merge src/service.py --refresh-evidence --json > before-consolidation.json
 ```
 
 After authoring and running the candidate characterization tests through the
@@ -77,6 +106,7 @@ baseline report:
 
 ```bash
 maid chain merge src/service.py \
+  --refresh-evidence \
   --verify-equivalence before-consolidation.json \
   --json
 ```

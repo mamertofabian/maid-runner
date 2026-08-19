@@ -91,6 +91,15 @@ class RuntimeCommandExecutor(Protocol):
 
 
 class SubprocessRuntimeCommandExecutor:
+    def __init__(
+        self,
+        *,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
+    ) -> None:
+        self._environment_overrides = dict(environment_overrides or {})
+        self._environment_removals = tuple(environment_removals)
+
     def execute(
         self,
         command: tuple[str, ...],
@@ -101,9 +110,13 @@ class SubprocessRuntimeCommandExecutor:
         environment_removals: Sequence[str] = (),
     ) -> RuntimeCommandRecord:
         environment = _test_command_environment()
-        for name in environment_removals:
+        complete_removals = tuple(
+            dict.fromkeys((*self._environment_removals, *environment_removals))
+        )
+        for name in complete_removals:
             environment.pop(name, None)
         environment.pop(_ARTIFACT_XDIST_CONTROLLER_PID, None)
+        environment.update(self._environment_overrides)
         environment.update(environment_overrides or {})
         uses_pytest_workers = _uses_pytest_workers(command, project_root)
         if not uses_pytest_workers:
@@ -162,9 +175,7 @@ class SubprocessRuntimeCommandExecutor:
                 timeout=timeout_seconds,
                 environment_overrides=environment,
                 environment_removals=tuple(
-                    dict.fromkeys(
-                        (*environment_removals, _ARTIFACT_XDIST_CONTROLLER_PID)
-                    )
+                    dict.fromkeys((*complete_removals, _ARTIFACT_XDIST_CONTROLLER_PID))
                 ),
                 require_descendant_ownership=True,
             )
@@ -244,6 +255,7 @@ class SubprocessRuntimeCommandExecutor:
                 plugin_source.read_text(encoding="utf-8"), encoding="utf-8"
             )
             overrides = dict(prepared.environment_overrides)
+            overrides.update(self._environment_overrides)
             overrides["PYTHONPATH"] = _prepend_pythonpath(
                 plugin_directory, overrides.get("PYTHONPATH")
             )
@@ -263,6 +275,7 @@ class SubprocessRuntimeCommandExecutor:
                 cwd=root,
                 timeout=max(1, int(timeout_seconds)),
                 environment_overrides=overrides,
+                environment_removals=self._environment_removals,
             )
             finalize_pytest_timing(prepared, result, root)
             payloads = _load_runtime_evidence_payloads(output_directory)

@@ -729,6 +729,86 @@ def run_knockout_batch(
     no_cache: bool = False,
 ) -> dict[str, KnockoutReport]:
     """Run declarations independently with focused proof or exact fallback."""
+    return _run_knockout_batch(
+        manifests,
+        project_root,
+        evidence=evidence,
+        limit=limit,
+        allow_dirty=allow_dirty,
+        executor=executor,
+        snapshot_backend=snapshot_backend,
+        jobs=jobs,
+        max_processes=max_processes,
+        no_cache=no_cache,
+    )
+
+
+def run_knockout_for_file(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    file_path: str,
+    evidence: RuntimeEvidenceBundle | None = None,
+    allow_dirty: bool = False,
+    executor: KnockoutCommandExecutor | None = None,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
+    jobs: int = 1,
+    max_processes: int = 1,
+    no_cache: bool = False,
+) -> KnockoutReport:
+    """Run only one file's mutations after planning the complete manifest set."""
+    ordered_manifests = tuple(manifests)
+    root = Path(project_root)
+    normalized_file_path = _normalize_project_path(root, file_path)
+    evidence_manifests = tuple(
+        manifest
+        for manifest in ordered_manifests
+        if any(
+            file_spec.artifacts
+            and _normalize_project_path(root, file_spec.path) == normalized_file_path
+            for file_spec in manifest.all_file_specs
+        )
+    )
+    try:
+        reports = _run_knockout_batch(
+            ordered_manifests,
+            root,
+            evidence=evidence,
+            allow_dirty=allow_dirty,
+            executor=executor,
+            snapshot_backend=snapshot_backend,
+            jobs=jobs,
+            max_processes=max_processes,
+            no_cache=no_cache,
+            file_path=file_path,
+            evidence_manifests=evidence_manifests,
+        )
+    except Exception as exc:
+        return KnockoutReport(
+            results=(),
+            errors=(_harness_error(normalized_file_path, str(exc)),),
+        )
+    return KnockoutReport(
+        results=tuple(
+            result for report in reports.values() for result in report.results
+        ),
+        errors=tuple(error for report in reports.values() for error in report.errors),
+    )
+
+
+def _run_knockout_batch(
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    evidence: RuntimeEvidenceBundle | None = None,
+    limit: int | None = None,
+    allow_dirty: bool = False,
+    executor: KnockoutCommandExecutor | None = None,
+    snapshot_backend: ProjectSnapshotBackend | None = None,
+    jobs: int = 1,
+    max_processes: int = 1,
+    no_cache: bool = False,
+    file_path: str | None = None,
+    evidence_manifests: Sequence[Manifest] | None = None,
+) -> dict[str, KnockoutReport]:
     ordered_manifests = tuple(manifests)
     root = Path(project_root)
     owned_default_executor = executor is None
@@ -743,7 +823,11 @@ def run_knockout_batch(
     trusted_evidence = None
     if evidence is not None:
         try:
-            if _knockout_evidence_is_current(evidence, ordered_manifests, root):
+            if _knockout_evidence_is_current(
+                evidence,
+                tuple(evidence_manifests or ordered_manifests),
+                root,
+            ):
                 trusted_evidence = evidence
         except Exception:
             trusted_evidence = None
@@ -762,6 +846,11 @@ def run_knockout_batch(
             manifest.source_path: KnockoutReport(results=(), errors=(error,))
             for manifest in ordered_manifests
         }
+    if file_path is not None:
+        normalized_file_path = _normalize_project_path(root, file_path)
+        specs = tuple(
+            spec for spec in specs if spec.identity.file_path == normalized_file_path
+        )
 
     required_paths = tuple(
         dict.fromkeys(path for spec in specs for path in _spec_required_paths(spec))
