@@ -1,0 +1,143 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Allow harmless uv hardlink bookkeeping in shared dependency snapshots without weakening material-change detection"
+type: fix
+created: "2026-08-19T17:11:22Z"
+metadata:
+  priority: high
+  tags: [knockout, snapshots, uv, hardlinks, isolation]
+description: |
+  Shared-environment snapshots currently hash ctime for every dependency file.
+  When uv creates or removes another hardlink to an unchanged cache-backed
+  package inode, Linux advances that inode's ctime in every linked worktree.
+  The dependency bytes, mode, size, mtime, and final link count remain stable,
+  but snapshot teardown incorrectly reports that the command mutated the source
+  dependency environment.
+
+  Preserve the existing dependency identity behavior outside regular files
+  that are already hardlinked when the snapshot captures its baseline. For
+  that narrow class, bind identity to mode, size, mtime, final link count, and
+  file content rather than ctime. This accepts only ctime bookkeeping on
+  cache-backed hardlinks: a remaining link, byte change, permission change,
+  size change, or mtime change still fails closed. In particular, hashing
+  hardlinked content must reject a same-size write even if its mtime is
+  restored, and an initially single-linked file does not qualify for the
+  carveout merely because a command briefly links it.
+
+  Snapshot command environments that reuse source dependencies must also set
+  `PYTHONDONTWRITEBYTECODE=1`.
+  The existing `PYTHONPYCACHEPREFIX` redirects cooperative Python processes,
+  while the no-bytecode setting prevents nested validation processes that
+  discard that redirect from writing derived `.pyc` files into the shared
+  source dependency environment.
+temptations:
+  - risk: "Do not drop ctime from every dependency entry."
+    instead: "Use content identity only for already-hardlinked regular files and preserve ctime checking elsewhere."
+  - risk: "Do not treat a stable size and mtime as proof that hardlinked bytes are unchanged."
+    instead: "Hash hardlinked regular-file content so same-size writes with restored mtime remain blocking."
+  - risk: "Do not accept a hardlink that remains attached after the command."
+    instead: "Keep the final link count in the dependency identity."
+  - risk: "Do not whitelist source-venv __pycache__ writes as harmless."
+    instead: "Prevent shared-environment bytecode writes with PYTHONDONTWRITEBYTECODE while retaining the dependency identity guard."
+files:
+  create:
+    - path: tests/core/test_shared_dependency_hardlink_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context accepts a transient external link whose removal leaves hardlinked dependency bytes and meaningful metadata unchanged."
+        - kind: test_function
+          name: test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context still fails closed when hardlinked dependency bytes change at the same size after mtime restoration."
+        - kind: test_function
+          name: test_shared_snapshot_rejects_remaining_external_hardlink
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context still fails closed when an extra dependency hardlink remains attached."
+        - kind: test_function
+          name: test_shared_snapshot_rejects_hardlinked_mode_change
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context preserves mode identity for an already-hardlinked dependency file."
+        - kind: test_function
+          name: test_shared_snapshot_rejects_hardlinked_mtime_change
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context preserves mtime identity for an already-hardlinked dependency file with unchanged bytes."
+        - kind: test_function
+          name: test_shared_snapshot_rejects_transient_link_for_initially_single_link_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The public shared snapshot context retains ctime protection when a dependency file was not hardlinked at baseline capture."
+        - kind: test_function
+          name: test_shared_snapshot_disables_source_dependency_bytecode_writes
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A public shared snapshot command cannot write imported dependency bytecode into the source venv even when the pycache redirect is removed downstream."
+  scope:
+    - path: maid_runner/core/_knockout_snapshot.py
+      reason: "Refine the private dependency-tree identity encoding and disable bytecode only for snapshots that reuse source dependency environments; public signatures remain unchanged."
+  read:
+    - tests/core/test_shared_environment_snapshots.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_knockout_snapshot_template.py
+    - manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml
+    - manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml
+    - manifests/121-47-template-fresh-knockout-roots.manifest.yaml
+    - manifests/121-49-clear-release-knockout-blockers.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_shared_dependency_hardlink_identity.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py
+outcome:
+  status: completed
+  completed_at: "2026-08-19T18:38:14Z"
+  summary: "Shared dependency snapshots now tolerate content-stable uv hardlink bookkeeping and prevent source-venv bytecode writes without weakening material mutation checks or retained snapshot pycache isolation."
+  rationale: |
+    Dependency identity now replaces ctime only for regular files already
+    hardlinked at baseline, binding them to bytes, mode, size, mtime, and final
+    link count. Source-shared snapshot commands also disable bytecode writes;
+    retained and materialized snapshots keep their safe redirected pycache.
+    The 41-test focused and adjacent suite, behavioral and implementation
+    validation, Ruff, Black, and plan-lock revision 6 passed. The independent
+    implementation review returned Ready to merge. A real outcome-enrichment
+    refresh progressed beyond dependency identity and failed later, correctly,
+    because inherited full-suite tests made material project writes; that
+    distinct pilot blocker was not waived by this fix.
+  lessons:
+    - lesson_type: filesystem-safety
+      summary: "Inode ctime alone is not content identity for uv-cache hardlinks; accept only baseline-hardlinked ctime churn while retaining bytes, metadata, and final-link-count checks."
+      tags: [uv, hardlinks, ctime, snapshot-isolation]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_shared_dependency_hardlink_identity.py
+    - lesson_type: test-isolation
+      summary: "Source-shared Python environments must disable bytecode writes, while owned snapshot environments should retain redirected local pycache generation."
+      tags: [python, pycache, shared-environment, retained-snapshot]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_snapshot_template.py
+  review_notes:
+    - source: independent-implementation-review
+      severity: info
+      summary: "Ready to merge with one Windows ctime-test portability advisory, resolved by making only the observational ctime assertion POSIX-specific."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_shared_dependency_hardlink_identity.py, tests/core/test_shared_environment_snapshots.py, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_snapshot_template.py]
+      status: passed
+      summary: "41 focused and adjacent snapshot tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-shared-dependency-hardlink-identity.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed against lock revision 6."

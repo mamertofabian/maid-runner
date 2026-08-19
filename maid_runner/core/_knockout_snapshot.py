@@ -573,6 +573,7 @@ def _open_materialized_snapshot(
                 shared_dependencies=(
                     dependency_sources if share_dependency_environments else None
                 ),
+                disable_bytecode_writes=share_dependency_environments,
             ),
             environment_removals=tuple(
                 sorted(
@@ -1080,10 +1081,19 @@ def _directory_stat_identity(root: Path) -> str:
             metadata = os.lstat(path)
             relative = os.path.relpath(path, root_text).replace(os.sep, "/")
             digest.update(relative.encode())
-            digest.update(
-                f":{metadata.st_mode}:{metadata.st_size}:{metadata.st_mtime_ns}:"
-                f"{metadata.st_ctime_ns}".encode()
-            )
+            if stat.S_ISREG(metadata.st_mode) and metadata.st_nlink > 1:
+                digest.update(
+                    f":{metadata.st_mode}:{metadata.st_size}:"
+                    f"{metadata.st_mtime_ns}:{metadata.st_nlink}:content:".encode()
+                )
+                with open(path, "rb") as stream:
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                        digest.update(chunk)
+            else:
+                digest.update(
+                    f":{metadata.st_mode}:{metadata.st_size}:"
+                    f"{metadata.st_mtime_ns}:{metadata.st_ctime_ns}".encode()
+                )
             if stat.S_ISLNK(metadata.st_mode):
                 digest.update(os.readlink(path).encode(errors="surrogateescape"))
             digest.update(b"\0")
@@ -1341,6 +1351,7 @@ def _snapshot_environment(
     *,
     git_author_source_root: Path | None = None,
     pycache_root: Path | None = None,
+    disable_bytecode_writes: bool = False,
 ) -> dict[str, str]:
     git_author_config = _snapshot_git_author_config(
         git_author_source_root or source_root,
@@ -1361,6 +1372,8 @@ def _snapshot_environment(
             else snapshot_root / ".maid-pycache"
         ),
     }
+    if disable_bytecode_writes:
+        overrides["PYTHONDONTWRITEBYTECODE"] = "1"
     executable_paths: list[Path] = []
     shared = shared_dependencies or {}
     virtual_environment = shared.get(".venv")

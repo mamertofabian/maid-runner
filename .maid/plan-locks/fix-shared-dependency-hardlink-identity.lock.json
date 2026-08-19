@@ -1,0 +1,306 @@
+{
+  "manifest_path": "manifests/fix-shared-dependency-hardlink-identity.manifest.yaml",
+  "manifest_hash": "sha256-contract:7e728270fc11f24f79605aa2a63a6dcafa10c5f0e05dba29329e4d1394c33758",
+  "test_hashes": {
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+    "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:d63eaeb3fd5ed8c80f56e83390a286ebd3d05ced94833764d4edaebd1094bbd0"
+  },
+  "created_at": "2026-08-19T17:10:59.793906+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6649c49b084b0df7f1db9555d87fb03b6a8a3812fb8cf3982d313c4b8d3ac291",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:7e3ba9455ba218d5c03c9d33b4609ca2e12c2a802b6f65dd5a73299589026327"
+      },
+      "revised_at": "2026-08-19T17:11:23.013025+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-shared-dependency-hardlink-identity.manifest.yaml -> manifests/fix-shared-dependency-hardlink-identity.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4a9276dbb15d5d98397af399ce59cca37f46858f5c70bed2e140f258fa44325d",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:7e3ba9455ba218d5c03c9d33b4609ca2e12c2a802b6f65dd5a73299589026327"
+      },
+      "revised_at": "2026-08-19T17:41:35.373878+00:00",
+      "reason": "Prevent source-venv bytecode writes revealed by the full chain refresh reproduction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes",
+          "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:kind=test_function",
+          "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2c00e6065561af466a307edbd1513ceacfa8d7958194e51aedf0e8cb2add4f4a",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:01c0908f552cdbc1e5a9add1ca29d4b3e603cbb6b46e3db6f5e27fe6998865db"
+      },
+      "revised_at": "2026-08-19T17:44:55.335506+00:00",
+      "reason": "Scope bytecode suppression to source-shared environments and preserve retained snapshot pycache",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+          "read:tests/core/test_knockout_snapshot_template.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_shared_dependency_hardlink_identity.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_shared_dependency_hardlink_identity.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d2a1214309691029af6b9e1a5983022373c0f5c9b08f38fe84ea6e6deb2718fd",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:01c0908f552cdbc1e5a9add1ca29d4b3e603cbb6b46e3db6f5e27fe6998865db"
+      },
+      "revised_at": "2026-08-19T17:47:46.490413+00:00",
+      "reason": "Clarify source-shared bytecode policy wording",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7e728270fc11f24f79605aa2a63a6dcafa10c5f0e05dba29329e4d1394c33758",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:01c0908f552cdbc1e5a9add1ca29d4b3e603cbb6b46e3db6f5e27fe6998865db"
+      },
+      "revised_at": "2026-08-19T18:37:13.464117+00:00",
+      "reason": "Keep ctime observation portable on Windows",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T17:45:24.081570+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_shared_dependency_hardlink_identity.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py",
+        "exit_code": 1,
+        "output_tail": "        site_packages = dependency.parent\n        pycache = site_packages / \"__pycache__\"\n    \n        with SharedEnvironmentProjectSnapshotBackend().create(\n            project, (\"src/target.py\",), \"disable-shared-bytecode\"\n        ) as snapshot:\n            environment = dict(snapshot.environment_overrides)\n            environment.pop(\"PYTHONPYCACHEPREFIX\")\n            environment[\"PYTHONPATH\"] = os.pathsep.join(\n                (str(site_packages), environment[\"PYTHONPATH\"])\n            )\n>           assert environment[\"PYTHONDONTWRITEBYTECODE\"] == \"1\"\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           KeyError: 'PYTHONDONTWRITEBYTECODE'\n\ntests/core/test_shared_dependency_hardlink_identity.py:160: KeyError\n=========================== short test summary info ============================\nFAILED tests/core/test_shared_dependency_hardlink_identity.py::test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping\nFAILED tests/core/test_shared_dependency_hardlink_identity.py::test_shared_snapshot_disables_source_dependency_bytecode_writes\n2 failed, 39 passed in 28.55s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_disables_source_dependency_bytecode_writes:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mode_change",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mode_change:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mode_change:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mode_change:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mtime_change",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mtime_change:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mtime_change:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_hardlinked_mtime_change:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_remaining_external_hardlink",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_remaining_external_hardlink:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_remaining_external_hardlink:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_remaining_external_hardlink:returns=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_transient_link_for_initially_single_link_file",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_transient_link_for_initially_single_link_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_transient_link_for_initially_single_link_file:kind=test_function",
+      "tests/core/test_shared_dependency_hardlink_identity.py:test_shared_snapshot_rejects_transient_link_for_initially_single_link_file:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_shared_dependency_hardlink_identity.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-49-clear-release-knockout-blockers.manifest.yaml",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_snapshot_template.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_shared_dependency_hardlink_identity.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_accepts_transient_external_hardlink_bookkeeping",
+              "description": "The public shared snapshot context accepts a transient external link whose removal leaves hardlinked dependency bytes and meaningful metadata unchanged.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_rejects_hardlinked_byte_change_with_restored_mtime",
+              "description": "The public shared snapshot context still fails closed when hardlinked dependency bytes change at the same size after mtime restoration.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_rejects_remaining_external_hardlink",
+              "description": "The public shared snapshot context still fails closed when an extra dependency hardlink remains attached.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_rejects_hardlinked_mode_change",
+              "description": "The public shared snapshot context preserves mode identity for an already-hardlinked dependency file.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_rejects_hardlinked_mtime_change",
+              "description": "The public shared snapshot context preserves mtime identity for an already-hardlinked dependency file with unchanged bytes.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_rejects_transient_link_for_initially_single_link_file",
+              "description": "The public shared snapshot context retains ctime protection when a dependency file was not hardlinked at baseline capture.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_snapshot_disables_source_dependency_bytecode_writes",
+              "description": "A public shared snapshot command cannot write imported dependency bytecode into the source venv even when the pycache redirect is removed downstream.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/test_shared_environment_snapshots.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_snapshot_template.py",
+        "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-49-clear-release-knockout-blockers.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "reason": "Refine the private dependency-tree identity encoding and disable bytecode only for snapshots that reuse source dependency environments; public signatures remain unchanged."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_snapshot_template.py",
+      "tests/core/test_shared_dependency_hardlink_identity.py",
+      "tests/core/test_shared_environment_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_shared_dependency_hardlink_identity.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py"
+    ]
+  }
+}
