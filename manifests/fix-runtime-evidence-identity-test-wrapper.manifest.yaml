@@ -1,0 +1,94 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep the deep-evidence freshness fallback test compatible with explicit child environments"
+type: fix
+created: "2026-08-19T23:06:43Z"
+description: |
+  Repair the existing resolved-environment freshness regression test after the
+  runtime identity boundary gained explicit child-environment routing. The test
+  must continue to alter only the resolved pytest version while preserving the
+  environment supplied by the runtime-evidence evaluator, then prove stale
+  evidence executes the exact coverage fallback successfully. This is a
+  test-contract compatibility repair; production environment propagation must
+  remain unchanged.
+temptations:
+  - risk: "Do not remove or ignore child_environment in production to satisfy the stale monkeypatch."
+    instead: "Adapt the test wrapper to accept and forward the explicit keyword arguments to the real identity function."
+  - risk: "Do not weaken the test to accept the TypeError or skip the freshness path."
+    instead: "Retain the successful reports and exact two-execution fallback assertions after changing only pytest_version."
+files:
+  edit:
+    - path: tests/cli/test_verify_deep_evidence_reuse.py
+      artifacts:
+        - kind: test_function
+          name: test_changed_resolved_environment_identity_runs_exact_coverage_fallback
+          args: []
+          description: "Forwards evaluator-owned child environment policy while perturbing the resolved version and proving exact coverage fallback."
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/cli/commands/validate.py
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml
+validate:
+  - [uv, run, python, -m, pytest, -q, "tests/cli/test_verify_deep_evidence_reuse.py::test_changed_resolved_environment_identity_runs_exact_coverage_fallback"]
+  - [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_runtime_evidence_preparation_environment.py]
+outcome:
+  status: completed
+  completed_at: '2026-08-20T07:17:17+08:00'
+  summary: >-
+    Repaired the stale runtime-identity test wrapper so it preserves explicit
+    child environments while continuing to force exact coverage fallback.
+  rationale: >-
+    The strengthened test uses a real subprocess executor and sentinel
+    environment, proving that accepting but dropping the evaluator-owned policy
+    cannot produce a false green. Only pytest_version is perturbed, preserving
+    the original stale-evidence scenario and exact two-execution expectation.
+  lessons:
+    - lesson_type: test-design
+      summary: >-
+        Compatibility wrappers around private seams must forward newly explicit
+        policy arguments, and behavioral tests should make dropped policy
+        observable rather than merely accepting arbitrary keywords.
+      tags: [runtime-evidence, environment, test-compatibility, false-green]
+      paths:
+        - tests/cli/test_verify_deep_evidence_reuse.py
+    - lesson_type: plan-lock
+      summary: >-
+        Editing a shared behavioral test requires reconciling every active
+        dependent plan lock, even when the focused and repo-wide tests pass.
+      tags: [plan-lock, shared-tests, e701, integrity]
+      paths:
+        - tests/cli/test_verify_deep_evidence_reuse.py
+  review_notes:
+    - source: maid-plan-reviewer
+      severity: resolved
+      summary: >-
+        Review required a sentinel-backed assertion so accepting but discarding
+        child_environment could not pass; the revised contract was approved.
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Final review confirmed all ten dependent locks match, handoff
+        verification passes, and the environment-forwarding test resists false
+        greens without changing production behavior.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, "tests/cli/test_verify_deep_evidence_reuse.py::test_changed_resolved_environment_identity_runs_exact_coverage_fallback"]
+      status: passed
+      summary: "The focused regression passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_runtime_evidence_preparation_environment.py]
+      status: passed
+      summary: "All 18 adjacent runtime-evidence tests passed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 299 repository-wide manifest commands passed."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 279 active manifests passed; 351 superseded manifests were skipped."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, HEAD]
+      status: passed
+      summary: "All nine handoff stages passed with zero blockers."

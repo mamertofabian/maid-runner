@@ -375,25 +375,57 @@ def test_changed_resolved_environment_identity_runs_exact_coverage_fallback(
     tmp_path, monkeypatch
 ):
     import maid_runner.core.runtime_evidence as evidence_module
-    from maid_runner.cli.commands.validate import _run_artifact_coverage_by_manifest
+    from maid_runner.core._runtime_command_executor import (
+        SubprocessRuntimeCommandExecutor,
+    )
+    from maid_runner.core.artifact_coverage import (
+        evaluate_artifact_coverage_from_evidence,
+    )
 
     log = tmp_path.parent / f"{tmp_path.name}-executions.log"
     _write_project(tmp_path, log)
     monkeypatch.setenv("MAID_EVIDENCE_EXECUTION_LOG", str(log))
+    executor = SubprocessRuntimeCommandExecutor(
+        environment_overrides={"MAID_IDENTITY_ENVIRONMENT": "snapshot-owned"}
+    )
     evidence = evidence_module.collect_runtime_evidence(
-        _active_manifests(tmp_path), tmp_path
+        _active_manifests(tmp_path), tmp_path, executor=executor
     ).evidence
     real_identity = evidence_module._environment_identity
+    forwarded_environments = []
 
-    def changed_identity(command, root):
-        return replace(real_identity(command, root), pytest_version="changed")
+    def recording_identity(command, root, *, child_environment=None):
+        forwarded_environments.append(child_environment)
+        return real_identity(
+            command,
+            root,
+            child_environment=child_environment,
+        )
+
+    def changed_identity(command, root, *, child_environment=None):
+        return replace(
+            recording_identity(
+                command,
+                root,
+                child_environment=child_environment,
+            ),
+            pytest_version="changed",
+        )
 
     monkeypatch.setattr(evidence_module, "_environment_identity", changed_identity)
-    reports = _run_artifact_coverage_by_manifest(
-        "manifests/", tmp_path, evidence=evidence
+    evaluated = evaluate_artifact_coverage_from_evidence(
+        _active_manifests(tmp_path),
+        tmp_path,
+        evidence,
+        fallback_executor=executor,
     )
 
-    assert all(report.success for report in reports.values())
+    assert forwarded_environments
+    assert all(
+        environment["MAID_IDENTITY_ENVIRONMENT"] == "snapshot-owned"
+        for environment in forwarded_environments
+    )
+    assert all(report.success for report in evaluated.reports.values())
     assert log.read_text().splitlines() == ["pytest", "pytest"]
 
 

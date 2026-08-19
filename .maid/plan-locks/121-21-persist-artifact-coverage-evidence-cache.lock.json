@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
   "manifest_hash": "sha256-contract:6b80582851730f5fa664aa426a8fe91324180ee4a8d4ba61bb9bb8a6da57b213",
   "test_hashes": {
-    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
   },
   "created_at": "2026-08-13T09:34:31.178822+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:96c36cdcbe0c2469d4072d113947461575028854b245eb76e0612b3a3b37fc94",
@@ -34,6 +34,24 @@
       },
       "revised_at": "2026-08-13T13:57:59.708423+00:00",
       "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b80582851730f5fa664aa426a8fe91324180ee4a8d4ba61bb9bb8a6da57b213",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-19T23:14:08.549063+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml",
   "manifest_hash": "sha256-contract:ae2de911dae43e52fa2c6dcf19d6ea87f8c22d6691be77df5faff13163139857",
   "test_hashes": {
-    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
     "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
     "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
   },
   "created_at": "2026-08-18T22:02:52.561141+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:fbfcd221903af63f317a4909320756c14db17a65505af29ed14e13bc32aaac73",
@@ -153,6 +153,26 @@
       },
       "revised_at": "2026-08-19T08:36:23.674726+00:00",
       "reason": "accept approved shared-test precedence control for effective Git configuration",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ae2de911dae43e52fa2c6dcf19d6ea87f8c22d6691be77df5faff13163139857",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+      },
+      "revised_at": "2026-08-19T23:14:09.497668+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
