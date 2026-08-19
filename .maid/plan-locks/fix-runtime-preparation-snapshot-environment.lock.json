@@ -1,0 +1,305 @@
+{
+  "manifest_path": "manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml",
+  "manifest_hash": "sha256-contract:d766e442fdececc1ea9c92f2371e0009b860daa2fc1d7bf0659a5e77b813db9f",
+  "test_hashes": {
+    "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+    "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
+  },
+  "created_at": "2026-08-19T18:53:27.524978+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1f72b53162ea780e166e984a6397f7cbb61993c604a11fad3ca989744ce022d5",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c859d4971841332378f42e4d3ec57b46a0160c7da92e1b7e8103778edd9b0520"
+      },
+      "revised_at": "2026-08-19T18:54:09.023382+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-runtime-preparation-snapshot-environment.manifest.yaml -> manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:49bf44f6a611f2ccdaa33632772053dcf7216135c3f4f32bf39edbb9b54c2a9e",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c859d4971841332378f42e4d3ec57b46a0160c7da92e1b7e8103778edd9b0520"
+      },
+      "revised_at": "2026-08-19T18:55:06.681555+00:00",
+      "reason": "Reconcile the promoted manifest hash after an overlapping duplicate lock attempt; contract and tests are unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:49bf44f6a611f2ccdaa33632772053dcf7216135c3f4f32bf39edbb9b54c2a9e",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c859d4971841332378f42e4d3ec57b46a0160c7da92e1b7e8103778edd9b0520"
+      },
+      "revised_at": "2026-08-19T19:02:12.497089+00:00",
+      "reason": "Cover the pre-execution runtime environment-identity probe and preserve temporary instrumentation paths under explicit snapshot PYTHONPATH",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:kind=test_function",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/runtime_evidence.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/runtime_evidence.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ea29451c209d7f0e6c6d7bfdda116d733be2e7f47311cc926c823af1230e5659",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:fb52b9fa1849409066fbaf3d7c264d9ea1da9613c1eeb89ec8a3825e37649a4a"
+      },
+      "revised_at": "2026-08-19T19:08:00.577652+00:00",
+      "reason": "Apply the executor environment policy to artifact-coverage freshness probes and prove evaluation performs the check",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+          "scope:maid_runner/core/artifact_coverage.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9679bde5afdb02670e850bea03987de6b7383352a070b6c517a954c1d3277706",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:74fb868dec4b6265b706ebc4472c308fdaba26567d974e9cd97bb364b28ca94d",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:9c6758921ff6e870aaa0d95837a86a3987b7ef16cdc6cf211672b71a0a16e1c9"
+      },
+      "revised_at": "2026-08-19T19:22:40.972946+00:00",
+      "reason": "Contract explicit pytest-plugin removal and inherited xdist-marker sanitization across preparation and final execution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:kind=test_function",
+          "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T19:23:23.024907+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_runtime_evidence_preparation_environment.py tests/core/test_pytest_worker_execution.py tests/core/test_runtime_evidence.py tests/cli/test_chain_merge_refresh_evidence_command.py",
+        "exit_code": 1,
+        "output_tail": "E             self._import_plugin_specs(os.environ.get(\"PYTEST_PLUGINS\"))\nE           File \"/home/atomrem/projects/codefrost-dev/maid-runner-chain-flattening/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py\", line 833, in _import_plugin_specs\nE             self.import_plugin(import_spec)\nE           File \"/home/atomrem/projects/codefrost-dev/maid-runner-chain-flattening/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py\", line 862, in import_plugin\nE             raise ImportError(\nE           File \"/home/atomrem/projects/codefrost-dev/maid-runner-chain-flattening/.venv/lib/python3.12/site-packages/_pytest/config/__init__.py\", line 860, in import_plugin\nE             __import__(importspec)\nE         ImportError: Error importing plugin \"_maid_pytest_timing_plugin\": No module named '_maid_pytest_timing_plugin'\nE         \nE       assert 1 == 0\nE        +  where 1 = BatchTestResult(results=[TestRunResult(manifest_slug='probe.manifest', command=('python', '-m', 'pytest', 'tests/test_...EMENTATION: 'implementation'>)], total=1, passed=0, failed=1, chain_errors=[], duration_ms=None, scheduling_notices=()).failed\nE        +    where BatchTestResult(results=[TestRunResult(manifest_slug='probe.manifest', command=('python', '-m', 'pytest', 'tests/test_...EMENTATION: 'implementation'>)], total=1, passed=0, failed=1, chain_errors=[], duration_ms=None, scheduling_notices=()) = RuntimeEvidenceRun(test_result=BatchTestResult(results=[TestRunResult(manifest_slug='probe.manifest', command=('python...ct/manifests/probe.manifest.yaml', command_index=0, command=('python', '-m', 'pytest', '-q', 'tests/test_alpha.py')),)).test_result\n\ntests/core/test_runtime_evidence_preparation_environment.py:359: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_runtime_evidence_preparation_environment.py::test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution\nFAILED tests/core/test_runtime_evidence_preparation_environment.py::test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls\nFAILED tests/core/test_runtime_evidence_preparation_environment.py::test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child\nFAILED tests/core/test_runtime_evidence_preparation_environment.py::test_runtime_evidence_identity_probe_uses_executor_environment_policy\n4 failed, 67 passed in 41.86s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution:kind=test_function",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution:returns=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls:kind=test_function",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls:returns=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:kind=test_function",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_identity_probe_uses_executor_environment_policy:returns=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:kind=test_function",
+      "tests/core/test_runtime_evidence_preparation_environment.py:test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_runtime_evidence_preparation_environment.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py",
+        "tests/core/test_pytest_worker_execution.py",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "scope": [
+        "maid_runner/core/_pytest_worker_execution.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_runtime_evidence_preparation_environment.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution",
+              "description": "Every observable pytest collection, capability-probe, and execution subprocess owned by the public runtime executor receives the same explicit override and removal policy.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls",
+              "description": "Concurrent public runtime executors retain their distinct override and removal policies without transient process-global environment bleed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child",
+              "description": "Explicit removal of an ambient pytest plugin and standard sanitization of inherited xdist worker markers apply uniformly to preparation probes and final execution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_identity_probe_uses_executor_environment_policy",
+              "description": "Public runtime evidence collection and artifact-coverage evaluation apply the executor's explicit override/removal policy to observable environment-identity and freshness version probes as well as test execution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "tests/core/test_pytest_worker_execution.py",
+        "tests/core/test_runtime_evidence.py",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_pytest_worker_execution.py",
+          "reason": "Allow private environment-aware preparation, collection, and capability-probe wiring without changing existing public signatures."
+        },
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "reason": "Forward the executor's owned environment policy into private pytest command preparation before the final execution."
+        },
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "reason": "Apply the executor's private child-environment policy to the runtime environment-identity/version probe without changing public collection signatures."
+        },
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Use the fallback executor's private environment policy when checking whether freshly collected runtime evidence is current, while preserving public evaluator signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_refresh_evidence_command.py",
+      "tests/core/test_pytest_worker_execution.py",
+      "tests/core/test_runtime_evidence.py",
+      "tests/core/test_runtime_evidence_preparation_environment.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_runtime_evidence_preparation_environment.py tests/core/test_pytest_worker_execution.py tests/core/test_runtime_evidence.py tests/cli/test_chain_merge_refresh_evidence_command.py"
+    ]
+  }
+}

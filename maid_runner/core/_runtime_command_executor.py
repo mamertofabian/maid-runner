@@ -100,6 +100,18 @@ class SubprocessRuntimeCommandExecutor:
         self._environment_overrides = dict(environment_overrides or {})
         self._environment_removals = tuple(environment_removals)
 
+    def _child_environment(
+        self,
+        environment_overrides: Mapping[str, str] | None = None,
+        environment_removals: Sequence[str] = (),
+    ) -> dict[str, str]:
+        environment = _test_command_environment()
+        for name in dict.fromkeys((*self._environment_removals, *environment_removals)):
+            environment.pop(name, None)
+        environment.update(self._environment_overrides)
+        environment.update(environment_overrides or {})
+        return environment
+
     def execute(
         self,
         command: tuple[str, ...],
@@ -109,15 +121,14 @@ class SubprocessRuntimeCommandExecutor:
         environment_overrides: Mapping[str, str] | None = None,
         environment_removals: Sequence[str] = (),
     ) -> RuntimeCommandRecord:
-        environment = _test_command_environment()
         complete_removals = tuple(
             dict.fromkeys((*self._environment_removals, *environment_removals))
         )
-        for name in complete_removals:
-            environment.pop(name, None)
+        environment = self._child_environment(
+            environment_overrides,
+            environment_removals,
+        )
         environment.pop(_ARTIFACT_XDIST_CONTROLLER_PID, None)
-        environment.update(self._environment_overrides)
-        environment.update(environment_overrides or {})
         uses_pytest_workers = _uses_pytest_workers(command, project_root)
         if not uses_pytest_workers:
             environment.setdefault("COVERAGE_CORE", "sysmon")
@@ -217,8 +228,8 @@ class SubprocessRuntimeCommandExecutor:
             _normalize_pytest_command,
         )
         from maid_runner.core._pytest_worker_execution import (
+            _prepare_pytest_command,
             finalize_pytest_timing,
-            prepare_pytest_command,
         )
         from maid_runner.core._test_command_execution import _run_test_command
         from maid_runner.core.runtime_evidence import (
@@ -236,11 +247,13 @@ class SubprocessRuntimeCommandExecutor:
             if normalized is not None
             else _lenient_pytest_targets(command)
         )
-        prepared = prepare_pytest_command(
+        prepared = _prepare_pytest_command(
             command,
             project_root=root,
             pytest_workers=pytest_workers,
             command_jobs=1,
+            environment_overrides=self._environment_overrides,
+            environment_removals=self._environment_removals,
         )
         with tempfile.TemporaryDirectory(prefix="maid-runtime-evidence-") as tmp:
             tmp_path = Path(tmp)
@@ -254,13 +267,14 @@ class SubprocessRuntimeCommandExecutor:
             (plugin_directory / f"{plugin_name}.py").write_text(
                 plugin_source.read_text(encoding="utf-8"), encoding="utf-8"
             )
-            overrides = dict(prepared.environment_overrides)
-            overrides.update(self._environment_overrides)
+            overrides = dict(self._environment_overrides)
+            overrides.update(prepared.environment_overrides)
             overrides["PYTHONPATH"] = _prepend_pythonpath(
                 plugin_directory, overrides.get("PYTHONPATH")
             )
+            child_plugins = self._child_environment().get("PYTEST_PLUGINS")
             overrides["PYTEST_PLUGINS"] = _merge_plugins(
-                overrides.get("PYTEST_PLUGINS") or os.environ.get("PYTEST_PLUGINS"),
+                overrides.get("PYTEST_PLUGINS") or child_plugins,
                 plugin_name,
             )
             overrides.update(

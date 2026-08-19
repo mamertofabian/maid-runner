@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -73,6 +73,18 @@ def probe_pytest_runner_capabilities(
     cwd: Path,
 ) -> PytestRunnerCapabilities:
     """Probe xdist through the exact resolved pytest command prefix."""
+    return _probe_pytest_runner_capabilities(
+        resolved_command,
+        cwd,
+        _clean_child_environment(),
+    )
+
+
+def _probe_pytest_runner_capabilities(
+    resolved_command: tuple[str, ...],
+    cwd: Path,
+    environment: Mapping[str, str],
+) -> PytestRunnerCapabilities:
     prefix = _pytest_command_prefix(resolved_command)
     if prefix is None:
         return PytestRunnerCapabilities(False, None, "command is not pytest")
@@ -84,7 +96,7 @@ def probe_pytest_runner_capabilities(
             capture_output=True,
             text=True,
             timeout=30,
-            env=_clean_child_environment(),
+            env=dict(environment),
             check=False,
         )
     except (OSError, subprocess.SubprocessError) as exc:
@@ -139,13 +151,28 @@ def collect_pytest_nodeids(
     cwd: Path,
 ) -> PytestCollectionResult:
     """Collect exact node IDs through a standalone plugin in the consumer env."""
+    return _collect_pytest_nodeids(
+        resolved_command,
+        cwd,
+        _clean_child_environment(),
+    )
+
+
+def _collect_pytest_nodeids(
+    resolved_command: tuple[str, ...],
+    cwd: Path,
+    environment: Mapping[str, str],
+) -> PytestCollectionResult:
     if not _looks_like_resolved_pytest(resolved_command):
         return PytestCollectionResult((), "command is not pytest")
     with tempfile.TemporaryDirectory(prefix="maid-pytest-collect-") as directory_name:
         directory = Path(directory_name)
-        overrides, plugin_name = timing_plugin_environment(directory)
+        env = dict(environment)
+        overrides, plugin_name = _timing_plugin_environment(
+            directory,
+            env.get("PYTHONPATH"),
+        )
         output = directory / "collection.json"
-        env = _clean_child_environment()
         env.update(overrides)
         env.update(
             {
@@ -195,6 +222,13 @@ def collect_pytest_nodeids(
 
 def timing_plugin_environment(directory: Path) -> tuple[dict[str, str], str]:
     """Materialize a standalone plugin in a child-only import path."""
+    return _timing_plugin_environment(directory, os.environ.get("PYTHONPATH"))
+
+
+def _timing_plugin_environment(
+    directory: Path,
+    existing_pythonpath: str | None,
+) -> tuple[dict[str, str], str]:
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     plugin_name = "_maid_pytest_timing_plugin"
@@ -202,10 +236,9 @@ def timing_plugin_environment(directory: Path) -> tuple[dict[str, str], str]:
         Path(__file__).with_name("_pytest_timing_plugin.py").read_text(encoding="utf-8")
     )
     (directory / f"{plugin_name}.py").write_text(source, encoding="utf-8")
-    existing = os.environ.get("PYTHONPATH")
     pythonpath = str(directory)
-    if existing:
-        pythonpath = pythonpath + os.pathsep + existing
+    if existing_pythonpath:
+        pythonpath = pythonpath + os.pathsep + existing_pythonpath
     return {"PYTHONPATH": pythonpath}, plugin_name
 
 
@@ -269,6 +302,23 @@ def prepare_pytest_command(
     command_jobs: int,
 ) -> PreparedPytestCommand:
     """Compose exact collection, policy, capability, scheduling, and timing."""
+    return _prepare_pytest_command(
+        resolved_command,
+        project_root,
+        pytest_workers,
+        command_jobs,
+    )
+
+
+def _prepare_pytest_command(
+    resolved_command: tuple[str, ...],
+    project_root: Path,
+    pytest_workers: int | str | None,
+    command_jobs: int,
+    *,
+    environment_overrides: Mapping[str, str] | None = None,
+    environment_removals: Sequence[str] = (),
+) -> PreparedPytestCommand:
     root = Path(project_root)
     if not _looks_like_resolved_pytest(resolved_command):
         return PreparedPytestCommand(resolved_command, {}, None, (), None, None)
@@ -290,7 +340,20 @@ def prepare_pytest_command(
         configured_workers = max(config.accepted_pytest_worker_counts)
 
     behavior_digest, input_digest = build_pytest_timing_identity(resolved_command, root)
-    collection = collect_pytest_nodeids(resolved_command, root)
+    preparation_environment = (
+        _explicit_child_environment(environment_overrides, environment_removals)
+        if environment_overrides is not None or environment_removals
+        else None
+    )
+    collection = (
+        _collect_pytest_nodeids(
+            resolved_command,
+            root,
+            preparation_environment,
+        )
+        if preparation_environment is not None
+        else collect_pytest_nodeids(resolved_command, root)
+    )
     if collection.error is not None:
         if explicit and configured_workers != 1:
             raise ValueError(collection.error)
@@ -302,6 +365,7 @@ def prepare_pytest_command(
             (),
             behavior_digest,
             input_digest,
+            environment=preparation_environment,
         )
 
     history = load_pytest_timing_history(root, behavior_digest, input_digest)
@@ -314,11 +378,16 @@ def prepare_pytest_command(
     )
     configured = _configured_workers(resolved_command, root)
     needs_capability = decision.use_workers or configured is not None
-    capabilities = (
-        probe_pytest_runner_capabilities(resolved_command, root)
-        if needs_capability
-        else PytestRunnerCapabilities(True, None, None)
-    )
+    if not needs_capability:
+        capabilities = PytestRunnerCapabilities(True, None, None)
+    elif preparation_environment is not None:
+        capabilities = _probe_pytest_runner_capabilities(
+            resolved_command,
+            root,
+            preparation_environment,
+        )
+    else:
+        capabilities = probe_pytest_runner_capabilities(resolved_command, root)
     scheduled, notice = apply_pytest_worker_decision(
         resolved_command,
         decision,
@@ -336,6 +405,7 @@ def prepare_pytest_command(
         collection.nodeids,
         behavior_digest,
         input_digest,
+        environment=preparation_environment,
     )
 
 
@@ -389,17 +459,25 @@ def _instrumented_prepared_command(
     nodeids: tuple[str, ...],
     behavior_digest: str,
     input_digest: str,
+    *,
+    environment: Mapping[str, str] | None = None,
 ) -> PreparedPytestCommand:
     temporary = tempfile.TemporaryDirectory(prefix="maid-pytest-timing-")
     directory = Path(temporary.name)
-    overrides, plugin_name = timing_plugin_environment(directory)
+    base_environment = (
+        dict(environment) if environment is not None else _clean_child_environment()
+    )
+    overrides, plugin_name = _timing_plugin_environment(
+        directory,
+        base_environment.get("PYTHONPATH"),
+    )
     timing_output = directory / "timings.json"
     selected_output = directory / "selected.json"
     selected_output.write_text(json.dumps(list(nodeids)), encoding="utf-8")
     overrides.update(
         {
             "PYTEST_PLUGINS": _merged_pytest_plugins(
-                os.environ.get("PYTEST_PLUGINS"), plugin_name
+                base_environment.get("PYTEST_PLUGINS"), plugin_name
             ),
             "MAID_TIMING_OUTPUT": str(timing_output),
             "MAID_SELECTED_NODEIDS_FILE": str(selected_output),
@@ -493,8 +571,24 @@ def _looks_like_resolved_pytest(command: tuple[str, ...]) -> bool:
 
 def _clean_child_environment() -> dict[str, str]:
     env = dict(os.environ)
-    env.pop("PYTEST_ADDOPTS", None)
+    for name in (
+        "PYTEST_ADDOPTS",
+        "PYTEST_XDIST_WORKER",
+        "PYTEST_XDIST_WORKER_COUNT",
+    ):
+        env.pop(name, None)
     return env
+
+
+def _explicit_child_environment(
+    overrides: Mapping[str, str] | None,
+    removals: Sequence[str],
+) -> dict[str, str]:
+    environment = _clean_child_environment()
+    for name in removals:
+        environment.pop(name, None)
+    environment.update(overrides or {})
+    return environment
 
 
 def _merged_pytest_plugins(existing: str | None, plugin_name: str) -> str:

@@ -255,6 +255,11 @@ def collect_runtime_evidence(
     """Execute each compatible pytest group once and project exact evidence."""
     root = Path(project_root).resolve()
     runner = executor or SubprocessRuntimeCommandExecutor()
+    runner_environment = (
+        runner._child_environment()
+        if isinstance(runner, SubprocessRuntimeCommandExecutor)
+        else None
+    )
     entries = _runtime_command_entries(manifests, root)
     grouped: OrderedDict[
         tuple[str, tuple[str, ...], tuple[str, ...]], list[_RuntimeCommandEntry]
@@ -300,7 +305,11 @@ def collect_runtime_evidence(
                 selector for entry in group_entries for selector in entry.selectors
             )
         )
-        environment = _environment_identity(command, root)
+        environment = _environment_identity(
+            command,
+            root,
+            child_environment=runner_environment,
+        )
         if environment not in environments:
             environments.append(environment)
         executor_parameters = inspect.signature(runner.execute_with_contexts).parameters
@@ -419,6 +428,22 @@ def runtime_evidence_is_current(
     pytest_workers: int | str | None = None,
 ) -> bool:
     """Reject evidence after content or resolved-environment identity changes."""
+    return _runtime_evidence_is_current(
+        bundle,
+        manifests,
+        project_root,
+        pytest_workers=pytest_workers,
+    )
+
+
+def _runtime_evidence_is_current(
+    bundle: RuntimeEvidenceBundle,
+    manifests: Sequence[Manifest],
+    project_root: Path,
+    pytest_workers: int | str | None = None,
+    *,
+    child_environment: Mapping[str, str] | None = None,
+) -> bool:
     root = Path(project_root).resolve()
     if bundle.content_digest != _content_digest(root):
         return False
@@ -449,6 +474,7 @@ def runtime_evidence_is_current(
                 )
             ),
             root,
+            child_environment=child_environment,
         )
         for group_key, commands in group_commands.items()
     )
@@ -731,11 +757,18 @@ def _test_result_from_group(
 
 
 def _environment_identity(
-    command: tuple[str, ...], root: Path
+    command: tuple[str, ...],
+    root: Path,
+    *,
+    child_environment: Mapping[str, str] | None = None,
 ) -> RuntimeEnvironmentIdentity:
     normalized = _normalize_pytest_command(command)
     prefix = normalized[0] if normalized is not None else command
-    versions = _probe_resolved_versions(prefix, root)
+    versions = _probe_resolved_versions(
+        prefix,
+        root,
+        child_environment=child_environment,
+    )
     return RuntimeEnvironmentIdentity(
         resolved_command_prefix=prefix,
         working_directory=str(root),
@@ -769,7 +802,10 @@ def _environment_identity(
 
 
 def _probe_resolved_versions(
-    prefix: tuple[str, ...], root: Path
+    prefix: tuple[str, ...],
+    root: Path,
+    *,
+    child_environment: Mapping[str, str] | None = None,
 ) -> dict[str, str | None]:
     script = (
         "import importlib.metadata,json,sys;"
@@ -788,7 +824,7 @@ def _probe_resolved_versions(
         completed = subprocess.run(
             command,
             cwd=str(root),
-            env=_test_command_environment(),
+            env=dict(child_environment or _test_command_environment()),
             capture_output=True,
             text=True,
             timeout=30,

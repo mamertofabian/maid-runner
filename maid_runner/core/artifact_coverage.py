@@ -23,10 +23,10 @@ from maid_runner.core.module_paths import file_to_module_path, resolve_reexport
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 from maid_runner.core.runtime_evidence import (
+    _runtime_evidence_is_current,
     RuntimeCommandEvidence,
     RuntimeCommandIdentity,
     RuntimeEvidenceBundle,
-    runtime_evidence_is_current,
 )
 
 if TYPE_CHECKING:
@@ -598,11 +598,16 @@ def evaluate_artifact_coverage_from_evidence(
 
     ordered_manifests = list(manifests)
     root = Path(project_root).resolve()
-    current = runtime_evidence_is_current(
+    current = _runtime_evidence_is_current(
         evidence,
         ordered_manifests,
         root,
         pytest_workers=evidence.pytest_workers,
+        child_environment=(
+            fallback_executor._child_environment()
+            if isinstance(fallback_executor, SubprocessRuntimeCommandExecutor)
+            else None
+        ),
     )
     evidence_by_identity = {
         (
