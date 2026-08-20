@@ -86,6 +86,18 @@ def _pytest_workers_arg(value: str) -> int | str:
     return workers
 
 
+def _positive_command_timeout_arg(value: str) -> int:
+    try:
+        timeout = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "command timeout must be a positive integer"
+        ) from exc
+    if timeout < 1:
+        raise argparse.ArgumentTypeError("command timeout must be a positive integer")
+    return timeout
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -707,6 +719,14 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+    lp.add_argument(
+        "--command-timeout",
+        type=_positive_command_timeout_arg,
+        default=300,
+        dest="command_timeout",
+        metavar="SECONDS",
+        help="Maximum seconds per evidence-capture command (default: 300)",
     )
     rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
     rp.add_argument("manifest_path")

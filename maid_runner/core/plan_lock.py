@@ -810,15 +810,25 @@ def classify_red_exit_code(exit_code: int) -> str:
 
 
 def capture_red_phase_evidence(
-    manifest_path: Path, project_root: Path
+    manifest_path: Path,
+    project_root: Path,
+    command_timeout_seconds: int = 300,
 ) -> RedPhaseEvidence:
     """Run the manifest's validate commands and record red-phase evidence."""
+    if command_timeout_seconds < 1:
+        raise ValueError("Command timeout must be a positive integer")
+
     manifest = load_manifest(manifest_path)
     root = Path(project_root)
     slug = slug_from_path(manifest_path)
     commands: list[RedPhaseCommandEvidence] = []
     for command in manifest.validate_commands:
-        result = _run_test_command(command, cwd=root, manifest_slug=slug)
+        result = _run_test_command(
+            command,
+            cwd=root,
+            timeout=command_timeout_seconds,
+            manifest_slug=slug,
+        )
         commands.append(
             RedPhaseCommandEvidence(
                 command=shlex.join(command),
@@ -836,9 +846,14 @@ def capture_red_phase_evidence(
 
 
 def capture_legacy_baseline_evidence(
-    manifest_path: Path, project_root: Path, reason: str
+    manifest_path: Path,
+    project_root: Path,
+    reason: str,
+    command_timeout_seconds: int = 300,
 ) -> LegacyBaselineEvidence:
     """Capture a green, contract-stable baseline for a legacy manifest."""
+    if command_timeout_seconds < 1:
+        raise ValueError("Command timeout must be a positive integer")
     if not reason or not reason.strip():
         raise ValueError("Legacy-baseline migration requires a non-empty reason")
 
@@ -926,7 +941,10 @@ def capture_legacy_baseline_evidence(
     commands: list[RedPhaseCommandEvidence] = []
     for command in current_manifest.validate_commands:
         result = _run_test_command(
-            command, cwd=root, manifest_slug=current_manifest.slug
+            command,
+            cwd=root,
+            timeout=command_timeout_seconds,
+            manifest_slug=current_manifest.slug,
         )
         evidence = RedPhaseCommandEvidence(
             command=shlex.join(command),

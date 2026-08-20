@@ -1,0 +1,263 @@
+{
+  "manifest_path": "manifests/configure-plan-lock-command-timeout.manifest.yaml",
+  "manifest_hash": "sha256-contract:6fd016592a665b1b69806bad86ba9815fe1b608d999bb30e57dacfddbd3b6091",
+  "test_hashes": {
+    "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+    "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:025f9e2e3b9ddc19b2099c2a07d1f3776393f0b6b82e2f3d33dae2df5d065887"
+  },
+  "created_at": "2026-08-20T08:41:37.336146+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0964ddaf119d41dca350b41a8eb790ed6b07aa364b5594fe8404168e45e62be0",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:025f9e2e3b9ddc19b2099c2a07d1f3776393f0b6b82e2f3d33dae2df5d065887"
+      },
+      "revised_at": "2026-08-20T08:41:42.074794+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/configure-plan-lock-command-timeout.manifest.yaml -> manifests/configure-plan-lock-command-timeout.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6366d1bc7f35ca4780e78555b2cf0a6567543b2957345d9acd52897f7f7db7ac",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:025f9e2e3b9ddc19b2099c2a07d1f3776393f0b6b82e2f3d33dae2df5d065887"
+      },
+      "revised_at": "2026-08-20T08:43:47.829204+00:00",
+      "reason": "Run every declared behavioral test file so manifest test execution remains complete",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_legacy_baseline_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T08:43:54.804473+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_legacy_baseline_cmd.py",
+        "exit_code": 1,
+        "output_tail": "status = 2\nmessage = 'maid: error: unrecognized arguments: --command-timeout 1\\n'\n\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: unrecognized arguments: --command-timeout 1\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_lock_command_timeout.py::test_plan_lock_parser_exposes_positive_command_timeout\nFAILED tests/cli/test_plan_lock_command_timeout.py::test_red_capture_uses_explicit_command_timeout\nFAILED tests/cli/test_plan_lock_command_timeout.py::test_legacy_capture_uses_explicit_command_timeout\nFAILED tests/cli/test_plan_lock_command_timeout.py::test_plan_lock_cli_forwards_command_timeout_to_legacy_capture\nFAILED tests/cli/test_plan_lock_command_timeout.py::test_plan_lock_cli_forwards_command_timeout_to_red_capture\n5 failed, 26 passed in 6.78s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=command_timeout_seconds:type=int:default=300",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:arg=reason:type=str:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_legacy_baseline_evidence:returns=LegacyBaselineEvidence",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=command_timeout_seconds:type=int:default=300",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:returns=RedPhaseEvidence",
+      "tests/cli/test_plan_lock_command_timeout.py:test_legacy_capture_uses_explicit_command_timeout",
+      "tests/cli/test_plan_lock_command_timeout.py:test_legacy_capture_uses_explicit_command_timeout:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_legacy_capture_uses_explicit_command_timeout:kind=test_function",
+      "tests/cli/test_plan_lock_command_timeout.py:test_legacy_capture_uses_explicit_command_timeout:returns=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_legacy_capture",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_legacy_capture:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_legacy_capture:kind=test_function",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_legacy_capture:returns=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_red_capture",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_red_capture:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_red_capture:kind=test_function",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_cli_forwards_command_timeout_to_red_capture:returns=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_parser_exposes_positive_command_timeout",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_parser_exposes_positive_command_timeout:kind=test_function",
+      "tests/cli/test_plan_lock_command_timeout.py:test_plan_lock_parser_exposes_positive_command_timeout:returns=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_red_capture_uses_explicit_command_timeout",
+      "tests/cli/test_plan_lock_command_timeout.py:test_red_capture_uses_explicit_command_timeout:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_lock_command_timeout.py:test_red_capture_uses_explicit_command_timeout:kind=test_function",
+      "tests/cli/test_plan_lock_command_timeout.py:test_red_capture_uses_explicit_command_timeout:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_lock_command_timeout.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "tests/cli/test_plan_legacy_baseline_cmd.py",
+        "tests/core/test_plan_lock_red_evidence.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_lock_command_timeout.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_parser_exposes_positive_command_timeout",
+              "description": "The parser defaults to 300 seconds, accepts a positive override, and rejects zero, negative, and non-integer values.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_red_capture_uses_explicit_command_timeout",
+              "description": "A sleeping red command times out as invalid under a short bound and records genuine red evidence under a sufficient bound.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_capture_uses_explicit_command_timeout",
+              "description": "A committed sleeping green command fails legacy migration under a short bound and records audited green evidence under a sufficient bound.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_cli_forwards_command_timeout_to_legacy_capture",
+              "description": "The public CLI fails without a sufficient override and creates a valid legacy lock when the explicit bound is long enough.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_cli_forwards_command_timeout_to_red_capture",
+              "description": "The public CLI preserves invalid timeout classification under a short bound and creates a red-evidence lock under a sufficient bound.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "capture_red_phase_evidence",
+              "description": "Capture ordinary red-phase evidence with a positive caller-selected per-command timeout while preserving invalid timeout classification.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command_timeout_seconds",
+                  "type": "int",
+                  "default": "300"
+                }
+              ],
+              "returns": "RedPhaseEvidence"
+            },
+            {
+              "kind": "function",
+              "name": "capture_legacy_baseline_evidence",
+              "description": "Capture audited legacy-green evidence with the same positive caller-selected per-command timeout.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "reason",
+                  "type": "str"
+                },
+                {
+                  "name": "command_timeout_seconds",
+                  "type": "int",
+                  "default": "300"
+                }
+              ],
+              "returns": "LegacyBaselineEvidence"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "tests/core/test_plan_lock_red_evidence.py",
+        "tests/cli/test_plan_legacy_baseline_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the positive --command-timeout plan-lock option with a 300-second default."
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Forward the parsed timeout to ordinary and legacy evidence capture without changing evidence classification."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_legacy_baseline_cmd.py",
+      "tests/cli/test_plan_lock_command_timeout.py",
+      "tests/core/test_plan_lock_red_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_legacy_baseline_cmd.py"
+    ]
+  }
+}

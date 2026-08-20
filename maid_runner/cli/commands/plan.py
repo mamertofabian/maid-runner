@@ -115,6 +115,7 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
     ctx = _PlanContext.from_args(args)
     legacy_baseline = bool(getattr(args, "legacy_baseline", False))
     reason = getattr(args, "reason", None)
+    command_timeout = getattr(args, "command_timeout", 300)
 
     if legacy_baseline and getattr(args, "no_run", False):
         print_error(
@@ -157,11 +158,18 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
             lock = replace(
                 lock,
                 legacy_baseline=capture_legacy_baseline_evidence(
-                    ctx.manifest_path, ctx.project_root, reason
+                    ctx.manifest_path,
+                    ctx.project_root,
+                    reason,
+                    command_timeout_seconds=command_timeout,
                 ).to_payload(),
             )
         elif not getattr(args, "no_run", False):
-            captured = capture_red_phase_evidence(ctx.manifest_path, ctx.project_root)
+            captured = capture_red_phase_evidence(
+                ctx.manifest_path,
+                ctx.project_root,
+                command_timeout_seconds=command_timeout,
+            )
             evidence = captured.to_payload()
             if not _red_evidence_payload_is_valid(evidence):
                 print_error(
