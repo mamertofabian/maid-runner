@@ -71,8 +71,12 @@ Automation reporting requirements:
   ready, blocked, or there are no implementable draft manifests.
 - When spawning a read-only reviewer subagent, use fork_context=false,
   agent_type=explorer, and leave reviewer model and reasoning effort unset so
-  they inherit from the main agent. Pass the review packet explicitly instead
-  of forking the full implementation history. If explorer is unavailable, omit
+  they inherit from the main agent. Pass a verdict-neutral packet containing
+  the task baseline, complete baseline-to-current diff, complete changed-file list,
+  complete manifest-declared artifact definitions and file inventory, factual validation outcomes,
+  environment limits, and plan-revision signal. Exclude prior review lineage and
+  coordinator-owned follow-up state instead of forking the full implementation history.
+  If explorer is unavailable, omit
   agent_type and use the default agent with the same explicit read-only review
   packet.
 - After each reviewer subagent result is consumed, call close_agent for that

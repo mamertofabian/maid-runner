@@ -1,0 +1,303 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Keep every MAID implementation-review subagent prompt verdict-neutral and continue independent review until no actionable current-scope findings remain
+type: fix
+created: '2026-08-20T07:50:33Z'
+supersedes:
+- 085-06-review-convergence-and-iteration-guidance
+metadata:
+  tags:
+  - agent-skills
+  - maid-workflow
+  - review-integrity
+  - anti-gaming
+  priority: high
+description: |
+  Fix the implementation-review orchestration defect recorded in
+  ~/.maid/bug-report/20260820-144024-maid-reviewer-prompt-anchoring.md.
+  The current convergence wording can be translated into reviewer prompts
+  labeled "final" and supplemented with summaries that assert earlier fixes
+  are correct. A subsequent neutral review found an account-switch blocker,
+  demonstrating that this approval-oriented framing can weaken the independent
+  review gate.
+
+  Replace the fixed two-round stopping rule with issue-driven convergence.
+  Every fresh reviewer receives the complete task-baseline-to-current delta,
+  all manifest-declared implementation and behavioral-test artifacts, factual
+  validation outcomes, environment limits, and the plan-revision signal. It
+  receives no prior findings, fix lineage, verdicts, round count, or statements
+  that intended behavior already works. The coordinator—not the reviewer
+  prompt—owns convergence state and decides whether the latest independent
+  verdict permits handoff.
+
+  This manifest supersedes 085-06 because that approved contract explicitly
+  requires a two-round bound. It preserves the earlier contract's unrelated
+  iteration, planner, payload-sync, and baseline-aware verification guidance.
+  Source skill and documentation payloads remain authoritative; packaged
+  copies are regenerated through scripts/sync_claude_files.py.
+temptations:
+- risk: Keep the phrase "final review" while merely telling reviewers to remain independent.
+  instead: Prohibit outcome- and convergence-framing in every reviewer prompt and reserve finality for the coordinator's post-review decision.
+- risk: Give later reviewers only the latest fix hunks or list the findings they are expected to confirm.
+  instead: Provide the complete baseline-to-current delta and all declared artifacts on every round without disclosing review lineage.
+- risk: Retain a fixed round limit to reduce review cost even when actionable findings remain.
+  instead: Continue fresh independent rounds after issue-driven fixes until the latest verdict has no blocking or current-scope actionable findings.
+- risk: Hand-edit generated maid_runner skill or documentation copies.
+  instead: Edit source payloads and run scripts/sync_claude_files.py to regenerate packaged copies.
+- risk: Treat passing tests or validation commands as correctness conclusions in the review packet.
+  instead: Report commands and factual outcomes only; require the reviewer to inspect behavior and reach its own verdict.
+files:
+  create:
+  - path: tests/test_review_prompt_neutrality_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_reviewer_prompts_are_verdict_neutral_in_every_round
+      source_scenario: Read each source implementation-review skill as the coordinator preparing a fresh reviewer round.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: Both skills require verdict-neutral prompts, the complete baseline-to-current delta and declared artifacts, exclude review lineage, continue while current-scope actionable findings remain, and no longer carry the fixed two-round final-verdict instruction.
+    - kind: test_function
+      name: test_workflow_docs_keep_convergence_with_the_coordinator
+      source_scenario: Read the source and packaged workflow documentation as a non-skill consumer coordinating review rounds.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: Both workflow documents assign convergence to the coordinator, require neutral full-delta reviewer packets, exclude prior review lineage, and continue while current-scope actionable findings remain.
+    - kind: test_function
+      name: test_packaged_reviewer_skills_match_their_sources
+      source_scenario: Compare each source implementation-review skill with its packaged distribution copy.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: The packaged Claude and Codex implementation-review skills exactly match their respective source skills.
+    - kind: test_function
+      name: test_instruction_payload_version_advances_for_review_guidance
+      source_scenario: Read the instruction payload version after changing init-distributed reviewer guidance.
+      actions:
+      - type: api_call
+        subject:
+          function: instruction_payload_metadata
+      expected:
+        behavior: The instruction payload version is newer than 2026.08.10.1 so downstream init checks report the corrected guidance as stale.
+    - kind: test_function
+      name: test_all_review_coordinators_require_neutral_complete_packets
+      source_scenario: Read every source skill, repository instruction, and loop launcher that directly tells a coordinator how to construct an implementation-review subagent packet.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: Every coordinator entry point requires a verdict-neutral packet with the task baseline, complete baseline-to-current diff, complete changed-file list, complete manifest-declared artifact definitions and files, factual validation outcomes, environment limits, and plan-revision signal while excluding prior review lineage and coordinator-owned follow-up state.
+  edit:
+  - path: tests/test_review_convergence_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_implementation_review_skill_carries_convergence_protocol
+      source_scenario: Read the maid-implementation-review skill source file.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: The file contains single-pass exhaustiveness, blocking and advisory classification, the advisory-never-revises rule, issue-driven verdict-neutral review convergence, and baseline-aware handoff recipes.
+    - kind: test_function
+      name: test_implementer_skills_carry_iteration_recipe
+      source_scenario: Read the maid-implementer and maid-runner-draft-implement skill sources.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: Both files contain the task-scoped inner-loop verify recipe, a baseline-aware strict handoff recipe, and the batch-fixes-then-single-revise rule.
+    - kind: test_function
+      name: test_planner_skill_carries_dedicated_test_file_rule
+      source_scenario: Read the maid-planner skill source.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: The file states the dedicated-test-file-per-manifest preference and the shared-file E701 cascade warning.
+    - kind: test_function
+      name: test_workflow_doc_and_packaged_copies_stay_in_sync
+      source_scenario: Render packaged payloads into a temporary workspace and inspect the workflow documentation.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: Packaged skill and workflow copies stay synchronized and the workflow documentation carries the issue-driven review protocol and baseline-aware verification recipe.
+    - kind: test_function
+      name: test_instruction_payload_version_marks_guidance_update
+      source_scenario: Read the current instruction payload version.
+      actions:
+      - type: api_call
+        subject:
+          function: read_text
+      expected:
+        behavior: The preserved convergence-guidance test continues to recognize payload versions newer than its original 2026.07.11.1 floor.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _review_convergence_protocol_section
+      of: skill document
+      type: markdown section
+      description: Single-pass exhaustiveness, finding classification, verdict-neutral complete-delta reviewer packets, review-lineage exclusion, and issue-driven continuation owned by the coordinator.
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _implementer_iteration_recipe_section
+      of: skill document
+      type: markdown section
+      description: Preserved task-scoped inner-loop verification, batched review-fix application, and evidence-flag guidance from the superseded contract.
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _planner_dedicated_test_file_rule
+      of: skill document
+      type: markdown section
+      description: Preserved dedicated behavioral test file preference and shared-file E701 warning from the superseded contract.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_review_convergence_protocol_section
+      of: skill document
+      type: markdown section
+      description: Codex guidance carries the same verdict-neutral, complete-delta, issue-driven review protocol in its existing voice.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_implementer_iteration_recipe_section
+      of: skill document
+      type: markdown section
+      description: Preserved Codex task-scoped iteration recipe and evidence-flag guidance from the superseded contract.
+  - path: .codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_planner_dedicated_test_file_rule
+      of: skill document
+      type: markdown section
+      description: Preserved Codex dedicated-test-file preference and E701 warning from the superseded contract.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version newer than 2026.08.10.1 so downstream init checks detect the corrected review guidance.
+  scope:
+  - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+    reason: Preserve the superseded contract's Claude iteration recipe without changing it.
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Preserve the superseded contract's Codex iteration recipe without changing it.
+  - path: docs/draft-manifest-workflow.md
+    reason: Replace the fixed-round review subsection with verdict-neutral issue-driven convergence guidance.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Keep the packaged workflow documentation synchronized.
+  - path: docs/agent-skills.md
+    reason: Record the review-integrity guidance change in the skill distribution notes.
+  - path: AGENTS.md
+    reason: Align the repository's standing reviewer authorization and packet recipe with the verdict-neutral complete-delta protocol.
+  - path: .claude/AGENTS.md
+    reason: Align the repo-level Claude reviewer-agent entry point with the verdict-neutral complete-delta protocol.
+  - path: tools/claude_maid_loop.py
+    reason: Align the Claude automation launch prompt with the verdict-neutral complete-delta reviewer packet.
+  - path: tools/codex_maid_loop.py
+    reason: Align the Codex automation launch prompt with the verdict-neutral complete-delta reviewer packet.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    reason: Generated Claude package copy produced by scripts/sync_claude_files.py.
+  - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+    reason: Preserve the superseded contract's generated Claude implementer payload coverage.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    reason: Preserve the superseded contract's generated Claude planner payload coverage.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    reason: Generated Codex package copy produced by scripts/sync_claude_files.py.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    reason: Preserve the superseded contract's generated Codex implementer payload coverage.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    reason: Preserve the superseded contract's generated Codex planner payload coverage.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Preserve the superseded contract's generated Codex draft-implement payload coverage.
+  read:
+  - scripts/sync_claude_files.py
+  - manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml
+validate:
+- uv run python -m pytest tests/test_review_prompt_neutrality_guidance.py tests/test_review_convergence_guidance.py -v
+- uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-20T16:30:32+08:00"
+  summary: "Claude and Codex implementation-review skills plus every direct repository coordinator entry point now construct verdict-neutral, complete baseline-to-current reviewer packets, keep cross-round and advisory state with the coordinator, require exhaustive blocking/advisory classification, and continue fresh review while actionable current-scope findings remain."
+  rationale: "The original fixed-round convergence language and narrowed packet recipes allowed coordinators to expose approval-oriented state or omit earlier task changes and unchanged declared artifacts. Supersession was necessary because the old approved contract explicitly required the two-round bound; an additive manifest would have left contradictory active guidance."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills:
+    - maid-evolver
+    - maid-planner
+    - maid-plan-review
+    - maid-implementation-review
+  lessons:
+  - lesson_type: workflow
+    summary: "Fresh reviewer independence requires more than a fresh agent: every coordinator entry point must pass the complete task-baseline delta and exact artifact contract while excluding prior verdicts, fix lineage, round state, and coordinator-owned advisory follow-up data."
+    tags:
+    - reviewer-independence
+    - prompt-neutrality
+    - maid-workflow
+    - maid-runner-feedback
+    paths:
+    - .codex/skills/maid-implementation-review/SKILL.md
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - tools/codex_maid_loop.py
+    - tools/claude_maid_loop.py
+  - lesson_type: test-design
+    summary: "Guidance regressions need section-scoped tests against the actual reviewer prompt and coordinator recipes; whole-file phrase checks can stay green while contradictory or approval-framed instructions remain in executable prompt paths."
+    tags:
+    - behavioral-contract
+    - prompt-template
+    - anti-gaming
+    - maid-runner-feedback
+    paths:
+    - tests/test_review_prompt_neutrality_guidance.py
+  review_notes:
+  - source: independent-reviewer-subagents
+    severity: fixed
+    summary: "Independent verdict-neutral reviews exposed coordinator/reviewer lineage conflicts, file-only artifact packets, advisory leakage, missing blocking/advisory prompt classification, and narrowed packet recipes in implementer, automation, and repo-level coordinator entry points; revisions 4 through 9 addressed those blockers with stash-backed red evidence."
+  - source: independent-reviewer-subagent
+    severity: ready
+    summary: "The latest fresh full-scope review reported no blocking findings and confirmed scope, payload synchronization, neutral complete packets, coordinator boundaries, plan-lock evidence, and validation integrity."
+  - source: independent-reviewer-subagent
+    severity: advisory
+    summary: "Future hardening may replace the explicit coordinator path inventory with a discoverable inventory and section-scoped assertions for every coordinator recipe; this is non-actionable for the current contract."
+  validation:
+  - command: [uv, run, python, -m, pytest, tests/test_review_prompt_neutrality_guidance.py, tests/test_review_convergence_guidance.py, tests/test_claude_skill_distribution.py, tests/ci/test_claude_maid_loop.py, tests/ci/test_codex_maid_loop.py, -v]
+    status: passed
+    summary: "All 78 focused reviewer-guidance, distribution, and automation-loop tests passed."
+  - command: [uv, run, maid, validate, manifests/fix-reviewer-prompt-anchoring.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: "Implementation validation passed; only expected E307 notices for declared non-code skill files remained."
+  - command: [uv, run, maid, test, --manifest, manifests/fix-reviewer-prompt-anchoring.manifest.yaml]
+    status: passed
+    summary: "All three manifest commands passed."
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: "All 281 active manifests passed; 354 superseded manifests were skipped and none failed."
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: "All 299 repository manifest commands passed on the current post-review, post-Outcome state."
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 4086b71ef1fc8ce754e9b285e71285768dcd3373]
+    status: passed
+    summary: "All 11 deep handoff stages passed after plan-lock revision 9; only existing non-blocking E307 notices remained."

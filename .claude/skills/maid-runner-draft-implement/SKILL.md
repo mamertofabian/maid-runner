@@ -25,9 +25,11 @@ general MAID skills:
   the read-only `maid-implementation-reviewer` agent for the MAID review gate.
   Do not require a separate per-turn reviewer-agent approval.
 - Use the Agent tool for the read-only review subagent with
-  `subagent_type: "maid-implementation-reviewer"`. Pass an explicit review
-  packet containing the manifest path, current changed files, diff summary, and
-  validation output instead of relying on the full implementation transcript.
+  `subagent_type: "maid-implementation-reviewer"`. Pass an explicit verdict-neutral
+  packet with the task baseline, complete baseline-to-current diff, complete changed-file list,
+  complete manifest-declared artifact definitions and file inventory, factual validation outcomes,
+  environment limits, and plan-revision signal. Exclude prior review lineage and
+  coordinator-owned follow-up state instead of relying on the full implementation transcript.
 
 ## Start
 
@@ -161,8 +163,9 @@ Before reporting done, run a read-only implementation review with the Agent
 tool and `subagent_type: "maid-implementation-reviewer"`. Do not substitute a
 local-only review because the current turn did not mention reviewer agents; repo
 guidance provides standing authorization. The review packet must be
-self-contained and scoped to the promoted manifest, current diff, changed files,
-and validation output. The review must check:
+self-contained and use the verdict-neutral complete packet defined above; never
+narrow it to a current diff, recent changed files, or a validation summary. The
+review must check:
 
 - changed files stayed within manifest scope;
 - declared artifacts exist without undeclared public drift;

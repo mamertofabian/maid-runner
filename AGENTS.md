@@ -79,7 +79,7 @@ Do not build or extend custom static analyzers as the default answer to validato
 
 ## MAID Review-Fix-Ready Loop
 
-Every MAID-backed coding session must end with an implementation review gate before handoff. After implementation and validation, run `maid-implementation-review` or an equivalent read-only reviewer against a self-contained packet: active manifest path, changed files, diff summary, validation output, environment limits, and any `plan-revision.md` signal.
+Every MAID-backed coding session must end with an implementation review gate before handoff. After implementation and validation, run `maid-implementation-review` or an equivalent read-only reviewer against a self-contained verdict-neutral packet containing the active manifest, task baseline, complete baseline-to-current diff, complete changed-file list, complete manifest-declared artifact definitions and file inventory, factual validation outcomes, environment limits, and plan-revision signal. Exclude prior review lineage and coordinator-owned follow-up state from every reviewer packet.
 
 Standing authorization: for MAID implementation review in this repository, the user explicitly authorizes Codex to spawn the required read-only reviewer subagent without asking for a separate per-turn approval. Use the same independence pattern as `tools/codex_maid_loop.py`: `fork_context=false`, prefer `agent_type=explorer`, leave the reviewer model and reasoning effort unset so they inherit from the main agent, and pass only the explicit review packet instead of the implementation transcript. If `explorer` is unavailable, use the default role with the same read-only packet. Close each reviewer subagent with `close_agent` after consuming its verdict.
 

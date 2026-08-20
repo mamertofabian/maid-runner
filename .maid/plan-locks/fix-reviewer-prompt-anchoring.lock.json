@@ -1,0 +1,628 @@
+{
+  "manifest_path": "manifests/fix-reviewer-prompt-anchoring.manifest.yaml",
+  "manifest_hash": "sha256-contract:411d481050afb596dcf24bb06dc0fe8be33ba469d64edf392dbd342d6e91f657",
+  "test_hashes": {
+    "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:43f1ccd915ed377f525f53b0c67a6fc98e7d6cff234fb1941c92dc4a8fa77ac3",
+    "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+  },
+  "created_at": "2026-08-20T07:50:24.518175+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:20219b192e2bd0c7578463fe1c446e21903f0f219b4148ce5ce261f154300459",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:913f86920f702e93ff55c8b827ddf8299b9e73293a244e0c1515c52a7b82d3c4",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:72960b0dfc0f24e082e3934963b1c61aee32070f2ef4d4ceada47999ac91b3b4"
+      },
+      "revised_at": "2026-08-20T07:50:33.312497+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-reviewer-prompt-anchoring.manifest.yaml -> manifests/fix-reviewer-prompt-anchoring.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-reviewer-prompt-anchoring.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-reviewer-prompt-anchoring.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:265e7e26616260498ba10ce9adb5313aa07f1daa2d59311c11543616e8548b0d",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:913f86920f702e93ff55c8b827ddf8299b9e73293a244e0c1515c52a7b82d3c4",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:72960b0dfc0f24e082e3934963b1c61aee32070f2ef4d4ceada47999ac91b3b4"
+      },
+      "revised_at": "2026-08-20T07:56:56.253049+00:00",
+      "reason": "Move the payload-version regression assertion into this manifest's dedicated test so unrelated shared-test locks remain intact",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_review_prompt_neutrality_guidance.py:test_instruction_payload_version_advances_for_review_guidance",
+          "tests/test_review_prompt_neutrality_guidance.py:test_instruction_payload_version_advances_for_review_guidance:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:467e1e155430dcf66df043649ba5aa4fb7c155e3244e78aac032e827ab011abf",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:43d317d4b4a07fcf1d60efe7674a55cc3c00e405bc40de6f8076eea319fefd5b",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:02:31.729712+00:00",
+      "reason": "Strengthen the reviewer packet contract to include full artifact definitions and keep cross-round comparison exclusively with the coordinator",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:467e1e155430dcf66df043649ba5aa4fb7c155e3244e78aac032e827ab011abf",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:3080c691206ed9e98ac442aa6d8c06d43240cf38f04141682af21c69e68d4703",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:07:05.542603+00:00",
+      "reason": "Scope anti-anchoring assertions to the actual reviewer prompt template and convergence sections",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:467e1e155430dcf66df043649ba5aa4fb7c155e3244e78aac032e827ab011abf",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:2ffd943ea3d996b582655afa433797127dd0178e365d1ac70e8c815c66db32ac",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:11:05.314501+00:00",
+      "reason": "Exclude coordinator-owned advisory follow-up state from every reviewer packet",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:467e1e155430dcf66df043649ba5aa4fb7c155e3244e78aac032e827ab011abf",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:d3fb7fad48fdd484ff0da99a915e0d57dc7c6b19ab48af4187badfc5159a4589",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:14:29.824910+00:00",
+      "reason": "Require exhaustive blocking-versus-advisory classification in the actual reviewer prompt template",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:467e1e155430dcf66df043649ba5aa4fb7c155e3244e78aac032e827ab011abf",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:82248685e157a95cbc0e5a33868774755143103b478970da46197282807977ff",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:20:49.393441+00:00",
+      "reason": "Align every direct implementation-review coordinator entry point with the neutral complete-delta packet contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/test_review_prompt_neutrality_guidance.py:test_all_review_coordinators_require_neutral_complete_packets",
+          "tests/test_review_prompt_neutrality_guidance.py:test_all_review_coordinators_require_neutral_complete_packets:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:AGENTS.md",
+          "scope:tools/claude_maid_loop.py",
+          "scope:tools/codex_maid_loop.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cd78c638f2d0d8528574803b7edc07697db069cffb33d7233928997b468dc864",
+      "prior_test_hashes": {
+        "tests/test_review_prompt_neutrality_guidance.py": "sha256-pyast:v2:247a5ffb00eb1533951ef86a5cfe58f3ba07e3ecd8941753468ba8eb45ecbcc7",
+        "tests/test_review_convergence_guidance.py": "sha256-pyast:v2:fd3ca1d9b9fb0d886eba68b1fee135f2d2bf9b4a974b896fa2b8f512cbf6cfd8"
+      },
+      "revised_at": "2026-08-20T08:26:10.758571+00:00",
+      "reason": "Cover the repo-level Claude reviewer-agent coordinator entry point",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.claude/AGENTS.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T08:26:15.400464+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/test_review_prompt_neutrality_guidance.py tests/test_review_convergence_guidance.py -v",
+        "exit_code": 1,
+        "output_tail": "            \"plan-revision signal\",\n            \"prior review lineage\",\n            \"coordinator-owned follow-up state\",\n        )\n    \n        for relative_path in coordinator_paths:\n            coordinator = _read(relative_path)\n>           assert all(phrase in coordinator for phrase in required), relative_path\nE           AssertionError: .claude/skills/maid-implementer/SKILL.md\nE           assert False\nE            +  where False = all(<generator object test_all_review_coordinators_require_neutral_complete_packets.<locals>.<genexpr> at 0x70664c730380>)\n\ntests/test_review_prompt_neutrality_guidance.py:168: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_review_prompt_neutrality_guidance.py::test_reviewer_prompts_are_verdict_neutral_in_every_round\nFAILED tests/test_review_prompt_neutrality_guidance.py::test_workflow_docs_keep_convergence_with_the_coordinator\nFAILED tests/test_review_prompt_neutrality_guidance.py::test_packaged_reviewer_skills_match_their_sources\nFAILED tests/test_review_prompt_neutrality_guidance.py::test_instruction_payload_version_advances_for_review_guidance\nFAILED tests/test_review_prompt_neutrality_guidance.py::test_all_review_coordinators_require_neutral_complete_packets\n========================= 5 failed, 5 passed in 0.23s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:of=skill document",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill document._review_convergence_protocol_section:type=markdown section",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:kind=attribute",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:of=skill document",
+      ".claude/skills/maid-implementer/SKILL.md:attribute:skill document._implementer_iteration_recipe_section:type=markdown section",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:kind=attribute",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:of=skill document",
+      ".claude/skills/maid-planner/SKILL.md:attribute:skill document._planner_dedicated_test_file_rule:type=markdown section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:of=skill document",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill document._codex_review_convergence_protocol_section:type=markdown section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:kind=attribute",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:of=skill document",
+      ".codex/skills/maid-implementer/SKILL.md:attribute:skill document._codex_implementer_iteration_recipe_section:type=markdown section",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:kind=attribute",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:of=skill document",
+      ".codex/skills/maid-planner/SKILL.md:attribute:skill document._codex_planner_dedicated_test_file_rule:type=markdown section",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol",
+      "tests/test_review_convergence_guidance.py:test_implementation_review_skill_carries_convergence_protocol:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe",
+      "tests/test_review_convergence_guidance.py:test_implementer_skills_carry_iteration_recipe:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_instruction_payload_version_marks_guidance_update",
+      "tests/test_review_convergence_guidance.py:test_instruction_payload_version_marks_guidance_update:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_planner_skill_carries_dedicated_test_file_rule",
+      "tests/test_review_convergence_guidance.py:test_planner_skill_carries_dedicated_test_file_rule:kind=test_function",
+      "tests/test_review_convergence_guidance.py:test_workflow_doc_and_packaged_copies_stay_in_sync",
+      "tests/test_review_convergence_guidance.py:test_workflow_doc_and_packaged_copies_stay_in_sync:kind=test_function",
+      "tests/test_review_prompt_neutrality_guidance.py:test_all_review_coordinators_require_neutral_complete_packets",
+      "tests/test_review_prompt_neutrality_guidance.py:test_all_review_coordinators_require_neutral_complete_packets:kind=test_function",
+      "tests/test_review_prompt_neutrality_guidance.py:test_instruction_payload_version_advances_for_review_guidance",
+      "tests/test_review_prompt_neutrality_guidance.py:test_instruction_payload_version_advances_for_review_guidance:kind=test_function",
+      "tests/test_review_prompt_neutrality_guidance.py:test_packaged_reviewer_skills_match_their_sources",
+      "tests/test_review_prompt_neutrality_guidance.py:test_packaged_reviewer_skills_match_their_sources:kind=test_function",
+      "tests/test_review_prompt_neutrality_guidance.py:test_reviewer_prompts_are_verdict_neutral_in_every_round",
+      "tests/test_review_prompt_neutrality_guidance.py:test_reviewer_prompts_are_verdict_neutral_in_every_round:kind=test_function",
+      "tests/test_review_prompt_neutrality_guidance.py:test_workflow_docs_keep_convergence_with_the_coordinator",
+      "tests/test_review_prompt_neutrality_guidance.py:test_workflow_docs_keep_convergence_with_the_coordinator:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/test_review_prompt_neutrality_guidance.py"
+      ],
+      "edit": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-planner/SKILL.md",
+        "maid_runner/instruction_payload.py",
+        "tests/test_review_convergence_guidance.py"
+      ],
+      "read": [
+        "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        ".claude/AGENTS.md",
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        "AGENTS.md",
+        "docs/agent-skills.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/claude/skills/maid-implementer/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementer/SKILL.md",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "tools/claude_maid_loop.py",
+        "tools/codex_maid_loop.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_review_prompt_neutrality_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_reviewer_prompts_are_verdict_neutral_in_every_round",
+              "source_scenario": "Read each source implementation-review skill as the coordinator preparing a fresh reviewer round.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both skills require verdict-neutral prompts, the complete baseline-to-current delta and declared artifacts, exclude review lineage, continue while current-scope actionable findings remain, and no longer carry the fixed two-round final-verdict instruction."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_docs_keep_convergence_with_the_coordinator",
+              "source_scenario": "Read the source and packaged workflow documentation as a non-skill consumer coordinating review rounds.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both workflow documents assign convergence to the coordinator, require neutral full-delta reviewer packets, exclude prior review lineage, and continue while current-scope actionable findings remain."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_packaged_reviewer_skills_match_their_sources",
+              "source_scenario": "Compare each source implementation-review skill with its packaged distribution copy.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The packaged Claude and Codex implementation-review skills exactly match their respective source skills."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_advances_for_review_guidance",
+              "source_scenario": "Read the instruction payload version after changing init-distributed reviewer guidance.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "instruction_payload_metadata"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The instruction payload version is newer than 2026.08.10.1 so downstream init checks report the corrected guidance as stale."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_all_review_coordinators_require_neutral_complete_packets",
+              "source_scenario": "Read every source skill, repository instruction, and loop launcher that directly tells a coordinator how to construct an implementation-review subagent packet.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every coordinator entry point requires a verdict-neutral packet with the task baseline, complete baseline-to-current diff, complete changed-file list, complete manifest-declared artifact definitions and files, factual validation outcomes, environment limits, and plan-revision signal while excluding prior review lineage and coordinator-owned follow-up state."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/test_review_convergence_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_implementation_review_skill_carries_convergence_protocol",
+              "source_scenario": "Read the maid-implementation-review skill source file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file contains single-pass exhaustiveness, blocking and advisory classification, the advisory-never-revises rule, issue-driven verdict-neutral review convergence, and baseline-aware handoff recipes."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_implementer_skills_carry_iteration_recipe",
+              "source_scenario": "Read the maid-implementer and maid-runner-draft-implement skill sources.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both files contain the task-scoped inner-loop verify recipe, a baseline-aware strict handoff recipe, and the batch-fixes-then-single-revise rule."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_planner_skill_carries_dedicated_test_file_rule",
+              "source_scenario": "Read the maid-planner skill source.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The file states the dedicated-test-file-per-manifest preference and the shared-file E701 cascade warning."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_workflow_doc_and_packaged_copies_stay_in_sync",
+              "source_scenario": "Render packaged payloads into a temporary workspace and inspect the workflow documentation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Packaged skill and workflow copies stay synchronized and the workflow documentation carries the issue-driven review protocol and baseline-aware verification recipe."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_marks_guidance_update",
+              "source_scenario": "Read the current instruction payload version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The preserved convergence-guidance test continues to recognize payload versions newer than its original 2026.07.11.1 floor."
+              }
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_review_convergence_protocol_section",
+              "description": "Single-pass exhaustiveness, finding classification, verdict-neutral complete-delta reviewer packets, review-lineage exclusion, and issue-driven continuation owned by the coordinator.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_implementer_iteration_recipe_section",
+              "description": "Preserved task-scoped inner-loop verification, batched review-fix application, and evidence-flag guidance from the superseded contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_planner_dedicated_test_file_rule",
+              "description": "Preserved dedicated behavioral test file preference and shared-file E701 warning from the superseded contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_review_convergence_protocol_section",
+              "description": "Codex guidance carries the same verdict-neutral, complete-delta, issue-driven review protocol in its existing voice.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementer/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_implementer_iteration_recipe_section",
+              "description": "Preserved Codex task-scoped iteration recipe and evidence-flag guidance from the superseded contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_planner_dedicated_test_file_rule",
+              "description": "Preserved Codex dedicated-test-file preference and E701 warning from the superseded contract.",
+              "of": "skill document",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped instruction payload version newer than 2026.08.10.1 so downstream init checks detect the corrected review guidance.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "manifests/085-06-review-convergence-and-iteration-guidance.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": ".claude/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Preserve the superseded contract's Claude iteration recipe without changing it."
+        },
+        {
+          "path": ".codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Preserve the superseded contract's Codex iteration recipe without changing it."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Replace the fixed-round review subsection with verdict-neutral issue-driven convergence guidance."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Keep the packaged workflow documentation synchronized."
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "reason": "Record the review-integrity guidance change in the skill distribution notes."
+        },
+        {
+          "path": "AGENTS.md",
+          "reason": "Align the repository's standing reviewer authorization and packet recipe with the verdict-neutral complete-delta protocol."
+        },
+        {
+          "path": ".claude/AGENTS.md",
+          "reason": "Align the repo-level Claude reviewer-agent entry point with the verdict-neutral complete-delta protocol."
+        },
+        {
+          "path": "tools/claude_maid_loop.py",
+          "reason": "Align the Claude automation launch prompt with the verdict-neutral complete-delta reviewer packet."
+        },
+        {
+          "path": "tools/codex_maid_loop.py",
+          "reason": "Align the Codex automation launch prompt with the verdict-neutral complete-delta reviewer packet."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Claude package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "reason": "Preserve the superseded contract's generated Claude implementer payload coverage."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "reason": "Preserve the superseded contract's generated Claude planner payload coverage."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated Codex package copy produced by scripts/sync_claude_files.py."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementer/SKILL.md",
+          "reason": "Preserve the superseded contract's generated Codex implementer payload coverage."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "reason": "Preserve the superseded contract's generated Codex planner payload coverage."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
+          "reason": "Preserve the superseded contract's generated Codex draft-implement payload coverage."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_review_convergence_guidance.py",
+      "tests/test_review_prompt_neutrality_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/test_review_prompt_neutrality_guidance.py tests/test_review_convergence_guidance.py -v",
+      "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-reviewer-prompt-anchoring.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}
