@@ -452,6 +452,8 @@ def _write_knockout_project(
     test: str,
     artifacts: tuple[str, ...] = ("target",),
 ) -> Path:
+    # CLI behavior needs real subprocesses, but not a copied package environment.
+    (root / ".venv").mkdir(parents=True)
     src_dir = root / "src"
     tests_dir = root / "tests"
     manifests_dir = root / "manifests"
