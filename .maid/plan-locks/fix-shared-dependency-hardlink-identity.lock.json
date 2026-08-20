@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:7e728270fc11f24f79605aa2a63a6dcafa10c5f0e05dba29329e4d1394c33758",
   "test_hashes": {
     "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
     "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
     "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:d63eaeb3fd5ed8c80f56e83390a286ebd3d05ced94833764d4edaebd1094bbd0"
   },
   "created_at": "2026-08-19T17:10:59.793906+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:6649c49b084b0df7f1db9555d87fb03b6a8a3812fb8cf3982d313c4b8d3ac291",
@@ -109,6 +109,26 @@
       },
       "revised_at": "2026-08-19T18:37:13.464117+00:00",
       "reason": "Keep ctime observation portable on Windows",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7e728270fc11f24f79605aa2a63a6dcafa10c5f0e05dba29329e4d1394c33758",
+      "prior_test_hashes": {
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_shared_dependency_hardlink_identity.py": "sha256-pyast:v2:d63eaeb3fd5ed8c80f56e83390a286ebd3d05ced94833764d4edaebd1094bbd0"
+      },
+      "revised_at": "2026-08-20T23:17:30.817017+00:00",
+      "reason": "accept shared snapshot-test dependency optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

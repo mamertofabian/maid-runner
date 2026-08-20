@@ -3,7 +3,7 @@
   "manifest_hash": "sha256-contract:df4d8642516cbd8b07ec22ead025f662890c29aa19abf8342e843b95ea9c2b70",
   "test_hashes": {
     "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:057ed465cbd108867a59d55c8e74f0b471c7b9acbff704d1044bffa91d7aec8b",
-    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
     "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
     "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
@@ -18,7 +18,7 @@
     "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:ca084737f48b674c42e30c09389da06391fdc7e5dbb409b4f2791d3c30707fc8"
   },
   "created_at": "2026-08-18T10:33:51.843017+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:12359a9b4d2e20ef14c1587072ba71c96e4d5bdd1a660e0a6e7887e117bdb48b",
@@ -137,6 +137,36 @@
       },
       "revised_at": "2026-08-20T23:00:44.220307+00:00",
       "reason": "accept shared test-harness performance optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:df4d8642516cbd8b07ec22ead025f662890c29aa19abf8342e843b95ea9c2b70",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:057ed465cbd108867a59d55c8e74f0b471c7b9acbff704d1044bffa91d7aec8b",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_release_blockers.py": "sha256-pyast:v2:0931232e9393d48401fb1cf270ffa564b827dbddf9ae12df50d4aa8a927f5fd9",
+        "tests/core/test_knockout_shared_controls.py": "sha256-pyast:v2:d4f34502664e368d62ec541d5bea6bb2b1eb87b074d8c069bd2cf892a9b75daf",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:c55213d3d85e1cf470c0a789975dd333f9600a2531704bcfb41590d673f8cf3f",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:281d0e0679338317e4ddd9663b8b83676fb839ef5bb9382657b9707f19668eff",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:ca084737f48b674c42e30c09389da06391fdc7e5dbb409b4f2791d3c30707fc8"
+      },
+      "revised_at": "2026-08-20T23:17:30.507280+00:00",
+      "reason": "accept shared snapshot-test dependency optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

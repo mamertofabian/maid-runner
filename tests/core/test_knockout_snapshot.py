@@ -27,13 +27,13 @@ def test_snapshot_backend_default_create_rejects_unimplemented_boundary(
 def test_snapshot_source_and_ast_reader_observes_mutated_bytes(tmp_path: Path) -> None:
     from maid_runner.core._knockout_snapshot import (
         KnockoutProjectSnapshot,
-        MaterializedProjectSnapshotBackend,
+        SharedEnvironmentProjectSnapshotBackend,
     )
 
     root = _project(tmp_path)
     original = (root / "src/target.py").read_bytes()
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "source-reader"
     ) as snapshot:
         assert isinstance(snapshot, KnockoutProjectSnapshot)
@@ -53,11 +53,13 @@ def test_snapshot_source_and_ast_reader_observes_mutated_bytes(tmp_path: Path) -
 def test_snapshot_path_loader_and_editable_import_observe_mutation(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
     from maid_runner.core.knockout import KnockoutCommandExecutor
 
     root = _project(tmp_path)
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "path-loader"
     ) as snapshot:
         (snapshot.root / "src/target.py").write_text("VALUE = 'snapshot'\n")
@@ -83,11 +85,13 @@ def test_snapshot_path_loader_and_editable_import_observe_mutation(
 def test_snapshot_subprocess_and_nonpytest_command_observe_mutation(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
     from maid_runner.core.knockout import KnockoutCommandExecutor
 
     root = _project(tmp_path)
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "subprocess"
     ) as snapshot:
         (snapshot.root / "src/target.py").write_text("VALUE = 'mutated'\n")
@@ -110,10 +114,12 @@ def test_snapshot_subprocess_and_nonpytest_command_observe_mutation(
 
 
 def test_snapshot_generated_and_cache_writes_are_worker_local(tmp_path: Path) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path)
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "generated"
     ) as snapshot:
         (snapshot.root / ".pytest_cache").mkdir()
@@ -126,10 +132,12 @@ def test_snapshot_generated_and_cache_writes_are_worker_local(tmp_path: Path) ->
 
 
 def test_duplicate_declarations_receive_fresh_snapshot_state(tmp_path: Path) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path)
-    backend = MaterializedProjectSnapshotBackend()
+    backend = SharedEnvironmentProjectSnapshotBackend()
     with backend.create(root, ("src/target.py",), "first") as first:
         (first.root / "state.txt").write_text("first declaration")
     with backend.create(root, ("src/target.py",), "second") as second:
@@ -139,6 +147,9 @@ def test_duplicate_declarations_receive_fresh_snapshot_state(tmp_path: Path) -> 
 def test_stateful_cross_declaration_dependency_is_visible_hardening_not_silent_success(
     tmp_path: Path,
 ) -> None:
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
     from maid_runner.core.knockout import run_knockout_batch
     from maid_runner.core.manifest import load_manifest
 
@@ -168,7 +179,11 @@ def test_stateful_cross_declaration_dependency_is_visible_hardening_not_silent_s
     )
 
     reports = run_knockout_batch(
-        (load_manifest(first), load_manifest(second)), root, allow_dirty=True
+        (load_manifest(first), load_manifest(second)),
+        root,
+        allow_dirty=True,
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
+        no_cache=True,
     )
 
     assert reports[str(first)].success is True
@@ -180,13 +195,15 @@ def test_stateful_cross_declaration_dependency_is_visible_hardening_not_silent_s
 def test_snapshot_uses_current_dirty_and_relevant_untracked_inputs(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path, git=True)
     (root / "src/target.py").write_text("VALUE = 'dirty'\n")
     (root / "input.txt").write_text("untracked")
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py", "input.txt"), "dirty"
     ) as snapshot:
         first_input_digest = snapshot.input_digest
@@ -197,20 +214,22 @@ def test_snapshot_uses_current_dirty_and_relevant_untracked_inputs(
             == hashlib.sha256(b"VALUE = 'dirty'\n").hexdigest()
         )
     (root / "input.txt").write_text("changed untracked input")
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py", "input.txt"), "dirty-changed"
     ) as changed:
         assert changed.input_digest != first_input_digest
 
 
 def test_snapshot_never_changes_original_bytes_or_git_status(tmp_path: Path) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path, git=True)
     before = _git(root, "status", "--porcelain=v1", "-z")
     original = (root / "src/target.py").read_bytes()
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "unchanged"
     ) as snapshot:
         assert (snapshot.root / "src/target.py").stat().st_ino != (
@@ -224,21 +243,23 @@ def test_snapshot_never_changes_original_bytes_or_git_status(tmp_path: Path) -> 
 
     nongit = _project(tmp_path / "nongit")
     with pytest.raises(RuntimeError, match="input|source|changed"):
-        with MaterializedProjectSnapshotBackend().create(
+        with SharedEnvironmentProjectSnapshotBackend().create(
             nongit, ("src/target.py",), "source-input-guard"
         ):
             (nongit / "src/target.py").write_text("external mutation\n")
 
     (root / "untracked.txt").write_text("before\n")
     with pytest.raises(RuntimeError, match="input|source|changed"):
-        with MaterializedProjectSnapshotBackend().create(
+        with SharedEnvironmentProjectSnapshotBackend().create(
             root, ("src/target.py", "untracked.txt"), "untracked-input-guard"
         ):
             (root / "untracked.txt").write_text("same status, different bytes\n")
 
 
 def test_ordinary_git_directory_is_independently_writable(tmp_path: Path) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path, git=True)
     source_head = _git(root, "rev-parse", "HEAD")
@@ -252,7 +273,7 @@ def test_ordinary_git_directory_is_independently_writable(tmp_path: Path) -> Non
     fsmonitor.chmod(0o755)
     _git(root, "config", "core.fsmonitor", str(fsmonitor))
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "ordinary-git"
     ) as snapshot:
         assert snapshot.git_dir is not None
@@ -273,7 +294,9 @@ def test_ordinary_git_directory_is_independently_writable(tmp_path: Path) -> Non
 def test_linked_worktree_git_pointer_and_common_dir_are_not_shared(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path / "main", git=True)
     linked = tmp_path / "linked"
@@ -285,7 +308,7 @@ def test_linked_worktree_git_pointer_and_common_dir_are_not_shared(
     source_head = _git(linked, "rev-parse", "HEAD")
     source_worktrees = _git(root, "worktree", "list", "--porcelain")
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         linked, ("src/target.py",), "linked-git"
     ) as snapshot:
         assert (snapshot.root / ".git").is_dir()
@@ -311,10 +334,12 @@ def test_linked_worktree_git_pointer_and_common_dir_are_not_shared(
 def test_snapshot_git_commands_cannot_change_original_head_refs_stash_config_index_objects_or_registrations(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path, git=True)
-    backend = MaterializedProjectSnapshotBackend()
+    backend = SharedEnvironmentProjectSnapshotBackend()
     with backend.create(root, ("src/target.py",), "git-identity") as snapshot:
         before = snapshot.source_repository_identity
         _git(snapshot.root, "config", "snapshot.changed", "true")
@@ -347,7 +372,9 @@ def test_snapshot_git_commands_cannot_change_original_head_refs_stash_config_ind
 def test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints(
     tmp_path: Path, case: str, permitted: bool
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path, git=True)
     checkpoint = root / ".maid/cache/knockout-evidence-v1/result.json"
@@ -368,7 +395,7 @@ def test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints
         else:
             (root / "unrelated-untracked.txt").write_text("after\n")
 
-    backend = MaterializedProjectSnapshotBackend()
+    backend = SharedEnvironmentProjectSnapshotBackend()
     if permitted:
         with backend.create(root, ("src/target.py",), case):
             mutate_source_repository()
@@ -381,14 +408,16 @@ def test_snapshot_repository_identity_allows_only_untracked_knockout_checkpoints
 def test_inherited_git_repository_pointer_environment_is_cleared(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
     from maid_runner.core.knockout import KnockoutCommandExecutor
 
     root = _project(tmp_path, git=True)
     monkeypatch.setenv("GIT_DIR", str(root / ".git"))
     monkeypatch.setenv("GIT_WORK_TREE", str(root))
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "git-environment"
     ) as snapshot:
         result = KnockoutCommandExecutor().execute(
@@ -406,11 +435,13 @@ def test_inherited_git_repository_pointer_environment_is_cleared(
 def test_snapshot_preserves_only_resolved_git_author_identity(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
     from maid_runner.core.knockout import KnockoutCommandExecutor
 
     root = _project(tmp_path)
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "non-git-author"
     ) as non_git_snapshot:
         assert non_git_snapshot.git_dir is None
@@ -433,7 +464,7 @@ def test_snapshot_preserves_only_resolved_git_author_identity(
     subprocess.run(("git", "add", "."), cwd=root, check=True)
     subprocess.run(("git", "commit", "-qm", "fixture"), cwd=root, check=True)
 
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "git-author"
     ) as snapshot:
         isolated_config = Path(snapshot.environment_overrides["GIT_CONFIG_GLOBAL"])
@@ -468,7 +499,7 @@ def test_snapshot_preserves_only_resolved_git_author_identity(
         "\tname = Changed Snapshot Author\n"
         "\temail = changed-author@example.test\n"
     )
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "changed-git-author"
     ) as changed_snapshot:
         changed_result = KnockoutCommandExecutor().execute(
@@ -485,7 +516,7 @@ def test_snapshot_preserves_only_resolved_git_author_identity(
     )
 
     global_config.write_text("[user]\n\tname = Incomplete Author\n")
-    with MaterializedProjectSnapshotBackend().create(
+    with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "incomplete-git-author"
     ) as incomplete_snapshot:
         incomplete_config = Path(
@@ -602,7 +633,9 @@ def test_snapshot_dependency_environment_loads_snapshot_project_bytes(
 def test_escaping_source_symlink_fails_closed_without_external_write(
     tmp_path: Path,
 ) -> None:
-    from maid_runner.core._knockout_snapshot import MaterializedProjectSnapshotBackend
+    from maid_runner.core._knockout_snapshot import (
+        SharedEnvironmentProjectSnapshotBackend,
+    )
 
     root = _project(tmp_path / "project")
     external = tmp_path / "external.py"
@@ -611,7 +644,7 @@ def test_escaping_source_symlink_fails_closed_without_external_write(
     (root / "src/target.py").symlink_to(external)
 
     with pytest.raises(RuntimeError, match="symlink|project"):
-        with MaterializedProjectSnapshotBackend().create(
+        with SharedEnvironmentProjectSnapshotBackend().create(
             root, ("src/target.py",), "escaping-symlink"
         ):
             pass
@@ -628,7 +661,7 @@ def test_escaping_source_symlink_fails_closed_without_external_write(
         f"160000,{head},vendor/submodule",
     )
     with pytest.raises(RuntimeError, match="gitlink|submodule"):
-        with MaterializedProjectSnapshotBackend().create(
+        with SharedEnvironmentProjectSnapshotBackend().create(
             gitlink_root, ("src/target.py",), "gitlink"
         ):
             pass
