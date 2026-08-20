@@ -154,7 +154,7 @@ def test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy():
 
     assert execution.pytest_workers == 8
     assert execution.pytest_dist_mode == "loadscope"
-    assert execution.accepted_pytest_worker_counts == (8,)
+    assert execution.accepted_pytest_worker_counts == (4, 8)
     assert execution.command_jobs * execution.pytest_workers <= execution.max_processes
     assert execution.parallel_without_history is True
 

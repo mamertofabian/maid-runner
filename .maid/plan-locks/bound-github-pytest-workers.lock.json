@@ -1,0 +1,286 @@
+{
+  "manifest_path": "manifests/bound-github-pytest-workers.manifest.yaml",
+  "manifest_hash": "sha256-contract:583a0f9f38d7f35822687b6786e70ed872f0cc19921cd3ca1b7a835b4e549926",
+  "test_hashes": {
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+    "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+    "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+  },
+  "created_at": "2026-08-20T12:15:29.497472+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a09df8845872a79eaf464acec81ed897dcf09e0d16730bfc02a4c2c902e7cfed",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:294fad1314b9e1ceb99b58cc0f42c4a448cf024fdac3e0e4975348844eef5c0d"
+      },
+      "revised_at": "2026-08-20T12:15:30.096644+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bound-github-pytest-workers.manifest.yaml -> manifests/bound-github-pytest-workers.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2e8a973b717feac5d3230165fc3a63e7e4c34b0b67e541c45ebb39f21c6d0d0a",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:294fad1314b9e1ceb99b58cc0f42c4a448cf024fdac3e0e4975348844eef5c0d"
+      },
+      "revised_at": "2026-08-20T12:24:14.812169+00:00",
+      "reason": "include existing repository worker-policy assertion discovered by the full four-worker gate",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy",
+          "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy:kind=test_function",
+          "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_config.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8b7b31791591c3a046abc661546aa79afac68420daf03057bf49f892985c48bd",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:294fad1314b9e1ceb99b58cc0f42c4a448cf024fdac3e0e4975348844eef5c0d",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-20T12:26:49.025311+00:00",
+      "reason": "include repository policy assertion and refresh red evidence for the corrected complete behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py::test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0f00b4761f191671a206e6944e7a7a010f53f1bcd4737468d2c436bd62eb882a",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:294fad1314b9e1ceb99b58cc0f42c4a448cf024fdac3e0e4975348844eef5c0d",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+      },
+      "revised_at": "2026-08-20T12:29:43.245289+00:00",
+      "reason": "widen declared config test selector to the whole file required by E230 discovery",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py::test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b33db0886558d873a7560b00c72059814d1e4a147e1335e44d515a8030b5d5ba",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:294fad1314b9e1ceb99b58cc0f42c4a448cf024fdac3e0e4975348844eef5c0d",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+      },
+      "revised_at": "2026-08-20T12:39:43.068056+00:00",
+      "reason": "preserve downstream reusable-workflow policy when pytest-workers is omitted",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:583a0f9f38d7f35822687b6786e70ed872f0cc19921cd3ca1b7a835b4e549926",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+      },
+      "revised_at": "2026-08-20T12:42:02.208826+00:00",
+      "reason": "accept formatting-only behavioral test normalization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T12:39:43.464367+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py",
+        "exit_code": 1,
+        "output_tail": "    def test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy():\n        from pathlib import Path\n    \n        root = Path(__file__).resolve().parents[2]\n        execution = load_config(root).test_execution\n    \n        assert execution.pytest_workers == 8\n        assert execution.pytest_dist_mode == \"loadscope\"\n>       assert execution.accepted_pytest_worker_counts == (4, 8)\nE       assert (8,) == (4, 8)\nE         \nE         At index 0 diff: 8 != 4\nE         Right contains one more item: 8\nE         Use -v to get more diff\n\ntests/core/test_config.py:157: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_github_pytest_worker_wiring.py::test_github_workflows_bound_pytest_workers_without_lowering_local_default\nFAILED tests/core/test_config.py::test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy\n2 failed, 21 passed in 0.19s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/092-03-add-coverage-risk-policy-cache-and-deep-evidence.lock.json",
+      ".maid/plan-locks/121-14-run-isolated-knockouts-with-bounded-workers.lock.json",
+      ".maid/plan-locks/121-15-parallelize-isolated-artifact-coverage-fallbacks.lock.json",
+      ".maid/plan-locks/121-23-default-derived-coverage-evidence.lock.json",
+      ".maid/plan-locks/121-25-tune-maid-test-command-jobs.lock.json",
+      ".maid/plan-locks/configure-artifact-coverage-timeout.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_pytest_worker_wiring",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_pytest_worker_wiring:kind=attribute",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_pytest_worker_wiring:of=github_actions",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_pytest_worker_wiring:type=workflow input and command wiring",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_pytest_worker_wiring",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_pytest_worker_wiring:kind=attribute",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_pytest_worker_wiring:of=github_actions",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_pytest_worker_wiring:type=workflow input and command wiring",
+      "docs/github-actions.md:attribute:documentation._github_actions_pytest_worker_guidance",
+      "docs/github-actions.md:attribute:documentation._github_actions_pytest_worker_guidance:kind=attribute",
+      "docs/github-actions.md:attribute:documentation._github_actions_pytest_worker_guidance:of=documentation",
+      "docs/github-actions.md:attribute:documentation._github_actions_pytest_worker_guidance:type=markdown section",
+      "tests/ci/test_github_pytest_worker_wiring.py:test_github_workflows_bound_pytest_workers_without_lowering_local_default",
+      "tests/ci/test_github_pytest_worker_wiring.py:test_github_workflows_bound_pytest_workers_without_lowering_local_default:kind=test_function",
+      "tests/ci/test_github_pytest_worker_wiring.py:test_github_workflows_bound_pytest_workers_without_lowering_local_default:returns=None",
+      "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy",
+      "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy:kind=test_function",
+      "tests/core/test_config.py:test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/ci/test_github_pytest_worker_wiring.py"
+      ],
+      "edit": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
+        "docs/github-actions.md",
+        "tests/core/test_config.py"
+      ],
+      "read": [
+        "maid_runner/core/config.py",
+        "tests/ci/test_github_actions_templates.py"
+      ],
+      "scope": [
+        ".maidrc.yaml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/ci/test_github_pytest_worker_wiring.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_github_workflows_bound_pytest_workers_without_lowering_local_default",
+              "description": "Both workflows structurally cap this repository's direct CI at four, omit an explicit override for reusable callers by default, pass caller overrides through, and retain eight as the local default.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_test_pytest_worker_wiring",
+              "description": "Optional numeric pytest-workers input preserves an omitted reusable caller's repository policy, defaults this repository's direct CI to four, and passes explicit overrides through to maid test.",
+              "of": "github_actions",
+              "type": "workflow input and command wiring"
+            }
+          ]
+        },
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_validation_pytest_worker_wiring",
+              "description": "Optional numeric pytest-workers input preserves an omitted reusable caller's repository policy, defaults this repository's direct CI to four, and passes explicit overrides through to maid verify.",
+              "of": "github_actions",
+              "type": "workflow input and command wiring"
+            }
+          ]
+        },
+        {
+          "path": "docs/github-actions.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_github_actions_pytest_worker_guidance",
+              "description": "Documents the four-worker direct-CI default, reusable-caller policy preservation, explicit override, and unchanged eight-worker repository-local policy.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_config.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy",
+              "description": "The repository keeps eight as its local pytest worker default while accepting both the four-worker hosted-runner override and the proven eight-worker local value.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/config.py",
+        "tests/ci/test_github_actions_templates.py"
+      ],
+      "scope": [
+        {
+          "path": ".maidrc.yaml",
+          "reason": "Accept four as a validated explicit pytest worker count while retaining eight as the repository default."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_github_actions_templates.py",
+      "tests/ci/test_github_pytest_worker_wiring.py",
+      "tests/core/test_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py"
+    ]
+  }
+}

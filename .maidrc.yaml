@@ -1,7 +1,7 @@
 test_execution:
   pytest_workers: 8
   pytest_dist_mode: loadscope
-  accepted_pytest_worker_counts: [8]
+  accepted_pytest_worker_counts: [4, 8]
   parallel_threshold_seconds: 30
   parallel_without_history: true
   command_jobs: 2

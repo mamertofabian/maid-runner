@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:1c1a2a8e4ebca99bb46cf427399410d9eaa55d985f6a932b8ae57c3ccbf58e1e",
   "test_hashes": {
     "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
-    "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+    "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
   },
   "created_at": "2026-08-13T09:55:15.881601+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:af14d1d4377a6074f4ed6236e3d85bf926b4dac95634aa0f0a9f8f55df89ec2d",
@@ -16,6 +16,24 @@
       },
       "revised_at": "2026-08-13T09:55:16.896474+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/121-25-tune-maid-test-command-jobs.manifest.yaml -> manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c1a2a8e4ebca99bb46cf427399410d9eaa55d985f6a932b8ae57c3ccbf58e1e",
+      "prior_test_hashes": {
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-20T12:28:49.919987+00:00",
+      "reason": "accept approved shared config-policy test change for hosted pytest worker bound",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
