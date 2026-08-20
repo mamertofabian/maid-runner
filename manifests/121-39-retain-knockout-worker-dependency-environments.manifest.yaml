@@ -1,0 +1,128 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reuse copied knockout dependency environments across sequential worker declarations"
+type: refactor
+created: "2026-08-13T11:45:46Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - isolation
+    - snapshots
+description: |
+  Each knockout declaration currently materializes a full project snapshot,
+  including a copied .venv. A live probe of this repository spent 1.3s creating
+  one snapshot and 0.6s of that was the dependency copy and path rewrite.
+  Focused knockout now reaches hundreds of specs, so workers recopy the same
+  interpreter on every declaration.
+
+  Add WorkerRetainedProjectSnapshotBackend. Inside retain(), sequential
+  create() calls on the same worker thread keep the copied .venv and
+  node_modules, reset source and Git from the current project, and drop
+  generated snapshot files. Concurrent workers still get distinct roots.
+  Without retain(), create() stays one-shot like MaterializedProjectSnapshotBackend.
+
+  Knockout's default backend becomes the retained worker backend. The scheduler
+  holds retain() for the worker pool lifetime so serial jobs amortize the
+  dependency copy. Commands still never receive a writable source .venv.
+  MaterializedProjectSnapshotBackend.create() is unchanged for callers that
+  want a fresh copy and cleanup per context.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not bind knockout commands to the source .venv or node_modules."
+    instead: "Keep copied dependency environments inside the snapshot and only reuse those copies across sequential declarations on one worker."
+  - risk: "Do not let generated snapshot files or mutated source survive into the next declaration."
+    instead: "Reset source bytes and Git metadata from the current project and delete other snapshot files before yielding the retained snapshot again."
+  - risk: "Do not share one snapshot root across concurrent knockout workers."
+    instead: "Key retained snapshots by worker thread so overlapping jobs keep isolated writable trees."
+  - risk: "Do not change MaterializedProjectSnapshotBackend one-shot create cleanup."
+    instead: "Leave that backend's context exit deleting the snapshot; only the retained subclass keeps copies until retain() exits."
+  - risk: "Do not test retention by inspecting private thread-local slots."
+    instead: "Assert observable snapshot roots, copied venv identity, generated-file isolation, teardown, and the backend type knockout uses by default."
+files:
+  create:
+    - path: tests/core/test_retained_worker_snapshots.py
+      artifacts:
+        - kind: test_function
+          name: test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state
+          args: []
+        - kind: test_function
+          name: test_retained_snapshot_is_removed_when_retain_exits
+          args: []
+        - kind: test_function
+          name: test_serial_knockout_reuses_one_snapshot_root_across_identities
+          args: []
+        - kind: test_function
+          name: test_knockout_batch_defaults_to_retained_worker_backend
+          args: []
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: WorkerRetainedProjectSnapshotBackend
+          description: "Knockout snapshot backend that copies source, Git, and dependency environments once per worker thread and resets source/Git between retained create() calls."
+        - kind: method
+          name: retain
+          of: WorkerRetainedProjectSnapshotBackend
+          args: []
+          returns: AbstractContextManager[None]
+          description: "Keep copied dependency environments until the context exits, then delete every retained snapshot."
+        - kind: method
+          name: create
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+          description: "Yield a reset retained snapshot while retain() is active on this thread; otherwise materialize a one-shot snapshot that cleans up on exit."
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "run_knockout_batch defaults snapshot_backend to WorkerRetainedProjectSnapshotBackend when the caller does not inject one."
+    - path: maid_runner/core/_knockout_worker.py
+      reason: "run_knockout_workers holds backend.retain() for the scheduling lifetime when the backend provides it."
+    - path: tests/core/test_knockout_workers.py
+      reason: "Serial declaration isolation is reset-based; jobs=1 may reuse one snapshot root after generated state is cleared."
+  read:
+    - manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - tests/core/test_shared_environment_snapshots.py
+    - tests/core/test_knockout_snapshot.py
+validate:
+  - uv run python -m pytest -q tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot.py tests/core/test_shared_environment_snapshots.py
+  - uv run maid validate manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T11:54:00Z"
+  summary: "Knockout defaults to WorkerRetainedProjectSnapshotBackend. Sequential declarations on one worker thread keep the copied .venv and node_modules, reset source and Git, and drop generated snapshot files. Concurrent workers keep distinct roots. Materialized one-shot create cleanup is unchanged."
+  rationale: "A live probe spent 1.3s creating one knockout snapshot, 0.6s of that copying and rewriting .venv. Three materialized snapshots took 5.07s; three retained creates on one worker took 2.84s. Commands still never receive a writable source interpreter."
+  lessons:
+    - lesson_type: performance
+      summary: "Knockout workers should copy .venv once per thread and reset source/Git between declarations; recopying dependency environments per declaration repeats a ~0.6s tax hundreds of times."
+      tags: [performance, knockout, snapshots]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - maid_runner/core/_knockout_worker.py
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Retained snapshots are keyed by worker thread, reset generated files and source/Git before reuse, leave Materialized create one-shot, and still copy dependency environments instead of binding the source .venv. User rule disabled reviewer subagents; this is a local-only review. Residual risk: writes into the copied .venv persist across sequential declarations on that worker."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_retained_worker_snapshots.py, tests/core/test_knockout_workers.py, tests/core/test_knockout_snapshot.py, tests/core/test_shared_environment_snapshots.py, tests/core/test_knockout_evidence_cache.py]
+      status: passed
+      summary: "39 tests passed, including serial root reuse, generated-state isolation, teardown, default backend, and preserved knockout cache behavior."
+    - command: [uv, run, maid, validate, manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

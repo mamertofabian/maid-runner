@@ -73,9 +73,11 @@ Automation reporting requirements:
 - Keep doing the skill's validation and review loop until the pass is genuinely
   ready, blocked, or there are no implementable draft manifests.
 - Use the Agent tool for a read-only review subagent with
-  subagent_type="maid-implementation-reviewer". Pass the manifest path,
-  changed files, current diff summary, and validation output explicitly instead
-  of relying on hidden conversation context.
+  subagent_type="maid-implementation-reviewer". Pass a verdict-neutral packet
+  containing the task baseline, complete baseline-to-current diff, complete changed-file list,
+  complete manifest-declared artifact definitions and file inventory, factual validation outcomes,
+  environment limits, and plan-revision signal. Exclude prior review lineage and
+  coordinator-owned follow-up state instead of relying on hidden conversation context.
 - Capture Outcome after implementation review and before final handoff: update
   the promoted manifest with an evidence-backed `outcome:` section before
   reporting READY or emitting a commit packet. Do not report AUTOMATION_STATUS: READY when Outcome is missing unless the final message states a concrete not-applicable or blocked reason.

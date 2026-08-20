@@ -1,0 +1,162 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make deep artifact-coverage cache reuse and timeout cleanup fail closed"
+type: fix
+created: "2026-08-14T10:14:39Z"
+metadata:
+  priority: critical
+  epic: 121-00-fast-verification-roadmap
+  tags: [artifact-coverage, cache, process-ownership, merge-readiness]
+description: |
+  Close the merge-review gaps in persistent artifact-coverage evidence and the
+  exact coverage subprocess adapter. Cached reports must carry a versioned,
+  fully validated payload whose declared success agrees with its reconstructed
+  findings and errors, whose findings exactly cover the selected manifest
+  artifacts, and whose E710 errors agree with every unexecuted finding. Cache
+  identity must include the normalized selected
+  manifest directory and its content so two active chains cannot share evidence.
+  Writes must use the repository's atomic JSON pattern.
+
+  Exact coverage commands must run through the existing descendant-owning
+  command supervisor. A timeout returns a typed failed runtime record only after
+  descendant cleanup is positively acknowledged; platforms where complete
+  ownership cannot be proven fail closed instead of using an unowned fallback.
+  Two legacy runtime-adapter tests are updated to assert the owned typed-failure
+  behavior and count the executor boundary rather than monkeypatching the
+  retired subprocess.run mechanism. No public signatures change.
+temptations:
+  - risk: "Do not treat merely parseable cache JSON as trusted runtime evidence."
+    instead: "Require an exact cache schema version, validate every report field and enum, reconstruct the report, and reject any success/error inconsistency as a cache miss."
+  - risk: "Do not key full-chain cache entries only by project bytes while ignoring which manifest directory selected the chain."
+    instead: "Include the resolved manifest-directory identity and its content digest in the hermetic cache key for both default and custom manifest roots."
+  - risk: "Do not repair partial-write failures only in the reader."
+    instead: "Write cache payloads to an fsynced sibling temporary file and atomically replace the destination, cleaning the temporary file on every exit."
+  - risk: "Do not kill only the direct coverage runner or silently fall back when descendant ownership is unavailable."
+    instead: "Use the existing descendant-owning supervisor with ownership required, project its bounded result into RuntimeCommandRecord, and preserve explicit failure diagnostics."
+files:
+  create:
+    - path: tests/core/test_deep_verification_cache_and_timeout_hardening.py
+      artifacts:
+        - kind: test_function
+          name: test_invalid_cached_coverage_payloads_are_rejected_and_reexecuted
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+          source_scenario: "A previously red artifact-coverage report is replaced by incomplete, inconsistent, or truncated cache JSON."
+          actions:
+            - type: api_call
+              subject: {export: main}
+          expected:
+            behavior: "Every invalid, incomplete, or finding/error-inconsistent payload is rejected against the selected manifest artifacts, coverage executes again, and the red report cannot become green through cache corruption."
+        - kind: test_function
+          name: test_custom_manifest_directories_do_not_share_coverage_cache_entries
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+          source_scenario: "One unchanged project contains a green manifest directory and a distinct red manifest directory."
+          actions:
+            - type: api_call
+              subject: {export: main}
+          expected:
+            behavior: "A green full-chain result from the first directory is not reused for the second directory, whose uncovered artifact remains red."
+        - kind: test_function
+          name: test_exact_coverage_timeout_reaps_detached_descendants
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          source_scenario: "An exact coverage pytest command spawns a detached long-lived child and then exceeds its bounded timeout."
+          actions:
+            - type: api_call
+              subject: {export: SubprocessRuntimeCommandExecutor}
+          expected:
+            behavior: "The command returns a typed timeout failure only after the detached descendant is gone; the test cleans up defensively if the assertion fails."
+        - kind: test_function
+          name: test_exact_coverage_fails_closed_without_descendant_ownership
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          source_scenario: "An exact coverage command runs where the owned descendant supervisor cannot prove complete process ownership."
+          actions:
+            - type: api_call
+              subject: {export: SubprocessRuntimeCommandExecutor}
+          expected:
+            behavior: "The executor returns an explicit failed runtime record and does not launch the test command through an unowned legacy fallback."
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Version and strictly decode cached coverage reports, bind the selected manifest directory into cache identity, and atomically persist payloads without changing CLI signatures."
+    - path: maid_runner/core/_runtime_command_executor.py
+      reason: "Route exact coverage execution through the existing owned command supervisor and project its result into runtime evidence records without changing the executor API."
+  read:
+    - manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml
+    - manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml
+    - maid_runner/cli/commands/_main.py
+    - maid_runner/core/_test_command_execution.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/runtime_evidence.py
+    - tests/cli/test_artifact_coverage_evidence_cache.py
+    - tests/cli/test_verify_deep_evidence_reuse.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - tests/core/validation/test_test_command_execution.py
+validate:
+  - uv run python -m pytest -q tests/core/test_deep_verification_cache_and_timeout_hardening.py tests/cli/test_artifact_coverage_evidence_cache.py tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_execution.py
+  - uv run maid validate manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-14T10:50:22Z"
+  summary: "Deep artifact-coverage cache entries now use a versioned atomic payload, bind the selected manifest directory into cache identity, require findings to exactly match the selected declared artifacts, and require E710 errors to match every unexecuted finding. Exact fallback commands now use the descendant-owning supervisor and fail closed when ownership or cleanup cannot be proven."
+  rationale: "Merge-readiness review reproduced three fail-open gaps: malformed cache objects could decode green, distinct manifest directories shared cache identity, and exact coverage timeouts could leak detached descendants. Independent implementation review then found a schema-valid empty or finding/error-inconsistent report could still decode green, so revision 5 added selected-chain semantic validation before final approval."
+  lessons:
+    - lesson_type: design
+      summary: "Persistent verification evidence needs both structural schema validation and semantic agreement with the current selected contract; parseable JSON and a consistent success flag are insufficient."
+      tags: [artifact-coverage, cache, fail-closed]
+      paths:
+        - maid_runner/cli/commands/verify.py
+    - lesson_type: testing
+      summary: "Cache adversaries should include empty reports, invalid enums and versions, success/error disagreement, finding/error disagreement, truncated writes, and different manifest roots in one unchanged project."
+      tags: [behavioral-testing, cache-integrity, anti-gaming]
+      paths:
+        - tests/core/test_deep_verification_cache_and_timeout_hardening.py
+    - lesson_type: design
+      summary: "Timeout safety belongs at the descendant-owning command boundary; exact fallback adapters should project typed supervisor failures instead of launching a separate unowned subprocess path."
+      tags: [process-ownership, timeout, runtime-evidence]
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+  review_notes:
+    - source: merge_readiness_review
+      severity: warning
+      summary: "Review identified fail-open cache decoding, missing manifest-directory cache identity, and unowned exact timeout execution."
+    - source: cache_timeout_impl_review
+      severity: warning
+      summary: "Initial implementation review reproduced a schema-valid empty green report and required exact selected-artifact and E710 semantic agreement."
+    - source: cache_timeout_impl_review
+      severity: ready
+      summary: "Re-review found no blocking issues and confirmed full-chain and manifest_paths selection parity, duplicate declaration handling, and E710 multiset consistency."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_deep_verification_cache_and_timeout_hardening.py, tests/cli/test_artifact_coverage_evidence_cache.py, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/validation/test_test_command_execution.py]
+      status: passed
+      summary: "All 63 focused cache, timeout, evidence reuse, artifact coverage, batching, and command-supervisor tests passed after the review fix."
+    - command: [uv, run, maid, validate, manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 5."
+    - command: [uv, run, maid, test, --manifest, manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml]
+      status: passed
+      summary: "Both declared manifest commands passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The post-review-fix repository suite passed: 4,288 tests passed and 14 were skipped in 329.07 seconds."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, f6c50b6]
+      status: failed
+      summary: "Schema, behavioral, and implementation stages passed; the only blocking stage was the pre-existing repository-wide artifact-coverage backlog of 1,841 E710 findings. E307 warnings remained non-blocking."
+    - command: [uv, run, ruff, check, .]
+      status: passed
+      summary: "Repository Ruff, Black check, and git diff check passed before Outcome capture."

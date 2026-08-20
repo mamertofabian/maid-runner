@@ -197,6 +197,34 @@ def test_python_func_is_pytest_fixture_recognizes_attribute_decorator():
     assert python_func_is_pytest_fixture(function) is True
 
 
+def test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior():
+    from maid_runner.core import _behavioral_validation as legacy
+
+    asserted_source = "def test_example():\n    assert True\n"
+    bare_source = "def test_example():\n    return True\n"
+    fixture_source = (
+        "import pytest\n\n"
+        "@pytest.fixture\n"
+        "def test_fixture():\n"
+        "    return object()\n"
+    )
+    asserted_function = ast.parse(asserted_source).body[0]
+    bare_function = ast.parse(bare_source).body[0]
+    fixture_function = ast.parse(fixture_source).body[1]
+
+    for source in (asserted_source, bare_source, fixture_source):
+        assert legacy._check_test_assertions(
+            source, "tests/test_example.py"
+        ) == check_test_assertions(source, "tests/test_example.py")
+    for function in (asserted_function, bare_function, fixture_function):
+        assert legacy._python_func_has_assertion(function) is python_func_has_assertion(
+            function
+        )
+        assert legacy._python_func_is_pytest_fixture(
+            function
+        ) is python_func_is_pytest_fixture(function)
+
+
 def test_validate_test_assertions_reports_file_read_errors(tmp_path):
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests" / "test_unreadable.py").mkdir()

@@ -582,15 +582,104 @@ E708 `tests-stage selection widened` warning. Deep verification and explicit
 Broad pytest subprocess sharding was implemented and then rejected before
 handoff because it changed the repository gate result. Round-robin sharding
 finished in 84.35 seconds but failed three pytest workers. Contiguous sharding
-finished in 105.24 seconds but still failed two shards. Isolated reproduction
-showed that TypeScript resolver tests depend on process-local state established
-by other test files; the same targets therefore fail when moved into an
-otherwise complete isolated shard.
+finished in 105.24 seconds but still failed two shards. Reconstruction later
+found that the isolated worktree lacked its declared `node_modules/typescript`
+dependency. The same session ran `npm install`, after which the suspected
+TypeScript tests and full serial `maid test` passed. The failed shard runs were
+therefore environment-confounded and did not prove a process-order cache leak.
 
-The optimization was removed rather than trading false failures for speed. A
-future retry must first make test files independently runnable or prove
-runner-native fixture/session equivalence. The safe 121-01 task-scoped handoff
-optimization remains in place.
+The optimization was still correctly removed: it was never rerun under a
+controlled equivalent environment, and raw subprocess sharding changes
+fixture/session process lifetimes. A future retry must compare successful
+serial and runner-native worker runs in one dependency-complete environment.
+The safe 121-01 task-scoped handoff optimization remains in place.
+
+## 121 full/deep roadmap reopened (2026-08-10)
+
+The remaining 3.9-minute full test inventory and 30-minute deep gate are
+operationally unacceptable. Fresh integrated-tree profiling and the
+replacement strategy are captured in
+[`full-and-deep-verification-performance-redesign.md`](full-and-deep-verification-performance-redesign.md).
+
+The roadmap does not revive blind subprocess sharding. It first proves
+successful serial/worker equivalence in a controlled environment, removes repeated subprocess/Git
+setup from the slow-test policy matrix, then uses runner-native duration-aware
+pytest workers. Deep verification is redesigned around one per-test-attributed
+runtime-evidence run shared by the tests and artifact-coverage stages, with
+exact fallback for unproven fixture lifecycles. Knockout then moves through
+immutable unique-spec planning, fail-closed differential detection, fresh
+per-declaration project snapshots, and bounded workers. Because the root test
+configuration has session-autouse fixtures, grouped coverage may conservatively
+fallback every exact tuple; 121-15 therefore bounds the exact fallback path in
+Git-isolated snapshots and requires full serial/parallel report equivalence
+before enforcing the 180-second budget. The ordered continuation is 121-03
+through 121-15.
+
+## 121 command-supervisor procfs finding (2026-08-13)
+
+The post-121 aggregate gate exposed a confirmed command-supervision hot path.
+The Linux supervisor's `descendants()` helper enumerates every process under
+`/proc` before command launch and again during cleanup. Even a completed command
+therefore pays several repository-wide procfs scans plus the supervisor process.
+
+| Probe | Result | Status |
+| --- | ---: | --- |
+| 100 sequential `_run_test_command(("true",))` calls | 11.19s | pass |
+| `maid test --json`, first corrected run | 134.10s | 280/281 commands passed |
+| Broad 8-worker pytest batch inside that gate | 59.89s | one concurrency-only command-supervisor failure |
+| Isolated failing runner test | 0.37s | pass |
+| `test_test_runner.py` under the same 8-worker topology | 2.98s | 87 passed |
+
+The intermittent aggregate failure occurred when one of two trivial `echo`
+commands lost its supervised completion during high process churn. The exact
+race is not yet proven, but global procfs enumeration is both the measured hot
+path and an avoidable race surface. Linux already exposes each process's direct
+children through `/proc/<pid>/task/<pid>/children`; recursively traversing that
+owned tree preserves subreaper-based detached-child cleanup without scanning
+unrelated processes. The next bounded child should replace only the supervisor's
+global enumeration, prove it works when `/proc` directory listing is denied,
+retain all 121-14 fail-closed cleanup adversaries, and remeasure the 100-command
+probe plus the repository gate.
+
+## 121 cached-validation scheduling barrier (2026-08-13)
+
+After bounded procfs traversal, `maid test --json` passed all 282 command
+results in 125.93 seconds. The reported command durations sum to 105.74 seconds,
+while the broad xdist batch took 54.83 seconds. Source inspection confirmed an
+avoidable serialization barrier in `_run_implementation_commands`: external
+commands are accumulated, but every cacheable `maid validate` command first
+runs synchronously on the main thread and only then flushes the preceding
+external group. This repeats at each cached/external boundary.
+
+The cache itself should remain single-threaded; its `ValidationEngine` and
+manifest-chain scope are process-local shared state. External commands already
+run in isolated subprocesses and may start immediately in the existing bounded
+thread pool while the main thread executes cached validation. Deterministic
+output does not require barrier execution: retain one result slot per command,
+wait and finalize external futures in original slot order, and preserve serial
+fail-fast behavior. A behavioral overlap test must prove that cached validation
+runs while a preceding external command is active, while the existing cached
+serial/thread-identity and result-order tests remain green.
+
+## 121 timing-history advisory-input invalidation (2026-08-13)
+
+Two consecutive green overlap gates took 100.77 and 100.66 seconds, and every
+automatically scheduled pytest command still reported
+`workers:unknown-history-policy`. Inspection showed the timing cache files had
+been written successfully. Between the runs, another local tool created a
+`.claude/insights/...md` advisory file. `build_pytest_timing_identity()` hashes
+every repository file except a short generated-path list, so this unrelated
+advisory invalidated the complete per-test timing history and forced even tiny
+pytest commands to pay eight-worker startup again.
+
+This is not a reason to weaken content binding generally. Tests in this
+repository intentionally inspect distributed `.claude` and `.codex` assets, so
+those roots remain relevant. Exclude only `.claude/insights`, whose timestamped
+agent-session notes are generated advisory state and are not pytest inputs.
+Behavioral coverage must prove that changing an insight preserves the input
+digest while changing a test file still invalidates it. Then rerun the gate
+without production-tree writes between iterations to confirm current timing
+history selects serial execution for sub-threshold commands.
 
 ## Suggested Acceptance Criteria
 
@@ -638,3 +727,27 @@ Commands run during the 2026-05-29 refresh:
 - stage-level `ValidationEngine.validate_all(...)` probes for `maid-runner`,
   `tower-recall`, and `life-dashboard`
 - cProfile probe for Tower Recall behavioral validation with assertion checks
+## 2026-08-17 Knockout fresh-root template finding
+
+The exact task-scoped release gate against `release/v2.next` selected 60 active
+manifests and 487 unique mutations, cleared artifact coverage, and was stopped
+after about 40 minutes with only about 105 new knockout checkpoints. Focused
+tests and small real knockout batches complete in seconds; the long batch
+creates a sustained snapshot convoy.
+
+`WorkerRetainedProjectSnapshotBackend` correctly preserves distinct source/Git
+roots, but every declaration still rescans the live repository and dependency
+identities and recopies source/Git metadata. A fresh root takes about 1.23s on
+one worker but 13.4-14.2s when eight workers create roots together. The repeated
+I/O also stretches green-red-green commands that take seconds alone into
+multi-minute proofs. A 16-identity sample took 88.5s; serializing snapshot
+enter/cleanup improved it to 76.8s but does not close the budget.
+
+Confirmed closure: build one immutable invocation-level source/Git template,
+clone distinct declaration roots from that template, retain isolated copied
+dependencies per worker, and verify live content/repository/dependency identity
+at the retained boundary. Bind persisted spec keys to the captured repository
+identity so interrupted evidence cannot survive Git-only drift. Preserve
+three-point differential proof and exact fallback. Acceptance must use
+constant-call assertions and a bounded representative batch rather than a
+reference run longer than ten minutes.

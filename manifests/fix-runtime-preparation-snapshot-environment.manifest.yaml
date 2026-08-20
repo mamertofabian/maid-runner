@@ -1,0 +1,152 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Preserve isolated snapshot environment policy across pytest preparation probes and runtime evidence execution"
+type: fix
+created: "2026-08-19T18:54:08Z"
+metadata:
+  priority: high
+  tags: [runtime-evidence, pytest, snapshots, environment, chain-merge]
+description: |
+  Runtime evidence executes the final pytest command with a caller-supplied
+  sanitized environment, but command preparation currently runs collection and
+  capability probes from the ambient process environment. In a chain-merge
+  evidence snapshot this drops `UV_PROJECT_ENVIRONMENT`, `UV_NO_SYNC`, and the
+  sanitized PATH, allowing a preliminary `uv run` probe to create and sync a
+  new `.venv` inside the disposable project. It can also reintroduce removed
+  Git location variables before the guarded evidence command begins.
+
+  Make the environment policy of `SubprocessRuntimeCommandExecutor` apply to
+  every subprocess it owns, including runtime environment-identity/version
+  probes, evidence-freshness probes, pytest collection, and capability probes.
+  Keep the existing public signatures unchanged: pass the already-owned policy
+  through private preparation helpers, while direct public preparation calls
+  retain their ambient-environment behavior. The final command and every
+  preparatory probe must observe the same caller overrides and removals.
+temptations:
+  - risk: "Do not ignore a snapshot-created .venv as non-material output."
+    instead: "Prevent the preliminary probe from creating it by propagating the executor's sanitized environment policy."
+  - risk: "Do not patch only UV_PROJECT_ENVIRONMENT or special-case uv commands."
+    instead: "Apply the complete executor override/removal policy uniformly to every owned runtime identity, freshness, preparation, and execution subprocess."
+  - risk: "Do not mutate os.environ around command preparation."
+    instead: "Build and pass an explicit child environment so concurrent evidence work remains isolated."
+  - risk: "Do not change the public preparation APIs solely to carry this private execution context."
+    instead: "Add private environment-aware preparation paths and preserve the existing public wrappers and signatures."
+files:
+  create:
+    - path: tests/core/test_runtime_evidence_preparation_environment.py
+      artifacts:
+        - kind: test_function
+          name: test_runtime_evidence_applies_snapshot_environment_to_preparation_and_execution
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Every observable pytest collection, capability-probe, and execution subprocess owned by the public runtime executor receives the same explicit override and removal policy."
+        - kind: test_function
+          name: test_runtime_evidence_environment_policies_do_not_bleed_between_concurrent_calls
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Concurrent public runtime executors retain their distinct override and removal policies without transient process-global environment bleed."
+        - kind: test_function
+          name: test_runtime_evidence_removals_and_pytest_sanitization_apply_to_every_child
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Explicit removal of an ambient pytest plugin and standard sanitization of inherited xdist worker markers apply uniformly to preparation probes and final execution."
+        - kind: test_function
+          name: test_runtime_evidence_identity_probe_uses_executor_environment_policy
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Public runtime evidence collection and artifact-coverage evaluation apply the executor's explicit override/removal policy to observable environment-identity and freshness version probes as well as test execution."
+  scope:
+    - path: maid_runner/core/_pytest_worker_execution.py
+      reason: "Allow private environment-aware preparation, collection, and capability-probe wiring without changing existing public signatures."
+    - path: maid_runner/core/_runtime_command_executor.py
+      reason: "Forward the executor's owned environment policy into private pytest command preparation before the final execution."
+    - path: maid_runner/core/runtime_evidence.py
+      reason: "Apply the executor's private child-environment policy to the runtime environment-identity/version probe without changing public collection signatures."
+    - path: maid_runner/core/artifact_coverage.py
+      reason: "Use the fallback executor's private environment policy when checking whether freshly collected runtime evidence is current, while preserving public evaluator signatures."
+  read:
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/chain_merge_evidence.py
+    - manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+    - manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+    - manifests/add-chain-merge-target-evidence-refresh.manifest.yaml
+    - tests/core/test_pytest_worker_execution.py
+    - tests/core/test_runtime_evidence.py
+    - tests/cli/test_chain_merge_refresh_evidence_command.py
+validate:
+  - uv run python -m pytest -q tests/core/test_runtime_evidence_preparation_environment.py tests/core/test_pytest_worker_execution.py tests/core/test_runtime_evidence.py tests/cli/test_chain_merge_refresh_evidence_command.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T03:28:24+08:00"
+  summary: >-
+    Runtime-evidence collection, pytest preparation and capability probes,
+    environment-identity and freshness probes, and final execution now share
+    the snapshot executor's explicit environment overrides and removals without
+    mutating process-global state.
+  rationale: >-
+    Child environments are composed from the executor-owned policy, while the
+    source-oriented semantic environment digest remains stable for byte-identical
+    snapshot evidence rebinding. Timing and runtime instrumentation extend the
+    explicit child PYTHONPATH and plugin set without reviving removed ambient
+    values. The real chain-refresh reproduction no longer creates a snapshot
+    .venv; it continues to reject genuine generated-package writes through the
+    existing fail-closed material-write guard.
+  lessons:
+    - lesson_type: concurrency-hardening
+      summary: >-
+        Subprocess isolation requires passing one explicit environment through
+        preparation, capability, identity, freshness, and execution paths;
+        temporarily changing os.environ would permit policy bleed between
+        concurrent evidence workers.
+      tags: [runtime-evidence, subprocess, environment, snapshots]
+      paths:
+        - maid_runner/core/_runtime_command_executor.py
+        - maid_runner/core/_pytest_worker_execution.py
+        - maid_runner/core/runtime_evidence.py
+    - lesson_type: review-fix-loop
+      summary: >-
+        Independent implementation review found that the first green contract
+        missed the serial preparation early return and inherited xdist markers;
+        public behavioral controls now cover both without suppressing MAID-owned
+        plugins or legitimate xdist worker identity.
+      tags: [implementation-review, test-design, pytest, environment]
+      paths:
+        - tests/core/test_runtime_evidence_preparation_environment.py
+        - .maid/plan-locks/fix-runtime-preparation-snapshot-environment.lock.json
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: P1 fixed
+      summary: >-
+        Initial review found explicit PYTEST_PLUGINS removal could be undone in
+        the serial early-return path and preparation retained ambient xdist
+        markers; both findings were fixed with approved behavioral coverage.
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Final read-only review reported no blocking or advisory findings,
+        confirmed scope and public signatures, and returned Ready to merge.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_runtime_evidence_preparation_environment.py, tests/core/test_pytest_worker_execution.py, tests/core/test_runtime_evidence.py, tests/cli/test_chain_merge_refresh_evidence_command.py]
+      status: passed
+      summary: "All 71 declared and adjacent runtime-evidence tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 6."
+    - command: [uv, run, ruff, check, maid_runner/core/_pytest_worker_execution.py, maid_runner/core/_runtime_command_executor.py, maid_runner/core/runtime_evidence.py, maid_runner/core/artifact_coverage.py, tests/core/test_runtime_evidence_preparation_environment.py]
+      status: passed
+      summary: "Focused Ruff validation passed."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 1b96761]
+      status: passed
+      summary: "The assessed deep gate passed all 11 stages in 62.128 seconds; only existing non-blocking E307 notices remained."

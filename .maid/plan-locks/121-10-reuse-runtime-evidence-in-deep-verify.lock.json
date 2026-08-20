@@ -1,0 +1,1128 @@
+{
+  "manifest_path": "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+  "manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
+  "test_hashes": {
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+    "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
+  },
+  "created_at": "2026-08-11T09:54:08.840657+00:00",
+  "revision": 25,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:73a70a579499174395c1046abcb186f941ad946d9901876bd9993dc5d0257e81",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:70c9081621963ead13cf236b3fbdacaf3c993d847214c69806f81b29dc5c9fdd",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T09:54:48.928577+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml -> manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:01da056ee87490fef7824cb1c338055cf28f77b6b9e5790679b57ee99192545b",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:70c9081621963ead13cf236b3fbdacaf3c993d847214c69806f81b29dc5c9fdd",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:03:58.891452+00:00",
+      "reason": "Clarify that failed pytest evidence remains coverage-incomplete and therefore keeps exact artifact fallback plus a fresh ordinary tests-stage execution; rename the behavioral scenario to match the fail-closed contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_when_evidence_falls_back_exactly",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_when_evidence_falls_back_exactly:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_from_buffered_result",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_from_buffered_result:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6d9c492b6422aed48070fc3ac2d06731f2f4f659e77d4cb6ebe684c06a046e84",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:33f1233b11576738924886f59d54af4a9c76fd11f6b792e6992e180c806ca1d8",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:06:40.752341+00:00",
+      "reason": "Match the validator's canonical nested Union spelling for existing int-or-string pytest worker annotations; no behavioral or implementation scope change.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=pytest_workers:type=int | str | None:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:021c4110877b7a0d7376aa4f9f9fa1b13eb727dbeae57b224908d03379c8f9fc",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:33f1233b11576738924886f59d54af4a9c76fd11f6b792e6992e180c806ca1d8",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:09:24.494167+00:00",
+      "reason": "Extend the worker-override contract to prove multi-job verification stays on legacy coverage until contextual evidence can receive the outer command-job count, preserving the global process budget.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:021c4110877b7a0d7376aa4f9f9fa1b13eb727dbeae57b224908d03379c8f9fc",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a24573eb595fe72efc75426b3aa1466e1acc22a51f383ad5a44f332b48ea491",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:10:48.511924+00:00",
+      "reason": "Correct the multi-job fallback assertion to preserve ordinary concurrent command execution: coverage runs first, while pytest and residual tests-stage commands may complete in either order.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:021c4110877b7a0d7376aa4f9f9fa1b13eb727dbeae57b224908d03379c8f9fc",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:e7fedcc771d66cd99f75bb8314676ff1847e898f052dce4bc9516f7ba33f1e9c",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:15:45.827267+00:00",
+      "reason": "Strengthen residual-stage proof with an active pytest manifest that has no runtime coverage targets; require exact whole-group command equality so a larger ordinary batch never reuses partial coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:021c4110877b7a0d7376aa4f9f9fa1b13eb727dbeae57b224908d03379c8f9fc",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:5d895ddb1e7a943798a08662e986a7aa5f0918cdde2e70557241c4c0d62464a8",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:19:52.183828+00:00",
+      "reason": "Expand the contract minimally to carry the scheduling notice already produced by contextual execution through RuntimeGroupEvidence and BatchTestResult, preserving JSON/text parity without an additional collection probe; also require exact whole-group command matching and defer noncoverage pytest manifests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:kind=attribute",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:of=RuntimeGroupEvidence",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:type=Union[TestSchedulingNotice, None]",
+          "tests/core/test_runtime_evidence.py:test_runtime_collection_preserves_scheduling_notice_without_extra_collection",
+          "tests/core/test_runtime_evidence.py:test_runtime_collection_preserves_scheduling_notice_without_extra_collection:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/runtime_evidence.py",
+          "edit:tests/core/test_runtime_evidence.py",
+          "scope:maid_runner/core/_runtime_command_executor.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:830bb316df44829c6d953acdfdcb91108ae1f3706e9a9dff1e16bdb356f0304a",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:5d895ddb1e7a943798a08662e986a7aa5f0918cdde2e70557241c4c0d62464a8",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d9de04a2ba716dc781e6326ad4965358d8a7aa05d7bf0cbd00c6059b800f40eb",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T10:21:21.868724+00:00",
+      "reason": "Make RuntimeGroupEvidence scheduling_notice part of the behavioral fixture contract so static behavioral validation and runtime propagation both prove the typed field.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:830bb316df44829c6d953acdfdcb91108ae1f3706e9a9dff1e16bdb356f0304a",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:5d895ddb1e7a943798a08662e986a7aa5f0918cdde2e70557241c4c0d62464a8",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:4a9dd5383b3cdcea5615e66fbb287c9ab9768dafa6d0f7722d3f64fe505d3a3d",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T11:00:26.672332+00:00",
+      "reason": "Match the scheduling-notice assertion to the runner's canonical batched pytest command ordering (targets before verbosity options).",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:830bb316df44829c6d953acdfdcb91108ae1f3706e9a9dff1e16bdb356f0304a",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:5d895ddb1e7a943798a08662e986a7aa5f0918cdde2e70557241c4c0d62464a8",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:f61e176fcfdffd0ad133c01e2fd99389cb5b744e2d5b6ea02dbeb8f01ba0250b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T11:02:15.006285+00:00",
+      "reason": "Add the evolved runtime-evidence suite to the manifest's declared validation command so scheduling-notice propagation is part of the implementation gate.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c4b6b51c1d1889aaca80f6b8124a5b2f9a9c0d827b4bf4cbc8876544606f74c2",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:5d895ddb1e7a943798a08662e986a7aa5f0918cdde2e70557241c4c0d62464a8",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:f61e176fcfdffd0ad133c01e2fd99389cb5b744e2d5b6ea02dbeb8f01ba0250b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T13:01:20.179805+00:00",
+      "reason": "Redesign after independent review: evidence accelerates artifact coverage only; ordinary tests always run fresh to eliminate mutation, profiler-observability, timing-scheduler, and stale-result false greens.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=manifest_dir:type=str:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=root:type=Path:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=test_jobs:type=int:default=1",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:kind=function",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:returns=RuntimeEvidenceBundle | None",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_coverage_fallback",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_coverage_fallback:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_keeps_ordinary_tests_fresh_after_coverage",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_keeps_ordinary_tests_fresh_after_coverage:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_reaches_evidence_and_fresh_tests_path",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_reaches_evidence_and_fresh_tests_path:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:arg=buffered:type=BufferedTestExecution | None:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=buffered:type=BufferedTestExecution:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=fail_fast:type=bool:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=manifest_dir:type=str:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=root:type=Path:default=None",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:arg=test_jobs:type=int:default=1",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:kind=function",
+          "maid_runner/cli/commands/verify.py:function:_tests_stage_from_buffered_execution:returns=VerificationStageResult",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:kind=attribute",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:of=RuntimeGroupEvidence",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.scheduling_notice:type=Union[TestSchedulingNotice, None]",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.content_digest",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.content_digest:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.content_digest:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.content_digest:type=str",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.environment_identities",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.environment_identities:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.environment_identities:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.environment_identities:type=tuple[RuntimeEnvironmentIdentity, Ellipsis]",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.evidence_run",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.evidence_run:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.evidence_run:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.evidence_run:type=RuntimeEvidenceRun",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.observable_project_state_digest",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.observable_project_state_digest:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.observable_project_state_digest:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.observable_project_state_digest:type=str",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.residual_commands",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.residual_commands:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.residual_commands:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.residual_commands:type=tuple[tuple[tuple[str, Ellipsis], str], Ellipsis]",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.reused_group_keys",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.reused_group_keys:kind=attribute",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.reused_group_keys:of=BufferedTestExecution",
+          "maid_runner/core/test_runner.py:attribute:BufferedTestExecution.reused_group_keys:type=tuple[tuple[str, tuple[str, Ellipsis], tuple[str, Ellipsis]], Ellipsis]",
+          "maid_runner/core/test_runner.py:class:BufferedTestExecution",
+          "maid_runner/core/test_runner.py:class:BufferedTestExecution:kind=class",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=buffered:type=BufferedTestExecution:default=None",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=fail_fast:type=bool:default=False",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=jobs:type=int:default=1",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=project_root:type=Union[str, Path]:default='.'",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:kind=function",
+          "maid_runner/core/test_runner.py:function:complete_tests_from_buffered_evidence:returns=BatchTestResult",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=fail_fast:type=bool:default=False",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=jobs:type=int:default=1",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=project_root:type=Path:default=None",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:kind=function",
+          "maid_runner/core/test_runner.py:function:prepare_tests_with_evidence:returns=BufferedTestExecution",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_fallback",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_fallback:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_fresh_tests",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_fresh_tests:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_executes_each_overlapping_pytest_node_once_across_coverage_and_tests",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_executes_each_overlapping_pytest_node_once_across_coverage_and_tests:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_tests_except_durations",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_tests_except_durations:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_when_evidence_falls_back_exactly",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_test_failure_remains_visible_when_evidence_falls_back_exactly:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_fresh_tests",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_fresh_tests:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_disables_buffered_test_result_reuse_before_snapshot_isolation",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_disables_buffered_test_result_reuse_before_snapshot_isolation:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_partial_or_environment_different_group_is_not_reused",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_partial_or_environment_different_group_is_not_reused:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_survives_coverage_and_buffered_tests_path",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_survives_coverage_and_buffered_tests_path:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_runtime_collection_preserves_scheduling_notice_without_extra_collection",
+          "tests/core/test_runtime_evidence.py:test_runtime_collection_preserves_scheduling_notice_without_extra_collection:kind=test_function"
+        ],
+        "files_added": [
+          "read:maid_runner/core/_runtime_command_executor.py",
+          "read:maid_runner/core/artifact_coverage.py",
+          "read:maid_runner/core/runtime_evidence.py",
+          "read:maid_runner/core/test_runner.py",
+          "read:tests/core/test_artifact_coverage_from_runtime_evidence.py",
+          "read:tests/core/test_runtime_evidence.py",
+          "read:tests/core/test_test_runner.py"
+        ],
+        "files_removed": [
+          "edit:maid_runner/core/runtime_evidence.py",
+          "edit:maid_runner/core/test_runner.py",
+          "edit:tests/core/test_runtime_evidence.py",
+          "read:manifests/095-02-add-verify-profile-presets.manifest.yaml",
+          "read:manifests/095-04-migrate-generated-profile-payloads.manifest.yaml",
+          "scope:maid_runner/core/_runtime_command_executor.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:737395e401dd0e48916a9dade6a2875881588daecd4a5bf1513a90859526300f",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0d9922624544167b7adab85984b5efc8d4483ff6cbe3250f065672f59dc65cc1"
+      },
+      "revised_at": "2026-08-11T13:10:38.652954+00:00",
+      "reason": "Canonicalize the promoted manifest timestamp to its equivalent UTC representation so repository validation is warning-free; no contract, scope, or behavior change.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:de3657b344cb6d26ed8de22cd7d01e080e548b0341dc2618068b0c26c72ca93a",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0d9922624544167b7adab85984b5efc8d4483ff6cbe3250f065672f59dc65cc1"
+      },
+      "revised_at": "2026-08-11T13:14:22.480866+00:00",
+      "reason": "Fail closed when the instrumented evidence command mutates project bytes: bind coverage evidence to a pre-execution digest and add the reviewer-reproduced target-deletion adversary.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c5c570588589e482deb8bdc233c630e8e546054af2779d6a50940174972f20e2",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:30431f3e0fb7b5eac115aad9d67af77c391bc4184d7b8eed31f1afb200cc7f05"
+      },
+      "revised_at": "2026-08-11T13:17:49.654165+00:00",
+      "reason": "Strengthen the mutation adversary to exercise both verify orchestration and the direct evidence evaluator, proving a disappeared target cannot be padded into an empty successful report.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c5c570588589e482deb8bdc233c630e8e546054af2779d6a50940174972f20e2",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:a21d57d54b4f7d45e420a414499adb799cbd05b2ba7540daec6aad546f576328"
+      },
+      "revised_at": "2026-08-11T13:25:34.800790+00:00",
+      "reason": "Extend the mutation adversary to the preparation-exception path so collection cannot alter project bytes, raise, and then obtain an empty successful legacy fallback from the altered tree.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c5c570588589e482deb8bdc233c630e8e546054af2779d6a50940174972f20e2",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:76013f4f95df3a99dfb3b13e87e3d1a6a471f0d0e7431a18afe3cca522cfdd54"
+      },
+      "revised_at": "2026-08-11T14:35:46.659331+00:00",
+      "reason": "Bound worst-case cost after the measured >61-minute fallback-heavy deep run: project-owned conftest.py selects legacy coverage before speculative contextual execution until a cheap lifecycle preflight is implemented.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fc131e9ec34b0b437a675b242df78518fb19a84091cb5a68f343d8ea038fce1a",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:912f0a0f19d87cc2742bb564e7986140972cde0bbe1ea3fc10fe32e799b3e3ae"
+      },
+      "revised_at": "2026-08-12T10:19:48.669602+00:00",
+      "reason": "Accept approved 121-17 shared test isolation correction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fc131e9ec34b0b437a675b242df78518fb19a84091cb5a68f343d8ea038fce1a",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:912f0a0f19d87cc2742bb564e7986140972cde0bbe1ea3fc10fe32e799b3e3ae"
+      },
+      "revised_at": "2026-08-13T03:01:53.451731+00:00",
+      "reason": "Replace the temporary blanket project-conftest preflight with 121-15's runtime lifecycle/source and digest-bound approval proof, while preserving exact fallback for every unproven context and always running ordinary tests fresh.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87"
+      },
+      "revised_at": "2026-08-13T03:17:25.647448+00:00",
+      "reason": "Accept Black-only formatting of the approved shared runtime-evidence behavioral adversary.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87"
+      },
+      "revised_at": "2026-08-13T04:08:45.454329+00:00",
+      "reason": "Restore the bounded project-conftest preflight after the repository grouped-evidence path exceeded five minutes and the proposed collection-attribution optimization failed safety review; retain the fixture-free fast path and fresh ordinary tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b3b4d3cd97332051a0d7192014d4b41942f3655dfce426d22c93264bdd1df18",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a"
+      },
+      "revised_at": "2026-08-13T04:09:56.656240+00:00",
+      "reason": "Align the companion lock after the approved multi-manifest revision completed; contract and behavioral red evidence are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a"
+      },
+      "revised_at": "2026-08-13T13:57:57.861065+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de"
+      },
+      "revised_at": "2026-08-14T11:51:36.835351+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de"
+      },
+      "revised_at": "2026-08-19T23:14:00.271146+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T04:09:30.570381+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py",
+        "exit_code": 1,
+        "output_tail": "    \n        assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is sentinel\n        assert len(calls) == 1\n    \n        outside = tmp_path.parent / f\"{tmp_path.name}-outside-conftest.py\"\n        outside.write_text(\"# outside project\\n\")\n        link = tmp_path / \"tests\" / \"linked\" / \"conftest.py\"\n        link.parent.mkdir(parents=True)\n        link.symlink_to(outside)\n        calls.clear()\n    \n>       assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is None\nE       AssertionError: assert RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) is None\nE        +  where RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) = <function _collect_artifact_coverage_evidence at 0x7c014ffc9580>(PosixPath('/tmp/pytest-of-atomrem/pytest-4170/test_excluded_or_symlinked_con0'), 'manifests/')\n\ntests/cli/test_verify_deep_evidence_reuse.py:551: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_project_conftest_uses_legacy_coverage_without_speculative_evidence\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_excluded_or_symlinked_conftest_preflight_is_bounded\n2 failed, 187 passed in 44.40s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=project_root:type=Path:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=strict_context:type=bool:default=False",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:kind=function",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:returns=dict[str, ArtifactCoverageReport]",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_artifact_coverage_stage:returns=VerificationStageResult",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:returns=RuntimeEvidenceBundle | None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=allow_empty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=artifact_coverage:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=base_ref:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=changed_scope_explicit:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_assertions:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=check_stubs:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_fast:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_scope_only:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=fail_on_warnings:type=bool:default=True",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=file_tracking_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=include_tests:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_allow_dirty:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=knockout_limit:type=int | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_changed_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_plan_lock:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_red_evidence:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=require_worktree_scope:type=bool:default=False",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=since:type=str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:arg=test_scope:type=str:default='repository'",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_run_verify_cached:returns=VerificationResult",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_artifact_coverage_fail_fast_does_not_emit_later_tests_stage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_artifact_coverage_fail_fast_does_not_emit_later_tests_stage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_coverage_fallback",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_content_or_command_plan_runs_exact_coverage_fallback:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_preserves_artifact_coverage_before_tests_stage_output",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_deep_preserves_artifact_coverage_before_tests_stage_output:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_keeps_ordinary_tests_fresh_after_coverage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_knockout_keeps_ordinary_tests_fresh_after_coverage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_residual_and_nonpytest_commands_first_execute_at_tests_stage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_residual_and_nonpytest_commands_first_execute_at_tests_stage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_reaches_evidence_and_fresh_tests_path",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_verify_worker_override_reaches_evidence_and_fresh_tests_path:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_verify_deep_evidence_reuse.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/verify_summary.py",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "tests/cli/test_artifact_coverage_cmd.py",
+        "tests/cli/test_verify_cmd.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+        "tests/core/test_runtime_evidence.py",
+        "tests/core/test_test_runner.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_verify_deep_evidence_reuse.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_residual_and_nonpytest_commands_first_execute_at_tests_stage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instrumentation_observable_test_cannot_create_false_green_tests_stage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_deep_preserves_artifact_coverage_before_tests_stage_output"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_fail_fast_does_not_emit_later_tests_stage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_content_or_command_plan_runs_exact_coverage_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_worker_override_reaches_evidence_and_fresh_tests_path"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_resolved_environment_identity_runs_exact_coverage_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_project_conftest_uses_legacy_coverage_without_speculative_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_excluded_or_symlinked_conftest_preflight_is_bounded"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_keeps_ordinary_tests_fresh_after_coverage"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_verify_cached",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "allow_empty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_fast",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "require_worktree_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_changed_scope",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "changed_scope_explicit",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "since",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "base_ref",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "file_tracking_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "fail_on_scope_only",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "include_tests",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                },
+                {
+                  "name": "test_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                },
+                {
+                  "name": "artifact_coverage",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "knockout_limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "knockout_allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "VerificationResult"
+            },
+            {
+              "kind": "function",
+              "name": "_collect_artifact_coverage_evidence",
+              "description": "Returns current grouped evidence, or None so coverage uses the complete legacy stage when preparation is unsafe or unsupported.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeEvidenceBundle | None"
+            },
+            {
+              "kind": "function",
+              "name": "_artifact_coverage_stage",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "VerificationStageResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_artifact_coverage_by_manifest",
+              "description": "Uses invocation evidence when supplied while preserving standalone exact and directory-wide legacy fallback behavior.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "strict_context",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/verify_summary.py",
+        "tests/core/test_runtime_evidence.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+        "tests/core/test_test_runner.py",
+        "tests/cli/test_artifact_coverage_cmd.py",
+        "tests/cli/test_verify_cmd.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_artifact_coverage_cmd.py",
+      "tests/cli/test_verify_cmd.py",
+      "tests/cli/test_verify_deep_evidence_reuse.py",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "tests/core/test_runtime_evidence.py",
+      "tests/core/test_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py",
+      "uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

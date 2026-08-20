@@ -1,0 +1,62 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Raise leftover non-pytest command_jobs under the process budget"
+type: refactor
+created: "2026-08-13T09:55:16Z"
+metadata:
+  priority: medium
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - test-execution
+description: |
+  121-07 already injects pytest -n 8 --dist loadscope. command_jobs is still 1,
+  so leftover non-pytest groups stay serial. max_processes is 16, so command_jobs
+  2 fills the remaining slot without exceeding 2 * 8 workers. This does not
+  retune pytest workers or claim the 60-second maid test budget without a new
+  warm-gate measurement.
+temptations:
+  - risk: "Do not raise pytest_workers or exceed command_jobs * pytest_workers > max_processes."
+    instead: "Set command_jobs to 2 so 2 * 8 <= 16."
+files:
+  create:
+    - path: tests/core/test_repository_command_jobs.py
+      artifacts:
+        - kind: test_function
+          name: test_repository_command_jobs_use_remaining_process_budget
+          args: []
+  scope:
+    - path: .maidrc.yaml
+      reason: "Set test_execution.command_jobs to 2 under the existing 16-process budget."
+  read:
+    - maid_runner/core/config.py
+    - manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_repository_command_jobs.py tests/core/test_config.py
+  - uv run maid validate manifests/121-25-tune-maid-test-command-jobs.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T18:10:00Z"
+  summary: "Repository .maidrc.yaml command_jobs is 2 under the existing 16-process budget. pytest_workers stays 8. Packaged TestExecutionConfig default remains command_jobs 1. This does not claim the 60-second maid test budget."
+  rationale: "121-07 already injects pytest -n 8. Leftover non-pytest groups were still serial at command_jobs 1. 2 * 8 equals max_processes 16 and does not oversubscribe."
+  lessons:
+    - lesson_type: performance
+      summary: "Raise leftover command_jobs only while command_jobs * pytest_workers stays at or under max_processes; do not retune pytest workers in the same change."
+      tags: [performance, test-execution]
+      paths:
+        - .maidrc.yaml
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Scope stayed on .maidrc.yaml and the new behavioral test. Temptation not taken. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_repository_command_jobs.py, tests/core/test_config.py]
+      status: passed
+      summary: "15 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-25-tune-maid-test-command-jobs.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

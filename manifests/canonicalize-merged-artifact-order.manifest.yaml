@@ -1,0 +1,245 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make effective artifact ordering canonical and independent of surviving owner topology"
+type: fix
+created: "2026-08-17T05:08:03Z"
+supersedes:
+  - fix-chain-merge-target-contract-equivalence
+metadata:
+  priority: critical
+  tags:
+    - chain-merge
+    - artifact-order
+    - contract-equivalence
+    - supersession
+description: |
+  ManifestChain currently preserves the insertion position of the first owner
+  of each artifact while later owners replace only its value. A chain-merge
+  replacement can therefore preserve every complete ArtifactSpec yet change
+  effective list order when an older overlapping owner survives. Exact order
+  preservation by superseding the overlap closure is unsafe in this repository:
+  the 17 E710 consolidation targets form one connected component of 397 active
+  manifests and 593 artifact-bearing paths.
+
+  Canonicalize merged_artifacts_for output by complete contract identity after
+  applying the existing latest-owner-wins value merge. This keeps validation
+  semantics and complete values unchanged while making public list order
+  deterministic across equivalent owner topologies, including exact overloads.
+  The materialized replacement still retains existing effective specs first
+  and appends newly inferred specs in source order; once replayed through the
+  active chain, merged_artifacts_for exposes canonical contract-key order.
+  Target metadata, imports, private-only path scope, atomic refusals, and
+  signature-aware inferred-artifact deduplication remain unchanged.
+temptations:
+  - risk: "Do not supersede the 397-manifest overlap closure to force insertion order."
+    instead: "Canonicalize the public merged result after latest-owner value resolution and prove topology-independent equivalence."
+  - risk: "Do not sort manifests before merging or let an older ArtifactSpec win."
+    instead: "Preserve created-order traversal and latest-owner replacement, then sort only the final complete ArtifactSpec values by contract_key."
+  - risk: "Do not sort by bare name, which collapses owners and exact overloads."
+    instead: "Use full contract_key identity and cover two signatures sharing one method merge key."
+  - risk: "Do not weaken complete-value equivalence to make ordering assertions pass."
+    instead: "Compare identity-to-spec mappings before and after apply as well as canonical key order."
+files:
+  edit:
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: method
+          name: merged_artifacts_for
+          of: ManifestChain
+          args:
+            - name: path
+              type: str
+          returns: list[ArtifactSpec]
+          description: "Return latest effective ArtifactSpecs in canonical contract-key order independent of active owner topology."
+    - path: maid_runner/core/chain_merge_apply.py
+      artifacts:
+        - kind: class
+          name: ChainMergeApplyResult
+        - kind: attribute
+          name: applied
+          of: ChainMergeApplyResult
+          type: bool
+        - kind: attribute
+          name: snapshot_path
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: superseded_slugs
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: refused_reason
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: missing_artifacts
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: function
+          name: apply_chain_merge
+          args:
+            - name: file_path
+              type: str
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: str
+              default: '"."'
+            - name: output_dir
+              type: str
+              default: '"manifests/"'
+            - name: registry
+              type: ValidatorRegistry | None
+              default: "None"
+          returns: ChainMergeApplyResult
+    - path: tests/core/test_chain_merge_apply.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_writes_snapshot_superseding_chain
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_when_snapshot_drops_declared_artifact
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_lean_file
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_leaves_source_unchanged
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_repeatedly_uses_noncolliding_snapshot_slug
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_multi_file_contract_and_validation_union
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_omits_legacy_private_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_scope_read_and_delete_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_keeps_snapshot_inferred_companion_reads
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_artifact_delete_path_conflict_atomically
+          args: []
+          returns: None
+    - path: tests/core/test_chain_merge_full_artifact_specs.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_preserves_latest_complete_specs_for_every_carried_artifact
+          args: []
+          returns: None
+    - path: tests/core/test_chain_merge_target_contract_equivalence.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_preserves_ordered_target_specs_and_private_only_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_complete_target_test_details
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_unmatched_exact_target_signature_atomically
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_appends_distinct_inferred_overloads_once
+          args: []
+          returns: None
+  create:
+    - path: tests/core/test_chain_artifact_canonical_order.py
+      artifacts:
+        - kind: test_function
+          name: test_merged_artifacts_use_canonical_contract_key_order
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_merged_exact_overloads_use_canonical_contract_key_order
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_keeps_canonical_order_with_surviving_overlapping_owner
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/chain_merge.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/cli/test_chain_merge_apply_command.py
+    - tests/core/test_chain_merge_coverage_wiring.py
+    - tests/core/test_chain_merge_equivalence.py
+    - manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_artifact_canonical_order.py tests/core/test_chain_merge_target_contract_equivalence.py tests/core/test_chain_merge_full_artifact_specs.py tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py
+  - uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py tests/core/test_chain.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T05:17:35Z"
+  summary: "Effective chain artifacts now use canonical contract-key order without changing latest-owner values, exact overload identities, or replacement materialization semantics."
+  rationale: "Canonicalizing only the final merged values makes equivalent owner topologies observable in the same order while retaining created-order replay and latest-owner replacement. This safely unblocks owner consolidation without superseding the 397-manifest overlap closure."
+  lessons:
+    - lesson_type: design
+      summary: "When equivalent owner graphs can replay the same complete contracts in different insertion orders, canonicalize the public effective view after value resolution rather than expanding supersession across the overlap closure."
+      tags:
+        - chain-merge
+        - contract-equivalence
+        - validation-trust
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/chain.py
+    - lesson_type: test-design
+      summary: "Ordering regressions need both canonical identity assertions and complete identity-to-spec comparisons; order-only checks can hide value loss while mapping-only checks can hide topology drift."
+      tags:
+        - chain-merge
+        - anti-gaming
+        - artifact-order
+        - maid-runner-feedback
+      paths:
+        - tests/core/test_chain_artifact_canonical_order.py
+        - tests/core/test_chain_merge_target_contract_equivalence.py
+  review_notes:
+    - source: canonical-order-plan-review
+      severity: approved
+      summary: "The final contract covered ordinary artifacts, exact overloads, surviving overlapping owners, full values, persisted replacement order, and masked legacy-order assertions."
+    - source: canonical-order-implementation-review
+      severity: ready
+      summary: "Independent review found no P0-P2 issues and confirmed scope, string-valued sort safety, latest-owner preservation, exact overload identity, and full-value behavioral coverage."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_artifact_canonical_order.py, tests/core/test_chain_merge_target_contract_equivalence.py, tests/core/test_chain_merge_full_artifact_specs.py, tests/core/test_chain_merge_apply.py, tests/cli/test_chain_merge_apply_command.py]
+      status: passed
+      summary: "All 20 focused canonical-order, target-equivalence, carried-contract, apply, and CLI tests passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_coverage_wiring.py, tests/core/test_chain_merge_equivalence.py, tests/core/test_chain.py]
+      status: passed
+      summary: "All 54 adjacent chain, coverage-wiring, and equivalence tests passed."
+    - command: [uv, run, maid, validate, manifests/canonicalize-merged-artifact-order.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against the promoted revision-2 plan lock."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 470 active manifests passed; 122 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 294 declared validation commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, b0a8e09]
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation stages passed; artifact coverage remained blocked only by the 89 pre-consolidation E710 owner-debt findings this prerequisite enables us to consolidate."

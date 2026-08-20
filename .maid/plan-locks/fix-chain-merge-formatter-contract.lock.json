@@ -1,0 +1,175 @@
+{
+  "manifest_path": "manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+  "manifest_hash": "sha256-contract:1054e4ee5f82d4b4b2cc7c0d6c82e730a1aa878054fbf236f9f8b55569c5499d",
+  "test_hashes": {
+    "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:ff0851868649e8586974bcb09cfeb33c1921383552a1e1c549c24f7d32936fa4"
+  },
+  "created_at": "2026-08-15T14:19:15.013384+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:33c5708c3dbf6cd58afee0badb0d62c6fc91dc3f17df4cd8689a1e116f5bd586",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:ff0851868649e8586974bcb09cfeb33c1921383552a1e1c549c24f7d32936fa4"
+      },
+      "revised_at": "2026-08-15T14:19:28.583266+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-chain-merge-formatter-contract.manifest.yaml -> manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-15T14:19:23.222112+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_chain_merge_formatter_contract.py",
+        "exit_code": 1,
+        "output_tail": "E           Mode: implementation\nE           Duration: 48ms\nE           Errors (3):\nE             E301 Unexpected public artifact 'format_chain_merge_report' in maid_runner/cli/commands/_format.py\nE               Location: maid_runner/cli/commands/_format.py:1215\nE             E301 Unexpected public artifact 'format_chain_merge_summary' in maid_runner/cli/commands/_format.py\nE               Location: maid_runner/cli/commands/_format.py:1272\nE             E301 Unexpected public artifact 'format_chain_merge_apply_result' in maid_runner/cli/commands/_format.py\nE               Location: maid_runner/cli/commands/_format.py:1301\nE           Warnings (1):\nE             E307 No validator available for '.maidrc.yaml'\nE               Location: .maidrc.yaml\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['uv', 'run', 'maid', 'validate'], returncode=1, stdout=\"Validation Results: 580 manifests\\n  Pa...:1301\\n  Warnings (1):\\n    E307 No validator available for '.maidrc.yaml'\\n      Location: .maidrc.yaml\\n\", stderr='').returncode\n\ntests/cli/test_chain_merge_formatter_contract.py:106: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_chain_merge_formatter_contract.py::test_chain_merge_formatters_are_accepted_by_all_active_contracts\n1 failed, 1 passed in 8.04s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_apply_result",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_apply_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_apply_result:arg=result:type=ChainMergeApplyResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_apply_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_apply_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_report",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_report:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_report:arg=report:type=ChainMergeReport:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_report:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_report:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_summary",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_summary:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_summary:arg=summary:type=ChainMergeSweepSummary:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_summary:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_chain_merge_summary:returns=str",
+      "tests/cli/test_chain_merge_formatter_contract.py:test_chain_merge_formatters_are_accepted_by_all_active_contracts",
+      "tests/cli/test_chain_merge_formatter_contract.py:test_chain_merge_formatters_are_accepted_by_all_active_contracts:kind=test_function",
+      "tests/cli/test_chain_merge_formatter_contract.py:test_chain_merge_formatters_render_text_and_json",
+      "tests/cli/test_chain_merge_formatter_contract.py:test_chain_merge_formatters_render_text_and_json:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_chain_merge_formatter_contract.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_apply.py",
+        "maid_runner/core/chain_merge_sweep.py",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_chain_merge_formatter_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_formatters_render_text_and_json"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_formatters_are_accepted_by_all_active_contracts"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_chain_merge_report",
+              "description": "Render one chain-merge report as deterministic text or a single JSON document.",
+              "args": [
+                {
+                  "name": "report",
+                  "type": "ChainMergeReport"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_chain_merge_summary",
+              "description": "Render the repository-wide chain-merge sweep summary as text or JSON.",
+              "args": [
+                {
+                  "name": "summary",
+                  "type": "ChainMergeSweepSummary"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_chain_merge_apply_result",
+              "description": "Render an applied or refused chain-merge materialization result as text or JSON.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "ChainMergeApplyResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_apply.py",
+        "maid_runner/core/chain_merge_sweep.py",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "AGENTS.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_formatter_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_chain_merge_formatter_contract.py"
+    ]
+  }
+}

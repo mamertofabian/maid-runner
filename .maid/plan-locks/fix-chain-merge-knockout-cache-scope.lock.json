@@ -1,0 +1,220 @@
+{
+  "manifest_path": "manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+  "manifest_hash": "sha256-contract:c59f60987cb86ccd79c1eb1a39bb5d80023b359feb51c99b067c0c502bae4bf6",
+  "test_hashes": {
+    "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+    "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+    "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+    "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+    "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+    "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+    "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e"
+  },
+  "created_at": "2026-08-19T11:27:48.858203+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7cdb9cffd2fe9858f8adb06cd2f1884acdb296b969a1f666a193cfa886a5e74c",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:20040a1076f3139b13d64cf9d4fbbb3f5f53e972a1c6d316c90208dcfd54d4c6",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e"
+      },
+      "revised_at": "2026-08-19T11:28:00.814469+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-chain-merge-knockout-cache-scope.manifest.yaml -> manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c59f60987cb86ccd79c1eb1a39bb5d80023b359feb51c99b067c0c502bae4bf6",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:20040a1076f3139b13d64cf9d4fbbb3f5f53e972a1c6d316c90208dcfd54d4c6",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e"
+      },
+      "revised_at": "2026-08-19T13:49:32.147532+00:00",
+      "reason": "Ignore generated cache and bytecode files in the synthetic Git fixture so repository-identity staleness tests isolate tracked inputs",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c59f60987cb86ccd79c1eb1a39bb5d80023b359feb51c99b067c0c502bae4bf6",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:8d7ffc1dbf9b281d2bc4527ae729698bdab1922bd94866e5e08ef2230c9d4ce5",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e"
+      },
+      "revised_at": "2026-08-19T13:52:19.298921+00:00",
+      "reason": "Collect artifact-coverage runtime evidence before knockout so the behavioral round trip records focused detecting nodeids",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T13:52:27.871251+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py",
+        "exit_code": 1,
+        "output_tail": "                    \"--no-changed-scope\",\n                    \"--summary\",\n                ]\n            )\n            == 0\n        )\n        capsys.readouterr()\n    \n        chain = ManifestChain(\"manifests\")\n>       assert knockout.cached_detecting_nodeids_for_file(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            chain.active_manifests(), Path(\".\"), \"src/a.py\"\n        ) == {\"function:target\": (\"tests/test_a.py::test_target\",)}\nE       AttributeError: module 'maid_runner.core.knockout' has no attribute 'cached_detecting_nodeids_for_file'. Did you mean: 'cached_detecting_nodeids'?\n\n/home/atomrem/projects/codefrost-dev/maid-runner-chain-cache-fix/tests/core/test_chain_merge_deep_detection_roundtrip.py:64: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_deep_detection_roundtrip.py::test_chain_merge_keeps_cold_detection_unknown\nFAILED tests/core/test_chain_merge_deep_detection_roundtrip.py::test_chain_merge_reads_file_scoped_detection_from_verify_cache\n2 failed, 8 passed in 5.22s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py",
+        "exit_code": 0,
+        "output_tail": "...................................                                      [100%]\n35 passed in 2.92s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file",
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file:arg=file_path:type=str:default=None",
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file:kind=function",
+      "maid_runner/core/knockout.py:function:cached_detecting_nodeids_for_file:returns=dict[str, tuple[str, Ellipsis]]",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_keeps_cold_detection_unknown",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_keeps_cold_detection_unknown:kind=test_function",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_keeps_cold_detection_unknown:returns=None",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_reads_file_scoped_detection_from_verify_cache",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_reads_file_scoped_detection_from_verify_cache:kind=test_function",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py:test_chain_merge_reads_file_scoped_detection_from_verify_cache:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py"
+      ],
+      "edit": [
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "tests/core/test_chain_merge_detection_wiring.py",
+        "tests/core/test_chain_merge_evidence.py"
+      ],
+      "scope": [
+        "maid_runner/core/chain_merge_evidence.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merge_deep_detection_roundtrip.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_keeps_cold_detection_unknown",
+              "description": "Before verify records evidence, the full-plan file-scoped accessor is empty and the public chain report remains UNKNOWN.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_reads_file_scoped_detection_from_verify_cache",
+              "description": "A normal verify knockout cache round-trip gives each same-named artifact's chain report only its own detecting nodeid, then a source mutation makes the evidence UNKNOWN again.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cached_detecting_nodeids_for_file",
+              "description": "Read fresh recorded detecting nodeids for one file while reconstructing cache keys from the complete active manifest plan.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "dict[str, tuple[str, Ellipsis]]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "tests/core/test_chain_merge_evidence.py",
+        "tests/core/test_chain_merge_detection_wiring.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/chain_merge_evidence.py",
+          "reason": "Route the existing per-file detection source through the full-plan file-scoped cache accessor without changing its public signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_command.py",
+      "tests/cli/test_chain_merge_equivalence_command.py",
+      "tests/core/test_chain_merge.py",
+      "tests/core/test_chain_merge_deep_detection_roundtrip.py",
+      "tests/core/test_chain_merge_detection_wiring.py",
+      "tests/core/test_chain_merge_equivalence.py",
+      "tests/core/test_chain_merge_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py",
+      "uv run python -m pytest -q tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py"
+    ]
+  }
+}

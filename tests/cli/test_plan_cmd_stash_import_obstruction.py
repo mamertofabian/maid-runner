@@ -6,11 +6,15 @@ import json
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
 from maid_runner.cli.commands.plan import cmd_plan_lock, cmd_plan_revise
 from maid_runner.core.plan_lock import default_plan_lock_path
+
+if TYPE_CHECKING:
+    from tests.support.git_project_templates import GitProjectTemplateFactory
 
 
 def _git(project_root: Path, *args: str) -> str:
@@ -59,7 +63,17 @@ def _revise_args(manifest_path: Path, project_root: Path) -> SimpleNamespace:
     )
 
 
-def _write_locked_full_stack_project(project_root: Path) -> Path:
+def _write_locked_full_stack_project(
+    project_root: Path,
+    template_factory: GitProjectTemplateFactory | None = None,
+) -> Path:
+    if template_factory is not None:
+        from tests.support.git_project_templates import clone_git_project_template
+
+        template = template_factory.get("stash-import-obstruction")
+        clone_git_project_template(template, project_root)
+        return project_root / "manifests" / "full-stack.manifest.yaml"
+
     for relative in ("manifests", "app", "tests"):
         (project_root / relative).mkdir()
     (project_root / "app" / "__init__.py").write_text("")
@@ -117,6 +131,9 @@ validate:
     _git(project_root, "init", "-q")
     _commit_all(project_root, "red baseline")
     assert cmd_plan_lock(_lock_args(manifest_path, project_root)) == 0
+    from tests.support.git_project_templates import _remove_python_caches
+
+    _remove_python_caches(project_root)
     _commit_all(project_root, "lock baseline")
     return manifest_path
 
@@ -152,8 +169,11 @@ def _add_review_revision(project_root: Path, manifest_path: Path) -> Path:
 
 def test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_locked_full_stack_project(tmp_path)
+    manifest_path = _write_locked_full_stack_project(
+        tmp_path, git_project_template_factory
+    )
     implementation_path = _add_review_revision(tmp_path, manifest_path)
 
     exit_code = cmd_plan_revise(_revise_args(manifest_path, tmp_path))
@@ -178,8 +198,11 @@ def test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction
 
 def test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_locked_full_stack_project(tmp_path)
+    manifest_path = _write_locked_full_stack_project(
+        tmp_path, git_project_template_factory
+    )
     implementation_path = _add_review_revision(tmp_path, manifest_path)
     manifest_path.write_text(
         manifest_path.read_text().replace(
@@ -199,9 +222,13 @@ def test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolv
 
 @pytest.mark.parametrize("mutation", ["content", "mode"])
 def test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it(
-    tmp_path: Path, mutation: str
+    tmp_path: Path,
+    mutation: str,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_locked_full_stack_project(tmp_path)
+    manifest_path = _write_locked_full_stack_project(
+        tmp_path, git_project_template_factory
+    )
     implementation_path = _add_review_revision(tmp_path, manifest_path)
     manifest_path.write_text(
         manifest_path.read_text().replace(

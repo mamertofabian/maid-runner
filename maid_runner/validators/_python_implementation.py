@@ -31,6 +31,8 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._in_function: bool = False
         self._enum_base_names: set[str] = set()
         self._enum_module_names: set[str] = set()
+        self._type_alias_names: set[str] = set()
+        self._typing_module_names: set[str] = set()
         self._control_flow_depth = 0
         self._is_init = Path(file_path).name == "__init__.py"
         self._module_path: Optional[str] = (
@@ -66,7 +68,7 @@ class _ImplementationCollector(ast.NodeVisitor):
             self.visit(child)
         self._current_class = prev_class
         if prev_class is None:
-            self._unbind_enum_import_names({node.name})
+            self._unbind_tracked_import_names({node.name})
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._handle_function(node, is_async=False)
@@ -127,7 +129,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                     column=node.col_offset,
                 )
             )
-            self._unbind_enum_import_names({node.name})
+            self._unbind_tracked_import_names({node.name})
 
     def visit_Assign(self, node: ast.Assign) -> None:
         if self._current_class is not None and self._in_function:
@@ -160,7 +162,7 @@ class _ImplementationCollector(ast.NodeVisitor):
                             )
                         )
         elif self._current_class is None and not self._in_function:
-            self._unbind_enum_import_names(_assignment_target_names(node.targets))
+            self._unbind_tracked_import_names(_assignment_target_names(node.targets))
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self._add(
@@ -199,15 +201,27 @@ class _ImplementationCollector(ast.NodeVisitor):
                     )
                 )
             elif self._current_class is None and not self._in_function:
-                self._unbind_enum_import_names({node.target.id})
-                self._add(
-                    FoundArtifact(
-                        kind=ArtifactKind.ATTRIBUTE,
-                        name=node.target.id,
-                        type_annotation=type_ann,
-                        line=node.lineno,
+                if node.value is not None and self._is_stdlib_type_alias_marker(
+                    node.annotation
+                ):
+                    self._add(
+                        FoundArtifact(
+                            kind=ArtifactKind.TYPE,
+                            name=node.target.id,
+                            type_annotation=_ast_to_alias_type_string(node.value),
+                            line=node.lineno,
+                        )
                     )
-                )
+                else:
+                    self._add(
+                        FoundArtifact(
+                            kind=ArtifactKind.ATTRIBUTE,
+                            name=node.target.id,
+                            type_annotation=type_ann,
+                            line=node.lineno,
+                        )
+                    )
+                self._unbind_tracked_import_names({node.target.id})
         elif (
             isinstance(node.target, ast.Attribute)
             and isinstance(node.target.value, ast.Name)
@@ -232,12 +246,15 @@ class _ImplementationCollector(ast.NodeVisitor):
             return
         for alias in node.names:
             bound = alias.asname or alias.name.split(".", maxsplit=1)[0]
-            self._unbind_enum_import_names({bound})
+            self._unbind_tracked_import_names({bound})
             if self._control_flow_depth == 0 and alias.name == "enum":
                 self._enum_module_names.add(bound)
+            if self._control_flow_depth == 0 and alias.name == "typing":
+                self._typing_module_names.add(bound)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if self._current_class is None and not self._in_function:
+            self._track_type_alias_import(node)
             if any(alias.name == "*" for alias in node.names) and (
                 node.module != "enum" or node.level or self._control_flow_depth
             ):
@@ -323,12 +340,12 @@ class _ImplementationCollector(ast.NodeVisitor):
                 for case in node.cases
                 for name in _match_pattern_names(case.pattern)
             }
-            self._unbind_enum_import_names(names)
+            self._unbind_tracked_import_names(names)
         self._visit_control_flow(node)
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
         if node.name and self._current_class is None and not self._in_function:
-            self._unbind_enum_import_names({node.name})
+            self._unbind_tracked_import_names({node.name})
         self.generic_visit(node)
 
     def visit_AugAssign(self, node: ast.AugAssign) -> None:
@@ -341,7 +358,7 @@ class _ImplementationCollector(ast.NodeVisitor):
 
     def visit_Delete(self, node: ast.Delete) -> None:
         if self._current_class is None and not self._in_function:
-            self._unbind_enum_import_names(_assignment_target_names(node.targets))
+            self._unbind_tracked_import_names(_assignment_target_names(node.targets))
         self.generic_visit(node)
 
     def _visit_control_flow(self, node: ast.AST) -> None:
@@ -353,7 +370,7 @@ class _ImplementationCollector(ast.NodeVisitor):
 
     def _unbind_module_target(self, target: ast.expr) -> None:
         if self._current_class is None and not self._in_function:
-            self._unbind_enum_import_names(_assignment_target_names([target]))
+            self._unbind_tracked_import_names(_assignment_target_names([target]))
 
     def _visit_class_definition_header(self, node: ast.ClassDef) -> None:
         for decorator in node.decorator_list:
@@ -403,9 +420,46 @@ class _ImplementationCollector(ast.NodeVisitor):
             and member in _STDLIB_ENUM_BASES
         )
 
+    def _is_stdlib_type_alias_marker(self, annotation: ast.expr) -> bool:
+        if isinstance(annotation, ast.Name):
+            return annotation.id in self._type_alias_names
+        return bool(
+            isinstance(annotation, ast.Attribute)
+            and annotation.attr == "TypeAlias"
+            and isinstance(annotation.value, ast.Name)
+            and annotation.value.id in self._typing_module_names
+        )
+
+    def _track_type_alias_import(self, node: ast.ImportFrom) -> None:
+        bound_names = {
+            alias.asname or alias.name for alias in node.names if alias.name != "*"
+        }
+        if node.module != "typing" or node.level or self._control_flow_depth:
+            self._unbind_type_alias_import_names(bound_names)
+            if any(alias.name == "*" for alias in node.names):
+                self._type_alias_names.clear()
+                self._typing_module_names.clear()
+            return
+        if any(alias.name == "*" for alias in node.names):
+            self._type_alias_names.clear()
+            return
+        for alias in node.names:
+            bound = alias.asname or alias.name
+            self._unbind_type_alias_import_names({bound})
+            if alias.name == "TypeAlias":
+                self._type_alias_names.add(bound)
+
     def _unbind_enum_import_names(self, names: set[str]) -> None:
         self._enum_base_names.difference_update(names)
         self._enum_module_names.difference_update(names)
+
+    def _unbind_type_alias_import_names(self, names: set[str]) -> None:
+        self._type_alias_names.difference_update(names)
+        self._typing_module_names.difference_update(names)
+
+    def _unbind_tracked_import_names(self, names: set[str]) -> None:
+        self._unbind_enum_import_names(names)
+        self._unbind_type_alias_import_names(names)
 
     def _has_artifact(self, name: str, of: Optional[str]) -> bool:
         return any(a.name == name and a.of == of for a in self.artifacts)
@@ -604,6 +658,59 @@ def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
         return ast.unparse(node)
     except Exception:
         return str(node)
+
+
+def _ast_to_alias_type_string(node: ast.expr) -> Optional[str]:
+    members: list[ast.expr] = []
+
+    def collect(member: ast.expr) -> None:
+        if isinstance(member, ast.BinOp) and isinstance(member.op, ast.BitOr):
+            collect(member.left)
+            collect(member.right)
+            return
+        members.append(member)
+
+    collect(node)
+    if len(members) == 1:
+        return _ast_to_alias_member_string(members[0])
+    rendered = [_ast_to_alias_member_string(member) for member in members]
+    return f"Union[{', '.join(str(member) for member in rendered)}]"
+
+
+def _ast_to_alias_member_string(
+    node: ast.expr, *, value_context: bool = False
+) -> Optional[str]:
+    if value_context:
+        return _ast_to_default_string(node)
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Constant):
+        if node.value is Ellipsis:
+            return _ast_to_default_string(node)
+        return str(node.value)
+    if isinstance(node, ast.Subscript):
+        base = _ast_to_alias_member_string(node.value)
+        literal_values = base == "Literal" or str(base).endswith(".Literal")
+        annotated_values = base == "Annotated" or str(base).endswith(".Annotated")
+        elements = (
+            node.slice.elts if isinstance(node.slice, ast.Tuple) else (node.slice,)
+        )
+        args = [
+            _ast_to_alias_member_string(
+                element,
+                value_context=literal_values or (annotated_values and index > 0),
+            )
+            for index, element in enumerate(elements)
+        ]
+        return f"{base}[{', '.join(str(arg) for arg in args)}]"
+    if isinstance(node, ast.Attribute):
+        value = _ast_to_alias_member_string(node.value)
+        return f"{value}.{node.attr}"
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        left = _ast_to_alias_member_string(node.left)
+        right = _ast_to_alias_member_string(node.right)
+        return f"Union[{left}, {right}]"
+    return _ast_to_type_string(node)
 
 
 def _ast_to_default_string(node: Optional[ast.expr]) -> Optional[str]:

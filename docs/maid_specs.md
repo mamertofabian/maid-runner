@@ -358,18 +358,28 @@ the missing validator dependency.
 
 `maid verify --knockout` is an opt-in Python-only gate that rewrites one
 declared public function or method artifact at a time to
-`raise NotImplementedError("maid-knockout")`, runs the manifest's validate
-commands, and restores the original source content from an in-memory copy with
-hash verification. If all validate commands still exit 0 while the artifact is
-knocked out, MAID reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Harness
-failures such as parse errors, command spawn failures, or restore anomalies
-report `E712 KNOCKOUT_HARNESS_FAILURE` and include the named file so callers
-can recover the worktree state. Knockouts run sequentially in manifest
-declaration order; `--knockout-limit` bounds the artifact count, and
-`--knockout-allow-dirty` permits dirty target files for workflows that
-explicitly accept that risk. Knockout is not full mutation testing; it proves
-this single failure mode and does not promise broader mutmut-style mutation
-coverage.
+`raise NotImplementedError("maid-knockout")`. Detection requires a differential
+transition: the unmodified command passes, the mutant command fails, and the
+same command passes again after verified source restoration. A failing baseline
+or restored control reports `E712 KNOCKOUT_HARNESS_FAILURE`; an unrelated
+pre-existing failure never counts as detection.
+
+When complete invocation-scoped runtime evidence identifies nodes that executed
+the artifact, MAID may run those nodes as positive green-red-green proof. A
+focused pass, incomplete or ambiguous evidence, collection/fixture lifecycle,
+source inspection, or unattributed subprocess observation falls back to the
+original exact command. If no command proves a mutation-caused failure, MAID
+reports `E711 ARTIFACT_KNOCKOUT_NOT_DETECTED`. Each declaration's baseline,
+mutant, and restored control execute in one fresh materialized current-byte
+project snapshot. The snapshot includes tracked modifications and relevant
+untracked inputs, has independently writable ordinary or linked-worktree Git
+metadata, binds project imports to snapshot bytes, and is discarded before the
+next declaration. Snapshot creation, cleanup, path/environment binding, source
+digest, or source-repository identity uncertainty is `E712`; it is never an
+empty success. The checkout is not rewritten, so `--knockout-allow-dirty` is a
+deprecated compatibility no-op. Knockouts remain sequential in manifest
+declaration order, `--knockout-limit` bounds the artifact count, and knockout is
+not full mutation testing.
 
 The changed-scope baseline that defines the task window resolves from
 `--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
@@ -575,7 +585,7 @@ still apply.
 
       This approach maintains the audit trail through test updates while avoiding unnecessary manifest proliferation for internal improvements. The existing manifest's tests serve as the documentation of the change.
 
-    * **Consolidated Snapshots:** For mature modules with a long manifest history, a tool can be run to generate a single "snapshot" manifest. This new manifest describes the complete current state of the file and supersedes all previous manifests for that file. This is also the primary mechanism for onboarding existing, legacy code into the MAID methodology.
+    * **Consolidated Snapshots:** For mature modules with a long manifest history, `maid chain merge <file>` reports whether the active per-file chain is DEFRAG, LEAN, or BLOCKED. The report consumes current recorded evidence and never runs coverage or knockout inline; missing or stale evidence remains UNKNOWN, and recorded E710 debt blocks behavioral certification and test retirement, not structural snapshotting by itself. `--apply` evaluates structural safety without evidence, materializes one complete snapshot that supersedes the prior chain while refusing artifact loss, and never retires tests. `--all` provides the repository-wide structural sweep. Test retirement is a separate evidence gate: `--verify-equivalence BASELINE_REPORT` requires a complete saved pre-consolidation report, preserves an artifact-level coverage superset and knockout-detection superset, permits consolidated tests to use new nodeids, and fails closed with E715 when proof is incomplete or weaker. See `docs/maid-chain-merge.md`.
 
     * **Transitioning from Snapshots to Natural Evolution:** Snapshot manifests are designed for "frozen" code—capturing a complete baseline. Once code needs to evolve, you must transition to the natural MAID flow:
 

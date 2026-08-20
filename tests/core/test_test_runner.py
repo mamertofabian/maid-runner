@@ -73,9 +73,7 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     sibling_tests = tmp_path / "tests"
     sibling_tests.mkdir()
     (sibling_tests / "test_gate.py").write_text(
-        "from src.gate import gate\n\n"
-        "def test_gate():\n"
-        "    assert gate() == 'ok'\n"
+        "from src.gate import gate\n\ndef test_gate():\n    assert gate() == 'ok'\n"
     )
     return project_root, manifest_path
 
@@ -820,6 +818,109 @@ validate:
     assert result.success is True
     assert max_active_cached == 1
     assert worker_threads == ["MainThread", "MainThread"]
+
+
+def test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation(
+    tmp_path, monkeypatch
+):
+    manifests_dir = tmp_path / "manifests"
+    contracts_dir = tmp_path / "contracts"
+    manifests_dir.mkdir()
+    contracts_dir.mkdir()
+    (manifests_dir / "a-external.manifest.yaml").write_text(
+        """schema: "2"
+goal: "External"
+files:
+  create:
+    - path: src/external.py
+      artifacts:
+        - kind: function
+          name: external
+validate:
+  - echo external
+"""
+    )
+    (manifests_dir / "b-cached.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Cached"
+files:
+  create:
+    - path: src/cached.py
+      artifacts:
+        - kind: function
+          name: cached
+validate:
+  - maid validate contracts/target.manifest.yaml
+"""
+    )
+    (contracts_dir / "target.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Target"
+type: snapshot
+files:
+  create:
+    - path: src/target.py
+      artifacts:
+        - kind: function
+          name: target
+validate:
+  - echo target
+"""
+    )
+
+    external_started = threading.Event()
+    release_external = threading.Event()
+    cached_saw_external = False
+
+    def fake_run_command(command, **kwargs):
+        external_started.set()
+        assert release_external.wait(timeout=2)
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs.get("stream", TestStream.IMPLEMENTATION),
+        )
+
+    def fake_cached_maid_validate_command(command, **kwargs):
+        nonlocal cached_saw_external
+        if command == ("echo", "external"):
+            return None
+        assert threading.current_thread().name == "MainThread"
+        cached_saw_external = external_started.wait(timeout=2)
+        release_external.set()
+        return TestRunResult(
+            manifest_slug=kwargs["manifest_slug"],
+            command=command,
+            exit_code=0,
+            stdout="cached",
+            stderr="",
+            duration_ms=1.0,
+            stream=kwargs["stream"],
+        )
+
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run_command)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner._run_cached_maid_validate_command",
+        fake_cached_maid_validate_command,
+    )
+
+    result = run_tests(
+        manifest_dir="manifests/",
+        project_root=tmp_path,
+        batch=False,
+        jobs=2,
+    )
+
+    assert result.success is True
+    assert cached_saw_external is True
+    assert [item.command for item in result.results] == [
+        ("echo", "external"),
+        ("maid", "validate", "contracts/target.manifest.yaml"),
+    ]
 
 
 def test_run_parallel_test_commands_returns_input_order(monkeypatch, tmp_path):
@@ -2586,3 +2687,231 @@ class TestRunCommandExceptionPath:
         assert result.success is False
         assert result.exit_code == -2
         assert result.stderr  # Should contain the error message
+
+
+def test_repository_worker_override_reaches_batched_pytest_command_and_notice(
+    tmp_path, monkeypatch
+):
+    from maid_runner.core import test_runner
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
+    from maid_runner.core.result import TestRunResult
+
+    manifests = tmp_path / "manifests"
+    tests = tmp_path / "tests"
+    src = tmp_path / "src"
+    manifests.mkdir()
+    tests.mkdir()
+    src.mkdir()
+    for name in ("a", "b"):
+        (src / f"{name}.py").write_text(f"def {name}(): return True\n")
+        (tests / f"test_{name}.py").write_text(f"def test_{name}(): assert True\n")
+        (manifests / f"{name}.manifest.yaml").write_text(
+            f"""schema: "2"
+goal: {name}
+files:
+  edit:
+    - path: src/{name}.py
+      artifacts:
+        - kind: function
+          name: {name}
+  read:
+    - tests/test_{name}.py
+validate:
+  - pytest tests/test_{name}.py -q
+"""
+        )
+
+    notice = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_a.py", "tests/test_b.py", "-q"),
+        mode="workers",
+        workers=8,
+        reason="workers:predicted-at-or-above-threshold",
+    )
+
+    def fake_prepare(command, **kwargs):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(
+            command=(*command, "-n", "8", "--dist", "loadscope"),
+            environment_overrides={},
+            notice=notice,
+        )
+
+    def fake_run(command, **kwargs):
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+
+    monkeypatch.setattr(
+        test_runner, "prepare_pytest_command", fake_prepare, raising=False
+    )
+    monkeypatch.setattr(
+        test_runner, "finalize_pytest_timing", lambda *args: None, raising=False
+    )
+    monkeypatch.setattr(test_runner, "run_command", fake_run)
+
+    result = test_runner.run_tests(
+        project_root=tmp_path,
+        pytest_workers=8,
+    )
+
+    assert result.success is True
+    assert len(result.results) == 1
+    assert result.results[0].command == (
+        "pytest",
+        "tests/test_a.py",
+        "tests/test_b.py",
+        "-q",
+        "-n",
+        "8",
+        "--dist",
+        "loadscope",
+    )
+    assert result.scheduling_notices == (notice,)
+
+
+def test_internal_cached_and_implementation_paths_preserve_worker_override_and_notices(
+    tmp_path, monkeypatch
+):
+    from maid_runner.core import test_runner
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
+    from maid_runner.core.result import TestRunResult
+
+    notice = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_gate.py"),
+        mode="serial",
+        workers=1,
+        reason="serial:predicted-below-threshold",
+    )
+    observed = {}
+
+    def fake_prepare(command, **kwargs):
+        from types import SimpleNamespace
+
+        observed.update(kwargs)
+        return SimpleNamespace(
+            command=command,
+            environment_overrides={},
+            notice=notice,
+        )
+
+    monkeypatch.setattr(
+        test_runner, "prepare_pytest_command", fake_prepare, raising=False
+    )
+    monkeypatch.setattr(
+        test_runner, "finalize_pytest_timing", lambda *args: None, raising=False
+    )
+    monkeypatch.setattr(
+        test_runner,
+        "run_command",
+        lambda command, **kwargs: TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        ),
+    )
+    notices = []
+
+    results, passed, failed, early = test_runner._run_implementation_commands(
+        [(("pytest", "tests/test_gate.py"), "gate")],
+        tmp_path,
+        False,
+        False,
+        [],
+        [],
+        0,
+        0,
+        jobs=1,
+        pytest_workers=8,
+        scheduling_notices=notices,
+    )
+
+    assert (passed, failed, early) == (1, 0, None)
+    assert [result.command for result in results] == [("pytest", "tests/test_gate.py")]
+    assert observed["pytest_workers"] == 8
+    assert notices == [notice]
+
+
+def test_runner_finalizes_timing_and_appends_discard_notice(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from maid_runner.core import test_runner
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
+    from maid_runner.core.result import TestRunResult
+
+    scheduled = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_gate.py"),
+        mode="serial",
+        workers=1,
+        reason="serial:unknown-history",
+    )
+    discarded = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_gate.py"),
+        mode="timing-discarded",
+        workers=1,
+        reason="incomplete timing evidence",
+    )
+    prepared = SimpleNamespace(
+        command=("pytest", "tests/test_gate.py"),
+        environment_overrides={"MAID_TIMING_OUTPUT": "temporary"},
+        notice=scheduled,
+    )
+    finalized = []
+    exit_codes = iter((0, 1))
+
+    monkeypatch.setattr(
+        test_runner,
+        "prepare_pytest_command",
+        lambda *args, **kwargs: prepared,
+        raising=False,
+    )
+
+    def fake_run(command, **kwargs):
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=next(exit_codes),
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+
+    def fake_finalize(actual_prepared, result, project_root):
+        finalized.append((actual_prepared, result, project_root))
+        return discarded
+
+    monkeypatch.setattr(test_runner, "run_command", fake_run)
+    monkeypatch.setattr(
+        test_runner, "finalize_pytest_timing", fake_finalize, raising=False
+    )
+
+    for expected_exit in (0, 1):
+        notices = []
+        results, _, _, _ = test_runner._run_implementation_commands(
+            [(("pytest", "tests/test_gate.py"), "gate")],
+            tmp_path,
+            False,
+            False,
+            [],
+            [],
+            0,
+            0,
+            pytest_workers=1,
+            scheduling_notices=notices,
+        )
+
+        assert results[0].exit_code == expected_exit
+        assert notices == [scheduled, discarded]
+
+    assert len(finalized) == 2
+    assert all(call[0] is prepared for call in finalized)
+    assert [call[1].exit_code for call in finalized] == [0, 1]
+    assert all(call[2] == tmp_path for call in finalized)

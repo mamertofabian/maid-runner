@@ -1,0 +1,139 @@
+{
+  "manifest_path": "manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml",
+  "manifest_hash": "sha256-contract:afc4b28880fa2a069da349e93cadd4f96d1517e4f753f406c82cb9558bbb9b5c",
+  "test_hashes": {
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+    "tests/core/validation/test_maid_validate_command_cache.py": "sha256-pyast:v2:2060c625ef24ba9ebf5b0a03624d52877a9603e74d8b9a78235d8fc5dcf49444",
+    "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61"
+  },
+  "created_at": "2026-08-13T13:28:27.177068+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a6403a78a28d54154754dee84608e210bcc508dae77f97b6b6f69467e16fb8df",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:5ebf2dd1a8f936ae45cfe6bfea14c6bce7ac3b087d3d2dca9d73551983614024",
+        "tests/core/validation/test_maid_validate_command_cache.py": "sha256-pyast:v2:2060c625ef24ba9ebf5b0a03624d52877a9603e74d8b9a78235d8fc5dcf49444",
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61"
+      },
+      "revised_at": "2026-08-13T13:28:35.491209+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-44-overlap-external-tests-with-cached-validation.manifest.yaml -> manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-44-overlap-external-tests-with-cached-validation.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:afc4b28880fa2a069da349e93cadd4f96d1517e4f753f406c82cb9558bbb9b5c",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:5ebf2dd1a8f936ae45cfe6bfea14c6bce7ac3b087d3d2dca9d73551983614024",
+        "tests/core/validation/test_maid_validate_command_cache.py": "sha256-pyast:v2:2060c625ef24ba9ebf5b0a03624d52877a9603e74d8b9a78235d8fc5dcf49444",
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61"
+      },
+      "revised_at": "2026-08-13T13:57:58.964592+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T13:28:43.494864+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_test_runner.py tests/core/validation/test_maid_validate_command_cache.py tests/core/test_repository_command_jobs.py",
+        "exit_code": 1,
+        "output_tail": "        monkeypatch.setattr(\n            \"maid_runner.core.test_runner._run_cached_maid_validate_command\",\n            fake_cached_maid_validate_command,\n        )\n    \n        result = run_tests(\n            manifest_dir=\"manifests/\",\n            project_root=tmp_path,\n            batch=False,\n            jobs=2,\n        )\n    \n        assert result.success is True\n>       assert cached_saw_external is True\nE       assert False is True\n\ntests/core/test_test_runner.py:919: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_test_runner.py::test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation\n1 failed, 101 passed in 7.59s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands",
+      "maid_runner/core/test_runner.py:function:_run_implementation_commands:kind=function",
+      "tests/core/test_test_runner.py:test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation",
+      "tests/core/test_test_runner.py:test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/test_runner.py",
+        "tests/core/test_test_runner.py"
+      ],
+      "read": [
+        "docs/plans/maid-runner-performance-backlog.md",
+        "maid_runner/core/_maid_validate_command_cache.py",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml",
+        "manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/test_runner.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_implementation_commands",
+              "description": "Schedules external subprocess commands while cached validation remains serial, then reconstructs deterministic results."
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_test_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_maid_validate_command_cache.py",
+        "manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml",
+        "manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+        "docs/plans/maid-runner-performance-backlog.md"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_repository_command_jobs.py",
+      "tests/core/test_test_runner.py",
+      "tests/core/validation/test_maid_validate_command_cache.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_test_runner.py tests/core/validation/test_maid_validate_command_cache.py tests/core/test_repository_command_jobs.py",
+      "uv run maid validate manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -1,0 +1,463 @@
+{
+  "manifest_path": "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+    "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+    "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+  },
+  "created_at": "2026-08-13T09:17:42.442467+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3c1b173295b8c06a4d871c73a81741f7bcae86188d73b7b7df714d49ecc5cab9",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:f9c52ea1dfdfb7e00ea71d44c09858ec81055cf7a7e184c1bccdeb75af32b69e"
+      },
+      "revised_at": "2026-08-13T09:18:14.133893+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-23-default-derived-coverage-evidence.manifest.yaml -> manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-23-default-derived-coverage-evidence.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-23-default-derived-coverage-evidence.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:59e8a13efa3216359c616efdf9c8b6748d26131c4f2d45124f00dc17bcf623ab",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:f9c52ea1dfdfb7e00ea71d44c09858ec81055cf7a7e184c1bccdeb75af32b69e"
+      },
+      "revised_at": "2026-08-13T09:45:49.145310+00:00",
+      "reason": "Packaged evidence_mode default is exact; this repo opts into derived through .maidrc.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_exact",
+          "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_exact:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_derived",
+          "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_derived:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+      },
+      "revised_at": "2026-08-13T13:57:59.246208+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+      },
+      "revised_at": "2026-08-19T23:14:07.979735+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:18:45.683325+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_derived_coverage_evidence.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_config.py tests/cli/test_verify_deep_evidence_reuse.py",
+        "exit_code": 1,
+        "output_tail": "        from maid_runner.core.config import ArtifactCoverageConfig, load_config\n    \n        (tmp_path / \".maidrc.yaml\").write_text(\"{}\\n\")\n        config = load_config(tmp_path)\n        assert isinstance(config.artifact_coverage, ArtifactCoverageConfig)\n>       assert config.artifact_coverage.evidence_mode == \"derived\"\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'ArtifactCoverageConfig' object has no attribute 'evidence_mode'\n\ntests/core/test_derived_coverage_evidence.py:209: AttributeError\n=========================== short test summary info ============================\nFAILED tests/core/test_derived_coverage_evidence.py::test_grouped_evidence_preflight_allows_digest_matching_approvals\nFAILED tests/core/test_derived_coverage_evidence.py::test_grouped_evidence_preflight_rejects_unapproved_conftest\nFAILED tests/core/test_derived_coverage_evidence.py::test_exact_mode_preflight_rejects_any_in_tree_conftest\nFAILED tests/core/test_derived_coverage_evidence.py::test_approved_conftest_collects_grouped_evidence\nFAILED tests/core/test_derived_coverage_evidence.py::test_derived_evaluation_does_not_replay_unproven_commands\nFAILED tests/core/test_derived_coverage_evidence.py::test_exact_evaluation_replays_only_escalated_identities\nFAILED tests/core/test_derived_coverage_evidence.py::test_evidence_mode_rejects_unknown_values\nFAILED tests/core/test_derived_coverage_evidence.py::test_packaged_evidence_mode_default_is_derived\n8 failed, 45 passed in 30.91s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-23-default-derived-coverage-evidence.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.execution:type=ArtifactCoverageExecutionSummary | None",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.findings:type=tuple[ArtifactCoverageFinding, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.provenance",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.provenance:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.provenance:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.provenance:type=str | None",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.success:type=bool",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:class:ArtifactCoverageReport:kind=class",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence_mode:type=str:default=exact",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_jobs:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=max_processes:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:kind=method",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:method:ArtifactCoverageReport.to_dict:returns=dict",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:type=tuple[DistributionFixtureLifecycleApproval, Ellipsis]",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.evidence_mode",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.evidence_mode:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.evidence_mode:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.evidence_mode:type=str",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:type=int",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:type=tuple[FixtureLifecycleApproval, Ellipsis]",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.timeout_seconds:type=float",
+      "maid_runner/core/config.py:class:ArtifactCoverageConfig",
+      "maid_runner/core/config.py:class:ArtifactCoverageConfig:kind=class",
+      "maid_runner/core/runtime_evidence.py:function:grouped_evidence_preflight",
+      "maid_runner/core/runtime_evidence.py:function:grouped_evidence_preflight:arg=evidence_mode:type=str:default=None",
+      "maid_runner/core/runtime_evidence.py:function:grouped_evidence_preflight:arg=project_root:type=Path:default=None",
+      "maid_runner/core/runtime_evidence.py:function:grouped_evidence_preflight:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:grouped_evidence_preflight:returns=bool",
+      "tests/core/test_derived_coverage_evidence.py:test_approved_conftest_collects_grouped_evidence",
+      "tests/core/test_derived_coverage_evidence.py:test_approved_conftest_collects_grouped_evidence:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_derived_evaluation_does_not_replay_unproven_commands",
+      "tests/core/test_derived_coverage_evidence.py:test_derived_evaluation_does_not_replay_unproven_commands:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_evidence_mode_rejects_unknown_values",
+      "tests/core/test_derived_coverage_evidence.py:test_evidence_mode_rejects_unknown_values:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_exact_evaluation_replays_only_escalated_identities",
+      "tests/core/test_derived_coverage_evidence.py:test_exact_evaluation_replays_only_escalated_identities:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_exact_mode_preflight_rejects_any_in_tree_conftest",
+      "tests/core/test_derived_coverage_evidence.py:test_exact_mode_preflight_rejects_any_in_tree_conftest:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_grouped_evidence_preflight_allows_digest_matching_approvals",
+      "tests/core/test_derived_coverage_evidence.py:test_grouped_evidence_preflight_allows_digest_matching_approvals:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_grouped_evidence_preflight_rejects_unapproved_conftest",
+      "tests/core/test_derived_coverage_evidence.py:test_grouped_evidence_preflight_rejects_unapproved_conftest:kind=test_function",
+      "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_exact",
+      "tests/core/test_derived_coverage_evidence.py:test_packaged_evidence_mode_default_is_exact:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_derived_coverage_evidence.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "read": [
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "tests/cli/test_verify_deep_evidence_reuse.py",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_config.py"
+      ],
+      "scope": [
+        ".maidrc.yaml",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_derived_coverage_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_grouped_evidence_preflight_allows_digest_matching_approvals"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_grouped_evidence_preflight_rejects_unapproved_conftest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_exact_mode_preflight_rejects_any_in_tree_conftest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_approved_conftest_collects_grouped_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_derived_evaluation_does_not_replay_unproven_commands"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_exact_evaluation_replays_only_escalated_identities"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_evidence_mode_rejects_unknown_values"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_packaged_evidence_mode_default_is_exact"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "grouped_evidence_preflight",
+              "description": "True when grouped collection should run. Derived mode requires a digest-matching approval for every non-excluded in-tree conftest; exact mode rejects any such conftest.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence_mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageConfig"
+            },
+            {
+              "kind": "attribute",
+              "name": "evidence_mode",
+              "of": "ArtifactCoverageConfig",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "timeout_seconds",
+              "of": "ArtifactCoverageConfig",
+              "type": "float"
+            },
+            {
+              "kind": "attribute",
+              "name": "fallback_jobs",
+              "of": "ArtifactCoverageConfig",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "fixture_lifecycle_approvals",
+              "of": "ArtifactCoverageConfig",
+              "type": "tuple[FixtureLifecycleApproval, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "distribution_fixture_lifecycle_approvals",
+              "of": "ArtifactCoverageConfig",
+              "type": "tuple[DistributionFixtureLifecycleApproval, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageReport"
+            },
+            {
+              "kind": "attribute",
+              "name": "provenance",
+              "of": "ArtifactCoverageReport",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "findings",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ArtifactCoverageFinding, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "execution",
+              "of": "ArtifactCoverageReport",
+              "type": "ArtifactCoverageExecutionSummary | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "ArtifactCoverageReport",
+              "type": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "of": "ArtifactCoverageReport",
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "fallback_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "evidence_mode",
+                  "type": "str",
+                  "default": "exact"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/cli/test_verify_deep_evidence_reuse.py",
+        "tests/core/test_config.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Private grouped-evidence collector uses grouped_evidence_preflight and the configured evidence_mode instead of any-conftest skip."
+        },
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Private directory coverage evaluation passes configured evidence_mode into evaluate_artifact_coverage_from_evidence."
+        },
+        {
+          "path": ".maidrc.yaml",
+          "reason": "Repository opts into derived evidence_mode explicitly alongside existing fixture lifecycle approvals."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_deep_evidence_reuse.py",
+      "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_config.py",
+      "tests/core/test_derived_coverage_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_derived_coverage_evidence.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_config.py tests/cli/test_verify_deep_evidence_reuse.py",
+      "uv run maid validate manifests/121-23-default-derived-coverage-evidence.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

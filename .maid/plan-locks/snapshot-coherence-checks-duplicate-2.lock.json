@@ -1,0 +1,1090 @@
+{
+  "manifest_path": "manifests/snapshot-coherence-checks-duplicate-2.manifest.yaml",
+  "manifest_hash": "sha256-contract:15e0aac5cef06fee739c8209de9a221b1350828916d9b141f371a1b381e2660d",
+  "test_hashes": {
+    "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
+    "tests/cli/test_coherence_cmd.py": "sha256-pyast:v2:c44326f5c84160f2bf402894eb97a668d676224262804169974ad1565f128c85"
+  },
+  "created_at": "2026-08-19T22:35:19.933347+00:00",
+  "revision": 1,
+  "revisions": [],
+  "red_evidence": null,
+  "legacy_baseline": {
+    "kind": "legacy_baseline",
+    "green": true,
+    "reason": "Consolidate an already-implemented coherence manifest chain after live coverage and knockout equivalence passed.",
+    "baseline_commit": "641cd36a048f2690996493b1dae3f437bc20518c",
+    "baseline_manifest_hash": "67eb1e0e660148ad4d451ce1bb1954aca343eb886f233e0d61d58becf43931a0",
+    "baseline_manifest_source": "index",
+    "contract_delta": {
+      "artifacts_added": [],
+      "artifacts_removed": [],
+      "files_added": [],
+      "files_removed": [],
+      "validate_commands_added": [],
+      "validate_commands_removed": []
+    },
+    "captured_at": "2026-08-19T22:35:20.467776+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/cli/test_coherence_cmd.py",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 96%]\n...                                                                      [100%]\n75 passed in 0.21s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/coherence.py:function:cmd_coherence",
+      "maid_runner/cli/commands/coherence.py:function:cmd_coherence:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/coherence.py:function:cmd_coherence:kind=function",
+      "maid_runner/cli/commands/coherence.py:function:cmd_coherence:returns=int",
+      "maid_runner/coherence/__init__.py:class:BaseCheck",
+      "maid_runner/coherence/__init__.py:class:BaseCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:CoherenceEngine",
+      "maid_runner/coherence/__init__.py:class:CoherenceEngine:kind=class",
+      "maid_runner/coherence/__init__.py:class:CoherenceIssue",
+      "maid_runner/coherence/__init__.py:class:CoherenceIssue:kind=class",
+      "maid_runner/coherence/__init__.py:class:CoherenceResult",
+      "maid_runner/coherence/__init__.py:class:CoherenceResult:kind=class",
+      "maid_runner/coherence/__init__.py:class:ConstraintCheck",
+      "maid_runner/coherence/__init__.py:class:ConstraintCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:ConstraintConfig",
+      "maid_runner/coherence/__init__.py:class:ConstraintConfig:kind=class",
+      "maid_runner/coherence/__init__.py:class:ConstraintRule",
+      "maid_runner/coherence/__init__.py:class:ConstraintRule:kind=class",
+      "maid_runner/coherence/__init__.py:class:DependencyCheck",
+      "maid_runner/coherence/__init__.py:class:DependencyCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:DuplicateCheck",
+      "maid_runner/coherence/__init__.py:class:DuplicateCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:IssueSeverity",
+      "maid_runner/coherence/__init__.py:class:IssueSeverity:kind=class",
+      "maid_runner/coherence/__init__.py:class:IssueType",
+      "maid_runner/coherence/__init__.py:class:IssueType:kind=class",
+      "maid_runner/coherence/__init__.py:class:ModuleBoundaryCheck",
+      "maid_runner/coherence/__init__.py:class:ModuleBoundaryCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:NamingCheck",
+      "maid_runner/coherence/__init__.py:class:NamingCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:PatternCheck",
+      "maid_runner/coherence/__init__.py:class:PatternCheck:kind=class",
+      "maid_runner/coherence/__init__.py:class:SignatureCheck",
+      "maid_runner/coherence/__init__.py:class:SignatureCheck:kind=class",
+      "maid_runner/coherence/__init__.py:function:get_checks",
+      "maid_runner/coherence/__init__.py:function:get_checks:arg=disabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/__init__.py:function:get_checks:arg=enabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/__init__.py:function:get_checks:kind=function",
+      "maid_runner/coherence/__init__.py:function:get_checks:returns=list[BaseCheck]",
+      "maid_runner/coherence/checks/__init__.py:class:BaseCheck",
+      "maid_runner/coherence/checks/__init__.py:class:BaseCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintCheck",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintConfig",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintConfig:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintRule",
+      "maid_runner/coherence/checks/__init__.py:class:ConstraintRule:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:DependencyCheck",
+      "maid_runner/coherence/checks/__init__.py:class:DependencyCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:DuplicateCheck",
+      "maid_runner/coherence/checks/__init__.py:class:DuplicateCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:ModuleBoundaryCheck",
+      "maid_runner/coherence/checks/__init__.py:class:ModuleBoundaryCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:NamingCheck",
+      "maid_runner/coherence/checks/__init__.py:class:NamingCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:PatternCheck",
+      "maid_runner/coherence/checks/__init__.py:class:PatternCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:class:SignatureCheck",
+      "maid_runner/coherence/checks/__init__.py:class:SignatureCheck:kind=class",
+      "maid_runner/coherence/checks/__init__.py:function:get_checks",
+      "maid_runner/coherence/checks/__init__.py:function:get_checks:kind=function",
+      "maid_runner/coherence/checks/base.py:attribute:BaseCheck.name",
+      "maid_runner/coherence/checks/base.py:attribute:BaseCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/base.py:attribute:BaseCheck.name:of=BaseCheck",
+      "maid_runner/coherence/checks/base.py:attribute:BaseCheck.name:type=str",
+      "maid_runner/coherence/checks/base.py:class:BaseCheck",
+      "maid_runner/coherence/checks/base.py:class:BaseCheck:base=ABC",
+      "maid_runner/coherence/checks/base.py:class:BaseCheck:kind=class",
+      "maid_runner/coherence/checks/base.py:function:get_checks",
+      "maid_runner/coherence/checks/base.py:function:get_checks:arg=disabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/checks/base.py:function:get_checks:arg=enabled:type=Optional[list[str]]:default=None",
+      "maid_runner/coherence/checks/base.py:function:get_checks:kind=function",
+      "maid_runner/coherence/checks/base.py:function:get_checks:returns=list[BaseCheck]",
+      "maid_runner/coherence/checks/base.py:function:get_default_check_classes",
+      "maid_runner/coherence/checks/base.py:function:get_default_check_classes:kind=function",
+      "maid_runner/coherence/checks/base.py:function:get_default_check_classes:returns=list[type[BaseCheck]]",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run:arg=graph:type=KnowledgeGraph:default=None",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run:arg=manifests:type=list[Manifest]:default=None",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run:kind=method",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run:of=BaseCheck",
+      "maid_runner/coherence/checks/base.py:method:BaseCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/boundary.py:attribute:ModuleBoundaryCheck.name",
+      "maid_runner/coherence/checks/boundary.py:attribute:ModuleBoundaryCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/boundary.py:attribute:ModuleBoundaryCheck.name:of=ModuleBoundaryCheck",
+      "maid_runner/coherence/checks/boundary.py:attribute:ModuleBoundaryCheck.name:type=str",
+      "maid_runner/coherence/checks/boundary.py:class:ModuleBoundaryCheck",
+      "maid_runner/coherence/checks/boundary.py:class:ModuleBoundaryCheck:base=BaseCheck",
+      "maid_runner/coherence/checks/boundary.py:class:ModuleBoundaryCheck:kind=class",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run:arg=graph:type=KnowledgeGraph:default=None",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run:arg=manifests:type=list[Manifest]:default=None",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run:kind=method",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run:of=ModuleBoundaryCheck",
+      "maid_runner/coherence/checks/boundary.py:method:ModuleBoundaryCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintCheck.name",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintCheck.name:of=ConstraintCheck",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintCheck.name:type=str",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.enabled",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.enabled:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.enabled:of=ConstraintConfig",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.enabled:type=bool",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.rules",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.rules:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.rules:of=ConstraintConfig",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.rules:type=list[ConstraintRule]",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.version",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.version:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.version:of=ConstraintConfig",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintConfig.version:type=str",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.description",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.description:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.description:of=ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.description:type=str",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.name",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.name:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.name:of=ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.name:type=str",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.pattern",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.pattern:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.pattern:of=ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.pattern:type=dict[str, Any]",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.severity",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.severity:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.severity:of=ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.severity:type=str",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.suggestion",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.suggestion:kind=attribute",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.suggestion:of=ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:attribute:ConstraintRule.suggestion:type=str",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintCheck",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintCheck:base=BaseCheck",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintCheck:kind=class",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintConfig",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintConfig:kind=class",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintRule",
+      "maid_runner/coherence/checks/constraint.py:class:ConstraintRule:kind=class",
+      "maid_runner/coherence/checks/constraint.py:function:load_constraint_config",
+      "maid_runner/coherence/checks/constraint.py:function:load_constraint_config:arg=config_path:type=Optional[Path]:default=None",
+      "maid_runner/coherence/checks/constraint.py:function:load_constraint_config:kind=function",
+      "maid_runner/coherence/checks/constraint.py:function:load_constraint_config:returns=ConstraintConfig",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run:arg=graph:type=KnowledgeGraph:default=None",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run:arg=manifests:type=list[Manifest]:default=None",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run:kind=method",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run:of=ConstraintCheck",
+      "maid_runner/coherence/checks/constraint.py:method:ConstraintCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/dependency.py:attribute:DependencyCheck.name",
+      "maid_runner/coherence/checks/dependency.py:attribute:DependencyCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/dependency.py:attribute:DependencyCheck.name:of=DependencyCheck",
+      "maid_runner/coherence/checks/dependency.py:attribute:DependencyCheck.name:type=str",
+      "maid_runner/coherence/checks/dependency.py:class:DependencyCheck",
+      "maid_runner/coherence/checks/dependency.py:class:DependencyCheck:kind=class",
+      "maid_runner/coherence/checks/dependency.py:method:DependencyCheck.run",
+      "maid_runner/coherence/checks/dependency.py:method:DependencyCheck.run:kind=method",
+      "maid_runner/coherence/checks/dependency.py:method:DependencyCheck.run:of=DependencyCheck",
+      "maid_runner/coherence/checks/dependency.py:method:DependencyCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/duplicate.py:attribute:DuplicateCheck.name",
+      "maid_runner/coherence/checks/duplicate.py:attribute:DuplicateCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/duplicate.py:attribute:DuplicateCheck.name:of=DuplicateCheck",
+      "maid_runner/coherence/checks/duplicate.py:attribute:DuplicateCheck.name:type=str",
+      "maid_runner/coherence/checks/duplicate.py:class:DuplicateCheck",
+      "maid_runner/coherence/checks/duplicate.py:class:DuplicateCheck:kind=class",
+      "maid_runner/coherence/checks/duplicate.py:method:DuplicateCheck.run",
+      "maid_runner/coherence/checks/duplicate.py:method:DuplicateCheck.run:kind=method",
+      "maid_runner/coherence/checks/duplicate.py:method:DuplicateCheck.run:of=DuplicateCheck",
+      "maid_runner/coherence/checks/duplicate.py:method:DuplicateCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/naming.py:attribute:NamingCheck.name",
+      "maid_runner/coherence/checks/naming.py:attribute:NamingCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/naming.py:attribute:NamingCheck.name:of=NamingCheck",
+      "maid_runner/coherence/checks/naming.py:attribute:NamingCheck.name:type=str",
+      "maid_runner/coherence/checks/naming.py:class:NamingCheck",
+      "maid_runner/coherence/checks/naming.py:class:NamingCheck:base=BaseCheck",
+      "maid_runner/coherence/checks/naming.py:class:NamingCheck:kind=class",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run:arg=graph:type=KnowledgeGraph:default=None",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run:arg=manifests:type=list[Manifest]:default=None",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run:kind=method",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run:of=NamingCheck",
+      "maid_runner/coherence/checks/naming.py:method:NamingCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/pattern.py:attribute:PatternCheck.name",
+      "maid_runner/coherence/checks/pattern.py:attribute:PatternCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/pattern.py:attribute:PatternCheck.name:of=PatternCheck",
+      "maid_runner/coherence/checks/pattern.py:attribute:PatternCheck.name:type=str",
+      "maid_runner/coherence/checks/pattern.py:class:PatternCheck",
+      "maid_runner/coherence/checks/pattern.py:class:PatternCheck:base=BaseCheck",
+      "maid_runner/coherence/checks/pattern.py:class:PatternCheck:kind=class",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run:arg=graph:type=KnowledgeGraph:default=None",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run:arg=manifests:type=list[Manifest]:default=None",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run:kind=method",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run:of=PatternCheck",
+      "maid_runner/coherence/checks/pattern.py:method:PatternCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/checks/signature.py:attribute:SignatureCheck.name",
+      "maid_runner/coherence/checks/signature.py:attribute:SignatureCheck.name:kind=attribute",
+      "maid_runner/coherence/checks/signature.py:attribute:SignatureCheck.name:of=SignatureCheck",
+      "maid_runner/coherence/checks/signature.py:attribute:SignatureCheck.name:type=str",
+      "maid_runner/coherence/checks/signature.py:class:SignatureCheck",
+      "maid_runner/coherence/checks/signature.py:class:SignatureCheck:kind=class",
+      "maid_runner/coherence/checks/signature.py:method:SignatureCheck.run",
+      "maid_runner/coherence/checks/signature.py:method:SignatureCheck.run:kind=method",
+      "maid_runner/coherence/checks/signature.py:method:SignatureCheck.run:of=SignatureCheck",
+      "maid_runner/coherence/checks/signature.py:method:SignatureCheck.run:returns=list[CoherenceIssue]",
+      "maid_runner/coherence/engine.py:class:CoherenceEngine",
+      "maid_runner/coherence/engine.py:class:CoherenceEngine:kind=class",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate:arg=manifests:type=Union[Sequence[Manifest], object]:default=None",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate:kind=method",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate:of=CoherenceEngine",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate:returns=CoherenceResult",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single:arg=all_manifests:type=Union[Sequence[Manifest], object]:default=None",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single:arg=manifest:type=Manifest:default=None",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single:kind=method",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single:of=CoherenceEngine",
+      "maid_runner/coherence/engine.py:method:CoherenceEngine.validate_single:returns=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.artifact",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.artifact:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.artifact:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.artifact:type=Optional[str]",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.file",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.file:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.file:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.file:type=Optional[str]",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.issue_type",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.issue_type:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.issue_type:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.issue_type:type=IssueType",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.manifests",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.manifests:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.manifests:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.manifests:type=tuple[str, Ellipsis]",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.message",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.message:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.message:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.message:type=str",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.severity",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.severity:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.severity:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.severity:type=IssueSeverity",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.suggestion",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.suggestion:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.suggestion:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:attribute:CoherenceIssue.suggestion:type=Optional[str]",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.checks_run",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.checks_run:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.checks_run:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.checks_run:type=list[str]",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.duration_ms",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.duration_ms:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.duration_ms:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.duration_ms:type=Optional[float]",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.error_count",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.error_count:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.error_count:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.error_count:type=int",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.issues",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.issues:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.issues:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.issues:type=list[CoherenceIssue]",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.success",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.success:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.success:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.success:type=bool",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.warning_count",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.warning_count:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.warning_count:of=CoherenceResult",
+      "maid_runner/coherence/result.py:attribute:CoherenceResult.warning_count:type=int",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.ERROR",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.ERROR:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.ERROR:of=IssueSeverity",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.INFO",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.INFO:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.INFO:of=IssueSeverity",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.WARNING",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.WARNING:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueSeverity.WARNING:of=IssueSeverity",
+      "maid_runner/coherence/result.py:attribute:IssueType.BOUNDARY_VIOLATION",
+      "maid_runner/coherence/result.py:attribute:IssueType.BOUNDARY_VIOLATION:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.BOUNDARY_VIOLATION:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.CONSTRAINT",
+      "maid_runner/coherence/result.py:attribute:IssueType.CONSTRAINT:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.CONSTRAINT:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.DEPENDENCY",
+      "maid_runner/coherence/result.py:attribute:IssueType.DEPENDENCY:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.DEPENDENCY:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.DUPLICATE",
+      "maid_runner/coherence/result.py:attribute:IssueType.DUPLICATE:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.DUPLICATE:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.NAMING",
+      "maid_runner/coherence/result.py:attribute:IssueType.NAMING:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.NAMING:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.PATTERN",
+      "maid_runner/coherence/result.py:attribute:IssueType.PATTERN:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.PATTERN:of=IssueType",
+      "maid_runner/coherence/result.py:attribute:IssueType.SIGNATURE_CONFLICT",
+      "maid_runner/coherence/result.py:attribute:IssueType.SIGNATURE_CONFLICT:kind=attribute",
+      "maid_runner/coherence/result.py:attribute:IssueType.SIGNATURE_CONFLICT:of=IssueType",
+      "maid_runner/coherence/result.py:class:CoherenceIssue",
+      "maid_runner/coherence/result.py:class:CoherenceIssue:kind=class",
+      "maid_runner/coherence/result.py:class:CoherenceResult",
+      "maid_runner/coherence/result.py:class:CoherenceResult:kind=class",
+      "maid_runner/coherence/result.py:class:IssueSeverity",
+      "maid_runner/coherence/result.py:class:IssueSeverity:base=Enum",
+      "maid_runner/coherence/result.py:class:IssueSeverity:base=str",
+      "maid_runner/coherence/result.py:class:IssueSeverity:kind=class",
+      "maid_runner/coherence/result.py:class:IssueType",
+      "maid_runner/coherence/result.py:class:IssueType:base=Enum",
+      "maid_runner/coherence/result.py:class:IssueType:base=str",
+      "maid_runner/coherence/result.py:class:IssueType:kind=class",
+      "maid_runner/coherence/result.py:method:CoherenceIssue.to_dict",
+      "maid_runner/coherence/result.py:method:CoherenceIssue.to_dict:kind=method",
+      "maid_runner/coherence/result.py:method:CoherenceIssue.to_dict:of=CoherenceIssue",
+      "maid_runner/coherence/result.py:method:CoherenceIssue.to_dict:returns=dict",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_dict",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_dict:kind=method",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_dict:of=CoherenceResult",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_dict:returns=dict",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_json",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_json:kind=method",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_json:of=CoherenceResult",
+      "maid_runner/coherence/result.py:method:CoherenceResult.to_json:returns=str"
+    ],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "maid_runner/core/types.py",
+        "tests/cli/test_coherence_cmd.py",
+        "tests/coherence/test_coherence_v2.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": [
+        "maid_runner/cli/commands/coherence.py",
+        "maid_runner/coherence/__init__.py",
+        "maid_runner/coherence/checks/__init__.py",
+        "maid_runner/coherence/checks/base.py",
+        "maid_runner/coherence/checks/boundary.py",
+        "maid_runner/coherence/checks/constraint.py",
+        "maid_runner/coherence/checks/dependency.py",
+        "maid_runner/coherence/checks/duplicate.py",
+        "maid_runner/coherence/checks/naming.py",
+        "maid_runner/coherence/checks/pattern.py",
+        "maid_runner/coherence/checks/signature.py",
+        "maid_runner/coherence/engine.py",
+        "maid_runner/coherence/result.py"
+      ]
+    },
+    "file_contract": {
+      "read": [
+        "tests/coherence/test_coherence_v2.py",
+        "tests/cli/test_coherence_cmd.py",
+        "maid_runner/core/types.py"
+      ],
+      "snapshot": [
+        {
+          "path": "maid_runner/coherence/checks/duplicate.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "DuplicateCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "DuplicateCheck"
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "DuplicateCheck",
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/dependency.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "DependencyCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "DependencyCheck"
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "DependencyCheck",
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/__init__.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "BaseCheck"
+            },
+            {
+              "kind": "class",
+              "name": "CoherenceEngine"
+            },
+            {
+              "kind": "class",
+              "name": "CoherenceIssue"
+            },
+            {
+              "kind": "class",
+              "name": "CoherenceResult"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintCheck"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintConfig"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintRule"
+            },
+            {
+              "kind": "class",
+              "name": "DependencyCheck"
+            },
+            {
+              "kind": "class",
+              "name": "DuplicateCheck"
+            },
+            {
+              "kind": "class",
+              "name": "IssueSeverity"
+            },
+            {
+              "kind": "class",
+              "name": "IssueType"
+            },
+            {
+              "kind": "class",
+              "name": "ModuleBoundaryCheck"
+            },
+            {
+              "kind": "class",
+              "name": "NamingCheck"
+            },
+            {
+              "kind": "class",
+              "name": "PatternCheck"
+            },
+            {
+              "kind": "class",
+              "name": "SignatureCheck"
+            },
+            {
+              "kind": "function",
+              "name": "get_checks",
+              "description": "Return filtered coherence checks through an executable package-facade entry point.",
+              "args": [
+                {
+                  "name": "enabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                },
+                {
+                  "name": "disabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[BaseCheck]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "artifact",
+              "of": "CoherenceIssue",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "file",
+              "of": "CoherenceIssue",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "issue_type",
+              "of": "CoherenceIssue",
+              "type": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "manifests",
+              "of": "CoherenceIssue",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "message",
+              "of": "CoherenceIssue",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "severity",
+              "of": "CoherenceIssue",
+              "type": "IssueSeverity"
+            },
+            {
+              "kind": "attribute",
+              "name": "suggestion",
+              "of": "CoherenceIssue",
+              "type": "Optional[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "checks_run",
+              "of": "CoherenceResult",
+              "type": "list[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "duration_ms",
+              "of": "CoherenceResult",
+              "type": "Optional[float]"
+            },
+            {
+              "kind": "attribute",
+              "name": "error_count",
+              "of": "CoherenceResult",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "issues",
+              "of": "CoherenceResult",
+              "type": "list[CoherenceIssue]"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "CoherenceResult",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "warning_count",
+              "of": "CoherenceResult",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "ERROR",
+              "of": "IssueSeverity"
+            },
+            {
+              "kind": "attribute",
+              "name": "INFO",
+              "of": "IssueSeverity"
+            },
+            {
+              "kind": "attribute",
+              "name": "WARNING",
+              "of": "IssueSeverity"
+            },
+            {
+              "kind": "attribute",
+              "name": "BOUNDARY_VIOLATION",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "CONSTRAINT",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "DEPENDENCY",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "DUPLICATE",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "NAMING",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "PATTERN",
+              "of": "IssueType"
+            },
+            {
+              "kind": "attribute",
+              "name": "SIGNATURE_CONFLICT",
+              "of": "IssueType"
+            },
+            {
+              "kind": "class",
+              "name": "CoherenceIssue"
+            },
+            {
+              "kind": "class",
+              "name": "CoherenceResult"
+            },
+            {
+              "kind": "class",
+              "name": "IssueSeverity",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "class",
+              "name": "IssueType",
+              "bases": [
+                "str",
+                "Enum"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "of": "CoherenceIssue",
+              "returns": "dict"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "of": "CoherenceResult",
+              "returns": "dict"
+            },
+            {
+              "kind": "method",
+              "name": "to_json",
+              "of": "CoherenceResult",
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/engine.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CoherenceEngine"
+            },
+            {
+              "kind": "method",
+              "name": "validate",
+              "of": "CoherenceEngine",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Union[Sequence[Manifest], object]"
+                }
+              ],
+              "returns": "CoherenceResult"
+            },
+            {
+              "kind": "method",
+              "name": "validate_single",
+              "of": "CoherenceEngine",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "all_manifests",
+                  "type": "Union[Sequence[Manifest], object]"
+                }
+              ],
+              "returns": "CoherenceResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/__init__.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "BaseCheck"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintCheck"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintConfig"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintRule"
+            },
+            {
+              "kind": "class",
+              "name": "DependencyCheck"
+            },
+            {
+              "kind": "class",
+              "name": "DuplicateCheck"
+            },
+            {
+              "kind": "class",
+              "name": "ModuleBoundaryCheck"
+            },
+            {
+              "kind": "class",
+              "name": "NamingCheck"
+            },
+            {
+              "kind": "class",
+              "name": "PatternCheck"
+            },
+            {
+              "kind": "class",
+              "name": "SignatureCheck"
+            },
+            {
+              "kind": "function",
+              "name": "get_checks"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/base.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "BaseCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "BaseCheck",
+              "bases": [
+                "ABC"
+              ]
+            },
+            {
+              "kind": "function",
+              "name": "get_checks",
+              "args": [
+                {
+                  "name": "enabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                },
+                {
+                  "name": "disabled",
+                  "type": "Optional[list[str]]",
+                  "default": "None"
+                }
+              ],
+              "returns": "list[BaseCheck]"
+            },
+            {
+              "kind": "function",
+              "name": "get_default_check_classes",
+              "returns": "list[type[BaseCheck]]"
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "BaseCheck",
+              "args": [
+                {
+                  "name": "graph",
+                  "type": "KnowledgeGraph"
+                },
+                {
+                  "name": "manifests",
+                  "type": "list[Manifest]"
+                }
+              ],
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/boundary.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "ModuleBoundaryCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "ModuleBoundaryCheck",
+              "bases": [
+                "BaseCheck"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "ModuleBoundaryCheck",
+              "args": [
+                {
+                  "name": "graph",
+                  "type": "KnowledgeGraph"
+                },
+                {
+                  "name": "manifests",
+                  "type": "list[Manifest]"
+                }
+              ],
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/constraint.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "ConstraintCheck",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "enabled",
+              "of": "ConstraintConfig",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "rules",
+              "of": "ConstraintConfig",
+              "type": "list[ConstraintRule]"
+            },
+            {
+              "kind": "attribute",
+              "name": "version",
+              "of": "ConstraintConfig",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "description",
+              "of": "ConstraintRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "ConstraintRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "pattern",
+              "of": "ConstraintRule",
+              "type": "dict[str, Any]"
+            },
+            {
+              "kind": "attribute",
+              "name": "severity",
+              "of": "ConstraintRule",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "suggestion",
+              "of": "ConstraintRule",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintCheck",
+              "bases": [
+                "BaseCheck"
+              ]
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintConfig"
+            },
+            {
+              "kind": "class",
+              "name": "ConstraintRule"
+            },
+            {
+              "kind": "function",
+              "name": "load_constraint_config",
+              "args": [
+                {
+                  "name": "config_path",
+                  "type": "Optional[Path]",
+                  "default": "None"
+                }
+              ],
+              "returns": "ConstraintConfig"
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "ConstraintCheck",
+              "args": [
+                {
+                  "name": "graph",
+                  "type": "KnowledgeGraph"
+                },
+                {
+                  "name": "manifests",
+                  "type": "list[Manifest]"
+                }
+              ],
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/naming.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "NamingCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "NamingCheck",
+              "bases": [
+                "BaseCheck"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "NamingCheck",
+              "args": [
+                {
+                  "name": "graph",
+                  "type": "KnowledgeGraph"
+                },
+                {
+                  "name": "manifests",
+                  "type": "list[Manifest]"
+                }
+              ],
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/pattern.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "PatternCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "PatternCheck",
+              "bases": [
+                "BaseCheck"
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "PatternCheck",
+              "args": [
+                {
+                  "name": "graph",
+                  "type": "KnowledgeGraph"
+                },
+                {
+                  "name": "manifests",
+                  "type": "list[Manifest]"
+                }
+              ],
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/coherence/checks/signature.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "SignatureCheck",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "SignatureCheck"
+            },
+            {
+              "kind": "method",
+              "name": "run",
+              "of": "SignatureCheck",
+              "returns": "list[CoherenceIssue]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/coherence.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_coherence",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_coherence_cmd.py",
+      "tests/coherence/test_coherence_v2.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/cli/test_coherence_cmd.py"
+    ]
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "manifest_path": "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+  "manifest_hash": "sha256-contract:9f6056adbb51ea3e65ca38378b1c623ce8840f7056a90fb2e793c81ab063125c",
+  "test_hashes": {
+    "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+    "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
+  },
+  "created_at": "2026-08-13T12:33:31.421780+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:468f95297e2ee30261e2ff2ca9c69c6d7694a8bd2da94cefe58724a326a2a7d7",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
+      },
+      "revised_at": "2026-08-13T12:35:24.442648+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml -> manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f6056adbb51ea3e65ca38378b1c623ce8840f7056a90fb2e793c81ab063125c",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:ffc4f147aed61bceecf834dc734c8db101817e1dcc0ebd106cf36da15e311bb1",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
+      },
+      "revised_at": "2026-08-14T11:51:39.576253+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f6056adbb51ea3e65ca38378b1c623ce8840f7056a90fb2e793c81ab063125c",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:436614dc2b47bb359bbf459589e085a59e38936b3b850e60a9ecf1482dbde42a",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74"
+      },
+      "revised_at": "2026-08-17T11:31:49.175804+00:00",
+      "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T12:36:09.288293+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_shared_environment_snapshots.py",
+        "exit_code": 1,
+        "output_tail": "        assert [event[4] for event in events] == [\n            \"\",\n            \"first\\n\",\n            \"first\\nfirst\\n\",\n            \"\",\n            \"second\\n\",\n            \"second\\nsecond\\n\",\n        ]\n        assert events[0][0] == events[1][0] == events[2][0]\n        assert events[3][0] == events[4][0] == events[5][0]\n>       assert events[0][0] != events[3][0]\nE       AssertionError: assert PosixPath('/tmp/maid-knockout-000000-first-alpha-pnwkrta0') != PosixPath('/tmp/maid-knockout-000000-first-alpha-pnwkrta0')\n\ntests/core/test_knockout_batch.py:314: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_retained_worker_snapshots.py::test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state\nFAILED tests/core/test_retained_worker_snapshots.py::test_serial_knockout_reuses_one_snapshot_root_across_identities\nFAILED tests/core/test_knockout_batch.py::test_duplicate_declarations_build_one_unique_spec_without_combined_execution\nFAILED tests/core/test_knockout_batch.py::test_inter_declaration_target_restore_and_command_side_effect_order_match_legacy\n4 failed, 36 passed in 44.25s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend:kind=class",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:returns=AbstractContextManager[None]",
+      "tests/core/test_retained_worker_snapshots.py:test_knockout_batch_defaults_to_retained_worker_backend",
+      "tests/core/test_retained_worker_snapshots.py:test_knockout_batch_defaults_to_retained_worker_backend:kind=test_function",
+      "tests/core/test_retained_worker_snapshots.py:test_retained_snapshot_is_removed_when_retain_exits",
+      "tests/core/test_retained_worker_snapshots.py:test_retained_snapshot_is_removed_when_retain_exits:kind=test_function",
+      "tests/core/test_retained_worker_snapshots.py:test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state",
+      "tests/core/test_retained_worker_snapshots.py:test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state:kind=test_function",
+      "tests/core/test_retained_worker_snapshots.py:test_serial_knockout_reuses_one_snapshot_root_across_identities",
+      "tests/core/test_retained_worker_snapshots.py:test_serial_knockout_reuses_one_snapshot_root_across_identities:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "tests/core/test_retained_worker_snapshots.py"
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "WorkerRetainedProjectSnapshotBackend",
+              "description": "Snapshot backend that retains copied dependency environments per worker while yielding fresh source and Git roots for declarations."
+            },
+            {
+              "kind": "method",
+              "name": "retain",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "returns": "AbstractContextManager[None]"
+            },
+            {
+              "kind": "method",
+              "name": "create",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_retained_worker_snapshots.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_retained_snapshot_is_removed_when_retain_exits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serial_knockout_reuses_one_snapshot_root_across_identities"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_batch_defaults_to_retained_worker_backend"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_batch.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_workers.py",
+      "tests/core/test_retained_worker_snapshots.py",
+      "tests/core/test_shared_environment_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_shared_environment_snapshots.py",
+      "uv run maid validate manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

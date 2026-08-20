@@ -1,0 +1,114 @@
+{
+  "manifest_path": "manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml",
+  "manifest_hash": "sha256-contract:a2c617bd4d9e2a09060d5a20e4036afcdd5292053e572e031e279d70945d55d2",
+  "test_hashes": {
+    "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1",
+    "tests/core/test_knockout_trusts_grouped_command_order.py": "sha256-pyast:v2:afbdcfcddef8d9cff308bef7f9c5401587e87bcef5f8452971c6b1500ead9073"
+  },
+  "created_at": "2026-08-13T10:40:09.198224+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0790858af3d84a4cfeb3f444a5fff387e1eb2e8fec9bd8c90038942b4bc5d1db",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1",
+        "tests/core/test_knockout_trusts_grouped_command_order.py": "sha256-pyast:v2:afbdcfcddef8d9cff308bef7f9c5401587e87bcef5f8452971c6b1500ead9073"
+      },
+      "revised_at": "2026-08-13T10:40:17.813508+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-34-trust-grouped-knockout-command-order.manifest.yaml -> manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T10:40:26.178895+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_trusts_grouped_command_order.py tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py",
+        "exit_code": 1,
+        "output_tail": "            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )\n    \n        proofs = [\n            report.results[0].proof\n            for report in reports.values()\n            if report.results\n        ]\n        assert proofs and all(proof is not None for proof in proofs)\n>       assert all(proof.used_exact_fallback is False for proof in proofs)\nE       assert False\nE        +  where False = all(<generator object test_reversed_grouped_command_order_still_uses_focused_knockout.<locals>.<genexpr> at 0x7007167c2740>)\n\ntests/core/test_knockout_trusts_grouped_command_order.py:46: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_trusts_grouped_command_order.py::test_reversed_grouped_command_order_still_uses_focused_knockout\n1 failed, 3 passed in 7.78s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_knockout_trusts_grouped_command_order.py:test_missing_knockout_command_identity_still_forces_exact_fallback",
+      "tests/core/test_knockout_trusts_grouped_command_order.py:test_missing_knockout_command_identity_still_forces_exact_fallback:kind=test_function",
+      "tests/core/test_knockout_trusts_grouped_command_order.py:test_reversed_grouped_command_order_still_uses_focused_knockout",
+      "tests/core/test_knockout_trusts_grouped_command_order.py:test_reversed_grouped_command_order_still_uses_focused_knockout:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_trusts_grouped_command_order.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_trusts_grouped_command_order.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_reversed_grouped_command_order_still_uses_focused_knockout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_knockout_command_identity_still_forces_exact_fallback"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Knockout must trust grouped coverage evidence when the same command identities are present in a different order."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py",
+      "tests/core/test_knockout_trusts_grouped_command_order.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_trusts_grouped_command_order.py tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py",
+      "uv run maid validate manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

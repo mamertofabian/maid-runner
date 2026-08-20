@@ -1,0 +1,152 @@
+{
+  "manifest_path": "manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml",
+  "manifest_hash": "sha256-contract:7006187f5775216452717cef0a5c4c56d6157cdf08faa2650b70704172a12e67",
+  "test_hashes": {
+    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08"
+  },
+  "created_at": "2026-08-19T19:53:41.132682+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7b8b4ee14db1f0b83ce5d8677d7294d5a9c1ca959650c49b1601a5d3d9cff352",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08"
+      },
+      "revised_at": "2026-08-19T19:54:42.053546+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-chain-refresh-pytest-timing-cache.manifest.yaml -> manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T19:54:41.785820+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py tests/core/test_artifact_coverage_fallback_workers.py",
+        "exit_code": 1,
+        "output_tail": "            \"  pytest_workers: 2\\n\"\n            \"  accepted_pytest_worker_counts: [2]\\n\"\n            \"  parallel_without_history: true\\n\"\n            \"  max_processes: 2\\n\",\n            encoding=\"utf-8\",\n        )\n    \n        exit_code = main(\n            [\"chain\", \"merge\", \"src/a.py\", \"--refresh-evidence\", \"--json\"]\n        )\n        payload = json.loads(capsys.readouterr().out)\n    \n>       assert exit_code == 0, payload\nE       AssertionError: {'errors': [{'code': 'E712', 'location': {'column': None, 'file': 'src/a.py', 'line': None}, 'message': 'Chain-merge e...g-2db402c558360c5881f6c415d8dd4215c144141bdae9c3d2e3145f9ec088f48f.json', 'severity': 'error', ...}], 'success': False}\nE       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner-chain-flattening/tests/cli/test_chain_merge_refresh_evidence_command.py:305: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_chain_merge_refresh_evidence_command.py::test_chain_merge_refresh_discards_only_owned_pytest_timing_cache\n1 failed, 32 passed in 60.47s (0:01:00)",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_discards_only_owned_pytest_timing_cache:returns=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:arg=relative_path:type=str:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:kind=test_function",
+      "tests/cli/test_chain_merge_refresh_evidence_command.py:test_chain_merge_refresh_rejects_unowned_maid_cache_write:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_chain_merge_refresh_evidence_command.py"
+      ],
+      "read": [
+        "maid_runner/core/_pytest_parallelism.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "manifests/fix-isolated-pytest-payload-sync.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_artifact_coverage_fallback_worker.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_chain_merge_refresh_evidence_command.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_discards_only_owned_pytest_timing_cache",
+              "description": "A real public refresh configured to collect timing evidence succeeds without persisting snapshot timing output into the source project.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_refresh_rejects_unowned_maid_cache_write",
+              "description": "An arbitrary project-created file under .maid/cache remains a blocking E712 material write.",
+              "args": [
+                {
+                  "name": "relative_path",
+                  "type": "str"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_pytest_parallelism.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "maid_runner/core/chain_merge_evidence.py",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "manifests/fix-isolated-pytest-payload-sync.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_artifact_coverage_fallback_worker.py",
+          "reason": "Narrow the shared snapshot material-output classifier to the exact owned advisory pytest timing cache family."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_chain_merge_refresh_evidence_command.py",
+      "tests/core/test_artifact_coverage_fallback_workers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py tests/core/test_artifact_coverage_fallback_workers.py"
+    ]
+  }
+}

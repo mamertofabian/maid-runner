@@ -423,7 +423,17 @@ class PRCreator:
 
         candidates = []
         for line in output.splitlines():
-            url, state, pr_head_sha, merge_commit = line.split("\t")
+            fields = line.split("\t")
+            if len(fields) == 3 and fields[1] == "OPEN":
+                url, state, pr_head_sha = fields
+                merge_commit = ""
+            elif len(fields) == 4:
+                url, state, pr_head_sha, merge_commit = fields
+            else:
+                raise RuntimeError(
+                    "Malformed release PR record from GitHub: "
+                    f"expected 3 or 4 fields, got {len(fields)}"
+                )
             candidates.append(
                 {
                     "url": url,

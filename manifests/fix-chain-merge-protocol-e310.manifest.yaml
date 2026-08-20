@@ -1,0 +1,130 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Stop treating the DetectionEvidenceSource protocol contract as an unfinished E310 implementation while preserving real stub detection.
+type: fix
+created: "2026-08-16T08:14:22Z"
+metadata:
+  tags:
+    - chain-merge
+    - e310
+    - validation
+    - protocol
+  priority: high
+description: |
+  Deep verification on the completed chain-merge branch reaches implementation
+  validation but fails on two identical E310 findings for
+  DetectionEvidenceSource.detecting_nodeids_for. The method is a Protocol
+  contract, not executable production behavior, yet its bare ellipsis body is
+  correctly indistinguishable from an unfinished ordinary function to the stub
+  detector.
+
+  Use the repository's established abstract-contract representation: decorate
+  the protocol method with `@abstractmethod` and give it an explicit
+  `raise NotImplementedError` body, matching CoverageEvidenceSource in the same
+  module. Python artifact collection already excludes recognized
+  `@abstractmethod` contracts from E310 while continuing to report ordinary
+  stubs. The public protocol name, method signature, runtime structural typing,
+  report behavior, and verify warning policy do not change.
+
+  The five E307 CJS/Makefile records printed beside this failure are deliberately
+  out of scope: existing policy keeps them visible and advisory, so they do not
+  block the gate once E310 is gone.
+temptations:
+  - risk: Mark the protocol method as default_hook or add a file-wide E310 exemption merely to silence verification.
+    instead: Represent the method truthfully as an abstract contract using the existing Python abstractmethod exemption.
+  - risk: Make E310 advisory or weaken fail-on-warnings policy for every Protocol method.
+    instead: Leave validator and verify policy unchanged; fix only the source declaration that is currently ambiguous.
+  - risk: Fold the advisory CJS/Makefile E307 notices or the environment-dependent TypeScript test into this bug fix.
+    instead: Keep this contract isolated to the reproducible protocol false positive and verify the other signals independently.
+files:
+  create:
+    - path: tests/core/test_chain_merge_protocol_contract.py
+      artifacts:
+        - kind: test_function
+          name: test_detection_evidence_protocol_contract_does_not_emit_e310
+          args: []
+          returns: None
+          description: The public protocol remains structurally implementable and implementation validation no longer reports its abstract method as an E310 stub.
+  edit:
+    - path: maid_runner/core/chain_merge.py
+      artifacts:
+        - kind: class
+          name: DetectionEvidenceSource
+          description: Runtime-checkable structural protocol for recorded knockout detection evidence.
+        - kind: method
+          name: detecting_nodeids_for
+          of: DetectionEvidenceSource
+          args:
+            - name: artifact_key
+              type: str
+          returns: Union[tuple[str, Ellipsis], None]
+          description: Abstract protocol contract returning recorded detecting nodeids or None for unknown evidence; never an executable stub.
+  read:
+    - manifests/chain-merge-fragmentation-report.manifest.yaml
+    - manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml
+    - tests/core/test_default_hook_stub_exemption.py
+    - maid_runner/core/validate.py
+    - maid_runner/validators/_python_implementation.py
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_protocol_contract.py tests/core/test_default_hook_stub_exemption.py -v
+- uv run maid validate manifests/fix-chain-merge-protocol-e310.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-16T16:26:10+08:00'
+  summary: DetectionEvidenceSource now uses an explicit abstract protocol method, eliminating the chain-merge E310 false positive without weakening stub detection or verify warning policy.
+  rationale: |
+    The method keeps its exact public signature and runtime-checkable structural
+    typing while matching the established CoverageEvidenceSource abstract
+    contract pattern. Focused validation proves a concrete structural
+    implementation still works, the protocol body fails explicitly, ordinary
+    stubs remain detected, and MAID knockout can distinguish the real contract
+    from a mutation. Advisory E307 records remain visible and non-blocking.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Protocol methods with placeholder bodies are indistinguishable from unfinished implementations to E310; representing them with abstractmethod preserves strict stub detection without a special-case exemption.
+    tags:
+    - chain-merge
+    - e310
+    - protocol
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/chain_merge.py
+    - tests/core/test_chain_merge_protocol_contract.py
+  - lesson_type: test-design
+    summary: A knockout test that accepts the same exception type as the mutation sentinel can remain falsely green; asserting the intended exception payload makes fault detection differential.
+    tags:
+    - knockout
+    - behavioral-tests
+    - chain-merge
+    paths:
+    - tests/core/test_chain_merge_protocol_contract.py
+  review_notes:
+  - source: independent-implementation-reviewer-protocol_e310_impl_review
+    severity: ready
+    summary: The reviewer found no issues, confirmed the signature and structural typing were preserved, and verified the established abstract Protocol pattern was followed without warning-policy drift.
+  validation:
+  - command: [uv, run, python, -m, pytest, tests/core/test_chain_merge_protocol_contract.py, tests/core/test_default_hook_stub_exemption.py, -q]
+    status: passed
+    summary: Seven focused protocol and real-stub regression tests passed.
+  - command: [uv, run, maid, validate, manifests/fix-chain-merge-protocol-e310.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: The promoted revision-4 manifest passed implementation validation.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-chain-merge-protocol-e310.manifest.yaml]
+    status: passed
+    summary: Both declared validation commands passed.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed 467 active manifests with zero failures and 118 superseded skips.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 293 active manifest commands, including the full pytest batch, passed.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --test-scope, task, --plan-lock-scope, task, --file-tracking-scope, task, --since, 8ba4c1e, --packet]
+    status: passed
+    summary: All eleven task-scoped deep stages passed, including artifact coverage and knockout; only the established advisory E307 records remained.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 8ba4c1e]
+    status: failed-unrelated
+    summary: The original E310 implementation blocker cleared; repository-wide artifact coverage then exposed 1,534 pre-existing E710 findings outside this isolated contract.

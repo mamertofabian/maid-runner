@@ -1,0 +1,368 @@
+{
+  "manifest_path": "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+  "manifest_hash": "sha256-contract:e9d0faab1369045cf049422a935e1df4017ac67d31e375d794c606dc1dc9a287",
+  "test_hashes": {
+    "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:f3ce34c0af282b48c52b940faaf21458750e33e326db3da408bb422e3edeec73",
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:ca084737f48b674c42e30c09389da06391fdc7e5dbb409b4f2791d3c30707fc8"
+  },
+  "created_at": "2026-08-17T12:02:51.849884+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:56ac9f046a0eef1912f4b53ff75e8d7a1c33bc061260db443ea220dc5a821461",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d7ac3ba4a9b21c2e956cd4a0f22124f6eb42131436adb6b02e6d466269446f55"
+      },
+      "revised_at": "2026-08-17T12:02:56.176240+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-e710-chain-merged-coverage.manifest.yaml -> manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-e710-chain-merged-coverage.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-e710-chain-merged-coverage.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ea416aaaf46a40dfd22a844c283418d12c14ea7cfbac0b8b3beca66a7e813afc",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d7ac3ba4a9b21c2e956cd4a0f22124f6eb42131436adb6b02e6d466269446f55"
+      },
+      "revised_at": "2026-08-17T12:04:36.766605+00:00",
+      "reason": "Replace contradictory deep-profile fixture with the verifier's public artifact-coverage stage and make missing-function red evidence a behavioral test failure rather than collection failure.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_chain_merged_artifact_coverage.py:test_deep_verify_accepts_execution_from_either_owner",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_deep_verify_accepts_execution_from_either_owner:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_deep_verify_accepts_execution_from_either_owner:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_deep_verify_accepts_execution_from_either_owner:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ec41db2b87f55f1ba6ef1eee47c1a3c9f5c40c3ef675f8a4d622100c0d26235d",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d953f15c8f4a28c4713afe75c9c8a13ee16cd39017a9ddd2cfbf2d114ac4e2d4"
+      },
+      "revised_at": "2026-08-17T12:05:26.024581+00:00",
+      "reason": "Apply Black-only formatting to the locked behavioral test without changing its contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ec41db2b87f55f1ba6ef1eee47c1a3c9f5c40c3ef675f8a4d622100c0d26235d",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d953f15c8f4a28c4713afe75c9c8a13ee16cd39017a9ddd2cfbf2d114ac4e2d4"
+      },
+      "revised_at": "2026-08-17T12:12:08.038641+00:00",
+      "reason": "Evolve the legacy duplicate-evidence regression that explicitly required stale E710 dominance, and include it in the new union contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts",
+          "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_chain_merge_coverage_wiring.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_chain_merged_artifact_coverage.py tests/core/test_chain_merge_coverage_wiring.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_chain_merged_artifact_coverage.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:85614876c8b459d607ae009a97eb9ad22a03d35a1a9cdcf275abd0f3418c57e1",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d953f15c8f4a28c4713afe75c9c8a13ee16cd39017a9ddd2cfbf2d114ac4e2d4",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:043d1553075ce9460a8299cf136e49e74287eeeb32f29e8d26b4ab44cdc2b39e"
+      },
+      "revised_at": "2026-08-17T12:13:01.308366+00:00",
+      "reason": "Keep conflicting per-owner cache evidence UNKNOWN while asserting the aggregate verifier no longer blocks on stale E710.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9114dbfd90dc70c9def1268a4278d720129b53812382bec0bbb0063680f3460d",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d953f15c8f4a28c4713afe75c9c8a13ee16cd39017a9ddd2cfbf2d114ac4e2d4",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:5a6274e0945c05b118d74ee8f73fa213effe25ea7aab7dd3518d48105cd62783"
+      },
+      "revised_at": "2026-08-17T12:13:41.069829+00:00",
+      "reason": "Correct assertion placement so current single-owner evidence remains covered and only conflicting duplicate-owner evidence remains UNKNOWN.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9114dbfd90dc70c9def1268a4278d720129b53812382bec0bbb0063680f3460d",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:d953f15c8f4a28c4713afe75c9c8a13ee16cd39017a9ddd2cfbf2d114ac4e2d4",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a"
+      },
+      "revised_at": "2026-08-17T12:42:11.843822+00:00",
+      "reason": "Preserve equal-count identity-mismatched E710 diagnostics after independent implementation review found a fail-open case",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_equal_count_orphaned_e710_diagnostic",
+          "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_equal_count_orphaned_e710_diagnostic:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e9d0faab1369045cf049422a935e1df4017ac67d31e375d794c606dc1dc9a287",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:f3ce34c0af282b48c52b940faaf21458750e33e326db3da408bb422e3edeec73",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a"
+      },
+      "revised_at": "2026-08-17T13:37:40.473567+00:00",
+      "reason": "Capture reviewed implementation Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e9d0faab1369045cf049422a935e1df4017ac67d31e375d794c606dc1dc9a287",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merged_artifact_coverage.py": "sha256-pyast:v2:f3ce34c0af282b48c52b940faaf21458750e33e326db3da408bb422e3edeec73",
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a"
+      },
+      "revised_at": "2026-08-18T10:34:43.568925+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T12:42:16.710575+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merged_artifact_coverage.py tests/core/test_chain_merge_coverage_wiring.py",
+        "exit_code": 1,
+        "output_tail": "  PASS behavioral\n  PASS implementation\n  FAIL artifact_coverage\n    Artifact coverage: FAIL\n      Findings: 2\n      executed: target (src/target.py)\n      not executed: target (src/target.py)\n      Errors (1):\n        E710 No body line of declared artifact 'target' was executed by tests\n          Location: src/target.py\n          Suggestion: Strengthen the behavioral test so it executes the declared artifact body.\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_merge_unions_execution_by_complete_identity_and_regenerates_e710\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_merge_preserves_noncoverage_and_malformed_e710_diagnostics\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_merge_preserves_equal_count_orphaned_e710_diagnostic\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_merge_retains_first_execution_summary_without_claiming_mixed_provenance\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_directory_validation_accepts_execution_from_either_owner\nFAILED tests/core/test_chain_merged_artifact_coverage.py::test_verify_artifact_coverage_accepts_execution_from_either_owner\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts\n7 failed, 7 passed in 4.43s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-e710-chain-merged-coverage.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/active-manifest",
+      ".maid/plan-locks/canonicalize-merged-artifact-order.lock.json",
+      ".maid/plan-locks/chain-merge-coverage-evidence.lock.json",
+      ".maid/plan-locks/fix-approved-fixture-derived-coverage.lock.json",
+      "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+      "tests/core/test_approved_fixture_artifact_coverage.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:function:merge_artifact_coverage_reports",
+      "maid_runner/core/artifact_coverage.py:function:merge_artifact_coverage_reports:arg=reports:type=Iterable[ArtifactCoverageReport]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:merge_artifact_coverage_reports:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:merge_artifact_coverage_reports:returns=ArtifactCoverageReport",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_directory_validation_accepts_execution_from_either_owner",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_directory_validation_accepts_execution_from_either_owner:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_directory_validation_accepts_execution_from_either_owner:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_directory_validation_accepts_execution_from_either_owner:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_equal_count_orphaned_e710_diagnostic",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_equal_count_orphaned_e710_diagnostic:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_noncoverage_and_malformed_e710_diagnostics",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_preserves_noncoverage_and_malformed_e710_diagnostics:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_retains_first_execution_summary_without_claiming_mixed_provenance",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_retains_first_execution_summary_without_claiming_mixed_provenance:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_unions_execution_by_complete_identity_and_regenerates_e710",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_merge_unions_execution_by_complete_identity_and_regenerates_e710:kind=test_function",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_chain_merged_artifact_coverage.py:test_verify_artifact_coverage_accepts_execution_from_either_owner:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merged_artifact_coverage.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py",
+        "tests/core/test_chain_merge_coverage_wiring.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/result.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/validate.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merged_artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_merge_unions_execution_by_complete_identity_and_regenerates_e710"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_merge_preserves_noncoverage_and_malformed_e710_diagnostics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_merge_preserves_equal_count_orphaned_e710_diagnostic"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_merge_retains_first_execution_summary_without_claiming_mixed_provenance"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_directory_validation_accepts_execution_from_either_owner",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ]
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_artifact_coverage_accepts_execution_from_either_owner",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "merge_artifact_coverage_reports",
+              "description": "Unions report findings by complete artifact identity, preserves deterministic order and fail-closed diagnostics, and retains the first execution summary.",
+              "args": [
+                {
+                  "name": "reports",
+                  "type": "Iterable[ArtifactCoverageReport]"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_chain_merge_coverage_wiring.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts",
+              "description": "Legacy-named compatibility test proves aggregate verification accepts an executed duplicate owner while conflicting persisted owner evidence remains fail-closed UNKNOWN."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Route directory validation and the verifier's shared aggregate path through the public coverage-report union."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merged_artifact_coverage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_chain_merged_artifact_coverage.py tests/core/test_chain_merge_coverage_wiring.py",
+      "uv run maid validate manifests/fix-e710-chain-merged-coverage.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

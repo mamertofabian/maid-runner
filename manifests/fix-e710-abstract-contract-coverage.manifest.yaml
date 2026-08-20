@@ -1,0 +1,300 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Exclude explicit Python abstract contracts from runtime artifact coverage"
+type: fix
+created: "2026-08-16T23:22:56Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [artifact-coverage, validation-trust, abstractmethod, E710]
+description: |
+  Deep verification still emits E710 for methods explicitly decorated with
+  @abstractmethod and for classes whose declared methods are entirely abstract.
+  These declarations are interface contracts, not production bodies: honest
+  tests exercise concrete implementations, while calling raise
+  NotImplementedError or ellipsis bodies solely for line evidence would game the
+  gate.
+
+  Treat only exact @abstractmethod and @abc.abstractmethod method declarations as
+  not runtime-applicable. Omit those method findings, and omit a class finding
+  only when every declared method for that class is abstract. A mixed abstract
+  class retains coverage obligations for each concrete declared method and for
+  the class through those concrete methods. Similar-looking decorators such as
+  @fake.abstractmethod remain ordinary runtime obligations. Apply the same rule
+  to exact single, exact batch, and derived evidence evaluation.
+
+  The rule resolves direct imports and syntactically visible module-scope
+  rebinding only. Dynamic mutation through setattr, exec, or arbitrary calls is
+  intentionally outside this narrow rule; broad control-flow interpretation is
+  not an acceptable validator-hardening strategy.
+
+  This fix intentionally does not address dataclass/value-object coverage or
+  ordinary unexecuted concrete artifacts; those remain separate blockers.
+temptations:
+  - risk: "Do not execute abstract raise/ellipsis bodies merely to manufacture coverage evidence."
+    instead: "Classify only explicit standard-library abstractmethod decorators as non-runtime contracts during evidence evaluation."
+  - risk: "Do not exempt every method whose decorator attribute happens to be named abstractmethod."
+    instead: "Recognize only @abstractmethod and @abc.abstractmethod; keep custom or fake decorator attributes subject to E710."
+  - risk: "Do not exempt a whole mixed abstract class and accidentally hide an untested concrete default method."
+    instead: "Remove the class obligation only when no declared runtime-applicable method remains; otherwise require concrete method execution to credit the class."
+  - risk: "Do not change manifest declarations or diagnostic severity to make the repository gate green."
+    instead: "Keep contracts intact and change only the runtime-applicability decision shared by exact and derived coverage reports."
+files:
+  create:
+    - path: tests/core/test_artifact_coverage_abstract_contracts.py
+      artifacts:
+        - kind: test_function
+          name: test_abstract_protocol_contracts_are_not_runtime_coverage_targets
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_qualified_abc_abstractmethod_contract_is_not_a_runtime_target
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_mixed_abstract_class_keeps_concrete_method_coverage_obligation
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_fake_abstractmethod_attribute_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_undecorated_stub_body_remains_a_runtime_coverage_obligation
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_locally_bound_abstractmethod_name_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_locally_bound_abc_name_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_definition_decorator_rebinding_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_comprehension_walrus_rebinding_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_direct_abc_attribute_mutation_does_not_bypass_runtime_coverage
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: run_artifact_coverage
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+          returns: ArtifactCoverageReport
+          description: "Exact artifact coverage omits explicit abstract contracts while retaining concrete runtime obligations."
+        - kind: function
+          name: run_artifact_coverage_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: jobs
+              type: int | None
+              default: "None"
+            - name: max_processes
+              type: int | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "Exact batch reports apply the same narrow abstract-contract applicability rule."
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+            - name: evidence_mode
+              type: str
+              default: exact
+          returns: EvidenceArtifactCoverageResult
+          description: "Derived and exact-fallback reports share the same narrow abstract-contract applicability rule."
+  read:
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/core/runtime_evidence.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - tests/core/test_artifact_coverage_reexports.py
+    - manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml
+    - manifests/fix-chain-merge-protocol-e310.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_abstract_contracts.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage_reexports.py
+  - uv run maid validate manifests/fix-e710-abstract-contract-coverage.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T07:59:40+08:00"
+  summary: "Explicit Python abstract contracts are no longer treated as executable E710 obligations, while concrete, shadowed, and syntactically mutated decorator cases remain fail-closed."
+  rationale: |
+    Exact single, batch, and derived artifact-coverage reports now omit only
+    methods decorated through an unshadowed direct stdlib abc binding. Classes
+    are omitted only when every declared method is non-runtime abstract. The
+    implementation reduced repository-wide E710 findings from 98 to 89 without
+    weakening concrete methods, fake decorators, undecorated stubs, or visible
+    module-scope rebinding. Broad dynamic control-flow interpretation remains
+    explicitly out of scope.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: artifact-coverage
+      summary: "Interface bodies marked by an unshadowed direct stdlib abstractmethod binding are declaration contracts rather than runtime execution obligations; mixed classes must still prove every declared concrete method."
+      tags:
+        - E710
+        - abstractmethod
+        - validation-trust
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage_abstract_contracts.py
+    - lesson_type: test-design
+      summary: "Decorator-spelling tests are insufficient at a trust boundary: shadowing, definition-time assignment expressions, comprehensions, and direct attribute mutation need explicit fail-closed cases, while dynamic control-flow mutation should remain a documented limit instead of growing an ad hoc analyzer."
+      tags:
+        - anti-gaming
+        - behavioral-tests
+        - static-analysis-boundary
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage_abstract_contracts.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Review found decorator spelling alone trusted locally rebound symbols; revision 3 added shadowed-name regressions and direct stdlib binding checks."
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Re-review found module-executed assignment expressions and direct abc.abstractmethod mutation bypassed the narrow binder; revisions 4 and 5 added locked regressions and closed those syntactic cases."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final review returned ready with only the documented advisory that setattr, exec, indirect calls, and mutations in skipped bodies remain outside the deliberately narrow syntactic model."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-e710-abstract-contract-coverage.manifest.yaml
+        - --mode
+        - implementation
+        - --artifact-coverage
+        - --packet
+      status: passed
+      summary: "Implementation validation passed and executed all three declared artifact-coverage APIs."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-e710-abstract-contract-coverage.manifest.yaml
+      status: passed
+      summary: "Both locked manifest command groups passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - --packet
+      status: passed
+      summary: "Repository validation passed all 469 active manifests; 118 superseded manifests were skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Repository MAID tests passed all 295 command groups."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "The final full suite passed with 4,389 tests and 14 skips."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - 93d820c
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation stages passed; repository-wide artifact coverage remains blocked by 89 concrete E710 findings after this fix removed 9 abstract-contract false positives."

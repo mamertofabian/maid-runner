@@ -1,0 +1,70 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Bind knockout evidence cache entries to the exact declaration and command set"
+type: fix
+created: "2026-08-13T12:34:35Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, knockout, cache, correctness]
+description: |
+  The persistent knockout cache key includes the mutated artifact and project
+  content but omits the selected declarations. Two separate run_knockout calls
+  for different manifests declaring the same artifact can therefore reuse a
+  worker payload produced for the wrong validate command. Add a deterministic
+  declaration execution-shape component to the content-bound key so identical
+  requests still hit while different manifest/command sets execute and cache
+  independently.
+temptations:
+  - risk: "Do not disable the knockout cache to hide cross-declaration collisions."
+    instead: "Key cache entries by the ordered declaration attribution and exact validate commands in addition to existing content/environment inputs."
+  - risk: "Do not key only by manifest slug or path."
+    instead: "Include declaration index, plan index, slug, path, and exact ordered command tuples so command evolution invalidates evidence."
+  - risk: "Do not accept a cached report whose declaration keys merely happen to overlap."
+    instead: "Make incompatible declaration sets produce different cache paths before payload loading."
+  - risk: "Do not discard valid identical-request cache reuse."
+    instead: "Retain deterministic serialization so the same spec and declaration set resolves to the same key."
+files:
+  create:
+    - path: tests/core/test_knockout_cache_declaration_identity.py
+      artifacts:
+        - kind: test_function
+          name: test_knockout_cache_does_not_cross_distinct_declaration_sets
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Extend the private persistent cache key with the existing immutable KnockoutDeclaration execution shape without changing public signatures."
+  read:
+    - manifests/121-22-persist-knockout-evidence-cache.manifest.yaml
+    - tests/core/test_knockout_evidence_cache.py
+    - tests/core/test_knockout_batch.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_cache_declaration_identity.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_batch.py
+  - uv run maid validate manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T13:52:03Z"
+  summary: "Persistent knockout cache identities now include every ordered declaration's manifest attribution, plan/declaration indexes, and exact command tuples, preventing evidence reuse across incompatible manifest queries while preserving identical-request hits."
+  rationale: "Artifact and repository digests alone cannot distinguish two manifests that declare the same implementation artifact but prove it with different commands."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Runtime evidence caches must bind both the mutated artifact and the exact declaration execution shape that gives the evidence meaning."
+      tags: [knockout, cache, content-identity]
+      paths:
+        - maid_runner/core/knockout.py
+        - tests/core/test_knockout_cache_declaration_identity.py
+  review_notes:
+    - source: checkpoint_review
+      severity: ready
+      summary: "Independent final review found no remaining cache correctness or attribution issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_cache_declaration_identity.py, tests/core/test_knockout_evidence_cache.py, tests/core/test_knockout_batch.py]
+      status: passed
+      summary: "Focused declaration-identity and persistent-cache coverage passed within the 247-test affected suite."
+    - command: [uv, run, maid, validate, manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed."

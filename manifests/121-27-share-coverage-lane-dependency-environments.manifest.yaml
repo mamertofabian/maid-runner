@@ -1,0 +1,136 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Coverage lanes copy source and Git only and reuse the shared interpreter"
+type: refactor
+created: "2026-08-13T09:11:27Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - isolation
+    - snapshots
+description: |
+  Isolated coverage lanes currently use MaterializedProjectSnapshotBackend, which
+  copies .venv and node_modules into every lane before the first pytest starts.
+  A live probe of this repository spent more than a minute creating one lane
+  snapshot with no pytest work yet. Coverage commands do not need knockout-grade
+  interpreter isolation: they must see snapshot source bytes, but they can reuse
+  the shared resolved interpreter and node_modules via environment.
+
+  Add SharedEnvironmentProjectSnapshotBackend. It copies project inputs and Git
+  metadata exactly as the materialized backend does, skips dependency-environment
+  copies, and points VIRTUAL_ENV, UV_PROJECT_ENVIRONMENT, PATH, and NODE_PATH at
+  the source environments. PYTHONPATH still prepends the snapshot root so source
+  readers and imports observe snapshot bytes. Knockout keeps
+  MaterializedProjectSnapshotBackend unchanged.
+
+  Fail closed on a shared-environment write: the existing source-dependency
+  identity check still runs at snapshot teardown, so a command that mutates
+  .venv or node_modules raises rather than returning a green isolated result.
+  Coverage's isolated path uses the shared-environment backend by default when
+  the caller does not inject a snapshot_backend. Explicit backends still win.
+
+  This slice does not claim the 180-second coverage budget. It removes the
+  per-lane clone tax from the exact path so 121-19/20 can overlap pytest work.
+temptations:
+  - risk: "Do not symlink or hardlink .venv or node_modules into the snapshot."
+    instead: "Leave those trees out of the snapshot and bind the source paths through environment overrides so the snapshot and source never share a writable inode."
+  - risk: "Do not change knockout's default snapshot backend."
+    instead: "Keep MaterializedProjectSnapshotBackend as knockout's copy of dependency environments; only the coverage isolated path defaults to SharedEnvironmentProjectSnapshotBackend."
+  - risk: "Do not skip Git metadata isolation while skipping dependency copies."
+    instead: "Reuse the existing Git copy and environment-clearing path so coverage lanes still have independently writable repository metadata."
+  - risk: "Do not treat a write into the shared .venv as an isolated snapshot artifact."
+    instead: "Keep the source-dependency identity check at teardown so a shared-environment mutation fails closed."
+  - risk: "Do not test the backend by inspecting private copy helpers."
+    instead: "Assert observable snapshot contents, environment overrides, teardown errors, and the backend type received by an injected coverage runner."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: SharedEnvironmentProjectSnapshotBackend
+          description: "Coverage snapshot backend that copies source and Git metadata and reuses the shared .venv and node_modules through environment overrides."
+        - kind: method
+          name: create
+          of: SharedEnvironmentProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+          description: "Yield an isolated project snapshot whose VIRTUAL_ENV and NODE_PATH point at the source dependency environments rather than copied trees."
+        - kind: class
+          name: MaterializedProjectSnapshotBackend
+          description: "Existing knockout snapshot backend. Unchanged default still copies .venv and node_modules into the snapshot."
+        - kind: method
+          name: create
+          of: MaterializedProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+  create:
+    - path: tests/core/test_shared_environment_snapshots.py
+      artifacts:
+        - kind: test_function
+          name: test_shared_environment_snapshot_reuses_source_venv_without_copying
+          args: []
+        - kind: test_function
+          name: test_shared_environment_write_to_source_venv_fails_closed
+          args: []
+        - kind: test_function
+          name: test_knockout_backend_still_copies_dependency_environments
+          args: []
+        - kind: test_function
+          name: test_coverage_batch_defaults_to_shared_environment_backend
+          args: []
+  scope:
+    - path: maid_runner/core/artifact_coverage.py
+      reason: "Private isolated-coverage helpers default snapshot_backend to SharedEnvironmentProjectSnapshotBackend when the caller does not inject one; run_artifact_coverage_batch signature is unchanged."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_artifact_coverage_lanes.py
+    - maid_runner/core/_artifact_coverage_fallback_worker.py
+validate:
+  - uv run python -m pytest -q tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_lanes.py
+  - uv run maid validate manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:20:00Z"
+  summary: "Coverage isolated lanes now default to SharedEnvironmentProjectSnapshotBackend, which copies source and Git metadata and reuses the shared .venv and node_modules through environment overrides. Knockout still copies those trees. A write into the shared interpreter fails closed at snapshot teardown."
+  rationale: "A live probe of this repository spent more than five minutes creating one materialized coverage-lane snapshot before any pytest ran, because each lane cloned .venv and node_modules. Coverage does not need that knockout-grade isolation; binding the source environments and keeping the dependency-identity check preserves fail-closed behavior without the clone tax."
+  lessons:
+    - lesson_type: performance
+      summary: "Coverage snapshot lanes should copy source and Git metadata only; cloning .venv and node_modules per lane can exceed five minutes before the first pytest starts."
+      tags: [performance, artifact-coverage, snapshots]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - maid_runner/core/artifact_coverage.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Shared-environment backend leaves dependency trees out of the snapshot, points VIRTUAL_ENV and NODE_PATH at source paths, preserves knockout copies, and fails closed on shared-environment mutation. create() is defined on the public subclass so implementation validation can see it."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_shared_environment_snapshots.py, tests/core/test_knockout_snapshot.py, tests/core/test_artifact_coverage_lanes.py]
+      status: passed
+      summary: "28 tests passed, including preserved knockout dependency-copy adversaries."
+    - command: [uv, run, maid, validate, manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed after making share_dependency_environments private and defining create on the public subclass."
+

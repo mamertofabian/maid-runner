@@ -1,0 +1,196 @@
+{
+  "manifest_path": "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+  "manifest_hash": "sha256-contract:a0dec4a001e1e6f80ed377c8a99bcd84efe0fae59fdf4fad7614f6d57c1b121c",
+  "test_hashes": {
+    "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+    "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7"
+  },
+  "created_at": "2026-08-19T23:55:07.016529+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:52c14aaa01277397086188b8c738dd3e1f717b6b21347b6572b628114b3b0851",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7"
+      },
+      "revised_at": "2026-08-19T23:55:26.251666+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-merge-aware-worktree-scope.manifest.yaml -> manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:444e58efe5a0767e2a5ad983ad5d244b279d9aa7e1dce04d9abe01ef80845bdb",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7"
+      },
+      "revised_at": "2026-08-19T23:59:27.314568+00:00",
+      "reason": "Sequence same-second promoted contracts deterministically",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3afa693ed3527bc566677a613b2f0789465ca2b708d54bb80029dd3dde239e2b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7"
+      },
+      "revised_at": "2026-08-20T00:01:42.551006+00:00",
+      "reason": "Run the adjacent worktree-scope behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/validation/test_merge_worktree_scope.py tests/core/validation/test_file_scope_gates.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/validation/test_merge_worktree_scope.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a0dec4a001e1e6f80ed377c8a99bcd84efe0fae59fdf4fad7614f6d57c1b121c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7"
+      },
+      "revised_at": "2026-08-20T00:36:24.203031+00:00",
+      "reason": "Capture post-review Outcome evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T00:01:43.062900+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_merge_worktree_scope.py tests/core/validation/test_file_scope_gates.py",
+        "exit_code": 1,
+        "output_tail": "__________ test_worktree_scope_ignores_unchanged_incoming_merge_files __________\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-705/test_worktree_scope_ignores_un0')\n\n    def test_worktree_scope_ignores_unchanged_incoming_merge_files(tmp_path: Path) -> None:\n        chain = _conflicted_merge_project(tmp_path)\n    \n        paths = changed_files(tmp_path)\n        errors = validate_worktree_scope(tmp_path, chain)\n    \n>       assert paths == (\"src/conflict.py\",)\nE       AssertionError: assert ('src/conflic.../incoming.py') == ('src/conflict.py',)\nE         \nE         Left contains one more item: 'src/incoming.py'\nE         Use -v to get more diff\n\ntests/core/validation/test_merge_worktree_scope.py:89: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_merge_worktree_scope.py::test_worktree_scope_ignores_unchanged_incoming_merge_files\n1 failed, 16 passed in 0.33s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/add-python-type-alias-artifacts.lock.json",
+      ".maid/plan-locks/fix-plan-lock-invalid-red-success.lock.json",
+      "maid_runner/cli/commands/plan.py",
+      "maid_runner/core/_implementation_validation.py",
+      "maid_runner/validators/_python_implementation.py",
+      "manifests/add-python-type-alias-artifacts.manifest.yaml",
+      "manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+      "tests/cli/test_plan_cmd.py",
+      "tests/cli/test_plan_cmd_red_evidence.py",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py",
+      "tests/validators/test_python_type_alias.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing:kind=test_function",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing:returns=None",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_ignores_unchanged_incoming_merge_files",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_ignores_unchanged_incoming_merge_files:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_ignores_unchanged_incoming_merge_files:kind=test_function",
+      "tests/core/validation/test_merge_worktree_scope.py:test_worktree_scope_ignores_unchanged_incoming_merge_files:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_merge_worktree_scope.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/diff_scope.py",
+        "manifests/030-09-add-worktree-scope-gate.manifest.yaml",
+        "manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml",
+        "tests/core/validation/test_file_scope_gates.py"
+      ],
+      "scope": [
+        "maid_runner/core/worktree.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_merge_worktree_scope.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_worktree_scope_ignores_unchanged_incoming_merge_files",
+              "description": "An unchanged incoming source file is excluded while the declared conflict-resolution file remains the only worktree-scope path.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing",
+              "description": "Deleting AUTO_MERGE during a merge restores the existing conservative behavior and reports undeclared incoming source paths.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/diff_scope.py",
+        "tests/core/validation/test_file_scope_gates.py",
+        "manifests/030-09-add-worktree-scope-gate.manifest.yaml",
+        "manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/worktree.py",
+          "reason": "Select an exact merge-aware changed-file baseline without changing public worktree-scope signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_file_scope_gates.py",
+      "tests/core/validation/test_merge_worktree_scope.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_merge_worktree_scope.py tests/core/validation/test_file_scope_gates.py"
+    ]
+  }
+}

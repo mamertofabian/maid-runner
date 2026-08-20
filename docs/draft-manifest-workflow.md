@@ -153,10 +153,13 @@ promoted, promote:
 - re-locks the promoted manifest through the sanctioned revision path: the
   prior hashes are preserved in the lock's revision history and the revision
   reason records the promotion;
-- recaptures red-phase evidence by running the promoted manifest's validate
-  commands, matching `maid plan lock`; pass `--no-run` to skip capture and
-  record null evidence. Evidence capture is lock-gated: promoting an unlocked
-  draft never runs validate commands;
+- preserves valid red-phase evidence when the locked contract, validate-command
+  strings, and behavioral test hashes are unchanged. Otherwise it
+  recaptures evidence when the locked contract or tests changed; pass `--no-run` to skip
+  that fallback capture and record null evidence. A self-referencing validate
+  path rewritten from drafts/ to manifests/ changes the command identity and is
+  therefore recaptured rather than preserved. Evidence handling is lock-gated:
+  promoting an unlocked draft never runs validate commands;
 - resolves the lock directory from `--project-root` (default `.`), mirroring
   the `maid plan` subcommands.
 
@@ -286,11 +289,24 @@ Keep review rounds convergent and task-scoped:
   classify each as **blocking** or **advisory**. Blocking findings are contract
   violations, behavioral bugs, scope drift, or validation failures. Advisory
   findings are style, optional hardening, or future-work notes and MUST NOT
-  trigger manifest or locked-test revision in the current session; record them in the review packet for possible future draft manifests.
-- A finding first raised after round 1 explains why it was not visible in round
-  1, such as being unmasked by an earlier fix. After two full review rounds,
-  the reviewer issues a final verdict with residual advisories instead of
-  requesting another round, unless a blocking finding remains.
+  trigger manifest or locked-test revision in the current session. Do not record them in the review packet for possible future draft manifests;
+  keep them in a coordinator-owned follow-up log that is explicitly excluded
+  from every reviewer subagent packet.
+- After each independent review, the coordinator compares findings with earlier
+  verdicts. If a finding was not visible in round 1, the coordinator records
+  why, such as being unmasked by an earlier fix, without passing that comparison
+  or review lineage into a later reviewer prompt. Keep every reviewer prompt
+  verdict-neutral in every review round: pass the complete baseline-to-current implementation delta,
+  all manifest-declared artifacts, factual validation
+  outcomes, environment limits, and the plan-revision signal. Do not disclose
+  prior findings, fixes, verdicts, or review-round state, and never frame a
+  reviewer request as final, approval, or confirmation that fixes work.
+- Continue fresh review rounds after each issue-driven fix until the
+  latest verdict contains no blocking or current-scope actionable findings.
+  Do not use round count, including two full review rounds, as a stopping rule.
+  The coordinator decides convergence only after receiving the independent
+  verdict; a residual advisory may remain only when the reviewer explicitly
+  classifies it as non-actionable for the current contract.
 - Apply all blocking fixes from one round as a batch. If the contract or locked
   tests changed, run one revise after the batch and one re-validation rather
   than revising once per finding.

@@ -1,0 +1,167 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Reuse an open release pull request when GitHub omits its merge commit
+type: fix
+created: "2026-08-10T22:42:32Z"
+metadata:
+  priority: high
+  tags: [release, github, pull-request, parsing]
+description: |
+  Establish MAID coverage for the previously uncovered release-PR lookup boundary
+  in scripts/pr.py and fix the v2.26.0 follow-up. The command wrapper strips
+  surrounding whitespace, so GitHub's tab-separated open-PR record loses its
+  final empty merge-commit column and currently raises a tuple-unpack ValueError.
+
+  Accept exactly the three-field open-PR shape as an empty merge commit while
+  preserving the four-field merged-PR shape and merged-record preference. Reject
+  other malformed records with a release-specific error instead of silently
+  fabricating fields. Existing release workflow tests remain part of the contract
+  to characterize the surrounding previously uncovered maintainer script.
+temptations:
+- risk: Catch ValueError around the whole release flow and continue with no PR.
+  instead: Normalize only the exact three-field open-PR record at the GitHub output boundary and preserve all other failures.
+- risk: Pad every short record with arbitrary empty values.
+  instead: Accept exactly three or four fields and raise a clear RuntimeError for every other shape.
+- risk: Test a private parsing helper instead of the release workflow surface.
+  instead: Exercise PRCreator.find_release_pr with realistic run_command output and verify its returned release record.
+files:
+  edit:
+  - path: scripts/pr.py
+    artifacts:
+    - kind: method
+      name: find_release_pr
+      of: PRCreator
+      args:
+      - {name: repo, type: str}
+      - {name: head, type: str}
+      - {name: base, type: str}
+      - {name: head_sha, type: str}
+      returns: Optional[Dict[str, str]]
+  create:
+  - path: tests/test_pr_release_lookup.py
+    artifacts:
+    - kind: test_function
+      name: test_open_release_pr_without_merge_commit_is_reused
+      args: []
+      returns: None
+      source_scenario: GitHub returns a stripped three-field record for an open release PR whose merge commit is null.
+      actions:
+      - type: api_call
+        subject: {export: PRCreator.find_release_pr}
+      expected:
+        behavior: The lookup returns the exact open PR metadata with an empty merge_commit value instead of raising an unpacking error.
+    - kind: test_function
+      name: test_merged_release_pr_is_preferred_and_preserves_merge_commit
+      args: []
+      returns: None
+      source_scenario: GitHub returns both open and merged four-field records for the reviewed head.
+      actions:
+      - type: api_call
+        subject: {export: PRCreator.find_release_pr}
+      expected:
+        behavior: The lookup prefers the merged record and preserves its merge commit SHA.
+    - kind: test_function
+      name: test_malformed_release_pr_record_fails_with_specific_error
+      args: []
+      returns: None
+      source_scenario: GitHub returns a release PR record with neither the supported three-field nor four-field shape.
+      actions:
+      - type: api_call
+        subject: {export: PRCreator.find_release_pr}
+      expected:
+        behavior: The lookup raises a release-specific RuntimeError rather than leaking an incidental tuple-unpack exception or fabricating data.
+    - kind: test_function
+      name: test_merged_release_pr_without_merge_commit_fails_with_specific_error
+      args: []
+      returns: None
+      source_scenario: GitHub returns a stripped three-field record marked as merged even though its merge commit is absent.
+      actions:
+      - type: api_call
+        subject: {export: PRCreator.find_release_pr}
+      expected:
+        behavior: The lookup rejects the malformed merged record with a release-specific RuntimeError instead of treating it as an open PR shape.
+  read:
+  - tests/test_pr_script.py
+validate:
+- uv run python -m pytest -q tests/test_pr_release_lookup.py tests/test_pr_script.py
+outcome:
+  status: completed
+  completed_at: '2026-08-11T07:25:10+08:00'
+  summary: >-
+    Release pull-request lookup now reuses GitHub's stripped three-field OPEN
+    record with an empty merge commit, preserves four-field merged-record
+    preference, and rejects unsupported or internally inconsistent record
+    shapes with a release-specific RuntimeError.
+  rationale: >-
+    The shared command wrapper strips trailing whitespace, including the final
+    tab emitted for a null mergeCommit. Parsing the exact OPEN shape at the
+    GitHub-output boundary repairs the v2.26.0 release-helper failure without
+    padding arbitrary malformed rows or weakening fail-closed behavior.
+  lessons:
+  - lesson_type: release-safety
+    summary: >-
+      TSV records with nullable trailing fields can lose their final delimiter
+      when a command wrapper strips output; normalize only the exact semantic
+      shape that permits the missing value, not every row with the same field
+      count.
+    tags: [release, github, parsing, fail-closed]
+    paths:
+    - scripts/pr.py
+    - tests/test_pr_release_lookup.py
+  - lesson_type: test-design
+    summary: >-
+      Malformed-record coverage must combine structural and semantic cases. A
+      two-field row proved field-count rejection, while independent review
+      exposed the distinct three-field MERGED-without-merge-commit case and led
+      to a sanctioned plan revision with fresh red evidence.
+    tags: [behavioral-tests, implementation-review, plan-revision]
+    paths:
+    - tests/test_pr_release_lookup.py
+    - .maid/plan-locks/fix-release-pr-open-record-parsing.lock.json
+  review_notes:
+  - source: independent-implementation-reviewer-release-pr-lookup
+    severity: warning
+    summary: >-
+      Round one found that any three-field row was accepted, allowing a
+      malformed MERGED record without a merge commit. The contract was revised
+      to revision 3, the state guard and focused regression test were added,
+      and focused validation was rerun.
+  - source: independent-implementation-reviewer-release-pr-lookup
+    severity: ready
+    summary: >-
+      Round two found no blockers and confirmed exact OPEN normalization,
+      fail-closed MERGED handling, preserved merged-record preference, scope
+      fidelity, and updated locked red evidence. It noted only that the generic
+      field-count diagnostic is slightly imprecise for the rejected semantic
+      three-field case.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/test_pr_release_lookup.py, tests/test_pr_script.py]
+    status: passed
+    summary: All 30 focused release-helper tests passed.
+  - command: [uv, run, maid, validate, manifests/fix-release-pr-open-record-parsing.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed against plan-lock revision 3.
+  - command: [uv, run, ruff, check, scripts/pr.py, tests/test_pr_release_lookup.py]
+    status: passed
+    summary: Focused Ruff checks passed.
+  - command: [uv, run, black, --check, scripts/pr.py, tests/test_pr_release_lookup.py]
+    status: passed
+    summary: Black would leave both changed Python files unchanged.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: All 416 active manifests passed; 111 superseded manifests were skipped and none failed.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 246 manifest command groups passed.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, c85d760365a6cd203522c7496689271e3712b32b]
+    status: failed
+    summary: >-
+      Schema, behavioral, and implementation stages passed; repository-wide
+      artifact coverage failed on 1,681 historical E710 findings. A targeted
+      runtime coverage check for this manifest passed and confirmed
+      PRCreator.find_release_pr executed, so this change adds no uncovered
+      production artifact.

@@ -17,19 +17,27 @@ def test_batch_reports_match_independent_reports_for_identical_command(
 
     manifest_paths = _write_two_manifest_project(tmp_path)
     manifests = [load_manifest(path) for path in manifest_paths]
+    executor = _RecordingExecutor(_runtime_record(tmp_path, executed={"alpha", "beta"}))
 
     independent = {
-        manifest.source_path: run_artifact_coverage(manifest, tmp_path).to_dict()
+        manifest.source_path: run_artifact_coverage(
+            manifest,
+            tmp_path,
+            executor=executor,
+        ).to_dict()
         for manifest in manifests
     }
-    batched = run_artifact_coverage_batch(manifests, tmp_path)
+    batched = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=executor,
+    )
 
     assert {path: report.to_dict() for path, report in batched.items()} == independent
 
 
 def test_batch_executes_identical_pytest_command_once(
     tmp_path: Path,
-    monkeypatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
@@ -40,11 +48,15 @@ def test_batch_executes_identical_pytest_command_once(
             second_command="uv run python -m pytest -q tests/test_targets.py",
         )
     ]
-    coverage_calls = _record_coverage_subprocesses(monkeypatch)
+    executor = _RecordingExecutor(_runtime_record(tmp_path, executed={"alpha", "beta"}))
 
-    reports = run_artifact_coverage_batch(manifests, tmp_path)
+    reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=executor,
+    )
 
-    assert len(coverage_calls) == 1
+    assert len(executor.calls) == 1
     assert all(report.success for report in reports.values())
     assert [
         finding.artifact_name
@@ -58,7 +70,6 @@ def test_batch_executes_identical_pytest_command_once(
 
 def test_batch_keeps_distinct_pytest_arguments_separate(
     tmp_path: Path,
-    monkeypatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
@@ -68,11 +79,15 @@ def test_batch_keeps_distinct_pytest_arguments_separate(
         second_command="python -m pytest -q tests/test_targets.py -k beta",
     )
     manifests = [load_manifest(path) for path in manifest_paths]
-    coverage_calls = _record_coverage_subprocesses(monkeypatch)
+    executor = _RecordingExecutor(_runtime_record(tmp_path, executed={"alpha", "beta"}))
 
-    reports = run_artifact_coverage_batch(manifests, tmp_path)
+    reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=executor,
+    )
 
-    assert len(coverage_calls) == 2
+    assert len(executor.calls) == 2
     assert all(report.success for report in reports.values())
 
 
@@ -80,24 +95,16 @@ def test_batch_attributes_shared_command_failure_to_every_declaring_manifest(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    from maid_runner.core.artifact_coverage import (
-        run_artifact_coverage,
-        run_artifact_coverage_batch,
-    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
     manifest_paths = _write_two_manifest_project(tmp_path, failing_test=True)
     manifests = [load_manifest(path) for path in manifest_paths]
-    independent = {
-        manifest.source_path: run_artifact_coverage(manifest, tmp_path).to_dict()
-        for manifest in manifests
-    }
-    coverage_calls = _record_coverage_subprocesses(monkeypatch)
+    executor = _CountingSubprocessExecutor()
 
-    reports = run_artifact_coverage_batch(manifests, tmp_path)
+    reports = run_artifact_coverage_batch(manifests, tmp_path, executor=executor)
 
-    assert len(coverage_calls) == 1
+    assert len(executor.calls) == 1
     assert list(reports) == [manifest.source_path for manifest in manifests]
-    assert {path: report.to_dict() for path, report in reports.items()} == independent
     assert [[error.code for error in report.errors] for report in reports.values()] == [
         [ErrorCode.INTERNAL_ERROR],
         [ErrorCode.INTERNAL_ERROR],
@@ -110,7 +117,13 @@ def test_batch_preserves_manifest_order_and_json_shape(tmp_path: Path) -> None:
     manifest_paths = _write_two_manifest_project(tmp_path)
     manifests = [load_manifest(path) for path in reversed(manifest_paths)]
 
-    reports = run_artifact_coverage_batch(manifests, tmp_path)
+    reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=_RecordingExecutor(
+            _runtime_record(tmp_path, executed={"alpha", "beta"})
+        ),
+    )
 
     assert list(reports) == [manifest.source_path for manifest in manifests]
     assert [
@@ -149,17 +162,25 @@ def test_batch_missing_coverage_dependency_fails_closed_for_every_manifest(
 
 def test_batch_combines_evidence_from_multiple_commands_per_manifest(
     tmp_path: Path,
-    monkeypatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
     _write_two_manifest_project(tmp_path)
     manifest = load_manifest(_write_combined_manifest(tmp_path))
-    coverage_calls = _record_coverage_subprocesses(monkeypatch)
+    executor = _SequenceExecutor(
+        [
+            _runtime_record(tmp_path, executed={"alpha"}),
+            _runtime_record(tmp_path, executed={"beta"}),
+        ]
+    )
 
-    reports = run_artifact_coverage_batch([manifest], tmp_path)
+    reports = run_artifact_coverage_batch(
+        [manifest],
+        tmp_path,
+        executor=executor,
+    )
 
-    assert len(coverage_calls) == 2
+    assert len(executor.calls) == 2
     report = reports[manifest.source_path]
     assert report.success is True
     assert [
@@ -178,11 +199,250 @@ def test_batch_matches_final_command_call_trace_for_one_line_artifact(
     _write_two_manifest_project(tmp_path)
     (tmp_path / "src" / "alpha.py").write_text('def alpha() -> str: return "alpha"\n')
     manifest = load_manifest(_write_combined_manifest(tmp_path))
+    records = [
+        _runtime_record(
+            tmp_path,
+            executed={"alpha"},
+            one_line_alpha=True,
+        ),
+        _runtime_record(tmp_path, executed={"beta"}, one_line_alpha=True),
+        _runtime_record(
+            tmp_path,
+            executed={"alpha"},
+            one_line_alpha=True,
+        ),
+        _runtime_record(tmp_path, executed={"beta"}, one_line_alpha=True),
+    ]
+    executor = _SequenceExecutor(records)
 
-    independent = run_artifact_coverage(manifest, tmp_path).to_dict()
-    batched = run_artifact_coverage_batch([manifest], tmp_path)
+    independent = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=executor,
+    ).to_dict()
+    batched = run_artifact_coverage_batch(
+        [manifest],
+        tmp_path,
+        executor=executor,
+    )
 
     assert batched[manifest.source_path].to_dict() == independent
+
+
+def test_policy_matrix_uses_owned_fake_without_spawning_pytest(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+
+    manifest_paths = _write_two_manifest_project(tmp_path)
+    manifests = [load_manifest(path) for path in manifest_paths]
+    execution_data = {
+        str((tmp_path / "src/alpha.py").resolve()): RuntimeFileExecution(
+            executed_lines=frozenset({2}),
+            called_qualnames=frozenset({"alpha"}),
+        ),
+        str((tmp_path / "src/beta.py").resolve()): RuntimeFileExecution(
+            executed_lines=frozenset({2}),
+            called_qualnames=frozenset({"beta"}),
+        ),
+    }
+    executor = _RecordingExecutor(
+        RuntimeCommandRecord(
+            command=("-q", "tests/test_targets.py"),
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data=execution_data,
+            report_errors=(),
+        )
+    )
+
+    def unexpected_subprocess(*args, **kwargs):
+        raise AssertionError("owned fake must not spawn pytest")
+
+    monkeypatch.setattr(subprocess, "run", unexpected_subprocess)
+
+    reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=executor,
+    )
+
+    assert all(report.success for report in reports.values())
+    assert len(executor.calls) == 1
+
+
+def test_real_and_fake_executor_reports_are_equivalent(tmp_path: Path) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        SubprocessRuntimeCommandExecutor,
+    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+
+    manifest_paths = _write_two_manifest_project(tmp_path)
+    alpha_path = (tmp_path / "src/alpha.py").resolve()
+    alpha_path.write_text('def alpha() -> str: return "alpha"\n')
+    manifests = [load_manifest(path) for path in manifest_paths]
+    target_files = {
+        str(alpha_path),
+        str((tmp_path / "src/beta.py").resolve()),
+    }
+    record = SubprocessRuntimeCommandExecutor().execute(
+        ("-q", "tests/test_targets.py"),
+        target_files,
+        tmp_path,
+        900.0,
+    )
+
+    alpha_execution = record.execution_data[str(alpha_path)]
+    assert alpha_execution.executed_lines
+    assert "alpha" in alpha_execution.called_qualnames
+    assert all(Path(path).is_absolute() for path in record.execution_data)
+    assert (
+        sum(Path(path).resolve() == alpha_path for path in record.execution_data) == 1
+    )
+
+    real_reports = run_artifact_coverage_batch(manifests, tmp_path)
+    replayed_reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=_RecordingExecutor(record),
+    )
+
+    assert {path: report.to_dict() for path, report in replayed_reports.items()} == {
+        path: report.to_dict() for path, report in real_reports.items()
+    }
+
+
+def test_batch_executor_call_count_matches_unique_command_count(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+
+    manifests = [load_manifest(path) for path in _write_two_manifest_project(tmp_path)]
+    executor = _RecordingExecutor(
+        RuntimeCommandRecord(
+            command=("-q", "tests/test_targets.py"),
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data={},
+            report_errors=(),
+        )
+    )
+
+    reports = run_artifact_coverage_batch(
+        manifests,
+        tmp_path,
+        executor=executor,
+    )
+
+    assert len(executor.calls) == 1
+    assert all(
+        [error.code for error in report.errors]
+        == [ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS]
+        for report in reports.values()
+    )
+
+
+def _runtime_record(
+    root: Path,
+    *,
+    executed: set[str],
+    one_line_alpha: bool = False,
+):
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
+
+    alpha_lines = {1} if one_line_alpha else ({2} if "alpha" in executed else set())
+    beta_lines = {2} if "beta" in executed else set()
+    return RuntimeCommandRecord(
+        command=("-q", "tests/test_targets.py"),
+        returncode=0,
+        stdout="",
+        stderr="",
+        execution_data={
+            str((root / "src/alpha.py").resolve()): RuntimeFileExecution(
+                executed_lines=frozenset(alpha_lines),
+                called_qualnames=(
+                    frozenset({"alpha"}) if "alpha" in executed else frozenset()
+                ),
+            ),
+            str((root / "src/beta.py").resolve()): RuntimeFileExecution(
+                executed_lines=frozenset(beta_lines),
+                called_qualnames=(
+                    frozenset({"beta"}) if "beta" in executed else frozenset()
+                ),
+            ),
+        },
+        report_errors=(),
+    )
+
+
+class _RecordingExecutor:
+    def __init__(self, record: object) -> None:
+        self.record = record
+        self.calls: list[tuple[tuple[str, ...], set[str], Path, float]] = []
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.calls.append((command, set(target_files), project_root, timeout_seconds))
+        return self.record
+
+
+class _SequenceExecutor(_RecordingExecutor):
+    def __init__(self, records: list[object]) -> None:
+        super().__init__(records[0])
+        self._records = iter(records)
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.calls.append((command, set(target_files), project_root, timeout_seconds))
+        return next(self._records)
+
+
+class _CountingSubprocessExecutor:
+    def __init__(self) -> None:
+        from maid_runner.core._runtime_command_executor import (
+            SubprocessRuntimeCommandExecutor,
+        )
+
+        self._delegate = SubprocessRuntimeCommandExecutor()
+        self.calls: list[tuple[str, ...]] = []
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.calls.append(command)
+        return self._delegate.execute(
+            command,
+            target_files,
+            project_root,
+            timeout_seconds,
+        )
 
 
 def _record_coverage_subprocesses(monkeypatch) -> list[tuple[str, ...]]:

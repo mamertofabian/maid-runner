@@ -1,0 +1,457 @@
+{
+  "manifest_path": "manifests/bump-version-2.27.0.manifest.yaml",
+  "manifest_hash": "sha256-contract:73f7c15c5c0ad171d9546e0096a4450d3f40cf1f1e00aa49bd55b07d29ed18fc",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:d9eefe3746580f63a6372422081c5e861326533a972dd1a4c83ad4a9ff09667d"
+  },
+  "created_at": "2026-08-20T05:27:29.864842+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ac4946ea38c4332f3fffbef00933664d6430a2322b72bf560c1222cf48485c20",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:cb65fef1ad46dfb358f7f340fadc62b2f6e085d8c540b5885ecca86453b91658"
+      },
+      "revised_at": "2026-08-20T05:27:30.521201+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.27.0.manifest.yaml -> manifests/bump-version-2.27.0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bd0f32b0a5330d91a74ad84acea376d602be923482a654d948c3547d36596f5c",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:cb65fef1ad46dfb358f7f340fadc62b2f6e085d8c540b5885ecca86453b91658"
+      },
+      "revised_at": "2026-08-20T05:49:57.674826+00:00",
+      "reason": "remove pre-v2.26.0 TypeScript assertion claim identified by independent release review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:manifests/fix-typescript-assertion-nested-braces.manifest.yaml"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ec20bf3fe5c00b94d2f39cc0c0e28b24eecb7e76d2aed7e14e5231f0becd3555",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:cb65fef1ad46dfb358f7f340fadc62b2f6e085d8c540b5885ecca86453b91658"
+      },
+      "revised_at": "2026-08-20T09:03:05.270099+00:00",
+      "reason": "add post-review timeout and verdict-neutral review fixes to the complete 2.27.0 release inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/configure-plan-lock-command-timeout.manifest.yaml",
+          "read:manifests/fix-reviewer-prompt-anchoring.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c0e414efe8ff98376287cd47abc58c602897bd9a8b8c9c24765ecd53bd19230e",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:ae284959c04825595efe19e29fe22b1294e46872b3ee12893a98180b44fc2ac7"
+      },
+      "revised_at": "2026-08-20T09:59:43.873678+00:00",
+      "reason": "declare direct release-note provenance and require the roadmap to list every registered top-level CLI command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+          "read:manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+          "read:manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+          "read:manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+          "read:manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml",
+          "read:manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml",
+          "read:manifests/fix-isolated-pytest-payload-sync.manifest.yaml",
+          "read:manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml",
+          "read:manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml",
+          "read:manifests/fix-shared-dependency-hardlink-identity.manifest.yaml",
+          "read:manifests/fix-snapshot-created-utc-z.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:06cdc29ac7f298269da1770b70cf4e6bbb9aa4a849abea723b7d9c80735da701",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:d9eefe3746580f63a6372422081c5e861326533a972dd1a4c83ad4a9ff09667d"
+      },
+      "revised_at": "2026-08-20T10:14:46.766805+00:00",
+      "reason": "replace sampled release-note references with exhaustive post-v2.26 provenance and remove pre-release behavior attribution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+          "read:manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+          "read:manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+          "read:manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+          "read:manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+          "read:manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml",
+          "read:manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+          "read:manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+          "read:manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+          "read:manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml",
+          "read:manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+          "read:manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
+          "read:manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+          "read:manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
+          "read:manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+          "read:manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+          "read:manifests/121-26-bind-coverage-runner-monitoring-disable.manifest.yaml",
+          "read:manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+          "read:manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+          "read:manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml",
+          "read:manifests/121-30-project-grouped-command-failures.manifest.yaml",
+          "read:manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+          "read:manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+          "read:manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml",
+          "read:manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml",
+          "read:manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml",
+          "read:manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml",
+          "read:manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml",
+          "read:manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+          "read:manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml",
+          "read:manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+          "read:manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+          "read:manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml",
+          "read:manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml",
+          "read:manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+          "read:manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+          "read:manifests/121-48-share-knockout-command-controls.manifest.yaml",
+          "read:manifests/121-49-clear-release-knockout-blockers.manifest.yaml",
+          "read:manifests/canonicalize-merged-artifact-order.manifest.yaml",
+          "read:manifests/chain-merge-coverage-evidence.manifest.yaml",
+          "read:manifests/chain-merge-docs.manifest.yaml",
+          "read:manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+          "read:manifests/cover-remaining-deep-artifacts.manifest.yaml",
+          "read:manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+          "read:manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+          "read:manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml",
+          "read:manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml",
+          "read:manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+          "read:manifests/fix-chain-merge-full-artifact-spec.manifest.yaml",
+          "read:manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+          "read:manifests/fix-chain-merge-protocol-e310.manifest.yaml",
+          "read:manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml",
+          "read:manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml",
+          "read:manifests/fix-e710-abstract-contract-coverage.manifest.yaml",
+          "read:manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+          "read:manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
+          "read:manifests/fix-knockout-abstract-contract-applicability.manifest.yaml",
+          "read:manifests/fix-knockout-cache-key-context.manifest.yaml",
+          "read:manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml",
+          "read:manifests/snapshot-cli-commands--main-2.manifest.yaml",
+          "read:manifests/surface-knockout-strength.manifest.yaml"
+        ],
+        "files_removed": [
+          "read:manifests/ban-e2e-from-maid-test.manifest.yaml"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T10:14:47.632461+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.27.0\"\nE       AssertionError: assert '2.26.0' == '2.27.0'\nE         \nE         - 2.27.0\nE         ?    ^\nE         + 2.26.0\nE         ?    ^\n\ntests/integration/test_library_api.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 27 passed in 0.22s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.40ms\nInstalled 1 package in 0.77ms",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json",
+      ".maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+        "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+        "manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml",
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml",
+        "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+        "manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-24-task-scoped-deep-verification.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+        "manifests/121-26-bind-coverage-runner-monitoring-disable.manifest.yaml",
+        "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml",
+        "manifests/121-30-project-grouped-command-failures.manifest.yaml",
+        "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+        "manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+        "manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml",
+        "manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml",
+        "manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml",
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml",
+        "manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml",
+        "manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml",
+        "manifests/121-45-scope-assessed-deep-to-task.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-48-share-knockout-command-controls.manifest.yaml",
+        "manifests/121-49-clear-release-knockout-blockers.manifest.yaml",
+        "manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "manifests/add-python-type-alias-artifacts.manifest.yaml",
+        "manifests/bump-version-2.26.0.manifest.yaml",
+        "manifests/canonicalize-merged-artifact-order.manifest.yaml",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml",
+        "manifests/chain-merge-docs.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-file-scoped-apply.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "manifests/configure-plan-lock-command-timeout.manifest.yaml",
+        "manifests/cover-remaining-deep-artifacts.manifest.yaml",
+        "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+        "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+        "manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml",
+        "manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml",
+        "manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+        "manifests/fix-chain-merge-full-artifact-spec.manifest.yaml",
+        "manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+        "manifests/fix-chain-merge-protocol-e310.manifest.yaml",
+        "manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml",
+        "manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml",
+        "manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml",
+        "manifests/fix-e710-abstract-contract-coverage.manifest.yaml",
+        "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+        "manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
+        "manifests/fix-isolated-pytest-payload-sync.manifest.yaml",
+        "manifests/fix-knockout-abstract-contract-applicability.manifest.yaml",
+        "manifests/fix-knockout-cache-key-context.manifest.yaml",
+        "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+        "manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+        "manifests/fix-promotion-red-evidence-preservation.manifest.yaml",
+        "manifests/fix-release-pr-open-record-parsing.manifest.yaml",
+        "manifests/fix-reviewer-prompt-anchoring.manifest.yaml",
+        "manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml",
+        "manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml",
+        "manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml",
+        "manifests/fix-shared-dependency-hardlink-identity.manifest.yaml",
+        "manifests/fix-snapshot-created-utc-z.manifest.yaml",
+        "manifests/fix-windows-uninstall-portability.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml",
+        "manifests/surface-knockout-strength.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading/content/compare link, and roadmap all report 2.27.0; the roadmap lists every registered top-level CLI command.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.26.0.manifest.yaml",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+        "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+        "manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml",
+        "manifests/121-12-require-differential-knockout-detection.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml",
+        "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+        "manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
+        "manifests/121-24-task-scoped-deep-verification.manifest.yaml",
+        "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+        "manifests/121-26-bind-coverage-runner-monitoring-disable.manifest.yaml",
+        "manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml",
+        "manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml",
+        "manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml",
+        "manifests/121-30-project-grouped-command-failures.manifest.yaml",
+        "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
+        "manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml",
+        "manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml",
+        "manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml",
+        "manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml",
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml",
+        "manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml",
+        "manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml",
+        "manifests/121-45-scope-assessed-deep-to-task.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-48-share-knockout-command-controls.manifest.yaml",
+        "manifests/121-49-clear-release-knockout-blockers.manifest.yaml",
+        "manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml",
+        "manifests/add-chain-merge-target-evidence-refresh.manifest.yaml",
+        "manifests/add-python-type-alias-artifacts.manifest.yaml",
+        "manifests/canonicalize-merged-artifact-order.manifest.yaml",
+        "manifests/chain-merge-apply-materialize.manifest.yaml",
+        "manifests/chain-merge-coverage-evidence.manifest.yaml",
+        "manifests/chain-merge-docs.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-file-scoped-apply.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-repo-wide-sweep.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "manifests/configure-plan-lock-command-timeout.manifest.yaml",
+        "manifests/cover-remaining-deep-artifacts.manifest.yaml",
+        "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+        "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+        "manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml",
+        "manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml",
+        "manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+        "manifests/fix-chain-merge-full-artifact-spec.manifest.yaml",
+        "manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml",
+        "manifests/fix-chain-merge-protocol-e310.manifest.yaml",
+        "manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml",
+        "manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml",
+        "manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml",
+        "manifests/fix-e710-abstract-contract-coverage.manifest.yaml",
+        "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+        "manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
+        "manifests/fix-isolated-pytest-payload-sync.manifest.yaml",
+        "manifests/fix-knockout-abstract-contract-applicability.manifest.yaml",
+        "manifests/fix-knockout-cache-key-context.manifest.yaml",
+        "manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+        "manifests/fix-promotion-red-evidence-preservation.manifest.yaml",
+        "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+        "manifests/fix-windows-uninstall-portability.manifest.yaml",
+        "manifests/fix-release-pr-open-record-parsing.manifest.yaml",
+        "manifests/fix-snapshot-created-utc-z.manifest.yaml",
+        "manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml",
+        "manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml",
+        "manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml",
+        "manifests/fix-shared-dependency-hardlink-identity.manifest.yaml",
+        "manifests/fix-reviewer-prompt-anchoring.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml",
+        "manifests/surface-knockout-strength.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the complete 2.27.0 behavior, date, safety boundaries, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references and command inventory mirror the prepared CLI release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py"
+    ]
+  }
+}

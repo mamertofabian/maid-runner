@@ -1,0 +1,262 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add a fail-closed chain-merge equivalence gate that proves a candidate consolidated test state still covers and detects every artifact proven by a recorded pre-consolidation acceptance report before old tests are retired.
+type: feature
+created: '2026-08-15T22:55:58Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - knockout
+  - artifact-coverage
+  - equivalence
+  - anti-gaming
+  priority: medium
+description: |
+  Child 5 of the chain-merge-defragmentation epic.
+
+  SAFETY MODEL
+
+  The baseline is the JSON report previously emitted by
+  `maid chain merge <file> --json` while the old union of tests still exists.
+  The candidate is the current recorded coverage and knockout evidence read by
+  the ordinary chain-merge evidence sources after the proposed consolidated
+  tests have been run through the existing deep evidence workflow. This gate
+  consumes those records; it never runs coverage or mutates source itself.
+
+  Equivalence is an ARTIFACT-IDENTITY superset check, not a literal test-nodeid
+  comparison. For every artifact whose knockout the baseline detected, the
+  candidate must record at least one detecting nodeid. Candidate nodeids may be
+  different because consolidation creates new tests. For every artifact covered
+  in the baseline, the candidate must remain covered. Extra candidate artifacts,
+  detecting nodeids, and coverage are allowed.
+
+  The gate fails closed when either side lacks available, complete evidence, when
+  the baseline already contains E710 coverage debt or an undetected knockout,
+  when a baseline artifact disappears from the candidate contract, or when the
+  candidate loses detection or coverage. Every such safety failure is a blocking
+  E715 CHAIN_MERGE_EQUIVALENCE_REGRESSION diagnostic with a structured repair
+  recipe. The loader accepts only the complete report envelope emitted by chain
+  merge, rejects duplicate JSON keys, blank or duplicate identities, evidence
+  outside the required artifact set, overlapping/incomplete coverage partitions,
+  and availability flags inconsistent with their evidence. Malformed, unreadable,
+  mismatched, or internally inconsistent baseline JSON is a CLI usage error.
+
+  CLI
+
+  `maid chain merge <file> --verify-equivalence <baseline-report.json>` compares
+  the report's acceptance bar with current recorded evidence. It emits text or a
+  single JSON document and exits 0 only on equivalence, 1 for E715 regressions,
+  and 2 for invalid invocation/input. It cannot be combined with `--all` or
+  `--apply`; `--dry-run` remains harmless because the gate is read-only.
+
+  OUT OF SCOPE
+
+  Producing evidence, running knockout/coverage, authoring or retiring
+  consolidated tests, applying a merged manifest, static test analysis,
+  semantic mutant equivalence, and comparing literal old/new test nodeids.
+temptations:
+- risk: Treat both old and candidate test states being green on correct code as proof of equivalence.
+  instead: Compare recorded artifact coverage and per-artifact knockout detection; correct-code pass/fail is not evidence of fault detection.
+- risk: Require old detecting nodeids to remain present after tests are consolidated.
+  instead: Require at least one candidate detecting nodeid for the same artifact knockout; nodeid identity is intentionally allowed to change.
+- risk: Treat missing, stale, incomplete, or already-failing evidence as an empty successful bar.
+  instead: Emit blocking E715 findings and require a complete green baseline and complete current candidate evidence.
+- risk: Run expensive evidence generation inside the equivalence command.
+  instead: Consume only the baseline report and current recorded evidence; direct the user to regenerate evidence through the existing deep workflow.
+files:
+  create:
+  - path: maid_runner/core/chain_merge_equivalence.py
+    artifacts:
+    - kind: class
+      name: MergeEquivalenceResult
+      description: Deterministic artifact-level equivalence result with blocking diagnostics and categorized detection, coverage, and evidence regressions.
+    - kind: attribute
+      name: file_path
+      of: MergeEquivalenceResult
+      type: str
+    - kind: attribute
+      name: success
+      of: MergeEquivalenceResult
+      type: bool
+    - kind: attribute
+      name: detection_regressions
+      of: MergeEquivalenceResult
+      type: tuple[str, ...]
+    - kind: attribute
+      name: coverage_regressions
+      of: MergeEquivalenceResult
+      type: tuple[str, ...]
+    - kind: attribute
+      name: evidence_regressions
+      of: MergeEquivalenceResult
+      type: tuple[str, ...]
+    - kind: attribute
+      name: errors
+      of: MergeEquivalenceResult
+      type: tuple[ValidationError, ...]
+    - kind: function
+      name: check_merge_equivalence
+      args:
+      - name: file_path
+        type: str
+      - name: acceptance_bar
+        type: ChainMergeAcceptanceSpec
+      - name: candidate
+        type: ChainMergeAcceptanceSpec
+      - name: baseline_blocked
+        type: bool
+        default: 'False'
+      returns: MergeEquivalenceResult
+      description: Compare complete recorded baseline and candidate evidence by artifact identity; allow stronger evidence and changed test nodeids, but emit deterministic blocking E715 findings for every safety regression.
+  - path: tests/core/test_chain_merge_equivalence.py
+    artifacts:
+    - kind: test_function
+      name: test_equivalence_accepts_different_candidate_nodeids_and_superset_evidence
+    - kind: test_function
+      name: test_equivalence_blocks_lost_knockout_detection
+    - kind: test_function
+      name: test_equivalence_blocks_lost_artifact_coverage
+    - kind: test_function
+      name: test_equivalence_fails_closed_for_incomplete_baseline_or_candidate
+    - kind: test_function
+      name: test_equivalence_result_is_deterministic
+  - path: tests/cli/test_chain_merge_equivalence_command.py
+    artifacts:
+    - kind: test_function
+      name: test_chain_merge_verify_equivalence_json_passes_for_current_superset
+    - kind: test_function
+      name: test_chain_merge_verify_equivalence_returns_one_for_regression
+    - kind: test_function
+      name: test_chain_merge_verify_equivalence_rejects_invalid_baseline_or_conflicting_mode
+    - kind: test_function
+      name: test_chain_merge_verify_equivalence_rejects_non_report_and_inconsistent_evidence
+    - kind: test_function
+      name: test_chain_merge_verify_equivalence_blocks_structurally_blocked_baseline
+  edit:
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: CHAIN_MERGE_EQUIVALENCE_REGRESSION
+      of: ErrorCode
+      type: str
+      description: 'E715: chain-merge candidate evidence is incomplete or weaker than its recorded pre-consolidation acceptance bar.'
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_chain_merge_equivalence_result
+      args:
+      - name: result
+        type: MergeEquivalenceResult
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Render one deterministic text or JSON equivalence result, including E715 diagnostics and categorized artifact regressions.
+  - path: tests/core/test_diagnostics_registry.py
+    artifacts:
+    - kind: test_function
+      name: test_pinned_codes_have_structured_repair_recipes
+      args: []
+      returns: None
+      description: Pin E715 as a blocking diagnostic with a structured repair recipe.
+  scope:
+  - path: maid_runner/core/diagnostics_registry.py
+    reason: Register the private E715 description and edit-tests repair template; no public registry API changes.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the private --verify-equivalence parser argument.
+  - path: maid_runner/cli/commands/chain.py
+    reason: Privately load and strictly validate the baseline report, build current recorded candidate evidence, reject conflicting modes, and route exit codes.
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain_merge_evidence.py
+  - maid_runner/core/knockout.py
+  - maid_runner/core/artifact_coverage.py
+  - manifests/chain-merge-coverage-evidence.manifest.yaml
+  - docs/plans/maid-runner-manifest-test-consolidation.md
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py tests/core/test_diagnostics_registry.py -v
+- uv run maid validate manifests/chain-merge-equivalence-gate.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-16T07:13:45+08:00'
+  summary: Chain merge can now compare a saved pre-consolidation report with current recorded evidence and block test retirement whenever artifact coverage, knockout detection, evidence completeness, report eligibility, or contract identity regresses.
+  rationale: |
+    The gate compares artifact identities rather than literal old/new test nodeids,
+    allowing genuine consolidation while requiring at least one current detecting
+    test and preserved coverage for every baseline artifact. Both the full JSON
+    report loader and the public comparator fail closed: duplicate keys, malformed
+    partitions, blank identities, unavailable evidence, blocked baselines, E710
+    debt, missing artifacts, and lost detection or coverage all prevent a false
+    equivalence pass. Evidence generation remains outside this read-only command.
+  lessons:
+  - lesson_type: validation-trust
+    summary: A proof-file boundary must validate the complete producer envelope and cross-field invariants; field-level JSON types alone allowed structurally blocked or internally contradictory evidence to certify equivalence.
+    tags:
+    - chain-merge
+    - evidence-integrity
+    - fail-closed
+    - maid-runner-feedback
+    paths:
+    - maid_runner/cli/commands/chain.py
+    - tests/cli/test_chain_merge_equivalence_command.py
+  - lesson_type: api-design
+    summary: Sanitizing only the CLI is insufficient when the comparator is public; the core API must independently reject blank identities and malformed evidence partitions from direct callers.
+    tags:
+    - chain-merge
+    - public-api
+    - validation
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/chain_merge_equivalence.py
+    - tests/core/test_chain_merge_equivalence.py
+  - lesson_type: test-design
+    summary: Knockout equivalence is keyed by artifact identity, not detecting test nodeid identity, because a legitimate consolidated test necessarily has a new nodeid while detecting the same artifact failure.
+    tags:
+    - chain-merge
+    - knockout
+    - behavioral-tests
+    paths:
+    - maid_runner/core/chain_merge_equivalence.py
+    - tests/core/test_chain_merge_equivalence.py
+  review_notes:
+  - source: independent-implementation-reviewer-child5_impl_review
+    severity: blocking-fixed
+    summary: Round one found that minimal or contradictory proof envelopes could pass and that promotion left stale planning references; the loader, core invariants, tests, and sibling references were repaired through sanctioned plan revisions.
+  - source: independent-implementation-reviewer-child5_impl_review
+    severity: blocking-fixed
+    summary: Round two found that a complete BLOCKED report could lose its verdict and that direct core callers could supply blank nodeids; explicit blocked eligibility and core-side invariant validation closed both paths.
+  - source: independent-implementation-reviewer-child5_impl_review
+    severity: ready
+    summary: Final review found no remaining blockers, confirmed both plan locks and stale-reference repairs, and verified strict deterministic report parsing and direct-core fail-closed behavior.
+  validation:
+  - command: [uv, run, python, -m, pytest, tests/core/test_chain_merge_equivalence.py, tests/cli/test_chain_merge_equivalence_command.py, tests/core/test_diagnostics_registry.py, -q]
+    status: passed
+    summary: 32 focused tests passed across artifact-level comparison, strict CLI proof loading, text/JSON output, exit codes, and E715 repair registration.
+  - command: [uv, run, python, -m, pytest, 'tests/core/test_chain_merge*.py', 'tests/cli/test_chain_merge*.py', -q]
+    status: passed
+    summary: 65 chain-merge focused and regression tests passed.
+  - command: [uv, run, maid, validate, manifests/chain-merge-equivalence-gate.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: The promoted revision-5 child 5 contract passed implementation validation with fresh review-driven red evidence.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Full validation covered 583 manifests with 465 active passes, zero failures, and 118 superseded skips.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All active manifest validation commands completed successfully.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Repository lint passed.
+  - command: [uv, run, black, --check, .]
+    status: passed
+    summary: All 589 formatted files passed Black verification.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 6ce18d3]
+    status: failed-unrelated
+    summary: The assessment-selected deep gate passed schema and behavioral stages, then stopped at the branch baseline's five E307 CJS/Makefile warnings and two E310 DetectionEvidenceSource protocol-stub warnings before artifact coverage or knockout ran.

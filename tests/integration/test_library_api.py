@@ -13,6 +13,7 @@ Tests verify the public API surface from maid_runner/__init__.py:
 from __future__ import annotations
 
 import re
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -40,42 +41,53 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.26.0"
-        assert re.search(r'^version = "2\.26\.0"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.27.0"
+        assert re.search(r'^version = "2\.27\.0"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.26\.0"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.0"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.26.0] - 2026-08-10" in changelog_text
+        assert "## [2.27.0] - 2026-08-20" in changelog_text
         assert (
-            "[2.26.0]: https://github.com/mamertofabian/maid-runner/compare/v2.25.0...v2.26.0"
+            "[2.27.0]: https://github.com/mamertofabian/maid-runner/compare/v2.26.0...v2.27.0"
             in changelog_text
         )
         for release_note in (
-            "First-party bootstrap installers",
-            "Ownership-safe payload uninstall",
-            "Cross-repository feedback workflow",
-            "Shared-test plan-lock recovery",
-            "Delivery attestations",
-            "Change assessment",
-            "Artifact-coverage efficiency",
-            "Task-scoped handoff performance",
-            "Website positioning",
-            "Advisory strict validation policy",
-            "Actionable inactive-manifest repair",
-            "Deterministic coverage diagnostics",
-            "Git test isolation",
-            "Windows init portability",
-            "Stash-backed plan revision recovery",
-            "Manifest promotion formatting",
+            "Manifest-chain consolidation",
+            "Differential knockout proof",
+            "Recorded chain evidence",
+            "Deep-verification performance",
+            "Fast manifest test gate",
+            "Chain-merge contract preservation",
+            "Artifact-coverage correctness",
+            "Plan-lock evidence integrity",
+            "Configurable plan-lock timeouts",
+            "Verdict-neutral implementation review",
+            "Python TypeAlias contracts",
+            "Merge-aware worktree scope",
+            "Portable release workflows",
+            "Deterministic evidence caches",
         ):
             assert release_note in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.26.0" in roadmap_text
-        assert "**Last Updated:** 2026-08-10" in roadmap_text
-        assert "The local CLI reports `maid 2.26.0`." in roadmap_text
+        assert "**Current Version:** 2.27.0" in roadmap_text
+        assert "**Last Updated:** 2026-08-20" in roadmap_text
+        assert "The local CLI reports `maid 2.27.0`." in roadmap_text
+        assert "`maid chain merge`" in roadmap_text
+        help_result = subprocess.run(
+            ["maid", "--help"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        registered_commands = re.findall(
+            r"^    ([a-z][a-z-]*)\s{2,}", help_result.stdout, re.M
+        )
+        assert registered_commands
+        for command in registered_commands:
+            assert f"`maid {command}`" in roadmap_text
 
     def test_release_metadata_is_2_21_0(self):
         """Preserve the active v2.21.0 contract until this draft is promoted."""

@@ -1,0 +1,173 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Reconcile the chain-merge command reference, MAID specification, original consolidation design, packaged spec mirrors, and epic inventory with the fully shipped children 1-6 behavior.
+type: refactor
+created: '2026-08-16T07:15:40Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - documentation
+  - maid-spec
+  priority: low
+description: |
+  Child 7, the final child of the chain-merge-defragmentation epic.
+
+  The command reference and one MAID-spec sentence were committed early in
+  5665c18, before the evidence and equivalence children shipped. The reference
+  now contains a stale "Not yet shipped" section, omits
+  `--verify-equivalence BASELINE_REPORT`, and describes UNKNOWN evidence as a
+  future dependency. The original design note exists on release/v2.next at
+  e642cd1 but is absent from this perf-based branch even though every child cites
+  it. This change reconciles those documents with the implemented command.
+
+  The behavioral contract pins semantics rather than prose: every shipped CLI
+  mode appears in the reference; the docs state that reports consume current
+  recorded evidence without running coverage/knockout; apply never retires
+  tests; equivalence compares artifact-level coverage and knockout detection,
+  allows new test nodeids, consumes a complete saved baseline report, and fails
+  closed with E715. The original design note is restored as an implemented
+  decision record, and the epic inventory is marked completed with active child
+  paths.
+
+  `make sync-agent-payloads` does not copy maid_specs.md. This child therefore
+  directly keeps docs/maid_specs.md, maid_runner/docs/maid_specs.md, and
+  .maid/docs/maid_specs.md byte-identical and tests that invariant.
+
+  No runtime behavior, README command catalog, howto section, or generated skill
+  payload changes are in scope.
+temptations:
+- risk: Preserve the early reference's "not yet shipped" disclaimer or omit the final equivalence flag because the docs already look substantial.
+  instead: Compare the public `maid chain merge --help` output with semantic reference assertions covering every shipped mode.
+- risk: Describe equivalence as literal detecting-nodeid equality or as a coverage-only green-suite comparison.
+  instead: Document artifact-identity supersets, changed candidate nodeids, and the combined coverage plus knockout-detection bar.
+- risk: Claim the payload-sync Make target updates MAID spec mirrors.
+  instead: Update the two tracked mirrors explicitly and assert byte identity.
+- risk: Rewrite the design note as if the original evidence and open risks never existed.
+  instead: Preserve its decision rationale while adding a clear implemented resolution that names the shipped commands and remaining operational limits.
+files:
+  create:
+  - path: tests/docs/test_chain_merge_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_chain_merge_reference_covers_shipped_modes_and_safety_boundaries
+      args:
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: Public help and the command reference agree on every shipped option as a unit, and named sections pin the evidence, apply, artifact-identity superset, changed-nodeid, complete-baseline, and E715 boundaries.
+    - kind: test_function
+      name: test_chain_merge_spec_and_design_record_the_implemented_workflow
+      args: []
+      returns: None
+      description: The MAID spec and restored design record describe the shipped report, apply, equivalence, and sweep workflow, preserve the original measured rationale and coverage-only counterexample, and name remaining limits.
+    - kind: test_function
+      name: test_chain_merge_spec_mirrors_and_epic_closeout_are_current
+      args: []
+      returns: None
+      description: All tracked spec mirrors are byte-identical and the epic is completed with every implemented child path active and no child reference pointing at a deleted draft.
+  - path: docs/plans/maid-runner-manifest-test-consolidation.md
+    artifacts:
+    - kind: attribute
+      name: _chain_merge_consolidation_design_resolution
+      of: documentation
+      type: markdown document
+      description: Restored design decision record reconciled with the shipped chain-merge commands, evidence caches, safety gates, and operational limits.
+  edit:
+  - path: docs/maid-chain-merge.md
+    artifacts:
+    - kind: attribute
+      name: _maid_chain_merge_command_reference
+      of: documentation
+      type: markdown document
+      description: Complete command reference for report, recorded acceptance, apply, equivalence, and repository sweep behavior.
+  - path: docs/maid_specs.md
+    artifacts:
+    - kind: attribute
+      name: _chain_merge_consolidated_snapshots_spec
+      of: documentation
+      type: markdown section
+      description: Consolidated Snapshots specification for structural defrag and evidence-certified test consolidation.
+  scope:
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep the packaged MAID specification byte-identical to the canonical docs copy.
+  - path: .maid/docs/maid_specs.md
+    reason: Keep the initialized MAID specification byte-identical to the canonical docs copy.
+  - path: manifests/drafts/chain-merge-defragmentation.epic.yaml
+    reason: Mark the mutable split-before-promote epic inventory completed and replace obsolete child draft references with active manifest paths.
+  read:
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/chain.py
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain_merge_equivalence.py
+  - manifests/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/chain-merge-evidence-sources.manifest.yaml
+  - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+  - manifests/chain-merge-coverage-evidence.manifest.yaml
+  - manifests/chain-merge-apply-materialize.manifest.yaml
+  - manifests/chain-merge-equivalence-gate.manifest.yaml
+  - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/docs/test_chain_merge_docs.py -v
+- uv run maid validate manifests/chain-merge-docs.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-16T15:32:21+08:00'
+  summary: The chain-merge command family now has an accurate shipped reference, a reconciled design decision record, synchronized specification mirrors, and a completed epic inventory covering all eight promoted children.
+  rationale: |
+    The documentation separates structural snapshot safety from behavioral test-
+    retirement certification, explains that reports consume recorded evidence
+    without running deep probes, and defines equivalence as artifact-level
+    coverage and knockout-detection supersets that permit new test nodeids. The
+    original consolidation rationale and its operational limits remain visible,
+    while the mutable epic now points only to active child manifests.
+  lessons:
+  - lesson_type: documentation
+    summary: Structural apply and evidence-based certification need distinct terminology because E710 can block test retirement without preventing a safe manifest snapshot.
+    tags:
+    - chain-merge
+    - safety-boundary
+    paths:
+    - docs/maid-chain-merge.md
+    - docs/maid_specs.md
+  - lesson_type: test-design
+    summary: Section-local semantic assertions caught stale shipped-state wording while allowing prose to evolve, and byte comparisons kept both tracked specification mirrors aligned.
+    tags:
+    - chain-merge
+    - documentation-tests
+    paths:
+    - tests/docs/test_chain_merge_docs.py
+    - maid_runner/docs/maid_specs.md
+    - .maid/docs/maid_specs.md
+  review_notes:
+  - source: independent-implementation-reviewer-child7_impl_review_fresh
+    severity: blocking-fixed
+    summary: The first review found that the docs incorrectly implied recorded E710 debt blocks structural apply; the reference and all specification copies now distinguish structural snapshotting from behavioral certification.
+  - source: independent-implementation-reviewer-child7_impl_review_fresh
+    severity: ready
+    summary: Re-review found no blockers and left only an advisory opportunity to pin the E710-versus-apply wording more explicitly in a future locked contract revision.
+  validation:
+  - command: [uv, run, python, -m, pytest, tests/docs/test_chain_merge_docs.py, -q]
+    status: passed
+    summary: All three focused documentation behavior tests passed.
+  - command: [uv, run, maid, test, --manifest, manifests/chain-merge-docs.manifest.yaml]
+    status: passed
+    summary: Both declared child 7 commands passed.
+  - command: [uv, run, maid, validate, manifests/chain-merge-docs.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed with only the expected E307 notices for Markdown files without validators.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed 466 active manifests with zero failures and 118 superseded skips.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 05aca62]
+    status: failed-unrelated
+    summary: Schema and behavioral stages passed; implementation remained blocked by the branch baseline E307 CJS/Makefile and E310 protocol-stub warnings.
+  - command: [uv, run, maid, test]
+    status: failed-unrelated
+    summary: 291 of 292 commands passed; the bundled full suite reproduced the unchanged baseline TypeScript workspace-package resolution failure in test_workspace_package_exports_resolve_to_workspace_source.

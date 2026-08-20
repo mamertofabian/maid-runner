@@ -1,0 +1,119 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep unrelated ambient Git configuration changes from aborting runtime artifact-coverage evidence"
+type: fix
+created: "2026-08-19T08:16:35Z"
+metadata:
+  priority: high
+  tags: [verify, artifact-coverage, runtime-evidence, git-config, regression]
+description: |
+  Evolve the Git-aware runtime-evidence content identity introduced by
+  `121-50-ignore-git-excluded-runtime-evidence-content`. A real deep gate on a
+  clean release worktree aborted after VS Code added only
+  `branch.feat/manifest-chain-flattening.vscode-merge-base` to the shared local
+  Git configuration. The worktree bytes, selected tracked/nonignored paths,
+  and Git identity remained unchanged, but `_git_content_paths` had bound the
+  complete output of `git config --list --show-origin` into the digest.
+
+  Bind exactly the effective Git configuration values that can alter standard
+  ignore matching or selected content-path interpretation:
+  `core.excludesFile` (including its resolved source path and bytes),
+  `core.ignoreCase`, and `core.precomposeUnicode`. Preserve the existing
+  fail-closed behavior for those settings, local
+  `.git/info/exclude`, active and self-ignored in-tree `.gitignore` files,
+  tracked files, and ordinary unignored output. Branch tracking, editor
+  metadata, user identity, credential helpers, hooks, and other unrelated Git
+  configuration must not invalidate runtime evidence because they cannot alter
+  the `git ls-files --cached --others --exclude-standard` content selection.
+  `core.fsmonitor` and `core.untrackedCache` are explicitly unbound: they are
+  query accelerators and must not change the selected-path result.
+
+  This is an additive behavioral strengthening of the unchanged public
+  `maid verify` interface, so it chain-merges with 121-50 rather than
+  superseding it. The production edit remains limited to the private digest
+  mechanism and must not relax any existing negative control.
+temptations:
+  - risk: "Do not stop hashing Git configuration entirely to make the new positive case pass."
+    instead: "Project only ignore/path-selection configuration and keep the existing core.ignoreCase and core.excludesFile mutation tests blocking."
+  - risk: "Do not special-case VS Code branch keys or the manifest-chain-flattening branch name."
+    instead: "Use an allowlist of Git configuration semantics that can affect standard ignored-file selection."
+  - risk: "Do not treat credentials, identity, hooks, remotes, or branch tracking as project content."
+    instead: "Exclude unrelated configuration categories while continuing to bind the actual ignore-source files and relevant interpretation values."
+  - risk: "Do not weaken tracked or unignored content mutation detection."
+    instead: "Run the full existing Git-aware runtime-content contract alongside the new unrelated-config positive case."
+files:
+  edit:
+    - path: tests/cli/test_verify_git_ignored_runtime_content.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_accepts_runtime_mutation_of_unrelated_git_configuration
+          args:
+            - {name: config_key, type: str}
+            - {name: config_value, type: str}
+          returns: None
+          description: "Artifact coverage remains green when instrumented tests add unrelated branch/editor, identity, fsmonitor, or untracked-cache Git settings while generating only Git-ignored content."
+        - kind: test_function
+          name: test_verify_rejects_runtime_precompose_unicode_configuration_mutation
+          args: []
+          returns: None
+          description: "Artifact coverage remains fail-closed when an instrumented test changes core.precomposeUnicode, which can alter Git path interpretation on supported platforms."
+        - kind: test_function
+          name: test_verify_accepts_shadowed_runtime_git_configuration_mutation
+          args: []
+          returns: None
+          description: "Artifact coverage remains green when a lower-precedence relevant Git setting changes but a stable local value continues to determine effective path-selection semantics."
+  scope:
+    - path: maid_runner/core/runtime_evidence.py
+      reason: "Narrow the private effective-config contribution to runtime content identity without changing the public RuntimeEvidence API."
+  read:
+    - manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/cli/commands/_main.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_git_ignored_runtime_content.py
+  - uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/cli/test_artifact_coverage_evidence_cache.py tests/core/test_runtime_evidence.py
+outcome:
+  status: completed
+  completed_at: "2026-08-19T08:42:46Z"
+  summary: Runtime evidence now ignores unrelated and shadowed Git configuration changes while remaining fail-closed for effective path-selection settings and content.
+  rationale: |
+    The digest now serializes only normalized effective values for
+    `core.ignoreCase` and `core.precomposeUnicode`, while retaining the existing
+    effective `core.excludesFile` path and content binding. Public CLI tests
+    prove unrelated configuration is harmless, lower-precedence relevant
+    values are harmless when shadowed by a stable local value, and effective
+    ignore/path-selection mutations remain blocking. The focused and adjacent
+    suites, all 299 repository MAID commands, and the assessment-prescribed
+    11-stage deep gate passed. Independent review found and then confirmed the
+    repair of the layered-config false-invalidation boundary.
+  lessons:
+    - lesson_type: validation-trust
+      summary: Content identity should bind effective configuration semantics, not every layered declaration, or shadowed ambient values can invalidate otherwise replayable runtime evidence.
+      tags: [maid-runner-feedback, runtime-evidence, git-config, fail-closed]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+        - tests/cli/test_verify_git_ignored_runtime_content.py
+  review_notes:
+    - source: independent-implementation-reviewer-runtime_digest_impl_review
+      severity: ready
+      summary: Re-review confirmed effective winning values are serialized, equivalent boolean spellings are normalized, core.excludesFile remains bound, and the corrected precedence test isolates the original false invalidation.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_git_ignored_runtime_content.py]
+      status: passed
+      summary: All 18 Git-aware runtime-content scenarios passed.
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/cli/test_artifact_coverage_evidence_cache.py, tests/core/test_runtime_evidence.py]
+      status: passed
+      summary: All 53 adjacent runtime evidence and cache scenarios passed.
+    - command: [uv, run, maid, validate, manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Implementation validation matched the approved revision-3 contract.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 299 repository manifest commands passed.
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, release/v2.next]
+      status: passed
+      summary: All 11 deep handoff stages passed in 43.8 seconds with only existing E307 advisories.

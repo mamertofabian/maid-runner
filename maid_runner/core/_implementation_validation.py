@@ -363,6 +363,21 @@ def _compare_single(
             )
         )
 
+    if spec.kind == ArtifactKind.TYPE and spec.type_annotation:
+        if found.type_annotation is None or not type_matcher(
+            spec.type_annotation, found.type_annotation
+        ):
+            errors.append(
+                ValidationError(
+                    code=ErrorCode.TYPE_MISMATCH,
+                    message=(
+                        f"Type mismatch for type '{spec.qualified_name}': expected "
+                        f"'{spec.type_annotation}', got '{found.type_annotation}'"
+                    ),
+                    location=Location(file=file_path, line=found.line),
+                )
+            )
+
     if spec.args:
         found_args_by_name = {a.name: a for a in found.args}
         for expected_arg in spec.args:

@@ -650,6 +650,29 @@ def revision_preserves_red_evidence(
     new_contract = _manifest_contract(manifest, root)
     if compute_contract_delta(prior_contract, new_contract) != ContractDelta():
         return False
+    if preserves_red or preserves_test_only_green:
+        evidence_commands = existing.red_evidence.get("commands")
+        prior_commands = prior_contract.get("validate_commands")
+        new_commands = new_contract.get("validate_commands")
+        if (
+            not isinstance(evidence_commands, list)
+            or not isinstance(prior_commands, list)
+            or not isinstance(new_commands, list)
+        ):
+            return False
+        evidence_command_strings = [
+            command.get("command")
+            for command in evidence_commands
+            if isinstance(command, dict)
+        ]
+        if (
+            len(evidence_command_strings) != len(evidence_commands)
+            or not all(isinstance(command, str) for command in prior_commands)
+            or not all(isinstance(command, str) for command in new_commands)
+            or Counter(evidence_command_strings) != Counter(prior_commands)
+            or Counter(prior_commands) != Counter(new_commands)
+        ):
+            return False
 
     current_tests = set(_behavioral_test_paths(manifest, root))
     locked_tests = set(existing.test_hashes)
@@ -787,15 +810,25 @@ def classify_red_exit_code(exit_code: int) -> str:
 
 
 def capture_red_phase_evidence(
-    manifest_path: Path, project_root: Path
+    manifest_path: Path,
+    project_root: Path,
+    command_timeout_seconds: int = 300,
 ) -> RedPhaseEvidence:
     """Run the manifest's validate commands and record red-phase evidence."""
+    if command_timeout_seconds < 1:
+        raise ValueError("Command timeout must be a positive integer")
+
     manifest = load_manifest(manifest_path)
     root = Path(project_root)
     slug = slug_from_path(manifest_path)
     commands: list[RedPhaseCommandEvidence] = []
     for command in manifest.validate_commands:
-        result = _run_test_command(command, cwd=root, manifest_slug=slug)
+        result = _run_test_command(
+            command,
+            cwd=root,
+            timeout=command_timeout_seconds,
+            manifest_slug=slug,
+        )
         commands.append(
             RedPhaseCommandEvidence(
                 command=shlex.join(command),
@@ -813,9 +846,14 @@ def capture_red_phase_evidence(
 
 
 def capture_legacy_baseline_evidence(
-    manifest_path: Path, project_root: Path, reason: str
+    manifest_path: Path,
+    project_root: Path,
+    reason: str,
+    command_timeout_seconds: int = 300,
 ) -> LegacyBaselineEvidence:
     """Capture a green, contract-stable baseline for a legacy manifest."""
+    if command_timeout_seconds < 1:
+        raise ValueError("Command timeout must be a positive integer")
     if not reason or not reason.strip():
         raise ValueError("Legacy-baseline migration requires a non-empty reason")
 
@@ -903,7 +941,10 @@ def capture_legacy_baseline_evidence(
     commands: list[RedPhaseCommandEvidence] = []
     for command in current_manifest.validate_commands:
         result = _run_test_command(
-            command, cwd=root, manifest_slug=current_manifest.slug
+            command,
+            cwd=root,
+            timeout=command_timeout_seconds,
+            manifest_slug=current_manifest.slug,
         )
         evidence = RedPhaseCommandEvidence(
             command=shlex.join(command),
@@ -1725,16 +1766,17 @@ def _red_evidence_command_mismatch_detail(
 def _red_evidence_is_valid(evidence: dict) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
         return False
-    if evidence.get("mode") == "stash_restoration":
+    mode = evidence.get("mode")
+    if mode == "stash_restoration":
         return _stash_restoration_red_evidence_is_valid(evidence)
+    if mode is not None:
+        return False
     commands = evidence.get("commands")
     if not isinstance(commands, list):
         return False
-    classifications = [
-        command.get("classification")
-        for command in commands
-        if isinstance(command, dict)
-    ]
+    if not all(_red_command_payload_is_consistent(command) for command in commands):
+        return False
+    classifications = [command["classification"] for command in commands]
     return "red" in classifications and "invalid" not in classifications
 
 
@@ -1774,7 +1816,7 @@ def _red_command_payload_is_consistent(command: object) -> bool:
     return (
         isinstance(command_text, str)
         and bool(command_text)
-        and isinstance(exit_code, int)
+        and type(exit_code) is int
         and command.get("classification") == classify_red_exit_code(exit_code)
         and isinstance(command.get("output_tail"), str)
     )
@@ -1806,11 +1848,9 @@ def _test_only_green_commands_are_green(evidence: dict) -> bool:
     if not isinstance(commands, list) or not commands:
         return False
     for command in commands:
-        if not isinstance(command, dict):
+        if not _red_command_payload_is_consistent(command):
             return False
-        if command.get("classification") != "not_red":
-            return False
-        if command.get("exit_code") != 0:
+        if command["classification"] != "not_red":
             return False
     return True
 

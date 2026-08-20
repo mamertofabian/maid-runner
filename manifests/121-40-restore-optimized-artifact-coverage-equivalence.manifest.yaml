@@ -1,0 +1,84 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Restore artifact-coverage report equivalence without weakening sysmon isolation"
+type: fix
+created: "2026-08-13T12:34:22Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, artifact-coverage, equivalence, regression]
+description: |
+  The optimized exact batch adds provenance while the public single-manifest
+  exact path omits it, breaking serial/batch JSON equivalence. A deep-verify
+  isolation test also treats sys.getprofile() as the only observable evidence
+  instrumentation even though grouped runtime evidence deliberately moved to
+  lower-overhead sys.monitoring and promises not to claim the process profile
+  hook. Restore exact report equivalence and make the isolation contract
+  recognize both supported instrumentation mechanisms without installing a
+  redundant profile callback or reusing coverage evidence as ordinary tests.
+temptations:
+  - risk: "Do not remove provenance from optimized batch reports to satisfy equality tests."
+    instead: "Label the single-manifest exact path with the same exact provenance and compare complete serialized payloads."
+  - risk: "Do not disable sysmon and regress every exact coverage subprocess to the slower Python profiler."
+    instead: "Keep sys.monitoring call collection and make the isolation test recognize its claimed runtime-evidence tool."
+  - risk: "Do not make an instrumentation-observable test pass by reusing its artifact-coverage result as ordinary test evidence."
+    instead: "Keep ordinary tests fresh and prove only that the coverage subprocess retains its historical instrumentation boundary."
+  - risk: "Do not swallow coverage command failures."
+    instead: "Assert the subprocess exit, report errors, and called artifact evidence through the public executor result."
+files:
+  create:
+    - path: tests/core/test_optimized_artifact_coverage_equivalence.py
+      artifacts:
+        - kind: test_function
+          name: test_exact_single_and_batch_reports_share_provenance_and_payload
+          args: []
+        - kind: test_function
+          name: test_sysmon_coverage_keeps_instrumentation_observable_until_pytest_session
+          args: []
+  edit:
+    - path: tests/core/test_artifact_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_fake_runtime_executor_preserves_single_manifest_report
+    - path: tests/cli/test_verify_deep_evidence_reuse.py
+      artifacts:
+        - kind: test_function
+          name: test_instrumentation_observable_test_cannot_create_false_green_tests_stage
+  scope:
+    - path: maid_runner/core/artifact_coverage.py
+      reason: "Align the existing exact single-manifest report payload with the optimized exact batch payload without changing public signatures."
+  read:
+    - manifests/121-23-default-derived-coverage-evidence.manifest.yaml
+    - manifests/121-26-bind-coverage-runner-monitoring-disable.manifest.yaml
+    - tests/core/test_artifact_coverage_batch.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+validate:
+  - uv run python -m pytest -q tests/core/test_optimized_artifact_coverage_equivalence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/cli/test_verify_deep_evidence_reuse.py
+  - uv run maid validate manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T13:52:03Z"
+  summary: "Exact single and batch artifact-coverage reports now serialize the same provenance, while deep isolation recognizes either the profiler fallback or the low-overhead maid-runtime-evidence sys.monitoring tool. No redundant profile hook is installed."
+  rationale: "The optimized batch path exposed an exact provenance field that the public single path omitted. An older isolation test also encoded sys.getprofile as the only instrumentation signal, contradicting the established low-overhead sys.monitoring ownership contract."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Instrumentation-isolation tests must recognize the supported runtime mechanism rather than force an observable hook that changes the performance contract."
+      tags: [artifact-coverage, sys-monitoring, equivalence]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/cli/test_verify_deep_evidence_reuse.py
+  review_notes:
+    - source: checkpoint_review
+      severity: ready
+      summary: "Independent final review found no remaining correctness, scope, or contract issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_optimized_artifact_coverage_equivalence.py, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/test_artifact_coverage_failure_determinism.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "45 focused artifact-coverage and deep-isolation tests passed."
+    - command: [uv, run, maid, validate, manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against the revised locked contract."

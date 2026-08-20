@@ -1,0 +1,87 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reuse matching ordinary pytest groups after snapshot knockout"
+type: refactor
+created: "2026-08-13T09:30:02Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - verify
+    - runtime-evidence
+    - knockout
+description: |
+  121-10 always runs the ordinary tests stage fresh because in-place knockout
+  used to mutate the checkout between coverage and tests. 121-13/14 moved
+  knockout into snapshots, so the original checkout is unchanged. Deep still
+  pays a second pytest of the same overlapping nodes.
+
+  After knockout, reuse a coverage/grouped pytest group at the tests stage only
+  when knockout actually executed snapshot specs, the checkout content digest
+  still matches the evidence bundle, and command, selectors, behavior options,
+  and resolved-environment identity match via runtime_evidence_is_current.
+  Residual and non-overlapping commands still run at the original tests-stage
+  boundary. Text and JSON keep separate tests and artifact_coverage stages.
+
+  Knockout with no executed specs (including knockout_limit=0) keeps tests
+  fresh so 121-10's existing pin stays true. A digest change after knockout
+  also keeps tests fresh. Without knockout, tests stay fresh.
+temptations:
+  - risk: "Do not treat knockout-stage presence as proof the checkout is unchanged."
+    instead: "Reuse only when knockout results are non-empty and runtime_evidence_is_current succeeds against the post-knockout tree."
+  - risk: "Do not skip residual or non-overlapping commands because a matching pytest group was reused."
+    instead: "Partition tests-stage commands by evidence identity; execute every command that is not in the current evidence bundle."
+  - risk: "Do not collapse tests into the artifact_coverage stage in text or JSON."
+    instead: "Keep both stage names and order; synthesize tests-stage results from matching evidence records plus residual executions."
+files:
+  create:
+    - path: tests/cli/test_reuse_ordinary_tests_after_knockout.py
+      artifacts:
+        - kind: test_function
+          name: test_matching_pytest_is_reused_after_snapshot_knockout
+          args: []
+        - kind: test_function
+          name: test_residual_commands_still_run_after_snapshot_knockout_reuse
+          args: []
+        - kind: test_function
+          name: test_changed_checkout_digest_keeps_ordinary_tests_fresh
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "After snapshot knockout, reuse current grouped pytest evidence at the tests stage and still execute residual commands."
+  read:
+    - tests/cli/test_verify_deep_evidence_reuse.py
+    - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/knockout.py
+    - maid_runner/core/test_runner.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_reuse_ordinary_tests_after_knockout.py tests/cli/test_verify_deep_evidence_reuse.py
+  - uv run maid validate manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:25:00Z"
+  summary: "After snapshot knockout with non-empty results, matching grouped pytest evidence is reused at the tests stage when runtime_evidence_is_current succeeds. Residual and non-overlapping commands still run. Knockout_limit=0 and digest changes keep tests fresh, so the 121-10 pins still pass."
+  rationale: "In-place knockout made buffered ordinary tests unsafe. Snapshot knockout leaves the checkout digest unchanged, so the second overlapping pytest is wasted work. Reuse is gated on executed knockout results plus the existing hermetic evidence identity check, not on knockout-stage presence."
+  lessons:
+    - lesson_type: performance
+      summary: "Reuse ordinary pytest groups only after snapshot knockout actually executed and the post-knockout tree still matches the evidence digest, environment, and command identities."
+      tags: [performance, verify, runtime-evidence, knockout]
+      paths:
+        - maid_runner/cli/commands/verify.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "121-10 knockout_limit=0 still runs tests fresh. Residuals are partitioned by command identity. Stages stay separate. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_reuse_ordinary_tests_after_knockout.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "17 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

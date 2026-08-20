@@ -146,6 +146,169 @@ def _write_parent_relative_test_target_project(tmp_path, slug: str):
     return project_root, manifest_path
 
 
+def test_test_parser_accepts_explicit_pytest_workers():
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+
+    args = parser.parse_args(["test", "--pytest-workers", "8"])
+    auto = parser.parse_args(["test", "--pytest-workers", "auto"])
+
+    assert args.pytest_workers == 8
+    assert args.pytest_workers_explicit is True
+    assert auto.pytest_workers == "auto"
+    assert auto.pytest_workers_explicit is True
+
+
+def test_explicit_single_worker_and_job_override_project_concurrency(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.core.result import BatchTestResult
+
+    (tmp_path / ".maidrc.yaml").write_text(
+        """test_execution:
+  pytest_workers: 8
+  accepted_pytest_worker_counts: [8]
+  command_jobs: 1
+  max_processes: 8
+"""
+    )
+    observed = {}
+
+    def fake_run_tests(**kwargs):
+        observed.update(kwargs)
+        return BatchTestResult(results=[], total=0, passed=0, failed=0)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("maid_runner.core.test_runner.run_tests", fake_run_tests)
+
+    assert main(["test", "--jobs", "1", "--pytest-workers", "1"]) == 0
+    assert observed["jobs"] == 1
+    assert observed["pytest_workers"] == 1
+
+
+def test_explicit_default_equal_jobs_and_workers_remain_explicit():
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+    silent = parser.parse_args(["test"])
+    explicit = parser.parse_args(["test", "--jobs", "1", "--pytest-workers", "1"])
+
+    assert getattr(silent, "jobs_explicit", False) is False
+    assert getattr(silent, "pytest_workers_explicit", False) is False
+    assert explicit.jobs_explicit is True
+    assert explicit.pytest_workers_explicit is True
+
+
+def test_silent_test_cli_uses_repository_worker_and_job_config(tmp_path, monkeypatch):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.core.result import BatchTestResult
+
+    (tmp_path / ".maidrc.yaml").write_text(
+        """test_execution:
+  pytest_workers: 8
+  accepted_pytest_worker_counts: [8]
+  command_jobs: 2
+  max_processes: 16
+"""
+    )
+    observed = {}
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.run_tests",
+        lambda **kwargs: observed.update(kwargs) or BatchTestResult([], 0, 0, 0),
+    )
+
+    assert main(["test"]) == 0
+    assert observed["jobs"] == 2
+    assert observed["pytest_workers"] is None
+
+
+def test_text_and_json_disclose_same_worker_or_fallback_decision():
+    from maid_runner.cli.commands._format import format_test_result
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
+    from maid_runner.core.result import BatchTestResult
+
+    notice = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_gate.py"),
+        mode="serial-fallback",
+        workers=1,
+        reason="pytest-xdist is unavailable",
+    )
+    result = BatchTestResult(
+        results=[],
+        total=0,
+        passed=0,
+        failed=0,
+        scheduling_notices=(notice,),
+    )
+
+    text_result = format_test_result(result)
+    json_result = json.loads(format_test_result(result, json_mode=True))
+
+    assert "serial-fallback" in text_result
+    assert "pytest-xdist is unavailable" in text_result
+    assert json_result["scheduling_notices"] == [
+        {
+            "command_group": ["pytest", "tests/test_gate.py"],
+            "mode": "serial-fallback",
+            "workers": 1,
+            "reason": "pytest-xdist is unavailable",
+        }
+    ]
+
+
+def test_single_manifest_worker_override_reaches_exact_pytest_command(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.core import test_runner
+    from maid_runner.core.result import TestRunResult
+
+    manifest = _write_noop_behavioral_test_project(
+        tmp_path,
+        validate_command="pytest tests/test_gate.py -q",
+    )
+    observed = {}
+
+    def fake_prepare(command, **kwargs):
+        from types import SimpleNamespace
+
+        observed.update(kwargs)
+        return SimpleNamespace(
+            command=(*command, "-n", "8", "--dist", "loadscope"),
+            environment_overrides={},
+            notice=None,
+        )
+
+    def fake_run(command, **kwargs):
+        observed["command"] = command
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+
+    monkeypatch.setattr(
+        test_runner, "prepare_pytest_command", fake_prepare, raising=False
+    )
+    monkeypatch.setattr(
+        test_runner, "finalize_pytest_timing", lambda *args: None, raising=False
+    )
+    monkeypatch.setattr(test_runner, "run_command", fake_run)
+    monkeypatch.chdir(tmp_path)
+
+    exit_code = main(["test", "--manifest", str(manifest), "--pytest-workers", "8"])
+
+    assert exit_code == 0
+    assert observed["pytest_workers"] == 8
+    assert observed["command"][-4:] == ("-n", "8", "--dist", "loadscope")
+
+
 def _write_django_dotted_behavioral_test_project(
     tmp_path,
     slug: str = "test-django-dotted",

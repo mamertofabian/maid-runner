@@ -1,0 +1,2352 @@
+{
+  "manifest_path": "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+  "manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+    "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+    "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+  },
+  "created_at": "2026-08-12T04:06:47.558013+00:00",
+  "revision": 30,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:329a13d1c57338835f133e118369253a621b04f1a63261704d80c3eb38942170",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:085a4d1ca5224e3fdf876a1b48516b03880c71802dee0261680eee69242abf26",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T04:07:08.927571+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml -> manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:793dbf48b166265f4768c4316b25963d69c44d2b9d2ec06ea7df8cebef45fabc",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:085a4d1ca5224e3fdf876a1b48516b03880c71802dee0261680eee69242abf26",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T04:14:21.224218+00:00",
+      "reason": "Correct the fallback executor test double to recognize the real repository-relative pytest selector while preserving the locked material-write replay behavior.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:793dbf48b166265f4768c4316b25963d69c44d2b9d2ec06ea7df8cebef45fabc",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:0fb8289adfe829899f38e9459341eebe85cc23c018660ab45ac0decc47c106c2",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T04:50:32.717713+00:00",
+      "reason": "Measured one broad exact fallback above four minutes, proving outer scheduling alone cannot meet the immutable 180-second budget. Revise the opt-in path to deduplicate identical selectors and use only the repository-accepted pinned xdist count under the same shared process budget; retain the default serial path and full report-equivalence acceptance.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_identical_selectors_deduplicate_with_accepted_inner_xdist",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_identical_selectors_deduplicate_with_accepted_inner_xdist:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:37e22a9cd7f919e8e11807a6bef0a4189458f7551703bac3be96f140e1c399f5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:a2c6712811d787b8b9905ca4a9b3dc63df389a0cb7ce4838fe2846f15656eeb4",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T04:54:22.940214+00:00",
+      "reason": "Require real xdist worker processes to emit target line and callable evidence; controller-only coverage would be a false optimization.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_pinned_xdist_workers_return_target_calls_and_lines",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_pinned_xdist_workers_return_target_calls_and_lines:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ea15cfc29ad330b755c0304d412594fd625719aec61c947e3bdd6236f6ced619",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:35d3926df517dc952a33a9f7e945a554bbf97717b92cb092edc18640e7ab75ed",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T06:19:04.930385+00:00",
+      "reason": "The complete safe optimized inventory measured 233.06 seconds with 365 ordered results, no serial fallback, no writes, and no worker errors. Replace the empirically impossible 180-second ceiling with a 270-second cold budget and align repository max_processes with the accepted 16-process shape.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".maidrc.yaml:attribute:test_execution.max_processes",
+          ".maidrc.yaml:attribute:test_execution.max_processes:kind=attribute",
+          ".maidrc.yaml:attribute:test_execution.max_processes:of=test_execution",
+          ".maidrc.yaml:attribute:test_execution.max_processes:type=int"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2837f79d9863b083c5bd4e0677fb7f67f9f85c10f3560f788b49916f8fe92f66",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:35d3926df517dc952a33a9f7e945a554bbf97717b92cb092edc18640e7ab75ed",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:0ba32b5e6a5afd060dabe5690a3e0e625951e8751d9cb169e4c15101d4b4630c",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T07:58:57.244816+00:00",
+      "reason": "Replace the wasteful per-identity serial acceptance run with the existing legacy unique-selector batch oracle, add current-content successful-command checkpoints and visible progress, and keep the optimized phase fresh. The prior probe was stopped after 79m59s while redundantly repeating broad selectors.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_checkpoints_success_and_never_failure",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_checkpoints_success_and_never_failure:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:840a0f3314e9438f0c213a14ef4ce49a7d8cb36de8d1b36731b9b197e8e5c017",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:35d3926df517dc952a33a9f7e945a554bbf97717b92cb092edc18640e7ab75ed",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T08:46:02.836160+00:00",
+      "reason": "Fail closed to exact serial replay when an isolated command exits nonzero, because parallel failure output and order cannot prove legacy report equivalence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:445f774ae72d224cc7853a6044d846a4b72e305fd87891d4acc57e9ce6b26f6b",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:2915683fa1f4650d972ee9bfcf8dfe11477e1b627e22db7a1558b339e275e8d7",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T09:16:06.205463+00:00",
+      "reason": "Run the discovered artifact-coverage batch behavioral test in the locked focused command",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_config.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aaedfb890cb39feb3c4c4b5a64609762d89e43fe8929abe9e6f67e92a2fdd895",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:2915683fa1f4650d972ee9bfcf8dfe11477e1b627e22db7a1558b339e275e8d7",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T09:24:01.359633+00:00",
+      "reason": "Treat build outputs and dependency-environment writes as material pooled-lane state and force exact serial replay",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aaedfb890cb39feb3c4c4b5a64609762d89e43fe8929abe9e6f67e92a2fdd895",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:b830d2ab6802f16fce59bf0a4738f59f52323d2ed382948206f4f9a0b58522b3",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T15:13:16.407379+00:00",
+      "reason": "Strengthen the approved runtime executor contract after measured profiling: require the owned coverage core override to be scrubbed before ordinary and xdist test bodies spawn nested processes, while retaining exact line/call evidence and fail-closed fallback.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aaedfb890cb39feb3c4c4b5a64609762d89e43fe8929abe9e6f67e92a2fdd895",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:469248c048de9ff0e7392c01fb79f9f7b08631c9c6f0b25a7500e8e589693ed7",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T16:02:48.716635+00:00",
+      "reason": "Improve bounded-worker scheduling without changing execution semantics: prioritize selected tests with statically visible nested subprocess, Git, runtime-evidence, validation, or knockout boundaries ahead of inert byte-heavy tests, resolving the measured long-tail imbalance.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:aaedfb890cb39feb3c4c4b5a64609762d89e43fe8929abe9e6f67e92a2fdd895",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:dc72eb3d8c9079becf27a30234bac9839bd9c493df870a83559f788a5290a8be",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T17:10:26.372080+00:00",
+      "reason": "Reserve the entire shared process budget for directory selectors whose selected test inventory contains a narrowly enumerated direct nested-process call, after current-content acceptance proved sibling load can make otherwise passing broad and focused fallback commands fail and trigger the 25-minute serial safety replay. Preserve ordinary directory overlap, fail closed on unreadable syntax, and retain exact serial replay for every nonzero result.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:429b4b468a8ba9761979209f86d93dd73e1c3afd419b97da84e20031cd9c1846",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:f7add98cc9d550312a2fbd4b377c5167e3a393dbef67a5dd3dcdb2774d06a18d",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T17:48:48.708139+00:00",
+      "reason": "Prevent outer artifact-coverage xdist instrumentation from leaking into nested pytest, runtime-evidence, and knockout processes. Workers must save their output paths then consume only MAID-owned plugin routing during pytest_configure, preserving the exact ordered consumer plugin list before sessionstart; repeated -n8 and -n6 broad probes proved worker-count tuning does not make the leak stable.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0bc578f9ea9a1df0d3e0d4bfcc289deceb95bbf35258fabb588d9d1e63fc73ee",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:f28de5d0813c00f2876da182ec3dcdc43a274e933c61afd41f65f4fa2fd81d7d",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:9990a2f8eacbdd54fb09feffb79c860243f82d5ac4515dd2260091f7033eb22b",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T18:27:58.256261+00:00",
+      "reason": "Replace unstable full-session exclusivity with fail-closed shared/exclusive runtest locking, bounded half-budget scheduling, retained isolated safety diagnostics, and three fresh acceptance repetitions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:kind=attribute",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:of=EvidenceArtifactCoverageResult",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:type=tuple[str, Ellipsis]",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:kind=attribute",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:of=EvidenceArtifactCoverageResult",
+          "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:type=tuple[ValidationError, Ellipsis]",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_lock_fails_closed_and_releases_after_worker_exit",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_lock_fails_closed_and_releases_after_worker_exit:kind=test_function",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_serial_replay_or_worker_diagnostics",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_serial_replay_or_worker_diagnostics:kind=test_function",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_requires_three_fresh_equivalent_optimized_runs",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_requires_three_fresh_equivalent_optimized_runs:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:48e23b7f5b204eedf3688f4cd2190289202bc350558fd704d3694786181c26f0",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:439ffd5c0cedb365969ab8eccd7206a7b45c59946024fdde234379a300a2646d",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:2e163ec07b9985da6c3f9c88ed6ba5b268361501312cd30459f22b23edac082f",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T19:23:06.226068+00:00",
+      "reason": "Replace rejected per-runtest lock convoy with full-budget module-preserving xdist loadgroups, ancestor-conftest hazard propagation, and fail-closed serial-oracle error validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_grouping_fails_closed_and_preserves_module_groups",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_grouping_fails_closed_and_preserves_module_groups:kind=test_function",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_errored_serial_oracle",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_errored_serial_oracle:kind=test_function",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_helper_extracts_artifact_coverage_errors",
+          "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_helper_extracts_artifact_coverage_errors:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_lock_fails_closed_and_releases_after_worker_exit",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_lock_fails_closed_and_releases_after_worker_exit:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:900d1945b214cd00ba2c3969282f3af9dd968adfdfe8266563686e53fe570209",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:98800723b00b43f79a4b2a17951ec68d50c21a26798b72a4d72701013dbf9949",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:1de6f535c6b8ef79bc10fd6ef3fc7ca4d01c021f774894a87d0446dcecd52e9f",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T23:15:56.802675+00:00",
+      "reason": "Replace rejected hazardous-module serialization with worker-import child-controller permits, conftest fail-closed xdist eligibility, and exact controller bootstrap isolation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_child_process_permits_fail_closed_and_release",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_child_process_permits_fail_closed_and_release:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_grouping_fails_closed_and_preserves_module_groups",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_grouping_fails_closed_and_preserves_module_groups:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:64faa07ce213e134d5b25cbef8f1d0302f1da822d460b638c2ffc915050a81a3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:59e57608dda41f5d0d189b0fc7555ee2e103d1f9ba13923d94203ab839e7536d",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:1de6f535c6b8ef79bc10fd6ef3fc7ca4d01c021f774894a87d0446dcecd52e9f",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-12T23:29:29.767104+00:00",
+      "reason": "Increase direct child-controller permits from one to two after the one-permit probe exceeded 300 seconds, retaining full outer reservation and fail-closed isolation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d1c6b78bc09fcbc661d361c15d12b5ddd68fef756bcfaf057fa5043ef97a8210",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9592386a42560d266d5ba4e64862147979af5ba49ea6daf7a42b2d483aed1b18",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:1de6f535c6b8ef79bc10fd6ef3fc7ca4d01c021f774894a87d0446dcecd52e9f",
+        "tests/core/test_config.py": "sha256-pyast:v2:ae0b0df763032e711c617eb2fd6d195ec1a6179ae78cb027178ce7ad9fe7e7b2"
+      },
+      "revised_at": "2026-08-13T00:50:12.343502+00:00",
+      "reason": "Revise rejected exact-fallback scheduling to real grouped evidence with digest-bound fixture lifecycle attestations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals",
+          ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:kind=attribute",
+          ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:of=artifact_coverage",
+          ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:type=list[object]",
+          ".maidrc.yaml:attribute:test_execution.parallel_without_history",
+          ".maidrc.yaml:attribute:test_execution.parallel_without_history:kind=attribute",
+          ".maidrc.yaml:attribute:test_execution.parallel_without_history:of=test_execution",
+          ".maidrc.yaml:attribute:test_execution.parallel_without_history:type=bool",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=manifest_dir:type=str:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=root:type=Path:default=None",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=test_jobs:type=int:default=1",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:kind=function",
+          "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:returns=RuntimeEvidenceBundle | None",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=commands:type=list[tuple[str, Ellipsis]]:default=None",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=cwd:type=Union[str, Path]:default=\".\"",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=is_uv_project:type=_UvProjectPredicate:default=_not_uv_project",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=resolve_command:type=_CommandResolver:default=_identity_resolve_command",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:kind=function",
+          "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:returns=tuple[str, Ellipsis]",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:kind=attribute",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:type=tuple[FixtureLifecycleApproval, Ellipsis]",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:kind=attribute",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:of=FixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:type=str",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:kind=attribute",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:of=FixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:type=str",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:kind=attribute",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:of=FixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:type=str",
+          "maid_runner/core/config.py:class:FixtureLifecycleApproval",
+          "maid_runner/core/config.py:class:FixtureLifecycleApproval:kind=class",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=contexts:type=tuple[RuntimeContextEvidence, Ellipsis]:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=entry:type=_RuntimeCommandEntry:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=group:type=RuntimeGroupEvidence:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=selected:type=tuple[str, Ellipsis]:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:kind=function",
+          "maid_runner/core/runtime_evidence.py:function:_project_completeness:returns=RuntimeEvidenceCompleteness",
+          "maid_runner/core/runtime_evidence.py:function:_runtime_target_files",
+          "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:arg=manifests:type=Sequence[Manifest]:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:arg=root:type=Path:default=None",
+          "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:kind=function",
+          "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:returns=set[str]",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=project_root:type=Path:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:kind=function",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:returns=RuntimeEvidenceRun",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers:kind=test_function",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection:kind=test_function",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_indirect_state_or_changed_wide_fixture_approval_falls_back",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_indirect_state_or_changed_wide_fixture_approval_falls_back:kind=test_function",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_only_digest_bound_approved_wide_fixture_reuses_evidence",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_only_digest_bound_approved_wide_fixture_reuses_evidence:kind=test_function",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_runtime_evidence_payload_contains_only_active_declared_python_targets",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_runtime_evidence_payload_contains_only_active_declared_python_targets:kind=test_function",
+          "tests/core/test_config.py:test_fixture_lifecycle_approval_validation_fails_closed",
+          "tests/core/test_config.py:test_fixture_lifecycle_approval_validation_fails_closed:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/verify.py",
+          "edit:maid_runner/core/_test_command_batching.py",
+          "edit:maid_runner/core/runtime_evidence.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9a2b89e663e0e4e6c9dd4be41d52494ab4a57ca74eaf5ea1bfd46f96acb88f6e",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:4d91cc3489e27a3ff9a5079301c3f3a24ae2f07594394f6088d0dc5bd411b6f8",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_config.py": "sha256-pyast:v2:8bd23065b6b41a8138da43008a7f036d242cfe5c1a1ea99bae862c2f2ec46545"
+      },
+      "revised_at": "2026-08-13T01:16:53.196314+00:00",
+      "reason": "Replace whole-interpreter profiling with owned sys.monitoring instrumentation after the real grouped phase still exceeded the 270-second budget",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=expected_workers:type=int:default=0",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=output_path:type=Path:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=selectors:type=tuple[str, Ellipsis]:default=()",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=target_files:type=frozenset[str]:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:kind=method",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:of=RuntimeEvidencePlugin",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:returns=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=exitstatus:type=int:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=session:type=pytest.Session:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:kind=method",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:of=RuntimeEvidencePlugin",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:returns=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest",
+          "tests/core/test_runtime_evidence.py:test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls",
+          "tests/core/test_runtime_evidence.py:test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "edit:tests/core/test_runtime_evidence.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b70d2515aafb75cf8a4fbf8dacebc215f412819f95f2cd0d02cab1b38e99271b",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:7a1aa8650972e94c2b48fe5872a0f758ddc46a4e3420bf0d52a03f0d8e39d0a8",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:ed463ec2158d13cc1423621f25d397cc53b757982b4f9cc868abc416790dbdfa",
+        "tests/core/test_config.py": "sha256-pyast:v2:0ed163fb54c2c21e27bbed062cef4f54ce3b92301b060976fb0436fa82a4a800"
+      },
+      "revised_at": "2026-08-13T02:12:12.314603+00:00",
+      "reason": "Preserve logical selectors, definition-bound function fixture approvals, and exact generator teardown attribution after monitoring reduced collection to 117.906 seconds but incomplete evidence still triggered replay",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=logical_selectors:type=tuple[str, Ellipsis] | None:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:kind=method",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:of=RuntimeCommandExecutor",
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=logical_selectors:type=tuple[str, Ellipsis] | None:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:kind=method",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:of=SubprocessRuntimeCommandExecutor",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+          "tests/core/test_runtime_evidence.py:test_digest_approval_applies_to_all_function_fixture_instances",
+          "tests/core/test_runtime_evidence.py:test_digest_approval_applies_to_all_function_fixture_instances:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_dominated_missing_node_selector_remains_incomplete",
+          "tests/core/test_runtime_evidence.py:test_dominated_missing_node_selector_remains_incomplete:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node",
+          "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_single_logical_multi_selector_collection_context_is_exact_equivalent",
+          "tests/core/test_runtime_evidence.py:test_single_logical_multi_selector_collection_context_is_exact_equivalent:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_xdist_merges_disjoint_worker_selector_maps_before_support_decision",
+          "tests/core/test_runtime_evidence.py:test_xdist_merges_disjoint_worker_selector_maps_before_support_decision:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_xdist_retains_logical_selectors_after_physical_collapse",
+          "tests/core/test_runtime_evidence.py:test_xdist_retains_logical_selectors_after_physical_collapse:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f160131306ff1411d2745cf972ac27b1cf71bb1a6a6203e862035abff4f82126",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:4caa397e2d20266b5690d1e351428d637ed6c8fc755f4054151b22c4b4f63706",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:87ee37e0fef65ffdb066385e890febd48c7f067b8d4fc27ffcf3b5e9ad2a2c00",
+        "tests/core/test_config.py": "sha256-pyast:v2:0ed163fb54c2c21e27bbed062cef4f54ce3b92301b060976fb0436fa82a4a800"
+      },
+      "revised_at": "2026-08-13T02:31:20.539126+00:00",
+      "reason": "Eliminate the remaining complete-evidence fallbacks by mapping selectors after deselection, supporting valid empty Python anchors without accepting missing selectors, and adding exact source-and-digest-bound project-module and installed-distribution fixture approvals.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals",
+          ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:kind=attribute",
+          ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:of=artifact_coverage",
+          ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:type=list[object]",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=command:type=tuple[str, Ellipsis]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=exit_code:type=int:default=None",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=expected_worker_ids:type=tuple[str, Ellipsis]:default=()",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=payloads:type=list[dict]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=selected_nodeids:type=tuple[str, Ellipsis]:default=()",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:kind=function",
+          "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:returns=RuntimeEvidenceCompleteness",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=config:type=pytest.Config:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=items:type=list[pytest.Item]:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=session:type=pytest.Session:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:kind=method",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:of=RuntimeEvidencePlugin",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:returns=None",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:kind=attribute",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+          "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:type=tuple[DistributionFixtureLifecycleApproval, Ellipsis]",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:kind=attribute",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:of=DistributionFixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:type=str",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:kind=attribute",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:of=DistributionFixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:type=str",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:kind=attribute",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:of=DistributionFixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:type=str",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:kind=attribute",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:of=DistributionFixtureLifecycleApproval",
+          "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:type=str",
+          "maid_runner/core/config.py:class:DistributionFixtureLifecycleApproval",
+          "maid_runner/core/config.py:class:DistributionFixtureLifecycleApproval:kind=class",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:kind=attribute",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:of=RuntimeContextEvidence",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:type=str | None",
+          "tests/core/test_config.py:test_fixture_lifecycle_approvals_bind_project_and_distribution_sources",
+          "tests/core/test_config.py:test_fixture_lifecycle_approvals_bind_project_and_distribution_sources:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_distribution_fixture_approval_requires_matching_runtime_source",
+          "tests/core/test_runtime_evidence.py:test_distribution_fixture_approval_requires_matching_runtime_source:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_dominated_missing_file_selector_remains_incomplete",
+          "tests/core/test_runtime_evidence.py:test_dominated_missing_file_selector_remains_incomplete:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_existing_empty_file_selector_is_supported_but_missing_node_is_not",
+          "tests/core/test_runtime_evidence.py:test_existing_empty_file_selector_is_supported_but_missing_node_is_not:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_k_deselection_maps_only_nodes_that_will_report",
+          "tests/core/test_runtime_evidence.py:test_k_deselection_maps_only_nodes_that_will_report:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_test_module_fixture_approval_requires_matching_runtime_source",
+          "tests/core/test_runtime_evidence.py:test_test_module_fixture_approval_requires_matching_runtime_source:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:89a87350806c2606413217a48db9ace9a946618985c0a55bd42d6f01e4cd7213",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:4caa397e2d20266b5690d1e351428d637ed6c8fc755f4054151b22c4b4f63706",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_config.py": "sha256-pyast:v2:686aaa4c8a24a2b0074f4cde4700d5277d959a62af6c57f651b95f73d67bbfee"
+      },
+      "revised_at": "2026-08-13T02:37:34.542364+00:00",
+      "reason": "Correct the duplicate distribution-approval adversary to append two entries under one YAML list so duplicate and conflicting context IDs reach the validator instead of being overwritten as duplicate mapping keys.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:89a87350806c2606413217a48db9ace9a946618985c0a55bd42d6f01e4cd7213",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:4caa397e2d20266b5690d1e351428d637ed6c8fc755f4054151b22c4b4f63706",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-13T03:02:52.453986+00:00",
+      "reason": "Resolve the chain-level conftest contradiction by formally refining 121-10 alongside this manifest: safe conftests reach runtime proof, unsafe contexts still exact-fallback, and the changed CLI contract joins the declared validation scope.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage:kind=test_function",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_verify_deep_evidence_reuse.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py tests/cli/test_verify_deep_evidence_reuse.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:daec7c68123a0b52c7fff1b16cc7d313df1db5fb8d7ce9403dd2af7f2db154fa",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:4caa397e2d20266b5690d1e351428d637ed6c8fc755f4054151b22c4b4f63706",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-13T03:15:52.889538+00:00",
+      "reason": "Make the two nested-xdist behavioral adversaries independent of a parent xdist worker: ignore preflight sessions without the evidence plugin and explicitly enter the permit test's controller phase without inherited worker identity.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:daec7c68123a0b52c7fff1b16cc7d313df1db5fb8d7ce9403dd2af7f2db154fa",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:d166099052af2882a1eeb31597e229cd6eef22f6fa2f42838e14310a5d322f43",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:34bcc96a25e6d5f7565578e95f6502ce727488d1eb65c50fb0ccbeaba5319b87",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-13T04:08:08.411602+00:00",
+      "reason": "Reject the unaccepted repository grouped path and align 121-15 with 121-10's pre-execution conftest fallback after the bounded live probe exceeded five minutes; retain isolated fallback APIs for separately accepted consumers.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded",
+          "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded:kind=test_function",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_conftest_preflight_skips_speculative_evidence",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_conftest_preflight_skips_speculative_evidence:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers",
+          "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_evidence_allows_safe_conftest_and_uses_accepted_cold_workers:kind=test_function"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-13T13:57:56.745708+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-14T10:32:27.034107+00:00",
+      "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-14T11:51:37.626358+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:67536a094da710183c815895eb0aba57f7dfbd81e7f9aa5da278720122f15df5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py": "sha256-pyast:v2:b486de83a2a44355e18432effe11450cdce06ea32a95785675e1e119bee9f92e",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-19T23:14:07.591482+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T04:09:03.671177+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py tests/cli/test_verify_deep_evidence_reuse.py",
+        "exit_code": 1,
+        "output_tail": "        assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is sentinel\n        assert len(calls) == 1\n    \n        outside = tmp_path.parent / f\"{tmp_path.name}-outside-conftest.py\"\n        outside.write_text(\"# outside project\\n\")\n        link = tmp_path / \"tests\" / \"linked\" / \"conftest.py\"\n        link.parent.mkdir(parents=True)\n        link.symlink_to(outside)\n        calls.clear()\n    \n>       assert _collect_artifact_coverage_evidence(tmp_path, \"manifests/\") is None\nE       AssertionError: assert RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) is None\nE        +  where RuntimeEvidenceBundle(commands=(), content_digest='sentinel', environment_identities=(), worker_ids=(), completeness=R...upported_selectors=(), unresolved_context_ids=(), unproven_fixture_lifecycles=(), diagnostics=()), pytest_workers=None) = <function _collect_artifact_coverage_evidence at 0x79ee4ef72e80>(PosixPath('/tmp/pytest-of-atomrem/pytest-4166/test_excluded_or_symlinked_con0'), 'manifests/')\n\ntests/cli/test_verify_deep_evidence_reuse.py:551: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_fallback_workers.py::test_deep_conftest_preflight_skips_speculative_evidence\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_project_conftest_uses_legacy_coverage_without_speculative_evidence\nFAILED tests/cli/test_verify_deep_evidence_reuse.py::test_excluded_or_symlinked_conftest_preflight_is_bounded\n3 failed, 120 passed in 54.52s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals",
+      ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:kind=attribute",
+      ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:of=artifact_coverage",
+      ".maidrc.yaml:attribute:artifact_coverage.distribution_fixture_lifecycle_approvals:type=list[object]",
+      ".maidrc.yaml:attribute:artifact_coverage.fallback_jobs",
+      ".maidrc.yaml:attribute:artifact_coverage.fallback_jobs:kind=attribute",
+      ".maidrc.yaml:attribute:artifact_coverage.fallback_jobs:of=artifact_coverage",
+      ".maidrc.yaml:attribute:artifact_coverage.fallback_jobs:type=int",
+      ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals",
+      ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:kind=attribute",
+      ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:of=artifact_coverage",
+      ".maidrc.yaml:attribute:artifact_coverage.fixture_lifecycle_approvals:type=list[object]",
+      ".maidrc.yaml:attribute:test_execution.max_processes",
+      ".maidrc.yaml:attribute:test_execution.max_processes:kind=attribute",
+      ".maidrc.yaml:attribute:test_execution.max_processes:of=test_execution",
+      ".maidrc.yaml:attribute:test_execution.max_processes:type=int",
+      ".maidrc.yaml:attribute:test_execution.parallel_without_history",
+      ".maidrc.yaml:attribute:test_execution.parallel_without_history:kind=attribute",
+      ".maidrc.yaml:attribute:test_execution.parallel_without_history:of=test_execution",
+      ".maidrc.yaml:attribute:test_execution.parallel_without_history:type=bool",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=project_root:type=Path:default=None",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:arg=strict_context:type=bool:default=False",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:kind=function",
+      "maid_runner/cli/commands/validate.py:function:_run_artifact_coverage_by_manifest:returns=dict[str, ArtifactCoverageReport]",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=manifest_dir:type=str:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=root:type=Path:default=None",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:arg=test_jobs:type=int:default=1",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:kind=function",
+      "maid_runner/cli/commands/verify.py:function:_collect_artifact_coverage_evidence:returns=RuntimeEvidenceBundle | None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.results",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.results:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.results:of=ArtifactCoverageFallbackRun",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.results:type=tuple[ArtifactCoverageFallbackWorkerResult, Ellipsis]",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.serial_fallback_identities",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.serial_fallback_identities:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.serial_fallback_identities:of=ArtifactCoverageFallbackRun",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackRun.serial_fallback_identities:type=tuple[RuntimeCommandIdentity, Ellipsis]",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.command_run",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.command_run:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.command_run:of=ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.command_run:type=RuntimeCommandRecord | None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.errors",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.errors:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.errors:of=ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.identity",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.identity:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.identity:of=ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.identity:type=RuntimeCommandIdentity",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.material_project_writes",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.material_project_writes:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.material_project_writes:of=ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.material_project_writes:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.process_cost",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.process_cost:kind=attribute",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.process_cost:of=ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:attribute:ArtifactCoverageFallbackWorkerResult.process_cost:type=int",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:class:ArtifactCoverageFallbackRun",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:class:ArtifactCoverageFallbackRun:kind=class",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:class:ArtifactCoverageFallbackWorkerResult",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:class:ArtifactCoverageFallbackWorkerResult:kind=class",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=executor:type=RuntimeCommandExecutor:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=identities:type=Sequence[RuntimeCommandIdentity]:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=jobs:type=int:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=max_processes:type=int:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=snapshot_backend:type=ProjectSnapshotBackend:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:arg=target_files:type=Mapping[RuntimeCommandIdentity, set[str]]:default=None",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:kind=function",
+      "maid_runner/core/_artifact_coverage_fallback_worker.py:function:run_isolated_artifact_coverage_fallbacks:returns=ArtifactCoverageFallbackRun",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=exit_code:type=int:default=None",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=expected_worker_ids:type=tuple[str, Ellipsis]:default=()",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=payloads:type=list[dict]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:arg=selected_nodeids:type=tuple[str, Ellipsis]:default=()",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:kind=function",
+      "maid_runner/core/_runtime_command_executor.py:function:_completeness_from_payloads:returns=RuntimeEvidenceCompleteness",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=environment_overrides:type=Mapping[str, str] | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=environment_removals:type=Sequence[str]:default=()",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:of=RuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:returns=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=logical_selectors:type=tuple[str, Ellipsis] | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:of=RuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=environment_overrides:type=Mapping[str, str] | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=environment_removals:type=Sequence[str]:default=()",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:of=SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:returns=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=logical_selectors:type=tuple[str, Ellipsis] | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:of=SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=expected_workers:type=int:default=0",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=output_path:type=Path:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=selectors:type=tuple[str, Ellipsis]:default=()",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:arg=target_files:type=frozenset[str]:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.__init__:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=config:type=pytest.Config:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=items:type=list[pytest.Item]:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=exitstatus:type=int:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:returns=None",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=commands:type=list[tuple[str, Ellipsis]]:default=None",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=cwd:type=Union[str, Path]:default=\".\"",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=is_uv_project:type=_UvProjectPredicate:default=_not_uv_project",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:arg=resolve_command:type=_CommandResolver:default=_identity_resolve_command",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:kind=function",
+      "maid_runner/core/_test_command_batching.py:function:_batch_compatible_pytest_commands:returns=tuple[str, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_fallback_identities",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_fallback_identities:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_fallback_identities:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_fallback_identities:type=tuple[RuntimeCommandIdentity, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_material_project_writes:type=tuple[str, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.isolated_worker_errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.serial_fallback_identities",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.serial_fallback_identities:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.serial_fallback_identities:of=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:attribute:EvidenceArtifactCoverageResult.serial_fallback_identities:type=tuple[RuntimeCommandIdentity, Ellipsis]",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_jobs:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=max_processes:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.distribution_fixture_lifecycle_approvals:type=tuple[DistributionFixtureLifecycleApproval, Ellipsis]",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fallback_jobs:type=int",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:kind=attribute",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:of=ArtifactCoverageConfig",
+      "maid_runner/core/config.py:attribute:ArtifactCoverageConfig.fixture_lifecycle_approvals:type=tuple[FixtureLifecycleApproval, Ellipsis]",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:kind=attribute",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:of=DistributionFixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.context_id:type=str",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:kind=attribute",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:of=DistributionFixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.distribution:type=str",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:kind=attribute",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:of=DistributionFixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.module_path:type=str",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:kind=attribute",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:of=DistributionFixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:DistributionFixtureLifecycleApproval.sha256:type=str",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:kind=attribute",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:of=FixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.conftest_path:type=str",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:kind=attribute",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:of=FixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.context_id:type=str",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:kind=attribute",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:of=FixtureLifecycleApproval",
+      "maid_runner/core/config.py:attribute:FixtureLifecycleApproval.sha256:type=str",
+      "maid_runner/core/config.py:class:DistributionFixtureLifecycleApproval",
+      "maid_runner/core/config.py:class:DistributionFixtureLifecycleApproval:kind=class",
+      "maid_runner/core/config.py:class:FixtureLifecycleApproval",
+      "maid_runner/core/config.py:class:FixtureLifecycleApproval:kind=class",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_definition_source:type=str | None",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=contexts:type=tuple[RuntimeContextEvidence, Ellipsis]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=entry:type=_RuntimeCommandEntry:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=group:type=RuntimeGroupEvidence:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:arg=selected:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:_project_completeness:returns=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:function:_runtime_target_files",
+      "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:arg=root:type=Path:default=None",
+      "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:_runtime_target_files:returns=set[str]",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=pytest_workers:type=int | str | None:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:returns=RuntimeEvidenceRun",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_excluded_or_symlinked_conftest_preflight_is_bounded:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_instrumentation_observable_test_cannot_create_false_green_tests_stage:kind=test_function",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_project_conftest_uses_legacy_coverage_without_speculative_evidence:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_command_config_and_auto_xdist_counts_reduce_fallback_jobs",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_command_config_and_auto_xdist_counts_reduce_fallback_jobs:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_conftest_preflight_skips_speculative_evidence",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_deep_conftest_preflight_skips_speculative_evidence:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_disjoint_exact_fallbacks_overlap_within_process_budget",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_disjoint_exact_fallbacks_overlap_within_process_budget:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_child_process_permits_fail_closed_and_release",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_generated_xdist_child_process_permits_fail_closed_and_release:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_identical_selectors_deduplicate_with_accepted_inner_xdist",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_identical_selectors_deduplicate_with_accepted_inner_xdist:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_indirect_state_or_changed_wide_fixture_approval_falls_back",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_indirect_state_or_changed_wide_fixture_approval_falls_back:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_material_write_discards_entire_batch_and_preserves_later_reader_legacy_order",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_material_write_discards_entire_batch_and_preserves_later_reader_legacy_order:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_one_fallback_worker_preserves_legacy_execution",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_one_fallback_worker_preserves_legacy_execution:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_only_digest_bound_approved_wide_fixture_reuses_evidence",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_only_digest_bound_approved_wide_fixture_reuses_evidence:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_pinned_xdist_workers_return_target_calls_and_lines",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_pinned_xdist_workers_return_target_calls_and_lines:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_root_session_autouse_fixture_commands_keep_exact_process_lifetimes",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_root_session_autouse_fixture_commands_keep_exact_process_lifetimes:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_runtime_evidence_payload_contains_only_active_declared_python_targets",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_runtime_evidence_payload_contains_only_active_declared_python_targets:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_worker_loss_snapshot_failure_or_path_remap_gap_is_never_clean_success",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_worker_loss_snapshot_failure_or_path_remap_gap_is_never_clean_success:kind=test_function",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_worker_run_discloses_parallel_and_serial_fallback_identities",
+      "tests/core/test_artifact_coverage_fallback_workers.py:test_worker_run_discloses_parallel_and_serial_fallback_identities:kind=test_function",
+      "tests/core/test_config.py:test_artifact_coverage_fallback_jobs_requires_positive_bounded_integer",
+      "tests/core/test_config.py:test_artifact_coverage_fallback_jobs_requires_positive_bounded_integer:kind=test_function",
+      "tests/core/test_config.py:test_fixture_lifecycle_approval_validation_fails_closed",
+      "tests/core/test_config.py:test_fixture_lifecycle_approval_validation_fails_closed:kind=test_function",
+      "tests/core/test_config.py:test_fixture_lifecycle_approvals_bind_project_and_distribution_sources",
+      "tests/core/test_config.py:test_fixture_lifecycle_approvals_bind_project_and_distribution_sources:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_digest_approval_applies_to_all_function_fixture_instances",
+      "tests/core/test_runtime_evidence.py:test_digest_approval_applies_to_all_function_fixture_instances:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_distribution_fixture_approval_requires_matching_runtime_source",
+      "tests/core/test_runtime_evidence.py:test_distribution_fixture_approval_requires_matching_runtime_source:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_dominated_missing_file_selector_remains_incomplete",
+      "tests/core/test_runtime_evidence.py:test_dominated_missing_file_selector_remains_incomplete:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_dominated_missing_node_selector_remains_incomplete",
+      "tests/core/test_runtime_evidence.py:test_dominated_missing_node_selector_remains_incomplete:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_existing_empty_file_selector_is_supported_but_missing_node_is_not",
+      "tests/core/test_runtime_evidence.py:test_existing_empty_file_selector_is_supported_but_missing_node_is_not:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node",
+      "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_k_deselection_maps_only_nodes_that_will_report",
+      "tests/core/test_runtime_evidence.py:test_k_deselection_maps_only_nodes_that_will_report:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile",
+      "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest",
+      "tests/core/test_runtime_evidence.py:test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership",
+      "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_single_logical_multi_selector_collection_context_is_exact_equivalent",
+      "tests/core/test_runtime_evidence.py:test_single_logical_multi_selector_collection_context_is_exact_equivalent:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_test_module_fixture_approval_requires_matching_runtime_source",
+      "tests/core/test_runtime_evidence.py:test_test_module_fixture_approval_requires_matching_runtime_source:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_xdist_merges_disjoint_worker_selector_maps_before_support_decision",
+      "tests/core/test_runtime_evidence.py:test_xdist_merges_disjoint_worker_selector_maps_before_support_decision:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_xdist_retains_logical_selectors_after_physical_collapse",
+      "tests/core/test_runtime_evidence.py:test_xdist_retains_logical_selectors_after_physical_collapse:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_enforces_budget_only_after_equivalence",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_enforces_budget_only_after_equivalence:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_never_recursively_runs_repository_acceptance_in_normal_suite",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_never_recursively_runs_repository_acceptance_in_normal_suite:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_errored_serial_oracle",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_errored_serial_oracle:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_report_or_order_difference",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_report_or_order_difference:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_serial_replay_or_worker_diagnostics",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_rejects_serial_replay_or_worker_diagnostics:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_requires_three_fresh_equivalent_optimized_runs",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_probe_requires_three_fresh_equivalent_optimized_runs:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_checkpoints_success_and_never_failure",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_checkpoints_success_and_never_failure:kind=test_function",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_helper_extracts_artifact_coverage_errors",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py:test_serial_oracle_helper_extracts_artifact_coverage_errors:kind=test_function",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:arg=jobs:type=int:default=None",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:arg=max_parallel_seconds:type=float:default=None",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:arg=max_processes:type=int:default=None",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:arg=project_root:type=Path:default=None",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:kind=function",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:compare_serial_and_isolated_fallbacks:returns=int",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:main",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:main:arg=argv:type=Sequence[str] | None:default=None",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:main:kind=function",
+      "tools/check_artifact_coverage_fallback_equivalence.py:function:main:returns=int"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/_artifact_coverage_fallback_worker.py",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py",
+        "tools/check_artifact_coverage_fallback_equivalence.py"
+      ],
+      "edit": [
+        ".maidrc.yaml",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/runtime_evidence.py",
+        "tests/cli/test_verify_deep_evidence_reuse.py",
+        "tests/core/test_config.py",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_knockout_worker.py",
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/_artifact_coverage_fallback_worker.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageFallbackWorkerResult",
+              "description": "One exact fallback command's isolated coverage data, state deltas, and harness diagnostics."
+            },
+            {
+              "kind": "attribute",
+              "name": "identity",
+              "of": "ArtifactCoverageFallbackWorkerResult",
+              "type": "RuntimeCommandIdentity"
+            },
+            {
+              "kind": "attribute",
+              "name": "command_run",
+              "of": "ArtifactCoverageFallbackWorkerResult",
+              "type": "RuntimeCommandRecord | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "material_project_writes",
+              "of": "ArtifactCoverageFallbackWorkerResult",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "process_cost",
+              "description": "Conservative outer-budget reservation units, which reserve max_processes for a nested-process directory selector while its xdist workers share two direct child-controller permits.",
+              "of": "ArtifactCoverageFallbackWorkerResult",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ArtifactCoverageFallbackWorkerResult",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageFallbackRun",
+              "description": "Ordered exact results plus identities that required legacy serial rerun."
+            },
+            {
+              "kind": "attribute",
+              "name": "results",
+              "of": "ArtifactCoverageFallbackRun",
+              "type": "tuple[ArtifactCoverageFallbackWorkerResult, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_fallback_identities",
+              "of": "ArtifactCoverageFallbackRun",
+              "type": "tuple[RuntimeCommandIdentity, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "run_isolated_artifact_coverage_fallbacks",
+              "description": "Groups identical selectors only in the opt-in path, schedules accepted inner/outer workers within one process budget, requires process-safe child permits for nested-process directory xdist, and expands results back to immutable identity order.",
+              "args": [
+                {
+                  "name": "identities",
+                  "type": "Sequence[RuntimeCommandIdentity]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "target_files",
+                  "type": "Mapping[RuntimeCommandIdentity, set[str]]"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int"
+                }
+              ],
+              "returns": "ArtifactCoverageFallbackRun"
+            }
+          ]
+        },
+        {
+          "path": "tools/check_artifact_coverage_fallback_equivalence.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compare_serial_and_isolated_fallbacks",
+              "description": "Runs the legacy serial oracle and three fresh real grouped-evidence evaluations, compares normalized reports/order, rejects any exact fallback or diagnostic, and enforces only the grouped phase budget.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int"
+                },
+                {
+                  "name": "max_parallel_seconds",
+                  "type": "float"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "Sequence[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_artifact_coverage_fallback_workers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_root_session_autouse_fixture_commands_keep_exact_process_lifetimes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_disjoint_exact_fallbacks_overlap_within_process_budget"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_material_write_discards_entire_batch_and_preserves_later_reader_legacy_order"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonzero_isolated_command_discards_batch_for_exact_serial_failure_semantics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_loss_snapshot_failure_or_path_remap_gap_is_never_clean_success"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_config_and_auto_xdist_counts_reduce_fallback_jobs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_identical_selectors_deduplicate_with_accepted_inner_xdist"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pinned_xdist_workers_return_target_calls_and_lines"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_generated_xdist_child_process_permits_fail_closed_and_release"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_one_fallback_worker_preserves_legacy_execution"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_run_discloses_parallel_and_serial_fallback_identities"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_grouped_runtime_evidence_collapses_dominated_selectors_without_losing_projection"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_payload_contains_only_active_declared_python_targets"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_only_digest_bound_approved_wide_fixture_reuses_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_indirect_state_or_changed_wide_fixture_approval_falls_back"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_deep_conftest_preflight_skips_speculative_evidence"
+            }
+          ]
+        },
+        {
+          "path": "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_report_or_order_difference"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_enforces_budget_only_after_equivalence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_requires_three_fresh_equivalent_optimized_runs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_serial_replay_or_worker_diagnostics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_rejects_errored_serial_oracle"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serial_oracle_helper_extracts_artifact_coverage_errors"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_probe_never_recursively_runs_repository_acceptance_in_normal_suite"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_serial_oracle_checkpoints_success_and_never_failure"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "__init__",
+              "description": "Starts coverage plus an owned low-overhead global PY_START monitor with local PY_RETURN/PY_RESUME/PY_YIELD/LINE lifecycle events and global PY_UNWIND safety; disables irrelevant code locations but never repeat target callbacks, preserves prior tools/profiles, releases only its claimed ID, and restores the legacy profile path after unavailable events, local-event support, claim, or registration failure.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "output_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "target_files",
+                  "type": "frozenset[str]"
+                },
+                {
+                  "name": "selectors",
+                  "type": "tuple[str, Ellipsis]",
+                  "default": "()"
+                },
+                {
+                  "name": "expected_workers",
+                  "type": "int",
+                  "default": "0"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_sessionfinish",
+              "description": "Stops and releases only owned monitoring before preserving existing session-tail, coverage, completeness, and atomic evidence behavior.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                },
+                {
+                  "name": "exitstatus",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_collection_modifyitems",
+              "description": "Runs after ordinary pytest deselection, maps every retained logical selector, accepts only root-contained existing empty Python file anchors, and preserves missing-file/node fail-closed status.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                },
+                {
+                  "name": "config",
+                  "type": "pytest.Config"
+                },
+                {
+                  "name": "items",
+                  "type": "list[pytest.Item]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_uses_low_overhead_monitoring_without_losing_target_calls"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_monitoring_preserves_generator_context_repeated_calls_and_nested_pytest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_monitoring_ownership_failure_falls_back_and_restores_prior_profile"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_monitoring_success_and_post_claim_failure_preserve_tool_ownership"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_function_yield_fixture_setup_and_teardown_are_attributed_per_node"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_xdist_retains_logical_selectors_after_physical_collapse"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_xdist_merges_disjoint_worker_selector_maps_before_support_decision"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dominated_missing_node_selector_remains_incomplete"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dominated_missing_file_selector_remains_incomplete"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_digest_approval_applies_to_all_function_fixture_instances"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_single_logical_multi_selector_collection_context_is_exact_equivalent"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_k_deselection_maps_only_nodes_that_will_report"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_empty_file_selector_is_supported_but_missing_node_is_not"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_fixture_approval_requires_matching_runtime_source"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_module_fixture_approval_requires_matching_runtime_source"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_deep_evidence_reuse.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_instrumentation_observable_test_cannot_create_false_green_tests_stage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_project_conftest_uses_legacy_coverage_without_speculative_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_excluded_or_symlinked_conftest_preflight_is_bounded"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_test_command_batching.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_batch_compatible_pytest_commands",
+              "description": "Builds one compatible physical pytest command, removing only file or node selectors already contained by a selected directory while retaining logical command entries for exact evidence projection.",
+              "args": [
+                {
+                  "name": "commands",
+                  "type": "list[tuple[str, Ellipsis]]"
+                },
+                {
+                  "name": "cwd",
+                  "type": "Union[str, Path]",
+                  "default": "\".\""
+                },
+                {
+                  "name": "resolve_command",
+                  "type": "_CommandResolver",
+                  "default": "_identity_resolve_command"
+                },
+                {
+                  "name": "is_uv_project",
+                  "type": "_UvProjectPredicate",
+                  "default": "_not_uv_project"
+                }
+              ],
+              "returns": "tuple[str, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "fixture_definition_source",
+              "description": "Resolved defining fixture function source used only to bind explicit project or distribution lifecycle approvals.",
+              "of": "RuntimeContextEvidence",
+              "type": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "collect_runtime_evidence",
+              "description": "Runs minimized compatible physical groups while explicitly forwarding every exact logical selector, normalizing only function-fixture approval identities to their digest-bound definition, and retaining fail-closed per-node lifecycle projection.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeEvidenceRun"
+            },
+            {
+              "kind": "function",
+              "name": "_runtime_target_files",
+              "description": "Returns only existing active-manifest-declared Python files for runtime artifact instrumentation.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "set[str]"
+            },
+            {
+              "kind": "function",
+              "name": "_project_completeness",
+              "description": "Keeps wide lifecycle uncertainty unless the canonical fixture definition ID has a repository approval bound to the current raw conftest digest; all unknown, changed, unresolved, or missing evidence remains fail-closed.",
+              "args": [
+                {
+                  "name": "group",
+                  "type": "RuntimeGroupEvidence"
+                },
+                {
+                  "name": "entry",
+                  "type": "_RuntimeCommandEntry"
+                },
+                {
+                  "name": "selected",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "contexts",
+                  "type": "tuple[RuntimeContextEvidence, Ellipsis]"
+                }
+              ],
+              "returns": "RuntimeEvidenceCompleteness"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_collect_artifact_coverage_evidence",
+              "description": "Returns None before chain, digest, or pytest work when any non-excluded in-tree conftest file exists, including symlinks; shares `_excluded_content_path` with the content digest, otherwise attempts grouped evidence with mutation detection and complete legacy fallback on preparation failure.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "test_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeEvidenceBundle | None"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "isolated_fallback_identities",
+              "description": "Exact identities completed in isolated workers and consumed in original order.",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "tuple[RuntimeCommandIdentity, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "serial_fallback_identities",
+              "description": "Exact identities executed through the legacy serial boundary, including whole-batch safety fallback.",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "tuple[RuntimeCommandIdentity, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "isolated_worker_errors",
+              "description": "Every isolated worker diagnostic retained separately from legacy report projection so acceptance cannot hide worker failure behind serial replay.",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "isolated_material_project_writes",
+              "description": "Every isolated material project write retained separately from legacy report projection so acceptance rejects unsafe optimized phases.",
+              "of": "EvidenceArtifactCoverageResult",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "description": "Uses isolated workers for exact incomplete-lifecycle fallbacks, then reruns the whole ordered legacy batch on any stateful or unproven result.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "fallback_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_completeness_from_payloads",
+              "description": "Merges worker reports and selector support after deselection, retaining unsupported selectors absent from every complete payload.",
+              "args": [
+                {
+                  "name": "payloads",
+                  "type": "list[dict]"
+                },
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "exit_code",
+                  "type": "int"
+                },
+                {
+                  "name": "expected_worker_ids",
+                  "type": "tuple[str, Ellipsis]",
+                  "default": "()"
+                },
+                {
+                  "name": "selected_nodeids",
+                  "type": "tuple[str, Ellipsis]",
+                  "default": "()"
+                }
+              ],
+              "returns": "RuntimeEvidenceCompleteness"
+            },
+            {
+              "kind": "method",
+              "name": "execute_with_contexts",
+              "description": "Executes one minimized physical pytest command while retaining explicit logical selectors for post-xdist projection and completeness.",
+              "of": "RuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "logical_selectors",
+                  "type": "tuple[str, Ellipsis] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeGroupEvidence"
+            },
+            {
+              "kind": "method",
+              "name": "execute_with_contexts",
+              "description": "Combines all expected worker payloads before deciding logical selector support, preserving missing-worker and report fail-closed diagnostics.",
+              "of": "SubprocessRuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "int | str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "logical_selectors",
+                  "type": "tuple[str, Ellipsis] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeGroupEvidence"
+            },
+            {
+              "kind": "method",
+              "name": "execute",
+              "description": "Executes exact coverage with optional snapshot-local environment routing while retaining the legacy four-argument call.",
+              "of": "RuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "environment_overrides",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "environment_removals",
+                  "type": "Sequence[str]",
+                  "default": "()"
+                }
+              ],
+              "returns": "RuntimeCommandRecord"
+            },
+            {
+              "kind": "method",
+              "name": "execute",
+              "description": "Applies owned environment removals and overrides without mutating the parent process; the generated plugin wraps Popen before conftest import, workers consume MAID-owned routing, and they share two process-safe direct child-controller permits without changing loadscope scheduling.",
+              "of": "SubprocessRuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "environment_overrides",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "environment_removals",
+                  "type": "Sequence[str]",
+                  "default": "()"
+                }
+              ],
+              "returns": "RuntimeCommandRecord"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "DistributionFixtureLifecycleApproval",
+              "description": "One explicit fixture lifecycle approval bound to an installed distribution module's exact bytes."
+            },
+            {
+              "kind": "attribute",
+              "name": "context_id",
+              "of": "DistributionFixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "distribution",
+              "of": "DistributionFixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "module_path",
+              "of": "DistributionFixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "sha256",
+              "of": "DistributionFixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "FixtureLifecycleApproval",
+              "description": "One repository-approved wide fixture context bound to its root-contained defining project fixture source and raw SHA-256 bytes."
+            },
+            {
+              "kind": "attribute",
+              "name": "context_id",
+              "of": "FixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "conftest_path",
+              "of": "FixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "sha256",
+              "of": "FixtureLifecycleApproval",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "fallback_jobs",
+              "description": "Positive exact-fallback worker count; defaults to one.",
+              "of": "ArtifactCoverageConfig",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "fixture_lifecycle_approvals",
+              "description": "Validated exact context-ID and raw defining project fixture source SHA-256 approvals; empty by default and fail-closed on malformed values or runtime definition-source mismatch.",
+              "of": "ArtifactCoverageConfig",
+              "type": "tuple[FixtureLifecycleApproval, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "distribution_fixture_lifecycle_approvals",
+              "description": "Validated unique empty-baseid fixture approvals bound to raw bytes of root-contained regular modules inside an installed distribution; malformed, absolute, missing, non-file, duplicate, conflicting, and symlink-escaping entries fail closed; empty by default.",
+              "of": "ArtifactCoverageConfig",
+              "type": "tuple[DistributionFixtureLifecycleApproval, Ellipsis]"
+            }
+          ]
+        },
+        {
+          "path": ".maidrc.yaml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "fallback_jobs",
+              "description": "Repository opt-in enabled only after full exact report equivalence and timing acceptance.",
+              "of": "artifact_coverage",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "max_processes",
+              "description": "Shared 16-process ceiling matching the accepted exact-fallback execution shape.",
+              "of": "test_execution",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "parallel_without_history",
+              "description": "Repository-proven opt-in that applies the accepted pinned eight-worker loadscope policy to cold grouped evidence runs.",
+              "of": "test_execution",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "fixture_lifecycle_approvals",
+              "description": "Reviewed exact context/conftest/digest attestations for the repository root fixtures, enabled only after complete serial equivalence acceptance.",
+              "of": "artifact_coverage",
+              "type": "list[object]"
+            },
+            {
+              "kind": "attribute",
+              "name": "distribution_fixture_lifecycle_approvals",
+              "description": "Reviewed exact context/distribution-module/digest attestations for framework fixtures, bound again to runtime definition sources.",
+              "of": "artifact_coverage",
+              "type": "list[object]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_run_artifact_coverage_by_manifest",
+              "description": "Loads the bounded fallback policy while preserving standalone and verify report order.",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "strict_context",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_config.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_fallback_jobs_requires_positive_bounded_integer"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_fixture_lifecycle_approval_validation_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_fixture_lifecycle_approvals_bind_project_and_distribution_sources"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "maid_runner/core/_knockout_worker.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_deep_evidence_reuse.py",
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "tests/core/test_config.py",
+      "tests/core/test_runtime_evidence.py",
+      "tests/performance/test_artifact_coverage_fallback_equivalence_probe.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_fallback_workers.py tests/performance/test_artifact_coverage_fallback_equivalence_probe.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_config.py tests/core/test_runtime_evidence.py tests/cli/test_verify_deep_evidence_reuse.py",
+      "uv run maid validate manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

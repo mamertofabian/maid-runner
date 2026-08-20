@@ -1,0 +1,267 @@
+{
+  "manifest_path": "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+  "manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+  "test_hashes": {
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2"
+  },
+  "created_at": "2026-08-12T10:13:05.640439+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:be91fdf6fe1f669008c37e8ecf01452726051edf5907973d2ac1e3cbeb26f3d9",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:16af13cf768db4889092ce5921578cd69dc87b553704eb41f3353905a8f1ecee"
+      },
+      "revised_at": "2026-08-12T10:15:14.272111+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-17-isolate-nested-test-process-identities.manifest.yaml -> manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:16af13cf768db4889092ce5921578cd69dc87b553704eb41f3353905a8f1ecee"
+      },
+      "revised_at": "2026-08-12T10:19:48.995805+00:00",
+      "reason": "Record the approved private lock-comparison helper implementation without changing behavioral assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:b1f3fdc870495ecc6b8032cdb38ae44593f65a4dcc745d138d834bd0d39e48e1"
+      },
+      "revised_at": "2026-08-12T10:30:15.205535+00:00",
+      "reason": "Tighten the private lock comparison helper and behavioral adversary so elapsed normalization applies only to the terminal pytest summary line, resolving implementation review without changing the approved production contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea"
+      },
+      "revised_at": "2026-08-13T03:12:01.619402+00:00",
+      "reason": "Accept the approved shared behavioral-test additions and Black formatting from the grouped deep-verification evidence implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea"
+      },
+      "revised_at": "2026-08-13T03:17:26.367687+00:00",
+      "reason": "Accept Black-only formatting of the approved shared runtime-evidence behavioral adversary.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea"
+      },
+      "revised_at": "2026-08-14T11:51:37.932786+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea"
+      },
+      "revised_at": "2026-08-17T10:03:52.612080+00:00",
+      "reason": "accept approved shared-test coverage for remaining E710 owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-12T10:16:22.600938+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
+        "exit_code": 1,
+        "output_tail": "            \"Traceback: downstream reported 1 failed in 12.34s\\n\"\n            \"1 failed, 2 passed in 1.27s\"\n        )\n        (second / \"demo.lock.json\").write_text(json.dumps(changed))\n    \n>       assert _stable_lock_payload(tmp_path / \"first\", \"demo\") == _stable_lock_payload(\n            tmp_path / \"second\", \"demo\"\n        )\nE       AssertionError: assert {'red_evidenc...'revision': 4} == {'red_evidenc...'revision': 4}\nE         \nE         Omitting 1 identical items, use -vv to show\nE         Differing items:\nE         {'red_evidence': {'commands': [{'classification': 'red', 'command': 'python -m pytest tests/test_demo.py -q', 'exit_code': 1, 'output_tail': 'Traceback: downstream reported 1 failed in 12.34s\\n1 failed, 2 passed in 0.01s'}], 'red': True}} != {'red_evidence': {'commands': [{'classification': 'red', 'command': 'python -m pytest tests/test_demo.py -q', 'exit_code': 1, 'output_tail': 'Traceback: downstream reported 1 failed in 12.34s\\n1 failed, 2 passed in 1.27s'}], 'red': True}}\nE         Use -v to get more diff\n\ntests/core/test_git_project_templates.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_runtime_evidence.py::test_nested_test_command_environment_drops_outer_xdist_identity\nFAILED tests/core/test_git_project_templates.py::test_stable_lock_payload_ignores_only_pytest_elapsed_time\n2 failed, 29 passed in 37.88s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q -n 8 --dist loadscope tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
+        "exit_code": 1,
+        "output_tail": "\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x772b68625e20>\n\n    def test_nested_test_command_environment_drops_outer_xdist_identity(monkeypatch):\n        from maid_runner.core._test_command_execution import _test_command_environment\n    \n        monkeypatch.setenv(\"PYTEST_XDIST_WORKER\", \"gw7\")\n        monkeypatch.setenv(\"PYTEST_XDIST_WORKER_COUNT\", \"8\")\n        monkeypatch.setenv(\"MAID_UNRELATED\", \"retained\")\n    \n        environment = _test_command_environment()\n    \n>       assert \"PYTEST_XDIST_WORKER\" not in environment\nE       AssertionError: assert 'PYTEST_XDIST_WORKER' not in {'APPDIR': '/tmp/.mount_cursorpAoHhj', 'APPIMAGE': '/home/atomrem/AppImages/Cursor-3.6.31-x86_64.AppImage', 'ARGV0': '...', 'AZURE_DEVOPS_EXT_PAT': '<redacted>', ...}\n\ntests/core/test_runtime_evidence.py:975: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_git_project_templates.py::test_stable_lock_payload_ignores_only_pytest_elapsed_time\nFAILED tests/core/test_runtime_evidence.py::test_nested_test_command_environment_drops_outer_xdist_identity\n2 failed, 29 passed in 29.48s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_git_project_templates.py:test_stable_lock_payload_ignores_only_pytest_elapsed_time",
+      "tests/core/test_git_project_templates.py:test_stable_lock_payload_ignores_only_pytest_elapsed_time:arg=tmp_path:type=None:default=None",
+      "tests/core/test_git_project_templates.py:test_stable_lock_payload_ignores_only_pytest_elapsed_time:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit:arg=monkeypatch:type=None:default=None",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit:arg=tmp_path:type=None:default=None",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_nested_test_command_environment_drops_outer_xdist_identity",
+      "tests/core/test_runtime_evidence.py:test_nested_test_command_environment_drops_outer_xdist_identity:arg=monkeypatch:type=None:default=None",
+      "tests/core/test_runtime_evidence.py:test_nested_test_command_environment_drops_outer_xdist_identity:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/test_git_project_templates.py",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "read": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "tests/support/git_project_templates.py"
+      ],
+      "scope": [
+        "maid_runner/core/_test_command_execution.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/test_runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_test_command_environment_drops_outer_xdist_identity",
+              "args": [
+                {
+                  "name": "monkeypatch"
+                }
+              ]
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_runtest_reports_are_incomplete_even_with_success_exit",
+              "args": [
+                {
+                  "name": "tmp_path"
+                },
+                {
+                  "name": "monkeypatch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_git_project_templates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_stable_lock_payload_ignores_only_pytest_elapsed_time",
+              "args": [
+                {
+                  "name": "tmp_path"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "tests/support/git_project_templates.py",
+        "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_command_execution.py",
+          "reason": "Sanitize the private owned subprocess environment boundary without changing public API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_git_project_templates.py",
+      "tests/core/test_runtime_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
+      "uv run python -m pytest -q -n 8 --dist loadscope tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
+      "uv run maid validate manifests/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

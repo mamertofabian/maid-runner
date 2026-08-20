@@ -1,0 +1,31 @@
+test_execution:
+  pytest_workers: 8
+  pytest_dist_mode: loadscope
+  accepted_pytest_worker_counts: [8]
+  parallel_threshold_seconds: 30
+  parallel_without_history: true
+  command_jobs: 2
+  max_processes: 16
+artifact_coverage:
+  fallback_jobs: 8
+  evidence_mode: derived
+  fixture_lifecycle_approvals:
+    - context_id: fixture:tests:git_project_template_factory:session
+      conftest_path: tests/conftest.py
+      sha256: "89201888c8a8540c18863fef0d1312a84be6e2e3204717cde722593a81e41a2d"
+    - context_id: fixture:tests:_isolate_git_repository_environment:session
+      conftest_path: tests/conftest.py
+      sha256: "89201888c8a8540c18863fef0d1312a84be6e2e3204717cde722593a81e41a2d"
+    - context_id: fixture:tests:ensure_claude_files_synced:session
+      conftest_path: tests/conftest.py
+      sha256: "89201888c8a8540c18863fef0d1312a84be6e2e3204717cde722593a81e41a2d"
+    - context_id: fixture:tests/cli:_restore_cwd:function
+      conftest_path: tests/cli/conftest.py
+      sha256: "9df8112bd0b379ccb335803743be01eb19082daa37f11535af236e69dab2a359"
+  distribution_fixture_lifecycle_approvals:
+    - context_id: fixture::tmp_path_factory:session
+      distribution: pytest
+      module_path: _pytest/tmpdir.py
+      sha256: "236918c090160c1f6b935e162ff44ab273a700221d5f40ac15892be75e4503ee"
+knockout_execution:
+  jobs: 8

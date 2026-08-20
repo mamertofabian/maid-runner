@@ -1,0 +1,242 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Generate fresh chain-merge coverage and knockout evidence for one explicit production file without running repository-wide mutations"
+type: feature
+created: "2026-08-19T15:16:03Z"
+metadata:
+  priority: high
+  tags: [chain-merge, evidence, knockout, artifact-coverage, performance]
+description: |
+  Add an explicit `maid chain merge FILE --refresh-evidence` mode for the
+  documented baseline and equivalence workflow. The mode executes live
+  artifact coverage only for active manifests that declare artifacts in FILE,
+  treating non-executable structural declarations as satisfied by the live
+  manifest/implementation contract because they have no runtime body,
+  plans knockout mutation identities from the complete active manifest chain,
+  and executes only the function/method mutation specifications belonging to
+  FILE. Successful JSON output remains the ordinary complete chain-merge report
+  schema so it can be saved directly as an equivalence baseline.
+
+  Execute coverage collection in an isolated current-byte project snapshot so
+  test-side material writes cannot escape into the source worktree. Convert
+  snapshot setup, cache-boundary, and teardown failures into structured E712
+  diagnostics instead of propagating a traceback.
+  Use watchdog's native Linux, macOS, and Windows backends to detect persistent
+  and restored material writes on every supported platform.
+
+  Refresh is opt-in and never changes the default cache-only report. It may be
+  combined with `--verify-equivalence` so candidate evidence is collected live
+  before comparison, including when consolidated tests use different nodeids.
+  It is incompatible with repository sweep and structural apply. Any coverage
+  executable-body coverage or knockout diagnostic fails closed with exit 1 and structured errors rather
+  than emitting a misleading baseline. `--dry-run` remains harmless because
+  refresh mutates only isolated test snapshots and ignored evidence caches.
+
+  Keep existing full-repository cache contracts intact. Targeted coverage is
+  consumed directly for this report and must not be written under the
+  full-repository coverage-cache identity. Targeted knockout may populate the
+  existing per-spec cache only after mutation specs are built from the full
+  active plan, so the normal cache-only report can safely reuse the requested
+  file's detection evidence without warming a sibling file.
+
+  This is additive evolution: existing public signatures and default CLI
+  behavior remain unchanged. The new core entry points compose the shipped
+  runtime-backed coverage and isolated knockout engines instead of introducing
+  static reachability logic or a separate evidence implementation.
+temptations:
+  - risk: "Do not build knockout specs from only the target's owner manifests."
+    instead: "Build the complete active mutation plan first, then filter immutable specs by normalized file path before execution and cache writes."
+  - risk: "Do not label a selected-manifest coverage report as the full-repository coverage cache."
+    instead: "Use targeted coverage directly for the live report and leave the existing full-cache namespace untouched."
+  - risk: "Do not emit a baseline-shaped success document when coverage collection fails or a knockout survives."
+    instead: "Return exit 1 with the exact structured E710/E711/E712 diagnostics and no misleading acceptance report."
+  - risk: "Do not execute refreshed coverage directly in the source worktree."
+    instead: "Collect runtime evidence in an isolated current-byte snapshot, discard test writes, and rebind only byte-identical evidence to the source identity."
+  - risk: "Do not weaken nodeid identity rules to make consolidated tests pass."
+    instead: "Reuse artifact-identity equivalence: refreshed candidate nodeids may differ, but every eligible artifact must still have real detecting nodeids."
+files:
+  create:
+    - path: tests/cli/test_chain_merge_refresh_evidence_command.py
+      artifacts:
+        - kind: test_function
+          name: test_chain_merge_refreshes_only_requested_file_with_complete_evidence
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_verifies_equivalence_across_changed_test_nodeids
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_fails_closed_when_knockout_survives
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_fails_closed_with_coverage_diagnostic
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_fails_closed_with_harness_diagnostic
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_isolates_and_rejects_material_test_writes
+          args:
+            - {name: restore_write, type: bool}
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_snapshot_runtime_executor_applies_environment_to_both_execution_modes
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+        - kind: test_function
+          name: test_chain_merge_refresh_rejects_structural_modes
+          args:
+            - {name: mode_args, type: "tuple[str, Ellipsis]"}
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: function
+          name: run_knockout_for_file
+          args:
+            - {name: manifests, type: "Sequence[Manifest]"}
+            - {name: project_root, type: Path}
+            - {name: file_path, type: str}
+            - {name: evidence, type: "RuntimeEvidenceBundle | None", default: "None"}
+            - {name: allow_dirty, type: bool, default: "False"}
+            - {name: executor, type: "KnockoutCommandExecutor | None", default: "None"}
+            - {name: snapshot_backend, type: "ProjectSnapshotBackend | None", default: "None"}
+            - {name: jobs, type: int, default: "1"}
+            - {name: max_processes, type: int, default: "1"}
+            - {name: no_cache, type: bool, default: "False"}
+          returns: KnockoutReport
+          description: "Plan knockout identities from every supplied active manifest while executing only mutation specs for the requested file."
+    - path: maid_runner/core/chain_merge_evidence.py
+      artifacts:
+        - kind: class
+          name: ChainMergeEvidenceRefreshResult
+          description: "Live file-scoped coverage and knockout sources plus any fail-closed diagnostics."
+        - kind: attribute
+          name: detection_source
+          of: ChainMergeEvidenceRefreshResult
+          type: RecordedDetectionEvidenceSource
+        - kind: attribute
+          name: coverage_source
+          of: ChainMergeEvidenceRefreshResult
+          type: RecordedCoverageEvidenceSource
+        - kind: attribute
+          name: errors
+          of: ChainMergeEvidenceRefreshResult
+          type: "tuple[ValidationError, Ellipsis]"
+        - kind: attribute
+          name: success
+          of: ChainMergeEvidenceRefreshResult
+          type: bool
+        - kind: function
+          name: refresh_chain_merge_evidence
+          args:
+            - {name: chain, type: ManifestChain}
+            - {name: file_path, type: str}
+            - {name: project_root, type: str, default: '"."'}
+          returns: ChainMergeEvidenceRefreshResult
+          description: "Collect live coverage from the target owners and live knockout evidence from full-plan file-filtered mutations."
+    - path: docs/maid-chain-merge.md
+      artifacts:
+        - kind: attribute
+          name: _maid_chain_merge_command_reference
+          of: documentation
+          type: markdown document
+          description: "Document opt-in file-scoped evidence refresh, conflicts, failure behavior, and baseline/equivalence examples."
+  scope:
+    - path: maid_runner/core/_runtime_command_executor.py
+      reason: "Allow a subprocess runtime executor instance to apply snapshot-provided environment overrides and removals to both ordinary and contextual evidence commands."
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Register the private --refresh-evidence chain-merge parser flag without changing the public main signature."
+    - path: maid_runner/cli/commands/chain.py
+      reason: "Route explicit refresh through the public evidence collector, preserve default cache-only behavior, enforce mode conflicts, and render structured diagnostics."
+  read:
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/_artifact_coverage_fallback_worker.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/chain_merge.py
+    - maid_runner/core/chain_merge_equivalence.py
+    - maid_runner/core/types.py
+    - manifests/chain-merge-evidence-sources.manifest.yaml
+    - manifests/chain-merge-equivalence-gate.manifest.yaml
+    - manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml
+    - manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml
+    - tests/core/test_chain_merge_deep_detection_roundtrip.py
+    - tests/cli/test_chain_merge_equivalence_command.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py
+  - uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py
+outcome:
+  status: completed
+  completed_at: "2026-08-19T15:55:54Z"
+  summary: "Chain merge can now collect fresh file-scoped coverage and full-plan/file-filtered knockout evidence for unchanged consolidation targets, while leaving default reports cache-only and failing closed on evidence or isolation defects."
+  rationale: "The refresh composes existing runtime coverage and knockout engines, executes coverage in a disposable snapshot with sanitized environment bindings, rejects persistent and restored material writes through portable watchdog barriers plus full byte-state comparison, and retains only safe per-spec knockout cache evidence."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Evidence collected in a snapshot is trustworthy only when absolute execution paths and environment identity are rebound to byte-identical source inputs and all material writes, including restored writes, are rejected."
+      tags: [chain-merge, evidence, isolation, watchdog]
+      paths:
+        - maid_runner/core/chain_merge_evidence.py
+        - maid_runner/core/_runtime_command_executor.py
+    - lesson_type: test-design
+      summary: "Material-write tests must isolate coverage from knockout, exercise hostile ambient Git environment variables, and include write-then-delete behavior; otherwise another gate can accidentally satisfy the expected E712."
+      tags: [behavioral-tests, fail-closed, portability]
+      paths:
+        - tests/cli/test_chain_merge_refresh_evidence_command.py
+  review_notes:
+    - source: independent-reviewer-target_evidence_impl_review
+      severity: blocking-fixed
+      summary: "Review rounds found live-worktree coverage, escaped snapshot exceptions, incomplete material-write detection, unsanitized snapshot environments, Linux-only journaling, an undeclared nested public class, and watchdog startup/drain races; each was fixed and re-reviewed."
+    - source: independent-reviewer-target_evidence_impl_review-final
+      severity: ready
+      summary: "Final review found no remaining blockers after readiness/flush barriers, full before/after byte-state comparison, portable watchdog monitoring, and repeated isolation stress runs."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_chain_merge_refresh_evidence_command.py]
+      status: passed
+      summary: "All 10 refresh, equivalence, failure, isolation, conflict, and executor-environment scenarios passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_chain_merge_refresh_evidence_command.py, tests/core/test_chain_merge_deep_detection_roundtrip.py, tests/core/test_chain_merge_evidence.py, tests/core/test_chain_merge_equivalence.py, tests/cli/test_chain_merge_equivalence_command.py, tests/core/test_chain_merge_non_knockout_detection.py, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_from_runtime_evidence.py, tests/core/test_artifact_coverage.py]
+      status: passed
+      summary: "All 110 focused and adjacent chain/runtime coverage regression tests passed."
+    - command: [uv, run, maid, validate, manifests/add-chain-merge-target-evidence-refresh.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed with only the expected E307 documentation warning."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 274 active manifests passed; 349 superseded manifests were skipped and none failed."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 299 manifest-declared commands passed after installing the locked TypeScript dependency in the isolated worktree."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, b316688]
+      status: passed
+      summary: "The final-byte assessed deep gate passed all 11 stages in 182 seconds with no blockers."

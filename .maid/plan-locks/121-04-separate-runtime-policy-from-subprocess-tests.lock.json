@@ -1,0 +1,555 @@
+{
+  "manifest_path": "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+  "manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+    "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61"
+  },
+  "created_at": "2026-08-10T22:43:56.286013+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:db8b4adde9b1a672e1307ace20c5c09b675a67915626d5f6b5648eeabcaf03a8",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:53df7c8cfec9f3700f011e40e3b27f6599ad0f8a7840aa2243c37bf332d74f17",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:91cc63c1120535ffa765849f3dda95061afdd8b92474274be9936183fb292af3",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:281fc632e990faf37d184359328fe667c9c571831f817c9a9b8736bc8844e5f9",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:b8d0caab54999c5ae2f5c36c7ec8a252104a8e24cfb29ebc05e691c2d0861eb6"
+      },
+      "revised_at": "2026-08-10T22:44:59.491556+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml -> manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:46f6c3f8d0e1534a918deba7f88bb9cf38c3eb4134700bcd160ad7b253d39a30",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:53df7c8cfec9f3700f011e40e3b27f6599ad0f8a7840aa2243c37bf332d74f17",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:91cc63c1120535ffa765849f3dda95061afdd8b92474274be9936183fb292af3",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:281fc632e990faf37d184359328fe667c9c571831f817c9a9b8736bc8844e5f9",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:b8d0caab54999c5ae2f5c36c7ec8a252104a8e24cfb29ebc05e691c2d0861eb6"
+      },
+      "revised_at": "2026-08-10T22:50:44.061235+00:00",
+      "reason": "Authorize conversion of failure-determinism and timeout policy tests to the locked owned executor seam after the first green timing run proved the unchanged subprocess tests still dominate runtime.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/core/test_artifact_coverage_failure_determinism.py",
+          "scope:tests/core/test_artifact_coverage_timeout_config.py"
+        ],
+        "files_removed": [
+          "read:tests/core/test_artifact_coverage_failure_determinism.py",
+          "read:tests/core/test_artifact_coverage_timeout_config.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:91cc63c1120535ffa765849f3dda95061afdd8b92474274be9936183fb292af3",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:281fc632e990faf37d184359328fe667c9c571831f817c9a9b8736bc8844e5f9",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:b8d0caab54999c5ae2f5c36c7ec8a252104a8e24cfb29ebc05e691c2d0861eb6",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:53df7c8cfec9f3700f011e40e3b27f6599ad0f8a7840aa2243c37bf332d74f17"
+      },
+      "revised_at": "2026-08-10T23:10:51.126559+00:00",
+      "reason": "Strengthen the locked executor contract after independent review: require defensive frozenset coercion and one absolute normalized key containing both real line and call evidence.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61"
+      },
+      "revised_at": "2026-08-13T13:57:56.076771+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da0adb34bca1d897c04d51ce93c30c33aa2f0670b1efa4cf05a855b8fc11b979",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_artifact_coverage_timeout_config.py": "sha256-pyast:v2:df389b25b3f9b230f621b56784b0a15e808b1e44b960e3299ed42f13842b7b61"
+      },
+      "revised_at": "2026-08-14T10:32:06.789303+00:00",
+      "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-10T23:10:55.073436+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py tests/cli/test_nested_strict_preview.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_artifact_coverage.py::test_real_runtime_executor_preserves_timeout_exception\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_reports_match_independent_reports_for_identical_command\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_executes_identical_pytest_command_once\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_keeps_distinct_pytest_arguments_separate\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_preserves_manifest_order_and_json_shape\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_combines_evidence_from_multiple_commands_per_manifest\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_matches_final_command_call_trace_for_one_line_artifact\nFAILED tests/core/test_artifact_coverage_batch.py::test_policy_matrix_uses_owned_fake_without_spawning_pytest\nFAILED tests/core/test_artifact_coverage_batch.py::test_real_and_fake_executor_reports_are_equivalent\nFAILED tests/core/test_artifact_coverage_batch.py::test_batch_executor_call_count_matches_unique_command_count\nFAILED tests/core/test_artifact_coverage_failure_determinism.py::test_failure_reports_ignore_volatile_pytest_elapsed_duration\nFAILED tests/core/test_artifact_coverage_failure_determinism.py::test_failure_reports_preserve_context_around_unbounded_ci_assertion_lines\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_single_artifact_coverage_uses_configured_timeout\nFAILED tests/core/test_artifact_coverage_timeout_config.py::test_batched_artifact_coverage_uses_configured_timeout\nFAILED tests/cli/test_nested_strict_preview.py::test_strict_preview_propagates_strict_defaults_to_nested_validation\nFAILED tests/cli/test_nested_strict_preview.py::test_strict_delta_reports_nested_default_gate_regression_without_failing_default_side\nFAILED tests/cli/test_nested_strict_preview.py::test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes\nFAILED tests/cli/test_nested_strict_preview.py::test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage\nFAILED tests/cli/test_nested_strict_preview.py::test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread\n32 failed, 14 passed in 3.48s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.command",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.command:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.command:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.command:type=tuple[str, Ellipsis]",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.execution_data",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.execution_data:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.execution_data:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.execution_data:type=Mapping[str, RuntimeFileExecution]",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.report_errors",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.report_errors:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.report_errors:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.report_errors:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.returncode",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.returncode:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.returncode:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.returncode:type=int",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stderr",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stderr:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stderr:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stderr:type=str",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stdout",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stdout:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stdout:of=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeCommandRecord.stdout:type=str",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.called_qualnames",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.called_qualnames:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.called_qualnames:of=RuntimeFileExecution",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.called_qualnames:type=frozenset[str]",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.executed_lines",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.executed_lines:kind=attribute",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.executed_lines:of=RuntimeFileExecution",
+      "maid_runner/core/_runtime_command_executor.py:attribute:RuntimeFileExecution.executed_lines:type=frozenset[int]",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeCommandExecutor:kind=class",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeCommandRecord:kind=class",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeFileExecution",
+      "maid_runner/core/_runtime_command_executor.py:class:RuntimeFileExecution:kind=class",
+      "maid_runner/core/_runtime_command_executor.py:class:SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:class:SubprocessRuntimeCommandExecutor:kind=class",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:of=RuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute:returns=RuntimeCommandRecord",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:of=SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:returns=RuntimeCommandRecord",
+      "maid_runner/core/_test_command_execution.py:function:_strict_validation_test_environment",
+      "maid_runner/core/_test_command_execution.py:function:_strict_validation_test_environment:arg=enabled:type=bool:default=None",
+      "maid_runner/core/_test_command_execution.py:function:_strict_validation_test_environment:arg=process_wide:type=bool:default=False",
+      "maid_runner/core/_test_command_execution.py:function:_strict_validation_test_environment:kind=function",
+      "maid_runner/core/_test_command_execution.py:function:_strict_validation_test_environment:returns=Iterator[None]",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:returns=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "tests/cli/test_nested_strict_preview.py:test_real_nested_strict_preview_adapter_still_propagates_once",
+      "tests/cli/test_nested_strict_preview.py:test_real_nested_strict_preview_adapter_still_propagates_once:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_real_nested_strict_preview_adapter_still_propagates_once:returns=None",
+      "tests/cli/test_nested_strict_preview.py:test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses",
+      "tests/cli/test_nested_strict_preview.py:test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses:kind=test_function",
+      "tests/cli/test_nested_strict_preview.py:test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses:returns=None",
+      "tests/core/test_artifact_coverage.py:test_fake_runtime_executor_preserves_single_manifest_report",
+      "tests/core/test_artifact_coverage.py:test_fake_runtime_executor_preserves_single_manifest_report:kind=test_function",
+      "tests/core/test_artifact_coverage.py:test_fake_runtime_executor_preserves_single_manifest_report:returns=None",
+      "tests/core/test_artifact_coverage.py:test_real_runtime_executor_preserves_timeout_exception",
+      "tests/core/test_artifact_coverage.py:test_real_runtime_executor_preserves_timeout_exception:kind=test_function",
+      "tests/core/test_artifact_coverage.py:test_real_runtime_executor_preserves_timeout_exception:returns=None",
+      "tests/core/test_artifact_coverage.py:test_runtime_record_change_invalidates_evaluated_execution",
+      "tests/core/test_artifact_coverage.py:test_runtime_record_change_invalidates_evaluated_execution:kind=test_function",
+      "tests/core/test_artifact_coverage.py:test_runtime_record_change_invalidates_evaluated_execution:returns=None",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_executor_call_count_matches_unique_command_count",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_executor_call_count_matches_unique_command_count:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_batch_executor_call_count_matches_unique_command_count:returns=None",
+      "tests/core/test_artifact_coverage_batch.py:test_policy_matrix_uses_owned_fake_without_spawning_pytest",
+      "tests/core/test_artifact_coverage_batch.py:test_policy_matrix_uses_owned_fake_without_spawning_pytest:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_policy_matrix_uses_owned_fake_without_spawning_pytest:returns=None",
+      "tests/core/test_artifact_coverage_batch.py:test_real_and_fake_executor_reports_are_equivalent",
+      "tests/core/test_artifact_coverage_batch.py:test_real_and_fake_executor_reports_are_equivalent:kind=test_function",
+      "tests/core/test_artifact_coverage_batch.py:test_real_and_fake_executor_reports_are_equivalent:returns=None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/_runtime_command_executor.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/artifact_coverage.py",
+        "tests/cli/test_nested_strict_preview.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_batch.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/cli/commands/validate.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml"
+      ],
+      "scope": [
+        "tests/core/test_artifact_coverage_failure_determinism.py",
+        "tests/core/test_artifact_coverage_timeout_config.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "RuntimeFileExecution",
+              "description": "Immutable owned line/call evidence for one normalized source path."
+            },
+            {
+              "kind": "attribute",
+              "name": "executed_lines",
+              "of": "RuntimeFileExecution",
+              "type": "frozenset[int]"
+            },
+            {
+              "kind": "attribute",
+              "name": "called_qualnames",
+              "of": "RuntimeFileExecution",
+              "type": "frozenset[str]"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeCommandRecord",
+              "description": "Immutable MAID-owned value carrying command, return code, stdout, stderr, line execution, call identities, and report errors."
+            },
+            {
+              "kind": "attribute",
+              "name": "command",
+              "of": "RuntimeCommandRecord",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "returncode",
+              "of": "RuntimeCommandRecord",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "stdout",
+              "of": "RuntimeCommandRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "stderr",
+              "of": "RuntimeCommandRecord",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "execution_data",
+              "of": "RuntimeCommandRecord",
+              "type": "Mapping[str, RuntimeFileExecution]"
+            },
+            {
+              "kind": "attribute",
+              "name": "report_errors",
+              "of": "RuntimeCommandRecord",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeCommandExecutor",
+              "description": "Protocol for executing one normalized pytest command with runtime evidence."
+            },
+            {
+              "kind": "method",
+              "name": "execute",
+              "description": "Owned execution seam shared by the production adapter and deterministic test fake.",
+              "of": "RuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                }
+              ],
+              "returns": "RuntimeCommandRecord"
+            },
+            {
+              "kind": "class",
+              "name": "SubprocessRuntimeCommandExecutor",
+              "description": "Production adapter preserving the existing coverage.py plus pytest subprocess behavior and timeout semantics."
+            },
+            {
+              "kind": "method",
+              "name": "execute",
+              "description": "Runs the real instrumented command and returns stable runtime evidence.",
+              "of": "SubprocessRuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                }
+              ],
+              "returns": "RuntimeCommandRecord"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage",
+              "description": "Evaluates one manifest using the production executor by default or an explicitly supplied owned executor.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "Preserves per-manifest attribution while accepting an injected executor for policy tests.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_test_command_execution.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_strict_validation_test_environment",
+              "description": "Remains the single strict-boundary policy seam and is tested directly for thread/process restoration.",
+              "args": [
+                {
+                  "name": "enabled",
+                  "type": "bool"
+                },
+                {
+                  "name": "process_wide",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "Iterator[None]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_fake_runtime_executor_preserves_single_manifest_report",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_record_change_invalidates_evaluated_execution",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_runtime_executor_preserves_timeout_exception",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_artifact_coverage_batch.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_policy_matrix_uses_owned_fake_without_spawning_pytest",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_and_fake_executor_reports_are_equivalent",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_executor_call_count_matches_unique_command_count",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_nested_strict_preview.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_nested_strict_preview_adapter_still_propagates_once",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml",
+        "maid_runner/cli/commands/validate.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ],
+      "scope": [
+        {
+          "path": "tests/core/test_artifact_coverage_failure_determinism.py",
+          "reason": "Replace repeated real subprocess stimulus with owned runtime records while retaining bounded failure-adapter coverage in the batch suite."
+        },
+        {
+          "path": "tests/core/test_artifact_coverage_timeout_config.py",
+          "reason": "Assert timeout policy through the injected executor and retain one direct real-adapter TimeoutExpired contract."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_nested_strict_preview.py",
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_failure_determinism.py",
+      "tests/core/test_artifact_coverage_timeout_config.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py tests/cli/test_nested_strict_preview.py",
+      "uv run maid validate manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

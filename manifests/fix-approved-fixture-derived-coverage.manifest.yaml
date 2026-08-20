@@ -1,0 +1,118 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Credit digest-approved fixture execution in derived artifact coverage without trusting unapproved fixture lifecycles"
+type: fix
+created: "2026-08-17T12:30:13Z"
+metadata:
+  priority: high
+  tags:
+    - artifact-coverage
+    - runtime-evidence
+    - fixtures
+    - e710
+description: |
+  Runtime evidence validates configured fixture-lifecycle approvals by exact
+  source digest and removes approved contexts from the command's unproven
+  lifecycle set. Derived artifact coverage nevertheless discards every fixture
+  context except ordinary non-autouse function scope. That contradiction marks
+  an approved session fixture complete while throwing away its execution,
+  producing a false E710 in the release deep gate.
+
+  Treat a fixture context as reusable when command completeness no longer lists
+  that exact context as an unproven fixture lifecycle. This includes naturally
+  equivalent function fixtures and exact-digest approvals, while continuing to
+  exclude unapproved session, module, package, autouse, and dynamic fixtures.
+  No public signature changes and no new fallback policy are introduced.
+temptations:
+  - risk: "Do not include every fixture context merely because derived mode avoids exact fallback."
+    instead: "Include only naturally equivalent fixtures or contexts removed from unproven_fixture_lifecycles by exact-digest approval."
+  - risk: "Do not special-case git_project_template_factory or the repository conftest path."
+    instead: "Exercise the generic approval and projection contract with a synthetic session fixture."
+  - risk: "Do not turn an unapproved wide-scope fixture into trusted execution evidence."
+    instead: "Pair the approved happy path with an otherwise identical unapproved control that remains E710."
+files:
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+            - name: evidence_mode
+              type: str
+              default: exact
+          returns: EvidenceArtifactCoverageResult
+          description: "Projects digest-approved fixture execution into derived per-manifest coverage while preserving fail-closed exclusion of unapproved lifecycles."
+  create:
+    - path: tests/core/test_approved_fixture_artifact_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_derived_coverage_credits_digest_approved_session_fixture
+          args:
+            - name: tmp_path
+              type: Path
+        - kind: test_function
+          name: test_derived_coverage_rejects_unapproved_session_fixture
+          args:
+            - name: tmp_path
+              type: Path
+            - name: approval
+              type: str
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/config.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_approved_fixture_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py
+  - uv run maid validate manifests/fix-approved-fixture-derived-coverage.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T13:36:50Z"
+  summary: "Derived artifact coverage now credits fixture execution only after runtime evidence proves the lifecycle naturally or clears its exact context through a digest-matching approval."
+  rationale: "The release E710 blocker was an approved session fixture whose execution was collected but discarded during evidence projection. The fix trusts the collector's fail-closed unproven-lifecycle boundary, while absent and stale-digest approvals remain uncovered."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "A downstream evidence consumer should honor the collector's exact approval result instead of reapplying a broader fixture-type exclusion that contradicts completeness."
+      tags: [artifact-coverage, fixtures, digest-approval]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+  review_notes:
+    - source: e710_union_replan_review
+      severity: ready
+      summary: "Plan review confirmed valid, absent, and stale-digest cases close the approval-presence loophole without widening unapproved fixture trust."
+    - source: release_e710_impl_review
+      severity: ready
+      summary: "Implementation review found no blocking issue in digest-approved fixture filtering."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_approved_fixture_artifact_coverage.py, tests/core/test_artifact_coverage_from_runtime_evidence.py]
+      status: passed
+      summary: "The approved fixture contract and adjacent runtime-evidence coverage suite passed through the declared MAID command."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 268 active manifests passed after the final implementation revisions."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 297 declared command groups passed."

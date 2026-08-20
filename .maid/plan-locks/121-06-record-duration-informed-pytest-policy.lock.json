@@ -1,0 +1,507 @@
+{
+  "manifest_path": "manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+  "manifest_hash": "sha256-contract:da63b2ddd8c1cb8b1edf013b8d9cc4bd0d617f1e6bbd6305e313af6dac3e7aaa",
+  "test_hashes": {
+    "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+  },
+  "created_at": "2026-08-11T01:44:23.426405+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0262fecb7d1a4995b2b560090b9dd81cf06b94df9a53cb70eeca8f0d218b7cdb",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:06cb725ef1fe4c045cae9cbcff7cd3ce142e22257e1a628a2ab841dc9d4991ef"
+      },
+      "revised_at": "2026-08-11T01:44:41.309524+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-06-record-duration-informed-pytest-policy.manifest.yaml -> manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-06-record-duration-informed-pytest-policy.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2c9471a481f1f88ba551b24bbf5b2a1cec6464da159c8e6beb5b4448127514b1",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:06cb725ef1fe4c045cae9cbcff7cd3ce142e22257e1a628a2ab841dc9d4991ef"
+      },
+      "revised_at": "2026-08-11T01:47:30.835090+00:00",
+      "reason": "reject drive-absolute pytest node IDs from portable timing identities",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2c9471a481f1f88ba551b24bbf5b2a1cec6464da159c8e6beb5b4448127514b1",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:d718085d21e775e49eb373f869f2084e0c46f9b0afda74e1e271ecc9205710a2"
+      },
+      "revised_at": "2026-08-11T01:55:49.046184+00:00",
+      "reason": "align public history signatures and harden concurrent, canonical, outcome-free timing persistence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=history_load:type=PytestTimingHistoryLoad:default=None",
+          "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:arg=history:type=PytestTimingHistory | None:default=None",
+          "tests/core/test_pytest_parallelism_policy.py:test_concurrent_recording_preserves_every_behavior_group",
+          "tests/core/test_pytest_parallelism_policy.py:test_concurrent_recording_preserves_every_behavior_group:kind=test_function",
+          "tests/core/test_pytest_parallelism_policy.py:test_duration_prediction_overflow_is_unknown",
+          "tests/core/test_pytest_parallelism_policy.py:test_duration_prediction_overflow_is_unknown:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=history:type=PytestTimingHistory | None:default=None",
+          "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:arg=history_load:type=PytestTimingHistoryLoad:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da63b2ddd8c1cb8b1edf013b8d9cc4bd0d617f1e6bbd6305e313af6dac3e7aaa",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_parallelism_policy.py": "sha256-pyast:v2:da800498cdc0105dd918604bba8e2736ef709d85c98f15486076fcb630986ed8"
+      },
+      "revised_at": "2026-08-11T02:30:00.223649+00:00",
+      "reason": "capture reviewed scheduling-policy outcome and full/deep baseline evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-11T01:55:49.730810+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py",
+        "exit_code": 1,
+        "output_tail": "E       ModuleNotFoundError: No module named 'maid_runner.core._pytest_parallelism'\n\ntests/core/test_pytest_parallelism_policy.py:402: ModuleNotFoundError\n=========================== short test summary info ============================\nFAILED tests/core/test_pytest_parallelism_policy.py::test_small_predicted_batch_stays_serial\nFAILED tests/core/test_pytest_parallelism_policy.py::test_expensive_predicted_batch_chooses_configured_workers\nFAILED tests/core/test_pytest_parallelism_policy.py::test_decision_never_changes_selected_nodeids\nFAILED tests/core/test_pytest_parallelism_policy.py::test_missing_or_partial_history_uses_explicit_unknown_policy\nFAILED tests/core/test_pytest_parallelism_policy.py::test_content_or_behavior_digest_change_invalidates_history\nFAILED tests/core/test_pytest_parallelism_policy.py::test_corrupt_history_is_not_treated_as_pass_or_zero_duration\nFAILED tests/core/test_pytest_parallelism_policy.py::test_recorded_history_contains_no_test_outcome\nFAILED tests/core/test_pytest_parallelism_policy.py::test_recording_preserves_other_behavior_groups_without_partial_files\nFAILED tests/core/test_pytest_parallelism_policy.py::test_concurrent_recording_preserves_every_behavior_group\nFAILED tests/core/test_pytest_parallelism_policy.py::test_recorded_nodeids_are_normalized_and_invalid_durations_rejected\nFAILED tests/core/test_pytest_parallelism_policy.py::test_empty_selection_and_single_worker_stay_serial\nFAILED tests/core/test_pytest_parallelism_policy.py::test_unsupported_format_is_typed_unknown_history\nFAILED tests/core/test_pytest_parallelism_policy.py::test_timing_records_and_decisions_are_immutable\nFAILED tests/core/test_pytest_parallelism_policy.py::test_invalid_timing_identity_or_worker_policy_fails_closed\nFAILED tests/core/test_pytest_parallelism_policy.py::test_duration_prediction_overflow_is_unknown\n15 failed in 0.22s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.behavior_group_digest",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.behavior_group_digest:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.behavior_group_digest:of=PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.behavior_group_digest:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.collected_at",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.collected_at:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.collected_at:of=PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.collected_at:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.durations_ms",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.durations_ms:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.durations_ms:of=PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.durations_ms:type=Mapping[str, float]",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.format_version",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.format_version:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.format_version:of=PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.format_version:type=int",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.input_digest",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.input_digest:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.input_digest:of=PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistory.input_digest:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.history",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.history:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.history:of=PytestTimingHistoryLoad",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.history:type=PytestTimingHistory | None",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.state",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.state:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.state:of=PytestTimingHistoryLoad",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestTimingHistoryLoad.state:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.history_state",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.history_state:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.history_state:of=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.history_state:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.predicted_duration_ms",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.predicted_duration_ms:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.predicted_duration_ms:of=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.predicted_duration_ms:type=float | None",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.reason",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.reason:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.reason:of=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.reason:type=str",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.use_workers",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.use_workers:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.use_workers:of=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.use_workers:type=bool",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.workers",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.workers:kind=attribute",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.workers:of=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:attribute:PytestWorkerDecision.workers:type=int | str",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestTimingHistory",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestTimingHistory:kind=class",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestTimingHistoryLoad",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestTimingHistoryLoad:kind=class",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:class:PytestWorkerDecision:kind=class",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=configured_workers:type=int | str:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=history_load:type=PytestTimingHistoryLoad:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=parallel_without_history:type=bool:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=selected_nodeids:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:arg=threshold_ms:type=float:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:kind=function",
+      "maid_runner/core/_pytest_parallelism.py:function:choose_pytest_worker_policy:returns=PytestWorkerDecision",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history:arg=behavior_group_digest:type=str:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history:arg=input_digest:type=str:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history:kind=function",
+      "maid_runner/core/_pytest_parallelism.py:function:load_pytest_timing_history:returns=PytestTimingHistoryLoad",
+      "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms",
+      "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:arg=history:type=PytestTimingHistory | None:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:arg=selected_nodeids:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:kind=function",
+      "maid_runner/core/_pytest_parallelism.py:function:predict_pytest_duration_ms:returns=float | None",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:arg=behavior_group_digest:type=str:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:arg=input_digest:type=str:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:arg=node_durations_ms:type=Mapping[str, float]:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:kind=function",
+      "maid_runner/core/_pytest_parallelism.py:function:record_pytest_timing_history:returns=None",
+      "tests/core/test_pytest_parallelism_policy.py:test_concurrent_recording_preserves_every_behavior_group",
+      "tests/core/test_pytest_parallelism_policy.py:test_concurrent_recording_preserves_every_behavior_group:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_content_or_behavior_digest_change_invalidates_history",
+      "tests/core/test_pytest_parallelism_policy.py:test_content_or_behavior_digest_change_invalidates_history:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_corrupt_history_is_not_treated_as_pass_or_zero_duration",
+      "tests/core/test_pytest_parallelism_policy.py:test_corrupt_history_is_not_treated_as_pass_or_zero_duration:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_decision_never_changes_selected_nodeids",
+      "tests/core/test_pytest_parallelism_policy.py:test_decision_never_changes_selected_nodeids:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_duration_prediction_overflow_is_unknown",
+      "tests/core/test_pytest_parallelism_policy.py:test_duration_prediction_overflow_is_unknown:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_empty_selection_and_single_worker_stay_serial",
+      "tests/core/test_pytest_parallelism_policy.py:test_empty_selection_and_single_worker_stay_serial:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_expensive_predicted_batch_chooses_configured_workers",
+      "tests/core/test_pytest_parallelism_policy.py:test_expensive_predicted_batch_chooses_configured_workers:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_invalid_timing_identity_or_worker_policy_fails_closed",
+      "tests/core/test_pytest_parallelism_policy.py:test_invalid_timing_identity_or_worker_policy_fails_closed:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_missing_or_partial_history_uses_explicit_unknown_policy",
+      "tests/core/test_pytest_parallelism_policy.py:test_missing_or_partial_history_uses_explicit_unknown_policy:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_recorded_history_contains_no_test_outcome",
+      "tests/core/test_pytest_parallelism_policy.py:test_recorded_history_contains_no_test_outcome:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_recorded_nodeids_are_normalized_and_invalid_durations_rejected",
+      "tests/core/test_pytest_parallelism_policy.py:test_recorded_nodeids_are_normalized_and_invalid_durations_rejected:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_recording_preserves_other_behavior_groups_without_partial_files",
+      "tests/core/test_pytest_parallelism_policy.py:test_recording_preserves_other_behavior_groups_without_partial_files:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_small_predicted_batch_stays_serial",
+      "tests/core/test_pytest_parallelism_policy.py:test_small_predicted_batch_stays_serial:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_timing_records_and_decisions_are_immutable",
+      "tests/core/test_pytest_parallelism_policy.py:test_timing_records_and_decisions_are_immutable:kind=test_function",
+      "tests/core/test_pytest_parallelism_policy.py:test_unsupported_format_is_typed_unknown_history",
+      "tests/core/test_pytest_parallelism_policy.py:test_unsupported_format_is_typed_unknown_history:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/_pytest_parallelism.py",
+        "tests/core/test_pytest_parallelism_policy.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_pytest_command_normalization.py",
+        "maid_runner/core/_test_command_batching.py",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/_pytest_parallelism.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "PytestTimingHistory",
+              "description": "Immutable advisory per-node timing table with behavior/content bindings."
+            },
+            {
+              "kind": "attribute",
+              "name": "durations_ms",
+              "of": "PytestTimingHistory",
+              "type": "Mapping[str, float]"
+            },
+            {
+              "kind": "attribute",
+              "name": "behavior_group_digest",
+              "of": "PytestTimingHistory",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "input_digest",
+              "of": "PytestTimingHistory",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "collected_at",
+              "of": "PytestTimingHistory",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "format_version",
+              "of": "PytestTimingHistory",
+              "type": "int"
+            },
+            {
+              "kind": "class",
+              "name": "PytestTimingHistoryLoad",
+              "description": "Typed load result that distinguishes current, missing, stale, corrupt, and unsupported advisory history."
+            },
+            {
+              "kind": "attribute",
+              "name": "history",
+              "of": "PytestTimingHistoryLoad",
+              "type": "PytestTimingHistory | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "state",
+              "of": "PytestTimingHistoryLoad",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "PytestWorkerDecision",
+              "description": "Pure serial/worker decision plus stable disclosure reason."
+            },
+            {
+              "kind": "attribute",
+              "name": "use_workers",
+              "of": "PytestWorkerDecision",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "workers",
+              "of": "PytestWorkerDecision",
+              "type": "int | str"
+            },
+            {
+              "kind": "attribute",
+              "name": "predicted_duration_ms",
+              "of": "PytestWorkerDecision",
+              "type": "float | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "history_state",
+              "of": "PytestWorkerDecision",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "reason",
+              "of": "PytestWorkerDecision",
+              "type": "str"
+            },
+            {
+              "kind": "function",
+              "name": "load_pytest_timing_history",
+              "description": "Returns current advisory history or a typed fail-closed reason why it cannot be used.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "behavior_group_digest",
+                  "type": "str"
+                },
+                {
+                  "name": "input_digest",
+                  "type": "str"
+                }
+              ],
+              "returns": "PytestTimingHistoryLoad"
+            },
+            {
+              "kind": "function",
+              "name": "record_pytest_timing_history",
+              "description": "Atomically records advisory timings without storing node outcomes or pass state.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "behavior_group_digest",
+                  "type": "str"
+                },
+                {
+                  "name": "input_digest",
+                  "type": "str"
+                },
+                {
+                  "name": "node_durations_ms",
+                  "type": "Mapping[str, float]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "predict_pytest_duration_ms",
+              "description": "Returns predicted serial cost only when every selected node has a valid timing.",
+              "args": [
+                {
+                  "name": "selected_nodeids",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "history",
+                  "type": "PytestTimingHistory | None"
+                }
+              ],
+              "returns": "float | None"
+            },
+            {
+              "kind": "function",
+              "name": "choose_pytest_worker_policy",
+              "description": "Chooses serial/workers without changing, sorting, or filtering the selected nodes.",
+              "args": [
+                {
+                  "name": "selected_nodeids",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "history_load",
+                  "type": "PytestTimingHistoryLoad"
+                },
+                {
+                  "name": "configured_workers",
+                  "type": "int | str"
+                },
+                {
+                  "name": "threshold_ms",
+                  "type": "float"
+                },
+                {
+                  "name": "parallel_without_history",
+                  "type": "bool"
+                }
+              ],
+              "returns": "PytestWorkerDecision"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_pytest_parallelism_policy.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_small_predicted_batch_stays_serial"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_expensive_predicted_batch_chooses_configured_workers"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_decision_never_changes_selected_nodeids"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_or_partial_history_uses_explicit_unknown_policy"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_content_or_behavior_digest_change_invalidates_history"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_corrupt_history_is_not_treated_as_pass_or_zero_duration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recorded_history_contains_no_test_outcome"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recording_preserves_other_behavior_groups_without_partial_files"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recorded_nodeids_are_normalized_and_invalid_durations_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_empty_selection_and_single_worker_stay_serial"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsupported_format_is_typed_unknown_history"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_timing_records_and_decisions_are_immutable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_timing_identity_or_worker_policy_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_concurrent_recording_preserves_every_behavior_group"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_duration_prediction_overflow_is_unknown"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml",
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/_pytest_command_normalization.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_pytest_parallelism_policy.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py",
+      "uv run maid validate manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

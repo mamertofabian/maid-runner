@@ -1,0 +1,105 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reuse copied knockout dependencies while restoring a fresh source and Git root per declaration"
+type: fix
+created: "2026-08-13T12:35:24Z"
+supersedes:
+  - 121-39-retain-knockout-worker-dependency-environments
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, knockout, snapshots, isolation]
+description: |
+  Evolve 121-39 so a worker retains only its copied .venv/node_modules while
+  every declaration receives a distinct source and Git snapshot root. The
+  retained Python environment is rebound to the current fresh root before the
+  declaration runs, preserving editable-install mutation visibility. Generated
+  files and Git side effects disappear with each source snapshot, dependency
+  copying remains once per worker, and concurrent workers still own separate
+  dependency copies.
+temptations:
+  - risk: "Do not return to copying .venv and node_modules for every declaration."
+    instead: "Keep one copied dependency holder per worker retain context and point each fresh snapshot environment at that copy."
+  - risk: "Do not let editable-install metadata keep importing source from an earlier snapshot root."
+    instead: "Rebind copied Python environment project-root references to the fresh snapshot before yielding it."
+  - risk: "Do not share source or Git roots merely because declarations are serial on one worker."
+    instead: "Materialize and tear down a distinct source/Git snapshot for every declaration after the retained holder's first use."
+  - risk: "Do not bind commands to the source repository's writable dependency environments."
+    instead: "Continue using the isolated copied dependencies owned by the retained worker holder."
+  - risk: "Do not weaken snapshot cleanup or source/dependency identity checks."
+    instead: "Run existing adversarial snapshot suites and the legacy inter-declaration state-order contract alongside the evolved tests."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: WorkerRetainedProjectSnapshotBackend
+          description: "Snapshot backend that retains copied dependency environments per worker while yielding fresh source and Git roots for declarations."
+        - kind: method
+          name: retain
+          of: WorkerRetainedProjectSnapshotBackend
+          args: []
+          returns: AbstractContextManager[None]
+        - kind: method
+          name: create
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+    - path: tests/core/test_retained_worker_snapshots.py
+      artifacts:
+        - kind: test_function
+          name: test_retained_snapshot_reuses_copied_venv_without_leaking_generated_state
+          args: []
+        - kind: test_function
+          name: test_retained_snapshot_is_removed_when_retain_exits
+          args: []
+        - kind: test_function
+          name: test_serial_knockout_reuses_one_snapshot_root_across_identities
+          args: []
+        - kind: test_function
+          name: test_knockout_batch_defaults_to_retained_worker_backend
+          args: []
+  read:
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
+    - tests/core/test_knockout_batch.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_knockout_workers.py
+    - tests/core/test_shared_environment_snapshots.py
+validate:
+  - uv run python -m pytest -q tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_shared_environment_snapshots.py
+  - uv run maid validate manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T13:52:03Z"
+  summary: "Knockout workers retain one isolated dependency copy while every declaration receives a fresh source and Git root. Editable Python metadata is rebound between roots, generated state cannot leak, and dependency copying remains once per worker."
+  rationale: "121-39 removed repeated dependency copies but reused the declaration source root, allowing generated files and Git state to cross declaration boundaries. Superseding it preserves the measured dependency optimization without weakening isolation."
+  lessons:
+    - lesson_type: performance
+      summary: "Retain heavyweight immutable dependency environments at worker scope, but treat source and Git state as declaration-scoped and disposable."
+      tags: [knockout, snapshots, dependency-reuse]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_retained_worker_snapshots.py
+  review_notes:
+    - source: checkpoint_review
+      severity: ready
+      summary: "Independent final review found no remaining snapshot isolation or retained-environment issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, -n, "8", --dist, loadscope, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_workers.py, tests/core/test_retained_worker_snapshots.py]
+      status: passed
+      summary: "Snapshot and worker coverage passed within the 247-test affected suite."
+    - command: [uv, run, maid, validate, manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed for the superseding contract."

@@ -23,7 +23,12 @@ from maid_runner.instruction_payload import (
     INSTRUCTION_PAYLOAD_VERSION,
     instruction_payload_metadata,
 )
-from maid_runner.core.uninstall import UninstallReport
+from maid_runner.core.uninstall import (
+    UninstallReport,
+    _is_link_or_reparse_point,
+    _remove_path_on_windows,
+    _replace_file_on_windows,
+)
 
 
 _MAID_SECTION_START = "<!-- BEGIN MAID RUNNER -->"
@@ -523,11 +528,11 @@ def _assert_no_symlink_boundary(
         raise ValueError(f"unsafe uninstall target outside {root}: {target}") from exc
     current = root
     components = relative.parts if include_leaf else relative.parts[:-1]
-    if current.is_symlink():
+    if _is_link_or_reparse_point(current):
         raise ValueError(f"refusing to cross symlink boundary: {current}")
     for component in components:
         current = current / component
-        if current.is_symlink():
+        if _is_link_or_reparse_point(current):
             raise ValueError(f"refusing to cross symlink boundary: {current}")
 
 
@@ -607,13 +612,13 @@ def _path_digest(path: Path) -> str:
         stat_result = entry.lstat()
         digest.update(relative.encode("utf-8", errors="surrogateescape"))
         digest.update(str(stat.S_IFMT(stat_result.st_mode)).encode())
-        if entry.is_symlink():
+        if _is_link_or_reparse_point(entry):
             digest.update(os.readlink(entry).encode("utf-8", errors="surrogateescape"))
         elif entry.is_file():
             digest.update(entry.read_bytes())
 
     add_entry(path, ".")
-    if path.is_dir() and not path.is_symlink():
+    if path.is_dir() and not _is_link_or_reparse_point(path):
         for current_root, directory_names, file_names in os.walk(
             path, followlinks=False
         ):
@@ -627,17 +632,20 @@ def _path_digest(path: Path) -> str:
 
 
 def _revalidate_uninstall_operation(
-    project_root: Path, operation: _UninstallOperation
+    project_root: Path,
+    operation: _UninstallOperation,
+    candidate: Path | None = None,
 ) -> None:
+    path = operation.path if candidate is None else candidate
     try:
         _assert_no_symlink_boundary(
             project_root,
-            operation.path,
+            path,
             include_leaf=operation.replacement is not None,
         )
-        stat_result = operation.path.lstat()
+        stat_result = path.lstat()
         identity = (stat_result.st_dev, stat_result.st_ino, stat_result.st_mode)
-        digest = _path_digest(operation.path)
+        digest = _path_digest(path)
     except (OSError, ValueError) as exc:
         raise ValueError(
             f"{operation.path} changed after uninstall planning: {exc}"
@@ -651,9 +659,12 @@ def _apply_uninstall_operation(
 ) -> None:
     _revalidate_uninstall_operation(project_root, operation)
     if not _supports_descriptor_relative_mutation():
+        if os.name == "nt":
+            _apply_windows_uninstall_operation(project_root, operation)
+            return
         raise OSError(
-            "safe descriptor-relative uninstall is unavailable on this platform; "
-            "refusing pathname-based mutation"
+            "safe uninstall is unavailable on this platform; refusing "
+            "pathname-based mutation"
         )
     parent_fd, name = _open_parent_directory(project_root, operation.path)
     try:
@@ -676,6 +687,25 @@ def _apply_uninstall_operation(
             )
     finally:
         os.close(parent_fd)
+
+
+def _apply_windows_uninstall_operation(
+    project_root: Path, operation: _UninstallOperation
+) -> None:
+    def revalidate(candidate: Path) -> None:
+        _revalidate_uninstall_operation(project_root, operation, candidate)
+
+    if operation.replacement is None:
+        _remove_path_on_windows(project_root, operation.path, revalidate)
+        return
+    source_stat = operation.path.lstat()
+    _replace_file_on_windows(
+        project_root,
+        operation.path,
+        operation.replacement,
+        stat.S_IMODE(source_stat.st_mode),
+        revalidate,
+    )
 
 
 def _supports_descriptor_relative_mutation() -> bool:

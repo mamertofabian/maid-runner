@@ -1,0 +1,134 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make chain-merge detection consume the fresh knockout cache written by normal verification without leaking same-named artifacts across files"
+type: fix
+created: "2026-08-19T11:28:00Z"
+metadata:
+  priority: high
+  tags: [chain-merge, knockout, cache, detection-evidence, regression]
+description: |
+  The documented producer/consumer workflow is currently impossible on a
+  fragmented repository. `run_knockout_batch` builds cache keys from the full
+  active manifest sequence, including each declaration's repository-wide
+  `plan_index` and the shared snapshot repository identity. The chain report's
+  `detection_source_for_file` instead calls `cached_detecting_nodeids` with only
+  `chain.manifests_for_file(file_path)`. The same artifact is therefore rebuilt
+  with different declaration indices and cache context, so fresh evidence from
+  `maid verify --knockout` remains UNKNOWN forever.
+
+  Add a public, freshness-correct file-scoped cache accessor that receives the
+  complete active manifest sequence, reconstructs the producer's cache context,
+  builds the repository-wide mutation plan, and filters by file only after the
+  full plan is built. Wire `detection_source_for_file` to that accessor. Keep the
+  existing `cached_detecting_nodeids` API unchanged for compatibility.
+
+  The behavioral contract uses only public CLI behavior: a real Git project has
+  two files declaring the same `function:target` merge key and distinct focused
+  tests. Normal verify knockout must populate the cache, and subsequent chain
+  reports must expose the exact detecting nodeid for each file with no UNKNOWN
+  entries or cross-file union. This simultaneously proves producer/consumer key
+  parity, repository-identity parity, freshness, and file scoping.
+
+  This is an additive cache-reader capability and behavioral repair. It does not
+  change an existing public signature, so it chain-merges with the prior evidence
+  source and wiring manifests rather than superseding them.
+temptations:
+  - risk: "Do not remove plan_index, declaration commands, repository identity, or content identity from the knockout cache key merely to make reads hit."
+    instead: "Reconstruct the same complete producer plan and cache context, then use the existing freshness-checked cache loader."
+  - risk: "Do not build mutation specs from only the target file's manifests before reading repository-wide cache entries."
+    instead: "Build specs from every active manifest in canonical chain order and filter specs by file afterward."
+  - risk: "Do not union detecting nodeids by merge_key across files."
+    instead: "Filter on full artifact identity including file_path before projecting the result to the chain merge_key expected by the per-file report."
+  - risk: "Do not scan arbitrary cache JSON and trust payloads without reconstructing the current key."
+    instead: "Read only through the existing cache-key and payload validation boundary so stale source, declarations, commands, environment, or repository context stays UNKNOWN."
+  - risk: "Do not run knockout as a hidden side effect of `maid chain merge`."
+    instead: "The report remains a pure consumer of already-recorded evidence; the test explicitly runs verify first."
+files:
+  create:
+    - path: tests/core/test_chain_merge_deep_detection_roundtrip.py
+      artifacts:
+        - kind: test_function
+          name: test_chain_merge_keeps_cold_detection_unknown
+          args: []
+          returns: None
+          description: "Before verify records evidence, the full-plan file-scoped accessor is empty and the public chain report remains UNKNOWN."
+        - kind: test_function
+          name: test_chain_merge_reads_file_scoped_detection_from_verify_cache
+          args: []
+          returns: None
+          description: "A normal verify knockout cache round-trip gives each same-named artifact's chain report only its own detecting nodeid, then a source mutation makes the evidence UNKNOWN again."
+  edit:
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: function
+          name: cached_detecting_nodeids_for_file
+          args:
+            - {name: manifests, type: "Sequence[Manifest]"}
+            - {name: project_root, type: Path}
+            - {name: file_path, type: str}
+          returns: "dict[str, tuple[str, Ellipsis]]"
+          description: "Read fresh recorded detecting nodeids for one file while reconstructing cache keys from the complete active manifest plan."
+  scope:
+    - path: maid_runner/core/chain_merge_evidence.py
+      reason: "Route the existing per-file detection source through the full-plan file-scoped cache accessor without changing its public signature."
+  read:
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/chain.py
+    - maid_runner/core/chain_merge.py
+    - manifests/chain-merge-evidence-sources.manifest.yaml
+    - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+    - tests/core/test_chain_merge_evidence.py
+    - tests/core/test_chain_merge_detection_wiring.py
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merge_deep_detection_roundtrip.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py
+  - uv run python -m pytest -q tests/core/test_chain_merge.py tests/cli/test_chain_merge_command.py tests/core/test_chain_merge_equivalence.py tests/cli/test_chain_merge_equivalence_command.py
+outcome:
+  status: completed
+  completed_at: "2026-08-19T14:05:50Z"
+  summary: "Chain merge now reads fresh focused knockout evidence using the same repository-wide mutation plan and repository identity as normal deep verification, without leaking same-named artifacts across files."
+  rationale: |
+    The new file-scoped accessor builds every active mutation specification
+    before selecting the requested file, preserving repository-wide declaration
+    indices and every existing cache-key dimension. It reconstructs the
+    producer's repository-aware cache context and continues to use the existing
+    freshness-checked loader. Behavioral tests prove cold evidence remains
+    UNKNOWN, artifact coverage plus knockout produces exact file-specific
+    detecting nodeids, and a tracked source mutation invalidates the evidence.
+    Two approved fixture revisions removed generated-file identity noise and
+    invoked the evidence-producing verification stages without weakening the
+    freshness contract. Independent review found no blocking implementation or
+    scope issues.
+  lessons:
+    - lesson_type: validation-trust
+      summary: "A persisted evidence consumer must reconstruct the producer's complete ordered plan and cache context before applying a narrower presentation filter."
+      tags: [maid-runner-feedback, chain-merge, knockout, cache-integrity]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/chain_merge_evidence.py
+  review_notes:
+    - source: independent-implementation-reviewer-chain_cache_impl_review
+      severity: ready
+      summary: "Review confirmed full-plan reconstruction, producer-equivalent repository identity, normalized file filtering before merge-key projection, preserved legacy API behavior, and no production scope drift."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_deep_detection_roundtrip.py, tests/core/test_chain_merge_evidence.py, tests/core/test_chain_merge_detection_wiring.py]
+      status: passed
+      summary: "All 10 cold, warm round-trip, staleness, legacy evidence, and wiring tests passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge.py, tests/cli/test_chain_merge_command.py, tests/core/test_chain_merge_equivalence.py, tests/cli/test_chain_merge_equivalence_command.py]
+      status: passed
+      summary: "All 35 adjacent chain merge and equivalence tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation matched the approved revision-4 contract."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 272 active manifests passed with no failures."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 299 repository manifest command groups passed after installing the worktree's declared TypeScript dependency."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 1c7e939]
+      status: passed
+      summary: "All 11 task-scoped deep stages passed in 63.3 seconds with only existing non-validator E307 advisories."

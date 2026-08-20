@@ -1,0 +1,1512 @@
+{
+  "manifest_path": "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+  "test_hashes": {
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+    "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a"
+  },
+  "created_at": "2026-08-11T05:21:11.983455+00:00",
+  "revision": 16,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:f9025f6d5a47fb894589f12b0860826ec4183640e5c9f2f07f71ce2db34bf73a",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:a93569383e33de5451a735a4825d08f0f0c1c16ed553b391c588582e9304bad7",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:21:19.256702+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml -> manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:00f8dbd5d0fc0e950b2e72b56ed195ac19d4e7e8cc7051fb81585ff8dd6888d8",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:a93569383e33de5451a735a4825d08f0f0c1c16ed553b391c588582e9304bad7",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:31:22.970839+00:00",
+      "reason": "Clarify that function-scoped yield fixture lifecycle evidence may coexist with conservative collection fallback, retain group-level unsupported selector diagnostics, and use a traced test target for plugin cleanup coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:00f8dbd5d0fc0e950b2e72b56ed195ac19d4e7e8cc7051fb81585ff8dd6888d8",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5ca18fa99191be818a5a868662e9292ec2a02ecd94660dde3fd0957e1521874e",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:32:02.862884+00:00",
+      "reason": "Apply Black formatting to the locked behavioral contract after the stash-backed revision without changing assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:00f8dbd5d0fc0e950b2e72b56ed195ac19d4e7e8cc7051fb81585ff8dd6888d8",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5ca18fa99191be818a5a868662e9292ec2a02ecd94660dde3fd0957e1521874e",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:32:30.411350+00:00",
+      "reason": "Align three union annotations with MAID's canonical Python type representation without changing the public signatures.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=int | str | None:default=None",
+          "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=pytest_workers:type=int | str | None:default=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b66212237884093bdf91199f8c8a525dc5ebedbf00c685216ffa3c7a50fe894",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5ca18fa99191be818a5a868662e9292ec2a02ecd94660dde3fd0957e1521874e",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:34:40.476249+00:00",
+      "reason": "Strengthen the real subprocess adversary to require node-attributed executed lines and qualified calls from the standalone coverage plugin.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b66212237884093bdf91199f8c8a525dc5ebedbf00c685216ffa3c7a50fe894",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:bbac70232f55248d7f724837d49ef2261a450247fe3b0e72b4d65271f709fac7",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:50:16.836444+00:00",
+      "reason": "Close implementation-review gaps for xdist worker payload completeness, yield-fixture teardown attribution, missing runtest reports, manifest/command/worker identity freshness, nested pytest isolation, and typed plugin surfaces.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:arg=node:type=object:default=None",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:kind=method",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:of=RuntimeEvidencePlugin",
+          "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:returns=None",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:kind=attribute",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:of=RuntimeEvidenceBundle",
+          "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:type=Union[Union[int, str], None]",
+          "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+          "tests/core/test_runtime_evidence.py:test_manifest_command_or_worker_policy_change_rejects_bundle",
+          "tests/core/test_runtime_evidence.py:test_manifest_command_or_worker_policy_change_rejects_bundle:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit",
+          "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_xdist_requires_every_expected_worker_payload_and_projects_nodes",
+          "tests/core/test_runtime_evidence.py:test_xdist_requires_every_expected_worker_payload_and_projects_nodes:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:6230fb7d3b40875c9158d568dba754f77e9ef89990029d032ed6e4bd7237d0cd",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:54:14.540303+00:00",
+      "reason": "Finalize adversarial reviewer contracts with real xdist payload loss, nested pytest execution, exact yield-fixture teardown lines and calls, report-phase omissions, identity freshness, and runtime public-type assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:f25d11d7e998d61c6f7243e1b80f25c3b98994c5b6ee78bfa5cfb95526c692d9",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T05:55:27.298633+00:00",
+      "reason": "Reference the declared xdist controller hook directly in its plugin-surface behavioral contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:6eab4e92b54fa3a855e9a523b1098f20549020b37c9537fa69900a454a4fb50b",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-11T06:02:36.389927+00:00",
+      "reason": "Close second-review gaps by aggregating xdist phase reports across workers and proving the production adapter preserves ordinary success and import-failure behavior without project-root PYTHONPATH injection.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:d6469762f4447335bf99582d46f8424e83d72332311f525c50e8e9b1a6be9df7",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-12T10:19:48.256629+00:00",
+      "reason": "Accept approved 121-17 shared test isolation correction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b6933488a1dd6f1352dc066d685fbfb4df6e59ecbaa2fa22e0335515338e7953",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-13T03:12:01.234982+00:00",
+      "reason": "Accept the approved shared behavioral-test additions and Black formatting from the grouped deep-verification evidence implementation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:62575bfaf566da67bc930d009476587f342b4141024ac561abcb535d38af52bc",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-13T03:17:26.045009+00:00",
+      "reason": "Accept Black-only formatting of the approved shared runtime-evidence behavioral adversary.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f"
+      },
+      "revised_at": "2026-08-13T13:57:58.678215+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:8c8848cddcc6fa005c8a4938fd6be32bbfcb20debd63dda21fb5b12110d69b6a",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a"
+      },
+      "revised_at": "2026-08-14T10:32:25.842662+00:00",
+      "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:5e387f101b6db5a35d587c61d3f301f9cf2a9737b581a9c9b37058d882cf7a9b",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a"
+      },
+      "revised_at": "2026-08-14T11:51:37.215034+00:00",
+      "reason": "Accept approved branch E710 execution coverage tests.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-11T06:02:43.180837+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/core/test_runtime_evidence.py::test_compatible_commands_execute_once_with_exact_command_identities\nFAILED tests/core/test_runtime_evidence.py::test_unrelated_node_context_is_not_attributed_to_manifest_command\nFAILED tests/core/test_runtime_evidence.py::test_stateful_session_and_module_yield_fixture_setup_teardown_force_exact_fallback\nFAILED tests/core/test_runtime_evidence.py::test_function_yield_fixture_setup_and_teardown_are_attributed_per_node\nFAILED tests/core/test_runtime_evidence.py::test_dynamic_fixture_without_proven_closure_is_incomplete\nFAILED tests/core/test_runtime_evidence.py::test_collection_import_context_is_recorded_or_marked_for_fallback\nFAILED tests/core/test_runtime_evidence.py::test_overlapping_directory_file_and_node_selectors_map_exactly\nFAILED tests/core/test_runtime_evidence.py::test_behavior_changing_options_remain_separate_runs\nFAILED tests/core/test_runtime_evidence.py::test_line_and_call_contexts_survive_worker_combine\nFAILED tests/core/test_runtime_evidence.py::test_worker_loss_marks_bundle_incomplete\nFAILED tests/core/test_runtime_evidence.py::test_content_change_rejects_in_memory_bundle\nFAILED tests/core/test_runtime_evidence.py::test_resolved_runner_config_dependency_or_environment_change_rejects_bundle\nFAILED tests/core/test_runtime_evidence.py::test_environment_identity_stores_digests_without_raw_secret_values\nFAILED tests/core/test_runtime_evidence.py::test_runtime_collection_result_matches_ordinary_group_result\nFAILED tests/core/test_runtime_evidence.py::test_plugin_preserves_consumer_plugins_and_does_not_leak_context_to_nested_pytest\nFAILED tests/core/test_runtime_evidence.py::test_xdist_requires_every_expected_worker_payload_and_projects_nodes\nFAILED tests/core/test_runtime_evidence.py::test_missing_runtest_reports_are_incomplete_even_with_success_exit\nFAILED tests/core/test_runtime_evidence.py::test_manifest_command_or_worker_policy_change_rejects_bundle\n18 failed, 105 passed in 6.33s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/last-failure-packet.json",
+      ".maid/plan-locks/121-03-prove-pytest-process-isolation-before-parallelism.lock.json",
+      "manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:of=RuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:RuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=command:type=tuple[str, Ellipsis]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:of=SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute_with_contexts:returns=RuntimeGroupEvidence",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.completeness",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.completeness:kind=attribute",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.completeness:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.completeness:type=RuntimeEvidenceCompleteness",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.contexts",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.contexts:kind=attribute",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.contexts:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.contexts:type=dict[str, RuntimeContextEvidence]",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.output_path",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.output_path:kind=attribute",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.output_path:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.output_path:type=Path",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.target_files",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.target_files:kind=attribute",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.target_files:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:attribute:RuntimeEvidencePlugin.target_files:type=frozenset[str]",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:class:RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:class:RuntimeEvidencePlugin:kind=class",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_addoption",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_addoption:arg=parser:type=pytest.Parser:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_addoption:kind=function",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_addoption:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_configure",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_configure:arg=config:type=pytest.Config:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_configure:kind=function",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:function:pytest_configure:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=config:type=pytest.Config:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=items:type=list[pytest.Item]:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_collection_modifyitems:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:arg=node:type=object:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_configure_node:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer:arg=fixturedef:type=pytest.FixtureDef:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer:arg=request:type=pytest.FixtureRequest:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_post_finalizer:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup:arg=fixturedef:type=pytest.FixtureDef:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup:arg=request:type=pytest.FixtureRequest:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_fixture_setup:returns=Generator[None, object, None]",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_logreport",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_logreport:arg=report:type=pytest.TestReport:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_logreport:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_logreport:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_logreport:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_setup",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_setup:arg=item:type=pytest.Item:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_setup:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_setup:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_setup:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown:arg=item:type=pytest.Item:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown:arg=nextitem:type=pytest.Item | None:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_runtest_teardown:returns=Generator[None, object, None]",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=exitstatus:type=int:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:arg=session:type=pytest.Session:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_sessionfinish:returns=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown:arg=error:type=object | None:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown:arg=node:type=object:default=None",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown:kind=method",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown:of=RuntimeEvidencePlugin",
+      "maid_runner/core/_runtime_evidence_pytest_plugin.py:method:RuntimeEvidencePlugin.pytest_testnodedown:returns=None",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.behavior_group_key",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.behavior_group_key:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.behavior_group_key:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.behavior_group_key:type=tuple[str, tuple[str, Ellipsis], tuple[str, Ellipsis]]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.completeness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.completeness:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.completeness:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.completeness:type=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.contexts",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.contexts:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.contexts:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.contexts:type=tuple[RuntimeContextEvidence, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.environment_identity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.environment_identity:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.environment_identity:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.environment_identity:type=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.identity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.identity:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.identity:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.identity:type=RuntimeCommandIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.result",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.result:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.result:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.result:type=RuntimeCommandRecord",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.selected_nodeids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.selected_nodeids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.selected_nodeids:of=RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandEvidence.selected_nodeids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command:of=RuntimeCommandIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command_index",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command_index:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command_index:of=RuntimeCommandIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.command_index:type=int",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.manifest_path",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.manifest_path:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.manifest_path:of=RuntimeCommandIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeCommandIdentity.manifest_path:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.autouse",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.autouse:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.autouse:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.autouse:type=bool",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.consuming_nodeids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.consuming_nodeids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.consuming_nodeids:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.consuming_nodeids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.context_id",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.context_id:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.context_id:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.context_id:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.execution_data",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.execution_data:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.execution_data:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.execution_data:type=Mapping[str, RuntimeFileExecution]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_scope",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_scope:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_scope:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.fixture_scope:type=str | None",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.kind",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.kind:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.kind:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.kind:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.lifecycle_equivalent",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.lifecycle_equivalent:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.lifecycle_equivalent:of=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeContextEvidence.lifecycle_equivalent:type=bool",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.configuration_digest",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.configuration_digest:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.configuration_digest:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.configuration_digest:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.coverage_version",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.coverage_version:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.coverage_version:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.coverage_version:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.dependency_digest",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.dependency_digest:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.dependency_digest:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.dependency_digest:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.effective_environment_digest",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.effective_environment_digest:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.effective_environment_digest:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.effective_environment_digest:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.pytest_version",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.pytest_version:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.pytest_version:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.pytest_version:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.python_identity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.python_identity:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.python_identity:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.python_identity:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.resolved_command_prefix",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.resolved_command_prefix:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.resolved_command_prefix:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.resolved_command_prefix:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.working_directory",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.working_directory:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.working_directory:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.working_directory:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.xdist_version",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.xdist_version:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.xdist_version:of=RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEnvironmentIdentity.xdist_version:type=str | None",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.commands",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.commands:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.commands:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.commands:type=tuple[RuntimeCommandEvidence, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.completeness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.completeness:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.completeness:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.completeness:type=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.content_digest",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.content_digest:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.content_digest:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.content_digest:type=str",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.environment_identities",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.environment_identities:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.environment_identities:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.environment_identities:type=tuple[RuntimeEnvironmentIdentity, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.pytest_workers:type=Union[Union[int, str], None]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.worker_ids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.worker_ids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.worker_ids:of=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceBundle.worker_ids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.complete",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.complete:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.complete:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.complete:type=bool",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.diagnostics",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.diagnostics:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.diagnostics:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.diagnostics:type=tuple[ValidationError, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.missing_worker_ids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.missing_worker_ids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.missing_worker_ids:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.missing_worker_ids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unproven_fixture_lifecycles",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unproven_fixture_lifecycles:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unproven_fixture_lifecycles:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unproven_fixture_lifecycles:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unresolved_context_ids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unresolved_context_ids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unresolved_context_ids:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unresolved_context_ids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unsupported_selectors",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unsupported_selectors:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unsupported_selectors:of=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceCompleteness.unsupported_selectors:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.evidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.evidence:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.evidence:of=RuntimeEvidenceRun",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.evidence:type=RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.executed_identities",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.executed_identities:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.executed_identities:of=RuntimeEvidenceRun",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.executed_identities:type=tuple[RuntimeCommandIdentity, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.test_result",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.test_result:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.test_result:of=RuntimeEvidenceRun",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeEvidenceRun.test_result:type=BatchTestResult",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.command",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.command:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.command:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.command:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.completeness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.completeness:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.completeness:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.completeness:type=RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.contexts",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.contexts:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.contexts:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.contexts:type=tuple[RuntimeContextEvidence, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.result",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.result:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.result:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.result:type=RuntimeCommandRecord",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selected_nodeids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selected_nodeids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selected_nodeids:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selected_nodeids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selector_nodeids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selector_nodeids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selector_nodeids:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.selector_nodeids:type=Mapping[str, tuple[str, Ellipsis]]",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.worker_ids",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.worker_ids:kind=attribute",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.worker_ids:of=RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:attribute:RuntimeGroupEvidence.worker_ids:type=tuple[str, Ellipsis]",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeCommandEvidence",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeCommandEvidence:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeCommandIdentity",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeCommandIdentity:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeContextEvidence:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEnvironmentIdentity",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEnvironmentIdentity:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceBundle",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceBundle:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceCompleteness",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceCompleteness:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceRun",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeEvidenceRun:kind=class",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeGroupEvidence",
+      "maid_runner/core/runtime_evidence.py:class:RuntimeGroupEvidence:kind=class",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:collect_runtime_evidence:returns=RuntimeEvidenceRun",
+      "maid_runner/core/runtime_evidence.py:function:combine_runtime_contexts",
+      "maid_runner/core/runtime_evidence.py:function:combine_runtime_contexts:arg=contexts:type=Sequence[RuntimeContextEvidence]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:combine_runtime_contexts:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:combine_runtime_contexts:returns=RuntimeContextEvidence",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:arg=bundle:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:arg=project_root:type=Path:default=None",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:arg=pytest_workers:type=Union[Union[int, str], None]:default=None",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:kind=function",
+      "maid_runner/core/runtime_evidence.py:function:runtime_evidence_is_current:returns=bool",
+      "tests/core/test_runtime_evidence.py:test_behavior_changing_options_remain_separate_runs",
+      "tests/core/test_runtime_evidence.py:test_behavior_changing_options_remain_separate_runs:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_collection_import_context_is_recorded_or_marked_for_fallback",
+      "tests/core/test_runtime_evidence.py:test_collection_import_context_is_recorded_or_marked_for_fallback:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_compatible_commands_execute_once_with_exact_command_identities",
+      "tests/core/test_runtime_evidence.py:test_compatible_commands_execute_once_with_exact_command_identities:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_content_change_rejects_in_memory_bundle",
+      "tests/core/test_runtime_evidence.py:test_content_change_rejects_in_memory_bundle:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_dynamic_fixture_without_proven_closure_is_incomplete",
+      "tests/core/test_runtime_evidence.py:test_dynamic_fixture_without_proven_closure_is_incomplete:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_environment_identity_stores_digests_without_raw_secret_values",
+      "tests/core/test_runtime_evidence.py:test_environment_identity_stores_digests_without_raw_secret_values:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node",
+      "tests/core/test_runtime_evidence.py:test_function_yield_fixture_setup_and_teardown_are_attributed_per_node:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_line_and_call_contexts_survive_worker_combine",
+      "tests/core/test_runtime_evidence.py:test_line_and_call_contexts_survive_worker_combine:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_manifest_command_or_worker_policy_change_rejects_bundle",
+      "tests/core/test_runtime_evidence.py:test_manifest_command_or_worker_policy_change_rejects_bundle:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit",
+      "tests/core/test_runtime_evidence.py:test_missing_runtest_reports_are_incomplete_even_with_success_exit:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_overlapping_directory_file_and_node_selectors_map_exactly",
+      "tests/core/test_runtime_evidence.py:test_overlapping_directory_file_and_node_selectors_map_exactly:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_plugin_preserves_consumer_plugins_and_does_not_leak_context_to_nested_pytest",
+      "tests/core/test_runtime_evidence.py:test_plugin_preserves_consumer_plugins_and_does_not_leak_context_to_nested_pytest:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_resolved_runner_config_dependency_or_environment_change_rejects_bundle",
+      "tests/core/test_runtime_evidence.py:test_resolved_runner_config_dependency_or_environment_change_rejects_bundle:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_runtime_collection_result_matches_ordinary_group_result",
+      "tests/core/test_runtime_evidence.py:test_runtime_collection_result_matches_ordinary_group_result:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_stateful_session_and_module_yield_fixture_setup_teardown_force_exact_fallback",
+      "tests/core/test_runtime_evidence.py:test_stateful_session_and_module_yield_fixture_setup_teardown_force_exact_fallback:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_unrelated_node_context_is_not_attributed_to_manifest_command",
+      "tests/core/test_runtime_evidence.py:test_unrelated_node_context_is_not_attributed_to_manifest_command:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_worker_loss_marks_bundle_incomplete",
+      "tests/core/test_runtime_evidence.py:test_worker_loss_marks_bundle_incomplete:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_xdist_requires_every_expected_worker_payload_and_projects_nodes",
+      "tests/core/test_runtime_evidence.py:test_xdist_requires_every_expected_worker_payload_and_projects_nodes:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "maid_runner/core/runtime_evidence.py",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "edit": [
+        "maid_runner/core/_runtime_command_executor.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/_test_command_batching.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "RuntimeCommandIdentity",
+              "description": "Stable declaring-manifest and command-index identity."
+            },
+            {
+              "kind": "attribute",
+              "name": "manifest_path",
+              "of": "RuntimeCommandIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "command_index",
+              "of": "RuntimeCommandIdentity",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "command",
+              "of": "RuntimeCommandIdentity",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeEnvironmentIdentity",
+              "description": "Typed, privacy-preserving identity for the resolved runner, cwd, tools, config, dependencies, and effective command environment."
+            },
+            {
+              "kind": "attribute",
+              "name": "resolved_command_prefix",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "working_directory",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "python_identity",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "pytest_version",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_version",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "xdist_version",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "configuration_digest",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "dependency_digest",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "effective_environment_digest",
+              "description": "Digest only; raw environment values, credentials, and secrets are never persisted.",
+              "of": "RuntimeEnvironmentIdentity",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeEvidenceCompleteness",
+              "description": "Explicit completeness state and fail-closed diagnostics."
+            },
+            {
+              "kind": "attribute",
+              "name": "complete",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "missing_worker_ids",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "unsupported_selectors",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "unresolved_context_ids",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "unproven_fixture_lifecycles",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "diagnostics",
+              "of": "RuntimeEvidenceCompleteness",
+              "type": "tuple[ValidationError, Ellipsis]"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeContextEvidence",
+              "description": "Node, fixture, collection, or session context with consuming-node attribution."
+            },
+            {
+              "kind": "attribute",
+              "name": "context_id",
+              "of": "RuntimeContextEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "kind",
+              "of": "RuntimeContextEvidence",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "consuming_nodeids",
+              "of": "RuntimeContextEvidence",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "execution_data",
+              "of": "RuntimeContextEvidence",
+              "type": "Mapping[str, RuntimeFileExecution]"
+            },
+            {
+              "kind": "attribute",
+              "name": "fixture_scope",
+              "of": "RuntimeContextEvidence",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "autouse",
+              "of": "RuntimeContextEvidence",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "lifecycle_equivalent",
+              "description": "True only when grouping provably preserves this fixture lifecycle.",
+              "of": "RuntimeContextEvidence",
+              "type": "bool"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeGroupEvidence",
+              "description": "One physical compatible-group execution before selector evidence is projected to original command identities."
+            },
+            {
+              "kind": "attribute",
+              "name": "command",
+              "of": "RuntimeGroupEvidence",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "selected_nodeids",
+              "of": "RuntimeGroupEvidence",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "selector_nodeids",
+              "of": "RuntimeGroupEvidence",
+              "type": "Mapping[str, tuple[str, Ellipsis]]"
+            },
+            {
+              "kind": "attribute",
+              "name": "contexts",
+              "of": "RuntimeGroupEvidence",
+              "type": "tuple[RuntimeContextEvidence, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "result",
+              "of": "RuntimeGroupEvidence",
+              "type": "RuntimeCommandRecord"
+            },
+            {
+              "kind": "attribute",
+              "name": "worker_ids",
+              "of": "RuntimeGroupEvidence",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "completeness",
+              "of": "RuntimeGroupEvidence",
+              "type": "RuntimeEvidenceCompleteness"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeCommandEvidence",
+              "description": "One exact command identity, selected nodes, contexts, result, and completeness."
+            },
+            {
+              "kind": "attribute",
+              "name": "identity",
+              "of": "RuntimeCommandEvidence",
+              "type": "RuntimeCommandIdentity"
+            },
+            {
+              "kind": "attribute",
+              "name": "behavior_group_key",
+              "of": "RuntimeCommandEvidence",
+              "type": "tuple[str, tuple[str, Ellipsis], tuple[str, Ellipsis]]"
+            },
+            {
+              "kind": "attribute",
+              "name": "selected_nodeids",
+              "of": "RuntimeCommandEvidence",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "contexts",
+              "of": "RuntimeCommandEvidence",
+              "type": "tuple[RuntimeContextEvidence, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "result",
+              "of": "RuntimeCommandEvidence",
+              "type": "RuntimeCommandRecord"
+            },
+            {
+              "kind": "attribute",
+              "name": "completeness",
+              "of": "RuntimeCommandEvidence",
+              "type": "RuntimeEvidenceCompleteness"
+            },
+            {
+              "kind": "attribute",
+              "name": "environment_identity",
+              "of": "RuntimeCommandEvidence",
+              "type": "RuntimeEnvironmentIdentity"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeEvidenceBundle",
+              "description": "Invocation-scoped command evidence bound to current source/test/config bytes."
+            },
+            {
+              "kind": "attribute",
+              "name": "commands",
+              "of": "RuntimeEvidenceBundle",
+              "type": "tuple[RuntimeCommandEvidence, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "content_digest",
+              "of": "RuntimeEvidenceBundle",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "environment_identities",
+              "of": "RuntimeEvidenceBundle",
+              "type": "tuple[RuntimeEnvironmentIdentity, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "worker_ids",
+              "of": "RuntimeEvidenceBundle",
+              "type": "tuple[str, Ellipsis]"
+            },
+            {
+              "kind": "attribute",
+              "name": "completeness",
+              "of": "RuntimeEvidenceBundle",
+              "type": "RuntimeEvidenceCompleteness"
+            },
+            {
+              "kind": "attribute",
+              "name": "pytest_workers",
+              "of": "RuntimeEvidenceBundle",
+              "type": "Union[Union[int, str], None]"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeEvidenceRun",
+              "description": "Ordinary results for executed compatible groups plus their evidence bundle."
+            },
+            {
+              "kind": "attribute",
+              "name": "test_result",
+              "of": "RuntimeEvidenceRun",
+              "type": "BatchTestResult"
+            },
+            {
+              "kind": "attribute",
+              "name": "evidence",
+              "of": "RuntimeEvidenceRun",
+              "type": "RuntimeEvidenceBundle"
+            },
+            {
+              "kind": "attribute",
+              "name": "executed_identities",
+              "of": "RuntimeEvidenceRun",
+              "type": "tuple[RuntimeCommandIdentity, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "collect_runtime_evidence",
+              "description": "Executes each proven-compatible group once and returns exact-command maps without evaluating coverage findings.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeEvidenceRun"
+            },
+            {
+              "kind": "function",
+              "name": "combine_runtime_contexts",
+              "description": "Combines same-ID controller/worker contexts without losing line, call, consumer, or lifecycle evidence.",
+              "args": [
+                {
+                  "name": "contexts",
+                  "type": "Sequence[RuntimeContextEvidence]"
+                }
+              ],
+              "returns": "RuntimeContextEvidence"
+            },
+            {
+              "kind": "function",
+              "name": "runtime_evidence_is_current",
+              "description": "Recomputes content and resolved-environment identity without executing tests and rejects stale in-memory evidence.",
+              "args": [
+                {
+                  "name": "bundle",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "pytest_addoption",
+              "args": [
+                {
+                  "name": "parser",
+                  "type": "pytest.Parser"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "pytest_configure",
+              "args": [
+                {
+                  "name": "config",
+                  "type": "pytest.Config"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "class",
+              "name": "RuntimeEvidencePlugin",
+              "description": "Pytest plugin recording node, fixture, collection, call, and worker contexts."
+            },
+            {
+              "kind": "attribute",
+              "name": "output_path",
+              "of": "RuntimeEvidencePlugin",
+              "type": "Path"
+            },
+            {
+              "kind": "attribute",
+              "name": "target_files",
+              "of": "RuntimeEvidencePlugin",
+              "type": "frozenset[str]"
+            },
+            {
+              "kind": "attribute",
+              "name": "contexts",
+              "of": "RuntimeEvidencePlugin",
+              "type": "dict[str, RuntimeContextEvidence]"
+            },
+            {
+              "kind": "attribute",
+              "name": "completeness",
+              "of": "RuntimeEvidencePlugin",
+              "type": "RuntimeEvidenceCompleteness"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_collection_modifyitems",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                },
+                {
+                  "name": "config",
+                  "type": "pytest.Config"
+                },
+                {
+                  "name": "items",
+                  "type": "list[pytest.Item]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_fixture_setup",
+              "description": "Hookwrapper switches to a fixture context around real setup without replacing the fixture result.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "fixturedef",
+                  "type": "pytest.FixtureDef"
+                },
+                {
+                  "name": "request",
+                  "type": "pytest.FixtureRequest"
+                }
+              ],
+              "returns": "Generator[None, object, None]"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_runtest_setup",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "item",
+                  "type": "pytest.Item"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_runtest_teardown",
+              "description": "Hookwrapper attributes execution during runtest and fixture teardown, while unproven wider-scope lifecycles remain fallback-only.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "item",
+                  "type": "pytest.Item"
+                },
+                {
+                  "name": "nextitem",
+                  "type": "pytest.Item | None"
+                }
+              ],
+              "returns": "Generator[None, object, None]"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_fixture_post_finalizer",
+              "description": "Records completed fixture finalization and marks any teardown without a proven equivalent lifecycle incomplete.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "fixturedef",
+                  "type": "pytest.FixtureDef"
+                },
+                {
+                  "name": "request",
+                  "type": "pytest.FixtureRequest"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_runtest_logreport",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "report",
+                  "type": "pytest.TestReport"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_testnodedown",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "object"
+                },
+                {
+                  "name": "error",
+                  "type": "object | None"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_configure_node",
+              "description": "Keeps private instrumentation only until every configured xdist worker has inherited it, then clears the controller environment.",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "object"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "method",
+              "name": "pytest_sessionfinish",
+              "of": "RuntimeEvidencePlugin",
+              "args": [
+                {
+                  "name": "session",
+                  "type": "pytest.Session"
+                },
+                {
+                  "name": "exitstatus",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_compatible_commands_execute_once_with_exact_command_identities"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_node_context_is_not_attributed_to_manifest_command"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stateful_session_and_module_yield_fixture_setup_teardown_force_exact_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_function_yield_fixture_setup_and_teardown_are_attributed_per_node"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dynamic_fixture_without_proven_closure_is_incomplete"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_collection_import_context_is_recorded_or_marked_for_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_overlapping_directory_file_and_node_selectors_map_exactly"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_behavior_changing_options_remain_separate_runs"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_line_and_call_contexts_survive_worker_combine"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_worker_loss_marks_bundle_incomplete"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_content_change_rejects_in_memory_bundle"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_resolved_runner_config_dependency_or_environment_change_rejects_bundle"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_environment_identity_stores_digests_without_raw_secret_values"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_runtime_collection_result_matches_ordinary_group_result"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_plugin_preserves_consumer_plugins_and_does_not_leak_context_to_nested_pytest"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_xdist_requires_every_expected_worker_payload_and_projects_nodes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_runtest_reports_are_incomplete_even_with_success_exit"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_manifest_command_or_worker_policy_change_rejects_bundle"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "execute_with_contexts",
+              "of": "RuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeGroupEvidence"
+            },
+            {
+              "kind": "method",
+              "name": "execute_with_contexts",
+              "description": "Runs one contextual compatible group and combines controller/worker files into typed group evidence for exact-command projection.",
+              "of": "SubprocessRuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, Ellipsis]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "pytest_workers",
+                  "type": "Union[Union[int, str], None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "RuntimeGroupEvidence"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/_test_command_batching.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_runtime_evidence.py",
+      "tests/core/test_test_runner.py",
+      "tests/core/validation/test_test_command_batching.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py",
+      "uv run maid validate manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

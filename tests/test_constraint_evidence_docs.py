@@ -41,7 +41,11 @@ def test_troubleshooting_covers_e710_through_e712() -> None:
     assert "KNOCKOUT_HARNESS_FAILURE" in troubleshooting
     assert "behavioral tests never execute the artifact body" in troubleshooting
     assert "tests do not constrain the artifact behavior" in troubleshooting
-    assert "git checkout -- <file>" in troubleshooting
+    assert "shared checkout should remain unchanged" in troubleshooting
+    assert "source repository identity changed" in troubleshooting
+    assert "inspect Git status" in troubleshooting
+    assert "refs, configuration, and worktree registrations" in troubleshooting
+    assert "git checkout -- <file>" not in troubleshooting
 
 
 def test_review_skill_payloads_quote_constraint_evidence_command() -> None:

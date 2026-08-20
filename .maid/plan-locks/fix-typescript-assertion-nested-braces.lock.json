@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/fix-typescript-assertion-nested-braces.manifest.yaml",
-  "manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+  "manifest_hash": "sha256-contract:0987e44e8724fe62b5f928fb22ff4a9a0b2b7de15fc0967ad97d9e3d5dc1aa72",
   "test_hashes": {
-    "tests/core/validation/test_assertion_checking.py": "sha256:2087303a71ece3fae893e3c84dad2c1d77857d6fe258ebca1e1819e4dcffae44"
+    "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f"
   },
   "created_at": "2026-06-24T07:36:07.666034+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:047768b9fcfa9363320c5a33e8180178cad9b068d6ffcf317fd2d0bf31357621",
@@ -13,7 +13,9 @@
         "tests/core/validation/test_assertion_checking.py": "sha256:1cd66513858859191d7192e722296effb74c50df739b58609cf27b93e6c3722f"
       },
       "revised_at": "2026-06-24T07:36:11.268596+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-assertion-nested-braces.manifest.yaml -> manifests/fix-typescript-assertion-nested-braces.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-assertion-nested-braces.manifest.yaml -> manifests/fix-typescript-assertion-nested-braces.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
@@ -21,7 +23,9 @@
         "tests/core/validation/test_assertion_checking.py": "sha256:1cd66513858859191d7192e722296effb74c50df739b58609cf27b93e6c3722f"
       },
       "revised_at": "2026-06-24T07:45:53.307053+00:00",
-      "reason": "Black formatting normalized behavioral test after lock"
+      "reason": "Black formatting normalized behavioral test after lock",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
@@ -29,7 +33,9 @@
         "tests/core/validation/test_assertion_checking.py": "sha256:822f34620df4b66eb6bb94110ef31e21dc1fb5a80fe4387d25509acd2dabcc85"
       },
       "revised_at": "2026-06-24T07:53:44.596227+00:00",
-      "reason": "Cover focused and skipped direct TypeScript test callees after implementation review"
+      "reason": "Cover focused and skipped direct TypeScript test callees after implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
@@ -37,7 +43,33 @@
         "tests/core/validation/test_assertion_checking.py": "sha256:ab5465f8186b4eeed2e0e01c275545dda7276229d87f036303d5163ad414d6ea"
       },
       "revised_at": "2026-06-24T08:05:10.019146+00:00",
-      "reason": "Ignore member helper calls while scanning direct TypeScript test callees"
+      "reason": "Ignore member helper calls while scanning direct TypeScript test callees",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:365f5c8c335d23572666540b1cd751e5b9a1e3b8f1e4419279712ca2b28dbf09",
+      "prior_test_hashes": {
+        "tests/core/validation/test_assertion_checking.py": "sha256:2087303a71ece3fae893e3c84dad2c1d77857d6fe258ebca1e1819e4dcffae44"
+      },
+      "revised_at": "2026-08-17T10:03:52.063656+00:00",
+      "reason": "accept approved shared-test coverage for remaining E710 owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/_test_assertions.py",
+          "edit:tests/core/validation/test_assertion_checking.py",
+          "read:maid_runner/core/result.py",
+          "read:manifests/038-12-extract-test-assertions-helper.manifest.yaml",
+          "read:manifests/040-02-retire-duplicated-assertion-helper-legacy-cases.manifest.yaml",
+          "read:manifests/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -52,6 +84,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/core/_test_assertions.py:function:check_test_assertions",
@@ -62,6 +96,73 @@
       "tests/core/validation/test_assertion_checking.py:test_check_test_assertions_allows_typescript_expect_after_nested_setup",
       "tests/core/validation/test_assertion_checking.py:test_check_test_assertions_allows_typescript_expect_after_nested_setup:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_test_assertions.py",
+        "tests/core/validation/test_assertion_checking.py"
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/038-12-extract-test-assertions-helper.manifest.yaml",
+        "manifests/040-02-retire-duplicated-assertion-helper-legacy-cases.manifest.yaml",
+        "manifests/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_assertions.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "check_test_assertions",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_assertion_checking.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_check_test_assertions_allows_typescript_expect_after_nested_setup",
+              "source_scenario": "A TypeScript test file has one Vitest block with nested setup before expect() and another nested setup block without assertions.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "check_test_assertions"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The checker reports only the assertion-free test block and does not report E210 for the block whose expect() appears after nested object-literal setup."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "manifests/038-12-extract-test-assertions-helper.manifest.yaml",
+        "manifests/040-02-retire-duplicated-assertion-helper-legacy-cases.manifest.yaml",
+        "manifests/041-01-cache-assertion-checks-and-test-discovery.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/core/validation/test_assertion_checking.py"
     ],

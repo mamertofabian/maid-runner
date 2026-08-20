@@ -6,10 +6,10 @@
     "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:v2:b1d11ad42401a9580ee2f0e7f149c277275ebfb90a1363f4778c1f7a6086e7f5",
     "tests/core/test_changed_scope_declarations.py": "sha256-pyast:v2:8662e3b36162793976f25e76a9552d8a02bc3546f0589000e412d2a8b358c733",
     "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:v2:9580b6d8aa6cb1803ae34bcfcb7fa4369bcd75c727f5f750db0fb28d67a91e7f",
-    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
   },
   "created_at": "2026-07-26T05:24:25.550354+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:449addc8538289237cf04d6682fb50b18faf2b25a0cc97462ef70fc0fa2ea5fb",
@@ -80,6 +80,27 @@
       },
       "revised_at": "2026-08-09T23:45:17.543997+00:00",
       "reason": "accept approved E713/E714 registry-test expansion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6a06dd9a608bea3864bf188b634125f771d81cbd273a8e448cfc8a0ff82aaff7",
+      "prior_test_hashes": {
+        "tests/core/test_changed_scope.py": "sha256-pyast:v2:7878def5a1513f3f6534b4541e43e9cd3c02cf4a351dd5199bf07b40af5b5dbe",
+        "tests/cli/test_verify_handoff_baseline_cmd.py": "sha256-pyast:v2:b1d11ad42401a9580ee2f0e7f149c277275ebfb90a1363f4778c1f7a6086e7f5",
+        "tests/core/test_changed_scope_declarations.py": "sha256-pyast:v2:8662e3b36162793976f25e76a9552d8a02bc3546f0589000e412d2a8b358c733",
+        "tests/cli/test_verify_scope_widening_diagnostic.py": "sha256-pyast:v2:9580b6d8aa6cb1803ae34bcfcb7fa4369bcd75c727f5f750db0fb28d67a91e7f",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-16T08:30:32.759396+00:00",
+      "reason": "Accept the approved E715 diagnostics-registry test expansion from chain-merge child 5",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

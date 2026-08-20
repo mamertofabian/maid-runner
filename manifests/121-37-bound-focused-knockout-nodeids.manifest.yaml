@@ -1,0 +1,68 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Bound focused knockout to a small prefix of detecting nodeids"
+type: refactor
+created: "2026-08-13T11:08:49Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  After 121-36, popular artifacts such as slug_from_path keep ~1500 proven
+  detecting nodeids. Focused knockout then reruns those tests three times per
+  artifact. Mutation replaces the body with NotImplementedError, so one caller
+  is enough to detect the rewrite.
+
+  Keep a stable prefix of at most eight proven detecting nodeids on the focused
+  command. Fewer than eight stay unchanged. Exact fallback is unchanged.
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not replay every detecting caller of a popular artifact during focused knockout."
+    instead: "Use a stable prefix of at most eight proven detecting nodeids."
+  - risk: "Do not drop focused knockout when more than eight detecting nodeids exist."
+    instead: "Truncate the focused nodeid list; keep used_exact_fallback false."
+files:
+  create:
+    - path: tests/core/test_focused_knockout_bounds_detecting_nodeids.py
+      artifacts:
+        - kind: test_function
+          name: test_focused_knockout_uses_at_most_eight_detecting_nodeids
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Focused knockout must cap proven detecting nodeids so popular artifacts do not rerun thousands of tests."
+  read:
+    - manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml
+    - tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py
+validate:
+  - uv run python -m pytest -q tests/core/test_focused_knockout_bounds_detecting_nodeids.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py
+  - uv run maid validate manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T11:25:00Z"
+  summary: "Focused knockout uses a stable prefix of at most eight proven detecting nodeids. Popular artifacts no longer replay every caller."
+  rationale: "After 121-36, slug_from_path kept ~1500 proven detecting nodeids. The knockout rewrite raises NotImplementedError, so one caller is enough. Capping at eight keeps focused knockout cheap without exact-falling back the full suite."
+  lessons:
+    - lesson_type: performance
+      summary: "Bound focused knockout nodeids; mutation detection does not need every caller of a popular helper."
+      tags: [performance, knockout]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Fewer than eight detecting nodeids stay unchanged. Exact fallback is unchanged. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_focused_knockout_bounds_detecting_nodeids.py, tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py, tests/core/test_focused_knockout_broad_selector_sibling_unproven.py]
+      status: passed
+      summary: "5 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-plan-lock-git-subdirectory-paths.manifest.yaml",
   "manifest_hash": "sha256-contract:825b8b8488239b21b9acd981b9ede6824d4824a71e21a12f1f65ff67d56bb368",
   "test_hashes": {
-    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:ef144a0cae45236390e546698348f55863ed7f9bf61b1ebae62a60c3efcbb3fa",
-    "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d"
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+    "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a"
   },
   "created_at": "2026-07-25T10:07:25.690017+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:668e7dc25db45ef879cd65b8da2dda1480c1c782be9f5a5f61b1005f134dfd26",
@@ -46,6 +46,42 @@
           "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:kind=test_function",
           "tests/core/test_plan_lock_git_subdirectory.py:test_legacy_baseline_rejects_untracked_path_in_git_subdirectory:returns=None"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:825b8b8488239b21b9acd981b9ede6824d4824a71e21a12f1f65ff67d56bb368",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:ef144a0cae45236390e546698348f55863ed7f9bf61b1ebae62a60c3efcbb3fa",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:d9b4e0ce697623d0f636de2eec40ddf67a27fbd73067a33b876aaafcdfa68e6d"
+      },
+      "revised_at": "2026-08-11T00:27:09.053850+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:825b8b8488239b21b9acd981b9ede6824d4824a71e21a12f1f65ff67d56bb368",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:376f8f306819360f715826d50de03be6f0675ab4fed0c09b8076a2613c2bac1d",
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a"
+      },
+      "revised_at": "2026-08-11T01:13:17.982008+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

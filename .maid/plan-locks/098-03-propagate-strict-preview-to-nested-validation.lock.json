@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
     "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
-    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af"
+    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c"
   },
   "created_at": "2026-08-09T14:31:33.745863+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3a6480da457a3e340a1aaa5a59c2b513b14861e702a80cab416b39c86147c994",
@@ -159,6 +159,25 @@
           "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:kind=test_function",
           "tests/cli/test_nested_strict_preview.py:test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread:returns=None"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4143412daa8e3348745223233b8361864c05582cafa0e2851ad7865e91c971f6",
+      "prior_test_hashes": {
+        "tests/cli/test_strict_preview.py": "sha256-pyast:v2:1d7c570f2a7df2f764df90548fba3a6f4a10e4b4e01559577025886055831ea6",
+        "tests/cli/test_strict_delta_cmd.py": "sha256-pyast:v2:9c6ba808361543d2a4b86216a728644e74b9ca23202dd8fa7ffe473ec6307551",
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af"
+      },
+      "revised_at": "2026-08-10T23:47:21.007972+00:00",
+      "reason": "accept approved 121-04 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

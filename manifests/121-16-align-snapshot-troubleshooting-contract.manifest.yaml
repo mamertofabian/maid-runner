@@ -1,0 +1,137 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Align the E712 troubleshooting contract with isolated snapshot recovery
+type: fix
+created: "2026-08-12T09:05:55Z"
+supersedes:
+  - 068-04-document-constraint-evidence-gates
+metadata:
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - validation-trust
+    - documentation
+    - regression
+  priority: high
+description: |
+  Replace the obsolete documentation-test requirement that E712 recovery tell
+  users to run `git checkout -- <file>`. Knockout execution now occurs in an
+  isolated current-byte snapshot and must leave the shared checkout unchanged;
+  source-repository identity drift is investigated through Git status, refs,
+  configuration, and worktree registrations instead of a destructive checkout.
+
+  This is a test-only correction of a stale contract. It supersedes 068-04
+  because that manifest explicitly required the old recovery instruction;
+  additive chain merge cannot retire that requirement. The current documentation
+  already has the intended safe guidance from 121-13, so implementation consists
+  only of aligning the behavioral assertion. The other E710-E712 and review-skill
+  assertions remain unchanged.
+
+  Evidence lifecycle is pinned: after approval, restore the tracked stale
+  assertion and lock this draft against its genuine deterministic failure; then
+  apply the approved safe-guidance assertions, revise the lock with
+  `--test-only-green`, promote through `maid manifest promote`, and preserve-revise
+  the 095-04 shared-test dependent. Do not create an initial `--no-run` lock.
+temptations:
+  - risk: Reinsert the obsolete `git checkout -- <file>` substring merely to make the old assertion pass.
+    instead: Assert the snapshot-era recovery guidance that the shared checkout remains unchanged and Git identities are inspected.
+  - risk: Normalize or ignore the deterministic full-suite failure in the performance acceptance probe.
+    instead: Make the repository's ordinary serial suite green before accepting parallel report equivalence.
+  - risk: Leave the shared-test dependent lock stale after changing the assertion.
+    instead: Use `maid plan dependents` and revise 095-04 with its valid preserved evidence.
+  - risk: Use an initial no-run lock because the documentation already has the intended guidance.
+    instead: Lock against the tracked stale assertion's genuine failure, then revise the approved test-only contract with test-only-green evidence.
+files:
+  edit:
+    - path: tests/test_constraint_evidence_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_constraint_evidence_docs_describe_opt_in_gates
+          args: []
+        - kind: test_function
+          name: test_troubleshooting_covers_e710_through_e712
+          args: []
+        - kind: test_function
+          name: test_review_skill_payloads_quote_constraint_evidence_command
+          args: []
+  read:
+    - docs/troubleshooting.md
+    - README.md
+    - docs/maid_specs.md
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - .codex/skills/maid-implementation-review/SKILL.md
+    - manifests/068-04-document-constraint-evidence-gates.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/095-04-migrate-generated-profile-payloads.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py
+  - uv run maid validate manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-12T09:18:00Z"
+  summary: "Aligned the E712 documentation contract with isolated-snapshot recovery and removed the obsolete destructive checkout requirement."
+  rationale: "The knockout snapshot redesign intentionally leaves the shared checkout unchanged, so troubleshooting tests now require inspection of Git identity state instead of restoring a file that the harness must never modify."
+  lessons:
+    - lesson_type: workflow
+      summary: "Manifest promotion may recapture ordinary green evidence; test-only contracts must verify and, when necessary, explicitly restore test-only-green evidence on the promoted lock."
+      tags:
+        - plan-lock
+        - test-only-green
+        - promotion
+      paths:
+        - manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml
+        - .maid/plan-locks/121-16-align-snapshot-troubleshooting-contract.lock.json
+    - lesson_type: test-design
+      summary: "Documentation assertions should pin the complete safe recovery behavior and explicitly reject obsolete destructive guidance."
+      tags:
+        - documentation
+        - safety
+        - regression
+      paths:
+        - tests/test_constraint_evidence_docs.py
+        - docs/troubleshooting.md
+  review_notes:
+    - source: review_121_16_implementation
+      severity: ready
+      summary: "Independent review found the promoted lock had lost test-only-green mode; revision 4 restored it, task-scoped enforcement passed, and final re-review returned Ready with no remaining findings."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "Full repository suite passed: 4,185 passed and 14 skipped in 405.28 seconds."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml
+      status: passed
+      summary: "Both declared manifest commands passed; the focused documentation scope reported 6 passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --plan-lock-scope
+        - task
+        - --test-scope
+        - task
+        - --since
+        - 8e4124a
+      status: passed
+      summary: "Combined handoff verification passed all 9 stages in 41.974 seconds with only existing E307 advisories."

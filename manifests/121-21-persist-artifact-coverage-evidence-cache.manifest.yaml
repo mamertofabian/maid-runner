@@ -1,0 +1,92 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Persist artifact-coverage evidence under a hermetic cache key"
+type: feature
+created: "2026-08-13T09:34:50Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - verify
+    - artifact-coverage
+    - cache
+description: |
+  Repeat deep runs still recompute coverage from scratch. Persist coverage
+  command records and the resulting report under a hermetic key: full-tree
+  content digest, typed resolved-environment identity, and runner version.
+  Cache red results too. Disclose every hit via ArtifactCoverageReport.cache_hit.
+  --no-cache skips both read and write. Never key on Git commit, mtime, or a
+  test-file list; those are incomplete and were rejected on 2026-08-13.
+temptations:
+  - risk: "Do not key the cache on Git commit, mtime, or a test-file list."
+    instead: "Hash content digest plus resolved-environment identity plus runner version."
+  - risk: "Do not cache only green reports."
+    instead: "Store unsuccessful coverage reports and replay them with cache_hit disclosure."
+  - risk: "Do not hide cache hits."
+    instead: "Set cache_hit True on the reconstructed report and include it in to_dict."
+files:
+  create:
+    - path: tests/cli/test_artifact_coverage_evidence_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_repeat_coverage_stage_reuses_cached_report
+          args: []
+        - kind: test_function
+          name: test_content_digest_change_misses_cache
+          args: []
+        - kind: test_function
+          name: test_no_cache_bypasses_stored_result
+          args: []
+        - kind: test_function
+          name: test_red_coverage_results_are_cached
+          args: []
+        - kind: test_function
+          name: test_cache_key_ignores_git_commit
+          args: []
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: attribute
+          name: cache_hit
+          of: ArtifactCoverageReport
+          type: bool
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Load and store coverage reports under the hermetic key; honor no_cache."
+    - path: maid_runner/cli/commands/_main.py
+      reason: "Add --no-cache on maid verify."
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/__version__.py
+    - tests/cli/test_verify_deep_evidence_reuse.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_artifact_coverage_evidence_cache.py tests/cli/test_verify_deep_evidence_reuse.py
+  - uv run maid validate manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T17:40:00Z"
+  summary: "Deep artifact-coverage reports persist under a hermetic key of content digest, typed resolved-environment identity, and runner version. Red reports are cached. Hits set cache_hit and skip collection. --no-cache skips read and write. Git commits are not part of the key."
+  rationale: "Repeat deep runs were recomputing coverage from scratch. The rejected incomplete keys were Git commit, mtime, and test-file lists. .maid/cache is already excluded from the content digest, so stored payloads cannot poison the key."
+  lessons:
+    - lesson_type: performance
+      summary: "Persistent coverage evidence must be keyed by content digest plus resolved-environment identity plus runner version, cache red results, and disclose hits."
+      tags: [performance, artifact-coverage, cache]
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - maid_runner/core/artifact_coverage.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Task-scope manifest_paths and evidence_mode are part of the key so scoped runs cannot reuse a full-chain payload. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_artifact_coverage_evidence_cache.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "19 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

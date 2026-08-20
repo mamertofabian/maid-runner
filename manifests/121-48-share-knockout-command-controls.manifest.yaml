@@ -1,0 +1,326 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Share exact-command knockout baselines without weakening restored-control proof"
+type: refactor
+created: "2026-08-17T22:16:03Z"
+supersedes:
+  - 121-47-template-fresh-knockout-roots
+description: |
+  The release-baseline deep gate still launches every selected mutation command
+  three times: green baseline, mutant, and restored green. A 40-minute sample
+  advanced only 109 durable checkpoints, and 304 cached proofs contained just
+  162 distinct executed command tuples. Repeated exact commands therefore pay
+  the same green setup hundreds of times even after 121-47 removed live-source
+  snapshot contention.
+
+  Evolve 121-47 only for declarations that have one validate command and share
+  the exact manifest slug, selected focused-or-exact command, environment,
+  source/repository/dependency identity, and process cost. Materialize one
+  stable-path command-group root, run its baseline once, and freeze the complete
+  post-baseline source/Git/generated state as an immutable checkpoint. Before
+  every mutation, delete and recreate that same pathname from the checkpoint,
+  verify the reset byte-for-byte, then run the mutant and restored control in
+  that root. This preserves baseline-generated prerequisites and absolute-path
+  behavior while reducing a group of N proofs from 3N command executions to
+  1+2N. Retained dependency identity must be verified between mutations.
+
+  Multi-command declarations, singleton groups, custom snapshot backends,
+  unsafe or incomplete focused evidence, and any group-key mismatch stay on
+  the existing per-declaration lifecycle. Reset uncertainty, retained
+  dependency or live input identity drift, and baseline failure stop the group
+  and project deterministic E712 errors. A focused mutant that remains green
+  still takes the unchanged exact fallback. Each completed artifact is
+  checkpointed before the next mutation so an interruption preserves only
+  finalized proofs. Returned report ordering, proof fields, cache eligibility,
+  weighted process budgets, and E711/E712 semantics remain deterministic.
+temptations:
+  - risk: "Do not reuse a green exit code while starting mutants from a different filesystem state or pathname."
+    instead: "Freeze the complete post-baseline state and recreate the same stable group pathname before every mutation, then verify the reset before execution."
+  - risk: "Do not share controls across merely similar pytest commands, different manifest slugs, environments, identities, or process costs."
+    instead: "Use the exact selected command plus slug, environment, captured input identities, and process cost as the group boundary; leave mismatches ungrouped."
+  - risk: "Do not share the restored control or infer detection from a mutant exit alone."
+    instead: "Run the restored command after every mutant in that mutation's reset root and require green-red-green proof for each artifact."
+  - risk: "Do not reintroduce the generated-state leak from a mutable worker root."
+    instead: "Replace the entire group root from an immutable post-baseline checkpoint before each mutation and prove non-target generated state cannot cross artifacts."
+  - risk: "Do not force multi-command or unsafe declarations through grouping to improve benchmark counts."
+    instead: "Keep the existing isolated per-declaration lifecycle as the explicit fallback whenever the grouping proof is incomplete."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: WorkerRetainedProjectSnapshotBackend
+          description: "Retain isolated dependencies and immutable input state while supporting exact reset of a stable-path command-group root."
+        - kind: method
+          name: retain
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: self
+          returns: AbstractContextManager[None]
+        - kind: method
+          name: create
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: self
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: function
+          name: build_knockout_mutation_specs
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: limit
+              type: int | None
+              default: "None"
+          returns: tuple[KnockoutMutationSpec, ...]
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: no_cache
+              type: bool
+              default: "False"
+          returns: dict[str, KnockoutReport]
+    - path: tests/core/test_knockout_workers.py
+      artifacts:
+        - kind: test_function
+          name: test_independent_mutations_overlap_without_shared_snapshot_state
+          args:
+            - name: tmp_path
+          returns: None
+          description: "Independent exact-command groups overlap within the weighted budget while each group resets its mutations from isolated state."
+    - path: tests/core/test_knockout_snapshot_template.py
+      artifacts:
+        - kind: test_function
+          name: test_bounded_template_batch_matches_reports_without_snapshot_convoy
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "The real Git-backed default path shares one exact-command group root and remains report-equivalent to the ungrouped materialized backend."
+    - path: tests/core/test_knockout_evidence_cache.py
+      artifacts:
+        - kind: test_function
+          name: test_interrupted_knockout_batch_retains_completed_spec_cache
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A grouped command interruption checkpoints only the completed artifact and resumes the unfinished singleton through the legacy lifecycle."
+    - path: tests/core/test_knockout_cache_key_context.py
+      artifacts:
+        - kind: test_function
+          name: test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "Fresh cache identity still invalidates changed inputs while each three-artifact cache miss uses the grouped 1+2N command lifecycle."
+    - path: tests/core/test_knockout.py
+      artifacts:
+        - kind: test_function
+          name: test_knockout_rechecks_dirty_state_before_each_artifact_rewrite
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "A shared baseline checkpoint restores its generated state before each artifact while mutant-local state remains visible to that artifact's restored control."
+  scope:
+    - path: maid_runner/core/_knockout_worker.py
+      reason: "Schedule exact command groups under the existing weighted process budget and project finalized per-spec reports to checkpointing."
+  create:
+    - path: tests/core/test_knockout_shared_controls.py
+      artifacts:
+        - kind: test_function
+          name: test_exact_command_group_runs_one_baseline_and_resets_generated_state
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_command_groups_do_not_cross_manifest_slug_identity
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_focused_groups_share_only_equal_selected_commands
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_grouped_focused_green_member_keeps_exact_fallback
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_shared_baseline_failure_is_projected_fail_closed_once
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_multi_command_declarations_keep_independent_transitions
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_custom_snapshot_backend_keeps_independent_transitions
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_dependency_drift_between_group_mutations_fails_closed
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_live_input_drift_during_group_returns_e712_reports
+          args:
+            - name: tmp_path
+              type: Path
+            - name: drift
+              type: str
+          returns: None
+        - kind: test_function
+          name: test_mixed_cache_hits_group_only_remaining_exact_commands
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_group_checkpoints_completed_artifact_before_later_failure
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+  read:
+    - manifests/121-12-require-differential-knockout-detection.manifest.yaml
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
+    - manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml
+    - manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml
+    - manifests/121-47-template-fresh-knockout-roots.manifest.yaml
+    - tests/core/test_knockout_differential_detection.py
+    - tests/core/test_knockout_workers.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_knockout_snapshot_template.py
+    - tests/core/test_knockout_evidence_cache.py
+    - tests/core/test_retained_worker_snapshots.py
+    - tests/core/test_knockout_batch.py
+    - tests/core/test_knockout_cache_key_context.py
+    - tests/core/test_shared_environment_snapshots.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout.py
+  - uv run maid validate manifests/121-48-share-knockout-command-controls.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T23:11:00Z"
+  summary: Exact-command knockout groups now share one immutable post-baseline checkpoint while preserving per-artifact mutant and restored controls, focused fallback, weighted scheduling, fail-closed drift handling, and durable cache checkpoints.
+  rationale: |
+    Eligible single-command declarations with the same manifest slug and exact
+    selected command now execute one green baseline, freeze the complete
+    baseline-generated root, and recreate the same pathname from that immutable
+    checkpoint before every mutation. Each artifact still runs its own mutant
+    and restored control, reducing an N-artifact group from 3N command launches
+    to 1+2N without reusing mutable generated or Git state.
+
+    Revision review evolved three inherited assumptions that contradicted the
+    grouped lifecycle: interrupted cache evidence now uses public execution,
+    cache invalidation expects 14 rather than 18 launches across two
+    three-artifact misses, and dirty-state reset expects one shared baseline.
+    Deterministic E711 negative evidence remains cacheable; incomplete E712
+    harness/control evidence does not.
+
+    Evidence: the expanded contract passed 117 tests; implementation validation
+    passed; all 268 active manifests validated; all 297 declared command groups
+    passed, including 4,440 pytest passes and 9 skips in the broad batch; the
+    task-scoped verify gate passed all 8 stages in 70 seconds; Black, Ruff, and
+    git diff checks passed; and independent implementation review returned
+    Ready to merge with no blockers, should-fixes, or nitpicks.
+  lessons:
+    - lesson_type: performance
+      summary: Repeated exact mutation commands can safely share only their immutable post-baseline filesystem checkpoint; every artifact must retain its own mutant and restored control.
+      tags: [knockout, command-grouping, deep-verification, performance]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - maid_runner/core/_knockout_worker.py
+        - maid_runner/core/knockout.py
+    - lesson_type: validation-trust
+      summary: Shared controls widen the trust boundary, so complete root reset, stable pathname, live source and repository identity, retained dependency identity, and E712 cache exclusion must remain fail-closed.
+      tags: [snapshot-isolation, cache-integrity, fail-closed, restored-control]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: 121_48_revision_review
+      severity: blocking-fixed
+      summary: Plan review removed private cache-helper spying and evolved inherited interruption and dirty-state tests to public behavioral seams before final lock revision 6.
+    - source: 121_48_impl_review
+      severity: ready
+      summary: Final implementation review found no blockers, should-fixes, or nitpicks across grouping, reset, scheduling, cache, failure projection, and cleanup behavior.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_shared_controls.py, tests/core/test_knockout_differential_detection.py, tests/core/test_knockout_workers.py, tests/core/test_knockout_snapshot_template.py, tests/core/test_knockout_evidence_cache.py, tests/core/test_retained_worker_snapshots.py, tests/core/test_knockout_batch.py, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_cache_key_context.py, tests/core/test_shared_environment_snapshots.py, tests/core/test_knockout.py]
+      status: passed
+      summary: All 117 shared-control and inherited knockout regression tests passed.
+    - command: [uv, run, maid, validate, manifests/121-48-share-knockout-command-controls.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Implementation validation passed against plan-lock revision 6.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 268 active manifests passed; 348 superseded manifests were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 297 declared command groups passed.
+    - command: [uv, run, maid, verify, --summary, --plan-lock-scope, task, --since, HEAD]
+      status: passed
+      summary: All 8 task-scoped handoff stages passed with no blocking findings.

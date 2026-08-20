@@ -7,12 +7,12 @@
     "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
     "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
     "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
-    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
     "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
     "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
   },
   "created_at": "2026-08-04T00:25:57.293346+00:00",
-  "revision": 4,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:172cb0c328c6856ece8eb1d6d2ebeac6c0a3ff212c8c2452a0d2c1a7557c322b",
@@ -76,6 +76,54 @@
       },
       "revised_at": "2026-08-10T03:29:37.899818+00:00",
       "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1d054ff61dc5d61ed05ab08987f98c034ea2217cc0b89d3ab4f3a6b6f20df5dc",
+      "prior_test_hashes": {
+        "tests/core/validation/test_scope_only_contract_coverage.py": "sha256-pyast:v2:72d8fa9940d0ea237b5f24ae65a7e83a87dc7563b42b7bd461b9dca5f059c9c1",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
+      },
+      "revised_at": "2026-08-11T03:36:51.417175+00:00",
+      "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1d054ff61dc5d61ed05ab08987f98c034ea2217cc0b89d3ab4f3a6b6f20df5dc",
+      "prior_test_hashes": {
+        "tests/core/validation/test_scope_only_contract_coverage.py": "sha256-pyast:v2:72d8fa9940d0ea237b5f24ae65a7e83a87dc7563b42b7bd461b9dca5f059c9c1",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_types.py": "sha256-pyast:v2:e943564caba5c57183945db3a8dcdc0336d8e0c0514eaa2cf132fd5378cde0d7",
+        "tests/core/validation/test_file_scope_gates.py": "sha256-pyast:v2:c81113b8d31a5f007e2148deebdcbc1359de4b6bd488429f37bfaccd9b6c47d8",
+        "tests/cli/test_files_cmd.py": "sha256-pyast:v2:fcc18624b8134c15317b4f839110bb16c94b509ec0be3998efb9bbd008bdc78a",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/core/test_coverage_recommendation.py": "sha256-pyast:v2:013a5059507f56a0d5c1578e7ed7db1cebb84f9e74fcd7817296dee2f4590215"
+      },
+      "revised_at": "2026-08-11T04:03:22.815879+00:00",
+      "reason": "accept final approved 121-07 shared implementation and test hashes",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

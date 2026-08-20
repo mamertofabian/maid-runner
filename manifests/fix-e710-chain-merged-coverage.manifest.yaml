@@ -1,0 +1,120 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Merge artifact-coverage evidence by artifact identity so one executed owner clears stale E710 failures"
+type: fix
+created: "2026-08-17T12:02:56Z"
+metadata:
+  priority: high
+  tags:
+    - artifact-coverage
+    - deep-verification
+    - e710
+description: |
+  Directory validation and deep verification evaluate several active manifests
+  independently, then combine their artifact-coverage reports. The current
+  combiner concatenates findings and diagnostics, so an artifact declared by
+  more than one effective owner can remain blocked by E710 even when another
+  owner proves that exact artifact executed. Merge reports by the complete
+  finding identity (file, kind, parent class, and name), preserve first-seen
+  order, and OR execution evidence across owners.
+
+  E710 diagnostics whose file and displayed artifact identity form a complete
+  one-to-one set with their report's false findings are regenerated canonically
+  from the merged false findings. Non-E710 errors and malformed/orphaned,
+  identity-mismatched, or count-mismatched E710 diagnostics remain visible in
+  original order so incomplete evidence fails closed. Preserve the first
+  available execution summary; aggregate provenance and cache-hit flags remain
+  unset because mixed reports cannot honestly claim one provenance or a
+  complete cache hit.
+temptations:
+  - risk: "Do not merely deduplicate the first finding or E710 diagnostic; that makes result order decide whether the gate passes."
+    instead: "Key findings by all four identity dimensions and OR executed across every report before rebuilding canonical E710 diagnostics."
+  - risk: "Do not discard malformed, orphaned, or count-mismatched E710 diagnostics as if they were trustworthy finding pairs."
+    instead: "Preserve those diagnostics in input order and append canonical blockers for every merged false finding."
+  - risk: "Do not fix only the deep verifier call site while leaving directory validation on concatenation."
+    instead: "Expose one public core merger and route every aggregate validation path through it."
+files:
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: merge_artifact_coverage_reports
+          args:
+            - name: reports
+              type: Iterable[ArtifactCoverageReport]
+          returns: ArtifactCoverageReport
+          description: "Unions report findings by complete artifact identity, preserves deterministic order and fail-closed diagnostics, and retains the first execution summary."
+    - path: tests/core/test_chain_merge_coverage_wiring.py
+      artifacts:
+        - kind: test_function
+          name: test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts
+          description: "Legacy-named compatibility test proves aggregate verification accepts an executed duplicate owner while conflicting persisted owner evidence remains fail-closed UNKNOWN."
+  scope:
+    - path: maid_runner/cli/commands/validate.py
+      reason: "Route directory validation and the verifier's shared aggregate path through the public coverage-report union."
+  create:
+    - path: tests/core/test_chain_merged_artifact_coverage.py
+      artifacts:
+        - kind: test_function
+          name: test_merge_unions_execution_by_complete_identity_and_regenerates_e710
+          args: []
+        - kind: test_function
+          name: test_merge_preserves_noncoverage_and_malformed_e710_diagnostics
+          args: []
+        - kind: test_function
+          name: test_merge_preserves_equal_count_orphaned_e710_diagnostic
+          args: []
+        - kind: test_function
+          name: test_merge_retains_first_execution_summary_without_claiming_mixed_provenance
+          args: []
+        - kind: test_function
+          name: test_directory_validation_accepts_execution_from_either_owner
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+        - kind: test_function
+          name: test_verify_artifact_coverage_accepts_execution_from_either_owner
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+  read:
+    - maid_runner/core/result.py
+    - maid_runner/cli/commands/verify.py
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merged_artifact_coverage.py tests/core/test_chain_merge_coverage_wiring.py
+  - uv run maid validate manifests/fix-e710-chain-merged-coverage.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T13:36:50Z"
+  summary: "Artifact-coverage aggregation now unions execution by complete identity, regenerates trustworthy E710 canonically, and preserves malformed or identity-mismatched diagnostics fail closed."
+  rationale: "The release deep gate exposed duplicate-owner reports where one owner executed an artifact while another retained stale E710. Independent review then found equal-count orphan diagnostics could be discarded, so the final merger associates diagnostics by file and displayed artifact identity before normalization."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Diagnostic counts alone cannot establish finding correspondence; fail-closed normalization needs an observable artifact identity association."
+      tags: [artifact-coverage, e710, fail-closed]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+  review_notes:
+    - source: release_e710_impl_review
+      severity: blocking-fixed
+      summary: "Review reproduced an equal-cardinality orphan E710 that disappeared; revision 8 added identity-aware preservation and a focused regression."
+    - source: release_e710_impl_review
+      severity: ready
+      summary: "Re-review found no remaining code findings and confirmed malformed and over-count diagnostics remain blocking."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merged_artifact_coverage.py, tests/core/test_chain_merge_coverage_wiring.py, tests/core/test_approved_fixture_artifact_coverage.py]
+      status: passed
+      summary: "All 17 focused union, legacy wiring, and fixture-projection tests passed."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 268 active manifests passed after the final implementation revisions."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 297 declared command groups passed."

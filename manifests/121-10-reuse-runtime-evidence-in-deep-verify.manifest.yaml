@@ -1,0 +1,257 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Use grouped runtime evidence in deep artifact coverage while always running ordinary tests fresh"
+type: refactor
+created: "2026-08-10T09:10:00Z"
+metadata:
+  status: implementation-ready
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, verify, artifact-coverage, runtime-evidence]
+description: |
+  At the existing artifact-coverage boundary, collect fixture-aware evidence
+  once per compatible pytest behavior group and evaluate it through 121-09's
+  exact report-equivalence boundary. Evidence is limited to manifests with
+  runtime coverage targets. Missing, stale, incomplete, selector-different,
+  environment-different, or otherwise unsafe evidence executes the affected
+  exact legacy coverage command; evidence preparation failure or unsupported
+  outer command concurrency runs the complete legacy coverage stage. Bind the
+  evidence run to the project digest captured before execution. If the
+  instrumented command itself changes project content, fail the artifact stage
+  visibly because the pre-execution legacy baseline can no longer be replayed.
+  Bound speculative overhead before execution. A root-contained project
+  conftest.py selects the complete legacy coverage path before chain loading,
+  digest capture, or instrumented pytest: the repository's approved fixture
+  set still left 131 runtime lifecycle contexts unresolved, and a fresh
+  optimized probe exceeded the five-minute decision bound after already paying
+  about 132 seconds for grouped collection. Fixture-free projects retain the
+  proven grouped fast path. Apply the same canonical exclusion boundary as the
+  evidence content digest: `.maid/cache`, `.git`, `.pytest_cache`, `.venv`,
+  `venv`, `node_modules`, and `__pycache__` path components do not count as
+  project conftests. Any non-excluded in-tree conftest file at any depth,
+  including a symlinked file, selects legacy coverage before chain/digest work.
+
+  Never reuse the instrumented command as the ordinary tests result. Pytest
+  instrumentation, project mutations, and refreshed timing history are
+  observable, so the tests stage always runs fresh at its original boundary
+  with the current project bytes, environment, scheduler, notices, ordering,
+  fail-fast behavior, task scope, and worker/process-budget policy. Knockout
+  therefore needs no special result invalidation: tests remain fresh after it.
+  Preserve stage names/order and deterministic text/JSON except durations.
+temptations:
+  - risk: "Do not treat an instrumented coverage result as an ordinary test result."
+    instead: "Use evidence only for artifact coverage and always execute the ordinary tests stage fresh."
+  - risk: "Do not run noncoverage or nonpytest commands early."
+    instead: "Collect evidence only for manifests with runtime coverage targets; leave every residual command at the tests boundary."
+  - risk: "Do not fail verification merely because the optimization cannot prepare evidence."
+    instead: "Run the complete legacy artifact-coverage stage for preparation errors or unsupported outer command concurrency."
+  - risk: "Do not bind evidence to project bytes produced by the instrumented test itself."
+    instead: "Compare pre- and post-execution project digests and fail coverage visibly when the evidence command mutates project content."
+  - risk: "Do not pay for grouped fixture evidence before discovering that exact fallback is still required."
+    instead: "Preflight root-contained project conftests and select legacy coverage before chain, digest, or pytest work; keep the grouped path for fixture-free projects."
+files:
+  create:
+    - path: tests/cli/test_verify_deep_evidence_reuse.py
+      artifacts:
+        - kind: test_function
+          name: test_deep_groups_coverage_execution_and_runs_ordinary_tests_fresh
+          args: []
+        - kind: test_function
+          name: test_residual_and_nonpytest_commands_first_execute_at_tests_stage
+          args: []
+        - kind: test_function
+          name: test_instrumentation_observable_test_cannot_create_false_green_tests_stage
+          args: []
+        - kind: test_function
+          name: test_deep_preserves_artifact_coverage_before_tests_stage_output
+          args: []
+        - kind: test_function
+          name: test_deep_json_matches_legacy_findings_and_fresh_tests_except_durations
+          args: []
+        - kind: test_function
+          name: test_self_mutating_test_failure_remains_visible_at_fresh_tests_stage
+          args: []
+        - kind: test_function
+          name: test_artifact_coverage_fail_fast_does_not_emit_later_tests_stage
+          args: []
+        - kind: test_function
+          name: test_changed_content_or_command_plan_runs_exact_coverage_fallback
+          args: []
+        - kind: test_function
+          name: test_verify_worker_override_reaches_evidence_and_fresh_tests_path
+          args: []
+        - kind: test_function
+          name: test_changed_resolved_environment_identity_runs_exact_coverage_fallback
+          args: []
+        - kind: test_function
+          name: test_intervening_generated_or_untracked_side_effect_runs_exact_coverage_fallback
+          args: []
+        - kind: test_function
+          name: test_project_conftest_uses_legacy_coverage_without_speculative_evidence
+          args: []
+        - kind: test_function
+          name: test_excluded_or_symlinked_conftest_preflight_is_bounded
+          args: []
+        - kind: test_function
+          name: test_knockout_keeps_ordinary_tests_fresh_after_coverage
+          args: []
+  edit:
+    - path: maid_runner/cli/commands/verify.py
+      artifacts:
+        - kind: function
+          name: _run_verify_cached
+          args:
+            - {name: manifest_dir, type: str}
+            - {name: project_root, type: "Union[str, Path]"}
+            - {name: allow_empty, type: bool, default: "False"}
+            - {name: fail_fast, type: bool, default: "True"}
+            - {name: check_assertions, type: bool, default: "True"}
+            - {name: check_stubs, type: bool, default: "True"}
+            - {name: fail_on_warnings, type: bool, default: "True"}
+            - {name: require_worktree_scope, type: bool, default: "False"}
+            - {name: require_changed_scope, type: bool, default: "False"}
+            - {name: changed_scope_explicit, type: bool, default: "False"}
+            - {name: since, type: "str | None", default: "None"}
+            - {name: base_ref, type: "str | None", default: "None"}
+            - {name: file_tracking_scope, type: str, default: "'repository'"}
+            - {name: fail_on_scope_only, type: bool, default: "False"}
+            - {name: include_tests, type: bool, default: "False"}
+            - {name: test_jobs, type: int, default: "1"}
+            - {name: pytest_workers, type: "Union[Union[int, str], None]", default: "None"}
+            - {name: test_scope, type: str, default: "'repository'"}
+            - {name: require_plan_lock, type: bool, default: "False"}
+            - {name: require_red_evidence, type: bool, default: "False"}
+            - {name: plan_lock_scope, type: str, default: "'repository'"}
+            - {name: artifact_coverage, type: bool, default: "False"}
+            - {name: knockout, type: bool, default: "False"}
+            - {name: knockout_limit, type: "int | None", default: "None"}
+            - {name: knockout_allow_dirty, type: bool, default: "False"}
+          returns: VerificationResult
+        - kind: function
+          name: _collect_artifact_coverage_evidence
+          args:
+            - {name: root, type: Path}
+            - {name: manifest_dir, type: str}
+            - {name: test_jobs, type: int, default: "1"}
+            - {name: pytest_workers, type: "Union[Union[int, str], None]", default: "None"}
+          returns: RuntimeEvidenceBundle | None
+          description: "Returns current grouped evidence, or None so coverage uses the complete legacy stage when preparation is unsafe or unsupported."
+        - kind: function
+          name: _artifact_coverage_stage
+          args:
+            - {name: root, type: Path}
+            - {name: manifest_dir, type: str}
+            - {name: evidence, type: "RuntimeEvidenceBundle | None", default: "None"}
+          returns: VerificationStageResult
+    - path: maid_runner/cli/commands/validate.py
+      artifacts:
+        - kind: function
+          name: _run_artifact_coverage_by_manifest
+          args:
+            - {name: manifest_dir, type: str}
+            - {name: project_root, type: Path}
+            - {name: strict_context, type: bool, default: "False"}
+            - {name: evidence, type: "RuntimeEvidenceBundle | None", default: "None"}
+          returns: "dict[str, ArtifactCoverageReport]"
+          description: "Uses invocation evidence when supplied while preserving standalone exact and directory-wide legacy fallback behavior."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+    - maid_runner/core/runtime_evidence.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/test_runner.py
+    - maid_runner/core/_runtime_command_executor.py
+    - maid_runner/core/verify_summary.py
+    - tests/core/test_runtime_evidence.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - tests/core/test_test_runner.py
+    - tests/cli/test_artifact_coverage_cmd.py
+    - tests/cli/test_verify_cmd.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py
+  - uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T04:15:00Z"
+  summary: "Deep artifact coverage now selects complete legacy coverage before chain, digest, or pytest work for fixture-bearing projects, while retaining grouped runtime evidence for fixture-free projects and always running ordinary tests fresh. On maid-runner the decision fell from about 132 seconds of speculative collection to 0.0108 seconds."
+  rationale: "The attempted repository-wide grouped path left 131 lifecycle contexts unresolved, exceeded the agreed five-minute decision bound, and a proposed collection-attribution refinement failed independent safety review because grouped selectors could change import behavior. Restoring the canonical-exclusion-aware conftest preflight removes known wasted work without claiming that the remaining 24–30-minute legacy artifact stage is solved."
+  lessons:
+    - lesson_type: design
+      summary: "Instrumented evidence can safely accelerate coverage attribution but is not observationally equivalent to fresh ordinary tests; those execution boundaries must remain separate."
+      tags: [verification, runtime-evidence, fail-closed]
+      paths:
+        - maid_runner/cli/commands/verify.py
+        - maid_runner/cli/commands/validate.py
+    - lesson_type: testing
+      summary: "Coverage optimization contracts need adversaries for profiler-visible behavior, self-mutation, disappeared targets, mutation followed by preparation failure, worker policy, stage ordering, and exact legacy report parity."
+      tags: [behavioral-testing, artifact-coverage, anti-gaming]
+      paths:
+        - tests/cli/test_verify_deep_evidence_reuse.py
+    - lesson_type: performance
+      summary: "A speculative optimization must bound its fallback overhead. The fixture-heavy repository run exceeded 61 minutes versus prior 28–30 minute baselines because it paid for contextual execution and exact replay; the conftest bypass now restores the legacy bound in 0.14–0.15s of preflight overhead."
+      tags: [performance, deep-verify, fallback]
+      paths:
+        - maid_runner/cli/commands/verify.py
+    - lesson_type: performance
+      summary: "The next significant slice must replace the conservative conftest bypass with cheap lifecycle preflight or smaller exact fallback identities; this manifest is a safe prerequisite, not the final repository-wide time reduction."
+      tags: [performance, pytest-fixtures, roadmap]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+        - maid_runner/core/artifact_coverage.py
+    - lesson_type: performance
+      summary: "A bounded optimization attempt must be removed when it cannot beat its kill criterion; avoiding a 132-second speculative prepass is a real bound improvement but is not an end-to-end deep verification speedup."
+      tags: [performance, rollback, measurement]
+      paths:
+        - maid_runner/cli/commands/verify.py
+  review_notes:
+    - source: review_121_10_implementation
+      severity: warning
+      summary: "The rejected buffered-test design had false-green paths from self-mutation, profiler-observable instrumentation, scheduler changes, lost notices, and preparation failures."
+    - source: review_121_10_safe_redesign
+      severity: warning
+      summary: "Review found target deletion and mutation-followed-by-exception could produce empty successful coverage reports; revisions 15 and 16 added digest and disappeared-target failures."
+    - source: review_121_10_safe_redesign
+      severity: ready
+      summary: "Revision 17 bounds the known repository regression by detecting project conftests before chain/evidence work; final performance re-review found no blocking issues."
+    - source: review_121_rollback_impl
+      severity: ready
+      summary: "Independent review confirmed canonical exclusion consistency, nested and symlink fail-closed handling, fixture-free preservation, and early return ordering after the active-task marker was cleared."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "All 13 focused safety, parity, mutation, and worst-case bypass scenarios passed in 20.61s."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_from_runtime_evidence.py, tests/core/test_test_runner.py, tests/cli/test_artifact_coverage_cmd.py, tests/cli/test_verify_cmd.py]
+      status: passed
+      summary: "The full declared regression scope passed: 173 tests in 70.21s."
+    - command: [uv, run, maid, validate, manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 17."
+    - command: [uv, run, maid, validate, --quiet]
+      status: passed
+      summary: "Repository-wide manifest validation passed."
+    - command: [uv, run, maid, test, --json]
+      status: passed
+      summary: "All 254 active manifest test command groups passed."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, ecd69aa]
+      status: failed
+      summary: "The revision-16 benchmark was manually terminated after more than 61 minutes during active exact fallback, proving an unacceptable contextual-plus-legacy worst-case regression; revision 17 now bypasses contextual evidence for this repository before execution. The known repository E710 backlog means a full legacy deep rerun remains expensive and was not repeated."
+    - command: [uv, run, python, -c, "real repository _collect_artifact_coverage_evidence probe"]
+      status: passed
+      summary: "Revision 17 selected the legacy path for this repository in 0.15s; independent review measured 0.14s."
+    - command: [uv, run, ruff, check, maid_runner/cli/commands/verify.py, maid_runner/cli/commands/validate.py, tests/cli/test_verify_deep_evidence_reuse.py]
+      status: passed
+      summary: "Focused Ruff, repository Black check, and git diff check passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_from_runtime_evidence.py, tests/core/test_test_runner.py, tests/cli/test_artifact_coverage_cmd.py, tests/cli/test_verify_cmd.py]
+      status: passed
+      summary: "Revision-22 declared regression scope passed: 189 tests in 44.28 seconds."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, fecaac0, --summary, --packet]
+      status: passed
+      summary: "All nine handoff stages passed in 54.981 seconds with only pre-existing E307 missing-validator warnings. Assessment recommended deep, but the known 24–30-minute legacy stage was intentionally not rerun after the rejected optimized probe exceeded five minutes."
+    - command: [uv, run, python, -c, "real repository revision-22 conftest preflight probe"]
+      status: passed
+      summary: "Selected complete legacy coverage with no grouped evidence in 0.0108 seconds, before chain, digest, or pytest work."

@@ -1,0 +1,147 @@
+{
+  "manifest_path": "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:c3f959a632caa112f4c915336c5e85cb5439f45f4455231b5e8c757e12c99d64",
+  "test_hashes": {
+    "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60"
+  },
+  "created_at": "2026-08-14T04:45:35.396173+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:324cc536892da994c8cd46c6a63668951963da7254ed7be4f0ad6e125060f586",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60"
+      },
+      "revised_at": "2026-08-14T04:45:37.416600+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/chain-merge-report-consumes-evidence.manifest.yaml -> manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-14T04:45:39.282886+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_chain_merge_detection_wiring.py -v",
+        "exit_code": 1,
+        "output_tail": "            \"          returns: int\\n\"\n            \"validate:\\n\"\n            \"  - python -m pytest -q\\n\"\n        )\n        monkeypatch.chdir(tmp_path)\n    \n        rc = main([\"chain\", \"merge\", \"src/foo.py\", \"--json\", \"--manifest-dir\", \"manifests\"])\n        assert rc == 0\n    \n        payload = json.loads(capsys.readouterr().out)\n        # A real (per-file) source is now wired in, so detection is available even\n        # though the cold cache leaves every artifact UNKNOWN.\n>       assert payload[\"acceptance\"][\"detection_available\"] is True\nE       assert False is True\n\n/home/atomrem/projects/codefrost-dev/maid-runner-chain-merge/tests/core/test_chain_merge_detection_wiring.py:128: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_detection_wiring.py::test_detection_source_for_file_scopes_to_that_file\nFAILED tests/core/test_chain_merge_detection_wiring.py::test_chain_merge_report_marks_detection_available\n============================== 2 failed in 0.23s ===============================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral",
+        "exit_code": 0,
+        "output_tail": "PASS chain-merge-report-consumes-evidence\n  Mode: behavioral\n  Duration: 1210ms",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file",
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file:arg=project_root:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file:kind=function",
+      "maid_runner/core/chain_merge_evidence.py:function:detection_source_for_file:returns=RecordedDetectionEvidenceSource",
+      "tests/core/test_chain_merge_detection_wiring.py:test_chain_merge_report_marks_detection_available",
+      "tests/core/test_chain_merge_detection_wiring.py:test_chain_merge_report_marks_detection_available:kind=test_function",
+      "tests/core/test_chain_merge_detection_wiring.py:test_detection_source_for_file_scopes_to_that_file",
+      "tests/core/test_chain_merge_detection_wiring.py:test_detection_source_for_file_scopes_to_that_file:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merge_detection_wiring.py"
+      ],
+      "edit": [
+        "maid_runner/core/chain_merge_evidence.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/chain.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merge_detection_wiring.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_detection_source_for_file_scopes_to_that_file"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_report_marks_detection_available"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/chain_merge_evidence.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "detection_source_for_file",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str"
+                }
+              ],
+              "returns": "RecordedDetectionEvidenceSource"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/types.py",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/chain.py",
+          "reason": "Pass a per-file-scoped detection source to build_chain_merge_report instead of None, without changing cmd_chain's public signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_chain_merge_detection_wiring.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_chain_merge_detection_wiring.py -v",
+      "uv run maid validate manifests/chain-merge-report-consumes-evidence.manifest.yaml --mode behavioral"
+    ]
+  }
+}
