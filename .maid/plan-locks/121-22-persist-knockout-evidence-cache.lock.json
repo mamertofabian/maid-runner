@@ -2,12 +2,12 @@
   "manifest_path": "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
   "manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
   "test_hashes": {
-    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:057ed465cbd108867a59d55c8e74f0b471c7b9acbff704d1044bffa91d7aec8b",
     "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
     "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3"
   },
   "created_at": "2026-08-13T09:48:31.652060+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:8b6f526afe9762ce227c79ab88a7ca87ab11cf9557a8985de68bfcf63d49b926",
@@ -94,6 +94,25 @@
       },
       "revised_at": "2026-08-17T23:15:35.131224+00:00",
       "reason": "Accept approved grouped checkpoint and worker test evolution from 121-48.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0268e46ea91cae369f24242d94ea6ee087ec5a39c8c187bad2687d85b26822d9",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:e13836884985d60ea30c5711c96ba0a2190e74ce937c0eff48ac7e93a6d9005a",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3"
+      },
+      "revised_at": "2026-08-20T23:00:34.994012+00:00",
+      "reason": "accept shared test-harness performance optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

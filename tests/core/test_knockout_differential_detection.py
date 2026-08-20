@@ -7,6 +7,9 @@ from pathlib import Path
 
 import pytest
 
+from maid_runner.core._knockout_snapshot import (
+    SharedEnvironmentProjectSnapshotBackend,
+)
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode, TestRunResult
 from maid_runner.core.runtime_evidence import (
@@ -129,7 +132,7 @@ def _evidence(
     )
 
 
-def _run(manifest, root: Path, executor, evidence=None):
+def _run(manifest, root: Path, executor, evidence=None, *, grouped: bool = False):
     from maid_runner.core.knockout import run_knockout_batch
 
     reports = run_knockout_batch(
@@ -138,6 +141,10 @@ def _run(manifest, root: Path, executor, evidence=None):
         evidence=evidence,
         allow_dirty=True,
         executor=executor,
+        snapshot_backend=(
+            None if grouped else SharedEnvironmentProjectSnapshotBackend()
+        ),
+        no_cache=True,
     )
     return reports[manifest.source_path]
 
@@ -150,7 +157,13 @@ def test_executing_node_green_red_green_is_positive_detection_proof(tmp_path):
 
     assert callable(KnockoutCommandExecutor().execute)
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     result = report.results[0]
     assert report.success is True
@@ -177,7 +190,13 @@ def test_focused_candidate_that_stays_green_runs_original_command(tmp_path):
     original = tuple(manifest.validate_commands[0])
     executor = _RecordingExecutor((0, 0, 0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert report.results[0].proof.used_exact_fallback is True
@@ -416,7 +435,13 @@ def test_mutant_red_without_restored_green_is_inconclusive_and_falls_back(tmp_pa
     manifest = _write_project(tmp_path)
     executor = _RecordingExecutor((0, 1, 1, 0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert report.results[0].proof.used_exact_fallback is True
@@ -431,7 +456,13 @@ def test_proven_focused_detector_avoids_broad_original_command(tmp_path):
     original = tuple(manifest.validate_commands[0])
     executor = _RecordingExecutor((0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert original not in [call[0] for call in executor.calls]
@@ -452,12 +483,14 @@ def test_differential_and_legacy_honest_fixture_gate_quality_is_monotonic(tmp_pa
         honest_root,
         allow_dirty=True,
         executor=_RecordingExecutor((0, 1, 0)),
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
     )
     unrelated_report = run_knockout(
         unrelated,
         unrelated_root,
         allow_dirty=True,
         executor=_RecordingExecutor((1,)),
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
     )
 
     assert honest_report.success is True
@@ -483,6 +516,8 @@ def test_duplicate_spec_declarations_restore_target_before_next_legacy_side_effe
         tmp_path,
         allow_dirty=True,
         executor=executor,
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
+        no_cache=True,
     )
 
     assert list(reports) == [first.source_path, second.source_path]
